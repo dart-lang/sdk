@@ -16,14 +16,14 @@ main() {
 @reflectiveTest
 class ImplementsRepeatedTest extends PubPackageResolutionTest {
   test_class_implements_2times() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B implements A, A {}
 //                    ^
 // [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -60,7 +60,7 @@ augment class B implements A {}
   }
 
   test_class_implements_2times_viaTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef B = A;
 class C implements A, B {}
@@ -68,7 +68,7 @@ class C implements A, B {}
 // [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -99,7 +99,7 @@ class B implements A, A, A, A {}
   }
 
   test_enum_implements_2times() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 enum E implements A, A {
 //                   ^
@@ -108,7 +108,7 @@ enum E implements A, A {
 }
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -145,7 +145,7 @@ augment enum E implements A {}
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef B = A;
 enum E implements A, B {
@@ -155,7 +155,7 @@ enum E implements A, B {
 }
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -188,13 +188,13 @@ enum E implements A, A, A, A {
   }
 
   test_extensionType_implements_2times() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int, int {}
 //                                       ^^^
 // [diag.implementsRepeated] 'int' can only be implemented once.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -230,14 +230,14 @@ augment extension type A(int it) implements int {}
   }
 
   test_extensionType_implements_2times_viaTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 extension type B(int it) implements int, A {}
 //                                       ^
 // [diag.implementsRepeated] 'int' can only be implemented once.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements

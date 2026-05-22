@@ -17,14 +17,14 @@ main() {
 @reflectiveTest
 class NullAssertPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   if (x case var y!) {}
 //               ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullAssertPattern
   pattern: DeclaredVariablePattern
@@ -40,7 +40,7 @@ NullAssertPattern
   }
 
   test_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   switch (x) {
     case var y!:
@@ -50,7 +50,7 @@ void f(int? x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullAssertPattern
   pattern: DeclaredVariablePattern
@@ -66,14 +66,14 @@ NullAssertPattern
   }
 
   test_variableDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   var (a!) = x;
 //     ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

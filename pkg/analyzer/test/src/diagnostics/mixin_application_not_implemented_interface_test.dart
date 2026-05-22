@@ -117,7 +117,7 @@ class C extends Object with M {}
 
   test_class_recursiveSubtypeCheck() async {
     // See dartbug.com/32353 for a detailed explanation.
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class ioDirectory implements ioFileSystemEntity {}
 
 class ioFileSystemEntity {}
@@ -147,7 +147,7 @@ abstract class Directory implements FileSystemEntity, ioDirectory {}
 mixin DirectoryAddOnsMixin implements Directory {}
 ''');
 
-    var mixins = findElement2.class_('_LocalDirectory').mixins;
+    var mixins = result.findElement.class_('_LocalDirectory').mixins;
     assertType(mixins[0], 'ForwardingDirectory<Directory>');
   }
 

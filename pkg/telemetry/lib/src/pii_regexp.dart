@@ -24,10 +24,12 @@ class _RegExpList {
   final String substitution;
 
   _RegExpList(List<String> uncompiledRegexps, this.substitution)
-      : _regExps = uncompiledRegexps.map((s) => RegExp(s)).toList();
+    : _regExps = uncompiledRegexps.map((s) => RegExp(s)).toList();
 
   String applyTo(String input) => _regExps.fold(
-      input, (previousInput, r) => previousInput.replaceAll(r, substitution));
+    input,
+    (previousInput, r) => previousInput.replaceAll(r, substitution),
+  );
 }
 
 /// An ordered list of regular expressions to be substituted out and replaced
@@ -72,6 +74,6 @@ final _piiFileRegexps = _RegExpList([
 /// Not suitable for pre-scrubbed strings that intentionally include things
 /// that look like filenames.
 String filterPiiFromErrorMessage(String message) => [
-      _piiPathRegexps,
-      _piiFileRegexps,
-    ].fold(message, (previousMessage, r) => r.applyTo(previousMessage));
+  _piiPathRegexps,
+  _piiFileRegexps,
+].fold(message, (previousMessage, r) => r.applyTo(previousMessage));

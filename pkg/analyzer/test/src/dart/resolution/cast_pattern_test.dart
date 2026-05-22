@@ -17,14 +17,14 @@ main() {
 @reflectiveTest
 class CastPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case var y as int) {}
 //               ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: DeclaredVariablePattern
@@ -44,7 +44,7 @@ CastPattern
   }
 
   test_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   switch (x) {
@@ -53,7 +53,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
@@ -72,14 +72,14 @@ CastPattern
   }
 
   test_variableDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   var (a as int) = x;
 //     ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

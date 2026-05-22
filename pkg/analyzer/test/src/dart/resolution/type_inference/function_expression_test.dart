@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class FunctionExpressionTest extends PubPackageResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 FutureOr<void> Function() v = () async {
@@ -26,22 +26,22 @@ FutureOr<void> Function() v = () async {
 // [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'Future<void>' function, as required by the closure's context.
 };
 ''');
-    _assertReturnType('() async {', 'Future<void>');
+    _assertReturnType(result, '() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 Future<void> Function() v = () async {
   return 0;
 //       ^
 // [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'Future<void>' function, as required by the closure's context.
 };
 ''');
-    _assertReturnType('() async {', 'Future<void>');
+    _assertReturnType(result, '() async {', 'Future<void>');
   }
 
   test_contextFunctionType_returnType_async_blockBody_objectQ() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object? Function() v = () async {
@@ -49,7 +49,7 @@ Object? Function() v = () async {
 };
 ''');
 
-    var node = findNode.functionExpression('() async');
+    var node = result.findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -84,31 +84,31 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_async_blockBody_objectQ2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object? Function() v = () async {
   return;
 };
 ''');
-    _assertReturnType('() async', 'Future<Null>');
+    _assertReturnType(result, '() async', 'Future<Null>');
   }
 
   test_contextFunctionType_returnType_async_expressionBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 Future<num> Function() v = () async => 0;
 ''');
-    _assertReturnType('() async =>', 'Future<int>');
+    _assertReturnType(result, '() async =>', 'Future<int>');
   }
 
   test_contextFunctionType_returnType_async_expressionBody2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Future<int> Function() v = () async => foo();
 ''');
 
-    var node = findNode.functionExpression('() async');
+    var node = result.findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -137,20 +137,20 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_async_expressionBody3() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 Future<int> Function() v = () async => Future.value(0);
 ''');
-    _assertReturnType('() async =>', 'Future<int>');
+    _assertReturnType(result, '() async =>', 'Future<int>');
   }
 
   test_contextFunctionType_returnType_async_expressionBody_object() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object Function() v = () async => foo();
 ''');
 
-    var node = findNode.functionExpression('() async');
+    var node = result.findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -179,13 +179,13 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_async_expressionBody_objectQ() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Object? Function() v = () async => foo();
 ''');
 
-    var node = findNode.functionExpression('() async');
+    var node = result.findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -214,16 +214,16 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_asyncStar_blockBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 Stream<num> Function() v = () async* {
   yield 0;
 };
 ''');
-    _assertReturnType('() async*', 'Stream<int>');
+    _assertReturnType(result, '() async*', 'Stream<int>');
   }
 
   test_contextFunctionType_returnType_asyncStar_blockBody2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Stream<int> Function() v = () async* {
@@ -231,7 +231,7 @@ Stream<int> Function() v = () async* {
 };
 ''');
 
-    var node = findNode.functionExpression('() async');
+    var node = result.findNode.functionExpression('() async');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -267,16 +267,16 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 num Function() v = () {
   return 0;
 };
 ''');
-    _assertReturnType('() {', 'int');
+    _assertReturnType(result, '() {', 'int');
   }
 
   test_contextFunctionType_returnType_sync_blockBody2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 int Function() v = () {
@@ -284,7 +284,7 @@ int Function() v = () {
 };
 ''');
 
-    var node = findNode.functionExpression('() {');
+    var node = result.findNode.functionExpression('() {');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -318,31 +318,31 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void Function() v = () {
   return 0;
 //       ^
 // [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'void' function, as required by the closure's context.
 };
 ''');
-    _assertReturnType('() {', 'void');
+    _assertReturnType(result, '() {', 'void');
   }
 
   test_contextFunctionType_returnType_sync_expressionBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 num Function() v = () => 0;
 ''');
-    _assertReturnType('() =>', 'int');
+    _assertReturnType(result, '() =>', 'int');
   }
 
   test_contextFunctionType_returnType_sync_expressionBody2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 int Function() v = () => foo();
 ''');
 
-    var node = findNode.functionExpression('() => foo()');
+    var node = result.findNode.functionExpression('() => foo()');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -370,16 +370,16 @@ FunctionExpression
   }
 
   test_contextFunctionType_returnType_syncStar_blockBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 Iterable<num> Function() v = () sync* {
   yield 0;
 };
 ''');
-    _assertReturnType('() sync*', 'Iterable<int>');
+    _assertReturnType(result, '() sync*', 'Iterable<int>');
   }
 
   test_contextFunctionType_returnType_syncStar_blockBody2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T foo<T>() => throw 0;
 
 Iterable<int> Function() v = () sync* {
@@ -387,7 +387,7 @@ Iterable<int> Function() v = () sync* {
 };
 ''');
 
-    var node = findNode.functionExpression('() sync*');
+    var node = result.findNode.functionExpression('() sync*');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -423,7 +423,7 @@ FunctionExpression
   }
 
   test_downward_argumentType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> items) {
   items.forEach((item) {
     item;
@@ -431,7 +431,7 @@ void f(List<int> items) {
 }
 ''');
 
-    var node = findNode.functionExpression('(item)');
+    var node = result.findNode.functionExpression('(item)');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -462,7 +462,7 @@ FunctionExpression
   }
 
   test_downward_argumentType_Never() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void foo(void Function(Never) a) {}
 
 main() {
@@ -470,7 +470,7 @@ main() {
 }
 ''');
 
-    var node = findNode.functionExpression('(x) {}');
+    var node = result.findNode.functionExpression('(x) {}');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -494,7 +494,7 @@ FunctionExpression
   }
 
   test_downward_argumentType_Null() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void foo(void Function(Null) a) {}
 
 main() {
@@ -502,7 +502,7 @@ main() {
 }
 ''');
 
-    var node = findNode.functionExpression('(x) {}');
+    var node = result.findNode.functionExpression('(x) {}');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -526,7 +526,7 @@ FunctionExpression
   }
 
   test_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   final v = <T>(T a) => <T>[a];
 //      ^
@@ -534,7 +534,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.functionExpression('<T>(');
+    var node = result.findNode.functionExpression('<T>(');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   typeParameters: TypeParameterList
@@ -584,13 +584,13 @@ FunctionExpression
   }
 
   test_location_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final v = () => 42;
 }
 ''');
 
-    var node = findNode.functionExpression('() =>');
+    var node = result.findNode.functionExpression('() =>');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -609,11 +609,11 @@ FunctionExpression
   }
 
   test_location_topLevelVariable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 final v = () => 42;
 ''');
 
-    var node = findNode.functionExpression('() =>');
+    var node = result.findNode.functionExpression('() =>');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -632,118 +632,118 @@ FunctionExpression
   }
 
   test_noContext_returnType_async_blockBody() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () async {
   return 0;
 };
 ''');
-    _assertReturnType('() async {', 'Future<int>');
+    _assertReturnType(result, '() async {', 'Future<int>');
   }
 
   test_noContext_returnType_async_expressionBody() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () async => 0;
 ''');
-    _assertReturnType('() async =>', 'Future<int>');
+    _assertReturnType(result, '() async =>', 'Future<int>');
   }
 
   test_noContext_returnType_asyncStar_blockBody() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () async* {
   yield 0;
 };
 ''');
-    _assertReturnType('() async* {', 'Stream<int>');
+    _assertReturnType(result, '() async* {', 'Stream<int>');
   }
 
   test_noContext_returnType_asyncStar_blockBody_hasReturn_empty() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () async* {
   yield 0;
   return;
 };
 ''');
-    _assertReturnType('() async* {', 'Stream<int>');
+    _assertReturnType(result, '() async* {', 'Stream<int>');
   }
 
   test_noContext_returnType_asyncStar_blockBody_hasReturn_noYield() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () async* {
   return;
 };
 ''');
-    _assertReturnType('() async* {', 'Stream<dynamic>');
+    _assertReturnType(result, '() async* {', 'Stream<dynamic>');
   }
 
   test_noContext_returnType_asyncStar_blockBody_lubNum() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () async* {
   yield 0;
   yield 1.1;
 };
 ''');
-    _assertReturnType('() async* {', 'Stream<num>');
+    _assertReturnType(result, '() async* {', 'Stream<num>');
   }
 
   test_noContext_returnType_asyncStar_blockBody_lubObject() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () async* {
   yield 0;
   yield '';
 };
 ''');
-    _assertReturnType('() async* {', 'Stream<Object>');
+    _assertReturnType(result, '() async* {', 'Stream<Object>');
   }
 
   test_noContext_returnType_asyncStar_blockBody_lubWithNull() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () async* {
   yield 0;
   yield null;
 };
 ''');
-    _assertReturnType('() async* {', 'Stream<int?>');
+    _assertReturnType(result, '() async* {', 'Stream<int?>');
   }
 
   test_noContext_returnType_sync_blockBody() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () {
   return 0;
 };
 ''');
-    _assertReturnType('() {', 'int');
+    _assertReturnType(result, '() {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_dynamic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = (dynamic a) {
   return a;
 };
 ''');
-    _assertReturnType('(dynamic a) {', 'dynamic');
+    _assertReturnType(result, '(dynamic a) {', 'dynamic');
   }
 
   test_noContext_returnType_sync_blockBody_Never() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () {
   throw 42;
 };
 ''');
-    _assertReturnType('() {', 'Never');
+    _assertReturnType(result, '() {', 'Never');
   }
 
   test_noContext_returnType_sync_blockBody_notNullable() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = (bool b) {
   if (b) return 0;
   return 1.2;
 };
 ''');
-    _assertReturnType('(bool b) {', 'num');
+    _assertReturnType(result, '(bool b) {', 'num');
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 
 main() {
@@ -757,7 +757,7 @@ main() {
   };
 }
 ''');
-    _assertReturnType('(E e) {', 'int');
+    _assertReturnType(result, '(E e) {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
@@ -765,7 +765,7 @@ main() {
 enum E { a, b }
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 
 main() {
@@ -779,7 +779,7 @@ main() {
   };
 }
 ''');
-    _assertReturnType('(p.E e) {', 'int');
+    _assertReturnType(result, '(p.E e) {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_language219() async {
@@ -788,7 +788,7 @@ main() {
 enum E { a, b }
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 import 'a.dart' as p;
 
@@ -803,11 +803,11 @@ main() {
   };
 }
 ''');
-    _assertReturnType('(p.E e) {', 'int');
+    _assertReturnType(result, '(p.E e) {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language219() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 enum E { a, b }
 
@@ -822,36 +822,36 @@ main() {
   };
 }
 ''');
-    _assertReturnType('(E e) {', 'int');
+    _assertReturnType(result, '(E e) {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_null_hasReturn() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = (bool b) {
   if (b) return;
 };
 ''');
-    _assertReturnType('(bool b) {', 'Null');
+    _assertReturnType(result, '(bool b) {', 'Null');
   }
 
   test_noContext_returnType_sync_blockBody_null_noReturn() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () {};
 ''');
-    _assertReturnType('() {}', 'Null');
+    _assertReturnType(result, '() {}', 'Null');
   }
 
   test_noContext_returnType_sync_blockBody_nullable() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = (bool b) {
   if (b) return 0;
 };
 ''');
-    _assertReturnType('(bool b) {', 'int?');
+    _assertReturnType(result, '(bool b) {', 'int?');
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   (int a) {
     switch (a) {
@@ -861,11 +861,11 @@ main() {
   };
 }
 ''');
-    _assertReturnType('(int a) {', 'int?');
+    _assertReturnType(result, '(int a) {', 'int?');
   }
 
   test_noContext_returnType_sync_blockBody_nullable_switch_language219() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 main() {
   (int a) {
@@ -876,100 +876,100 @@ main() {
   };
 }
 ''');
-    _assertReturnType('(int a) {', 'int?');
+    _assertReturnType(result, '(int a) {', 'int?');
   }
 
   test_noContext_returnType_sync_expressionBody_dynamic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = (dynamic a) => a;
 ''');
-    _assertReturnType('(dynamic a) =>', 'dynamic');
+    _assertReturnType(result, '(dynamic a) =>', 'dynamic');
   }
 
   test_noContext_returnType_sync_expressionBody_Never() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () => throw 42;
 ''');
-    _assertReturnType('() =>', 'Never');
+    _assertReturnType(result, '() =>', 'Never');
   }
 
   test_noContext_returnType_sync_expressionBody_notNullable() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () => 42;
 ''');
-    _assertReturnType('() =>', 'int');
+    _assertReturnType(result, '() =>', 'int');
   }
 
   test_noContext_returnType_sync_expressionBody_Null() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 main() {
   var v = () => null;
   v;
 }
 ''');
-    _assertReturnType('() =>', 'Null');
+    _assertReturnType(result, '() =>', 'Null');
   }
 
   test_noContext_returnType_syncStar_blockBody() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = () sync* {
   yield 0;
 };
 ''');
-    _assertReturnType('() sync* {', 'Iterable<int>');
+    _assertReturnType(result, '() sync* {', 'Iterable<int>');
   }
 
   test_noContext_returnType_syncStar_blockBody_hasReturn_empty() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () sync* {
   yield 0;
   return;
 };
 ''');
-    _assertReturnType('() sync* {', 'Iterable<int>');
+    _assertReturnType(result, '() sync* {', 'Iterable<int>');
   }
 
   test_noContext_returnType_syncStar_blockBody_hasReturn_noYield() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () sync* {
   return;
 };
 ''');
-    _assertReturnType('() sync* {', 'Iterable<dynamic>');
+    _assertReturnType(result, '() sync* {', 'Iterable<dynamic>');
   }
 
   test_noContext_returnType_syncStar_blockBody_lubNum() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () sync* {
   yield 0;
   yield 1.1;
 };
 ''');
-    _assertReturnType('() sync* {', 'Iterable<num>');
+    _assertReturnType(result, '() sync* {', 'Iterable<num>');
   }
 
   test_noContext_returnType_syncStar_blockBody_lubObject() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () sync* {
   yield 0;
   yield '';
 };
 ''');
-    _assertReturnType('() sync* {', 'Iterable<Object>');
+    _assertReturnType(result, '() sync* {', 'Iterable<Object>');
   }
 
   test_noContext_returnType_syncStar_blockBody_lubWithNull() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 var v = () sync* {
   yield 0;
   yield null;
 };
 ''');
-    _assertReturnType('() sync* {', 'Iterable<int?>');
+    _assertReturnType(result, '() sync* {', 'Iterable<int?>');
   }
 
   test_targetBoundedByFunctionType_argumentTypeMismatch() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
 //                 ^^
@@ -977,7 +977,7 @@ int test<T extends int Function(int)>(T Function() createT) {
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation("('')");
+    var node = result.findNode.functionExpressionInvocation("('')");
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
@@ -1003,13 +1003,13 @@ int test<T extends int Function(int)>(T Function() createT) {
   }
 
   test_targetBoundedByFunctionType_ok() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int test<T extends int Function(int)>(T Function() createT) {
   return createT()(0);
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('(0)');
+    var node = result.findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
@@ -1036,8 +1036,12 @@ int test<T extends int Function(int)>(T Function() createT) {
 ''');
   }
 
-  void _assertReturnType(String search, String expected) {
-    var node = findNode.functionExpression(search);
+  void _assertReturnType(
+    TestResolvedUnitResult result,
+    String search,
+    String expected,
+  ) {
+    var node = result.findNode.functionExpression(search);
     var element = node.declaredFragment!.element;
     assertType(element.returnType, expected);
   }

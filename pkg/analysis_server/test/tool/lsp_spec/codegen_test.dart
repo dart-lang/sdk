@@ -22,7 +22,7 @@ class CodegenTest {
       LspEnum(
         name: 'x',
         typeOfValues: TypeReference.int,
-        members: [
+        constants: [
           Constant(name: 'new', type: TypeReference.string, value: '1'),
         ],
       ),

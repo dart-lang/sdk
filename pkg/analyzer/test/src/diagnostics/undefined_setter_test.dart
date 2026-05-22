@@ -232,7 +232,7 @@ f(p) {
   }
 
   test_static_extension_instanceAccess() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -246,7 +246,7 @@ f(C c) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('a ='), r'''
+    assertResolvedNodeText(result.findNode.assignment('a ='), r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier

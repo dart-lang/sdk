@@ -17,13 +17,13 @@ main() {
 @reflectiveTest
 class AdjacentStringsResolutionTest extends PubPackageResolutionTest {
   test_it() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   'aaa' 'bbb' 'ccc';
 }
 ''');
 
-    var node = findNode.singleAdjacentStrings;
+    var node = result.findNode.singleAdjacentStrings;
     assertResolvedNodeText(node, r'''
 AdjacentStrings
   strings

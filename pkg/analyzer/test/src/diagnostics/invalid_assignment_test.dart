@@ -534,13 +534,13 @@ int Function(int, int) foo = f;
   }
 
   test_functionTearoff_genericInstantiation() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 int Function() foo(int Function<T extends int>() f) {
   return f;
 }
 ''');
 
-    assertResolvedNodeText(findNode.functionReference('f;'), r'''
+    assertResolvedNodeText(result.findNode.functionReference('f;'), r'''
 FunctionReference
   function: SimpleIdentifier
     token: f

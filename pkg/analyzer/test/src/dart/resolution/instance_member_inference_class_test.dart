@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class InstanceMemberInferenceClassTest extends PubPackageResolutionTest {
   test_field_covariant_fromField() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   covariant num foo = 0;
 }
@@ -26,12 +26,12 @@ class B implements A {
   int foo = 0;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'B');
+    var foo = result.findElement.field('foo', of: 'B');
     _assertFieldType(foo, 'int', isCovariant: true);
   }
 
   test_field_covariant_fromSetter() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(covariant num _) {}
 }
@@ -40,12 +40,12 @@ class B implements A {
   int foo = 0;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'B');
+    var foo = result.findElement.field('foo', of: 'B');
     _assertFieldType(foo, 'int', isCovariant: true);
   }
 
   test_field_fromInitializer_inherited() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   var foo = 0;
 }
@@ -54,12 +54,12 @@ class B implements A {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'B');
+    var foo = result.findElement.field('foo', of: 'B');
     _assertFieldType(foo, 'int');
   }
 
   test_field_fromInitializer_preferSuper() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num foo;
 }
@@ -68,12 +68,12 @@ class B implements A {
   var foo = 0;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'B');
+    var foo = result.findElement.field('foo', of: 'B');
     _assertFieldType(foo, 'num');
   }
 
   test_field_multiple_fields_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo = throw 0;
 }
@@ -84,12 +84,12 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'C');
+    var foo = result.findElement.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
   }
 
   test_field_multiple_getters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -100,12 +100,12 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'C');
+    var foo = result.findElement.field('foo', of: 'C');
     _assertFieldType(foo, 'int');
   }
 
   test_field_multiple_getters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   String get foo => throw 0;
 }
@@ -116,12 +116,12 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'C');
+    var foo = result.findElement.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
   }
 
   test_field_multiple_gettersSetters_final_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -135,12 +135,12 @@ class X implements A, B, C {
   final foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'X');
+    var foo = result.findElement.field('foo', of: 'X');
     _assertFieldType(foo, 'int');
   }
 
   test_field_multiple_gettersSetters_final_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   String get foo => throw 0;
 }
@@ -154,12 +154,12 @@ class X implements A, B, C {
   final foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'X');
+    var foo = result.findElement.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
   }
 
   test_field_multiple_gettersSetters_notFinal_combined_notSame() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -173,13 +173,13 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'X');
+    var foo = result.findElement.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
     // TODO(scheglov): error?
   }
 
   test_field_multiple_gettersSetters_notFinal_combined_same() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -193,12 +193,12 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'X');
+    var foo = result.findElement.field('foo', of: 'X');
     _assertFieldType(foo, 'int');
   }
 
   test_field_multiple_gettersSetters_notFinal_incompatible_getters() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   String get foo => throw 0;
 }
@@ -212,12 +212,12 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'X');
+    var foo = result.findElement.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
   }
 
   test_field_multiple_gettersSetters_notFinal_incompatible_setters() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int get foo => throw 0;
 }
@@ -231,12 +231,12 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'X');
+    var foo = result.findElement.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
   }
 
   test_field_multiple_setters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(num _) {}
 }
@@ -247,12 +247,12 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'C');
+    var foo = result.findElement.field('foo', of: 'C');
     _assertFieldType(foo, 'num');
   }
 
   test_field_multiple_setters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(String _) {}
 }
@@ -263,12 +263,12 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement2.field('foo', of: 'C');
+    var foo = result.findElement.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
   }
 
   test_getter_multiple_getters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -279,12 +279,12 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'C');
+    var foo = result.findElement.getter('foo', of: 'C');
     _assertGetterType(foo, 'int');
   }
 
   test_getter_multiple_getters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   String get foo => throw 0;
 }
@@ -295,12 +295,12 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'C');
+    var foo = result.findElement.getter('foo', of: 'C');
     _assertGetterTypeDynamic(foo);
   }
 
   test_getter_multiple_getters_same() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int get foo => throw 0;
 }
@@ -311,12 +311,12 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'C');
+    var foo = result.findElement.getter('foo', of: 'C');
     _assertGetterType(foo, 'int');
   }
 
   test_getter_multiple_gettersSetters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -330,12 +330,12 @@ class X implements A, B, C {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'X');
+    var foo = result.findElement.getter('foo', of: 'X');
     _assertGetterType(foo, 'int');
   }
 
   test_getter_multiple_gettersSetters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   String get foo => throw 0;
 }
@@ -349,12 +349,12 @@ class X implements A, B, C {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'X');
+    var foo = result.findElement.getter('foo', of: 'X');
     _assertGetterTypeDynamic(foo);
   }
 
   test_getter_multiple_setters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(num _) {}
 }
@@ -365,12 +365,12 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'C');
+    var foo = result.findElement.getter('foo', of: 'C');
     _assertGetterType(foo, 'num');
   }
 
   test_getter_multiple_setters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(String _) {}
 }
@@ -381,12 +381,12 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement2.getter('foo', of: 'C');
+    var foo = result.findElement.getter('foo', of: 'C');
     _assertGetterTypeDynamic(foo);
   }
 
   test_invalid_field_overrides_method() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 abstract class A {
   List<T> foo<T>() {}
 }
@@ -395,7 +395,7 @@ class B implements A {
   var foo = <String, int>{};
 }
 ''');
-    var foo = findElement2.field('foo', of: 'B');
+    var foo = result.findElement.field('foo', of: 'B');
     _assertFieldType(foo, 'Map<String, int>');
   }
 
@@ -408,7 +408,7 @@ class C extends B {}
   }
 
   test_method_parameter_covariant_named() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({num p}) {}
 }
@@ -419,12 +419,12 @@ class C implements A, B {
   void foo({int p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     _assertFormalParameter(p, type: 'int', isCovariant: true);
   }
 
   test_method_parameter_covariant_positional() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo([num p]) {}
 }
@@ -435,12 +435,12 @@ class C implements A, B {
   void foo([int p]) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     _assertFormalParameter(p, type: 'int', isCovariant: true);
   }
 
   test_method_parameter_covariant_required() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(num p) {}
 }
@@ -451,12 +451,12 @@ class C implements A, B {
   void foo(int p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     _assertFormalParameter(p, type: 'int', isCovariant: true);
   }
 
   test_method_parameter_named_multiple_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -467,12 +467,12 @@ class C implements A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'num');
   }
 
   test_method_parameter_named_multiple_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -483,12 +483,12 @@ class C implements A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
   test_method_parameter_named_multiple_same() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -499,12 +499,12 @@ class C implements A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'int');
   }
 
   test_method_parameter_namedAndRequired() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -515,12 +515,12 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
   test_method_parameter_required_multiple_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -531,12 +531,12 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'num');
   }
 
   test_method_parameter_required_multiple_different_merge() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(Object? p) {}
 }
@@ -549,12 +549,12 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'Object?');
   }
 
   test_method_parameter_required_multiple_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -565,12 +565,12 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
   test_method_parameter_required_multiple_same() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -581,12 +581,12 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'int');
   }
 
   test_method_parameter_required_single_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   void foo(E p) {}
 }
@@ -594,12 +594,12 @@ class C<T> implements A<T> {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'T');
   }
 
   test_method_parameter_requiredAndPositional() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -610,12 +610,12 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'int');
   }
 
   test_method_return_multiple_different_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -626,12 +626,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_different_dynamic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -642,12 +642,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_different_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   E foo() => throw 0;
 }
@@ -658,12 +658,12 @@ class C implements A<int>, B<double> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -674,12 +674,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_merge() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   Object? foo() => throw 0;
 }
@@ -692,12 +692,12 @@ class C implements A, B {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'Object?');
   }
 
   test_method_return_multiple_different_void() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -708,12 +708,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   E foo() => 0;
 }
@@ -724,12 +724,12 @@ class C<T> implements A<T>, B<T> {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -740,12 +740,12 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_void() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo() {};
 }
@@ -756,12 +756,12 @@ class C implements A, B {
   foo() {};
 }
 ''');
-    var foo = findElement2.method('foo', of: 'C');
+    var foo = result.findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'void');
   }
 
   test_method_return_single() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -769,12 +769,12 @@ class B extends A {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'B');
+    var foo = result.findElement.method('foo', of: 'B');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_single_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   E foo() => throw 0;
 }
@@ -782,12 +782,12 @@ class B<T> extends A<T> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'B');
+    var foo = result.findElement.method('foo', of: 'B');
     assertType(foo.returnType, 'T');
   }
 
   test_setter_covariant_fromSetter() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(num _) {}
 }
@@ -798,12 +798,12 @@ class C implements A, B {
   set foo(int x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'C');
+    var foo = result.findElement.setter('foo', of: 'C');
     _assertSetterType(foo, 'int', isCovariant: true);
   }
 
   test_setter_multiple_getters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   num get foo => throw 0;
 }
@@ -814,12 +814,12 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'C');
+    var foo = result.findElement.setter('foo', of: 'C');
     _assertSetterType(foo, 'int');
   }
 
   test_setter_multiple_getters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   String get foo => throw 0;
 }
@@ -830,12 +830,12 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'C');
+    var foo = result.findElement.setter('foo', of: 'C');
     _assertSetterTypeDynamic(foo);
   }
 
   test_setter_multiple_gettersSetters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(num _) {}
 }
@@ -849,12 +849,12 @@ class X implements A, B, C {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'X');
+    var foo = result.findElement.setter('foo', of: 'X');
     _assertSetterType(foo, 'num');
   }
 
   test_setter_multiple_gettersSetters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(String _) {}
 }
@@ -868,12 +868,12 @@ class X implements A, B, C {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'X');
+    var foo = result.findElement.setter('foo', of: 'X');
     _assertSetterTypeDynamic(foo);
   }
 
   test_setter_multiple_setters_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(num _) {}
 }
@@ -884,12 +884,12 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'C');
+    var foo = result.findElement.setter('foo', of: 'C');
     _assertSetterType(foo, 'num');
   }
 
   test_setter_multiple_setters_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo(String _) {}
 }
@@ -900,12 +900,12 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'C');
+    var foo = result.findElement.setter('foo', of: 'C');
     _assertSetterTypeDynamic(foo);
   }
 
   test_setter_single_setter_withoutParameter() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   set foo() {}
 }
@@ -913,7 +913,7 @@ class B implements A {
   set foo(x) {}
 }
 ''');
-    var foo = findElement2.setter('foo', of: 'B');
+    var foo = result.findElement.setter('foo', of: 'B');
     _assertSetterType(foo, 'dynamic');
   }
 

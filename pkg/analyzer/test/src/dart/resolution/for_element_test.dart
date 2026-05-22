@@ -26,13 +26,13 @@ main() {
 class ForElementResolutionTest_ForEachPartsWithDeclaration
     extends PubPackageResolutionTest {
   test_async_loopVariable_var_stream() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> values) async {
   <int>[await for (var v in values) v];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -59,14 +59,14 @@ ForElement
   }
 
   test_sync_loopVariable_var_iterable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int>[for (var i in [1]) i]; // 1
   <double>[for (var i in [1.1]) i]; // 2
 }
 ''');
 
-    var node_1 = findNode.simple('i]; // 1');
+    var node_1 = result.findNode.simple('i]; // 1');
     assertResolvedNodeText(node_1, r'''
 SimpleIdentifier
   token: i
@@ -74,7 +74,7 @@ SimpleIdentifier
   staticType: int
 ''');
 
-    var node_2 = findNode.simple('i]; // 2');
+    var node_2 = result.findNode.simple('i]; // 2');
     assertResolvedNodeText(node_2, r'''
 SimpleIdentifier
   token: i
@@ -88,12 +88,12 @@ SimpleIdentifier
 class ForElementResolutionTest_ForEachPartsWithIdentifier
     extends PubPackageResolutionTest {
   test_async_iterable_stream() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(v, Stream<int> values) async {
   <int>[await for (v in values) v];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -118,7 +118,7 @@ ForElement
   }
 
   test_sync_iterable_contextType_fromInstanceSetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T g<T>() => throw 0;
 
 class C {
@@ -130,7 +130,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -161,7 +161,7 @@ ForElement
   }
 
   test_sync_iterable_contextType_fromTopLevelSetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T g<T>() => throw 0;
 
 set x(int value) {}
@@ -171,7 +171,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -202,12 +202,12 @@ ForElement
   }
 
   test_sync_iterable_list() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(v, List<int> values) {
   [for (v in values) v];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -231,7 +231,7 @@ ForElement
   }
 
   test_sync_iterable_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A implements Iterable<int> {
   void f(v) {
     [for (v in super) 0];
@@ -240,7 +240,7 @@ abstract class A implements Iterable<int> {
   }
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -262,14 +262,14 @@ ForElement
   }
 
   test_sync_iterable_topLevelVariable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int v = 0;
 main() {
   <int>[for (v in [1, 2, 3]) v];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -303,13 +303,13 @@ ForElement
   }
 
   test_sync_scope_iterable_uses_outer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic v) {
   [for (v in v) 0];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -336,14 +336,14 @@ ForElement
 class ForElementResolutionTest_ForEachPartsWithPattern
     extends PubPackageResolutionTest {
   test_sync_iterable_contextType_patternVariable_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [for (var (int a) in g()) a];
 }
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -386,14 +386,14 @@ ForElement
   }
 
   test_sync_iterable_contextType_patternVariable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [for (var (a) in g()) a];
 }
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -432,12 +432,12 @@ ForElement
   }
 
   test_sync_iterable_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   [for (var (a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -468,12 +468,12 @@ ForElement
   }
 
   test_sync_iterable_list() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   [for (var (a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -504,14 +504,14 @@ ForElement
   }
 
   test_sync_iterable_object() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   [for (var (a) in x) a];
 //                 ^
 // [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Iterable'.
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -542,12 +542,12 @@ ForElement
   }
 
   test_sync_keyword_final_patternVariable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   [for (final (a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -578,12 +578,12 @@ ForElement
   }
 
   test_sync_pattern_patternVariable_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   [for (var (num a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -618,11 +618,11 @@ ForElement
   }
 
   test_sync_scope_topLevelVariableInitializer_uses_outer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = [0, 1, 2];
 final y = [ for (var (x) in x) x ];
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -653,11 +653,11 @@ ForElement
   }
 
   test_sync_topLevelVariableInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = [0, 1, 2];
 final y = [ for (var (a) in x) a ];
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -692,14 +692,14 @@ ForElement
 class ForElementResolutionTest_ForEachPartsWithPattern_await
     extends PubPackageResolutionTest {
   test_async_iterable_contextType_patternVariable_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   [await for (var (int a) in g()) a];
 }
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -743,14 +743,14 @@ ForElement
   }
 
   test_async_iterable_contextType_patternVariable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   [await for (var (a) in g()) a];
 }
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -790,12 +790,12 @@ ForElement
   }
 
   test_async_iterable_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) async {
   [await for (var (a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -827,14 +827,14 @@ ForElement
   }
 
   test_async_iterable_object() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) async {
   [await for (var (a) in x) a];
 //                       ^
 // [diag.forInOfInvalidType] The type 'Object' used in the 'for' loop must implement 'Iterable'.
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -866,12 +866,12 @@ ForElement
   }
 
   test_async_iterable_stream() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   [await for (var (a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -903,12 +903,12 @@ ForElement
   }
 
   test_async_keyword_final_patternVariable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   [await for (final (a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -940,12 +940,12 @@ ForElement
   }
 
   test_async_pattern_patternVariable_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
   [await for (var (num a) in x) a];
 }
 ''');
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   awaitKeyword: await
@@ -985,13 +985,13 @@ ForElement
 class ForElementResolutionTest_ForPartsWithDeclarations
     extends PubPackageResolutionTest {
   test_condition_rewrite() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(bool Function() b) {
   <int>[for (; b(); ) 0];
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('b()');
+    var node = result.findNode.functionExpressionInvocation('b()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1008,14 +1008,14 @@ FunctionExpressionInvocation
   }
 
   test_scope_initializerVariable_visibleInBody() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   <int>[for (var i = 1; i < 10; i += 3) i]; // 1
   <double>[for (var i = 1.1; i < 10; i += 5) i]; // 2
 }
 ''');
 
-    var node_1 = findNode.simple('i]; // 1');
+    var node_1 = result.findNode.simple('i]; // 1');
     assertResolvedNodeText(node_1, r'''
 SimpleIdentifier
   token: i
@@ -1023,7 +1023,7 @@ SimpleIdentifier
   staticType: int
 ''');
 
-    var node_2 = findNode.simple('i]; // 2');
+    var node_2 = result.findNode.simple('i]; // 2');
     assertResolvedNodeText(node_2, r'''
 SimpleIdentifier
   token: i
@@ -1033,7 +1033,7 @@ SimpleIdentifier
   }
 
   test_scope_variables_initializer_uses_outer_sameName() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   [for (var i = i; i < 1; i++) i];
 //          ^
@@ -1043,7 +1043,7 @@ void f(int i) {
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1099,13 +1099,13 @@ ForElement
   }
 
   test_scope_variables_uses_outer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int i) {
   [for (var i2 = i; i2 < 10; ++i2) i2];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1161,13 +1161,13 @@ ForElement
   }
 
   test_scope_variables_visibleInNextVariableInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [for (var i = 0, j = i; j < 1; j++) j];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1236,14 +1236,14 @@ ForElement
 class ForElementResolutionTest_ForPartsWithExpression
     extends PubPackageResolutionTest {
   test_initialization_patternAssignment() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int a;
   [for ((a) = 0;;) a];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1275,7 +1275,7 @@ ForElement
   }
 
   test_update_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     [for (;; super) 0];
@@ -1285,7 +1285,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1309,13 +1309,13 @@ ForElement
 class ForElementResolutionTest_ForPartsWithPattern
     extends PubPackageResolutionTest {
   test_scope_body_uses_outer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) x) {
   [for (var (a, b) = x; b; a--) x];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1378,13 +1378,13 @@ ForElement
   }
 
   test_scope_patternVariables() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) x) {
   [for (var (a, b) = x; b; a--) 0];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1446,13 +1446,13 @@ ForElement
   }
 
   test_scope_patternVariables_shadows_outer_in_expression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) a) {
   [for (var (a, b) = a; b; a--) 0];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for
@@ -1514,13 +1514,13 @@ ForElement
   }
 
   test_scope_variables_uses_outer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, bool) a) {
   [for (var (a2, b) = a; b; a2--) 0];
 }
 ''');
 
-    var node = findNode.singleForElement;
+    var node = result.findNode.singleForElement;
     assertResolvedNodeText(node, r'''
 ForElement
   forKeyword: for

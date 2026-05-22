@@ -225,13 +225,13 @@ void f() {
   }
 
   test_type_element() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 G<int>? g;
 
 typedef G<T> = T Function(double);
 ''');
 
-    var node = findNode.namedType('G<int>');
+    var node = result.findNode.namedType('G<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: G
@@ -254,14 +254,14 @@ NamedType
   }
 
   test_typeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B {}
 
 typedef F<T extends A> = B Function<U extends B>(T a, U b);
 ''');
-    var f = findElement2.typeAlias('F');
+    var f = result.findElement.typeAlias('F');
     expect(f.typeParameters, hasLength(1));
 
     var t = f.typeParameters[0];

@@ -19,7 +19,7 @@ main() {
 class TopLevelVariableResolutionTest extends PubPackageResolutionTest {
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_dontUseInferredType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart=2.17
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
@@ -27,7 +27,7 @@ final x = f(g, (z) => z.length);
 //                      ^^^^^^
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'length' can't be unconditionally accessed because the receiver can be 'null'.
 ''');
-    var node = findNode.variableDeclaration('x =');
+    var node = result.findNode.variableDeclaration('x =');
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -88,13 +88,13 @@ VariableDeclaration
 
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_typeAnnotation() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart=2.17
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final String? x = f(g, (z) => z.length);
 ''');
-    var node = findNode.variableDeclaration('x =');
+    var node = result.findNode.variableDeclaration('x =');
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -154,41 +154,41 @@ VariableDeclaration
   }
 
   test_session_getterSetter() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = 0;
 ''');
-    var getter = findElement2.topGet('v');
+    var getter = result.findElement.topGet('v');
     expect(getter.session, result.session);
 
-    var setter = findElement2.topSet('v');
+    var setter = result.findElement.topSet('v');
     expect(setter.session, result.session);
   }
 
   test_type_inferred_int() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = 0;
 ''');
-    assertType(findElement2.topVar('v').type, 'int');
+    assertType(result.findElement.topVar('v').type, 'int');
   }
 
   test_type_inferred_Never() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = throw 42;
 ''');
-    assertType(findElement2.topVar('v').type, 'Never');
+    assertType(result.findElement.topVar('v').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v;
 ''');
-    assertType(findElement2.topVar('v').type, 'dynamic');
+    assertType(result.findElement.topVar('v').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 var v = null;
 ''');
-    assertType(findElement2.topVar('v').type, 'dynamic');
+    assertType(result.findElement.topVar('v').type, 'dynamic');
   }
 }

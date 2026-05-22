@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ParenthesizedExpressionResolutionTest extends PubPackageResolutionTest {
   test_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     (super);
@@ -27,7 +27,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleParenthesizedExpression;
+    var node = result.findNode.singleParenthesizedExpression;
     assertResolvedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (

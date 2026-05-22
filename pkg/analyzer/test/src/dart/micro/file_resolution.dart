@@ -14,8 +14,6 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -128,10 +126,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   @override
-  Future<void> resolveTestFile() async {
+  Future<TestResolvedUnitResult> resolveTestFile() async {
     result = await resolveFile(testFile);
-    findNode = FindNode(result.content, result.unit);
-    findElement2 = FindElement2(result.unit);
+    return TestResolvedUnitResult(result);
   }
 
   void setUp() {

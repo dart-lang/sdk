@@ -17,47 +17,47 @@ main() {
 @reflectiveTest
 class AwaitExpressionResolutionTest extends PubPackageResolutionTest {
   test_future() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Future<int> a) async {
   await a;
 }
 ''');
-    assertType(findNode.awaitExpression('await a'), 'int');
+    assertType(result.findNode.awaitExpression('await a'), 'int');
   }
 
   test_futureOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 f(FutureOr<int> a) async {
   await a;
 }
 ''');
-    assertType(findNode.awaitExpression('await a'), 'int');
+    assertType(result.findNode.awaitExpression('await a'), 'int');
   }
 
   test_futureOrQ() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 f(FutureOr<int>? a) async {
   await a;
 }
 ''');
-    assertType(findNode.awaitExpression('await a'), 'int?');
+    assertType(result.findNode.awaitExpression('await a'), 'int?');
   }
 
   test_futureQ() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Future<int>? a) async {
   await a;
 }
 ''');
-    assertType(findNode.awaitExpression('await a'), 'int?');
+    assertType(result.findNode.awaitExpression('await a'), 'int?');
   }
 
   test_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() async {
     await super;
@@ -66,7 +66,7 @@ class A {
   }
 }
 ''');
-    var node = findNode.singleAwaitExpression;
+    var node = result.findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
@@ -78,7 +78,7 @@ AwaitExpression
   }
 
   test_super_property() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() async {
     await super.hashCode;
@@ -86,7 +86,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleAwaitExpression;
+    var node = result.findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
@@ -105,7 +105,7 @@ AwaitExpression
   }
 
   test_unresolved_identifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   await unresolved;
 //      ^^^^^^^^^^
@@ -113,7 +113,7 @@ void f() async {
 }
 ''');
 
-    var node = findNode.singleAwaitExpression;
+    var node = result.findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
@@ -126,7 +126,7 @@ AwaitExpression
   }
 
   test_unresolved_prefixedIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
 
 void f() async {
@@ -136,7 +136,7 @@ void f() async {
 }
 ''');
 
-    var node = findNode.singleAwaitExpression;
+    var node = result.findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
@@ -157,7 +157,7 @@ AwaitExpression
   }
 
   test_unresolved_propertyAccess() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() async {
   await 0.isEven.unresolved;
 //               ^^^^^^^^^^
@@ -165,7 +165,7 @@ void f() async {
 }
 ''');
 
-    var node = findNode.singleAwaitExpression;
+    var node = result.findNode.singleAwaitExpression;
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await

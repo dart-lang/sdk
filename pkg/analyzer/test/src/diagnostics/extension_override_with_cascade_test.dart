@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class ExtensionOverrideWithCascadeTest extends PubPackageResolutionTest {
   test_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get g => 0;
 }
@@ -25,11 +25,11 @@ f() {
 // [diag.extensionOverrideWithCascade] Extension overrides have no value so they can't be used as the receiver of a cascade expression.
 }
 ''');
-    assertTypeDynamic(findNode.extensionOverride('E('));
+    assertTypeDynamic(result.findNode.extensionOverride('E('));
   }
 
   test_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void m() {}
 }
@@ -39,11 +39,11 @@ f() {
 // [diag.extensionOverrideWithCascade] Extension overrides have no value so they can't be used as the receiver of a cascade expression.
 }
 ''');
-    assertTypeDynamic(findNode.extensionOverride('E('));
+    assertTypeDynamic(result.findNode.extensionOverride('E('));
   }
 
   test_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set s(int i) {}
 }
@@ -53,6 +53,6 @@ f() {
 // [diag.extensionOverrideWithCascade] Extension overrides have no value so they can't be used as the receiver of a cascade expression.
 }
 ''');
-    assertTypeDynamic(findNode.extensionOverride('E('));
+    assertTypeDynamic(result.findNode.extensionOverride('E('));
   }
 }

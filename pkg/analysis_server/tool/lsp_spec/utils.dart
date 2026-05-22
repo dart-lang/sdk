@@ -37,10 +37,12 @@ Interface interface(
   List<String>? baseTypes,
   String? comment,
   bool abstract = false,
+  bool sealed = false,
 }) {
   return Interface(
     name: name,
     abstract: abstract,
+    sealed: sealed,
     comment: comment,
     baseTypes: [
       if (baseType != null) TypeReference(baseType),

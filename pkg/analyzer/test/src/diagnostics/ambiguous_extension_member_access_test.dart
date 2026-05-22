@@ -36,7 +36,7 @@ int f(A a) => a();
   }
 
   test_getter_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   void get a => 1;
 }
@@ -52,7 +52,7 @@ f() {
 }
 ''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -68,7 +68,7 @@ PropertyAccess
   }
 
   test_getter_getterStatic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   void get a => 1;
 }
@@ -82,7 +82,7 @@ f() {
 }
 ''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -98,7 +98,7 @@ PropertyAccess
   }
 
   test_getter_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get a => 1;
 }
@@ -114,7 +114,7 @@ f() {
 }
 ''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -130,7 +130,7 @@ PropertyAccess
   }
 
   test_getter_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get a => 1;
 }
@@ -146,7 +146,7 @@ f() {
 }
 ''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -260,7 +260,7 @@ void f() {
   }
 
   test_method_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   void a() {}
 }
@@ -276,7 +276,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('0.a()');
+    var node = result.findNode.methodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: IntegerLiteral
@@ -482,7 +482,7 @@ int f(A a) => -a;
   }
 
   test_setter_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   set a(x) {}
 }
@@ -498,7 +498,7 @@ f() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('= 3'), r'''
+    assertResolvedNodeText(result.findNode.assignment('= 3'), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: IntegerLiteral

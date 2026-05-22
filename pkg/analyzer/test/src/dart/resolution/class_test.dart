@@ -21,7 +21,7 @@ main() {
 @reflectiveTest
 class ClassDeclarationResolutionTest extends PubPackageResolutionTest {
   test_element_allSupertypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin B {}
 mixin C {}
@@ -35,26 +35,26 @@ class X4 extends A with B implements C {}
 class X5 extends A with B, C implements D, E {}
 ''');
 
-    assertElementTypes(findElement2.class_('X1').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X1').allSupertypes, [
       'Object',
       'A',
     ]);
-    assertElementTypes(findElement2.class_('X2').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X2').allSupertypes, [
       'Object',
       'B',
     ]);
-    assertElementTypes(findElement2.class_('X3').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X3').allSupertypes, [
       'Object',
       'A',
       'B',
     ]);
-    assertElementTypes(findElement2.class_('X4').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X4').allSupertypes, [
       'Object',
       'A',
       'B',
       'C',
     ]);
-    assertElementTypes(findElement2.class_('X5').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X5').allSupertypes, [
       'Object',
       'A',
       'B',
@@ -65,7 +65,7 @@ class X5 extends A with B, C implements D, E {}
   }
 
   test_element_allSupertypes_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 class B<T, U> {}
 class C<T> extends B<int, T> {}
@@ -75,15 +75,15 @@ class X2 extends B<String, List<int>> {}
 class X3 extends C<double> {}
 ''');
 
-    assertElementTypes(findElement2.class_('X1').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X1').allSupertypes, [
       'Object',
       'A<String>',
     ]);
-    assertElementTypes(findElement2.class_('X2').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X2').allSupertypes, [
       'Object',
       'B<String, List<int>>',
     ]);
-    assertElementTypes(findElement2.class_('X3').allSupertypes, [
+    assertElementTypes(result.findElement.class_('X3').allSupertypes, [
       'Object',
       'B<int, double>',
       'C<double>',
@@ -91,7 +91,7 @@ class X3 extends C<double> {}
   }
 
   test_element_allSupertypes_recursive() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends B {}
 //    ^
 // [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: C, B, A.
@@ -105,32 +105,35 @@ class C extends A {}
 class X extends A {}
 ''');
 
-    assertElementTypes(findElement2.class_('X').allSupertypes, ['A', 'Object']);
+    assertElementTypes(result.findElement.class_('X').allSupertypes, [
+      'A',
+      'Object',
+    ]);
   }
 
   test_element_typeFunction_extends() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends Function {}
 //              ^^^^^^^^
 // [diag.finalClassExtendedOutsideOfLibrary] The class 'Function' can't be extended outside of its library because it's a final class.
 ''');
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     assertType(a.supertype, 'Object');
   }
 
   test_element_typeFunction_extends_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A extends Function {}
 //              ^^^^^^^^
 // [diag.deprecatedExtendsFunction] Extending 'Function' is deprecated.
 ''');
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     assertType(a.supertype, 'Object');
   }
 
   test_element_typeFunction_with() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
@@ -138,11 +141,11 @@ class C extends Object with A, Function, B {}
 // [diag.classUsedAsMixin] The class 'Function' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
 
-    assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
+    assertElementTypes(result.findElement.class_('C').mixins, ['A', 'B']);
   }
 
   test_element_typeFunction_with_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 mixin A {}
 mixin B {}
@@ -151,11 +154,11 @@ class C extends Object with A, Function, B {}
 // [diag.deprecatedMixinFunction] Mixing in 'Function' is deprecated.
 ''');
 
-    assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
+    assertElementTypes(result.findElement.class_('C').mixins, ['A', 'B']);
   }
 
   test_field_static_typeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static T? foo;
 //       ^
@@ -163,7 +166,7 @@ class A<T> {
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   staticKeyword: static
@@ -203,7 +206,7 @@ main() {
   }
 
   test_method_static_typeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static T? foo() {}
 //       ^
@@ -211,7 +214,7 @@ class A<T> {
 }
 ''');
 
-    var node = findNode.singleMethodDeclaration;
+    var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
@@ -235,11 +238,11 @@ MethodDeclaration
   }
 
   test_nameWithTypeParameters_hasTypeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T extends int> {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -266,11 +269,11 @@ ClassDeclaration
   }
 
   test_nameWithTypeParameters_noTypeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -284,11 +287,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A({final int a = 0});
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -325,11 +328,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A({required final int a});
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -362,11 +365,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a(String x));
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -409,11 +412,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -444,11 +447,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_var() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(var int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -479,14 +482,14 @@ ClassDeclaration
   }
 
   test_primaryConstructor_field_staticConst() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final String a, final bool b) {
   static const int foo = 0;
   static const int bar = 1;
 }
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -565,13 +568,13 @@ ClassDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int this.a) {
   final int a;
 }
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -617,14 +620,14 @@ ClassDeclaration
   }
 
   test_primaryConstructor_formalParameters_bodyScope_metadata() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 class A(@foo int x) {
   static const foo = 1;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -655,7 +658,7 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_formalParameters_bodyScope_type() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int x) {
 //      ^^^
 // [diag.notAType] int isn't a type.
@@ -663,7 +666,7 @@ class A(int x) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -686,11 +689,11 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T>.named(T t) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -730,11 +733,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T>(T t) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -771,11 +774,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A.named(int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -807,11 +810,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int a) {}
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -840,14 +843,14 @@ ClassDeclaration
   }
 
   test_primaryConstructor_scopes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 class A<@foo T>([@foo int x = foo]) {
   static const foo = 1;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorDeclaration;
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorDeclaration
   typeName: A
@@ -902,12 +905,12 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructor_superFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a);
 class B(super.a) extends A;
 ''');
 
-    var node = findNode.classDeclaration('class B');
+    var node = result.findNode.classDeclaration('class B');
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -939,11 +942,11 @@ ClassDeclaration
   }
 
   test_primaryConstructor_typeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class D<T extends U, U extends num>(T t, U u);
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -1002,7 +1005,7 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(bool x, bool y) {
   this : assert(x) {
     y;
@@ -1015,7 +1018,7 @@ class A(bool x, bool y) {
 }
 ''');
 
-    var node = findNode.singleClassDeclaration;
+    var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
@@ -1108,14 +1111,14 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_metadata() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A() {
   @deprecated
   this;
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -1133,7 +1136,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_metadata_noDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   @deprecated
   this;
@@ -1142,7 +1145,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   metadata
@@ -1160,7 +1163,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_noDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   this : assert(x) {
 //^^^^
@@ -1174,7 +1177,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1203,13 +1206,13 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final bool a) {
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1229,13 +1232,13 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter_shadowedClassName() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int A()) {
   this : assert(A() > 0);
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1252,14 +1255,14 @@ FunctionExpressionInvocation
   }
 
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(this.a) {
   final bool a;
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1279,7 +1282,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter_shadowedClassName() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int _);
 }
@@ -1290,7 +1293,7 @@ class B(this.A) {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1307,13 +1310,13 @@ FunctionExpressionInvocation
   }
 
   test_primaryConstructorBody_primaryInitializerScope_simpleFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(bool a) {
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1333,14 +1336,14 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_superFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final bool a);
 class B(super.a) extends A {
   this : assert(a);
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1360,14 +1363,14 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryInitializerScope_superFormalParameter_shadowedClassName() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int Function() A);
 class B(super.A) extends A {
   this : assert(A() > 0);
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -1384,7 +1387,7 @@ FunctionExpressionInvocation
   }
 
   test_primaryConstructorBody_primaryParameterScope_declaringFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a) {
   this {
     a;
@@ -1394,7 +1397,7 @@ class A(final int a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1419,7 +1422,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope_fieldFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(this.a) {
   final int a;
   this {
@@ -1430,7 +1433,7 @@ class A(this.a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1455,7 +1458,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope_simpleFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int a) {
   this {
     a;
@@ -1466,7 +1469,7 @@ class A(int a) {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1516,7 +1519,7 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_primaryParameterScope_superFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int a);
 class B(super.a) extends A {
   this {
@@ -1527,7 +1530,7 @@ class B(super.a) extends A {
 }
 ''');
 
-    var node = findNode.singlePrimaryConstructorBody;
+    var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
 PrimaryConstructorBody
   thisKeyword: this
@@ -1552,13 +1555,13 @@ PrimaryConstructorBody
   }
 
   test_primaryInitializerScope_fieldInitializer_instance() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int foo) {
   var bar = foo;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1578,13 +1581,13 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final int foo) {
   var bar = foo;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1604,7 +1607,7 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int foo) {
   late var bar = foo;
 //               ^^^
@@ -1612,7 +1615,7 @@ class A(int foo) {
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -1633,7 +1636,7 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldInitializer_static() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int foo) {
   static var bar = foo;
 //                 ^^^
@@ -1641,7 +1644,7 @@ class A(int foo) {
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   staticKeyword: static
@@ -1662,13 +1665,13 @@ FieldDeclaration
   }
 
   test_primaryInitializerScope_fieldTypeAnnotation_shadowedClassName() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A(int A) {
   A? field;
 }
 ''');
 
-    var node = findNode.namedType('A? field');
+    var node = result.findNode.namedType('A? field');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A

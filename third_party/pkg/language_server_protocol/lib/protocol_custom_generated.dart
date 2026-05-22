@@ -2994,7 +2994,7 @@ class FormField implements ToJsonable {
   }
 }
 
-abstract class FormFieldType implements ToJsonable {
+sealed class FormFieldType implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     FormFieldType.canParse,
     FormFieldType.fromJson,

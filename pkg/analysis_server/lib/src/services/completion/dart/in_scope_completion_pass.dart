@@ -772,8 +772,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // TODO(scheglov): support primary constructors
-    if (offset <= node.typeName!.end) {
+    if (offset <=
+        (node.typeName?.end ??
+            node.newKeyword?.end ??
+            node.factoryKeyword?.end ??
+            node.beginToken.offset)) {
       collector.completionLocation = 'ClassDeclaration_member';
       var parent = node.parent?.parent;
       if (parent != null) {

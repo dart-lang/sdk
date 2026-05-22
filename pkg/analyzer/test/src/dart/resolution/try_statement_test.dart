@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class TryStatementResolutionTest extends PubPackageResolutionTest {
   test_catch_parameters_0() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch () {}
 //              ^
@@ -25,7 +25,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleTryStatement;
+    var node = result.findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -49,7 +49,7 @@ TryStatement
   }
 
   test_catch_parameters_3() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (x, y, z) {}
 //                 ^
@@ -59,7 +59,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleTryStatement;
+    var node = result.findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -89,7 +89,7 @@ TryStatement
   }
 
   test_catch_parameters_stackTrace_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (x, {st}) {}
 //                 ^
@@ -99,7 +99,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleTryStatement;
+    var node = result.findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -129,7 +129,7 @@ TryStatement
   }
 
   test_catch_parameters_stackTrace_optionalPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (x, [st]) {}
 //                 ^
@@ -139,7 +139,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleTryStatement;
+    var node = result.findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -169,7 +169,7 @@ TryStatement
   }
 
   test_catch_withoutType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} catch (e, st) {}
 //                 ^^
@@ -177,7 +177,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleTryStatement;
+    var node = result.findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try
@@ -207,7 +207,7 @@ TryStatement
   }
 
   test_catch_withType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   try {} on int catch (e, st) {}
 //                        ^^
@@ -215,7 +215,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleTryStatement;
+    var node = result.findNode.singleTryStatement;
     assertResolvedNodeText(node, r'''
 TryStatement
   tryKeyword: try

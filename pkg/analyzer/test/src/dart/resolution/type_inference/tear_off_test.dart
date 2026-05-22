@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class TearOffTest extends PubPackageResolutionTest {
   test_empty_contextNotInstantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T x) => x;
 
 void test() {
@@ -28,7 +28,7 @@ void test() {
 }
 ''');
 
-    var node = findNode.simple('f; // 1');
+    var node = result.findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
@@ -39,7 +39,7 @@ SimpleIdentifier
   }
 
   test_empty_notGeneric() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 int f(int x) => x;
 
 void test() {
@@ -50,7 +50,7 @@ void test() {
 }
 ''');
 
-    var node = findNode.simple('f; // 1');
+    var node = result.findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
@@ -61,7 +61,7 @@ SimpleIdentifier
   }
 
   test_notEmpty_instanceMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   T f<T>(T x) => x;
 }
@@ -71,7 +71,7 @@ int Function(int) test() {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -100,14 +100,14 @@ FunctionReference
   }
 
   test_notEmpty_localFunction() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 int Function(int) test() {
   T f<T>(T x) => x;
   return f;
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
@@ -121,7 +121,7 @@ FunctionReference
   }
 
   test_notEmpty_staticMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static T f<T>(T x) => x;
 }
@@ -131,7 +131,7 @@ int Function(int) test() {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
@@ -153,7 +153,7 @@ FunctionReference
   }
 
   test_notEmpty_superMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   T f<T>(T x) => x;
 }
@@ -165,7 +165,7 @@ class D extends C {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -185,7 +185,7 @@ FunctionReference
   }
 
   test_notEmpty_topLevelFunction() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T x) => x;
 
 int Function(int) test() {
@@ -193,7 +193,7 @@ int Function(int) test() {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
@@ -207,7 +207,7 @@ FunctionReference
   }
 
   test_null_notTearOff() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T x) => x;
 
 void test() {
@@ -215,7 +215,7 @@ void test() {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

@@ -59,7 +59,7 @@ typedef F([x = 0]);
   }
 
   test_typeArgument_ofInstanceCreation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 void f() {
@@ -68,6 +68,6 @@ void f() {
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 }
 ''');
-    assertType(findNode.integerLiteral('42'), 'int');
+    assertType(result.findNode.integerLiteral('42'), 'int');
   }
 }

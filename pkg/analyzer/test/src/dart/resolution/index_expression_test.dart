@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class IndexExpressionResolutionTest extends PubPackageResolutionTest {
   test_contextType_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator [](int index) => false;
   operator []=(String index, bool value) {}
@@ -30,7 +30,7 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.methodInvocation('g()');
+    var node = result.findNode.methodInvocation('g()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -49,7 +49,7 @@ MethodInvocation
   }
 
   test_contextType_readWrite_readLower() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator [](int index) => 0;
   operator []=(num index, int value) {}
@@ -62,7 +62,7 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.methodInvocation('g()');
+    var node = result.findNode.methodInvocation('g()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -81,7 +81,7 @@ MethodInvocation
   }
 
   test_contextType_readWrite_writeLower() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator [](num index) => 0;
   operator []=(int index, int value) {}
@@ -96,7 +96,7 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.methodInvocation('g()');
+    var node = result.findNode.methodInvocation('g()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -115,7 +115,7 @@ MethodInvocation
   }
 
   test_contextType_write() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator [](int index) => false;
   operator []=(String index, bool value) {}
@@ -128,7 +128,7 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.methodInvocation('g()');
+    var node = result.findNode.methodInvocation('g()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -147,12 +147,12 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware() async {
-    await assertInvalidTestCode(r'''
+    var result = await assertInvalidTestCode(r'''
 void f({a = b?[0]}) {}
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
-    assertResolvedNodeText(findNode.index('[0]'), r'''
+    assertResolvedNodeText(result.findNode.index('[0]'), r'''
 IndexExpression
   target: SimpleIdentifier
     token: b
@@ -171,11 +171,11 @@ IndexExpression
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
-    await assertInvalidTestCode(r'''
+    var result = await assertInvalidTestCode(r'''
 typedef void F({a = b?[0]});
 ''');
 
-    assertResolvedNodeText(findNode.index('[0]'), r'''
+    assertResolvedNodeText(result.findNode.index('[0]'), r'''
 IndexExpression
   target: SimpleIdentifier
     token: b
@@ -194,7 +194,7 @@ IndexExpression
   }
 
   test_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -204,7 +204,7 @@ void f(A a) {
 }
 ''');
 
-    var indexExpression = findNode.index('a[0]');
+    var indexExpression = result.findNode.index('a[0]');
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -223,7 +223,7 @@ IndexExpression
   }
 
   test_read_cascade_nullShorting() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -233,7 +233,7 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.index('..[0]'), r'''
+    assertResolvedNodeText(result.findNode.index('..[0]'), r'''
 IndexExpression
   period: ?..
   leftBracket: [
@@ -246,7 +246,7 @@ IndexExpression
   staticType: bool
 ''');
 
-    assertResolvedNodeText(findNode.index('..[1]'), r'''
+    assertResolvedNodeText(result.findNode.index('..[1]'), r'''
 IndexExpression
   period: ..
   leftBracket: [
@@ -259,11 +259,11 @@ IndexExpression
   staticType: bool
 ''');
 
-    assertType(findNode.cascade('a?'), 'A?');
+    assertType(result.findNode.cascade('a?'), 'A?');
   }
 
   test_read_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T operator[](int index) => throw 42;
 }
@@ -273,7 +273,7 @@ void f(A<double> a) {
 }
 ''');
 
-    var indexExpression = findNode.index('a[0]');
+    var indexExpression = result.findNode.index('a[0]');
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -296,7 +296,7 @@ IndexExpression
   }
 
   test_read_index_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     this[super];
@@ -308,7 +308,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleIndexExpression;
+    var node = result.findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: ThisExpression
@@ -325,7 +325,7 @@ IndexExpression
   }
 
   test_read_index_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> a) {
   a[b];
 //  ^
@@ -333,7 +333,7 @@ void f(List<int> a) {
 }
 ''');
 
-    var node = findNode.singleIndexExpression;
+    var node = result.findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -357,7 +357,7 @@ IndexExpression
   }
 
   test_read_nullable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -367,7 +367,7 @@ void f(A? a) {
 }
 ''');
 
-    var indexExpression = findNode.index('a?[0]');
+    var indexExpression = result.findNode.index('a?[0]');
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -387,7 +387,7 @@ IndexExpression
   }
 
   test_read_ofExtension() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   bool operator[](int index) => false;
 }
@@ -397,7 +397,7 @@ void f() {
 }
 ''');
 
-    var indexExpression = findNode.singleIndexExpression;
+    var indexExpression = result.findNode.singleIndexExpression;
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
   target: IntegerLiteral
@@ -415,7 +415,7 @@ IndexExpression
   }
 
   test_read_ofExtension_augmentation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f() {
@@ -427,7 +427,7 @@ augment extension E {
 }
 ''');
 
-    var indexExpression = findNode.singleIndexExpression;
+    var indexExpression = result.findNode.singleIndexExpression;
     assertResolvedNodeText(indexExpression, r'''
 IndexExpression
   target: IntegerLiteral
@@ -445,7 +445,7 @@ IndexExpression
   }
 
   test_read_switchExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   bool operator[](int index) => false;
 }
@@ -457,7 +457,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.index('[0]');
+    var node = result.findNode.index('[0]');
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SwitchExpression
@@ -501,13 +501,13 @@ IndexExpression
   }
 
   test_read_target_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic a) {
   a[0];
 }
 ''');
 
-    var node = findNode.singleIndexExpression;
+    var node = result.findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -526,7 +526,7 @@ IndexExpression
   }
 
   test_read_target_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   a[0];
 //^
@@ -534,7 +534,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleIndexExpression;
+    var node = result.findNode.singleIndexExpression;
     assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
@@ -553,7 +553,7 @@ IndexExpression
   }
 
   test_readWrite_assignment() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   num operator[](int index) => 0;
   void operator[]=(int index, num value) {}
@@ -564,7 +564,7 @@ void f(A a) {
 }
 ''');
 
-    var assignment = findNode.assignment('a[0]');
+    var assignment = result.findNode.assignment('a[0]');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -595,7 +595,7 @@ AssignmentExpression
   }
 
   test_readWrite_assignment_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T operator[](int index) => throw 42;
   void operator[]=(int index, T value) {}
@@ -606,7 +606,7 @@ void f(A<double> a) {
 }
 ''');
 
-    var assignment = findNode.assignment('a[0]');
+    var assignment = result.findNode.assignment('a[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -644,7 +644,7 @@ AssignmentExpression
   }
 
   test_readWrite_nullable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   num operator[](int index) => 0;
   void operator[]=(int index, num value) {}
@@ -655,7 +655,7 @@ void f(A? a) {
 }
 ''');
 
-    var assignment = findNode.assignment('a?[0]');
+    var assignment = result.findNode.assignment('a?[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -688,7 +688,7 @@ AssignmentExpression
   }
 
   test_rewrite_nullShorting() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   T Function<T>(T) operator[](int i);
 }
@@ -698,7 +698,7 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a[0];
 ''');
 
-    var node = findNode.functionReference('b?.a[0]');
+    var node = result.findNode.functionReference('b?.a[0]');
     assertResolvedNodeText(node, r'''FunctionReference
   function: IndexExpression
     target: PropertyAccess
@@ -727,7 +727,7 @@ int Function(int)? f(B? b) => b?.a[0];
   }
 
   test_write() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, num value) {}
 }
@@ -737,7 +737,7 @@ void f(A a) {
 }
 ''');
 
-    var assignment = findNode.assignment('a[0]');
+    var assignment = result.findNode.assignment('a[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -769,7 +769,7 @@ AssignmentExpression
   }
 
   test_write_cascade_nullShorting() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, A a) {}
 }
@@ -779,7 +779,7 @@ void f(A? a) {
 }
 ''');
 
-    var node = findNode.cascade('a?..');
+    var node = result.findNode.cascade('a?..');
     assertResolvedNodeText(node, r'''
 CascadeExpression
   target: SimpleIdentifier
@@ -838,7 +838,7 @@ CascadeExpression
   }
 
   test_write_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void operator[]=(int index, T value) {}
 }
@@ -848,7 +848,7 @@ void f(A<double> a) {
 }
 ''');
 
-    var assignment = findNode.assignment('a[0]');
+    var assignment = result.findNode.assignment('a[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -886,7 +886,7 @@ AssignmentExpression
   }
 
   test_write_nullable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, num value) {}
 }
@@ -896,7 +896,7 @@ void f(A? a) {
 }
 ''');
 
-    var assignment = findNode.assignment('a?[0]');
+    var assignment = result.findNode.assignment('a?[0]');
 
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
@@ -929,7 +929,7 @@ AssignmentExpression
   }
 
   test_write_ofExtension() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   operator[]=(int index, num value) {}
 }
@@ -939,7 +939,7 @@ void f() {
 }
 ''');
 
-    var indexExpression = findNode.singleAssignmentExpression;
+    var indexExpression = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(indexExpression, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -978,7 +978,7 @@ augment extension E {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 extension E on int {}
@@ -988,7 +988,7 @@ void f() {
 }
 ''');
 
-    var indexExpression = findNode.singleAssignmentExpression;
+    var indexExpression = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(indexExpression, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -1022,7 +1022,7 @@ AssignmentExpression
   }
 
   test_write_switchExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void operator[]=(int index, num value) {}
 }
@@ -1034,7 +1034,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.assignment('[0]');
+    var node = result.findNode.assignment('[0]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression

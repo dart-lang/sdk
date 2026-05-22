@@ -934,14 +934,12 @@ main() {
   }
 
   test_basic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 var b = 1 + 2;
 ''');
-    assertType(findElement2.topVar('a').type, 'int');
-    assertElement(findNode.namedType('int a').element, declaration: intElement);
-
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('a').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_dispose() async {
@@ -1332,7 +1330,7 @@ void f(func o) {}
   }
 
   test_formalParameter_promotion() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? a) {
   if (a != null) {
     a.isEven;
@@ -1340,7 +1338,7 @@ void f(int? a) {
 }
 ''');
 
-    assertType(findElement2.parameter('a').type, 'int?');
+    assertType(result.findElement.parameter('a').type, 'int?');
   }
 
   test_getErrors() async {
@@ -1831,18 +1829,18 @@ void f(A a) {
 }
 ''');
 
-    await resolveTestFile();
+    var result = await resolveTestFile();
     {
-      var element = findNode.simple('foo();').element!;
+      var element = result.findNode.simple('foo();').element!;
       expect(element.firstFragment.nameOffset, 17);
     }
 
     // New resolver.
     // Element models will be loaded from the cache.
     createFileResolver();
-    await resolveTestFile();
+    result = await resolveTestFile();
     {
-      var element = findNode.simple('foo();').element!;
+      var element = result.findNode.simple('foo();').element!;
       expect(element.firstFragment.nameOffset, 17);
     }
   }
@@ -1857,18 +1855,18 @@ import 'a.dart';
 var b = a;
 ''');
 
-    await resolveTestFile();
+    var result = await resolveTestFile();
     {
-      var element = findNode.simple('a;').element!;
+      var element = result.findNode.simple('a;').element!;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
 
     // New resolver.
     // Element models will be loaded from the cache.
     createFileResolver();
-    await resolveTestFile();
+    result = await resolveTestFile();
     {
-      var element = findNode.simple('a;').element!;
+      var element = result.findNode.simple('a;').element!;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
   }

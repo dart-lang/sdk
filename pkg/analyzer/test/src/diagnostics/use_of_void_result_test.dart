@@ -343,7 +343,7 @@ void f(void value) {
   }
 
   test_nullCheck() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(void x) {
   x!;
 //^^
@@ -351,7 +351,7 @@ f(void x) {
 }
 ''');
 
-    assertType(findNode.postfix('x!'), 'void');
+    assertType(result.findNode.postfix('x!'), 'void');
   }
 
   test_orVoidLhsError() async {

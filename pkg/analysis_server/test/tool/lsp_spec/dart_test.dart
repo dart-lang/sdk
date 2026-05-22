@@ -29,13 +29,13 @@ ast.LspEnum _enum({
   String name = 'x',
   String type = 'int',
   bool flags = false,
-  required List<ast.Member> members,
+  required List<ast.Constant> constants,
 }) {
   return ast.LspEnum(
     name: name,
     typeOfValues: ast.TypeReference(type),
     flags: flags,
-    members: members,
+    constants: constants,
   );
 }
 
@@ -48,22 +48,35 @@ ast.UnionType _union(List<String> names) =>
 class DartTest {
   void test_flags_requiresPowerOfTwo_double() {
     expect(
-      () => _enum(flags: true, members: [_constant(1.2)]),
-      throwsA(isA<AssertionError>()),
+      () => _enum(flags: true, constants: [_constant(1.2)]),
+      throwsArgumentError,
     );
   }
 
   void test_flags_requiresPowerOfTwo_nonPowerOfTwo() {
     expect(
-      () => _enum(flags: true, members: [_constant(3)]),
-      throwsA(isA<AssertionError>()),
+      () => _enum(flags: true, constants: [_constant(3)]),
+      throwsArgumentError,
     );
   }
 
   void test_flags_requiresPowerOfTwo_string() {
     expect(
-      () => _enum(flags: true, members: [_constant('test')]),
-      throwsA(isA<AssertionError>()),
+      () => _enum(flags: true, constants: [_constant('test')]),
+      throwsArgumentError,
+    );
+  }
+
+  void test_flags_requiresUniqueValues() {
+    expect(
+      () => _enum(
+        flags: true,
+        constants: [
+          _constant(1, name: 'a'),
+          _constant(1, name: 'b'),
+        ],
+      ),
+      throwsArgumentError,
     );
   }
 

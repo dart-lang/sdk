@@ -35,13 +35,13 @@ class A {
 }
 void f(@A('x') int p) {}
 ''');
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'a.dart';
 main() {
   f(3);
 }
 ''');
-    var argument = findNode.integerLiteral('3');
+    var argument = result.findNode.integerLiteral('3');
     var parameter = argument.correspondingParameter!;
 
     ElementAnnotation annotation = parameter.metadata.annotations[0];
@@ -54,10 +54,10 @@ main() {
 @reflectiveTest
 class FieldElementImplTest extends PubPackageResolutionTest {
   test_isEnumConstant() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 enum B {B1, B2, B3}
 ''');
-    var B = findElement2.enum_('B');
+    var B = result.findElement.enum_('B');
 
     var b2Element = B.getField('B2')!;
     expect(b2Element.isEnumConstant, isTrue);

@@ -17,12 +17,12 @@ main() {
 @reflectiveTest
 class MixinDeclarationResolutionTest extends PubPackageResolutionTest {
   test_classDeclaration_with() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class A extends Object with M {}
 ''');
 
-    var node = findNode.singleWithClause;
+    var node = result.findNode.singleWithClause;
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -35,12 +35,12 @@ WithClause
   }
 
   test_classTypeAlias_with() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class A = Object with M;
 ''');
 
-    var node = findNode.singleWithClause;
+    var node = result.findNode.singleWithClause;
     assertResolvedNodeText(node, r'''
 WithClause
   withKeyword: with
@@ -53,14 +53,14 @@ WithClause
   }
 
   test_commentReference() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 /// Reference [a] in documentation.
 mixin M {}
 ''');
 
-    var node = findNode.commentReference('a]');
+    var node = result.findNode.commentReference('a]');
     assertResolvedNodeText(node, r'''
 CommentReference
   expression: SimpleIdentifier
@@ -71,11 +71,11 @@ CommentReference
   }
 
   test_emptyBody() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M;
 ''');
 
-    var node = findNode.singleMixinDeclaration;
+    var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -87,14 +87,14 @@ MixinDeclaration
   }
 
   test_emptyBody_language310() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.10
 mixin M;
 //     ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
 ''');
 
-    var node = findNode.singleMixinDeclaration;
+    var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -106,13 +106,13 @@ MixinDeclaration
   }
 
   test_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M<T> {
   late T f;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -131,13 +131,13 @@ FieldDeclaration
   }
 
   test_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo => 0;
 }
 ''');
 
-    var node = findNode.singleMethodDeclaration;
+    var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -159,14 +159,14 @@ MethodDeclaration
   }
 
   test_implementsClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 
 mixin M implements A, B {}
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -215,14 +215,14 @@ mixin UnhappyMixin on Foo {
   }
 
   test_metadata() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 @a
 mixin M {}
 ''');
 
-    var node = findNode.annotation('@a');
+    var node = result.findNode.annotation('@a');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -235,13 +235,13 @@ Annotation
   }
 
   test_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
 ''');
 
-    var node = findNode.singleMethodDeclaration;
+    var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -263,7 +263,7 @@ MethodDeclaration
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 g(M<T> f<T>()) {
   C<int> c = f();
 //       ^
@@ -275,7 +275,7 @@ class C<T> {}
 mixin M<T> on C<T> {}
 ''');
 
-    var node = findNode.functionExpressionInvocation('f()');
+    var node = result.findNode.functionExpressionInvocation('f()');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
@@ -294,14 +294,14 @@ FunctionExpressionInvocation
   }
 
   test_onClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 
 mixin M on A, B {}
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -318,13 +318,13 @@ MixinOnClause
   }
 
   test_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void set foo(int _) {}
 }
 ''');
 
-    var node = findNode.singleMethodDeclaration;
+    var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -356,7 +356,7 @@ MethodDeclaration
   }
 
   test_superInvocation_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -370,7 +370,7 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = findNode.propertyAccess('super.foo;');
+    var node = result.findNode.propertyAccess('super.foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression
@@ -386,7 +386,7 @@ PropertyAccess
   }
 
   test_superInvocation_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(int x) {}
 }
@@ -400,7 +400,7 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = findNode.methodInvocation('foo(42)');
+    var node = result.findNode.methodInvocation('foo(42)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SuperExpression
@@ -425,7 +425,7 @@ MethodInvocation
   }
 
   test_superInvocation_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void set foo(int _) {}
 }
@@ -439,7 +439,7 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var assignment = findNode.assignment('foo =');
+    var assignment = result.findNode.assignment('foo =');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess

@@ -15,35 +15,35 @@ main() {
 @reflectiveTest
 class TopLevelInstanceGetterTest extends PubPackageResolutionTest {
   test_call() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int Function() get g => () => 0;
 }
 var a = new A();
 var b = a.g();
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int g = 0;
 }
 var b = new A().g;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_field_call() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int Function() g = () => 0;
 }
 var a = new A();
 var b = a.g();
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_field_imported() async {
@@ -52,89 +52,89 @@ class A {
   int f = 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 var b = new A().f;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_field_prefixedIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int g = 0;
 }
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_getter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get g => 0;
 }
 var b = new A().g;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   get g => 0;
 }
 var b = new A().g;
 ''');
-    assertTypeDynamic(findElement2.topVar('b').type);
+    assertTypeDynamic(result.findElement.topVar('b').type);
   }
 
   test_implicitlyTyped_call() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   get g => () => 0;
 }
 var a = new A();
 var b = a.g();
 ''');
-    assertTypeDynamic(findElement2.topVar('b').type);
+    assertTypeDynamic(result.findElement.topVar('b').type);
   }
 
   test_implicitlyTyped_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var g = 0;
 }
 var b = new A().g;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_field_call() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var g = () => 0;
 }
 var a = new A();
 var b = a.g();
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_field_prefixedIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var g = 0;
 }
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_fn() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -142,11 +142,11 @@ int f<T>(x) => 0;
 var a = new A();
 var b = f(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_fn_explicit_type_params() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -154,11 +154,11 @@ int f<T>(x) => 0;
 var a = new A();
 var b = f<int>(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_fn_not_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -166,11 +166,11 @@ int f(x) => 0;
 var a = new A();
 var b = f(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_indexExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int operator[](int value) => 0;
@@ -178,44 +178,44 @@ class A {
 var a = new A();
 var b = a[a.x];
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_invoke() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
 var a = new A();
 var b = (<T>(y) => 0)(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_invoke_explicit_type_params() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
 var a = new A();
 var b = (<T>(y) => 0)<int>(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_invoke_not_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
 var a = new A();
 var b = ((y) => 0)(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_method() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int f<T>(int x) => 0;
@@ -223,11 +223,11 @@ class A {
 var a = new A();
 var b = a.f(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_method_explicit_type_params() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int f<T>(x) => 0;
@@ -235,11 +235,11 @@ class A {
 var a = new A();
 var b = a.f<int>(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_method_not_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
   int f(x) => 0;
@@ -247,11 +247,11 @@ class A {
 var a = new A();
 var b = a.f(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_new() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -261,11 +261,11 @@ class B<T> {
 var a = new A();
 var b = new B(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B<int>');
+    assertType(result.findElement.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_explicit_type_params() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -275,11 +275,11 @@ class B<T> {
 var a = new A();
 var b = new B<int>(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B<int>');
+    assertType(result.findElement.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_explicit_type_params_named() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -289,7 +289,7 @@ class B<T> {
 var a = new A();
 var b = new B<int>.named(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B<int>');
+    assertType(result.findElement.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_explicit_type_params_prefixed() async {
@@ -298,7 +298,7 @@ class B<T> {
   B(x);
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -306,11 +306,11 @@ class A {
 var a = new A();
 var b = new foo.B<int>(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B<int>');
+    assertType(result.findElement.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_named() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -320,11 +320,11 @@ class B<T> {
 var a = new A();
 var b = new B.named(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B<int>');
+    assertType(result.findElement.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_not_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -334,11 +334,11 @@ class B {
 var a = new A();
 var b = new B(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B');
+    assertType(result.findElement.topVar('b').type, 'B');
   }
 
   test_implicitlyTyped_new_not_generic_named() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = 0;
 }
@@ -348,7 +348,7 @@ class B {
 var a = new A();
 var b = new B.named(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B');
+    assertType(result.findElement.topVar('b').type, 'B');
   }
 
   test_implicitlyTyped_new_not_generic_prefixed() async {
@@ -357,7 +357,7 @@ class B {
   B(x);
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -365,7 +365,7 @@ class A {
 var a = new A();
 var b = new foo.B(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B');
+    assertType(result.findElement.topVar('b').type, 'B');
   }
 
   test_implicitlyTyped_new_prefixed() async {
@@ -374,7 +374,7 @@ class B<T> {
   B(T x);
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -382,22 +382,22 @@ class A {
 var a = new A();
 var b = new foo.B(a.x);
 ''');
-    assertType(findElement2.topVar('b').type, 'B<int>');
+    assertType(result.findElement.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_prefixedIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   get g => 0;
 }
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement2.topVar('b').type, 'dynamic');
+    assertType(result.findElement.topVar('b').type, 'dynamic');
   }
 
   test_implicitlyTyped_propertyAccessLhs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var x = new B();
   int operator[](int value) => 0;
@@ -408,17 +408,17 @@ class B {
 var a = new A();
 var b = (a.x).y;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_prefixedIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get g => 0;
 }
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 }

@@ -80,7 +80,7 @@ var g = () async => futureOrInt;
   }
 
   test_blockBodiedLambdas_async_allReturnsAreFutures() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -101,12 +101,12 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreValues() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -127,12 +127,12 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_mixOfValuesAndFutures() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -153,12 +153,12 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_asyncStar() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var f = () async* {
     yield 1;
@@ -178,7 +178,7 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Stream<num> Function()');
   }
 
@@ -197,7 +197,7 @@ test1() {
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   String f() => null;
 //              ^^^^
@@ -211,7 +211,7 @@ main() {
 }
 ''');
 
-    var g = findElement2.localVar('g');
+    var g = result.findElement.localVar('g');
     _assertTypeStr(g.type, 'String Function()');
   }
 
@@ -227,7 +227,7 @@ var g = f;
   }
 
   test_blockBodiedLambdas_inferBottom_async() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() async {
   var f = () async { return null; };
   Future y = f();
@@ -246,12 +246,12 @@ main() async {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_asyncStar() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() async {
   var f = () async* { yield null; };
   Stream y = f();
@@ -270,12 +270,12 @@ main() async {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Stream<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_sync() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var h = null;
 void foo(int g(Object _)) {}
 
@@ -298,12 +298,12 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Null Function(Object)');
   }
 
   test_blockBodiedLambdas_inferBottom_syncStar() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var f = () sync* { yield null; };
   Iterable y = f();
@@ -322,7 +322,7 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Iterable<Null> Function()');
   }
 
@@ -354,7 +354,7 @@ test2() {
 
   test_blockBodiedLambdas_nestedLambdas() async {
     // Original feature request: https://github.com/dart-lang/sdk/issues/25487
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var f = () {
 //    ^
@@ -364,12 +364,12 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'double Function(int) Function()');
   }
 
   test_blockBodiedLambdas_noReturn() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 test1() {
   List<int> o;
   var y = o.map((x) { });
@@ -383,12 +383,12 @@ test1() {
 }
 ''');
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     _assertTypeStr(y.type, 'Iterable<Null>');
   }
 
   test_blockBodiedLambdas_syncStar() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var f = () sync* {
     yield 1;
@@ -405,7 +405,7 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Iterable<num> Function()');
   }
 
@@ -530,7 +530,7 @@ void main() {
   }
 
   test_constructors_inferFromArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t;
   C(this.t);
@@ -566,14 +566,14 @@ main() {
 }
 ''');
 
-    _assertTypeStr(findElement2.localVar('x').type, 'C<int>');
-    _assertTypeStr(findElement2.localVar('c_int').type, 'C<int>');
-    _assertTypeStr(findElement2.localVar('c_num').type, 'C<num>');
-    _assertTypeStr(findElement2.localVar('c_dynamic').type, 'C<dynamic>');
+    _assertTypeStr(result.findElement.localVar('x').type, 'C<int>');
+    _assertTypeStr(result.findElement.localVar('c_int').type, 'C<int>');
+    _assertTypeStr(result.findElement.localVar('c_num').type, 'C<num>');
+    _assertTypeStr(result.findElement.localVar('c_dynamic').type, 'C<dynamic>');
   }
 
   test_constructors_inferFromArguments_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   final T t;
   const C(this.t);
@@ -586,7 +586,7 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -634,7 +634,7 @@ main() {
   }
 
   test_constructors_inferFromArguments_factory() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t;
 
@@ -658,7 +658,7 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -674,7 +674,7 @@ class A<T> {
   }
 
   test_constructors_inferFromArguments_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t;
   C.named(List<T> t);
@@ -691,12 +691,12 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_namedFactory() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t;
   C();
@@ -719,12 +719,12 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_redirecting() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t;
   C(this.t);
@@ -740,12 +740,12 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_redirectingFactory() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C<T> {
   T get t;
   void set t(T t);
@@ -766,7 +766,7 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -783,7 +783,7 @@ class Pair<T, U> {
   }
 
   test_constructors_tooManyPositionalArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 main() {
   var a = new A(42);
@@ -794,7 +794,7 @@ main() {
 }
 ''');
 
-    var a = findElement2.localVar('a');
+    var a = result.findElement.localVar('a');
     _assertTypeStr(a.type, 'A<dynamic>');
   }
 
@@ -2996,7 +2996,7 @@ main() {
   }
 
   test_genericMethods_usesGreatestLowerBound() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
@@ -3011,7 +3011,7 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
 
@@ -3248,7 +3248,7 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {
   void f() {}
 }
@@ -3257,7 +3257,7 @@ class C extends B {
 }
 var x = new C().f();
 ''');
-    var x = findElement2.topVar('x');
+    var x = result.findElement.topVar('x');
     assertType(x.type, 'void');
   }
 
@@ -3527,7 +3527,7 @@ test1() {
   }
 
   test_inferGenericMethodType_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   T m<T>(int a, {String b, T c}) => null;
 //                      ^
@@ -3544,12 +3544,12 @@ main() {
 }
 ''');
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_positional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   T m<T>(int a, [T b]) => null;
 //                 ^
@@ -3564,12 +3564,12 @@ main() {
 }
 ''');
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_positional2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   T m<T>(int a, [String b, T c]) => null;
 //                      ^
@@ -3586,12 +3586,12 @@ main() {
 }
 ''');
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_required() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   T m<T>(T x) => x;
 }
@@ -3602,7 +3602,7 @@ main() {
 }
 ''');
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     _assertTypeStr(y.type, 'int');
   }
 
@@ -3656,7 +3656,7 @@ main() {
 
   test_inferLocalFunctionReturnType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26414
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   f0 () => 42;
 //^^
@@ -3695,7 +3695,7 @@ main() {
 ''');
 
     void assertLocalFunctionType(String name, String expected) {
-      var type = findElement2.localFunction(name).type;
+      var type = result.findElement.localFunction(name).type;
       _assertTypeStr(type, expected);
     }
 
@@ -3788,7 +3788,7 @@ class Foo {
   }
 
   test_inferredType_blockClosure_noArgs_noReturn() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var f = () {};
 //    ^
@@ -3796,7 +3796,7 @@ main() {
 }
 ''');
 
-    var f = findElement2.localVar('f');
+    var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Null Function()');
   }
 
@@ -3849,7 +3849,7 @@ var x = c*c;
   }
 
   test_inferredType_customIndexOp() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool operator[](int index) => true;
 }
@@ -3863,13 +3863,13 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customIndexOp_viaInterface() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {
   bool operator[](int index) => true;
 }
@@ -3884,7 +3884,7 @@ main() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
@@ -4807,7 +4807,7 @@ var x = [null];
   }
 
   test_listLiteralsCanInferNullBottom() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 test1() {
   var x = [null];
   x.add(42);
@@ -4816,7 +4816,7 @@ test1() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'List<Null>');
   }
 
@@ -4905,7 +4905,7 @@ test2() {
   }
 
   test_mapLiteralsCanInferNull() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 test1() {
   var x = { null: null };
   x[3] = 'z';
@@ -4916,7 +4916,7 @@ test1() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     _assertTypeStr(x.type, 'Map<Null, Null>');
   }
 
@@ -5020,7 +5020,7 @@ main() {
 
   test_nullCoalescingOperator2() async {
     // Don't do anything if we already have a context type.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   List<int> x;
   List<num> y = x ?? [];
@@ -5035,7 +5035,7 @@ main() {
 }
 ''');
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     _assertTypeStr(y.type, 'List<num>');
   }
 
@@ -5283,7 +5283,7 @@ class C {
 
   test_unsafeBlockClosureInference_closureCall() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26962
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = ((x) => 1.0)(() { return 1; });
 //    ^
@@ -5291,7 +5291,7 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
@@ -5321,7 +5321,7 @@ var v = new C<int>(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   C(T x());
 }
@@ -5335,7 +5335,7 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
@@ -5419,7 +5419,7 @@ var v = (f)<int>(() { return 1; });
   }
 
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = f(
 //    ^
@@ -5431,12 +5431,12 @@ main() {
 List<T> f<T>(T g()) => <T>[g()];
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = (f)(
 //    ^
@@ -5448,12 +5448,12 @@ main() {
 List<T> f<T>(T g()) => <T>[g()];
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_noTypeParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = f(() { return 1; });
 //    ^
@@ -5462,12 +5462,12 @@ main() {
 double f(x) => 1.0;
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = (f)(() { return 1; });
 //    ^
@@ -5476,12 +5476,12 @@ main() {
 double f(x) => 1.0;
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_inList_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = <dynamic>[() { return 1; }];
 //    ^
@@ -5489,12 +5489,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_inList_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef int F();
 main() {
   var v = <F>[() { return 1; }];
@@ -5503,12 +5503,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inList_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = [
 //    ^
@@ -5519,12 +5519,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = <int, dynamic>{1: () { return 1; }};
 //    ^
@@ -5532,12 +5532,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'Map<int, dynamic>');
   }
 
   test_unsafeBlockClosureInference_inMap_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef int F();
 main() {
   var v = <int, F>{1: () { return 1; }};
@@ -5546,12 +5546,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = {
 //    ^
@@ -5562,12 +5562,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitDynamicParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
@@ -5578,12 +5578,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitTypeParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
@@ -5594,12 +5594,12 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_methodCall_implicitTypeParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
@@ -5613,7 +5613,7 @@ main() {
 }
 ''');
 
-    var v = findElement2.localVar('v');
+    var v = result.findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 

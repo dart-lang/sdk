@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class FunctionTest extends PubPackageResolutionTest {
   test_genericFunction_upwards() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
@@ -25,7 +25,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -56,7 +56,7 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_missingRequiredArgument() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>({required T x, required T y}) {}
 
 f() {
@@ -66,7 +66,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -94,7 +94,7 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_notEnoughPositionalArguments() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
@@ -104,7 +104,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -129,7 +129,7 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_tooManyPositionalArguments() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
@@ -139,7 +139,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -174,7 +174,7 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_undefinedNamedParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
@@ -184,7 +184,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

@@ -36,7 +36,7 @@ package:analyzer/analysis_rule/pubspec.dart:
     name (getter: PubspecNode?)
     path (getter: PubspecEntry?)
     version (getter: PubspecEntry?)
-  PubspecDependencyList (class extends Object, abstract):
+  PubspecDependencyList (class extends Object with Iterable<PubspecDependency>, abstract):
     new (constructor: PubspecDependencyList Function())
   PubspecEntry (class extends Object):
     new (constructor: PubspecEntry Function(PubspecNode?, PubspecNode))
@@ -60,7 +60,7 @@ package:analyzer/analysis_rule/pubspec.dart:
     new (constructor: PubspecNode Function())
     span (getter: SourceSpan)
     text (getter: String?)
-  PubspecNodeList (class extends Object implements PubspecSection, abstract):
+  PubspecNodeList (class extends Object with Iterable<PubspecNode> implements PubspecSection, abstract):
     new (constructor: PubspecNodeList Function())
     iterator (getter: Iterator<PubspecNode>)
   PubspecSection (class extends Object, abstract):

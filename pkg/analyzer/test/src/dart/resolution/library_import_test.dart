@@ -18,13 +18,13 @@ void main() {
 @reflectiveTest
 class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
   test_inLibrary_combinators_hide() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' hide Random;
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -46,7 +46,7 @@ ImportDirective
   }
 
   test_inLibrary_combinators_hide_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' hide Unresolved;
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
@@ -54,7 +54,7 @@ import 'dart:math' hide Unresolved;
 // [diag.undefinedHiddenName] The library 'dart:math' doesn't export a member with the hidden name 'Unresolved'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -76,13 +76,13 @@ ImportDirective
   }
 
   test_inLibrary_combinators_show() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' show Random;
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -104,7 +104,7 @@ ImportDirective
   }
 
   test_inLibrary_combinators_show_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' show Unresolved;
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
@@ -112,7 +112,7 @@ import 'dart:math' show Unresolved;
 // [diag.undefinedShownName] The library 'dart:math' doesn't export a member with the shown name 'Unresolved'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -143,7 +143,7 @@ ImportDirective
       'dart.library.io': 'false',
     };
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart'
   if (dart.library.html) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
@@ -151,7 +151,7 @@ import 'a.dart'
 var a = A();
 ''');
 
-    var node = findNode.unit;
+    var node = result.findNode.unit;
     assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
@@ -229,7 +229,7 @@ CompilationUnit
       'dart.library.io': 'false',
     };
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart'
   if (dart.library.html) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
@@ -237,7 +237,7 @@ import 'a.dart'
 var a = A();
 ''');
 
-    var node = findNode.unit;
+    var node = result.findNode.unit;
     assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
@@ -308,13 +308,13 @@ CompilationUnit
   test_inLibrary_configurations_noRelativeUri() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // ignore:unused_import
 import 'a.dart'
   if (x) ':net';
 ''');
 
-    var node = findNode.configuration('if (');
+    var node = result.findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -333,13 +333,13 @@ Configuration
   test_inLibrary_configurations_noRelativeUriStr() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // ignore:unused_import
 import 'a.dart'
   if (x) '${'foo'}.dart';
 ''');
 
-    var node = findNode.configuration('if (');
+    var node = result.findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -368,13 +368,13 @@ Configuration
   test_inLibrary_configurations_noSource() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // ignore:unused_import
 import 'a.dart'
   if (x) 'foo:bar';
 ''');
 
-    var node = findNode.configuration('if (');
+    var node = result.findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -393,13 +393,13 @@ Configuration
   test_inLibrary_configurations_onlySource_notLibrary() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // ignore:unused_import
 import 'a.dart'
   if (x) 'a.dart';
 ''');
 
-    var node = findNode.configuration('if (');
+    var node = result.findNode.configuration('if (');
     assertResolvedNodeText(node, r'''
 Configuration
   ifKeyword: if
@@ -425,7 +425,7 @@ Configuration
       'dart.library.io': 'true',
     };
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart'
   if (dart.library.html) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
@@ -433,7 +433,7 @@ import 'a.dart'
 var a = A();
 ''');
 
-    var node = findNode.unit;
+    var node = result.findNode.unit;
     assertResolvedNodeText(node, r'''
 CompilationUnit
   directives
@@ -504,12 +504,12 @@ CompilationUnit
   test_inLibrary_library() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
 import 'a.dart';
 ''');
 
-    var node = findNode.import('a.dart');
+    var node = result.findNode.import('a.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -523,13 +523,13 @@ ImportDirective
   }
 
   test_inLibrary_library_fileDoesNotExist() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 //     ^^^^^^^^
 // [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -549,12 +549,12 @@ ImportDirective
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // ignore: unused_import
 import 'package:foo/foo.dart';
 ''');
 
-    var node = findNode.import('package:foo');
+    var node = result.findNode.import('package:foo');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -568,13 +568,13 @@ ImportDirective
   }
 
   test_inLibrary_noRelativeUri() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import ':net';
 //     ^^^^^^
 // [diag.invalidUri] Invalid URI syntax: ':net'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -588,13 +588,13 @@ ImportDirective
   }
 
   test_inLibrary_noRelativeUriStr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import '${'foo'}.dart';
 //     ^^^^^^^^^^^^^^^
 // [diag.uriWithInterpolation] URIs can't use string interpolation.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -618,13 +618,13 @@ ImportDirective
   }
 
   test_inLibrary_noSource() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'foo:bar';
 //     ^^^^^^^^^
 // [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -642,13 +642,13 @@ ImportDirective
 part of my.lib;
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 //     ^^^^^^^^
 // [diag.importOfNonLibrary] The imported library 'a.dart' can't have a part-of directive.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -666,13 +666,13 @@ ImportDirective
 part of 'test.dart';
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 //     ^^^^^^^^
 // [diag.importOfNonLibrary] The imported library 'a.dart' can't have a part-of directive.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -696,13 +696,13 @@ ImportDirective
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'package:foo/foo2.dart';
 //     ^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.importOfNonLibrary] The imported library 'package:foo/foo2.dart' can't have a part-of directive.
 ''');
 
-    var node = findNode.singleImportDirective;
+    var node = result.findNode.singleImportDirective;
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -727,13 +727,13 @@ import 'c.dart';
 
     newFile('$testPackageLibPath/c.dart', '');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     // TODO(scheglov): update the hint.
     // assertErrorsInResult([
     //   error(WarningCode.UNUSED_IMPORT, 33, 8),
     // ]);
 
-    var node = findNode.import('c.dart');
+    var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -756,10 +756,10 @@ part of 'a.dart';
 import 'c.dart';
 ''');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     assertErrorsInResult([error(diag.uriDoesNotExist, 25, 8)]);
 
-    var node = findNode.import('c.dart');
+    var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -782,10 +782,10 @@ part of 'a.dart';
 import ':net';
 ''');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     assertErrorsInResult([error(diag.invalidUri, 25, 6)]);
 
-    var node = findNode.import('import');
+    var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -808,10 +808,10 @@ part of 'a.dart';
 import '${'foo'}.dart';
 ''');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     assertErrorsInResult([error(diag.uriWithInterpolation, 25, 15)]);
 
-    var node = findNode.import('import');
+    var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -844,10 +844,10 @@ part of 'a.dart';
 import 'foo:bar';
 ''');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     assertErrorsInResult([error(diag.uriDoesNotExist, 25, 9)]);
 
-    var node = findNode.import('import');
+    var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -874,10 +874,10 @@ import 'c.dart';
 part of my.lib;
 ''');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     assertErrorsInResult([error(diag.importOfNonLibrary, 25, 8)]);
 
-    var node = findNode.import('c.dart');
+    var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import
@@ -904,10 +904,10 @@ import 'c.dart';
 part of 'b.dart';
 ''');
 
-    await resolveFile2(b);
+    var result = await resolveFile2(b);
     assertErrorsInResult([error(diag.importOfNonLibrary, 25, 8)]);
 
-    var node = findNode.import('c.dart');
+    var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
 ImportDirective
   importKeyword: import

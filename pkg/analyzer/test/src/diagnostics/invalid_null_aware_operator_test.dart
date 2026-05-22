@@ -177,7 +177,7 @@ void f(int? a, int b) {
   }
 
   test_extensionOverride_indexExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   bool operator[](int index) => true;
 }
@@ -189,12 +189,12 @@ void f(int? a, int b) {
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?[' is unnecessary.
 }
 ''');
-    assertType(findNode.index('E(a)'), 'bool?');
-    assertType(findNode.index('E(b)'), 'bool?');
+    assertType(result.findNode.index('E(a)'), 'bool?');
+    assertType(result.findNode.index('E(b)'), 'bool?');
   }
 
   test_extensionOverride_methodInvocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   bool foo() => true;
 }
@@ -206,12 +206,12 @@ void f(int? a, int b) {
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 }
 ''');
-    assertType(findNode.methodInvocation('E(a)'), 'bool?');
-    assertType(findNode.methodInvocation('E(b)'), 'bool?');
+    assertType(result.findNode.methodInvocation('E(a)'), 'bool?');
+    assertType(result.findNode.methodInvocation('E(b)'), 'bool?');
   }
 
   test_extensionOverride_propertyAccess() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   bool get foo => true;
 }
@@ -223,8 +223,8 @@ void f(int? a, int b) {
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 }
 ''');
-    assertType(findNode.propertyAccess('E(a)'), 'bool?');
-    assertType(findNode.propertyAccess('E(b)'), 'bool?');
+    assertType(result.findNode.propertyAccess('E(a)'), 'bool?');
+    assertType(result.findNode.propertyAccess('E(b)'), 'bool?');
   }
 
   test_getter_class() async {

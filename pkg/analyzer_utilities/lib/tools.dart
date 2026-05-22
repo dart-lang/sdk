@@ -40,8 +40,9 @@ String capitalize(String string) {
 
 /// Type of functions used to compute the contents of a set of generated files.
 /// [pkgRoot] is the path to the SDK's `pkg` directory.
-typedef DirectoryContentsComputer =
-    Map<String, FileContentsComputer> Function(String pkgRoot);
+typedef DirectoryContentsComputer = Map<String, FileContentsComputer> Function(
+  String pkgRoot,
+);
 
 /// Type of functions used to compute the contents of a generated file.
 /// [pkgRoot] is the path to the SDK's `pkg` directory.
@@ -191,6 +192,22 @@ mixin CodeGenerator {
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
+''';
+      // During the transition period to Dart language version 3.13, some
+      // generated files will be using language version 3.13, and will have the
+      // `unnecessary_type_name_in_constructor` lint enabled in order to
+      // encourage use of the new constructor declaration syntax. Others will be
+      // using older language versions that don't support this syntax. To ease
+      // the transition, ignore the `unnecessary_type_name_in_constructor` lint
+      // in generated code. Also ignore the `unnecessary_ignore` and
+      // `duplicate_ignore` lints, which would otherwise sometimes be triggered
+      // by the ignores we're adding.
+      // TODO(paulberry): clean this up once all generated code is using Dart
+      // language version 3.13.
+      header += '''
+
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
 ''';
     }
     writeln(header.trim());

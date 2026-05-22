@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class SuperInExtensionTypeTest extends PubPackageResolutionTest {
   test_binaryOperator() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
   void f() {
     super + 0;
@@ -27,7 +27,7 @@ extension type A(int it) {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SuperExpression
@@ -45,7 +45,7 @@ BinaryExpression
   }
 
   test_methodInvocation() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
   void f() {
     super.foo();
@@ -55,7 +55,7 @@ extension type A(int it) {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SuperExpression
@@ -75,7 +75,7 @@ MethodInvocation
   }
 
   test_propertyAccess() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
   void f() {
     super.foo;
@@ -85,7 +85,7 @@ extension type A(int it) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression

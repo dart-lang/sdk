@@ -18,30 +18,33 @@ main() {
 
 @reflectiveTest
 class PrefixedNamespaceTest extends PubPackageResolutionTest {
-  Future<PrefixedNamespace> get _dartMath async {
-    await resolveTestCodeWithDiagnostics(r'''
+  Future<({PrefixedNamespace namespace, TestResolvedUnitResult result})>
+  get _dartMath async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
 ''');
-    var namespace = findElement2.import('dart:math').namespace;
-    return namespace as PrefixedNamespace;
+    var namespace = result.findElement.import('dart:math').namespace;
+    return (namespace: namespace as PrefixedNamespace, result: result);
   }
 
   void test_lookup_missing() async {
-    var namespace = await _dartMath;
-    expect(namespace.get2('prefix.Missing'), isNull);
+    var dartMath = await _dartMath;
+    expect(dartMath.namespace.get2('prefix.Missing'), isNull);
   }
 
   Future<void> test_lookup_missing_matchesPrefix() async {
-    var namespace = await _dartMath;
-    expect(namespace.get2('prefix'), isNull);
+    var dartMath = await _dartMath;
+    expect(dartMath.namespace.get2('prefix'), isNull);
   }
 
   Future<void> test_lookup_valid() async {
-    var namespace = await _dartMath;
+    var dartMath = await _dartMath;
 
-    var random = findElement2.importFind('dart:math').class_('Random');
-    expect(namespace.get2('prefix.Random'), same(random));
+    var random = dartMath.result.findElement
+        .importFind('dart:math')
+        .class_('Random');
+    expect(dartMath.namespace.get2('prefix.Random'), same(random));
   }
 }

@@ -385,13 +385,10 @@ Sometimes after a blank line we'll have a note.
 
     expect(output[0], const TypeMatcher<LspEnum>());
     var namespace = output[0] as LspEnum;
-    expect(namespace.members, hasLength(3));
-    for (var m in namespace.members) {
-      expect(m, const TypeMatcher<Constant>());
-    }
-    var create = namespace.members[0] as Constant,
-        delete = namespace.members[1] as Constant,
-        rename = namespace.members[2] as Constant;
+    expect(namespace.constants, hasLength(3));
+    var create = namespace.constants[0],
+        delete = namespace.constants[1],
+        rename = namespace.constants[2];
     expect(create.name, equals('Create'));
     expect(create.type, isSimpleType('ResourceOperationKind'));
     expect(create.comment, equals('Supports creating new files and folders.'));

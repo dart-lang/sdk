@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -10,50 +9,13 @@ import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ReturnOfDoNotStoreInTestsTest);
     defineReflectiveTests(ReturnOfDoNotStoreTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ReturnOfDoNotStoreInTestsTest extends PubPackageResolutionTest {
-  @override
-  File get testFile => getFile('$testPackageRootPath/test/test.dart');
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfigWithMeta();
-  }
-
-  test_noHintsInTestDir() async {
-    // Code that is in a test dir should not trigger the hint.
-    // (See:https://github.com/dart-lang/sdk/issues/45594)
-    await resolveTestCodeWithDiagnostics(r'''
-import 'package:meta/meta.dart';
-
-@doNotStore
-String get _v => '';
-
-String f() {
-  var v = () => _v;
-  return v();
-}
-
-String g() {
-  return _v;
-}
-''');
-  }
-}
-
-@reflectiveTest
 class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
-  /// Override the default which is in .../test and should not trigger hints.
-  @override
-  String get testPackageRootPath => '$workspaceRootPath/test_project';
-
   @override
   void setUp() {
     super.setUp();
@@ -76,6 +38,27 @@ class A {
   }
 }
 ''');
+  }
+
+  test_noHintsInTestDir() async {
+    // Code that is in a test dir should not trigger the hint.
+    // (See:https://github.com/dart-lang/sdk/issues/45594)
+    await resolveFileCode('$testPackageRootPath/test/test.dart', r'''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String get _v => '';
+
+String f() {
+  var v = () => _v;
+  return v();
+}
+
+String g() {
+  return _v;
+}
+''');
+    assertNoErrorsInResult();
   }
 
   test_returnFromClosureInFunction() async {

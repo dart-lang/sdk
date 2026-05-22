@@ -19,7 +19,7 @@ class ImplementsDeferredClassTest extends PubPackageResolutionTest {
 library lib1;
 class A {}
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}
@@ -27,7 +27,7 @@ class B implements a.A {}
 // [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -49,7 +49,7 @@ library lib1;
 class A {}
 typedef B = A;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C implements a.B {}
@@ -57,7 +57,7 @@ class C implements a.B {}
 // [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -79,7 +79,7 @@ ImplementsClause
 library lib1;
 class A {}
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
@@ -89,7 +89,7 @@ class C = B with M implements a.A;
 // [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -110,7 +110,7 @@ ImplementsClause
 class A {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as a;
 extension type B(a.A it) implements a.A {}
 //               ^^^
@@ -119,7 +119,7 @@ extension type B(a.A it) implements a.A {}
 // [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -140,14 +140,14 @@ ImplementsClause
 extension type A(int it) {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' deferred as a;
 extension type B(int it) implements a.A {}
 //                                  ^^^
 // [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements
@@ -164,14 +164,14 @@ ImplementsClause
   }
 
   test_mixin() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
 mixin M implements math.Random {}
 //                 ^^^^^^^^^^^
 // [diag.implementsDeferredClass] Classes and mixins can't implement deferred classes.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements

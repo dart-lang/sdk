@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ImportPrefixResolutionTest extends PubPackageResolutionTest {
   test_asExpression_expressionStatement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
 main() {
@@ -27,7 +27,7 @@ main() {
 }
 ''');
 
-    var node = findNode.simple('p; // use');
+    var node = result.findNode.simple('p; // use');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
@@ -37,7 +37,7 @@ SimpleIdentifier
   }
 
   test_asExpression_forIn_iterable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
 main() {
@@ -49,7 +49,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleForStatement;
+    var node = result.findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -74,7 +74,7 @@ ForStatement
   }
 
   test_asExpression_instanceCreation_argument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
 
 class C<T> {
@@ -90,7 +90,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -118,7 +118,7 @@ InstanceCreationExpression
   }
 
   test_asPrefix_methodInvocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 main() {
@@ -126,7 +126,7 @@ main() {
 }
 ''');
 
-    var node = findNode.simple('p.max');
+    var node = result.findNode.simple('p.max');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
@@ -181,7 +181,7 @@ extension ExtendedString on String {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -196,7 +196,7 @@ f() {
 ''');
 
     // `_` is bound so `a` resolves to the int declared in `a.dart`.
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a

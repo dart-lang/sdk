@@ -18,7 +18,7 @@ main() {
 class ConstructorFieldInitializerResolutionTest
     extends PubPackageResolutionTest {
   test_fieldOfAugmentation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo;
 }
@@ -32,7 +32,7 @@ augment class A {
 }
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -47,14 +47,14 @@ ConstructorFieldInitializer
   }
 
   test_formalParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int f;
   A(int a) : f = a;
 }
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -70,14 +70,14 @@ ConstructorFieldInitializer
   }
 
   test_functionExpressionInvocation_blockBody() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   final x;
   A(int a) : x = (() {return a + 1;})();
 }
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -129,14 +129,14 @@ ConstructorFieldInitializer
   }
 
   test_functionExpressionInvocation_expressionBody() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   final int x;
   A(int a) : x = (() => a + 1)();
 }
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -182,7 +182,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_declarationAndInitializer() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final x = 0;
   const A() : x = a;
@@ -192,7 +192,7 @@ class A {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -208,7 +208,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_class() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : X = a;
 //            ^^^^^
@@ -218,7 +218,7 @@ const a = 0;
 class X {}
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -234,7 +234,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_getter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
 //      ^^^^^
@@ -244,7 +244,7 @@ class A {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -260,7 +260,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_importPrefix() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async' as x;
 //     ^^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:async'.
@@ -272,7 +272,7 @@ class A {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -288,7 +288,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_method() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
 //      ^^^^^
@@ -298,7 +298,7 @@ class A {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -314,7 +314,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_setter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
 //      ^^^^^
@@ -324,7 +324,7 @@ class A {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -340,7 +340,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_topLevelFunction() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
 //      ^^^^^
@@ -350,7 +350,7 @@ const a = 0;
 void x() {}
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -366,7 +366,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_topLevelVariable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
 //      ^^^^^
@@ -376,7 +376,7 @@ const a = 0;
 var x = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -392,7 +392,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A() : T = a;
 //      ^^^^^
@@ -401,7 +401,7 @@ class A<T> {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -417,7 +417,7 @@ ConstructorFieldInitializer
   }
 
   test_invalid_notField_unresolved() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A() : x = a;
 //      ^^^^^
@@ -426,7 +426,7 @@ class A {
 const a = 0;
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier

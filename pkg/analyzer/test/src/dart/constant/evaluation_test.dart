@@ -31,13 +31,13 @@ main() {
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
   test_asExpression_fromExtensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(42);
 const x = a as int;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::x
@@ -46,12 +46,12 @@ int 42
   }
 
   test_asExpression_fromExtensionType_nullable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type E(int? it) {}
 
 const x = null as E;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Null null
   variable: <testLibrary>::@topLevelVariable::x
@@ -59,10 +59,10 @@ Null null
   }
 
   test_asExpression_null_neverQuestion() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = null as Never?;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Null null
   variable: <testLibrary>::@topLevelVariable::x
@@ -70,12 +70,12 @@ Null null
   }
 
   test_asExpression_toExtensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = 42 as E;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::x
@@ -83,14 +83,14 @@ int 42
   }
 
   test_binaryExpression_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(2);
 const b = E(3);
 const x = (a as num) * (b as num);
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 int 6
   variable: <testLibrary>::@topLevelVariable::x
@@ -106,12 +106,12 @@ const int x = 'foo';
   }
 
   test_dotShorthand_enum_simple() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 enum E { v1, v2 }
 const E x1 = .v1;
 const E x2 = .v2;
 ''');
-    assertDartObjectText(_topLevelVar('x1'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x1'), r'''
 E
   _name: String v1
   index: int 0
@@ -119,7 +119,7 @@ E
     constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
-    assertDartObjectText(_topLevelVar('x2'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x2'), r'''
 E
   _name: String v2
   index: int 1
@@ -130,14 +130,14 @@ E
   }
 
   test_dotShorthand_equalEqual_constructor() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
 
 const v = A() == .new();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -159,7 +159,7 @@ const v = .new() == A();
   }
 
   test_dotShorthand_equalEqual_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   static const A field = A();
@@ -167,7 +167,7 @@ class A {
 
 const v = A() == .field;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -218,7 +218,7 @@ const a = .id;
   }
 
   test_dotShorthand_propertyAccess() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   static const A field = A();
@@ -226,7 +226,7 @@ class A {
 
 const A a = .field;
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -236,11 +236,11 @@ A
   }
 
   test_dotShorthand_propertyAccess_enum() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 enum E { a }
 const E e = .a;
 ''');
-    var result = _topLevelVar('e');
+    var result = _topLevelVar(unitResult, 'e');
     assertDartObjectText(result, r'''
 E
   _name: String a
@@ -266,14 +266,14 @@ enum E {
 
   /// Enum constants can reference other constants.
   test_enum_enhanced_constants() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E {
   v1(42), v2(v1);
   final Object? a;
   const E([this.a]);
 }
 ''');
-    assertDartObjectText(_field('v2'), r'''
+    assertDartObjectText(_field(result, 'v2'), r'''
 E
   _name: String v2
   a: E
@@ -303,7 +303,7 @@ E
   }
 
   test_enum_enhanced_named() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 enum E<T> {
   v1<double>.named(10),
   v2.named(20);
@@ -314,7 +314,7 @@ enum E<T> {
 const x1 = E.v1;
 const x2 = E.v2;
 ''');
-    assertDartObjectText(_topLevelVar('x1'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x1'), r'''
 E<double>
   _name: String v1
   f: double 10.0
@@ -327,7 +327,7 @@ E<double>
       0: double 10.0
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
-    assertDartObjectText(_topLevelVar('x2'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x2'), r'''
 E<int>
   _name: String v2
   f: int 20
@@ -343,7 +343,7 @@ E<int>
   }
 
   test_enum_enhanced_unnamed() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 enum E<T> {
   v1<int>(10),
   v2(20),
@@ -356,7 +356,7 @@ const x1 = E.v1;
 const x2 = E.v2;
 const x3 = E.v3;
 ''');
-    assertDartObjectText(_topLevelVar('x1'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x1'), r'''
 E<int>
   _name: String v1
   f: int 10
@@ -369,7 +369,7 @@ E<int>
       0: int 10
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
-    assertDartObjectText(_topLevelVar('x2'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x2'), r'''
 E<int>
   _name: String v2
   f: int 20
@@ -382,7 +382,7 @@ E<int>
       0: int 20
   variable: <testLibrary>::@topLevelVariable::x2
 ''');
-    assertDartObjectText(_topLevelVar('x3'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x3'), r'''
 E<String>
   _name: String v3
   f: String abc
@@ -398,12 +398,12 @@ E<String>
   }
 
   test_enum_simple() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 enum E { v1, v2 }
 const x1 = E.v1;
 const x2 = E.v2;
 ''');
-    assertDartObjectText(_topLevelVar('x1'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x1'), r'''
 E
   _name: String v1
   index: int 0
@@ -411,7 +411,7 @@ E
     constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
-    assertDartObjectText(_topLevelVar('x2'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x2'), r'''
 E
   _name: String v2
   index: int 1
@@ -422,10 +422,10 @@ E
   }
 
   test_equalEqual_bool_bool_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = true == false;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -433,10 +433,10 @@ bool false
   }
 
   test_equalEqual_bool_bool_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = true == true;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -444,10 +444,10 @@ bool true
   }
 
   test_equalEqual_double_object() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = 1.2 == Object();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -455,10 +455,10 @@ bool false
   }
 
   test_equalEqual_int_int_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = 1 == 2;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -466,10 +466,10 @@ bool false
   }
 
   test_equalEqual_int_int_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = 1 == 1;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -477,11 +477,11 @@ bool true
   }
 
   test_equalEqual_int_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const int? a = 1;
 const v = a == null;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -489,10 +489,10 @@ bool false
   }
 
   test_equalEqual_int_object() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = 1 == Object();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -500,14 +500,14 @@ bool false
   }
 
   test_equalEqual_int_userClass() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
 
 const v = 1 == A();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -533,10 +533,10 @@ const v = 1 == a;
   }
 
   test_equalEqual_list_matchingTypeArgs_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = <int>[] == <int>[];
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -544,10 +544,10 @@ bool true
   }
 
   test_equalEqual_list_matchingTypeArgs_inferred() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = [1, 2] == [1, 2];
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -555,10 +555,10 @@ bool true
   }
 
   test_equalEqual_list_mismatchedTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = const <int>[] == const <num>[];
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -566,10 +566,10 @@ bool false
   }
 
   test_equalEqual_map_matchingTypeArgs_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = <String, int>{} == <String, int>{};
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -577,10 +577,10 @@ bool true
   }
 
   test_equalEqual_map_matchingTypeArgs_inferred() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = {'x': 1, 'y': 2} == {'x': 1, 'y': 2};
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -588,10 +588,10 @@ bool true
   }
 
   test_equalEqual_map_mismatchedTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = const <String, int>{} == const <String, num>{};
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -599,11 +599,11 @@ bool false
   }
 
   test_equalEqual_null_object() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const Object? a = null;
 const v = a == Object();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -611,10 +611,10 @@ bool false
   }
 
   test_equalEqual_set_matchingTypeArgs_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = <int>{} == <int>{};
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -622,10 +622,10 @@ bool true
   }
 
   test_equalEqual_set_matchingTypeArgs_inferred() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = {1, 2} == {1, 2};
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -633,10 +633,10 @@ bool true
   }
 
   test_equalEqual_set_mismatchedTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = const <int>{} == const <num>{};
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -644,10 +644,10 @@ bool false
   }
 
   test_equalEqual_string_object() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const v = 'foo' == Object();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -655,7 +655,7 @@ bool false
   }
 
   test_equalEqual_userClass_hasEqEq() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   bool operator ==(other) => false;
@@ -665,12 +665,12 @@ const v = A() == 0;
 //        ^^^^^^^^
 // [diag.constEvalPrimitiveEquality] In constant expressions, operands of the equality operator must have primitive equality.
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     _assertNull(result);
   }
 
   test_equalEqual_userClass_hasHashCode() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
   int get hashCode => 0;
@@ -680,12 +680,12 @@ const v = A() == 0;
 //        ^^^^^^^^
 // [diag.constEvalPrimitiveEquality] In constant expressions, operands of the equality operator must have primitive equality.
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     _assertNull(result);
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int f;
   const A(this.f);
@@ -693,7 +693,7 @@ class A {
 
 const v = A(0) == 0;
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
@@ -701,7 +701,7 @@ bool false
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_language219() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 class A {
   const A();
@@ -711,12 +711,12 @@ const v = A() == 0;
 //        ^^^^^^^^
 // [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     _assertNull(result);
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int f;
   const A(this.f);
@@ -724,7 +724,7 @@ class A {
 
 const v = A(0) == A(0);
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::v
@@ -745,14 +745,14 @@ const v = A() == A();
   }
 
   test_hasPrimitiveEquality_bool() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = true;
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_class_hasEqEq() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = const A();
 
 class A {
@@ -760,11 +760,11 @@ class A {
   bool operator ==(other) => false;
 }
 ''');
-    _assertHasPrimitiveEqualityFalse('v');
+    _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
   test_hasPrimitiveEquality_class_hasEqEq_language219() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 const v = const A();
 
@@ -773,11 +773,11 @@ class A {
   bool operator ==(other) => false;
 }
 ''');
-    _assertHasPrimitiveEqualityFalse('v');
+    _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
   test_hasPrimitiveEquality_class_hasHashCode() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = const A();
 
 class A {
@@ -785,11 +785,11 @@ class A {
   int get hashCode => 0;
 }
 ''');
-    _assertHasPrimitiveEqualityFalse('v');
+    _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
   test_hasPrimitiveEquality_class_hasHashCode_language219() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 2.19
 const v = const A();
 
@@ -798,126 +798,126 @@ class A {
   int get hashCode => 0;
 }
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_class_hasNone() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = const A();
 
 class A {
   const A();
 }
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = 1.2;
 ''');
-    _assertHasPrimitiveEqualityFalse('v');
+    _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
   test_hasPrimitiveEquality_functionReference_staticMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = A.foo;
 
 class A {
   static void foo() {}
 }
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_functionReference_topLevelFunction() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = foo;
 
 void foo() {}
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = 0;
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_list() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = const [0];
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_map() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = const <int, String>{0: ''};
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = null;
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_record_named_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = (f1: true, f2: 1.2);
 ''');
-    _assertHasPrimitiveEqualityFalse('v');
+    _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
   test_hasPrimitiveEquality_record_named_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = (f1: true, f2: 0);
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_record_positional_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = (true, 1.2);
 ''');
-    _assertHasPrimitiveEqualityFalse('v');
+    _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
   test_hasPrimitiveEquality_record_positional_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = (true, 0);
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_set() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = const {0};
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_symbol() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = #foo.bar;
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_hasPrimitiveEquality_type() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const v = int;
 ''');
-    _assertHasPrimitiveEqualityTrue('v');
+    _assertHasPrimitiveEqualityTrue(result, 'v');
   }
 
   test_identical_extensionType_nullable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 extension type E(int it) {}
 
 class A {
@@ -927,7 +927,7 @@ class A {
 
 const v = A();
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, r'''
 A
   f: Null null
@@ -938,13 +938,13 @@ A
   }
 
   test_identical_extensionType_types_recursive() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = identical(ExList<ExInt>, List<int>);
 
 extension type const ExInt(int value) implements int {}
 extension type const ExList<T>(List<T> value) implements List<T> {}
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -952,11 +952,11 @@ bool true
   }
 
   test_identical_type_functionType_different() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = identical(typeof<void Function()>, typeof<void Function()?>);
 typedef typeof<T> = T;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -964,11 +964,11 @@ bool false
   }
 
   test_identical_type_functionType_same() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = identical(typeof<void Function()>, typeof<void Function()>);
 typedef typeof<T> = T;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -976,11 +976,11 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const c = identical(C<int>, C<String>);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -988,12 +988,12 @@ bool false
   }
 
   test_identical_typeLiteral_explicitTypeArgs_differentTypes() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
 const c = identical(C<int>, D<int>);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -1001,11 +1001,11 @@ bool false
   }
 
   test_identical_typeLiteral_explicitTypeArgs_sameType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const c = identical(C<int>, C<int>);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1013,12 +1013,12 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_simpleTypeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC = C<int>;
 const c = identical(C<int>, TC);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1026,12 +1026,12 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC<T> = C<T>;
 const c = identical(C<int>, TC<int>);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1039,12 +1039,12 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias_differentTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC<T> = C<T>;
 const c = identical(C<int>, TC<String>);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -1052,12 +1052,12 @@ bool false
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias_implicitTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef TC<T> = C<T>;
 const c = identical(C<dynamic>, TC);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1065,12 +1065,12 @@ bool true
   }
 
   test_identical_typeLiteral_explicitTypeArgs_typeAlias_implicitTypeArgs_bound() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T extends num> {}
 typedef TC<T extends num> = C<T>;
 const c = identical(C<num>, TC);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1078,10 +1078,10 @@ bool true
   }
 
   test_identical_typeLiteral_simple_differentTypes() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = identical(int, String);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -1089,10 +1089,10 @@ bool false
   }
 
   test_identical_typeLiteral_simple_sameType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = identical(int, int);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1108,13 +1108,13 @@ class A<T> {
 const Object a = const A(0);
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 const b = a;
 ''');
 
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 A<int>
   t: int 0
@@ -1129,7 +1129,7 @@ A<int>
   }
 
   test_instanceCreationExpression_custom_generic_extensionType_explicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 class C<T> {
@@ -1138,7 +1138,7 @@ class C<T> {
 
 const x = C<E>();
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 C<int>
   constructorInvocation
@@ -1151,7 +1151,7 @@ C<int>
   }
 
   test_instanceCreationExpression_custom_generic_extensionType_inferred() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 class C<T> {
@@ -1161,7 +1161,7 @@ class C<T> {
 
 const x = C(E(42));
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 C<int>
   f: int 42
@@ -1179,12 +1179,12 @@ C<int>
   }
 
   test_instanceCreationExpression_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = E(42);
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::x
@@ -1193,13 +1193,13 @@ int 42
   }
 
   test_isExpression_fromExtensionType_false() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(42);
 const x = a is String;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::x
@@ -1207,13 +1207,13 @@ bool false
   }
 
   test_isExpression_fromExtensionType_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const a = E(42);
 const x = a is int;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::x
@@ -1221,12 +1221,12 @@ bool true
   }
 
   test_isExpression_toExtensionType_false() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(String it) {}
 
 const x = 42 is E;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 bool false
   variable: <testLibrary>::@topLevelVariable::x
@@ -1234,12 +1234,12 @@ bool false
   }
 
   test_isExpression_toExtensionType_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = 42 is E;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 bool true
   variable: <testLibrary>::@topLevelVariable::x
@@ -1247,12 +1247,12 @@ bool true
   }
 
   test_listLiteral_extensionType_explicitType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = <E>[];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 List
   elementType: int
@@ -1262,12 +1262,12 @@ List
   }
 
   test_listLiteral_extensionType_inferredType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = [E(0), E(1)];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 List
   elementType: int
@@ -1282,12 +1282,12 @@ List
   }
 
   test_mapLiteral_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {}
 
 const x = {E(0): E(1)};
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Map
   entries
@@ -1318,7 +1318,7 @@ void f(Object? x) {
   }
 
   test_privateNamedParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C {
   final int _x;
   final int _y;
@@ -1327,7 +1327,7 @@ class C {
 }
 const c = C(x: 123, y: 456);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 C
   _x: int 123
@@ -1342,11 +1342,11 @@ C
   }
 
   test_propertyAccess_nullAware_dynamic_length_notNull() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const dynamic d = 'foo';
 const int? c = d?.length;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 int 3
   variable: <testLibrary>::@topLevelVariable::c
@@ -1354,11 +1354,11 @@ int 3
   }
 
   test_propertyAccess_nullAware_dynamic_length_null() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const dynamic d = null;
 const int? c = d?.length;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 Null null
   variable: <testLibrary>::@topLevelVariable::c
@@ -1366,11 +1366,11 @@ Null null
   }
 
   test_propertyAccess_nullAware_list_length_null() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const List? l = null;
 const int? c = l?.length;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 Null null
   variable: <testLibrary>::@topLevelVariable::c
@@ -1378,11 +1378,11 @@ Null null
   }
 
   test_propertyAccess_nullAware_string_length_notNull() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const String? s = 'foo';
 const int? c = s?.length;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 int 3
   variable: <testLibrary>::@topLevelVariable::c
@@ -1390,11 +1390,11 @@ int 3
   }
 
   test_propertyAccess_nullAware_string_length_null() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const String? s = null;
 const int? c = s?.length;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 Null null
   variable: <testLibrary>::@topLevelVariable::c
@@ -1402,10 +1402,10 @@ Null null
   }
 
   test_recordTypeAnnotation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = ('',) is (int,);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1413,7 +1413,7 @@ bool false
   }
 
   test_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<X> {
   const A();
   void m() {
@@ -1425,12 +1425,12 @@ class A<X> {
   }
 }
 ''');
-    var result = _localVar('x');
+    var result = _localVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 extension on Object {
   int operator +(Object other) => 0;
 }
@@ -1440,12 +1440,12 @@ const v2 = v1 + v1;
 //         ^^^^^^^
 // [diag.constEvalExtensionMethod] Extension methods can't be used in constant expressions.
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 extension type const A(int it) {
   int operator +(Object other) => 0;
 }
@@ -1455,18 +1455,18 @@ const v2 = v1 + 2;
 //         ^^^^^^
 // [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionType_implementsInt() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 extension type const A(int it) implements int {}
 
 const v1 = A(1);
 const v2 = v1 + 2;
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     assertDartObjectText(result, r'''
 int 3
   variable: <testLibrary>::@topLevelVariable::v2
@@ -1474,10 +1474,10 @@ int 3
   }
 
   test_visitBinaryExpression_gt_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2 > 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -1485,10 +1485,10 @@ bool false
   }
 
   test_visitBinaryExpression_gte_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2 >= 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -1496,10 +1496,10 @@ bool false
   }
 
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 8;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xffffff
@@ -1508,10 +1508,10 @@ int 0xffffff
   }
 
   test_visitBinaryExpression_gtGtGt_negative_moreBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 33;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 0
   variable: <testLibrary>::@topLevelVariable::c
@@ -1519,10 +1519,10 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 65;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 0
   variable: <testLibrary>::@topLevelVariable::c
@@ -1530,20 +1530,20 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> -2;
 //        ^^^^^^^^^^^^^^^^^
 // [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFFFFFFFF >>> 0;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xffffffff
@@ -1552,10 +1552,10 @@ int 0xffffffff
   }
 
   test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0x1f
@@ -1564,10 +1564,10 @@ int 0x1f
   }
 
   test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 9;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 0
   variable: <testLibrary>::@topLevelVariable::c
@@ -1575,10 +1575,10 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 65;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 0
   variable: <testLibrary>::@topLevelVariable::c
@@ -1586,20 +1586,20 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> -2;
 //        ^^^^^^^^^^^
 // [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 0xFF >>> 0;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xff
@@ -1608,10 +1608,10 @@ int 0xff
   }
 
   test_visitBinaryExpression_lt_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2 < 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1619,10 +1619,10 @@ bool true
   }
 
   test_visitBinaryExpression_lte_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2 <= 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -1664,7 +1664,7 @@ const c = null ? 1 : 0;
   }
 
   test_visitConditionalExpression_instantiatedFunctionType_variable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T p, {T? q}) {}
 
 const void Function<T>(T p) g = f;
@@ -1672,7 +1672,7 @@ const void Function<T>(T p) g = f;
 const bool b = false;
 const void Function(int p) h = b ? g : g;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function(int, {int? q})
   element: <testLibrary>::@function::f
@@ -1683,11 +1683,11 @@ void Function(int, {int? q})
   }
 
   test_visitConditionalExpression_unknownCondition() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? 0 : 1;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 <unknown> int
   variable: <testLibrary>::@topLevelVariable::x
@@ -1695,7 +1695,7 @@ const x = kIsWeb ? 0 : 1;
   }
 
   test_visitConditionalExpression_unknownCondition_errorInConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const bool kIsWeb = identical(0, 0.0);
 
 var a = 2;
@@ -1708,12 +1708,12 @@ class A {
   const A(int _);
 }
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitConditionalExpression_unknownCondition_undefinedIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? a : b;
 //                 ^
@@ -1722,7 +1722,7 @@ const x = kIsWeb ? a : b;
 //                     ^
 // [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
@@ -1778,13 +1778,13 @@ class A {
   }
 
   test_visitConstructorReference_generic_named() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.foo();
 }
 const c = C<int>.foo;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 C<int> Function()
   element: <testLibrary>::@class::C::@constructor::foo
@@ -1795,13 +1795,13 @@ C<int> Function()
   }
 
   test_visitConstructorReference_generic_unnamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
 }
 const c = C<int>.new;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 C<int> Function()
   element: <testLibrary>::@class::C::@constructor::new
@@ -1812,12 +1812,12 @@ C<int> Function()
   }
 
   test_visitConstructorReference_identical_aliasIsNotGeneric() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC = C<int>;
 const a = identical(MyC.new, C<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1825,12 +1825,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentBound() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC.new, C.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1838,12 +1838,12 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C<T, int>;
 const a = identical(MyC.new, C.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1851,12 +1851,12 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C;
 const a = identical(MyC.new, C.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1864,12 +1864,12 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_differentOrder() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T, U> = C<U, T>;
 const a = identical(MyC.new, C.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1877,12 +1877,12 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_instantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, C<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1890,12 +1890,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsNotProperRename_mixedInstantiations() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, (MyC.new)<int>);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1903,12 +1903,12 @@ bool false
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_instantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1916,12 +1916,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_mixedInstantiations() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC<int>.new, (MyC.new)<int>);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1929,12 +1929,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_dynamic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends Object?> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1942,13 +1942,13 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_futureOr() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class C<T extends FutureOr<num>> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1956,12 +1956,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_aliasIsProperRename_uninstantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC.new, MyC.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -1969,12 +1969,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_differentClasses() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
 const a = identical(C<int>.new, D<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1982,14 +1982,14 @@ bool false
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_differentConstructors() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
   C.named();
 }
 const a = identical(C<int>.new, C<int>.named);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -1997,11 +1997,11 @@ bool false
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_differentTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<String>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -2009,11 +2009,11 @@ bool false
   }
 
   test_visitConstructorReference_identical_explicitTypeArgs_sameElement() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<int>.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -2021,13 +2021,13 @@ bool true
   }
 
   test_visitConstructorReference_identical_inferredTypeArgs_sameElement() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const C<int> Function() c1 = C.new;
 const c2 = C<int>.new;
 const a = identical(c1, c2);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -2035,12 +2035,12 @@ bool true
   }
 
   test_visitConstructorReference_identical_notInstantiated_differentClasses() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
 const a = identical(C.new, D.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -2048,14 +2048,14 @@ bool false
   }
 
   test_visitConstructorReference_identical_notInstantiated_differentConstructors() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
   C.named();
 }
 const a = identical(C.new, C.named);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -2063,11 +2063,11 @@ bool false
   }
 
   test_visitConstructorReference_identical_notInstantiated_sameElement() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C.new, C.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::a
@@ -2075,11 +2075,11 @@ bool true
   }
 
   test_visitConstructorReference_identical_onlyOneHasTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C.new);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
@@ -2087,13 +2087,13 @@ bool false
   }
 
   test_visitConstructorReference_nonGeneric_named() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.foo();
 }
 const c = C<int>.foo;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 C<int> Function()
   element: <testLibrary>::@class::C::@constructor::foo
@@ -2104,13 +2104,13 @@ C<int> Function()
   }
 
   test_visitConstructorReference_nonGeneric_unnamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C();
 }
 const c = C<int>.new;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 C<int> Function()
   element: <testLibrary>::@class::C::@constructor::new
@@ -2134,13 +2134,13 @@ class C<T> {
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const b = true;
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = (b ? foo : bar)<int>;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 void Function(int)
   element: <testLibrary>::@function::foo
@@ -2151,13 +2151,13 @@ void Function(int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression_differentTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const b = true;
 void foo<T>(String a, T b) {}
 void bar<T>(T a, String b) {}
 const g = (b ? foo : bar)<int>;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 void Function(String, int)
   element: <testLibrary>::@function::foo
@@ -2168,11 +2168,11 @@ void Function(String, int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_constantType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 const g = f<int>;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -2183,13 +2183,13 @@ void Function(int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notMatchingBound() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void f<T extends num>(T a) {}
 const g = f<String>;
 //          ^^^^^^
 // [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 void Function(String)
   element: <testLibrary>::@function::f
@@ -2200,7 +2200,7 @@ void Function(String)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = foo<true>;
 //        ^^^^^^^^
@@ -2212,29 +2212,29 @@ const g = foo<true>;
 //                 ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooFew() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T, U>(T a, U b) {}
 const g = foo<int>;
 //           ^^^^^
 // [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 2 type parameters, but 1 type arguments are given.
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooMany() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = foo<int, String>;
 //           ^^^^^^^^^^^^^
 // [diag.wrongNumberOfTypeArgumentsElement] The function 'foo' is declared with 1 type parameters, but 2 type arguments are given.
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     _assertNull(result);
   }
 
@@ -2255,12 +2255,12 @@ class C<U> {
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentElements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = identical(foo<int>, bar<int>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::g
@@ -2268,11 +2268,11 @@ bool false
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentTypeArgs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<String>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::g
@@ -2280,11 +2280,11 @@ bool false
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_onlyOneHasTypeArgs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::g
@@ -2292,11 +2292,11 @@ bool false
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_sameElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::g
@@ -2304,12 +2304,12 @@ bool true
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_sameElement_runtimeTypeEquality() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 void foo<T>(T a) {}
 const g = identical(foo<Object>, foo<FutureOr<Object>>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::g
@@ -2317,12 +2317,12 @@ bool true
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_differentElements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = identical(foo<int>, bar<int>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::g
@@ -2330,11 +2330,11 @@ bool false
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_differentTypeArgs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<String>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::g
@@ -2342,11 +2342,11 @@ bool false
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_onlyOneHasTypeArgs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::g
@@ -2354,11 +2354,11 @@ bool false
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_sameElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::g
@@ -2366,12 +2366,12 @@ bool true
   }
 
   test_visitFunctionReference_identical_explicitTypeArgs_sameElement_runtimeTypeEquality() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 void foo<T>(T a) {}
 const g = identical(foo<Object>, foo<FutureOr<Object>>);
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::g
@@ -2379,13 +2379,13 @@ bool true
   }
 
   test_visitFunctionReference_identical_implicitTypeArgs_differentTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(String) g = foo;
 const c = identical(f, g);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -2393,13 +2393,13 @@ bool false
   }
 
   test_visitFunctionReference_identical_implicitTypeArgs_sameTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(int) g = foo;
 const c = identical(f, g);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -2407,11 +2407,11 @@ bool true
   }
 
   test_visitFunctionReference_identical_uninstantiated_sameElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const c = identical(foo, foo);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -2419,13 +2419,13 @@ bool true
   }
 
   test_visitFunctionReference_implicitTypeArgs_identical_differentTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(String) g = foo;
 const c = identical(f, g);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -2433,13 +2433,13 @@ bool false
   }
 
   test_visitFunctionReference_implicitTypeArgs_identical_sameTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(int) g = foo;
 const c = identical(f, g);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -2447,13 +2447,13 @@ bool true
   }
 
   test_visitFunctionReference_uninstantiated_complexExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const b = true;
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = b ? foo : bar;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 void Function<T>(T)
   element: <testLibrary>::@function::foo
@@ -2462,11 +2462,11 @@ void Function<T>(T)
   }
 
   test_visitFunctionReference_uninstantiated_functionName() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 const g = f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, r'''
 void Function<T>(T)
   element: <testLibrary>::@function::f
@@ -2475,11 +2475,11 @@ void Function<T>(T)
   }
 
   test_visitFunctionReference_uninstantiated_identical_sameElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo<T>(T a) {}
 const c = identical(foo, foo);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -2615,13 +2615,13 @@ const a = B();
   }
 
   test_visitInstanceCreationExpression_noArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
 const a = A();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 A
   constructorInvocation
@@ -2641,13 +2641,13 @@ const a = A();
   }
 
   test_visitInstanceCreationExpression_simpleArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A(int x);
 }
 const a = A(1);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 A
   constructorInvocation
@@ -2684,13 +2684,13 @@ const x = '${const [2]}';
   }
 
   test_visitIsExpression_is_functionType_correctTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 void foo(int a) {}
 const c = foo is void Function(int);
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -2698,7 +2698,7 @@ bool true
   }
 
   test_visitIsExpression_is_instanceOfSameClass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a is A;
 //        ^^^^^^
@@ -2707,7 +2707,7 @@ class A {
   const A();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -2715,7 +2715,7 @@ bool true
   }
 
   test_visitIsExpression_is_instanceOfSubclass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = const B();
 const b = a is A;
 //        ^^^^^^
@@ -2727,7 +2727,7 @@ class B extends A {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -2735,12 +2735,12 @@ bool true
   }
 
   test_visitIsExpression_is_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is A;
 class A {}
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::b
@@ -2748,12 +2748,12 @@ bool false
   }
 
   test_visitIsExpression_is_null_nullable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is A?;
 class A {}
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -2761,11 +2761,11 @@ bool true
   }
 
   test_visitIsExpression_is_null_object() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is Object;
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::b
@@ -2773,7 +2773,7 @@ bool false
   }
 
   test_visitIsExpression_isNot_instanceOfSameClass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a is! A;
 //        ^^^^^^^
@@ -2782,7 +2782,7 @@ class A {
   const A();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::b
@@ -2790,7 +2790,7 @@ bool false
   }
 
   test_visitIsExpression_isNot_instanceOfSubclass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = const B();
 const b = a is! A;
 //        ^^^^^^^
@@ -2802,7 +2802,7 @@ class B extends A {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::b
@@ -2810,12 +2810,12 @@ bool false
   }
 
   test_visitIsExpression_isNot_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const b = a is! A;
 class A {}
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -2823,43 +2823,43 @@ bool true
   }
 
   test_visitListLiteral_forElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = [for (int i = 0; i < 3; i++) i];
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constEvalForElement] Constant expressions don't support 'for' elements.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const dynamic c = 2;
 const x = [1, if (c) 2 else 3, 4];
 //                ^
 // [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition_static() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = [1, if (1) 2 else 3, 4];
 //                ^
 // [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitListLiteral_listElement_explicitType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = <String>['a', 'b', 'c'];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 List
   elementType: String
@@ -2872,10 +2872,10 @@ List
   }
 
   test_visitListLiteral_listElement_explicitType_functionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = <void Function()>[];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 List
   elementType: void Function()
@@ -2906,10 +2906,10 @@ class A {
   }
 
   test_visitListLiteral_listElement_simple() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = ['a', 'b', 'c'];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 List
   elementType: String
@@ -2922,12 +2922,12 @@ List
   }
 
   test_visitListLiteral_listElement_variableElements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 const b = 2;
 const c = [a, 1, b];
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List
   elementType: int
@@ -2942,25 +2942,25 @@ List
   }
 
   test_visitListLiteral_spreadElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const dynamic a = 5;
 const x = <int>[...a];
 //                 ^
 // [diag.constSpreadExpectedListOrSet] A list or a set is expected in this spread.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitListLiteral_spreadElement_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const List<String> x = [
   'anotherString',
   ...?a,
 ];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 List
   elementType: String
@@ -2971,14 +2971,14 @@ List
   }
 
   test_visitListLiteral_spreadElement_set() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = {'string'};
 const List<String> x = [
   'anotherString',
   ...a,
 ];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 List
   elementType: String
@@ -3021,12 +3021,12 @@ void f<T>(Object? x) {
   }
 
   test_visitPrefixedIdentifier_function() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f(int a) {}
 const g = self.f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3035,12 +3035,12 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f<T>(T a) {}
 const void Function(int) g = self.f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3051,14 +3051,14 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiatedNonIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const b = false;
 const g1 = f;
 const g2 = f;
 const void Function(int) h = b ? g1 : g2;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3069,13 +3069,13 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiatedPrefixed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f<T>(T a) {}
 const g = f;
 const void Function(int) h = self.g;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3086,13 +3086,13 @@ void Function(int)
   }
 
   test_visitPrefixedIdentifier_genericVariable_uninstantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 void f<T>(T a) {}
 const g = f;
 const h = self.g;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function<T>(T)
   element: <testLibrary>::@function::f
@@ -3117,10 +3117,10 @@ class RequiresNonEmptyList {
   }
 
   test_visitPrefixExpression_bitNot() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = ~42;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 int -43
   variable: <testLibrary>::@topLevelVariable::c
@@ -3128,7 +3128,7 @@ int -43
   }
 
   test_visitPrefixExpression_extensionMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension on Object {
   int operator -() => 0;
 }
@@ -3138,12 +3138,12 @@ const v2 = -v1;
 //         ^^^
 // [diag.constEvalExtensionMethod] Extension methods can't be used in constant expressions.
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     _assertNull(result);
   }
 
   test_visitPrefixExpression_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {
   int operator -() => 0;
 }
@@ -3153,18 +3153,18 @@ const v2 = -v1;
 //         ^^^
 // [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     _assertNull(result);
   }
 
   test_visitPrefixExpression_extensionType_implementsInt() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 extension type const A(int it) implements int {}
 
 const v1 = A(1);
 const v2 = -v1;
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     assertDartObjectText(result, r'''
 int -1
   variable: <testLibrary>::@topLevelVariable::v2
@@ -3172,10 +3172,10 @@ int -1
   }
 
   test_visitPrefixExpression_logicalNot() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = !true;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -3193,10 +3193,10 @@ const c = -true;
   }
 
   test_visitPrefixExpression_negated_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = -42.3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double -42.3
   variable: <testLibrary>::@topLevelVariable::c
@@ -3204,10 +3204,10 @@ double -42.3
   }
 
   test_visitPrefixExpression_negated_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = -42;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int -42
   variable: <testLibrary>::@topLevelVariable::c
@@ -3215,10 +3215,10 @@ int -42
   }
 
   test_visitPropertyAccess_length_complex() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const x = ('qwe' + 'rty').length;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 int 6
   variable: <testLibrary>::@topLevelVariable::x
@@ -3226,10 +3226,10 @@ int 6
   }
 
   test_visitPropertyAccess_length_simple() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const x = 'Dvorak'.length;
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 int 6
   variable: <testLibrary>::@topLevelVariable::x
@@ -3237,14 +3237,14 @@ int 6
   }
 
   test_visitPropertyAccess_staticMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class C {
   static void f(int a) {}
 }
 const g = self.C.f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@class::C::@method::f
@@ -3253,14 +3253,14 @@ void Function(int)
   }
 
   test_visitPropertyAccess_staticMethod_generic_instantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 class C {
   static void f<T>(T a) {}
 }
 const void Function(int) g = self.C.f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@class::C::@method::f
@@ -3271,14 +3271,14 @@ void Function(int)
   }
 
   test_visitPropertyAccess_staticMethod_ofExtension() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension E on int {
   static int f(String s) => 7;
 }
 const g = self.E.f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 int Function(String)
   element: <testLibrary>::@extension::E::@method::f
@@ -3287,14 +3287,14 @@ int Function(String)
   }
 
   test_visitPropertyAccess_staticMethod_ofExtensionType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import '' as self;
 extension type ET(int it) {
   static int f(String s) => 7;
 }
 const g = self.ET.f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 int Function(String)
   element: <testLibrary>::@extensionType::ET::@method::f
@@ -3312,10 +3312,10 @@ class A {
   }
 
   test_visitRecordLiteral_mixedTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = (0, f1: 10, f2: 2.3);
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 Record(int, {int f1, double f2})
   positionalFields
@@ -3328,10 +3328,10 @@ Record(int, {int f1, double f2})
   }
 
   test_visitRecordLiteral_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = (f1: 10, f2: -3);
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 Record({int f1, int f2})
   namedFields
@@ -3351,7 +3351,7 @@ final bar = '';
   }
 
   test_visitRecordLiteral_objectField_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final (T, T) record;
   const A(T a) : record = (a, a);
@@ -3359,7 +3359,7 @@ class A<T> {
 
 const a = A(42);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 A<int>
   record: Record(int, int)
@@ -3377,10 +3377,10 @@ A<int>
   }
 
   test_visitRecordLiteral_positional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = (20, 0, 7);
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 Record(int, int, int)
   positionalFields
@@ -3401,10 +3401,10 @@ final bar = '';
   }
 
   test_visitRecordLiteral_withoutEnvironment() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = (1, 'b', c: false);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 Record(int, String, {bool c})
   positionalFields
@@ -3454,7 +3454,7 @@ const anotherList = [...ambiguous];
   }
 
   test_visitSetOrMapLiteral_map_complexKey() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -3462,7 +3462,7 @@ class A {
 void fn() => 2;
 const x = {A(0): 1, fn: 2};
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 Map
   entries
@@ -3483,45 +3483,45 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_forElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = {1: null, for (final i in const []) i: null};
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constEvalForElement] Constant expressions don't support 'for' elements.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_forElement_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = {1: null, if (true) for (final i in const []) i: null};
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constEvalForElement] Constant expressions don't support 'for' elements.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_ifElement_nonBoolCondition() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
 //                   ^^^^^^^
 // [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_mapElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const x = {'a' : 'm', 'b' : 'n', 'c' : 'o'};
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Map
   entries
@@ -3539,14 +3539,14 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_spread() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const x = {'string': 1};
 const Map<String, int> alwaysInclude = {
   'anotherString': 0,
   ...x,
 };
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Map
   entries
@@ -3571,14 +3571,14 @@ const Map<String, int> alwaysInclude = {
   }
 
   test_visitSetOrMapLiteral_map_spread_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const Map<String, int> x = {
   'anotherString': 0,
   ...?a,
 };
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Map
   entries
@@ -3590,7 +3590,7 @@ Map
   }
 
   test_visitSetOrMapLiteral_set_double_zeros() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final double x;
   const C(this.x);
@@ -3601,7 +3601,7 @@ const cm0 = C(-0.0);
 
 const a = {cp0, cm0};
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 Set
   elements
@@ -3624,7 +3624,7 @@ Set
   }
 
   test_visitSetOrMapLiteral_set_forElement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const Set set = {};
 const x = {for (final i in set) i};
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3632,30 +3632,30 @@ const x = {for (final i in set) i};
 //         ^^^^^^^^^^^^^^^^^^^^^^
 // [diag.constEvalForElement] Constant expressions don't support 'for' elements.
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_set_ifElement_nonBoolCondition() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
 //                   ^^^^^^^
 // [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_set_spread_list() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = ['string'];
 const Set<String> x = {
   'anotherString',
   ...a,
 };
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Set
   elements
@@ -3666,14 +3666,14 @@ Set
   }
 
   test_visitSetOrMapLiteral_set_spread_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = null;
 const Set<String> x = {
   'anotherString',
   ...?a,
 };
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 Set
   elements
@@ -3683,11 +3683,11 @@ Set
   }
 
   test_visitSimpleIdentifier_className() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = C;
 class C {}
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 Type
   toTypeValue: C
@@ -3697,11 +3697,11 @@ Type
   }
 
   test_visitSimpleIdentifier_extensionTypeName() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = E;
 extension type E(int it);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 Type
   toTypeValue: int
@@ -3711,11 +3711,11 @@ Type
   }
 
   test_visitSimpleIdentifier_extensionTypeObject() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = E(0);
 extension type const E(int it);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 int 0
   variable: <testLibrary>::@topLevelVariable::a
@@ -3724,11 +3724,11 @@ int 0
   }
 
   test_visitSimpleIdentifier_function() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f(int a) {}
 const g = f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3737,11 +3737,11 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericFunction_instantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const void Function(int) g = f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3752,11 +3752,11 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericFunction_nonGeneric() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f(int a) {}
 const void Function(int) g = f;
 ''');
-    var result = _topLevelVar('g');
+    var result = _topLevelVar(unitResult, 'g');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3765,12 +3765,12 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericVariable_instantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const g = f;
 const void Function(int) h = g;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function(int)
   element: <testLibrary>::@function::f
@@ -3781,12 +3781,12 @@ void Function(int)
   }
 
   test_visitSimpleIdentifier_genericVariable_uninstantiated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {}
 const g = f;
 const h = g;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function<T>(T)
   element: <testLibrary>::@function::f
@@ -3795,7 +3795,7 @@ void Function<T>(T)
   }
 
   test_visitSimpleIdentifier_instantiatedFunctionType_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, {T? b}) {}
 
 class C {
@@ -3803,7 +3803,7 @@ class C {
   static const void Function(int a) h = g;
 }
 ''');
-    var result = _field('h');
+    var result = _field(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function(int, {int? b})
   element: <testLibrary>::@function::f
@@ -3814,7 +3814,7 @@ void Function(int, {int? b})
   }
 
   test_visitSimpleIdentifier_instantiatedFunctionType_parameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, {T? b}) {}
 
 class C {
@@ -3824,7 +3824,7 @@ class C {
 
 const c = C(f);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 C
   h: void Function(int, {int? b})
@@ -3841,14 +3841,14 @@ C
   }
 
   test_visitSimpleIdentifier_instantiatedFunctionType_variable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, {T? b}) {}
 
 const void Function<T>(T a) g = f;
 
 const void Function(int a) h = g;
 ''');
-    var result = _topLevelVar('h');
+    var result = _topLevelVar(unitResult, 'h');
     assertDartObjectText(result, '''
 void Function(int, {int? b})
   element: <testLibrary>::@function::f
@@ -3859,7 +3859,7 @@ void Function(int, {int? b})
   }
 
   test_visitUnaryExpression_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {
   int operator -() => 0;
 }
@@ -3869,19 +3869,25 @@ const v2 = -v1;
 //         ^^^
 // [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     _assertNull(result);
   }
 
-  void _assertHasPrimitiveEqualityFalse(String name) {
-    var value = _evaluateConstant(name);
+  void _assertHasPrimitiveEqualityFalse(
+    TestResolvedUnitResult unitResult,
+    String name,
+  ) {
+    var value = _evaluateConstant(unitResult, name);
     var featureSet = result.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isFalse);
   }
 
-  void _assertHasPrimitiveEqualityTrue(String name) {
-    var value = _evaluateConstant(name);
+  void _assertHasPrimitiveEqualityTrue(
+    TestResolvedUnitResult unitResult,
+    String name,
+  ) {
+    var value = _evaluateConstant(unitResult, name);
     var featureSet = result.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
@@ -3891,46 +3897,46 @@ const v2 = -v1;
 @reflectiveTest
 mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
   test_listLiteral_ifElement_false_withElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
   test_listLiteral_ifElement_false_withoutElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = [1, if (1 < 0) 2, 3];
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
   test_listLiteral_ifElement_true_withElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
   test_listLiteral_ifElement_true_withoutElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = [1, if (1 > 0) 2, 3];
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_listLiteral_nested() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     // The expected type ought to be `List<int>`, but type inference isn't yet
     // implemented.
     expect(result.type, typeProvider.listType(typeProvider.intType));
@@ -3938,19 +3944,19 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
   }
 
   test_listLiteral_spreadElement() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = [1, ...[2, 3], 4];
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.listType(typeProvider.intType));
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
   test_mapLiteral_ifElement_false_withElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
@@ -3964,10 +3970,10 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
   }
 
   test_mapLiteral_ifElement_false_withoutElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
@@ -3981,10 +3987,10 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
   }
 
   test_mapLiteral_ifElement_true_withElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
@@ -3998,10 +4004,10 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
   }
 
   test_mapLiteral_ifElement_true_withoutElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
@@ -4017,10 +4023,10 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
   @failingTest
   test_mapLiteral_nested() async {
     // Fails because we're not yet parsing nested elements.
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       typeProvider.mapType(typeProvider.intType, typeProvider.intType),
@@ -4034,10 +4040,10 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
   }
 
   test_mapLiteral_spreadElement() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
@@ -4054,64 +4060,64 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
   }
 
   test_setLiteral_ifElement_false_withElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
   test_setLiteral_ifElement_false_withoutElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {1, if (1 < 0) 2, 3};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
   test_setLiteral_ifElement_true_withElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
   test_setLiteral_ifElement_true_withoutElse() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {1, if (1 > 0) 2, 3};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_setLiteral_nested() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_setLiteral_spreadElement() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = {1, ...{2, 3}, 4};
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
   test_visitAdjacentInterpolation_simple() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 'abc' 'def';
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 String abcdef
   variable: <testLibrary>::@topLevelVariable::c
@@ -4119,20 +4125,20 @@ String abcdef
   }
 
   test_visitAsExpression_instanceOfSameClass() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 const a = const A();
 const b = a as A;
 class A {
   const A();
 }
 ''');
-    DartObjectImpl resultA = _evaluateConstant('a');
-    DartObjectImpl resultB = _evaluateConstant('b');
+    DartObjectImpl resultA = _evaluateConstant(result, 'a');
+    DartObjectImpl resultB = _evaluateConstant(result, 'b');
     expect(resultB, resultA);
   }
 
   test_visitAsExpression_instanceOfSubclass() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 const a = const B();
 const b = a as A;
 class A {
@@ -4142,13 +4148,13 @@ class B extends A {
   const B();
 }
 ''');
-    DartObjectImpl resultA = _evaluateConstant('a');
-    DartObjectImpl resultB = _evaluateConstant('b');
+    DartObjectImpl resultA = _evaluateConstant(result, 'a');
+    DartObjectImpl resultB = _evaluateConstant(result, 'b');
     expect(resultB, resultA);
   }
 
   test_visitAsExpression_instanceOfSuperclass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a as B;
 //        ^^^^^^
@@ -4160,12 +4166,12 @@ class B extends A {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     _assertNull(result);
   }
 
   test_visitAsExpression_instanceOfUnrelatedClass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = const A();
 const b = a as B;
 //        ^^^^^^
@@ -4177,7 +4183,7 @@ class B {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     _assertNull(result);
   }
 
@@ -4195,10 +4201,10 @@ class MyClass {
   }
 
   test_visitBinaryExpression_add_double_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2.3 + 3.2;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double 5.5
   variable: <testLibrary>::@topLevelVariable::c
@@ -4221,10 +4227,10 @@ const c = C() + 1;
   }
 
   test_visitBinaryExpression_add_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2 + 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 5
   variable: <testLibrary>::@topLevelVariable::c
@@ -4232,10 +4238,10 @@ int 5
   }
 
   test_visitBinaryExpression_add_string_string() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 'a' + 'b';
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 String ab
   variable: <testLibrary>::@topLevelVariable::c
@@ -4243,10 +4249,10 @@ String ab
   }
 
   test_visitBinaryExpression_and_bool_bool() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = true && false;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -4283,19 +4289,19 @@ const c = a && true;
   }
 
   test_visitBinaryExpression_and_bool_known_known() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = false & true;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_bool_known_unknown() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const b = bool.fromEnvironment('y');
 const c = false & b;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
@@ -4309,29 +4315,29 @@ const c = true && a;
   }
 
   test_visitBinaryExpression_and_bool_unknown_known() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = bool.fromEnvironment('x');
 const c = a & true;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_bool_unknown_unknown() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a & b;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 74 & 42;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 10
   variable: <testLibrary>::@topLevelVariable::c
@@ -4349,10 +4355,10 @@ const c = 3 & false;
   }
 
   test_visitBinaryExpression_divide_double_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3.2 / 2.3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double 1.3913043478260871
   variable: <testLibrary>::@topLevelVariable::c
@@ -4360,10 +4366,10 @@ double 1.3913043478260871
   }
 
   test_visitBinaryExpression_divide_double_double_byZero() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3.2 / 0.0;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double Infinity
   variable: <testLibrary>::@topLevelVariable::c
@@ -4371,10 +4377,10 @@ double Infinity
   }
 
   test_visitBinaryExpression_divide_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 / 2;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double 1.5
   variable: <testLibrary>::@topLevelVariable::c
@@ -4382,10 +4388,10 @@ double 1.5
   }
 
   test_visitBinaryExpression_divide_int_int_byZero() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 / 0;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double Infinity
   variable: <testLibrary>::@topLevelVariable::c
@@ -4393,14 +4399,14 @@ double Infinity
   }
 
   test_visitBinaryExpression_eqeq_double_double_nan_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = double.nan == 2.3;
 //        ^^^^^^^^^^^^^
 // [diag.unnecessaryNanComparisonFalse] A double can't equal 'double.nan', so the condition is always 'false'.
 ''');
     // This test case produces a warning, but the value of the constant should
     // be `false`.
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -4408,14 +4414,14 @@ bool false
   }
 
   test_visitBinaryExpression_eqeq_double_double_nan_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = 2.3 == double.nan;
 //            ^^^^^^^^^^^^^
 // [diag.unnecessaryNanComparisonFalse] A double can't equal 'double.nan', so the condition is always 'false'.
 ''');
     // This test case produces a warning, but the value of the constant should
     // be `false`.
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -4423,10 +4429,10 @@ bool false
   }
 
   test_visitBinaryExpression_minus_double_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3.2 - 2.3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double 0.9000000000000004
   variable: <testLibrary>::@topLevelVariable::c
@@ -4434,10 +4440,10 @@ double 0.9000000000000004
   }
 
   test_visitBinaryExpression_minus_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 - 2;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 1
   variable: <testLibrary>::@topLevelVariable::c
@@ -4445,10 +4451,10 @@ int 1
   }
 
   test_visitBinaryExpression_notEqual_bool_bool() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = true != false;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -4456,10 +4462,10 @@ bool true
   }
 
   test_visitBinaryExpression_notEqual_int_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 2 != 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -4485,10 +4491,10 @@ const c = 2 != a;
   }
 
   test_visitBinaryExpression_notEqual_string_string() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 'a' != 'b';
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -4523,19 +4529,19 @@ const c = a || true;
   }
 
   test_visitBinaryExpression_or_bool_known_known() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = false | true;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_bool_known_unknown() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const b = bool.fromEnvironment('y');
 const c = false | b;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
@@ -4551,39 +4557,39 @@ const c = true || a;
   }
 
   test_visitBinaryExpression_or_bool_unknown_known() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = bool.fromEnvironment('x');
 const c = a | true;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_bool_unknown_unknown() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a | b;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_int() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = 3 | 5;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.intType);
   }
 
   test_visitBinaryExpression_or_known_known() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = true || false;
 //             ^^^^^^^^
 // [diag.deadCode] Dead code.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::c
@@ -4601,10 +4607,10 @@ const c = 3 | false;
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = 'a' ?? 'b';
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.stringType);
     expect(result.toStringValue(), 'a');
   }
@@ -4619,63 +4625,63 @@ class C {}
   }
 
   test_visitBinaryExpression_questionQuestion_null_notNull() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = null ?? 'b';
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.stringType);
     expect(result.toStringValue(), 'b');
   }
 
   test_visitBinaryExpression_questionQuestion_null_null() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = null ?? null;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.isNull, isTrue);
   }
 
   test_visitBinaryExpression_xor_bool_known_known() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = false ^ true;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_bool_known_unknown() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const b = bool.fromEnvironment('y');
 const c = false ^ b;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_bool_unknown_known() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = bool.fromEnvironment('x');
 const c = a ^ true;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_bool_unknown_unknown() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a ^ b;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_int() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const c = 3 ^ 5;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, typeProvider.intType);
   }
 
@@ -4690,10 +4696,10 @@ const c = 3 ^ false;
   }
 
   test_visitBoolLiteral_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 bool false
@@ -4702,10 +4708,10 @@ bool false
   }
 
   test_visitBoolLiteral_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = true;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 bool true
@@ -4714,12 +4720,12 @@ bool true
   }
 
   test_visitConditionalExpression_eager_false_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = false ? 1 : 0;
 //                ^
 // [diag.deadCode] Dead code.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 0
   variable: <testLibrary>::@topLevelVariable::c
@@ -4727,12 +4733,12 @@ int 0
   }
 
   test_visitConditionalExpression_eager_true_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : 0;
 //                   ^
 // [diag.deadCode] Dead code.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 1
   variable: <testLibrary>::@topLevelVariable::c
@@ -4761,12 +4767,12 @@ const c = true ? x : 0;
   }
 
   test_visitConditionalExpression_lazy_false_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = false ? 1 : 0;
 //                ^
 // [diag.deadCode] Dead code.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 0
   variable: <testLibrary>::@topLevelVariable::c
@@ -4806,12 +4812,12 @@ const c = 3 ? 1 : 0;
   }
 
   test_visitConditionalExpression_lazy_true_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : 0;
 //                   ^
 // [diag.deadCode] Dead code.
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 1
   variable: <testLibrary>::@topLevelVariable::c
@@ -4857,10 +4863,10 @@ const c = identical(0, 0.0) ? 1 : new Object();
   }
 
   test_visitDoubleLiteral() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3.45;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 double 3.45
   variable: <testLibrary>::@topLevelVariable::c
@@ -4868,19 +4874,19 @@ double 3.45
   }
 
   test_visitIntegerLiteral_doubleType() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const double d = 3;
 ''');
-    DartObjectImpl result = _evaluateConstant('d');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'd');
     expect(result.type, typeProvider.doubleType);
     expect(result.toDoubleValue(), 3.0);
   }
 
   test_visitIntegerLiteral_integer() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 3
   variable: <testLibrary>::@topLevelVariable::c
@@ -4888,11 +4894,11 @@ int 3
   }
 
   test_visitIsExpression_is_functionType_badTypes() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void foo(int a) {}
 const c = foo is void Function(String);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -4900,10 +4906,10 @@ bool false
   }
 
   test_visitIsExpression_is_functionType_nonFunction() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false is void Function();
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::c
@@ -4911,7 +4917,7 @@ bool false
   }
 
   test_visitIsExpression_is_instanceOfSuperclass() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is B;
 class A {
@@ -4921,7 +4927,7 @@ class B extends A {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::b
@@ -4929,7 +4935,7 @@ bool false
   }
 
   test_visitIsExpression_is_instanceOfUnrelatedClass() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is B;
 class A {
@@ -4939,7 +4945,7 @@ class B {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::b
@@ -4947,14 +4953,14 @@ bool false
   }
 
   test_visitIsExpression_is_null_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = null;
 const b = a is dynamic;
 //        ^^^^^^^^^^^^
 // [diag.unnecessaryTypeCheckTrue] Unnecessary type check; the result is always 'true'.
 class A {}
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -4962,14 +4968,14 @@ bool true
   }
 
   test_visitIsExpression_is_null_null() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = null;
 const b = a is Null;
 //        ^^^^^^^^^
 // [diag.typeCheckIsNull] Tests for null should be done with '== null'.
 class A {}
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -4977,7 +4983,7 @@ bool true
   }
 
   test_visitIsExpression_isNot_instanceOfSuperclass() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is! B;
 class A {
@@ -4987,7 +4993,7 @@ class B extends A {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -4995,7 +5001,7 @@ bool true
   }
 
   test_visitIsExpression_isNot_instanceOfUnrelatedClass() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a is! B;
 class A {
@@ -5005,7 +5011,7 @@ class B {
   const B();
 }
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 bool true
   variable: <testLibrary>::@topLevelVariable::b
@@ -5013,10 +5019,10 @@ bool true
   }
 
   test_visitNullLiteral_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = null;
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 Null null
   variable: <testLibrary>::@topLevelVariable::c
@@ -5024,10 +5030,10 @@ Null null
   }
 
   test_visitParenthesizedExpression_string() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = ('a');
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 String a
   variable: <testLibrary>::@topLevelVariable::a
@@ -5041,13 +5047,13 @@ extension type const E(int it) {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as prefix;
 
 const x = prefix.E.v;
 ''');
 
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::x
@@ -5074,7 +5080,7 @@ const b = B('');
   }
 
   test_visitPropertyAccess_length_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 extension type const A(String it) {
   int get length => 0;
 }
@@ -5084,18 +5090,18 @@ const v2 = v1.length;
 //         ^^^^^^^^^
 // [diag.constEvalExtensionTypeMethod] Extension type methods can't be used in constant expressions.
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     _assertNull(result);
   }
 
   test_visitPropertyAccess_length_extensionType_implementsString() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 extension type const A(String it) implements String {}
 
 const v1 = A('abc');
 const v2 = v1.length;
 ''');
-    var result = _topLevelVar('v2');
+    var result = _topLevelVar(unitResult, 'v2');
     assertDartObjectText(result, r'''
 int 3
   variable: <testLibrary>::@topLevelVariable::v2
@@ -5121,20 +5127,20 @@ const y = B(x);
   }
 
   test_visitSimpleIdentifier_dynamic() async {
-    await resolveTestCode('''
+    var unitResult = await resolveTestCode('''
 const a = dynamic;
 ''');
-    DartObjectImpl result = _evaluateConstant('a');
+    DartObjectImpl result = _evaluateConstant(unitResult, 'a');
     expect(result.type, typeProvider.typeType);
     expect(result.toTypeValue(), typeProvider.dynamicType);
   }
 
   test_visitSimpleIdentifier_variable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = 42;
 const b = a;
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::b
@@ -5163,10 +5169,10 @@ const c = _;
   }
 
   test_visitSimpleIdentifier_withoutEnvironment() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = b;
 const b = 3;''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 int 3
   variable: <testLibrary>::@topLevelVariable::a
@@ -5174,10 +5180,10 @@ int 3
   }
 
   test_visitSimpleStringLiteral_valid() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = 'abc';
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 String abc
   variable: <testLibrary>::@topLevelVariable::c
@@ -5195,10 +5201,10 @@ const c = 'a${f()}c';
   }
 
   test_visitStringInterpolation_valid() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = 'a${3}c';
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 String a3c
   variable: <testLibrary>::@topLevelVariable::c
@@ -5212,11 +5218,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   }
 
   DartObjectImpl _evaluateConstant(
+    TestResolvedUnitResult unitResult,
     String name, {
     List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
   }) {
-    var expression = findNode.topVariableDeclarationByName(name).initializer!;
+    var expression = unitResult.findNode
+        .topVariableDeclarationByName(name)
+        .initializer!;
     return _evaluateExpression(
       expression,
       diagnosticCodes: diagnosticCodes,
@@ -5268,18 +5277,24 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     }
   }
 
-  DartObjectImpl? _field(String variableName) {
-    var element = findElement2.field(variableName);
+  DartObjectImpl? _field(TestResolvedUnitResult result, String variableName) {
+    var element = result.findElement.field(variableName);
     return _evaluationResult(element as VariableElementImpl);
   }
 
-  DartObjectImpl? _localVar(String variableName) {
-    var element = findElement2.localVar(variableName);
+  DartObjectImpl? _localVar(
+    TestResolvedUnitResult result,
+    String variableName,
+  ) {
+    var element = result.findElement.localVar(variableName);
     return _evaluationResult(element as VariableElementImpl);
   }
 
-  DartObjectImpl? _topLevelVar(String variableName) {
-    var element = findElement2.topVar(variableName);
+  DartObjectImpl? _topLevelVar(
+    TestResolvedUnitResult result,
+    String variableName,
+  ) {
+    var element = result.findElement.topVar(variableName);
     return _evaluationResult(element as VariableElementImpl);
   }
 }
@@ -5319,14 +5334,14 @@ const a = const A<int?>();
   }
 
   test_assertInitializer_assertIsNot_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : assert(0 is! String);
 }
 
 const a = const A();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -5336,7 +5351,7 @@ A
   }
 
   test_assertInitializer_class_privateNamedParameters_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int _x;
 //          ^^
@@ -5349,14 +5364,14 @@ const a = A(x: 0);
 //        ^^^^^^^
 // [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 <null>
 ''');
   }
 
   test_assertInitializer_class_privateNamedParameters_multiple() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _x;
 //          ^^
@@ -5368,7 +5383,7 @@ class A {
 }
 const a = A(x: 1, y: 2);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   _x: int 1
@@ -5383,7 +5398,7 @@ A
   }
 
   test_assertInitializer_class_privateNamedParameters_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _x;
 //          ^^
@@ -5392,7 +5407,7 @@ class A {
 }
 const a = A(x: 1);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   _x: int 1
@@ -5419,14 +5434,14 @@ const c = const A(E.a);
   }
 
   test_assertInitializer_enum_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != E.a);
 }
 const c = const A(E.b);
 ''');
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -5464,7 +5479,7 @@ main() {
   }
 
   test_assertInitializer_intInDoubleContext_assertIsDouble_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(double x): assert(x is double);
 //                          ^^^^^^^^^^^
@@ -5472,7 +5487,7 @@ class A {
 }
 const a = const A(0);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -5497,13 +5512,13 @@ const a = const A(1);
   }
 
   test_assertInitializer_intInDoubleContext_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A(double x): assert((x + 3) / 2 == 1.5);
 }
 const v = const A(0);
 ''');
-    var result = _topLevelVar('v');
+    var result = _topLevelVar(unitResult, 'v');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -5528,7 +5543,7 @@ const a = const A();
   }
 
   test_assertInitializer_simple_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(): assert(1 is int);
 //                  ^^^^^^^^
@@ -5536,7 +5551,7 @@ class A {
 }
 const a = const A();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -5564,7 +5579,7 @@ const b = const B();
   }
 
   test_assertInitializer_simpleInSuperInitializer_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(): assert(1 is int);
 //                  ^^^^^^^^
@@ -5575,7 +5590,7 @@ class B extends A {
 }
 const b = const B();
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, '''
 B
   (super): A
@@ -5632,13 +5647,13 @@ const a = const A(0);
   }
 
   test_assertInitializer_usingArgument_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A(int x): assert(x > 0);
 }
 const a = const A(1);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -5650,22 +5665,26 @@ A
   }
 
   test_bool_fromEnvironment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('a');
 const b = bool.fromEnvironment('b', defaultValue: true);
 ''');
-    assertDartObjectText(_topLevelVar('a'), '''
+    assertDartObjectText(_topLevelVar(result, 'a'), '''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-      _evaluateConstant('a', declaredVariables: {'a': 'true'}),
+      _evaluateConstant(result, 'a', declaredVariables: {'a': 'true'}),
       '''
 bool true
 ''',
     );
 
-    var bResult = _evaluateConstant('b', declaredVariables: {'b': 'bbb'});
+    var bResult = _evaluateConstant(
+      result,
+      'b',
+      declaredVariables: {'b': 'bbb'},
+    );
     assertDartObjectText(bResult, '''
 bool true
 ''');
@@ -5673,10 +5692,10 @@ bool true
 
   /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsInterop() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_interop');
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::a
@@ -5685,10 +5704,10 @@ const a = bool.fromEnvironment('dart.library.js_interop');
 
   /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsUtil() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::a
@@ -5696,18 +5715,18 @@ const a = bool.fromEnvironment('dart.library.js_util');
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_known() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = [3, if (a) ...[1] else ...[1, 2], 4];
 const left = [3, 1, 2, 4] == b;
 const right = b == [3, 1, 2, 4];
 ''');
-    var leftResult = _topLevelVar('left');
+    var leftResult = _topLevelVar(result, 'left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::left
 ''');
-    var rightResult = _topLevelVar('right');
+    var rightResult = _topLevelVar(result, 'right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::right
@@ -5715,18 +5734,18 @@ const right = b == [3, 1, 2, 4];
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_list_eqeq_unknown() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = [3, if (a) ...[1] else ...[1, 2], 4];
 const left = [3, if (a) ...[1] else ...[1, 2], 4] == b;
 const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
 ''');
-    var leftResult = _topLevelVar('left');
+    var leftResult = _topLevelVar(result, 'left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::left
 ''');
-    var rightResult = _topLevelVar('right');
+    var rightResult = _topLevelVar(result, 'right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::right
@@ -5734,11 +5753,11 @@ const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 <unknown> Map<int, String>
   variable: <testLibrary>::@topLevelVariable::x
@@ -5746,18 +5765,18 @@ const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map_eqeq_known() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 const left = {3:'3', 2:'2', 4:'4'} == b;
 const right = b == {3:'3', 2:'2', 4:'4'};
 ''');
-    var leftResult = _topLevelVar('left');
+    var leftResult = _topLevelVar(result, 'left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::left
 ''');
-    var rightResult = _topLevelVar('right');
+    var rightResult = _topLevelVar(result, 'right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::right
@@ -5765,18 +5784,18 @@ const right = b == {3:'3', 2:'2', 4:'4'};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_map_eqeq_unknown() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 const left = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'} == b;
 const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
 ''');
-    var leftResult = _topLevelVar('left');
+    var leftResult = _topLevelVar(result, 'left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::left
 ''');
-    var rightResult = _topLevelVar('right');
+    var rightResult = _topLevelVar(result, 'right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::right
@@ -5798,11 +5817,11 @@ class A {
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = {3, if (a) ...[1] else ...[1, 2], 4};
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 <unknown> Set<int>
   variable: <testLibrary>::@topLevelVariable::x
@@ -5810,18 +5829,18 @@ const x = {3, if (a) ...[1] else ...[1, 2], 4};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set_eqeq_known() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3, if (a) ...[1] else ...[1, 2], 4};
 const left = {3, 1, 4} == b;
 const right = b == {3, 1, 4};
 ''');
-    var leftResult = _topLevelVar('left');
+    var leftResult = _topLevelVar(result, 'left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::left
 ''');
-    var rightResult = _topLevelVar('right');
+    var rightResult = _topLevelVar(result, 'right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::right
@@ -5829,18 +5848,18 @@ const right = b == {3, 1, 4};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set_eqeq_unknown() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const b = {3, if (a) ...[1] else ...[1, 2], 4};
 const left = {3, if (a) ...[1] else ...[1, 2], 4} == b;
 const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
 ''');
-    var leftResult = _topLevelVar('left');
+    var leftResult = _topLevelVar(result, 'left');
     assertDartObjectText(leftResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::left
 ''');
-    var rightResult = _topLevelVar('right');
+    var rightResult = _topLevelVar(result, 'right');
     assertDartObjectText(rightResult, '''
 <unknown> bool
   variable: <testLibrary>::@topLevelVariable::right
@@ -5862,11 +5881,11 @@ class A {
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('dart.library.js_util');
 const x = [3, if (a) ...[1] else ...[1, 2], 4];
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
 <unknown> List<int>
   variable: <testLibrary>::@topLevelVariable::x
@@ -5888,15 +5907,15 @@ class A {
   }
 
   test_bool_hasEnvironment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.hasEnvironment('a');
 ''');
-    assertDartObjectText(_topLevelVar('a'), '''
+    assertDartObjectText(_topLevelVar(result, 'a'), '''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-      _evaluateConstant('a', declaredVariables: {'a': '42'}),
+      _evaluateConstant(result, 'a', declaredVariables: {'a': '42'}),
       '''
 bool true
 ''',
@@ -5904,7 +5923,7 @@ bool true
   }
 
   test_class_constructor_duplicateInitialization_fieldInitializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 1;
   const A() : x = 2;
@@ -5914,7 +5933,7 @@ class A {
 
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -5924,7 +5943,7 @@ A
   }
 
   test_class_constructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 1;
   const A(this.x);
@@ -5934,7 +5953,7 @@ class A {
 
 const a = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -5946,7 +5965,7 @@ A
   }
 
   test_class_constructor_duplicateInitialization_initializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A() : x = 1, x = 2;
@@ -5956,7 +5975,7 @@ class A {
 
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -5966,7 +5985,7 @@ A
   }
 
   test_class_constructor_duplicateInitialization_initializingFormal_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x) : x = 1;
@@ -5976,7 +5995,7 @@ class A {
 
 const a = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -5988,7 +6007,7 @@ A
   }
 
   test_class_field_declarationInitializer_nonConstant() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int x = 0;
 class A {
   final int f = x;
@@ -6001,13 +6020,13 @@ class A {
 }
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 <null>
 ''');
   }
 
   test_class_field_declarationInitializer_thisReference_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 0;
   final int f = x;
@@ -6021,13 +6040,13 @@ class A {
 }
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 <null>
 ''');
   }
 
   test_class_field_declarationInitializer_thisReference_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   final int f = x;
@@ -6041,7 +6060,7 @@ class A {
 }
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 <null>
 ''');
   }
@@ -6060,13 +6079,13 @@ const a = A(0);
   }
 
   test_class_primaryConstructor_assert_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   this : assert(x > 0);
 }
 const a = A(1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   constructorInvocation
     constructor: <testLibrary>::@class::A::@constructor::new
@@ -6077,14 +6096,14 @@ A
   }
 
   test_class_primaryConstructor_constructorFieldInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y;
   this : y = x + 1;
 }
 const a = A(1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   y: int 2
   constructorInvocation
@@ -6096,7 +6115,7 @@ A
   }
 
   test_class_primaryConstructor_duplicateDefinition_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(final int x) {
 //                      ^
 // [context 1] The first definition of this name.
@@ -6107,7 +6126,7 @@ class const A(final int x) {
 
 const a = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6119,7 +6138,7 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_fieldInitializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A() {
   final int x = 1;
   this : x = 2;
@@ -6129,7 +6148,7 @@ class const A() {
 
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6139,7 +6158,7 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(this.x) {
 //                 ^
 // [diag.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor] Fields can't be initialized in both the primary constructor parameter list and at their declaration.
@@ -6148,7 +6167,7 @@ class const A(this.x) {
 
 const a = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6160,7 +6179,7 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_initializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A() {
   final int x;
   this : x = 1, x = 2;
@@ -6170,7 +6189,7 @@ class const A() {
 
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6180,7 +6199,7 @@ A
   }
 
   test_class_primaryConstructor_duplicateInitialization_initializingFormal_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(this.x) {
 //            ^^^^^^
 // [diag.initializingFormalForNonExistentField] 'x' isn't a field in the enclosing class.
@@ -6191,7 +6210,7 @@ class const A(this.x) {
 
 const a = A(1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6203,13 +6222,13 @@ A
   }
 
   test_class_primaryConstructor_fieldInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
 }
 const a = A(1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   y: int 2
   constructorInvocation
@@ -6231,14 +6250,14 @@ class const A(int x) {
   }
 
   test_class_primaryConstructor_fieldInitializer_multipleInvocations() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
 }
 const a = A(1);
 const b = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   y: int 2
   constructorInvocation
@@ -6247,7 +6266,7 @@ A
       0: int 1
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 A
   y: int 3
   constructorInvocation
@@ -6259,14 +6278,14 @@ A
   }
 
   test_class_primaryConstructor_fieldInitializer_topLevel_constant() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const x = 1;
 class const A() {
   final int y = x + 2;
 }
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   y: int 3
   constructorInvocation
@@ -6302,11 +6321,11 @@ class const A(int p) {
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalNamed_noArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A({final int x = 1});
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6316,11 +6335,11 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalNamed_withArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A({final int x = 1});
 const a = A(x: 2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6332,11 +6351,11 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalPositional_noArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A([final int x = 1]);
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6346,11 +6365,11 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_optionalPositional_withArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A([final int x = 1]);
 const a = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6362,11 +6381,11 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A({required final int x});
 const a = A(x: 1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6378,11 +6397,11 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_declaring_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(final int x);
 const a = A(1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6394,13 +6413,13 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalNamed_noArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A({this.x = 1}) {
   final int x;
 }
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6410,13 +6429,13 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalNamed_withArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A({this.x = 1}) {
   final int x;
 }
 const a = A(x: 2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6428,13 +6447,13 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalPositional_noArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A([this.x = 1]) {
   final int x;
 }
 const a = A();
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6444,13 +6463,13 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_optionalPositional_withArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A([this.x = 1]) {
   final int x;
 }
 const a = A(2);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 2
   constructorInvocation
@@ -6462,13 +6481,13 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A({required this.x}) {
   final int x;
 }
 const a = A(x: 1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6480,14 +6499,14 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredNamed_generic_inferred() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A<T>({required this.f}) {
   final T f;
 }
 
 const x = A(f: 0);
 ''');
-    assertDartObjectText(_topLevelVar('x'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x'), r'''
 A<int>
   f: int 0
   constructorInvocation
@@ -6501,13 +6520,13 @@ A<int>
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(this.x) {
   final int x;
 }
 const a = A(1);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   x: int 1
   constructorInvocation
@@ -6519,14 +6538,14 @@ A
   }
 
   test_class_primaryConstructor_formalParameter_initializing_requiredPositional_generic_explicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A<T>(this.f) {
   final T f;
 }
 
 const x = A<int>(0);
 ''');
-    assertDartObjectText(_topLevelVar('x'), r'''
+    assertDartObjectText(_topLevelVar(result, 'x'), r'''
 A<int>
   f: int 0
   constructorInvocation
@@ -6540,7 +6559,7 @@ A<int>
   }
 
   test_class_primaryConstructor_formalParameter_normal_usedInSuperInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -6550,7 +6569,7 @@ class const B(int y) extends A {
 }
 const b = B(1);
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 2
@@ -6567,7 +6586,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalNamed_noArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A({this.x = 1});
@@ -6575,7 +6594,7 @@ class A {
 class const B({super.x}) extends A;
 const b = B();
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 1
@@ -6590,7 +6609,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalNamed_withArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A({this.x = 1});
@@ -6598,7 +6617,7 @@ class A {
 class const B({super.x}) extends A;
 const b = B(x: 2);
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 2
@@ -6615,7 +6634,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalPositional_noArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A([this.x = 1]);
@@ -6623,7 +6642,7 @@ class A {
 class const B([super.x]) extends A;
 const b = B();
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 1
@@ -6638,7 +6657,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_optionalPositional_withArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A([this.x = 1]);
@@ -6646,7 +6665,7 @@ class A {
 class const B([super.x]) extends A;
 const b = B(2);
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 2
@@ -6663,7 +6682,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A({required this.x});
@@ -6671,7 +6690,7 @@ class A {
 class const B({required super.x}) extends A;
 const b = B(x: 1);
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 1
@@ -6688,7 +6707,7 @@ B
   }
 
   test_class_primaryConstructor_formalParameter_super_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -6696,7 +6715,7 @@ class A {
 class const B(super.x) extends A;
 const b = B(1);
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 1
@@ -6750,14 +6769,14 @@ class const B() extends A {
   }
 
   test_class_primaryConstructor_redirect_fieldInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
   const A.named(int z) : this(z * 2);
 }
 const a = A.named(10);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   y: int 21
   constructorInvocation
@@ -6769,7 +6788,7 @@ A
   }
 
   test_class_primaryConstructor_redirect_fieldInitializer_nonRedirectingSecondary() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class const A(int x) {
   final int y = x + 1;
   const A.named(int z) : this(z * 2);
@@ -6781,7 +6800,7 @@ class const A(int x) {
 }
 const a = A.named(10);
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 A
   y: int 21
   constructorInvocation
@@ -6793,7 +6812,7 @@ A
   }
 
   test_class_primaryConstructor_superParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   const A(this.x);
@@ -6801,7 +6820,7 @@ class A {
 class const B(super.x) extends A;
 const b = B(1);
 ''');
-    assertDartObjectText(_topLevelVar('b'), r'''
+    assertDartObjectText(_topLevelVar(result, 'b'), r'''
 B
   (super): A
     x: int 1
@@ -6834,14 +6853,14 @@ const A a = .new();
   }
 
   test_dotShorthand_assertInitializer_assertIsNot_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A() : assert(0 is! String);
 }
 
 const A a = .new();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -6865,14 +6884,14 @@ const A a = .new(.a);
   }
 
   test_dotShorthand_assertInitializer_enum_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != .a);
 }
 const A a = .new(.b);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -6889,7 +6908,7 @@ A
   }
 
   test_dotShorthand_assertInitializer_simpleInSuperInitializer_true() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(): assert(1 is int);
 //                  ^^^^^^^^
@@ -6900,7 +6919,7 @@ class B extends A {
 }
 const B b = .new();
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, r'''
 B
   (super): A
@@ -6913,37 +6932,41 @@ B
   }
 
   test_dotShorthand_bool_fromEnvironment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const bool a = .fromEnvironment('a');
 const bool b = .fromEnvironment('b', defaultValue: true);
 ''');
-    assertDartObjectText(_topLevelVar('a'), '''
+    assertDartObjectText(_topLevelVar(result, 'a'), '''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-      _evaluateConstant('a', declaredVariables: {'a': 'true'}),
+      _evaluateConstant(result, 'a', declaredVariables: {'a': 'true'}),
       '''
 bool true
 ''',
     );
 
-    var bResult = _evaluateConstant('b', declaredVariables: {'b': 'bbb'});
+    var bResult = _evaluateConstant(
+      result,
+      'b',
+      declaredVariables: {'b': 'bbb'},
+    );
     assertDartObjectText(bResult, '''
 bool true
 ''');
   }
 
   test_dotShorthand_bool_hasEnvironment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const bool a = .hasEnvironment('a');
 ''');
-    assertDartObjectText(_topLevelVar('a'), '''
+    assertDartObjectText(_topLevelVar(result, 'a'), '''
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-      _evaluateConstant('a', declaredVariables: {'a': '42'}),
+      _evaluateConstant(result, 'a', declaredVariables: {'a': '42'}),
       '''
 bool true
 ''',
@@ -6951,7 +6974,7 @@ bool true
   }
 
   test_dotShorthand_constantArgument_issue60963() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -6959,7 +6982,7 @@ extension type const B(A a) {}
 
 const B b = .new(A());
 ''');
-    var result = _topLevelVar('b');
+    var result = _topLevelVar(unitResult, 'b');
     assertDartObjectText(result, '''
 A
   constructorInvocation
@@ -6976,12 +6999,12 @@ class C {
   const C({this.one = 1});
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 const C c = .new();
 ''');
 
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 C
   one: int 1
@@ -6998,12 +7021,12 @@ class C {
   const C(int x, {this.one = 1});
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 const C c = .new(1);
 ''');
 
-    var result = _topLevelVar('c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, '''
 C
   one: int 1
@@ -7046,7 +7069,7 @@ const B b = .new(A());
   }
 
   test_enum_constructor_duplicateInitialization_fieldInitializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int x = 1;
@@ -7057,7 +7080,7 @@ enum E {
 
 const a = E.v;
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 E
   _name: String v
   index: int 0
@@ -7069,7 +7092,7 @@ E
   }
 
   test_enum_constructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(2);
   final int x = 1;
@@ -7080,7 +7103,7 @@ enum E {
 
 const a = E.v;
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 E
   _name: String v
   index: int 0
@@ -7094,7 +7117,7 @@ E
   }
 
   test_enum_constructor_duplicateInitialization_initializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final int x;
@@ -7105,7 +7128,7 @@ enum E {
 
 const a = E.v;
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 E
   _name: String v
   index: int 0
@@ -7117,7 +7140,7 @@ E
   }
 
   test_enum_constructor_duplicateInitialization_initializingFormal_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(1);
   final int x;
@@ -7128,7 +7151,7 @@ enum E {
 
 const a = E.v;
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 E
   _name: String v
   index: int 0
@@ -7142,7 +7165,7 @@ E
   }
 
   test_enum_primaryConstructor_duplicateDefinition_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E(final int x) {
 //               ^
 // [context 1] The first definition of this name.
@@ -7155,7 +7178,7 @@ enum E(final int x) {
 
 const a = E.v;
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 E
   _name: String v
   index: int 0
@@ -7169,7 +7192,7 @@ E
   }
 
   test_enum_primaryConstructor_duplicateInitialization_initializer_initializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   final int x;
@@ -7180,7 +7203,7 @@ enum E() {
 
 const a = E.v;
 ''');
-    assertDartObjectText(_topLevelVar('a'), r'''
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 E
   _name: String v
   index: int 0
@@ -7258,7 +7281,7 @@ B f1() => const B(A.instance);
   }
 
   test_fieldInitializer_functionReference_withTypeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 void g<U>(U a) {}
 class A<T> {
   final void Function(T) f;
@@ -7266,7 +7289,7 @@ class A<T> {
 }
 const a = const A<int>();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A<int>
   f: void Function(int)
@@ -7282,14 +7305,14 @@ A<int>
   }
 
   test_fieldInitializer_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(): f = T;
 }
 const a = const A<int>();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A<int>
   f: Type
@@ -7304,14 +7327,14 @@ A<int>
   }
 
   test_fieldInitializer_typeParameter_implicitTypeArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(): f = T;
 }
 const a = const A();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A<dynamic>
   f: Type
@@ -7326,7 +7349,7 @@ A<dynamic>
   }
 
   test_fieldInitializer_typeParameter_typeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   final Object f, g;
   const A(): f = T, g = U;
@@ -7334,7 +7357,7 @@ class A<T, U> {
 typedef B<S> = A<int, S>;
 const a = const B<String>();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A<int, String>
   f: Type
@@ -7352,7 +7375,7 @@ A<int, String>
   }
 
   test_fieldInitializer_typeParameter_withoutConstructorTearoffs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 // @dart=2.12
 class A<T> {
   final Object f;
@@ -7365,7 +7388,7 @@ const a = const A<int>();
 //        ^^^^^^^^^^^^^^
 // [diag.constTypeParameter][context 1] Type parameters can't be used in a constant expression.
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     _assertNull(result);
   }
 
@@ -7385,23 +7408,27 @@ void main() {
   }
 
   test_int_fromEnvironment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = int.fromEnvironment('a');
 const b = int.fromEnvironment('b', defaultValue: 42);
 ''');
 
-    assertDartObjectText(_topLevelVar('a'), '''
+    assertDartObjectText(_topLevelVar(result, 'a'), '''
 int 0
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-      _evaluateConstant('a', declaredVariables: {'a': '5'}),
+      _evaluateConstant(result, 'a', declaredVariables: {'a': '5'}),
       '''
 int 5
 ''',
     );
 
-    var bResult = _evaluateConstant('b', declaredVariables: {'b': 'bbb'});
+    var bResult = _evaluateConstant(
+      result,
+      'b',
+      declaredVariables: {'b': 'bbb'},
+    );
     assertDartObjectText(bResult, '''
 int 42
 ''');
@@ -7471,7 +7498,7 @@ class A {
   }
 
   test_redirectingConstructor_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(): this.named(T);
@@ -7479,7 +7506,7 @@ class A<T> {
 }
 const a = const A<int>();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A<int>
   f: Type
@@ -7494,7 +7521,7 @@ A<int>
   }
 
   test_redirectingFactoryConstructor_chain() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   const factory A.foo(int a) = B<int>.bar;
 }
@@ -7512,7 +7539,7 @@ class C<U> implements B<U> {
 
 const x = A.foo(0);
 ''');
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 C<int>
   f: int 0
@@ -7525,15 +7552,15 @@ C<int>
   }
 
   test_string_fromEnvironment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = String.fromEnvironment('a');
 ''');
-    assertDartObjectText(_topLevelVar('a'), '''
+    assertDartObjectText(_topLevelVar(result, 'a'), '''
 String <empty>
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-      _evaluateConstant('a', declaredVariables: {'a': 'test'}),
+      _evaluateConstant(result, 'a', declaredVariables: {'a': 'test'}),
       '''
 String test
 ''',
@@ -7541,7 +7568,7 @@ String test
   }
 
   test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   final int b;
@@ -7556,7 +7583,7 @@ class B extends A {
 const x = B(3, b: 2);
 ''');
 
-    var result = _topLevelVar('x');
+    var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
 B
   (super): A
@@ -7579,7 +7606,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   final int b;
@@ -7594,7 +7621,7 @@ class B extends A {
 const x = B(1, c: 3);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B
   (super): A
@@ -7618,7 +7645,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -7632,7 +7659,7 @@ class B extends A {
 const x = B(2, a: 1);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B
   (super): A
@@ -7653,7 +7680,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredNamed_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -7667,7 +7694,7 @@ class B<T> extends A {
 const x = B<int>(2, a: 1);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B<int>
   (super): A
@@ -7690,7 +7717,7 @@ B<int>
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -7704,7 +7731,7 @@ class B extends A {
 const x = B(1, 2);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B
   (super): A
@@ -7724,7 +7751,7 @@ B
   }
 
   test_superInitializer_formalParameter_explicitSuper_requiredPositional_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -7738,7 +7765,7 @@ class B<T> extends A {
 const x = B<int>(1, 2);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B<int>
   (super): A
@@ -7760,7 +7787,7 @@ B<int>
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -7774,7 +7801,7 @@ class B extends A {
 const x = B(2, a: 1);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B
   (super): A
@@ -7795,7 +7822,7 @@ B
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredNamed_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A({required this.a});
@@ -7809,7 +7836,7 @@ class B<T> extends A {
 const x = B<int>(2, a: 1);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B<int>
   (super): A
@@ -7832,7 +7859,7 @@ B<int>
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -7846,7 +7873,7 @@ class B extends A {
 const x = B(1, 2);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B
   (super): A
@@ -7866,7 +7893,7 @@ B
   }
 
   test_superInitializer_formalParameter_implicitSuper_requiredPositional_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a;
   const A(this.a);
@@ -7880,7 +7907,7 @@ class B<T> extends A {
 const x = B<int>(1, 2);
 ''');
 
-    var value = _topLevelVar('x');
+    var value = _topLevelVar(result, 'x');
     assertDartObjectText(value, r'''
 B<int>
   (super): A
@@ -7926,7 +7953,7 @@ const f = const E('0.0');
   }
 
   test_superInitializer_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   final Object f;
   const A(Object t): f = t;
@@ -7936,7 +7963,7 @@ class B<T> extends A<T> {
 }
 const a = const B<int>();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 B<int>
   (super): A<int>
@@ -7960,7 +7987,7 @@ B<int>
   }
 
   test_superInitializer_typeParameter_superNonGeneric() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final Object f;
   const A(Object t): f = t;
@@ -7970,7 +7997,7 @@ class B<T> extends A {
 }
 const a = const B<int>();
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 B<int>
   (super): A
@@ -7992,7 +8019,7 @@ B<int>
   }
 
   test_wildcard_regularInitializer() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int _;
   const A(this._);
@@ -8000,7 +8027,7 @@ class A {
 }
 const a = const A(1);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 A
   _: int 1
@@ -8026,7 +8053,7 @@ class A {
   }
 
   test_wildcard_superInitializer() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int _;
   const A(this._);
@@ -8037,7 +8064,7 @@ class B extends A {
 }
 const a = const B(1);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 B
   (super): A
@@ -8055,7 +8082,7 @@ B
   }
 
   test_wildcard_superInitializer_multiple_optionalPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int _;
 //          ^
@@ -8068,7 +8095,7 @@ class B extends A {
 }
 const a = const B(10);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 B
   (super): A
@@ -8088,7 +8115,7 @@ B
   }
 
   test_wildcard_superInitializer_multiple_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   final int _;
   final int y;
@@ -8100,7 +8127,7 @@ class B extends A {
 }
 const a = const B(1, 2);
 ''');
-    var result = _topLevelVar('a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
 B
   (super): A

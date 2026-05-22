@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest {
   test_class_read() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -27,7 +27,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -45,7 +45,7 @@ PrefixedIdentifier
   }
 
   test_class_read_staticMethod_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   static void foo<U>(int a, U u) {}
 }
@@ -55,7 +55,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -73,7 +73,7 @@ PrefixedIdentifier
   }
 
   test_class_read_staticMethod_ofGenericClass() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   static void foo(int a) {}
 }
@@ -83,7 +83,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -101,7 +101,7 @@ PrefixedIdentifier
   }
 
   test_class_readWrite_assignment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -111,7 +111,7 @@ void f(A a) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo += 1');
+    var assignment = result.findNode.assignment('foo += 1');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -141,7 +141,7 @@ AssignmentExpression
   }
 
   test_class_write() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int foo = 0;
 }
@@ -151,7 +151,7 @@ void f(A a) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
+    var assignment = result.findNode.assignment('foo = 1');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -181,7 +181,7 @@ AssignmentExpression
   }
 
   test_enum_read() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E {
   v;
   int get foo => 0;
@@ -192,7 +192,7 @@ void f(E e) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -210,7 +210,7 @@ PrefixedIdentifier
   }
 
   test_enum_write() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E {
   v;
   set foo(int _) {}
@@ -221,7 +221,7 @@ void f(E e) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 1');
+    var assignment = result.findNode.assignment('foo = 1');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -251,13 +251,13 @@ AssignmentExpression
   }
 
   test_functionClass_call_read() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Function a) {
   a.call;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -275,13 +275,13 @@ PrefixedIdentifier
   }
 
   test_functionType_call_read() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int Function(String) a) {
   a.call;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -299,7 +299,7 @@ PrefixedIdentifier
   }
 
   test_hasReceiver_typeAlias_staticGetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
 }
@@ -311,7 +311,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefixed('B.foo');
+    var node = result.findNode.prefixed('B.foo');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -336,7 +336,7 @@ class A {
 
 A a;
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 int Function() foo() {
@@ -344,7 +344,7 @@ int Function() foo() {
 }
 ''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -361,7 +361,7 @@ class A {
 
 A? a;
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 int Function() foo() {
@@ -371,7 +371,7 @@ int Function() foo() {
 }
 ''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -385,7 +385,7 @@ SimpleIdentifier
 void foo() {}
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -393,7 +393,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefixed('prefix.');
+    var node = result.findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -415,7 +415,7 @@ PrefixedIdentifier
 int get foo => 0;
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -423,7 +423,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefixed('prefix.');
+    var node = result.findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -445,7 +445,7 @@ PrefixedIdentifier
 set foo(int _) {}
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -455,7 +455,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefixed('prefix.foo;');
+    var node = result.findNode.prefixed('prefix.foo;');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -477,7 +477,7 @@ PrefixedIdentifier
 final foo = 0;
 ''');
 
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -485,7 +485,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.prefixed('prefix.');
+    var node = result.findNode.prefixed('prefix.');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -511,7 +511,7 @@ augment class A {
   augment int get foo => 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -523,7 +523,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -552,7 +552,7 @@ augment class A {
   int get foo => 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -562,7 +562,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -583,7 +583,7 @@ PrefixedIdentifier
   }
 
   test_ofClassName_augmentationAugments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo;
 }
@@ -597,7 +597,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -615,7 +615,7 @@ PrefixedIdentifier
   }
 
   test_ofClassName_augmentationAugments_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo();
 }
@@ -629,7 +629,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -647,7 +647,7 @@ PrefixedIdentifier
   }
 
   test_ofClassName_augmentationAugments_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _);
 }
@@ -661,7 +661,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleAssignmentExpression;
+    var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -699,7 +699,7 @@ augment class A {
   static int get foo => 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -709,7 +709,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -738,7 +738,7 @@ augment class A {
   static void foo() {}
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -748,7 +748,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -769,7 +769,7 @@ PrefixedIdentifier
   }
 
   test_ofExtensionType_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
@@ -779,7 +779,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -797,7 +797,7 @@ PrefixedIdentifier
   }
 
   test_ofExtensionType_read_nullableRepresentation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int? it) {
   int get foo => 0;
 }
@@ -807,7 +807,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -825,7 +825,7 @@ PrefixedIdentifier
   }
 
   test_ofExtensionType_read_nullableType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
@@ -837,7 +837,7 @@ void f(A? a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -855,7 +855,7 @@ PrefixedIdentifier
   }
 
   test_ofExtensionType_read_nullableType_nullAware() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
 }
@@ -865,7 +865,7 @@ void f(A? a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
@@ -882,7 +882,7 @@ PropertyAccess
   }
 
   test_ofExtensionType_write() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   set foo(int _) {}
 }
@@ -892,7 +892,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singleAssignmentExpression;
+    var node = result.findNode.singleAssignmentExpression;
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -930,7 +930,7 @@ augment mixin A {
   int get foo => 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}
@@ -940,7 +940,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -969,7 +969,7 @@ augment mixin A {
   static int get foo => 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}
@@ -979,7 +979,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1008,7 +1008,7 @@ augment mixin A {
   static void foo() {}
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 mixin A {}
@@ -1018,7 +1018,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1039,13 +1039,13 @@ PrefixedIdentifier
   }
 
   test_read_dynamicIdentifier_hashCode() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(dynamic a) {
   a.hashCode;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1063,13 +1063,13 @@ PrefixedIdentifier
   }
 
   test_read_dynamicIdentifier_identifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(dynamic a) {
   a.foo;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1087,7 +1087,7 @@ PrefixedIdentifier
   }
 
   test_read_interfaceType_unresolved() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int a) {
   a.foo;
 //  ^^^
@@ -1095,7 +1095,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.prefixed('foo;');
+    var node = result.findNode.prefixed('foo;');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier

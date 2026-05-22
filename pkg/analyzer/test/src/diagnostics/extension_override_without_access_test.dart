@@ -41,7 +41,7 @@ f(C c) {
   }
 
   test_expressionStatement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 extension E on C {
   void m() {}
@@ -52,7 +52,7 @@ f(C c) {
 // [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
 }
 ''');
-    assertTypeDynamic(findNode.extensionOverride('E(c)'));
+    assertTypeDynamic(result.findNode.extensionOverride('E(c)'));
   }
 
   test_getter() async {

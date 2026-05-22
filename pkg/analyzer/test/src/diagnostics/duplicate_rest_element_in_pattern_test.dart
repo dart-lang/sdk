@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class DuplicateRestElementInPatternTest extends PubPackageResolutionTest {
   test_listPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {
   if (x case [..., ...]) {}
 //            ^^^
@@ -24,7 +24,7 @@ void f(List<int> x) {
 // [diag.duplicateRestElementInPattern][context 1] At most one rest element is allowed in a list or map pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [

@@ -931,6 +931,31 @@ class InstanceDeserializationCluster : public DeserializationCluster {
   intptr_t instance_size_ = 0;
 };
 
+class TypeParametersDeserializationCluster : public DeserializationCluster {
+ public:
+  TypeParametersDeserializationCluster()
+      : DeserializationCluster("TypeParameters") {}
+  ~TypeParametersDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, TypeParameters::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      TypeParametersPtr tps = static_cast<TypeParametersPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(tps, kTypeParametersCid,
+                                     TypeParameters::InstanceSize());
+      tps->untag()->names_ = static_cast<ArrayPtr>(d.ReadRef());
+      tps->untag()->flags_ = static_cast<ArrayPtr>(d.null());
+      tps->untag()->bounds_ = static_cast<TypeArgumentsPtr>(d.ReadRef());
+      tps->untag()->defaults_ = static_cast<TypeArgumentsPtr>(d.ReadRef());
+    }
+  }
+};
+
 class TypeArgumentsDeserializationCluster : public DeserializationCluster {
  public:
   TypeArgumentsDeserializationCluster()
@@ -1544,9 +1569,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       UNIMPLEMENTED();
       return nullptr;
     case ModuleSnapshot::kTypeParameters:
-      // return new (Z) TypeParametersDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
+      return new (Z) TypeParametersDeserializationCluster();
     case ModuleSnapshot::kInterfaceTypes:
       return new (Z) InterfaceTypeDeserializationCluster();
     case ModuleSnapshot::kFunctionTypes:

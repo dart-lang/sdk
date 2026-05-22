@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class SwitchStatementResolutionTest extends PubPackageResolutionTest {
   test_default() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0?:
@@ -29,7 +29,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -71,7 +71,7 @@ SwitchStatement
   test_joinedVariables_inLocalFunction() async {
     // Note: this is an important case to test because when variables are inside
     // a local function, their enclosing element is `null`.
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   List<int> get values;
 }
@@ -87,7 +87,7 @@ test(Object o) => () {
 };
 ''');
 
-    var node = findNode.simple('value + 1');
+    var node = result.findNode.simple('value + 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: value
@@ -97,7 +97,7 @@ SimpleIdentifier
   }
 
   test_mergeCases() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0?:
@@ -109,7 +109,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -170,7 +170,7 @@ SwitchStatement
   }
 
   test_rewrite_pattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case const A():
@@ -183,7 +183,7 @@ class A {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -222,7 +222,7 @@ SwitchStatement
   }
 
   test_rewrite_whenClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x, bool Function() a) {
   switch (x) {
     case 0 when a():
@@ -231,7 +231,7 @@ void f(Object? x, bool Function() a) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -274,7 +274,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_consistent() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
@@ -284,7 +284,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -366,7 +366,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_consistent_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -376,7 +376,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -460,7 +460,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_consistent_logicalOr2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a || [int a] when a < 0:
@@ -470,7 +470,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -590,7 +590,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -602,7 +602,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -685,7 +685,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinalityTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -697,7 +697,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -780,7 +780,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentTypes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
@@ -792,7 +792,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -874,7 +874,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareFirst() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -886,7 +886,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -948,7 +948,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareSecond() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -960,7 +960,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1022,7 +1022,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -1034,7 +1034,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1090,7 +1090,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case var a:
@@ -1108,7 +1108,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1157,7 +1157,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasLabel() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     myLabel:
@@ -1171,7 +1171,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1229,7 +1229,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_notConsistent3() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a:
@@ -1248,7 +1248,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1326,7 +1326,7 @@ SwitchStatement
   }
 
   test_variables_logicalOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a]:
@@ -1337,7 +1337,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1396,7 +1396,7 @@ SwitchStatement
   }
 
   test_variables_scope() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 void f(Object? x) {
   switch (x) {
@@ -1411,7 +1411,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1478,7 +1478,7 @@ SwitchStatement
   }
 
   test_variables_singleCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -1487,7 +1487,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1540,7 +1540,7 @@ SwitchStatement
   }
 
   test_whenClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0 when true:
@@ -1549,7 +1549,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1588,7 +1588,7 @@ SwitchStatement
 class SwitchStatementResolutionTest_Language219 extends PubPackageResolutionTest
     with WithLanguage219Mixin {
   test_default() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -1599,7 +1599,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch
@@ -1633,7 +1633,7 @@ SwitchStatement
   }
 
   test_mergeCases() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -1645,7 +1645,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.switchStatement('switch');
+    var node = result.findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
 SwitchStatement
   switchKeyword: switch

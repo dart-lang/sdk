@@ -7301,7 +7301,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.report(
             diag.experimentNotEnabled
                 .withArguments(
-                  featureName: feature.experimentalFlag!,
+                  featureName: feature.enableString,
                   enabledVersion: feature.releaseVersion.toString(),
                 )
                 .at(name),
@@ -7309,7 +7309,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         } else {
           diagnosticReporter.report(
             diag.experimentNotEnabledOffByDefault
-                .withArguments(featureName: feature.experimentalFlag!)
+                .withArguments(featureName: feature.enableString)
                 .at(name),
           );
         }

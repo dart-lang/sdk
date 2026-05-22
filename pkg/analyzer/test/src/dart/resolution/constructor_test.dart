@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ConstructorDeclarationResolutionTest extends PubPackageResolutionTest {
   test_factory_redirect_generic_instantiated() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
   A(T a);
 }
@@ -30,7 +30,7 @@ B<int> b = B(0);
 
     nodeTextConfiguration.withRedirectedConstructors = true;
 
-    var node = findNode.constructorName('B(0)');
+    var node = result.findNode.constructorName('B(0)');
     assertResolvedNodeText(node, r'''
 ConstructorName
   type: NamedType
@@ -48,7 +48,7 @@ ConstructorName
   }
 
   test_fieldShadowingWildcardParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   var v;
   var _;
@@ -58,7 +58,7 @@ class A {
 }
 ''');
 
-    var node = findNode.constructorFieldInitializer('v = _');
+    var node = result.findNode.constructorFieldInitializer('v = _');
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -74,7 +74,7 @@ ConstructorFieldInitializer
   }
 
   test_formalParameterScope() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class a {}
 
 class B {
@@ -84,7 +84,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('B(');
+    var node = result.findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -121,7 +121,7 @@ ConstructorDeclaration
   }
 
   test_privateNamedParameter_accessInInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? _x;
 //     ^^
@@ -133,7 +133,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleConstructorFieldInitializer;
+    var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
@@ -149,7 +149,7 @@ ConstructorFieldInitializer
   }
 
   test_privateNamedParameter_fieldFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? _x;
 //     ^^
@@ -158,7 +158,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -189,7 +189,7 @@ ConstructorDeclaration
   test_privateNamedParameter_nonFieldFormal() async {
     // The user is incorrectly using a private named parameter for a non-field
     // parameter. This is erroneous, but resolve using the private name.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C({int? _x});
 //        ^^
@@ -197,7 +197,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleConstructorDeclaration;
+    var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   typeName: SimpleIdentifier
@@ -228,7 +228,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A.named();
 }
@@ -238,7 +238,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -270,7 +270,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
   A.named();
 }
@@ -280,7 +280,7 @@ class B<U> {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -324,7 +324,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_named_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A();
 }
@@ -336,7 +336,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -368,7 +368,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A();
 }
@@ -378,7 +378,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -407,7 +407,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
   A();
 }
@@ -417,7 +417,7 @@ class B<U> {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
@@ -456,7 +456,7 @@ ConstructorDeclaration
   }
 
   test_redirectedConstructor_unnamed_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A implements B {
   A.named();
 }
@@ -468,7 +468,7 @@ class B {
 }
 ''');
 
-    var node = findNode.constructorDeclaration('factory B');
+    var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory

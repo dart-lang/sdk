@@ -258,7 +258,7 @@ extension E on int {
   }
 
   test_staticMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static m() {}
 }
@@ -269,7 +269,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.methodInvocation('super.m()');
+    var node = result.findNode.methodInvocation('super.m()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SuperExpression
@@ -289,7 +289,7 @@ MethodInvocation
   }
 
   test_staticVariableInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int a = 0;
 }
@@ -300,7 +300,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SuperExpression

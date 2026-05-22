@@ -3,6 +3,8 @@
 - Add `PackageConfigFileBuilder` to the public API.
 - Breaking change: `ResourceProviderMixin.newPackageConfigJsonFileFromBuilder`
   now takes the `PackageConfigFileBuilder` from `package:analyzer_testing`.
+- Fix mocks for Flutter's `painting/text_span.dart`, `widgets/media_query.dart`,
+  and `widgets/scroll_delegate.dart` libraries.
 - Require version `13.1.0-dev` of the `analyzer` package.
 
 ## 0.2.6

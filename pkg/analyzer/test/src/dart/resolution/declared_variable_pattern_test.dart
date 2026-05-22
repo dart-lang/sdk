@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class DeclaredVariablePatternResolutionTest extends PubPackageResolutionTest {
   test_final_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case final y:
@@ -27,7 +27,7 @@ void f(int x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: final
@@ -40,7 +40,7 @@ DeclaredVariablePattern
   }
 
   test_final_typed_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case final int y:
@@ -50,7 +50,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: final
@@ -67,13 +67,13 @@ DeclaredVariablePattern
   }
 
   test_patternVariableDeclaration_final_recordPattern_listPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final [a] = [0];
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -91,13 +91,13 @@ ListPattern
   }
 
   test_patternVariableDeclaration_final_recordPattern_listPattern_restPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final [...a] = [0, 1, 2];
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -117,13 +117,13 @@ ListPattern
   }
 
   test_patternVariableDeclaration_final_recordPattern_mapPattern_entry() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final {0: a} = {0: 1};
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -146,13 +146,13 @@ MapPattern
   }
 
   test_patternVariableDeclaration_final_recordPattern_objectPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final int(sign: a) = 0;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
   type: NamedType
@@ -178,13 +178,13 @@ ObjectPattern
   }
 
   test_patternVariableDeclaration_final_recordPattern_parenthesizedPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final (a) = 0;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -200,13 +200,13 @@ ParenthesizedPattern
   }
 
   test_patternVariableDeclaration_final_recordPattern_recordPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_local_variable
   final (a,) = (0,);
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 RecordPattern
   leftParenthesis: (
@@ -225,7 +225,7 @@ RecordPattern
   }
 
   test_typed_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case int y:
@@ -235,7 +235,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   type: NamedType
@@ -251,7 +251,7 @@ DeclaredVariablePattern
   }
 
   test_var_demoteType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T x) {
   if (x is int) {
     if (x case var y) {}
@@ -261,7 +261,7 @@ void f<T>(T x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -274,14 +274,14 @@ DeclaredVariablePattern
   }
 
   test_var_ifCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var y) {}
 //               ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -294,14 +294,14 @@ DeclaredVariablePattern
   }
 
   test_var_nullOrEquivalent_neverQuestion() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   if (x case var y) {}
 //               ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -314,14 +314,14 @@ DeclaredVariablePattern
   }
 
   test_var_nullOrEquivalent_nullNone() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Null x) {
   if (x case var y) {}
 //               ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -334,7 +334,7 @@ DeclaredVariablePattern
   }
 
   test_var_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case var y:
@@ -344,7 +344,7 @@ void f(int x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
   keyword: var
@@ -357,7 +357,7 @@ DeclaredVariablePattern
   }
 
   test_var_switchCase_cast() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   switch (x) {
     case var y as int:
@@ -367,7 +367,7 @@ void f(num x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: DeclaredVariablePattern

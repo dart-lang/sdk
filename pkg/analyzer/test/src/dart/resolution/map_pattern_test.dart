@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class MapPatternResolutionTest extends PubPackageResolutionTest {
   test_matchDynamic_noTypeArguments_variable_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case {0: String a}:
@@ -27,7 +27,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -54,7 +54,7 @@ MapPattern
   }
 
   test_matchDynamic_noTypeArguments_variable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case {0: var a}:
@@ -64,7 +64,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -88,7 +88,7 @@ MapPattern
   }
 
   test_matchDynamic_withTypeArguments_variable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case <int, String>{0: var a}:
@@ -98,7 +98,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -134,14 +134,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_empty() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {}) {}
 //           ^^
 // [diag.emptyMapPattern] A map pattern must have at least one entry.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -152,14 +152,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_first() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: ''}) {}
 //            ^^^
 // [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -182,14 +182,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_last() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...}) {}
 //                   ^^^
 // [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -212,7 +212,7 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_multiple() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: '', ...}) {}
 //            ^^^
@@ -221,7 +221,7 @@ void f(Map<int, String> x) {
 // [diag.restElementInMapPattern] A map pattern can't contain a rest pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -246,7 +246,7 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_withPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...var rest}) {}
 //                   ^^^^^^^^^^^
@@ -255,7 +255,7 @@ void f(Map<int, String> x) {
 // [diag.unusedLocalVariable] The value of the local variable 'rest' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -285,14 +285,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_variable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<int, String> x) {
   if (x case {0: var a}) {}
 //                   ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -316,14 +316,14 @@ MapPattern
   }
 
   test_matchMap_withTypeArguments_variable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
 //                                 ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -359,12 +359,12 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_constant() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {true: 0}) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -386,14 +386,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_empty() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {}) {}
 //           ^^
 // [diag.emptyMapPattern] A map pattern must have at least one entry.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -404,14 +404,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {true: int a}) {}
 //                      ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -438,14 +438,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case {true: var a}) {}
 //                      ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -469,12 +469,12 @@ MapPattern
   }
 
   test_matchObject_withTypeArguments_constant() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case <bool, int>{true: 0}) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -508,14 +508,14 @@ MapPattern
   }
 
   test_matchObject_withTypeArguments_variable_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
 //                                 ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   typeArguments: TypeArgumentList
@@ -551,14 +551,14 @@ MapPattern
   }
 
   test_rewrite_key() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x, bool Function() a) {
   if (x case {a(): 0}) {}
 //            ^^^
 // [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
   leftBracket: {
@@ -588,14 +588,14 @@ MapPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<bool, int> x) {
   var {true: a} = x;
 //           ^
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -626,7 +626,7 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var <bool, int>{true: a} = g();
 //                      ^
@@ -635,7 +635,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -686,7 +686,7 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withVariableType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var {true: int a} = g();
 //               ^
@@ -695,7 +695,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

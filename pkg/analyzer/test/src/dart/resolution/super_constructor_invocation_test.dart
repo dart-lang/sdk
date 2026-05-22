@@ -18,7 +18,7 @@ main() {
 class SuperConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
   test_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int a);
 }
@@ -28,7 +28,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singleSuperConstructorInvocation;
+    var node = result.findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -50,7 +50,7 @@ SuperConstructorInvocation
   }
 
   test_named_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
@@ -62,7 +62,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singleSuperConstructorInvocation;
+    var node = result.findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -84,7 +84,7 @@ SuperConstructorInvocation
   }
 
   test_named_unresolved_hasFormalParameter() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   A(int a);
 }
@@ -94,7 +94,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singleSuperConstructorInvocation;
+    var node = result.findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -116,7 +116,7 @@ SuperConstructorInvocation
   }
 
   test_nonConst_fromConst() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final a;
   A(this.a);
@@ -129,7 +129,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singleSuperConstructorInvocation;
+    var node = result.findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -146,7 +146,7 @@ SuperConstructorInvocation
   }
 
   test_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
@@ -156,7 +156,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singleSuperConstructorInvocation;
+    var node = result.findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
@@ -173,7 +173,7 @@ SuperConstructorInvocation
   }
 
   test_unnamed_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int a);
 }
@@ -185,7 +185,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.singleSuperConstructorInvocation;
+    var node = result.findNode.singleSuperConstructorInvocation;
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super

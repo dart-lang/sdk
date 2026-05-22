@@ -124,19 +124,19 @@ void f() {
 
   /// Assign that `x` in the only [FunctionBody] is not mutated.
   Future<void> _assertFormalParameter(String code, bool expected) async {
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    var body = findNode.singleFunctionBody;
-    var element = findElement2.parameter('x');
+    var body = result.findNode.singleFunctionBody;
+    var element = result.findElement.parameter('x');
     expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 
   /// Assign that `v` in the only [FunctionBody] is not mutated.
   Future<void> _assertLocalVariable(String code, bool expected) async {
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    var body = findNode.singleFunctionBody;
-    var element = findElement2.localVar('v');
+    var body = result.findNode.singleFunctionBody;
+    var element = result.findElement.localVar('v');
     expect(body.isPotentiallyMutatedInScope(element), expected);
   }
 }

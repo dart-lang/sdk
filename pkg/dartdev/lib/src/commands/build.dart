@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:code_assets/code_assets.dart';
+import 'package:code_assets/code_assets.dart' hide Sanitizer;
 import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
@@ -285,8 +285,6 @@ then that is used instead.''',
     pubspecUri ??= await DartNativeAssetsBuilder.findWorkspacePubspec(
       packageConfigUri,
     );
-    // TODO(https://github.com/dart-lang/native/issues/2497): Pass the sanitizer
-    // to the native assets builder.
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
       packageConfigUri: packageConfigUri,
@@ -296,6 +294,7 @@ then that is used instead.''',
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       progressUpdatesOnStderr: progressUpdatesOnStderr,
+      sanitizer: sanitizer,
     );
     final showProgress = verbosity != Verbosity.error.name;
     BuildResult? buildResult;

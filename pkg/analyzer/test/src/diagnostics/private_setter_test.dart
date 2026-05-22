@@ -22,7 +22,7 @@ class A {
   static int _foo = 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 main() {
@@ -32,7 +32,7 @@ main() {
 }
 ''');
 
-    var assignment = findNode.assignment('_foo =');
+    var assignment = result.findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -82,7 +82,7 @@ class A {
   static int get _foo => 0;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 main() {
@@ -92,7 +92,7 @@ main() {
 }
 ''');
 
-    var assignment = findNode.assignment('_foo =');
+    var assignment = result.findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -127,7 +127,7 @@ class A {
   static set _foo(int _) {}
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 main() {
@@ -137,7 +137,7 @@ main() {
 }
 ''');
 
-    var assignment = findNode.assignment('_foo =');
+    var assignment = result.findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier

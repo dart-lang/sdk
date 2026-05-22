@@ -1214,35 +1214,35 @@ typedef int f(@app int app);
   }
 
   test_generic_staticParameterElement_annotation() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.named({arg});
 }
 @C<bool>.named(arg: true)
 test() {}
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_annotation_implicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.named({required T arg});
 }
 @C.named(arg: true)
 test() {}
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_functionCall_explicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void generic<T>({arg}) {}
 
 void test() {
@@ -1250,14 +1250,14 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_functionCall_implicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void generic<T>({arg}) {}
 
 void test() {
@@ -1265,92 +1265,92 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_explicitNew() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 test() => new C<bool>.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_explicitNew_implicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 C<bool> test() => new C.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 test() => C<bool>.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew_implicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 C<bool> test() => C.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   T method<T>({arg});
 }
 test(C c) => c.method<bool>(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall_implicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   T method<T>({arg});
 }
 bool test(C c) => c.method(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_staticMethodCall_explicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static void generic<T>({arg}) {}
 }
@@ -1360,14 +1360,14 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_staticMethodCall_implicitTypeArg() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static void generic<T>({arg}) {}
 }
@@ -1377,10 +1377,10 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
@@ -1493,7 +1493,7 @@ var map = <String, Func>{'bar': new Bar()};
   }
 
   test_implicit_call_tearoff_assignment_rhs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   void call() {}
 }
@@ -1503,7 +1503,7 @@ test() {
   return f;
 }
 ''');
-    assertType(findNode.assignment('f = C()'), 'void Function()');
+    assertType(result.findNode.assignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {
@@ -2139,7 +2139,7 @@ int f(v) {
   }
 
   test_librarySource_of_type_substituted_synthetic_parameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 Map<int, T> f<T>(T t) => throw '';
 Map<double, T> g<T>(T t) => throw '';
 h(bool b) {
@@ -2148,7 +2148,7 @@ h(bool b) {
 // [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
 }
 ''');
-    var parameter = findNode.stringLiteral("'x'").correspondingParameter;
+    var parameter = result.findNode.stringLiteral("'x'").correspondingParameter;
     expect(parameter!.library, isNull);
     expect(parameter.library?.firstFragment.source, isNull);
   }
@@ -2357,7 +2357,7 @@ A f() {
   }
 
   test_no_call_tearoff_on_promoted_var() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {
   Object call() => '';
 }
@@ -2368,9 +2368,9 @@ void test(Object x) {
   x; // demoted
 }
 ''');
-    assertType(findNode.simple('x; // promoted'), 'Object Function()');
-    assertType(findNode.assignment('x = B()'), 'B');
-    assertType(findNode.simple('x; // demoted'), 'Object');
+    assertType(result.findNode.simple('x; // promoted'), 'Object Function()');
+    assertType(result.findNode.assignment('x = B()'), 'B');
+    assertType(result.findNode.simple('x; // demoted'), 'Object');
   }
 
   test_nonBoolExpression_interfaceType() async {
@@ -3267,7 +3267,7 @@ core.dynamic dynamicVariable;
   }
 
   test_yieldStar_inside_method_async() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   m() async* {
     yield* Stream.fromIterable([1]);
@@ -3276,7 +3276,7 @@ class A {
 ''');
 
     assertType(
-      findNode
+      result.findNode
           .yieldStatement('yield* Stream.fromIterable([1]);')
           .expression
           .staticType,
@@ -3285,7 +3285,7 @@ class A {
   }
 
   test_yieldStar_inside_method_sync() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   m() sync* {
     yield* [1];
@@ -3294,7 +3294,7 @@ class A {
 ''');
 
     assertType(
-      findNode.yieldStatement('yield* [1];').expression.staticType,
+      result.findNode.yieldStatement('yield* [1];').expression.staticType,
       'List<int>',
     );
   }

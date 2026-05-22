@@ -20,81 +20,117 @@ main() {
 
 @reflectiveTest
 class FlattenTypeTest extends AbstractTypeSystemTest {
-  test_dynamic() {
-    _check(parseType('dynamic'), 'dynamic');
+  test_interfaceType_conflictingFutureInterfaces() {
+    // Repeated generic elements in the hierarchy should not trip the
+    // recursion guard, and traversal order still determines the future type.
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      classes: [
+        ClassSpec('abstract class Derived<T> implements Future<T>'),
+        ClassSpec(
+          'abstract class A extends Derived<int> implements Derived<num>',
+        ),
+        ClassSpec('abstract class A1 implements Future<int>'),
+        ClassSpec('abstract class A2 extends A1 implements Future<num>'),
+        ClassSpec('abstract class B1 implements Future<num>'),
+        ClassSpec('abstract class B2 extends B1 implements Future<int>'),
+      ],
+    );
+    _check(parseType('A'), 'int');
+    _check(parseType('A2'), 'int');
+    _check(parseType('B2'), 'num');
   }
 
-  test_interfaceType() {
+  test_interfaceType_conflictingFutureInterfaces_disjoint() {
+    // Neither 'String' nor 'int' is more specific than the other, meaning
+    // they are completely disjoint. Conflict resolution handles this
+    // deterministically via parent-first interface traversal order.
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      classes: [
+        ClassSpec('abstract class A1 implements Future<int>'),
+        ClassSpec('abstract class A2 extends A1 implements Future<String>'),
+        ClassSpec('abstract class B1 implements Future<String>'),
+        ClassSpec('abstract class B2 extends B1 implements Future<int>'),
+      ],
+    );
+    _check(parseType('A2'), 'int');
+    _check(parseType('B2'), 'String');
+  }
+
+  test_interfaceType_implementsFuture() {
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      classes: [ClassSpec('abstract class Derived<T> implements Future<T>')],
+    );
+    _check(parseType('Derived<dynamic>'), 'dynamic');
+    _check(parseType('Derived<int>'), 'int');
+    _check(parseType('Derived<Derived>'), 'Derived');
+    _check(parseType('Derived<Derived<int>>'), 'Derived<int>');
+  }
+
+  test_interfaceType_recursiveHierarchy() {
+    // Even though there is a loop in the class hierarchy,
+    // flatten() should terminate successfully.
+    buildTestLibrary(
+      classes: [ClassSpec('class A extends B'), ClassSpec('class B extends A')],
+    );
+    _check(parseType('A'), 'A');
+    _check(parseType('B'), 'B');
+  }
+
+  test_simpleTypes() {
+    _check(parseType('dynamic'), 'dynamic');
     _check(parseType('int'), 'int');
     _check(parseType('int?'), 'int?');
-  }
 
-  test_interfaceType_none_hasFutureType() {
     _check(parseType('Future<int>'), 'int');
     _check(parseType('Future<int?>'), 'int?');
-
     _check(parseType('Future<int>?'), 'int?');
     _check(parseType('Future<int?>?'), 'int?');
 
     _check(parseType('FutureOr<int>'), 'int');
     _check(parseType('FutureOr<int?>'), 'int?');
-
     _check(parseType('FutureOr<int>?'), 'int?');
     _check(parseType('FutureOr<int?>?'), 'int?');
 
+    _check(parseType('Future<Future<int>>'), 'Future<int>');
+    _check(parseType('Future<Future<int>?>'), 'Future<int>?');
     _check(parseType('FutureOr<Future<int>>'), 'Future<int>');
     _check(parseType('FutureOr<Future<int?>>'), 'Future<int?>');
-
     _check(parseType('FutureOr<Future<int>>?'), 'Future<int>?');
     _check(parseType('FutureOr<Future<int?>>?'), 'Future<int?>?');
   }
 
-  test_interfaceType_question() {
-    _check(parseType('Future<int>?'), 'int?');
-    _check(parseType('Future<int?>?'), 'int?');
-  }
-
-  test_typeParameterType_none() {
-    // T extends Future<int>
+  test_typeParameter() {
+    // Bounds with future type are flattened.
     withTypeParameterScope('T extends Future<int>', (scope) {
       _check(scope.parseType('T'), 'int');
     });
-
-    // T extends FutureOr<int>
     withTypeParameterScope('T extends FutureOr<int>', (scope) {
       _check(scope.parseType('T'), 'int');
     });
 
-    // T & Future<int>
-    withTypeParameterScope('T', (scope) {
-      _check(scope.parseType('T & Future<int>'), 'int');
+    // Nullable type parameters preserve nullability after flattening.
+    withTypeParameterScope('T extends Future<int>', (scope) {
+      _check(scope.parseType('T?'), 'int?');
+    });
+    withTypeParameterScope('T extends FutureOr<int>', (scope) {
+      _check(scope.parseType('T?'), 'int?');
     });
 
-    // T & FutureOr<int>
+    // Promoted bounds are used when they have a future type.
     withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & Future<int>'), 'int');
       _check(scope.parseType('T & FutureOr<int>'), 'int');
     });
 
-    // T extends int
+    // Without a future type, the type parameter itself is unchanged.
     withTypeParameterScope('T extends int', (scope) {
       _check(scope.parseType('T'), 'T');
     });
-
-    // T & int
     withTypeParameterScope('T', (scope) {
       _check(scope.parseType('T & int'), 'T');
-    });
-  }
-
-  test_typeParameterType_question() {
-    // T extends Future<int>
-    withTypeParameterScope('T extends Future<int>', (scope) {
-      _check(scope.parseType('T?'), 'int?');
-    });
-
-    // T extends FutureOr<int>
-    withTypeParameterScope('T extends FutureOr<int>', (scope) {
-      _check(scope.parseType('T?'), 'int?');
     });
   }
 
@@ -111,15 +147,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class FutureTypeTest extends AbstractTypeSystemTest {
-  test_dynamic() {
-    _check(parseType('dynamic'), null);
-  }
-
-  test_functionType() {
-    _check(parseType('void Function()'), null);
-  }
-
-  test_implements_Future() {
+  test_interfaceType_implementsFuture() {
     buildTestLibrary(
       imports: ['dart:core', 'dart:async'],
       classes: [ClassSpec('class A implements Future<int>')],
@@ -128,7 +156,10 @@ class FutureTypeTest extends AbstractTypeSystemTest {
     _check(parseType('A?'), null);
   }
 
-  test_interfaceType() {
+  test_simpleTypes() {
+    _check(parseType('dynamic'), null);
+    _check(parseType('void Function()'), null);
+
     _check(parseType('Object'), null);
     _check(parseType('Object?'), null);
 
@@ -159,33 +190,25 @@ class FutureTypeTest extends AbstractTypeSystemTest {
     _check(parseType('FutureOr<FutureOr<int>>'), 'FutureOr<FutureOr<int>>');
   }
 
-  test_typeParameterType_none() {
-    // T extends Future<int>
+  test_typeParameter() {
+    // Bounds with future type are returned as the future type.
     withTypeParameterScope('T extends Future<int>', (scope) {
       _check(scope.parseType('T'), 'Future<int>');
     });
-
-    // T extends FutureOr<int>
     withTypeParameterScope('T extends FutureOr<int>', (scope) {
       _check(scope.parseType('T'), 'FutureOr<int>');
     });
 
-    // T & Future<int>
+    // Promoted bounds are used when they have a future type.
     withTypeParameterScope('T', (scope) {
       _check(scope.parseType('T & Future<int>'), 'Future<int>');
-    });
-
-    // T & FutureOr<int>
-    withTypeParameterScope('T', (scope) {
       _check(scope.parseType('T & FutureOr<int>'), 'FutureOr<int>');
     });
 
-    // T extends int
+    // Without a future type, there is no future type result.
     withTypeParameterScope('T extends int', (scope) {
       _check(scope.parseType('T'), null);
     });
-
-    // T & int
     withTypeParameterScope('T', (scope) {
       _check(scope.parseType('T & int'), null);
     });
@@ -207,23 +230,11 @@ class FutureTypeTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class UnionFreeTypeTest extends AbstractTypeSystemTest {
-  test_future_notStripped() {
+  test_simpleTypes() {
     _check(parseType('Future<int>?'), 'Future<int>');
-  }
-
-  test_futureOr() {
     _check(parseType('FutureOr<int>'), 'int');
-  }
-
-  test_futureOr_nestedNullable() {
     _check(parseType('FutureOr<FutureOr<int?>?>?'), 'int');
-  }
-
-  test_nullable() {
     _check(parseType('int?'), 'int');
-  }
-
-  test_plain() {
     _check(parseType('int'), 'int');
   }
 

@@ -63,6 +63,7 @@ class SetDeserializationCluster;
 class SubtypeTestCacheDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 class TypeParameterTypeDeserializationCluster;
+class TypeParametersDeserializationCluster;
 }  // namespace module_snapshot
 
 #define DEFINE_CONTAINS_COMPRESSED(type)                                       \
@@ -2951,6 +2952,7 @@ class UntaggedTypeParameters : public UntaggedObject {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Object;
+  friend class module_snapshot::TypeParametersDeserializationCluster;
 };
 
 class UntaggedAbstractType : public UntaggedInstance {

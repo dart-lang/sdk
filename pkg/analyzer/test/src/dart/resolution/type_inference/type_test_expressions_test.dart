@@ -18,25 +18,25 @@ main() {
 @reflectiveTest
 class IsNotTest extends PubPackageResolutionTest {
   test_simple() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object a) {
   var b = a is! String;
   print(b);
 }
 ''');
-    assertType(findNode.simple('b)'), 'bool');
+    assertType(result.findNode.simple('b)'), 'bool');
   }
 }
 
 @reflectiveTest
 class IsTest extends PubPackageResolutionTest {
   test_simple() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object a) {
   var b = a is String;
   print(b);
 }
 ''');
-    assertType(findNode.simple('b)'), 'bool');
+    assertType(result.findNode.simple('b)'), 'bool');
   }
 }

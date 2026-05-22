@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class WhileStatementResolutionTest extends PubPackageResolutionTest {
   test_break() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     break;
@@ -25,7 +25,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -45,7 +45,7 @@ WhileStatement
   }
 
   test_break_label() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   L: while (true) {
     break L;
@@ -53,7 +53,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleLabeledStatement;
+    var node = result.findNode.singleLabeledStatement;
     assertResolvedNodeText(node, r'''
 LabeledStatement
   labels
@@ -82,7 +82,7 @@ LabeledStatement
   }
 
   test_break_label_unresolved() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     break L;
@@ -92,7 +92,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -115,7 +115,7 @@ WhileStatement
   }
 
   test_condition_super() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void f() {
     while (super) {}
@@ -126,7 +126,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -142,7 +142,7 @@ WhileStatement
   }
 
   test_continue() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     continue;
@@ -150,7 +150,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -170,7 +170,7 @@ WhileStatement
   }
 
   test_continue_label() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   L: while (true) {
     continue L;
@@ -178,7 +178,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleLabeledStatement;
+    var node = result.findNode.singleLabeledStatement;
     assertResolvedNodeText(node, r'''
 LabeledStatement
   labels
@@ -207,7 +207,7 @@ LabeledStatement
   }
 
   test_continue_label_unresolved() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     continue L;
@@ -217,7 +217,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while

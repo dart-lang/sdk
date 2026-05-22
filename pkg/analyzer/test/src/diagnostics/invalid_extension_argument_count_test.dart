@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class InvalidExtensionArgumentCountTest extends PubPackageResolutionTest {
   test_many() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void m() {}
 }
@@ -25,7 +25,7 @@ f() {
 // [diag.invalidExtensionArgumentCount] Extension overrides must have exactly one argument: the value of 'this' in the extension method.
 }
 ''');
-    assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
+    assertTypeDynamic(result.findNode.extensionOverride('E(').extendedType);
   }
 
   test_one() async {
@@ -40,7 +40,7 @@ f() {
   }
 
   test_zero() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void m() {}
 }
@@ -50,6 +50,6 @@ f() {
 // [diag.invalidExtensionArgumentCount] Extension overrides must have exactly one argument: the value of 'this' in the extension method.
 }
 ''');
-    assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
+    assertTypeDynamic(result.findNode.extensionOverride('E(').extendedType);
   }
 }

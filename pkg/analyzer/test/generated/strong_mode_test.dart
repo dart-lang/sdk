@@ -70,7 +70,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   CompilationUnit get unit => result.unit;
 
   @override
-  Future<void> resolveTestFile() async {
+  Future<TestResolvedUnitResult> resolveTestFile() async {
     var result = await super.resolveTestFile();
 
     var assertions = _assertions;
@@ -1339,7 +1339,7 @@ void test() {
   }
 
   test_inferConstructor_unknownTypeLowerBound() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
         class C<T> {
           C(void callback(List<T> a));
         }
@@ -1352,7 +1352,7 @@ void test() {
         }
         ''');
 
-    DartType cType = findElement2.localVar('c').type;
+    DartType cType = result.findElement.localVar('c').type;
     Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementC))([_isType])(cType);
@@ -1417,7 +1417,7 @@ Consider passing explicit type argument(s) to the generic.
 
   test_inference_error_extendsFromReturn() async {
     // This is not an inference error because we successfully infer Null.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T max<T extends num>(T x, T y) => x;
 
 test() {
@@ -1431,7 +1431,7 @@ test() {
 }
  ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1537,7 +1537,7 @@ Consider passing explicit type argument(s) to the generic.
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with a function type
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) target) {
 //   ^^^^^^^^^^
 // [diag.unusedElement] The declaration '_mergeSort' isn't referenced.
@@ -1548,7 +1548,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
 }
     ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1705,7 +1705,7 @@ Block
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with an interface type
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
 //   ^^^^^^^^^^
 // [diag.unusedElement] The declaration '_mergeSort' isn't referenced.
@@ -1716,7 +1716,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
 }
     ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1873,7 +1873,7 @@ Block
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with a simple type parameter
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void _mergeSort<T>(T list, int compare(T a, T b), T target) {
 //   ^^^^^^^^^^
 // [diag.unusedElement] The declaration '_mergeSort' isn't referenced.
@@ -1884,7 +1884,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
 }
     ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -2039,7 +2039,7 @@ Block
 
   test_inferGenericInstantiation() async {
     // Verify that we don't infer '?` when we instantiate a generic function.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T x(T t)) => x(null);
 //                    ^^^^
 // [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'T'.
@@ -2051,7 +2051,7 @@ test() {
 }
     ''');
 
-    var node = findNode.methodInvocation('f(g)');
+    var node = result.findNode.methodInvocation('f(g)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -2083,7 +2083,7 @@ MethodInvocation
   test_inferGenericInstantiation2() async {
     // Verify the behavior when we cannot infer an instantiation due to invalid
     // constraints from an outer generic method.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T max<T extends num>(T x, T y) => x < y ? y : x;
 abstract class Iterable<T> {
   T get first;
@@ -2094,7 +2094,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
 // [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(num, dynamic)'.
     ''');
 
-    var node = findNode.methodInvocation('values.fold');
+    var node = result.findNode.methodInvocation('values.fold');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -3503,7 +3503,7 @@ $code
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_dynamicObjectGetter_hashCode() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   dynamic a = null;
   var foo = a.hashCode;
@@ -3511,7 +3511,7 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'int');
+    expectInitializerType(result, 'foo =', 'int');
   }
 
   test_futureOr_promotion1() async {
@@ -3570,13 +3570,13 @@ void main() {
   }
 
   test_genericFunction() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T x) => null;
 //             ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 ''');
 
-    var node = findNode.functionDeclaration('f<T>');
+    var node = result.findNode.functionDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -3622,13 +3622,13 @@ FunctionDeclaration
   }
 
   test_genericFunction_bounds() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T extends num>(T x) => null;
 //                         ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 ''');
 
-    var node = findNode.functionDeclaration('f<T');
+    var node = result.findNode.functionDeclaration('f<T');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -3679,17 +3679,17 @@ FunctionDeclaration
   }
 
   test_genericFunction_parameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void g(T f<T>(T x)) {}
 ''');
 
-    var fType = findElement2.parameter('f').type;
+    var fType = result.findElement.parameter('f').type;
     fType as FunctionType;
     assertType(fType, 'T Function<T>(T)');
   }
 
   test_genericFunction_static() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   static T f<T>(T x) => null;
 //                      ^^^^
@@ -3697,7 +3697,7 @@ class C<E> {
 }
 ''');
 
-    var node = findNode.methodDeclaration('f<T>');
+    var node = result.findNode.methodDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
@@ -3739,7 +3739,7 @@ MethodDeclaration
   }
 
   test_genericFunction_typedef() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef T F<T>(T x);
 F f0;
 //^^
@@ -3785,7 +3785,7 @@ class D<S> {
 ''');
 
     checkBody(String className) {
-      var statements = findNode.block('{ // $className').statements;
+      var statements = result.findNode.block('{ // $className').statements;
 
       for (int i = 1; i <= 5; i++) {
         Expression exp = (statements[i] as ExpressionStatement).expression;
@@ -3799,13 +3799,13 @@ class D<S> {
 
   test_genericFunction_upwardsAndDownwards() async {
     // Regression tests for https://github.com/dart-lang/sdk/issues/27586.
-    await resolveTestCodeWithDiagnostics(r'List<num> x = [1, 2];');
-    expectInitializerType('x =', 'List<num>');
+    var result = await resolveTestCodeWithDiagnostics(r'List<num> x = [1, 2];');
+    expectInitializerType(result, 'x =', 'List<num>');
   }
 
   test_genericFunction_upwardsAndDownwards_Object() async {
     // Regression tests for https://github.com/dart-lang/sdk/issues/27625.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 List<Object> aaa = [];
 List<Object> bbb = [1, 2, 3];
 List<Object> ccc = [null];
@@ -3814,15 +3814,15 @@ List<Object> ccc = [null];
 List<Object> ddd = [1 as dynamic];
 List<Object> eee = [new Object()];
 ''');
-    expectInitializerType('aaa =', 'List<Object>');
-    expectInitializerType('bbb =', 'List<Object>');
-    expectInitializerType('ccc =', 'List<Object>');
-    expectInitializerType('ddd =', 'List<Object>');
-    expectInitializerType('eee =', 'List<Object>');
+    expectInitializerType(result, 'aaa =', 'List<Object>');
+    expectInitializerType(result, 'bbb =', 'List<Object>');
+    expectInitializerType(result, 'ccc =', 'List<Object>');
+    expectInitializerType(result, 'ddd =', 'List<Object>');
+    expectInitializerType(result, 'eee =', 'List<Object>');
   }
 
   test_genericMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
 //                     ^^^^
@@ -3834,9 +3834,9 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'cOfString' isn't used.
 }
 ''');
-    assertType(findElement2.method('f').type, 'List<T> Function<T>(E)');
+    assertType(result.findElement.method('f').type, 'List<T> Function<T>(E)');
 
-    var cOfString = findElement2.localVar('cOfString');
+    var cOfString = result.findElement.localVar('cOfString');
     var ft = inheritanceManager
         .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
         .type;
@@ -3848,7 +3848,7 @@ main() {
   }
 
   test_genericMethod_explicitTypeParams() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
 //                     ^^^^
@@ -3863,16 +3863,16 @@ main() {
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'cOfString' must be assigned before it can be used.
 }
 ''');
-    var f = findNode.simple('f<int>').parent as MethodInvocation;
+    var f = result.findNode.simple('f<int>').parent as MethodInvocation;
     var ft = f.staticInvokeType as FunctionType;
     assertType(ft, 'List<int> Function(String)');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.type, typeProvider.listType(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
 //               ^^^^
@@ -3921,40 +3921,40 @@ void test<S>(T Function<T>(T) pf) {
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('lambdaCall', "int");
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'lambdaCall', "int");
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 //    ^^^^^^^^^
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 //    ^^^^^^^^^
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
 //               ^^^^
@@ -4003,18 +4003,18 @@ void test<S>(T Function<T>(T) pf) {
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('lambdaCall', "int");
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'lambdaCall', "int");
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_explicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
 //               ^^^^
@@ -4059,39 +4059,39 @@ void test<S>(T Function<T>(T) pf) {
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 //    ^^^^^^^^^
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 //    ^^^^^^^^^
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_inferred() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
 //               ^^^^
@@ -4136,17 +4136,17 @@ void test<S>(T Function<T>(T) pf) {
 // [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
 ''');
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionTypedParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   List<T> f<T>(T f(E e)) => null;
 //                          ^^^^
@@ -4159,11 +4159,11 @@ main() {
 }
 ''');
     assertType(
-      findElement2.method('f').type,
+      result.findElement.method('f').type,
       'List<T> Function<T>(T Function(E))',
     );
 
-    var cOfString = findElement2.localVar('cOfString');
+    var cOfString = result.findElement.localVar('cOfString');
     var ft = inheritanceManager
         .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
         .type;
@@ -4175,21 +4175,21 @@ main() {
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 //    ^^^^^^^^^^^^
 // [diag.unusedLocalVariable] The value of the local variable 'paramTearOff' isn't used.
 }
 ''');
-    _assertLocalVarType('paramTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'paramTearOff', "T Function<T>(T)");
   }
 
   test_genericMethod_implicitDynamic() async {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25100#issuecomment-162047588
     // These should not cause any hints or warnings.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class List<E> {
   T map<T>(T f(E e)) => null;
 //                      ^^^^
@@ -4203,7 +4203,7 @@ void foo() {
   list.map((e) => 3);
 }''');
 
-    var node1 = findNode.methodInvocation('map((e) => e);');
+    var node1 = result.findNode.methodInvocation('map((e) => e);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4249,7 +4249,7 @@ MethodInvocation
     dynamic
 ''');
 
-    var node2 = findNode.methodInvocation('map((e) => 3);');
+    var node2 = result.findNode.methodInvocation('map((e) => 3);');
     assertResolvedNodeText(node2, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4296,7 +4296,7 @@ MethodInvocation
   }
 
   test_genericMethod_max_doubleDouble() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2.0);
@@ -4304,11 +4304,11 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'double');
+    expectInitializerType(result, 'foo =', 'double');
   }
 
   test_genericMethod_max_doubleDouble_prefixed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as math;
 main() {
   var foo = math.max(1.0, 2.0);
@@ -4316,11 +4316,11 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'double');
+    expectInitializerType(result, 'foo =', 'double');
   }
 
   test_genericMethod_max_doubleInt() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2);
@@ -4328,11 +4328,11 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'num');
+    expectInitializerType(result, 'foo =', 'num');
   }
 
   test_genericMethod_max_intDouble() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2.0);
@@ -4340,11 +4340,11 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'num');
+    expectInitializerType(result, 'foo =', 'num');
   }
 
   test_genericMethod_max_intInt() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2);
@@ -4352,7 +4352,7 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'int');
+    expectInitializerType(result, 'foo =', 'int');
   }
 
   test_genericMethod_nestedBound() async {
@@ -4367,7 +4367,7 @@ class Foo<T extends num> {
   }
 
   test_genericMethod_nestedCapture() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T f<S>(S x) {
     new C<S>().f<int>(3);
@@ -4379,7 +4379,7 @@ class C<T> {
 }
 ''');
 
-    var node1 = findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: InstanceCreationExpression
@@ -4437,7 +4437,7 @@ MethodInvocation
   }
 
   test_genericMethod_nestedCaptureBounds() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T f<S extends T>(S x) {
     new C<S>().f<int>(3);
@@ -4451,7 +4451,7 @@ class C<T> {
 }
 ''');
 
-    var node1 = findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: InstanceCreationExpression
@@ -4507,7 +4507,7 @@ MethodInvocation
     int
 ''');
 
-    var node2 = findNode.simple('f;');
+    var node2 = result.findNode.simple('f;');
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: f
@@ -4519,7 +4519,7 @@ SimpleIdentifier
   }
 
   test_genericMethod_nestedFunctions() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 S f<S>(S x) {
   g<S>(S x) => f;
 //^
@@ -4529,15 +4529,15 @@ S f<S>(S x) {
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'S'.
 }
 ''');
-    assertType(findElement2.topFunction('f').type, 'S Function<S>(S)');
+    assertType(result.findElement.topFunction('f').type, 'S Function<S>(S)');
     assertType(
-      findElement2.localFunction('g').type,
+      result.findElement.localFunction('g').type,
       'S Function<S>(S) Function<S₀>(S₀)',
     );
   }
 
   test_genericMethod_override() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   T f<T>(T x) => null;
 //               ^^^^
@@ -4550,7 +4550,7 @@ class D extends C {
 }
 ''');
 
-    var node = findNode.methodDeclaration('f<T>(T y)');
+    var node = result.findNode.methodDeclaration('f<T>(T y)');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -4729,7 +4729,7 @@ class D extends C {
     // example won't work, as we now compute a static type and therefore discard
     // the propagated type. So a new test was created that doesn't run under
     // strong mode.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Iter {
   List<S> map<S>(S f(x));
 }
@@ -4745,11 +4745,11 @@ C toSpan(dynamic element) {
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'toSpan' because it has a return type of 'C'.
 }
 ''');
-    _assertLocalVarType('y', 'List<C>');
+    _assertLocalVarType(result, 'y', 'List<C>');
   }
 
   test_genericMethod_tearoff() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(E e) => null;
 //               ^^^^
@@ -4794,18 +4794,18 @@ void test<S>(T Function<T>(T) pf) {
 // [diag.unusedLocalVariable] The value of the local variable 'paramTearOff' isn't used.
 }
 ''');
-    _assertLocalVarType('methodTearOff', "T Function<T>(int)");
-    _assertLocalVarType('staticTearOff', "T Function<T>(T)");
-    _assertLocalVarType('staticFieldTearOff', "T Function<T>(T)");
-    _assertLocalVarType('topFunTearOff', "T Function<T>(T)");
-    _assertLocalVarType('topFieldTearOff', "T Function<T>(T)");
-    _assertLocalVarType('localTearOff', "T Function<T>(T)");
-    _assertLocalVarType('paramTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'methodTearOff', "T Function<T>(int)");
+    _assertLocalVarType(result, 'staticTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'staticFieldTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'topFunTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'topFieldTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'localTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'paramTearOff', "T Function<T>(T)");
   }
 
   @SkippedTest() // TODO(scheglov): fix it
   test_genericMethod_tearoff_instantiated() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
@@ -4826,17 +4826,17 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOffInst = pf<int>;
 }
 ''');
-    expectIdentifierType('methodTearOffInst', "int Function(int)");
-    expectIdentifierType('staticTearOffInst', "int Function(int)");
-    expectIdentifierType('staticFieldTearOffInst', "int Function(int)");
-    expectIdentifierType('topFunTearOffInst', "int Function(int)");
-    expectIdentifierType('topFieldTearOffInst', "int Function(int)");
-    expectIdentifierType('localTearOffInst', "int Function(int)");
-    expectIdentifierType('paramTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'methodTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'staticTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'staticFieldTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'topFunTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'topFieldTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'localTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'paramTearOffInst', "int Function(int)");
   }
 
   test_genericMethod_then() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 String toString(int x) => x.toString();
 main() {
   Future<int> bar = null;
@@ -4848,11 +4848,11 @@ main() {
 }
 ''');
 
-    expectInitializerType('foo =', 'Future<String>');
+    expectInitializerType(result, 'foo =', 'Future<String>');
   }
 
   test_genericMethod_then_prefixed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as async;
 String toString(int x) => x.toString();
 main() {
@@ -4864,12 +4864,12 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
 ''');
-    expectInitializerType('foo =', 'Future<String>');
+    expectInitializerType(result, 'foo =', 'Future<String>');
   }
 
   test_genericMethod_then_propagatedType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25482.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
   Future<String> p;
   var foo = p.then((r) => new Future<String>.value(3));
@@ -4885,11 +4885,11 @@ void main() {
     // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
-    expectInitializerType('foo =', 'Future<String>');
+    expectInitializerType(result, 'foo =', 'Future<String>');
   }
 
   test_genericMethod_toplevel_field_staticTearoff() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   static T g<T>(T e) => null;
 //                      ^^^^
@@ -4905,11 +4905,11 @@ void test() {
 // [diag.unusedLocalVariable] The value of the local variable 'fieldRead' isn't used.
 }
 ''');
-    _assertLocalVarType('fieldRead', "T Function<T>(T)");
+    _assertLocalVarType(result, 'fieldRead', "T Function<T>(T)");
   }
 
   test_implicitBounds() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 class B<T extends num> {}
@@ -4937,12 +4937,12 @@ void test() {
 // [diag.unusedLocalVariable] The value of the local variable 'cc' isn't used.
 }
 ''');
-    _assertLocalVarType('ai', "A<dynamic>");
-    _assertLocalVarType('bi', "B<num>");
-    _assertLocalVarType('ci', "C<int, B<int>, A<dynamic>>");
-    _assertLocalVarType('aa', "A<dynamic>");
-    _assertLocalVarType('bb', "B<num>");
-    _assertLocalVarType('cc', "C<int, B<int>, A<dynamic>>");
+    _assertLocalVarType(result, 'ai', "A<dynamic>");
+    _assertLocalVarType(result, 'bi', "B<num>");
+    _assertLocalVarType(result, 'ci', "C<int, B<int>, A<dynamic>>");
+    _assertLocalVarType(result, 'aa', "A<dynamic>");
+    _assertLocalVarType(result, 'bb', "B<num>");
+    _assertLocalVarType(result, 'cc', "C<int, B<int>, A<dynamic>>");
   }
 
   test_instantiateToBounds_class_error_extension_malbounded() async {
@@ -4962,7 +4962,7 @@ class D extends C {}
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
     // Test that instance creations are strictly checked for malbounded default
     // types
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 void test() {
@@ -4980,42 +4980,42 @@ void test() {
         ),
       ],
     );
-    _assertLocalVarType('c', 'C<List<Object?>, List<List<Object?>>>');
+    _assertLocalVarType(result, 'c', 'C<List<Object?>, List<List<Object?>>>');
   }
 
   test_instantiateToBounds_class_error_recursion() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<List<dynamic>, List<dynamic>>');
+    _assertTopVarType(result, 'c', 'C<List<dynamic>, List<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T extends C<T>> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<C<dynamic>>');
+    _assertTopVarType(result, 'c', 'C<C<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<E> {}
 class C<T extends A<T>> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<A<dynamic>>');
+    _assertTopVarType(result, 'c', 'C<A<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_typedef() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef T F<T>(T x);
 class C<T extends F<T>> {}
 C c;
@@ -5025,61 +5025,65 @@ C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
+    _assertTopVarType(result, 'c', 'C<dynamic Function(dynamic)>');
   }
 
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends Map<T1, T2>, T1 extends List, T2 extends int> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
+    _assertTopVarType(
+      result,
+      'c',
+      'C<Map<List<dynamic>, int>, List<dynamic>, int>',
+    );
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends T1, T1 extends int> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<int, int>');
+    _assertTopVarType(result, 'c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends Map<T1, T1>, T1 extends int> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<Map<int, int>, int>');
+    _assertTopVarType(result, 'c', 'C<Map<int, int>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_before() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends int, T1 extends T0> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<int, int>');
+    _assertTopVarType(result, 'c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
 C c;
 //^
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 ''');
-    _assertTopVarType('c', 'C<Map<List<int>, int>, List<int>, int>');
+    _assertTopVarType(result, 'c', 'C<Map<List<int>, int>, List<int>, int>');
   }
 
   test_instantiateToBounds_class_ok_simpleBounds() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 class B<T extends num> {}
 class C<T extends List<int>> {}
@@ -5099,16 +5103,16 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
 }
 ''');
-    _assertLocalVarType('a', 'A<dynamic>');
-    _assertLocalVarType('b', 'B<num>');
-    _assertLocalVarType('c', 'C<List<int>>');
-    _assertLocalVarType('d', 'D<A<dynamic>>');
+    _assertLocalVarType(result, 'a', 'A<dynamic>');
+    _assertLocalVarType(result, 'b', 'B<num>');
+    _assertLocalVarType(result, 'c', 'C<List<int>>');
+    _assertLocalVarType(result, 'd', 'D<A<dynamic>>');
   }
 
   test_instantiateToBounds_generic_function_error_malbounded() async {
     // Test that generic methods are strictly checked for malbounded default
     // types
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 T0 f<T0 extends List<T1>, T1 extends List<T0>>() {}
 void g() {
@@ -5122,11 +5126,11 @@ void g() {
         error(diag.couldNotInfer, 73, 1),
       ],
     );
-    _assertLocalVarType('c', 'List<Object?>');
+    _assertLocalVarType(result, 'c', 'List<Object?>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   void m<S0 extends T, S1 extends List<S0>>(S0 p0, S1 p1) {}
 
@@ -5140,7 +5144,7 @@ class C<T> {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5174,7 +5178,7 @@ MethodInvocation
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   Map<S0, S1> m<S0 extends T, S1 extends List<S0>>() => null;
 //                                                      ^^^^
@@ -5186,7 +5190,7 @@ class C<T> {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5207,7 +5211,7 @@ MethodInvocation
   }
 
   test_instantiateToBounds_method_ok_simpleBounds() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   void m<S extends T>(S p0) {}
 
@@ -5219,7 +5223,7 @@ class C<T> {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5246,7 +5250,7 @@ MethodInvocation
   }
 
   test_instantiateToBounds_method_ok_simpleBounds2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   S m<S extends T>() => null;
 //                      ^^^^
@@ -5258,7 +5262,7 @@ class C<T> {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5533,7 +5537,7 @@ Object set g(x) => null;
   }
 
   test_ternaryOperator_null_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var foo = (true) ? null : 3;
 //    ^^^
@@ -5542,11 +5546,11 @@ main() {
 // [diag.deadCode] Dead code.
 }
 ''');
-    expectInitializerType('foo =', 'int?');
+    expectInitializerType(result, 'foo =', 'int?');
   }
 
   test_ternaryOperator_null_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var foo = (true) ? 3 : null;
 //    ^^^
@@ -5555,16 +5559,24 @@ main() {
 // [diag.deadCode] Dead code.
 }
 ''');
-    expectInitializerType('foo =', 'int?');
+    expectInitializerType(result, 'foo =', 'int?');
   }
 
-  void _assertLocalVarType(String name, String expectedType) {
-    var element = findElement2.localVar(name);
+  void _assertLocalVarType(
+    TestResolvedUnitResult result,
+    String name,
+    String expectedType,
+  ) {
+    var element = result.findElement.localVar(name);
     assertType(element.type, expectedType);
   }
 
-  void _assertTopVarType(String name, String expectedType) {
-    var element = findElement2.topVar(name);
+  void _assertTopVarType(
+    TestResolvedUnitResult result,
+    String name,
+    String expectedType,
+  ) {
+    var element = result.findElement.topVar(name);
     assertType(element.type, expectedType);
   }
 
@@ -5572,13 +5584,13 @@ main() {
     String code,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
-    await assertErrorsInCode(code, expectedDiagnostics);
-    _assertLocalVarType('t0', "String");
-    _assertLocalVarType('t1', "String Function()");
-    _assertLocalVarType('t2', "int");
-    _assertLocalVarType('t3', "String");
-    _assertLocalVarType('t4', "String Function()");
-    _assertLocalVarType('t5', "int");
+    var result = await assertErrorsInCode(code, expectedDiagnostics);
+    _assertLocalVarType(result, 't0', "String");
+    _assertLocalVarType(result, 't1', "String Function()");
+    _assertLocalVarType(result, 't2', "int");
+    _assertLocalVarType(result, 't3', "String");
+    _assertLocalVarType(result, 't4', "String Function()");
+    _assertLocalVarType(result, 't5', "int");
   }
 }
 
@@ -5604,43 +5616,43 @@ class C extends Override implements Base {}
   }
 
   test_localVariableInference_bottom_disabled() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var v = null;
   v; // marker
 }''');
-    assertTypeDynamic(findElement2.localVar('v').type);
-    assertTypeDynamic(findNode.simple('v; // marker'));
+    assertTypeDynamic(result.findElement.localVar('v').type);
+    assertTypeDynamic(result.findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_constant() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var v = 3;
   v; // marker
 }''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_declaredType_disabled() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   dynamic v = 3;
   v; // marker
 }''');
-    assertTypeDynamic(findElement2.localVar('v').type);
-    assertTypeDynamic(findNode.simple('v; // marker'));
+    assertTypeDynamic(result.findElement.localVar('v').type);
+    assertTypeDynamic(result.findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_noInitializer_disabled() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var v;
   v = 3;
   v; // marker
 }''');
-    assertResolvedNodeText(findNode.assignment('= 3'), r'''
+    assertResolvedNodeText(result.findNode.assignment('= 3'), r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: v
@@ -5658,11 +5670,11 @@ AssignmentExpression
   element: <null>
   staticType: int
 ''');
-    assertTypeDynamic(findNode.simple('v; // marker'));
+    assertTypeDynamic(result.findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   final x = 3;
   f() {
@@ -5673,12 +5685,12 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   f() {
     var v = x;
@@ -5689,12 +5701,12 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   int x = 3;
   f() {
@@ -5705,12 +5717,12 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   f() {
     var v = x;
@@ -5721,77 +5733,77 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_list_local() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var x = <int>[3];
   var v = x[0];
   v; // marker
 }''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_local() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var x = 3;
   var v = x;
   v; // marker
 }''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_topLevel_inferred_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 final x = 3;
 main() {
   var v = x;
   v; // marker
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var v = x;
   v; // marker
 }
 final x = 3;
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_topLevel_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 int x = 3;
 main() {
   var v = x;
   v; // marker
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_topLevel_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var v = x;
   v; // marker
 }
 int x = 3;
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 }

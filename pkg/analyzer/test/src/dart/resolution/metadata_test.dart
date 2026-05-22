@@ -20,12 +20,12 @@ main() {
 @reflectiveTest
 class MetadataResolutionTest extends PubPackageResolutionTest {
   test_at_genericFunctionType_formalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 42;
 List<void Function(@a int b)> f() => [];
 ''');
 
-    var annotation = findNode.annotation('@a');
+    var annotation = result.findNode.annotation('@a');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -42,18 +42,18 @@ int 42
   }
 
   test_location_class_classDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
 class A {}
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_class_constructor_formalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -61,11 +61,11 @@ class A {
 }
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_class_constructorDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -74,11 +74,11 @@ class A {
 }
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_class_fieldDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -87,18 +87,18 @@ class A {
 }
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_enumConstant() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   @v
   v;
 }
 ''');
 
-    var annotation = findNode.annotation('@v');
+    var annotation = result.findNode.annotation('@v');
     assertResolvedNodeText(annotation, '''
 Annotation
   atSign: @
@@ -120,17 +120,17 @@ E
   }
 
   test_location_extensionType_representation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 extension type A(@foo int it) {}
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_fieldFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final Object f;
   const A(this.f);
@@ -141,7 +141,7 @@ class B {
   B({@A( A(0) ) required this.f});
 }
 ''');
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -193,7 +193,7 @@ A
   }
 
   test_location_forEach_declaredIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 void f(List<int> list) {
   for (@foo var x in list) {
@@ -202,7 +202,7 @@ void f(List<int> list) {
 }
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_forEachPartsWithDeclaration() async {
@@ -216,41 +216,41 @@ void f() {
   }
 
   test_location_libraryDirective() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @foo
 library my;
 const foo = 42;
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_libraryExportDirective() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @foo
 export 'a.dart';
 const foo = 42;
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_libraryImportDirective() async {
     newFile('$testPackageLibPath/a.dart', '');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @foo
 import 'a.dart'; // ignore:unused_import
 const foo = 42;
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_localVariable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int a;
   const A(this.a);
@@ -263,7 +263,7 @@ void f() {
 }
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, '''
 Annotation
   atSign: @
@@ -282,7 +282,7 @@ Annotation
   element: <testLibrary>::@class::A::@constructor::new
 ''');
 
-    var localVariable = findElement2.localVar('x');
+    var localVariable = result.findElement.localVar('x');
     var annotationOnElement = localVariable.metadata.annotations.first;
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
@@ -305,7 +305,7 @@ void f() {
   }
 
   test_location_methodDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 class A {
@@ -314,7 +314,7 @@ class A {
 }
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_partDirective() async {
@@ -322,17 +322,17 @@ class A {
 part of 'test.dart';
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @foo
 part 'a.dart';
 const foo = 42;
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_partDirective_fileDoesNotExist() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @foo
 part 'a.dart';
 //   ^^^^^^^^
@@ -340,7 +340,7 @@ part 'a.dart';
 const foo = 42;
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_partOfDirective() async {
@@ -354,14 +354,14 @@ const foo = 42;
 part of 'test.dart';
 ''');
 
-    await resolveFile2(a);
+    var result = await resolveFile2(a);
     assertNoErrorsInResult();
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_recordTypeAnnotation_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -369,7 +369,7 @@ class A {
 
 ({@A(0) int f1, String f2}) f() => throw 0;
 ''');
-    var node = findNode.annotation('@A');
+    var node = result.findNode.annotation('@A');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -398,7 +398,7 @@ A
   }
 
   test_location_recordTypeAnnotation_positional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -406,7 +406,7 @@ class A {
 
 (int, @A(0) String) f() => throw 0;
 ''');
-    var node = findNode.annotation('@A');
+    var node = result.findNode.annotation('@A');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -435,29 +435,29 @@ A
   }
 
   test_location_topLevelFunctionDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
 void bar() {}
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_location_topLevelVariableDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
 final bar = 0;
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_value_class_inference_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A.named(this.f);
@@ -467,7 +467,7 @@ class A {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -504,7 +504,7 @@ A
   }
 
   test_value_class_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A {
   final int f;
   const A.named(this.f);
@@ -514,7 +514,7 @@ A
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -552,7 +552,7 @@ A
   }
 
   test_value_class_namedConstructor_unresolved_hasFormalParameter() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   const A();
 }
@@ -563,7 +563,7 @@ void f(int named) {
 }
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -592,7 +592,7 @@ Annotation
   }
 
   test_value_class_staticConstField() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const int foo = 42;
 }
@@ -601,7 +601,7 @@ class A {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -626,7 +626,7 @@ int 42
   }
 
   test_value_class_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -636,7 +636,7 @@ class A {
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -666,7 +666,7 @@ A
   }
 
   test_value_class_unnamedConstructor_withNestedConstructorInvocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
 }
@@ -680,7 +680,7 @@ class D {
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -723,14 +723,14 @@ D
   }
 
   test_value_extensionType_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type const A.named(int it) {}
 
 @A.named(42)
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -764,14 +764,14 @@ int 42
   }
 
   test_value_extensionType_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type const A(int it) {}
 
 @A(42)
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -797,7 +797,7 @@ int 42
   }
 
   test_value_genericClass_downwards_inference_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final List<List<T>> f;
   const A.named(this.f);
@@ -807,7 +807,7 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -857,7 +857,7 @@ A<Object?>
   }
 
   test_value_genericClass_downwards_inference_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final List<List<T>> f;
   const A(this.f);
@@ -867,7 +867,7 @@ A<Object?>
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -905,7 +905,7 @@ A<Object?>
   }
 
   test_value_genericClass_inference_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -915,7 +915,7 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -962,7 +962,7 @@ A<int>
   }
 
   test_value_genericClass_inference_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -972,7 +972,7 @@ A<int>
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1007,7 +1007,7 @@ A<int>
   }
 
   test_value_genericClass_instanceGetter() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A<T> {
   T get foo {}
 }
@@ -1016,7 +1016,7 @@ class A<T> {
 void f() {}
 ''');
 
-    assertResolvedNodeText(findNode.annotation('@A'), r'''
+    assertResolvedNodeText(result.findNode.annotation('@A'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1036,7 +1036,7 @@ Annotation
   }
 
   test_value_genericClass_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final int f;
   const A.named(this.f);
@@ -1046,7 +1046,7 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1093,7 +1093,7 @@ A<dynamic>
   }
 
   test_value_genericClass_staticGetter() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A<T> {
   static T get foo {}
 }
@@ -1102,7 +1102,7 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1126,7 +1126,7 @@ Annotation
   }
 
   test_value_genericClass_typeArguments_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -1136,7 +1136,7 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1186,7 +1186,7 @@ A<int>
   }
 
   test_value_genericClass_typeArguments_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1196,7 +1196,7 @@ A<int>
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1240,7 +1240,7 @@ A<int>
 
   test_value_genericClass_unnamedConstructor_noGenericMetadata() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -1250,7 +1250,7 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1285,7 +1285,7 @@ A<dynamic>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1299,7 +1299,7 @@ class B<T> = A<T> with M;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1341,7 +1341,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_classTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1358,7 +1358,7 @@ class D {}
 mixin E {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1400,7 +1400,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_functionTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1414,7 +1414,7 @@ class B<T> = A<T> with M;
 typedef T F<T>();
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1456,7 +1456,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_functionTypedFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1469,7 +1469,7 @@ class B<T> = A<T> with M;
 f(@B(42) g()) {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1511,7 +1511,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_genericTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1525,7 +1525,7 @@ class B<T> = A<T> with M;
 typedef F = void Function();
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1567,7 +1567,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor_methodDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1583,7 +1583,7 @@ class C {
 }
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1625,7 +1625,7 @@ B<int>
   }
 
   test_value_genericMixinApplication_typeArguments_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
  class A<T> {
   final T f;
   const A(this.f);
@@ -1639,7 +1639,7 @@ class B<T> = A<T> with M;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1704,13 +1704,13 @@ class B {
 class C {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').element as ClassElement;
+    var classC = result.findNode.namedType('C c').element as ClassElement;
     var annotation = classC.metadata.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1747,13 +1747,13 @@ import 'a.dart';
 class B {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element! as ClassElement;
+    var classB = result.findNode.namedType('B b').element! as ClassElement;
     var annotation = classB.metadata.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1780,13 +1780,13 @@ import 'a.dart';
 class B {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element as ClassElement;
+    var classB = result.findNode.namedType('B b').element as ClassElement;
     var annotation = classB.metadata.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1806,14 +1806,14 @@ A
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.A.named(42)
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1861,14 +1861,14 @@ class A {
   static const int foo = 42;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.A.foo
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1906,14 +1906,14 @@ int 42
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.A(42)
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1955,14 +1955,14 @@ A
 const foo = 42;
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.foo
 void f() {}
 ''');
 
-    var node = findNode.singleAnnotation;
+    var node = result.findNode.singleAnnotation;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
@@ -1995,14 +1995,14 @@ class A {
 
 typedef B = A;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B.foo
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@prefix.B');
+    var annotation = result.findNode.annotation('@prefix.B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2040,14 +2040,14 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B.named(42)
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@prefix.B');
+    var annotation = result.findNode.annotation('@prefix.B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2105,14 +2105,14 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B(42)
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@prefix.B');
+    var annotation = result.findNode.annotation('@prefix.B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2163,14 +2163,14 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B<int>.named(42)
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@prefix.B');
+    var annotation = result.findNode.annotation('@prefix.B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2236,14 +2236,14 @@ class A<T> {
 
 typedef B<U> = A<U>;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 @prefix.B<int>(42)
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@prefix.B');
+    var annotation = result.findNode.annotation('@prefix.B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2294,18 +2294,18 @@ A<int>
   }
 
   test_value_topLevelVariableDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 42;
 
 @foo
 void f() {}
 ''');
 
-    _assertAtFoo42();
+    _assertAtFoo42(result);
   }
 
   test_value_typeAlias_class_staticConstField() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const int foo = 42;
 }
@@ -2316,7 +2316,7 @@ typedef B = A;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2341,7 +2341,7 @@ int 42
   }
 
   test_value_typeAlias_generic_class_generic_1of2_typeArguments_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   final T t;
   final U u;
@@ -2354,7 +2354,7 @@ typedef B<T> = A<T, double>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2412,7 +2412,7 @@ A<int, double>
   }
 
   test_value_typeAlias_generic_class_generic_1of2_typeArguments_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   final T t;
   final U u;
@@ -2425,7 +2425,7 @@ typedef B<T> = A<T, double>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2476,7 +2476,7 @@ A<int, double>
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -2488,7 +2488,7 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2535,7 +2535,7 @@ A<int>
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -2547,7 +2547,7 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2582,7 +2582,7 @@ A<int>
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -2594,7 +2594,7 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2644,7 +2644,7 @@ A<int>
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -2656,7 +2656,7 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2699,7 +2699,7 @@ A<int>
   }
 
   test_value_typeAlias_notGeneric_class_generic_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -2711,7 +2711,7 @@ typedef B = A<int>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2758,7 +2758,7 @@ A<int>
   }
 
   test_value_typeAlias_notGeneric_class_generic_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -2770,7 +2770,7 @@ typedef B = A<int>;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2805,7 +2805,7 @@ A<int>
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A.named(this.f);
@@ -2817,7 +2817,7 @@ typedef B = A;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2854,7 +2854,7 @@ A
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int f;
   const A(this.f);
@@ -2866,7 +2866,7 @@ typedef B = A;
 void f() {}
 ''');
 
-    var annotation = findNode.annotation('@B');
+    var annotation = result.findNode.annotation('@B');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -2899,8 +2899,8 @@ A
     _assertElementAnnotationValueText(elementAnnotation, expected);
   }
 
-  void _assertAtFoo42() {
-    var node = findNode.annotation('@foo');
+  void _assertAtFoo42(TestResolvedUnitResult result) {
+    var node = result.findNode.annotation('@foo');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @

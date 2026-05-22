@@ -101,7 +101,7 @@ final interactiveFormClasses = <LspEntity>[
   ], comment: 'A single question in a form and its validation state.'),
 
   // Field kinds
-  interface('FormFieldType', abstract: true, [field('kind', type: 'String')]),
+  interface('FormFieldType', sealed: true, [field('kind', type: 'String')]),
   interface('FormFieldTypeString', baseType: 'FormFieldType', [
     field('kind', type: 'string', literal: true),
   ], comment: 'A text input.'),
@@ -137,7 +137,7 @@ final interactiveFormClasses = <LspEntity>[
     name: 'FileExistence',
     typeOfValues: TypeReference.int,
     flags: true,
-    members: [
+    constants: [
       // Values should be powers of 2 to allow New|Existing.
       Constant(
         name: 'New',
@@ -161,7 +161,7 @@ final interactiveFormClasses = <LspEntity>[
     name: 'FileType',
     typeOfValues: TypeReference.int,
     flags: true,
-    members: [
+    constants: [
       // Values should be powers of 2 to allow Regular|Directory.
       Constant(
         name: 'Regular',

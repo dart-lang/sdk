@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ReferencedBeforeDeclarationTest extends PubPackageResolutionTest {
   test_block_patternVariable_after() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 void f() {
   v;
@@ -29,7 +29,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -148,7 +148,7 @@ print(x) {}
   }
 
   test_hideInSwitchCase_function() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
@@ -164,7 +164,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -174,7 +174,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_function_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -191,7 +191,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -201,7 +201,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_local() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
@@ -217,7 +217,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -227,7 +227,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchCase_local_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -244,7 +244,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -254,7 +254,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_function() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
@@ -270,7 +270,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -280,7 +280,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_function_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -297,7 +297,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -307,7 +307,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_local() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = 0;
 
 void f(int a) {
@@ -323,7 +323,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -333,7 +333,7 @@ SimpleIdentifier
   }
 
   test_hideInSwitchDefault_local_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 var v = 0;
 
@@ -350,7 +350,7 @@ void f(int a) {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -384,7 +384,7 @@ main() {
   }
 
   test_labeledStatement_function() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_label
   label: void v() {}
@@ -392,7 +392,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
@@ -402,7 +402,7 @@ SimpleIdentifier
   }
 
   test_labeledStatement_local() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   // ignore:unused_label
   label: var v = 0;
@@ -410,7 +410,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('v;');
+    var node = result.findNode.simple('v;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v

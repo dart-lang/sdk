@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class VarianceResolutionTest extends PubPackageResolutionTest {
   test_inference_in_parameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class Contravariant<in T> {}
 
 class Exactly<inout T> {}
@@ -34,7 +34,7 @@ main() {
 }
     ''');
 
-    var node = findNode.methodInvocation('inferContraContra(');
+    var node = result.findNode.methodInvocation('inferContraContra(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -50,7 +50,7 @@ MethodInvocation
   }
 
   test_inference_in_parameter_downwards() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B<in T> {
   B(List<T> x);
   void set x(T val) {}
@@ -63,7 +63,7 @@ main() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B(<num>');
+    var node = result.findNode.instanceCreation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -80,7 +80,7 @@ InstanceCreationExpression
   }
 
   test_inference_inout_parameter() async {
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       '''
 class Invariant<inout T> {}
 
@@ -99,7 +99,7 @@ main() {
       ],
     );
 
-    var node = findNode.methodInvocation('inferInvInv(');
+    var node = result.findNode.methodInvocation('inferInvInv(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -115,7 +115,7 @@ MethodInvocation
   }
 
   test_inference_out_parameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class Covariant<out T> {}
 
 class Exactly<inout T> {}
@@ -130,7 +130,7 @@ main() {
 }
 ''');
 
-    var node = findNode.methodInvocation('inferCovCov(');
+    var node = result.findNode.methodInvocation('inferCovCov(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 MethodInvocation

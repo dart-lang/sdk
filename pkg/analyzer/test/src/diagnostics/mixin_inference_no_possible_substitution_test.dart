@@ -18,7 +18,7 @@ main() {
 class MixinInferenceNoPossibleSubstitutionTest
     extends PubPackageResolutionTest {
   test_valid_single() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 mixin M<T> on A<T> {}
@@ -26,6 +26,6 @@ mixin M<T> on A<T> {}
 class X extends A<int> with M {}
 ''');
 
-    assertType(findNode.namedType('M {}'), 'M<int>');
+    assertType(result.findNode.namedType('M {}'), 'M<int>');
   }
 }
