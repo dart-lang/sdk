@@ -295,6 +295,9 @@ bool _isJSTypedArray(Object? any) {
 bool _isNullableJSTypedArray(Object? any) =>
     any == null || _isJSTypedArray(any);
 
+@patch
+Never _throwLikeJS(JSAny error) => js_helper.JS<Never>('(e) => throw e', error);
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch

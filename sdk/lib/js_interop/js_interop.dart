@@ -560,6 +560,190 @@ class NullRejectionException implements Exception {
   }
 }
 
+// TODO(srujzs): Move this a member of `JSError` once we can patch extension
+// type members.
+external Never _throwLikeJS(JSAny error);
+
+/// The JavaScript `Error` type.
+@JS('Error')
+extension type JSError._(JSObject _) implements JSObject {
+  /// See [`Error.captureStackTrace()`].
+  ///
+  /// [`Error.captureStackTrace()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/captureStackTrace
+  external static void captureStackTrace(
+    JSError error, [
+    JSFunction constructor,
+  ]);
+
+  /// See [`Error.isError()`].
+  ///
+  /// Because `isError` isn't universally supported yet, this is polyfilled on
+  /// platforms that don't yet support it to do an instanceof check on the
+  /// `Error` class.
+  ///
+  /// [`Error.isError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
+  static bool isError(JSAny? value) =>
+      _isErrorOrNull == null ? value.isA<JSError>() : _isError(value);
+
+  /// If [value] is a [JSError] according to [isError], returns it.
+  ///
+  /// Otherwise, returns null.
+  static Error? asError(JSAny? value) =>
+      isError(value) ? value as JSError : null;
+
+  @JS('isError')
+  external static bool _isError(JSAny? value);
+
+  @JS('isError')
+  external static JSFunction? _isErrorOrNull;
+
+  /// Throws [error] in the same manner as JS, without any of Dart's additional
+  /// exception wrapping.
+  ///
+  /// This is useful when the error is expected to be caught by or displayed to
+  /// JS users rather than Dart code. Dart's additional wrappers and properties
+  /// can obscure JS error information in those contexts.
+  static Never throwLikeJS(JSAny error) => _throwLikeJS(error);
+
+  /// See [`new Error()`].
+  ///
+  /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
+  factory JSError(String message, {JSAny? cause}) => cause == null
+      ? new JSError.__(message)
+      : new JSError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSError.__(String message, [_NewErrorOptions options]);
+
+  /// See [`Error.cause`].
+  ///
+  /// [`Error.cause`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+  external JSAny? cause;
+
+  /// See [`Error.message`].
+  ///
+  /// [`Error.message`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message
+  external String message;
+
+  /// See [`Error.name`].
+  ///
+  /// [`Error.name`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
+  external String name;
+
+  /// See [`Error.stack`].
+  ///
+  /// [`Error.stack`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/stack
+  external String stack;
+}
+
+extension type _NewErrorOptions._(JSObject _) implements JSObject {
+  external _NewErrorOptions({JSAny? cause});
+
+  external JSAny? cause;
+}
+
+/// The JavaScript `EvalError` type.
+@JS('EvalError')
+extension type JSEvalError._(JSError _) implements JSError {
+  /// See [`new EvalError()`].
+  ///
+  /// [`new EvalError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError/EvalError
+  factory JSEvalError(String message, {JSAny? cause}) => cause == null
+      ? new JSEvalError.__(message)
+      : new JSEvalError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSEvalError.__(String message, [_NewErrorOptions options]);
+}
+
+/// The JavaScript `RangeError` type.
+@JS('RangeError')
+extension type JSRangeError._(JSError _) implements JSError {
+  /// See [`new RangeError()`].
+  ///
+  /// [`new RangeError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError/RangeError
+  factory JSRangeError(String message, {JSAny? cause}) => cause == null
+      ? new JSRangeError.__(message)
+      : new JSRangeError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSRangeError.__(String message, [_NewErrorOptions options]);
+}
+
+/// The JavaScript `ReferenceError` type.
+@JS('ReferenceError')
+extension type JSReferenceError._(JSError _) implements JSError {
+  /// See [`new ReferenceError()`].
+  ///
+  /// [`new ReferenceError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError/ReferenceError
+  factory JSReferenceError(String message, {JSAny? cause}) => cause == null
+      ? new JSReferenceError.__(message)
+      : new JSReferenceError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSReferenceError.__(String message, [_NewErrorOptions options]);
+}
+
+/// The JavaScript `SyntaxError` type.
+@JS('SyntaxError')
+extension type JSSyntaxError._(JSError _) implements JSError {
+  /// See [`new SyntaxError()`].
+  ///
+  /// [`new SyntaxError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError/SyntaxError
+  factory JSSyntaxError(String message, {JSAny? cause}) => cause == null
+      ? new JSSyntaxError.__(message)
+      : new JSSyntaxError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSSyntaxError.__(String message, [_NewErrorOptions options]);
+}
+
+/// The JavaScript `TypeError` type.
+@JS('TypeError')
+extension type JSTypeError._(JSError _) implements JSError {
+  /// See [`new TypeError()`].
+  ///
+  /// [`new TypeError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError/TypeError
+  factory JSTypeError(String message, {JSAny? cause}) => cause == null
+      ? new JSTypeError.__(message)
+      : new JSTypeError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSTypeError.__(String message, [_NewErrorOptions options]);
+}
+
+/// The JavaScript `URIError` type.
+@JS('URIError')
+extension type JSURIError._(JSError _) implements JSError {
+  /// See [`new URIError()`].
+  ///
+  /// [`new URIError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError/URIError
+  factory JSURIError(String message, {JSAny? cause}) => cause == null
+      ? new JSURIError.__(message)
+      : new JSURIError.__(message, _NewErrorOptions(cause: cause));
+
+  external JSURIError.__(String message, [_NewErrorOptions options]);
+}
+
+/// The JavaScript `AggregateError` type.
+@JS('AggregateError')
+extension type JSAggregateError._(JSError _) implements JSError {
+  /// See [`new AggregateError()`].
+  ///
+  /// [`new AggregateError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError/AggregateError
+  factory JSAggregateError(JSArray<JSAny> errors, {String? message}) =>
+      JSAggregateError.fromIterable(errors.toJSIterable, message: message);
+
+  /// See [`new AggregateError()`].
+  ///
+  /// [`new AggregateError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError/AggregateError
+  factory JSAggregateError.fromIterable(
+    JSIterableProtocol<JSAny> errors, {
+    String? message,
+  }) => message == null
+      ? new JSAggregateError.__(errors)
+      : new JSAggregateError.__(errors, message);
+
+  external JSAggregateError.__(
+    JSIterableProtocol<JSAny> errors, [
+    String message,
+  ]);
+}
+
 /// A Dart object that is wrapped with a JavaScript object so that it can be
 /// passed to JavaScript safely.
 ///
@@ -638,7 +822,8 @@ extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
   JSUint8ClampedArrayType _jsUint8ClampedArray
-) implements JSTypedArray, JSUint8ClampedArrayType {
+)
+    implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
   ///
@@ -2044,6 +2229,61 @@ extension JSStringToString on JSString {
 extension StringToJSString on String {
   /// Converts this [String] to a [JSString].
   external JSString get toJS;
+}
+
+/// Conversions from {JSError] to [Error].
+extension JSErrorToError on JSError {
+  /// Returns a Dart [Error] wrapping this error object.
+  ///
+  /// This should only be used for [JSError]s that the user isn't expected to
+  /// catch (that is, those that represent programming errors). Other exceptions
+  /// should be rethrown as dedicated Dart types that extend [Exception] so the
+  /// user can catch them based on type.
+  WrappedJSError get toDart => new WrappedJSError(this);
+
+  /// Throws the result of [toDart] with a Dart stack trace that matches the JS
+  /// stack trace.
+  Never throwLikeDart() {
+    var error = toDart;
+    Error.throwWithStackTrace(error, error.stackTrace);
+  }
+}
+
+/// An error object that wraps a [JSError] and exposes the Dart [Error]
+/// interface.
+final class WrappedJSError implements Error {
+  /// The wrapped error.
+  final JSError jsError;
+
+  @override
+  StackTrace get stackTrace => StackTrace.fromString(jsError.stack);
+
+  _WrappedJSError(this.jsError);
+
+  String toString() => jsError.message;
+}
+
+/// Conversion from [Error] to [JSError].
+extension ErrorToJSError on Error {
+  /// Converts [this] to a [JSError] by cloning it.
+  ///
+  /// For native Dart exceptions, this attaches this exception object as the
+  /// [JSError.cause], translated to JS using
+  /// [ObjectToJSBoxedDartObject.toJSBox]. For exceptions that came from JS
+  /// using [JSError.toDart], this returns the original [JSError].
+  JSError get toJS => switch (this) {
+    WrappedJSError error => error.jsError,
+    _ => JSError(this.toString(), cause: this.toJSBox),
+  };
+}
+
+/// Conversion from [Exception] to [JSError].
+extension ExceptionToJSError on Exception {
+  /// Converts [this] to a [JSError] by cloning it.
+  ///
+  /// This attaches this exception object as the [JSError.cause], translated to
+  /// JS using [ObjectToJSBoxedDartObject.toJSBox].
+  JSError get toJS => JSError(this.toString(), cause: this.toJSBox);
 }
 
 /// General-purpose JavaScript operators.

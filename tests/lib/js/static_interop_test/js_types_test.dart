@@ -165,6 +165,9 @@ external JSAny? definedNonNullAny;
 @JS()
 external JSIterator<JSAny> getGenerator();
 
+@JS()
+external JSAny? catchAndReturn(JSFunction f);
+
 class DartObject {
   String get foo => 'bar';
 }
@@ -184,6 +187,14 @@ void syncTests() {
     globalThis.nullAny = null;
     globalThis.undefinedAny = undefined;
     globalThis.definedNonNullAny = {};
+
+    globalThis.catchAndReturn = function(f) {
+      try {
+        f();
+      } catch (error) {
+        return error;
+      }
+    }
   ''');
 
   // [JSObject]
@@ -673,6 +684,47 @@ void syncTests() {
   Expect.isFalse(definedNonNullAny.isUndefinedOrNull);
   Expect.isTrue(definedNonNullAny.isDefinedAndNotNull);
   Expect.isTrue(definedNonNullAny.typeofEquals('object'));
+
+  Expect.equals('foo', JSError('foo').message);
+  Expect.equals('Error', JSError('foo').name);
+  final defaultCause = JSError('foo').cause;
+  Expect.isTrue(
+    isJSBackend ? defaultCause.isUndefined : defaultCause.isUndefinedOrNull,
+  );
+  Expect.equals('bar'.toJS, JSError('foo', cause: 'bar'.toJS).cause);
+  Expect.isTrue(JSError.isError(JSError('foo')));
+  Expect.isFalse(JSError.isError('foo'));
+  Expect.isFalse(JSError.isError(JSObject()));
+
+  final errorWithStack = JSError('foo');
+  JSError.captureStackTrace(errorWithStack);
+  Expect.notEquals('', errorWithStack.stack);
+
+  Expect.equals(
+    'foo'.toJS,
+    catchAndReturn((() => JSError.throwLikeJS('foo'.toJS)).toJS),
+  );
+  final caughtError = JSError.asError(
+    catchAndReturn((() => JSError.throwLikeJS(JSError('foo'))).toJS),
+  );
+  Expect.equals('foo', caughtError?.message);
+
+  Expect.isTrue(JSError('foo').toDart is Error);
+  Expect.equals('foo', JSError('foo').toDart.toString());
+  Expect.equals(
+    erroWithStack.stack,
+    errorWithStack.toDart.stackTrace.toString(),
+  );
+  {
+    try {
+      errorWithStack.throwLikeDart();
+    } catch (error, stack) {
+      Expect.equals(errorWithStack.stack, stack.toString());
+    }
+  }
+
+  Expect.equals('Invalid argument(s): foo', ArgumentError('foo').toJS.message);
+  Expect.equals('foo', Exception('foo').toJS.message);
 }
 
 @JS()
