@@ -17,6 +17,136 @@ class ConstructorDeclarationTest extends AbstractCompletionDriverTest
     with ConstructorDeclarationTestCases {}
 
 mixin ConstructorDeclarationTestCases on AbstractCompletionDriverTest {
+  Future<void> test_beforeFactory() async {
+    await computeSuggestions('''
+class C {
+  ^factory ();
+}
+''');
+    assertResponse(r'''
+replacement
+  right: 7
+suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => [!super.hashCode!];
+    kind: override
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => [!super.runtimeType!];
+    kind: override
+  @override
+  String toString() {
+    // TODO: implement toString
+    [!return super.toString();!]
+  }
+    kind: override
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    [!return super == other;!]
+  }
+    kind: override
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    [!return super.noSuchMethod(invocation);!]
+  }
+    kind: override
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
+  const
+    kind: keyword
+  set
+    kind: keyword
+  factory
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  new
+    kind: keyword
+  operator
+    kind: keyword
+  var
+    kind: keyword
+''');
+  }
+
+  Future<void> test_beforeNew() async {
+    await computeSuggestions('''
+class C {
+  ^new ();
+}
+''');
+    assertResponse(r'''
+replacement
+  right: 3
+suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => [!super.hashCode!];
+    kind: override
+  @override
+  // TODO: implement runtimeType
+  Type get runtimeType => [!super.runtimeType!];
+    kind: override
+  @override
+  String toString() {
+    // TODO: implement toString
+    [!return super.toString();!]
+  }
+    kind: override
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    [!return super == other;!]
+  }
+    kind: override
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    [!return super.noSuchMethod(invocation);!]
+  }
+    kind: override
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
+  const
+    kind: keyword
+  set
+    kind: keyword
+  factory
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  new
+    kind: keyword
+  operator
+    kind: keyword
+  var
+    kind: keyword
+''');
+  }
+
   Future<void> test_factory_noInstanceValues() async {
     await computeSuggestions('''
 class A {
