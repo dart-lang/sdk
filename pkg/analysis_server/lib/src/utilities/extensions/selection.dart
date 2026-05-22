@@ -64,7 +64,7 @@ extension SelectionExtension on Selection {
     } else if (node is NamedType) {
       var parent = node.parent;
       if (parent is ConstructorName) {
-        if (!meetsRequirements(node.name)) return null;
+        if (!meetsRequirements(parent.name)) return null;
         return parent.element;
       }
     } else if (node is ConstructorName) {

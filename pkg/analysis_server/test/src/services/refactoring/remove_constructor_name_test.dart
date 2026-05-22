@@ -21,6 +21,58 @@ void main() {
 
 @reflectiveTest
 class RemoveConstructorNameInClassTest extends _RemoveConstructorNameTest {
+  Future<void> test_notAvailable_primary_unnamed_declaration() async {
+    var originalSource = '''
+class C^();
+''';
+
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
+  }
+
+  Future<void> test_notAvailable_primary_unnamed_invocation() async {
+    var originalSource = '''
+class C();
+
+var x = C^();
+''';
+
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
+  }
+
+  Future<void> test_notAvailable_secondary_unnamed_declaration() async {
+    var originalSource = '''
+class C {
+  C^();
+}
+''';
+
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
+  }
+
+  Future<void> test_notAvailable_secondary_unnamed_invocation() async {
+    var originalSource = '''
+class C {
+  C();
+}
+
+var x = C^();
+''';
+
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
+  }
+
   Future<void> test_primary_hasConflict() async {
     var originalSource = '''
 class C.na^me() {
