@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
+import 'package:dartdev/src/commands/compile.dart' as compile;
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
@@ -29,6 +30,7 @@ class DartNativeAssetsBuilder {
   final bool verbose;
   final bool dataAssetsExperimentEnabled;
   final bool progressUpdatesOnStderr;
+  final compile.Sanitizer? sanitizer;
 
   static const _fileSystem = LocalFileSystem();
 
@@ -81,6 +83,7 @@ class DartNativeAssetsBuilder {
     required this.verbose,
     required this.dataAssetsExperimentEnabled,
     this.progressUpdatesOnStderr = false,
+    this.sanitizer,
     Target? target,
   }) : target = target ?? Target.current;
 
@@ -160,6 +163,12 @@ class DartNativeAssetsBuilder {
       targetArchitecture: target.architecture,
       macOS: _macOSConfig,
       cCompiler: _cCompilerConfig,
+      sanitizer: switch (sanitizer) {
+        null || compile.Sanitizer.none => null,
+        compile.Sanitizer.asan => Sanitizer.asan,
+        compile.Sanitizer.msan => Sanitizer.msan,
+        compile.Sanitizer.tsan => Sanitizer.tsan,
+      },
     ),
     if (dataAssetsExperimentEnabled) DataAssetsExtension(),
   ];
