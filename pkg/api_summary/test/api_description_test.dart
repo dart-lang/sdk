@@ -36,6 +36,28 @@ class Foo {}
     super.setUp();
   }
 
+  Future<void> test_class_mixins() async {
+    var summary = await _build({
+      '$testPackageLibPath/file.dart': '''
+mixin M1 {}
+mixin M2 {}
+class C1 extends Object with M1 {}
+class C2 extends Object with M2 implements M1 {}
+''',
+    });
+    expect(summary, '''
+package:test/file.dart:
+  C1 (class extends Object with M1):
+    new (constructor: C1 Function())
+  C2 (class extends Object with M2 implements M1):
+    new (constructor: C2 Function())
+  M1 (mixin on Object)
+  M2 (mixin on Object)
+dart:core:
+  Object (referenced)
+''');
+  }
+
   Future<void> test_class_modifiers() async {
     var summary = await _build({
       '$testPackageLibPath/file.dart': '''

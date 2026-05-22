@@ -1663,6 +1663,8 @@ package:analyzer_plugin/src/utilities/client_uri_converter.dart:
   ClientUriConverter (non-public)
 package:analyzer_plugin/src/utilities/completion/completion_target.dart:
   CompletionTarget (non-public)
+package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart:
+  ElementSuggestionBuilder (non-public)
 package:analyzer_plugin/src/utilities/completion/optype.dart:
   OpType (non-public)
 package:analyzer_plugin/starter.dart:
@@ -1850,7 +1852,7 @@ package:analyzer_plugin/utilities/completion/completion_core.dart:
     new (constructor: DartCompletionRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/completion/inherited_reference_contributor.dart:
-  InheritedReferenceContributor (class extends Object implements CompletionContributor):
+  InheritedReferenceContributor (class extends Object with ElementSuggestionBuilder implements CompletionContributor):
     new (constructor: InheritedReferenceContributor Function())
     containingLibrary (getter: LibraryElement?)
     containingLibrary= (setter: LibraryElement?)
