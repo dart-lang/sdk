@@ -298,7 +298,6 @@ wasm_standalone:
       - _internal/vm_shared/lib/check_valid_weak_target_patch.dart
     _wasm:
       uri: _wasm/wasm_types.dart
-      patches: _internal/wasm_standalone/lib/wasm_types_patch.dart
     math:
       uri: math/math.dart
       patches:
@@ -309,6 +308,10 @@ wasm_standalone:
       # currently added as a stub because APIs in dart:_wasm reference it.
       uri: _internal/wasm_standalone/lib/js_interop.dart
       support_conditional_import: false
+    _js_interop_wasm:
+      uri: _js_interop_wasm/js_interop_wasm.dart
+      patches:
+        - _internal/wasm_standalone/lib/js_interop_wasm_patch.dart
 
 wasm_js_common:
   include:
@@ -329,7 +332,6 @@ wasm_js_common:
       - _internal/vm_shared/lib/check_valid_weak_target_patch.dart
     _wasm:
       uri: _wasm/wasm_types.dart
-      patches: _internal/wasm/lib/wasm_types_patch.dart
     async:
       uri: async/async.dart
       patches:
@@ -354,6 +356,10 @@ wasm_js_common:
     js_interop_unsafe:
       uri: js_interop_unsafe/js_interop_unsafe.dart
       patches: _internal/wasm/lib/js_interop_unsafe_patch.dart
+    _js_interop_wasm:
+      uri: _js_interop_wasm/js_interop_wasm.dart
+      patches:
+        - _internal/wasm/lib/js_interop_wasm_patch.dart
 
 wasm_common:
   libraries:

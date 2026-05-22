@@ -209,7 +209,8 @@ class WasmTarget extends Target {
       return true;
     }
 
-    if (imported.toString() == 'dart:_wasm') {
+    if (imported.toString() == 'dart:_wasm' ||
+        imported.toString() == 'dart:_js_interop_wasm') {
       return enableExperimentalWasmInterop;
     }
 
