@@ -180,21 +180,15 @@ const String EXPECTATIONS = '''
 
 final Expectation ClassHierarchyError =
     staticExpectationSet["ClassHierarchyError"];
-
 final Expectation ConstantCoverageReferenceWithoutNode =
     staticExpectationSet["ConstantCoverageReferenceWithoutNode"];
-
 final Expectation ContentDataMismatch =
     staticExpectationSet["ContentDataMismatch"];
-
 final Expectation EquivalenceError = staticExpectationSet["EquivalenceError"];
-
 final Expectation ExpectationFileMismatch =
     staticExpectationSet["ExpectationFileMismatch"];
-
 final Expectation ExpectationFileMissing =
     staticExpectationSet["ExpectationFileMissing"];
-
 final Expectation IncrementalSerializationError =
     staticExpectationSet["IncrementalSerializationError"];
 final Expectation InitializedFromDillMismatch =
@@ -211,9 +205,11 @@ final Expectation NeededDillMismatch =
     staticExpectationSet["NeededDillMismatch"];
 final Expectation ReachableLibrariesError =
     staticExpectationSet["ReachableLibrariesError"];
+
 final ExpectationSet staticExpectationSet = new ExpectationSet.fromJsonList(
   jsonDecode(EXPECTATIONS),
 );
+
 final Expectation UnexpectedAdvancedInvalidation =
     staticExpectationSet["UnexpectedAdvancedInvalidation"];
 final Expectation UnexpectedEntryToLibraryCount =
@@ -226,6 +222,7 @@ final Expectation UnexpectedPlatformLibraries =
 final Expectation UnexpectedWarnings =
     staticExpectationSet["UnexpectedWarnings"];
 final Expectation UriToSourceError = staticExpectationSet["UriToSourceError"];
+
 Future<Null> basicTest(
   Map<String, String> sourceFiles,
   String entryPoint,
@@ -297,496 +294,6 @@ Future<Null> basicTest(
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-Map<String, Set<String>> buildMapOfContent(Component component) {
-  Map<String, Set<String>> actualContent = new Map<String, Set<String>>();
-  for (Library lib in component.libraries) {
-    Set<String> libContent = actualContent[lib.importUri.toString()] =
-        new Set<String>();
-    for (Class c in lib.classes) {
-      libContent.add("Class ${c.name}");
-    }
-    for (Procedure p in lib.procedures) {
-      libContent.add("Procedure ${p.name.text}");
-    }
-    for (Field f in lib.fields) {
-      libContent.add("Field ${f.name.text}");
-    }
-  }
-  return actualContent;
-}
-
-/// Check that the class hierarchy is up-to-date with reality.
-///
-/// This has the option to do expect files, but it's disabled by default
-/// while we're trying to figure out if it's useful or not.
-Result<TestData>? checkClassHierarchy(
-  IncrementalCompilerResult compilerResult,
-  TestData data,
-  int worldNum,
-  Context context, {
-  bool checkExpectFile = false,
-}) {
-  ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
-  if (classHierarchy is! ClosedWorldClassHierarchy) {
-    return new Result<TestData>(
-      data,
-      ClassHierarchyError,
-      "Expected the class hierarchy to be ClosedWorldClassHierarchy "
-      "but it wasn't. It was ${classHierarchy.runtimeType}",
-    );
-  }
-  List<ForTestingClassInfo> classHierarchyData = classHierarchy
-      .getTestingClassInfo();
-  Map<Class, ForTestingClassInfo> classHierarchyMap =
-      new Map<Class, ForTestingClassInfo>();
-  for (ForTestingClassInfo info in classHierarchyData) {
-    if (classHierarchyMap[info.classNode] != null) {
-      return new Result<TestData>(
-        data,
-        ClassHierarchyError,
-        "Two entries for ${info.classNode}",
-      );
-    }
-    classHierarchyMap[info.classNode] = info;
-  }
-
-  Component component = compilerResult.component;
-  StringBuffer sb = new StringBuffer();
-  for (Library library in component.libraries) {
-    if (library.importUri.isScheme("dart")) continue;
-    sb.writeln("Library ${library.importUri}");
-    for (Class c in library.classes) {
-      sb.writeln("  - Class ${c.name}");
-
-      Set<Class> checkedSupertypes = <Class>{};
-      Result<TestData>? checkSupertype(Supertype? supertype) {
-        if (supertype == null) return null;
-        Class superclass = supertype.classNode;
-        if (checkedSupertypes.add(superclass)) {
-          Supertype? asSuperClass = classHierarchy.getClassAsInstanceOf(
-            c,
-            superclass,
-          );
-          if (asSuperClass == null) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "${superclass} not found as a superclass of $c",
-            );
-          }
-          Result<TestData>? result = checkSupertype(superclass.supertype);
-          if (result != null) return result;
-          result = checkSupertype(superclass.mixedInType);
-          if (result != null) return result;
-          for (Supertype interface in superclass.implementedTypes) {
-            result = checkSupertype(interface);
-            if (result != null) return result;
-          }
-        }
-        return null;
-      }
-
-      Result<TestData>? result = checkSupertype(c.asThisSupertype);
-      if (result != null) return result;
-
-      ForTestingClassInfo? info = classHierarchyMap[c];
-      if (info == null) {
-        return new Result<TestData>(
-          data,
-          ClassHierarchyError,
-          "Didn't find any class hierarchy info for $c",
-        );
-      }
-
-      if (info.lazyDeclaredGettersAndCalls != null) {
-        sb.writeln("    - lazyDeclaredGettersAndCalls:");
-        for (Member member in info.lazyDeclaredGettersAndCalls!) {
-          sb.writeln("      - ${member.name.text}");
-        }
-
-        // Expect these to be the same as in the class.
-        Set<Member> members = info.lazyDeclaredGettersAndCalls!.toSet();
-        for (Field f in c.fields) {
-          if (f.isStatic) continue;
-          if (!members.remove(f)) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
-              "for ${c.name} in ${library.importUri}",
-            );
-          }
-        }
-        for (Procedure p in c.procedures) {
-          if (p.isStatic) continue;
-          if (p.isSetter) continue;
-          if (!members.remove(p)) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
-              "for ${c.name} in ${library.importUri}",
-            );
-          }
-        }
-        if (members.isNotEmpty) {
-          return new Result<TestData>(
-            data,
-            ClassHierarchyError,
-            "Still have ${members.map((m) => m.name.text)} left "
-            "for ${c.name} in ${library.importUri}",
-          );
-        }
-      }
-      if (info.lazyDeclaredSetters != null) {
-        sb.writeln("    - lazyDeclaredSetters:");
-        for (Member member in info.lazyDeclaredSetters!) {
-          sb.writeln("      - ${member.name.text}");
-        }
-
-        // Expect these to be the same as in the class.
-        Set<Member> members = info.lazyDeclaredSetters!.toSet();
-        for (Field f in c.fields) {
-          if (f.isStatic) continue;
-          if (!f.hasSetter) continue;
-          if (!members.remove(f)) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "Didn't find $f in lazyDeclaredSetters for $c",
-            );
-          }
-        }
-        for (Procedure p in c.procedures) {
-          if (p.isStatic) continue;
-          if (!p.isSetter) continue;
-          if (!members.remove(p)) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "Didn't find $p in lazyDeclaredSetters for $c",
-            );
-          }
-        }
-        if (members.isNotEmpty) {
-          return new Result<TestData>(
-            data,
-            ClassHierarchyError,
-            "Still have ${members.map((m) => m.name.text)} left "
-            "for ${c.name} in ${library.importUri}",
-          );
-        }
-      }
-      if (info.lazyImplementedGettersAndCalls != null) {
-        sb.writeln("    - lazyImplementedGettersAndCalls:");
-        for (Member member in info.lazyImplementedGettersAndCalls!) {
-          sb.writeln("      - ${member.name.text}");
-        }
-      }
-      if (info.lazyImplementedSetters != null) {
-        sb.writeln("    - lazyImplementedSetters:");
-        for (Member member in info.lazyImplementedSetters!) {
-          sb.writeln("      - ${member.name.text}");
-        }
-      }
-      if (info.lazyInterfaceGettersAndCalls != null) {
-        sb.writeln("    - lazyInterfaceGettersAndCalls:");
-        for (Member member in info.lazyInterfaceGettersAndCalls!) {
-          sb.writeln("      - ${member.name.text}");
-        }
-      }
-      if (info.lazyInterfaceSetters != null) {
-        sb.writeln("    - lazyInterfaceSetters:");
-        for (Member member in info.lazyInterfaceSetters!) {
-          sb.writeln("      - ${member.name.text}");
-        }
-      }
-    }
-  }
-  if (checkExpectFile) {
-    String actualClassHierarchy = sb.toString();
-    Uri uri = data.loadedFrom.resolve(
-      data.loadedFrom.pathSegments.last +
-          ".world.$worldNum.class_hierarchy.expect",
-    );
-    String? expected;
-    File file = new File.fromUri(uri);
-    if (file.existsSync()) {
-      expected = file.readAsStringSync();
-    }
-    if (expected != actualClassHierarchy) {
-      if (context.updateExpectations) {
-        file.writeAsStringSync(actualClassHierarchy);
-      } else {
-        String extra = "";
-        if (expected == null) extra = "Expect file did not exist.\n";
-        return new Result<TestData>(
-          data,
-          ClassHierarchyError,
-          "${extra}Unexpected serialized representation. "
-          "Fix or update $uri to contain the below:\n\n"
-          "$actualClassHierarchy",
-        );
-      }
-    }
-  }
-  return null;
-}
-
-Result<TestData>? checkConstantCoverageReferences(
-  Uint8List newestWholeComponentData,
-  bool omitPlatform,
-  Uint8List sdkSummaryData,
-  TestData data,
-) {
-  // Note that this is in a method to avoid "semi-leaks".
-  Component loadedComponent = new Component();
-  if (omitPlatform) {
-    new BinaryBuilder(
-      sdkSummaryData,
-      filename: null,
-    ).readComponent(loadedComponent);
-  }
-  new BinaryBuilder(
-    newestWholeComponentData,
-    filename: null,
-  ).readComponent(loadedComponent);
-
-  for (MapEntry<Uri, Source> source in loadedComponent.uriToSource.entries) {
-    Set<Reference>? references = source.value.constantCoverageConstructors;
-    if (references != null) {
-      for (Reference reference in references) {
-        if (reference.node == null) {
-          return new Result<TestData>(
-            data,
-            ConstantCoverageReferenceWithoutNode,
-            "Constant coverage reference without node: "
-            "${reference.canonicalName} from ${source.value.importUri} "
-            "indexed in ${source.key}",
-          );
-        }
-      }
-    }
-  }
-  return null;
-}
-
-void checkErrorsAndWarnings(
-  Set<String> prevFormattedErrors,
-  Set<String> formattedErrors,
-  Set<String> prevFormattedWarnings,
-  Set<String> formattedWarnings,
-) {
-  if (prevFormattedErrors.length != formattedErrors.length) {
-    Expect.fail(
-      "Previously had ${prevFormattedErrors.length} errors, "
-      "now had ${formattedErrors.length}.\n\n"
-      "Before:\n"
-      "${prevFormattedErrors.join("\n")}"
-      "\n\n"
-      "Now:\n"
-      "${formattedErrors.join("\n")}",
-    );
-  }
-  if ((prevFormattedErrors.toSet()..removeAll(formattedErrors)).isNotEmpty) {
-    Expect.fail(
-      "Previously got error messages $prevFormattedErrors, "
-      "now had ${formattedErrors}.",
-    );
-  }
-  if (prevFormattedWarnings.length != formattedWarnings.length) {
-    Expect.fail(
-      "Previously had ${prevFormattedWarnings.length} errors, "
-      "now had ${formattedWarnings.length}.",
-    );
-  }
-  if ((prevFormattedWarnings.toSet()..removeAll(formattedWarnings))
-      .isNotEmpty) {
-    Expect.fail(
-      "Previously got error messages $prevFormattedWarnings, "
-      "now had ${formattedWarnings}.",
-    );
-  }
-}
-
-Result? checkExpectedContent(World world, Component component) {
-  if (world.expectedContent != null) {
-    Map<String, Set<String>> actualContent = buildMapOfContent(component);
-    return checkExpectedContentData(actualContent, world.expectedContent!);
-  }
-  return null;
-}
-
-Result? checkExpectedContentData(
-  Map<String, Set<String>> actualContent,
-  Map<String, Iterable<String>> expectedContent,
-) {
-  Result<TestData> createFailureResult() {
-    return new Result(
-      null,
-      ContentDataMismatch,
-      "Expected and actual content not the same.\n"
-      "Expected $expectedContent.\n"
-      "Got $actualContent",
-    );
-  }
-
-  if (actualContent.length != expectedContent.length) {
-    return createFailureResult();
-  }
-  Set<String> missingKeys = actualContent.keys.toSet()
-    ..removeAll(expectedContent.keys);
-  if (missingKeys.isNotEmpty) {
-    return createFailureResult();
-  }
-  for (MapEntry<String, Iterable<String>> entry in expectedContent.entries) {
-    Set<String> expected = new Set<String>.from(entry.value);
-    Set<String> actual = actualContent[entry.key]!.toSet();
-    if (expected.length != actual.length) {
-      return createFailureResult();
-    }
-    actual.removeAll(expected);
-    if (actual.isNotEmpty) {
-      return createFailureResult();
-    }
-  }
-  return null;
-}
-
-Result<TestData>? checkExpectFile(
-  TestData data,
-  int worldNum,
-  String extraUriString,
-  Context context,
-  String actualSerialized,
-) {
-  Uri uri = data.loadedFrom.resolve(
-    data.loadedFrom.pathSegments.last +
-        ".world.$worldNum${extraUriString}.expect",
-  );
-  String? expected;
-  File file = new File.fromUri(uri);
-  if (file.existsSync()) {
-    expected = file.readAsStringSync();
-  }
-  if (expected?.replaceAll("\r\n", "\n") != actualSerialized) {
-    if (context.updateExpectations) {
-      file.writeAsStringSync(actualSerialized);
-    } else {
-      String extra = "";
-      if (expected == null) extra = "Expect file did not exist.\n";
-      return new Result<TestData>(
-        data,
-        expected == null ? ExpectationFileMissing : ExpectationFileMismatch,
-        "${extra}Unexpected serialized representation. "
-        "Fix or update $uri to contain the below:\n\n"
-        "$actualSerialized",
-        autoFixCommand: "updateExpectations=true",
-        canBeFixWithUpdateExpectations: true,
-      );
-    }
-  }
-  return null;
-}
-
-Result<Uint8List?> checkIncrementalSerialization(
-  bool? incrementalSerialization,
-  Component component,
-  IncrementalSerializer? incrementalSerializer,
-  World world,
-) {
-  if (incrementalSerialization == true) {
-    Component c = new Component(nameRoot: component.root)
-      ..setMainMethodAndMode(null, false);
-    c.libraries.addAll(component.libraries);
-    c.uriToSource.addAll(component.uriToSource);
-    Map<String, Set<String>> originalContent = buildMapOfContent(c);
-    ByteSink sink = new ByteSink();
-    int librariesBefore = c.libraries.length;
-    incrementalSerializer!.writePackagesToSinkAndTrimComponent(c, sink);
-    int librariesAfter = c.libraries.length;
-    if (librariesAfter > librariesBefore) {
-      return new Result<Uint8List>(
-        null,
-        IncrementalSerializationError,
-        "Incremental serialization added libraries!",
-      );
-    }
-    if (librariesBefore == librariesAfter &&
-        world.incrementalSerializationDoesWork) {
-      return new Result<Uint8List>(
-        null,
-        IncrementalSerializationError,
-        "Incremental serialization didn't remove any libraries!",
-      );
-    }
-    if (librariesAfter < librariesBefore && sink.builder.isEmpty) {
-      return new Result<Uint8List>(
-        null,
-        IncrementalSerializationError,
-        "Incremental serialization didn't output any bytes, "
-        "but did remove libraries",
-      );
-    } else if (librariesAfter == librariesBefore && !sink.builder.isEmpty) {
-      return new Result<Uint8List>(
-        null,
-        IncrementalSerializationError,
-        "Incremental serialization did output bytes, "
-        "but didn't remove libraries",
-      );
-    }
-    if (librariesAfter < librariesBefore) {
-      // If we actually did incrementally serialize anything, check the output!
-      BinaryPrinter printer = new BinaryPrinter(sink);
-      printer.writeComponentFile(c);
-      Uint8List bytes = sink.builder.takeBytes();
-
-      // Load the bytes back in.
-      Component loadedComponent = new Component();
-      new BinaryBuilder(bytes, filename: null).readComponent(loadedComponent);
-
-      // Check that it doesn't contain anything we said it shouldn't.
-      if (world.serializationShouldNotInclude != null) {
-        Set<Uri> includedImportUris = loadedComponent.libraries
-            .map((l) => l.importUri)
-            .toSet();
-        for (String uriString in world.serializationShouldNotInclude!) {
-          Uri uri = Uri.parse(uriString);
-          if (includedImportUris.contains(uri)) {
-            return new Result<Uint8List>(
-              null,
-              IncrementalSerializationError,
-              "Incremental serialization shouldn't include "
-              "$uriString but did.",
-            );
-          }
-        }
-      }
-
-      // Check that it contains at least what we want.
-      Map<String, Set<String>> afterContent = buildMapOfContent(
-        loadedComponent,
-      );
-      // Remove any keys in afterContent not in the original as the written
-      // one is allowed to contain *more*.
-      Set<String> newKeys = afterContent.keys.toSet()
-        ..removeAll(originalContent.keys);
-      for (String key in newKeys) {
-        afterContent.remove(key);
-      }
-      Result? result = checkExpectedContentData(afterContent, originalContent);
-      if (result != null) return result.copyWithOutput<Uint8List?>(null);
-
-      // Check that the result is self-contained.
-      result = checkSelfContained(loadedComponent);
-      if (result != null) return result.copyWithOutput<Uint8List?>(null);
-
-      return new Result<Uint8List>.pass(bytes);
-    }
-  }
-  return new Result<Uint8List?>.pass(null);
-}
-
 void checkIsEqual(List<int> a, List<int> b) {
   int length = a.length;
   if (b.length < length) {
@@ -816,178 +323,6 @@ void checkIsEqual(List<int> a, List<int> b) {
     }
   }
   Expect.equals(a.length, b.length);
-}
-
-Result<TestData>? checkNeededDillLibraries(
-  World world,
-  TestData data,
-  Set<Library>? neededDillLibraries,
-  Uri base,
-) {
-  if (world.neededDillLibraries != null) {
-    List<Uri> actualContent = <Uri>[];
-    for (Library lib in neededDillLibraries!) {
-      if (lib.importUri.isScheme("dart")) continue;
-      actualContent.add(lib.importUri);
-    }
-
-    List<Uri> expectedContent = <Uri>[];
-    for (String entry in world.neededDillLibraries!) {
-      expectedContent.add(base.resolve(entry));
-    }
-
-    Result<TestData> createFailureResult() {
-      return new Result<TestData>(
-        data,
-        NeededDillMismatch,
-        "Expected and actual content not the same.\n"
-        "Expected $expectedContent.\n"
-        "Got $actualContent",
-      );
-    }
-
-    if (actualContent.length != expectedContent.length) {
-      return createFailureResult();
-    }
-    Set<Uri> notInExpected = actualContent.toSet().difference(
-      expectedContent.toSet(),
-    );
-    Set<Uri> notInActual = expectedContent.toSet().difference(
-      actualContent.toSet(),
-    );
-    if (notInExpected.isNotEmpty) {
-      return createFailureResult();
-    }
-    if (notInActual.isNotEmpty) {
-      return createFailureResult();
-    }
-  }
-  return null;
-}
-
-Result? checkSelfContained(Component component) {
-  Set<Library> got = new Set<Library>.from(component.libraries);
-  for (Library lib in component.libraries) {
-    for (LibraryDependency dependency in lib.dependencies) {
-      if (dependency.importedLibraryReference.node == null ||
-          !got.contains(dependency.targetLibrary)) {
-        if (dependency.importedLibraryReference.canonicalName
-            .toString()
-            .startsWith("root::dart:")) {
-          continue;
-        }
-        return Result(
-          null,
-          IncrementalSerializationError,
-          "Component didn't contain ${dependency.importedLibraryReference} "
-          "and it should have.",
-        );
-      }
-    }
-  }
-  return null;
-}
-
-String componentToStringSdkFiltered(
-  Component component, {
-  required Set<String>? printErrors,
-}) {
-  Component c = new Component();
-  List<Uri> dartUris = <Uri>[];
-  for (Library lib in component.libraries) {
-    if (lib.importUri.isScheme("dart")) {
-      dartUris.add(lib.importUri);
-    } else {
-      if (lib.fileUri.isScheme("holePunch")) {
-        // Skip this.
-        continue;
-      }
-      c.libraries.add(lib);
-    }
-  }
-  c.setMainMethodAndMode(component.mainMethodName, true);
-  c.problemsAsJson = component.problemsAsJson;
-
-  StringBuffer s = new StringBuffer();
-  s.write(componentToString(c));
-
-  addConstantCoverageToExpectation(
-    component,
-    s,
-    skipImportUri: (Uri? importUri) => importUri?.scheme == "dart",
-  );
-
-  if (dartUris.isNotEmpty) {
-    s.writeln("");
-    s.writeln("And ${dartUris.length} platform libraries:");
-    for (Uri uri in dartUris) {
-      s.writeln(" - $uri");
-    }
-  }
-
-  if (printErrors != null && printErrors.isNotEmpty) {
-    s.writeln("");
-    s.writeln("A total of ${printErrors.length} errors:");
-    for (String error in printErrors) {
-      // Make the error more readable if it's a json.
-      Map<String, dynamic>? decoded;
-      try {
-        decoded = jsonDecode(error);
-      } catch (_) {}
-      if (decoded != null && decoded["plainTextFormatted"] is List) {
-        List plainTextFormatted = decoded["plainTextFormatted"] as List;
-        if (plainTextFormatted.isNotEmpty &&
-            plainTextFormatted.first is String) {
-          error = plainTextFormatted.first;
-        }
-      }
-      s.writeln(" - $error");
-    }
-  }
-
-  return s.toString();
-}
-
-void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
-  Set<Library> libraries = new Set<Library>();
-  List<Library> workList = <Library>[];
-  allLibraries.add(lib);
-  libraries.add(lib);
-  workList.add(lib);
-  while (workList.isNotEmpty) {
-    Library library = workList.removeLast();
-    for (LibraryDependency dependency in library.dependencies) {
-      if (dependency.targetLibrary.importUri.isScheme("dart")) continue;
-      if (libraries.add(dependency.targetLibrary)) {
-        workList.add(dependency.targetLibrary);
-        allLibraries.add(dependency.targetLibrary);
-      }
-    }
-  }
-}
-
-int countNonSyntheticLibraries(Component c) {
-  int result = 0;
-  for (Library lib in c.libraries) {
-    if (!lib.isSynthetic) result++;
-  }
-  return result;
-}
-
-int countNonSyntheticPlatformLibraries(Component c) {
-  int result = 0;
-  for (Library lib in c.libraries) {
-    if (!lib.isSynthetic && lib.importUri.isScheme("dart")) result++;
-  }
-  return result;
-}
-
-int countSyntheticLibraries(Component c) {
-  int result = 0;
-  for (Library lib in c.libraries) {
-    if (lib.isSynthetic) result++;
-  }
-  return result;
 }
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
@@ -1329,43 +664,6 @@ Future<Component> normalCompileToComponent(
   util.throwOnEmptyMixinBodies(component);
   await util.throwOnInsufficientUriToSource(component);
   return component;
-}
-
-Result<TestData>? performErrorAndWarningCheck(
-  World world,
-  TestData data,
-  bool gotError,
-  Set<String> formattedErrors,
-  bool gotWarning,
-  Set<String> formattedWarnings,
-) {
-  if (world.errors && !gotError) {
-    return new Result<TestData>(
-      data,
-      MissingErrors,
-      "Expected error, but didn't get any.",
-    );
-  } else if (!world.errors && gotError) {
-    return new Result<TestData>(
-      data,
-      UnexpectedErrors,
-      "Got unexpected error(s): $formattedErrors.",
-    );
-  }
-  if (world.warnings && !gotWarning) {
-    return new Result<TestData>(
-      data,
-      MissingWarnings,
-      "Expected warning, but didn't get any.",
-    );
-  } else if (!world.warnings && gotWarning) {
-    return new Result<TestData>(
-      data,
-      UnexpectedWarnings,
-      "Got unexpected warnings(s): $formattedWarnings.",
-    );
-  }
-  return null;
 }
 
 /// Additional yaml properties for a [basicTest].
@@ -1814,7 +1112,7 @@ class NewWorldTest {
           }
         }
       }
-      Result<TestData>? result = performErrorAndWarningCheck(
+      Result<TestData>? result = _performErrorAndWarningCheck(
         world,
         data,
         gotError,
@@ -1857,9 +1155,9 @@ class NewWorldTest {
       );
       print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-      Result? contentResult = checkExpectedContent(world, component!);
+      Result? contentResult = _checkExpectedContent(world, component!);
       if (contentResult != null) return contentResult.copyWithOutput(data);
-      result = checkNeededDillLibraries(
+      result = _checkNeededDillLibraries(
         world,
         data,
         compilerResult.neededDillLibraries,
@@ -1870,7 +1168,7 @@ class NewWorldTest {
       if (!world.noFullComponent) {
         Set<Library> allLibraries = new Set<Library>();
         for (Library lib in component!.libraries) {
-          computeAllReachableLibrariesFor(lib, allLibraries);
+          _computeAllReachableLibrariesFor(lib, allLibraries);
         }
         if (allLibraries.length != component!.libraries.length) {
           return new Result<TestData>(
@@ -1894,7 +1192,7 @@ class NewWorldTest {
       }
 
       util.postProcessComponent(component!);
-      String actualSerialized = componentToStringSdkFiltered(
+      String actualSerialized = _componentToStringSdkFiltered(
         component!,
         printErrors: world.printErrorsInExpect ? formattedErrors : null,
       );
@@ -1902,7 +1200,7 @@ class NewWorldTest {
         "*****\n\ncomponent:\n"
         "${actualSerialized}\n\n\n",
       );
-      result = checkExpectFile(data, worldNum, "", context, actualSerialized);
+      result = _checkExpectFile(data, worldNum, "", context, actualSerialized);
       if (result != null) return result;
 
       if (world.compareToPrevious && newestWholeComponent != null) {
@@ -1942,7 +1240,7 @@ class NewWorldTest {
       }
 
       if (world.checkConstantCoverageReferences) {
-        Result<TestData>? result = checkConstantCoverageReferences(
+        Result<TestData>? result = _checkConstantCoverageReferences(
           newestWholeComponentData,
           omitPlatform,
           sdkSummaryData,
@@ -1986,15 +1284,15 @@ class NewWorldTest {
       }
 
       if (!world.skipClassHierarchyTest) {
-        result = checkClassHierarchy(compilerResult, data, worldNum, context);
+        result = _checkClassHierarchy(compilerResult, data, worldNum, context);
         if (result != null) return result;
       }
 
-      int nonSyntheticLibraries = countNonSyntheticLibraries(component!);
-      int nonSyntheticPlatformLibraries = countNonSyntheticPlatformLibraries(
+      int nonSyntheticLibraries = _countNonSyntheticLibraries(component!);
+      int nonSyntheticPlatformLibraries = _countNonSyntheticPlatformLibraries(
         component!,
       );
-      int syntheticLibraries = countSyntheticLibraries(component!);
+      int syntheticLibraries = _countSyntheticLibraries(component!);
       if (world.expectsPlatform) {
         if (nonSyntheticPlatformLibraries < 5) {
           return new Result<TestData>(
@@ -2110,7 +1408,7 @@ class NewWorldTest {
           Expect.isNull(world.expectedInvalidatedUri);
         }
       }
-      Result<Uint8List?> serializationResult = checkIncrementalSerialization(
+      Result<Uint8List?> serializationResult = _checkIncrementalSerialization(
         incrementalSerialization,
         component!,
         incrementalSerializer,
@@ -2124,7 +1422,7 @@ class NewWorldTest {
       worldErrors.add(formattedErrors.toSet());
       assert(worldErrors.length == worldNum);
       if (world.expectSameErrorsAsWorld != null) {
-        checkErrorsAndWarnings(
+        _checkErrorsAndWarnings(
           worldErrors[world.expectSameErrorsAsWorld! - 1],
           formattedErrors,
           {},
@@ -2152,7 +1450,7 @@ class NewWorldTest {
             );
         component2 = compilerResult2.component;
         compilerResult2 = null;
-        Result<TestData>? result = performErrorAndWarningCheck(
+        Result<TestData>? result = _performErrorAndWarningCheck(
           world,
           data,
           gotError,
@@ -2162,13 +1460,13 @@ class NewWorldTest {
         );
         if (result != null) return result;
         List<int> thisWholeComponent = util.postProcess(component2!);
-        String component2String = componentToStringSdkFiltered(
+        String component2String = _componentToStringSdkFiltered(
           component2!,
           printErrors: world.printErrorsInExpect ? formattedErrors : null,
         );
         print("*****\n\ncomponent2:\n$component2String\n\n\n");
         checkIsEqual(newestWholeComponentData, thisWholeComponent);
-        checkErrorsAndWarnings(
+        _checkErrorsAndWarnings(
           prevFormattedErrors,
           formattedErrors,
           prevFormattedWarnings,
@@ -2176,7 +1474,7 @@ class NewWorldTest {
         );
         newestWholeComponent = component2;
 
-        Result<List<int>?> serializationResult = checkIncrementalSerialization(
+        Result<List<int>?> serializationResult = _checkIncrementalSerialization(
           incrementalSerialization,
           component2!,
           incrementalSerializer,
@@ -2249,7 +1547,7 @@ class NewWorldTest {
               "Didn't get any warnings.",
             );
           }
-          Result<TestData>? result = checkExpectFile(
+          Result<TestData>? result = _checkExpectFile(
             data,
             worldNum,
             ".expression.$expressionCompilationNum",
@@ -2304,7 +1602,7 @@ class NewWorldTest {
         component3 = compilerResult3.component;
         compilerResult3 = null;
         compilerFromScratch = null;
-        Result<TestData>? result = performErrorAndWarningCheck(
+        Result<TestData>? result = _performErrorAndWarningCheck(
           world,
           data,
           gotError,
@@ -2318,7 +1616,7 @@ class NewWorldTest {
         print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
         List<int> thisWholeComponent = util.postProcess(component3!);
-        String component3String = componentToStringSdkFiltered(
+        String component3String = _componentToStringSdkFiltered(
           component3!,
           printErrors: world.printErrorsInExpect ? formattedErrors : null,
         );
@@ -2326,14 +1624,14 @@ class NewWorldTest {
         if (world.compareWithFromScratch) {
           checkIsEqual(newestWholeComponentData, thisWholeComponent);
         }
-        checkErrorsAndWarnings(
+        _checkErrorsAndWarnings(
           prevFormattedErrors,
           formattedErrors,
           prevFormattedWarnings,
           formattedWarnings,
         );
 
-        Result<List<int>?> serializationResult = checkIncrementalSerialization(
+        Result<List<int>?> serializationResult = _checkIncrementalSerialization(
           incrementalSerialization,
           component3!,
           incrementalSerializer2,
@@ -2386,6 +1684,712 @@ class NewWorldTest {
       }
     }
     return new Result<TestData>.pass(data);
+  }
+
+  Map<String, Set<String>> _buildMapOfContent(Component component) {
+    Map<String, Set<String>> actualContent = new Map<String, Set<String>>();
+    for (Library lib in component.libraries) {
+      Set<String> libContent = actualContent[lib.importUri.toString()] =
+          new Set<String>();
+      for (Class c in lib.classes) {
+        libContent.add("Class ${c.name}");
+      }
+      for (Procedure p in lib.procedures) {
+        libContent.add("Procedure ${p.name.text}");
+      }
+      for (Field f in lib.fields) {
+        libContent.add("Field ${f.name.text}");
+      }
+    }
+    return actualContent;
+  }
+
+  /// Check that the class hierarchy is up-to-date with reality.
+  ///
+  /// This has the option to do expect files, but it's disabled by default
+  /// while we're trying to figure out if it's useful or not.
+  Result<TestData>? _checkClassHierarchy(
+    IncrementalCompilerResult compilerResult,
+    TestData data,
+    int worldNum,
+    Context context, {
+    bool checkExpectFile = false,
+  }) {
+    ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
+    if (classHierarchy is! ClosedWorldClassHierarchy) {
+      return new Result<TestData>(
+        data,
+        ClassHierarchyError,
+        "Expected the class hierarchy to be ClosedWorldClassHierarchy "
+        "but it wasn't. It was ${classHierarchy.runtimeType}",
+      );
+    }
+    List<ForTestingClassInfo> classHierarchyData = classHierarchy
+        .getTestingClassInfo();
+    Map<Class, ForTestingClassInfo> classHierarchyMap =
+        new Map<Class, ForTestingClassInfo>();
+    for (ForTestingClassInfo info in classHierarchyData) {
+      if (classHierarchyMap[info.classNode] != null) {
+        return new Result<TestData>(
+          data,
+          ClassHierarchyError,
+          "Two entries for ${info.classNode}",
+        );
+      }
+      classHierarchyMap[info.classNode] = info;
+    }
+
+    Component component = compilerResult.component;
+    StringBuffer sb = new StringBuffer();
+    for (Library library in component.libraries) {
+      if (library.importUri.isScheme("dart")) continue;
+      sb.writeln("Library ${library.importUri}");
+      for (Class c in library.classes) {
+        sb.writeln("  - Class ${c.name}");
+
+        Set<Class> checkedSupertypes = <Class>{};
+        Result<TestData>? checkSupertype(Supertype? supertype) {
+          if (supertype == null) return null;
+          Class superclass = supertype.classNode;
+          if (checkedSupertypes.add(superclass)) {
+            Supertype? asSuperClass = classHierarchy.getClassAsInstanceOf(
+              c,
+              superclass,
+            );
+            if (asSuperClass == null) {
+              return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "${superclass} not found as a superclass of $c",
+              );
+            }
+            Result<TestData>? result = checkSupertype(superclass.supertype);
+            if (result != null) return result;
+            result = checkSupertype(superclass.mixedInType);
+            if (result != null) return result;
+            for (Supertype interface in superclass.implementedTypes) {
+              result = checkSupertype(interface);
+              if (result != null) return result;
+            }
+          }
+          return null;
+        }
+
+        Result<TestData>? result = checkSupertype(c.asThisSupertype);
+        if (result != null) return result;
+
+        ForTestingClassInfo? info = classHierarchyMap[c];
+        if (info == null) {
+          return new Result<TestData>(
+            data,
+            ClassHierarchyError,
+            "Didn't find any class hierarchy info for $c",
+          );
+        }
+
+        if (info.lazyDeclaredGettersAndCalls != null) {
+          sb.writeln("    - lazyDeclaredGettersAndCalls:");
+          for (Member member in info.lazyDeclaredGettersAndCalls!) {
+            sb.writeln("      - ${member.name.text}");
+          }
+
+          // Expect these to be the same as in the class.
+          Set<Member> members = info.lazyDeclaredGettersAndCalls!.toSet();
+          for (Field f in c.fields) {
+            if (f.isStatic) continue;
+            if (!members.remove(f)) {
+              return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
+                "for ${c.name} in ${library.importUri}",
+              );
+            }
+          }
+          for (Procedure p in c.procedures) {
+            if (p.isStatic) continue;
+            if (p.isSetter) continue;
+            if (!members.remove(p)) {
+              return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
+                "for ${c.name} in ${library.importUri}",
+              );
+            }
+          }
+          if (members.isNotEmpty) {
+            return new Result<TestData>(
+              data,
+              ClassHierarchyError,
+              "Still have ${members.map((m) => m.name.text)} left "
+              "for ${c.name} in ${library.importUri}",
+            );
+          }
+        }
+        if (info.lazyDeclaredSetters != null) {
+          sb.writeln("    - lazyDeclaredSetters:");
+          for (Member member in info.lazyDeclaredSetters!) {
+            sb.writeln("      - ${member.name.text}");
+          }
+
+          // Expect these to be the same as in the class.
+          Set<Member> members = info.lazyDeclaredSetters!.toSet();
+          for (Field f in c.fields) {
+            if (f.isStatic) continue;
+            if (!f.hasSetter) continue;
+            if (!members.remove(f)) {
+              return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "Didn't find $f in lazyDeclaredSetters for $c",
+              );
+            }
+          }
+          for (Procedure p in c.procedures) {
+            if (p.isStatic) continue;
+            if (!p.isSetter) continue;
+            if (!members.remove(p)) {
+              return new Result<TestData>(
+                data,
+                ClassHierarchyError,
+                "Didn't find $p in lazyDeclaredSetters for $c",
+              );
+            }
+          }
+          if (members.isNotEmpty) {
+            return new Result<TestData>(
+              data,
+              ClassHierarchyError,
+              "Still have ${members.map((m) => m.name.text)} left "
+              "for ${c.name} in ${library.importUri}",
+            );
+          }
+        }
+        if (info.lazyImplementedGettersAndCalls != null) {
+          sb.writeln("    - lazyImplementedGettersAndCalls:");
+          for (Member member in info.lazyImplementedGettersAndCalls!) {
+            sb.writeln("      - ${member.name.text}");
+          }
+        }
+        if (info.lazyImplementedSetters != null) {
+          sb.writeln("    - lazyImplementedSetters:");
+          for (Member member in info.lazyImplementedSetters!) {
+            sb.writeln("      - ${member.name.text}");
+          }
+        }
+        if (info.lazyInterfaceGettersAndCalls != null) {
+          sb.writeln("    - lazyInterfaceGettersAndCalls:");
+          for (Member member in info.lazyInterfaceGettersAndCalls!) {
+            sb.writeln("      - ${member.name.text}");
+          }
+        }
+        if (info.lazyInterfaceSetters != null) {
+          sb.writeln("    - lazyInterfaceSetters:");
+          for (Member member in info.lazyInterfaceSetters!) {
+            sb.writeln("      - ${member.name.text}");
+          }
+        }
+      }
+    }
+    if (checkExpectFile) {
+      String actualClassHierarchy = sb.toString();
+      Uri uri = data.loadedFrom.resolve(
+        data.loadedFrom.pathSegments.last +
+            ".world.$worldNum.class_hierarchy.expect",
+      );
+      String? expected;
+      File file = new File.fromUri(uri);
+      if (file.existsSync()) {
+        expected = file.readAsStringSync();
+      }
+      if (expected != actualClassHierarchy) {
+        if (context.updateExpectations) {
+          file.writeAsStringSync(actualClassHierarchy);
+        } else {
+          String extra = "";
+          if (expected == null) extra = "Expect file did not exist.\n";
+          return new Result<TestData>(
+            data,
+            ClassHierarchyError,
+            "${extra}Unexpected serialized representation. "
+            "Fix or update $uri to contain the below:\n\n"
+            "$actualClassHierarchy",
+          );
+        }
+      }
+    }
+    return null;
+  }
+
+  Result<TestData>? _checkConstantCoverageReferences(
+    Uint8List newestWholeComponentData,
+    bool omitPlatform,
+    Uint8List sdkSummaryData,
+    TestData data,
+  ) {
+    // Note that this is in a method to avoid "semi-leaks".
+    Component loadedComponent = new Component();
+    if (omitPlatform) {
+      new BinaryBuilder(
+        sdkSummaryData,
+        filename: null,
+      ).readComponent(loadedComponent);
+    }
+    new BinaryBuilder(
+      newestWholeComponentData,
+      filename: null,
+    ).readComponent(loadedComponent);
+
+    for (MapEntry<Uri, Source> source in loadedComponent.uriToSource.entries) {
+      Set<Reference>? references = source.value.constantCoverageConstructors;
+      if (references != null) {
+        for (Reference reference in references) {
+          if (reference.node == null) {
+            return new Result<TestData>(
+              data,
+              ConstantCoverageReferenceWithoutNode,
+              "Constant coverage reference without node: "
+              "${reference.canonicalName} from ${source.value.importUri} "
+              "indexed in ${source.key}",
+            );
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  void _checkErrorsAndWarnings(
+    Set<String> prevFormattedErrors,
+    Set<String> formattedErrors,
+    Set<String> prevFormattedWarnings,
+    Set<String> formattedWarnings,
+  ) {
+    if (prevFormattedErrors.length != formattedErrors.length) {
+      Expect.fail(
+        "Previously had ${prevFormattedErrors.length} errors, "
+        "now had ${formattedErrors.length}.\n\n"
+        "Before:\n"
+        "${prevFormattedErrors.join("\n")}"
+        "\n\n"
+        "Now:\n"
+        "${formattedErrors.join("\n")}",
+      );
+    }
+    if ((prevFormattedErrors.toSet()..removeAll(formattedErrors)).isNotEmpty) {
+      Expect.fail(
+        "Previously got error messages $prevFormattedErrors, "
+        "now had ${formattedErrors}.",
+      );
+    }
+    if (prevFormattedWarnings.length != formattedWarnings.length) {
+      Expect.fail(
+        "Previously had ${prevFormattedWarnings.length} errors, "
+        "now had ${formattedWarnings.length}.",
+      );
+    }
+    if ((prevFormattedWarnings.toSet()..removeAll(formattedWarnings))
+        .isNotEmpty) {
+      Expect.fail(
+        "Previously got error messages $prevFormattedWarnings, "
+        "now had ${formattedWarnings}.",
+      );
+    }
+  }
+
+  Result? _checkExpectedContent(World world, Component component) {
+    if (world.expectedContent != null) {
+      Map<String, Set<String>> actualContent = _buildMapOfContent(component);
+      return _checkExpectedContentData(actualContent, world.expectedContent!);
+    }
+    return null;
+  }
+
+  Result? _checkExpectedContentData(
+    Map<String, Set<String>> actualContent,
+    Map<String, Iterable<String>> expectedContent,
+  ) {
+    Result<TestData> createFailureResult() {
+      return new Result(
+        null,
+        ContentDataMismatch,
+        "Expected and actual content not the same.\n"
+        "Expected $expectedContent.\n"
+        "Got $actualContent",
+      );
+    }
+
+    if (actualContent.length != expectedContent.length) {
+      return createFailureResult();
+    }
+    Set<String> missingKeys = actualContent.keys.toSet()
+      ..removeAll(expectedContent.keys);
+    if (missingKeys.isNotEmpty) {
+      return createFailureResult();
+    }
+    for (MapEntry<String, Iterable<String>> entry in expectedContent.entries) {
+      Set<String> expected = new Set<String>.from(entry.value);
+      Set<String> actual = actualContent[entry.key]!.toSet();
+      if (expected.length != actual.length) {
+        return createFailureResult();
+      }
+      actual.removeAll(expected);
+      if (actual.isNotEmpty) {
+        return createFailureResult();
+      }
+    }
+    return null;
+  }
+
+  Result<TestData>? _checkExpectFile(
+    TestData data,
+    int worldNum,
+    String extraUriString,
+    Context context,
+    String actualSerialized,
+  ) {
+    Uri uri = data.loadedFrom.resolve(
+      data.loadedFrom.pathSegments.last +
+          ".world.$worldNum${extraUriString}.expect",
+    );
+    String? expected;
+    File file = new File.fromUri(uri);
+    if (file.existsSync()) {
+      expected = file.readAsStringSync();
+    }
+    if (expected?.replaceAll("\r\n", "\n") != actualSerialized) {
+      if (context.updateExpectations) {
+        file.writeAsStringSync(actualSerialized);
+      } else {
+        String extra = "";
+        if (expected == null) extra = "Expect file did not exist.\n";
+        return new Result<TestData>(
+          data,
+          expected == null ? ExpectationFileMissing : ExpectationFileMismatch,
+          "${extra}Unexpected serialized representation. "
+          "Fix or update $uri to contain the below:\n\n"
+          "$actualSerialized",
+          autoFixCommand: "updateExpectations=true",
+          canBeFixWithUpdateExpectations: true,
+        );
+      }
+    }
+    return null;
+  }
+
+  Result<Uint8List?> _checkIncrementalSerialization(
+    bool? incrementalSerialization,
+    Component component,
+    IncrementalSerializer? incrementalSerializer,
+    World world,
+  ) {
+    if (incrementalSerialization == true) {
+      Component c = new Component(nameRoot: component.root)
+        ..setMainMethodAndMode(null, false);
+      c.libraries.addAll(component.libraries);
+      c.uriToSource.addAll(component.uriToSource);
+      Map<String, Set<String>> originalContent = _buildMapOfContent(c);
+      ByteSink sink = new ByteSink();
+      int librariesBefore = c.libraries.length;
+      incrementalSerializer!.writePackagesToSinkAndTrimComponent(c, sink);
+      int librariesAfter = c.libraries.length;
+      if (librariesAfter > librariesBefore) {
+        return new Result<Uint8List>(
+          null,
+          IncrementalSerializationError,
+          "Incremental serialization added libraries!",
+        );
+      }
+      if (librariesBefore == librariesAfter &&
+          world.incrementalSerializationDoesWork) {
+        return new Result<Uint8List>(
+          null,
+          IncrementalSerializationError,
+          "Incremental serialization didn't remove any libraries!",
+        );
+      }
+      if (librariesAfter < librariesBefore && sink.builder.isEmpty) {
+        return new Result<Uint8List>(
+          null,
+          IncrementalSerializationError,
+          "Incremental serialization didn't output any bytes, "
+          "but did remove libraries",
+        );
+      } else if (librariesAfter == librariesBefore && !sink.builder.isEmpty) {
+        return new Result<Uint8List>(
+          null,
+          IncrementalSerializationError,
+          "Incremental serialization did output bytes, "
+          "but didn't remove libraries",
+        );
+      }
+      if (librariesAfter < librariesBefore) {
+        // If we actually did incrementally serialize anything,
+        // check the output!
+        BinaryPrinter printer = new BinaryPrinter(sink);
+        printer.writeComponentFile(c);
+        Uint8List bytes = sink.builder.takeBytes();
+
+        // Load the bytes back in.
+        Component loadedComponent = new Component();
+        new BinaryBuilder(bytes, filename: null).readComponent(loadedComponent);
+
+        // Check that it doesn't contain anything we said it shouldn't.
+        if (world.serializationShouldNotInclude != null) {
+          Set<Uri> includedImportUris = loadedComponent.libraries
+              .map((l) => l.importUri)
+              .toSet();
+          for (String uriString in world.serializationShouldNotInclude!) {
+            Uri uri = Uri.parse(uriString);
+            if (includedImportUris.contains(uri)) {
+              return new Result<Uint8List>(
+                null,
+                IncrementalSerializationError,
+                "Incremental serialization shouldn't include "
+                "$uriString but did.",
+              );
+            }
+          }
+        }
+
+        // Check that it contains at least what we want.
+        Map<String, Set<String>> afterContent = _buildMapOfContent(
+          loadedComponent,
+        );
+        // Remove any keys in afterContent not in the original as the written
+        // one is allowed to contain *more*.
+        Set<String> newKeys = afterContent.keys.toSet()
+          ..removeAll(originalContent.keys);
+        for (String key in newKeys) {
+          afterContent.remove(key);
+        }
+        Result? result = _checkExpectedContentData(
+          afterContent,
+          originalContent,
+        );
+        if (result != null) return result.copyWithOutput<Uint8List?>(null);
+
+        // Check that the result is self-contained.
+        result = _checkSelfContained(loadedComponent);
+        if (result != null) return result.copyWithOutput<Uint8List?>(null);
+
+        return new Result<Uint8List>.pass(bytes);
+      }
+    }
+    return new Result<Uint8List?>.pass(null);
+  }
+
+  Result<TestData>? _checkNeededDillLibraries(
+    World world,
+    TestData data,
+    Set<Library>? neededDillLibraries,
+    Uri base,
+  ) {
+    if (world.neededDillLibraries != null) {
+      List<Uri> actualContent = <Uri>[];
+      for (Library lib in neededDillLibraries!) {
+        if (lib.importUri.isScheme("dart")) continue;
+        actualContent.add(lib.importUri);
+      }
+
+      List<Uri> expectedContent = <Uri>[];
+      for (String entry in world.neededDillLibraries!) {
+        expectedContent.add(base.resolve(entry));
+      }
+
+      Result<TestData> createFailureResult() {
+        return new Result<TestData>(
+          data,
+          NeededDillMismatch,
+          "Expected and actual content not the same.\n"
+          "Expected $expectedContent.\n"
+          "Got $actualContent",
+        );
+      }
+
+      if (actualContent.length != expectedContent.length) {
+        return createFailureResult();
+      }
+      Set<Uri> notInExpected = actualContent.toSet().difference(
+        expectedContent.toSet(),
+      );
+      Set<Uri> notInActual = expectedContent.toSet().difference(
+        actualContent.toSet(),
+      );
+      if (notInExpected.isNotEmpty) {
+        return createFailureResult();
+      }
+      if (notInActual.isNotEmpty) {
+        return createFailureResult();
+      }
+    }
+    return null;
+  }
+
+  Result? _checkSelfContained(Component component) {
+    Set<Library> got = new Set<Library>.from(component.libraries);
+    for (Library lib in component.libraries) {
+      for (LibraryDependency dependency in lib.dependencies) {
+        if (dependency.importedLibraryReference.node == null ||
+            !got.contains(dependency.targetLibrary)) {
+          if (dependency.importedLibraryReference.canonicalName
+              .toString()
+              .startsWith("root::dart:")) {
+            continue;
+          }
+          return Result(
+            null,
+            IncrementalSerializationError,
+            "Component didn't contain ${dependency.importedLibraryReference} "
+            "and it should have.",
+          );
+        }
+      }
+    }
+    return null;
+  }
+
+  String _componentToStringSdkFiltered(
+    Component component, {
+    required Set<String>? printErrors,
+  }) {
+    Component c = new Component();
+    List<Uri> dartUris = <Uri>[];
+    for (Library lib in component.libraries) {
+      if (lib.importUri.isScheme("dart")) {
+        dartUris.add(lib.importUri);
+      } else {
+        if (lib.fileUri.isScheme("holePunch")) {
+          // Skip this.
+          continue;
+        }
+        c.libraries.add(lib);
+      }
+    }
+    c.setMainMethodAndMode(component.mainMethodName, true);
+    c.problemsAsJson = component.problemsAsJson;
+
+    StringBuffer s = new StringBuffer();
+    s.write(componentToString(c));
+
+    addConstantCoverageToExpectation(
+      component,
+      s,
+      skipImportUri: (Uri? importUri) => importUri?.scheme == "dart",
+    );
+
+    if (dartUris.isNotEmpty) {
+      s.writeln("");
+      s.writeln("And ${dartUris.length} platform libraries:");
+      for (Uri uri in dartUris) {
+        s.writeln(" - $uri");
+      }
+    }
+
+    if (printErrors != null && printErrors.isNotEmpty) {
+      s.writeln("");
+      s.writeln("A total of ${printErrors.length} errors:");
+      for (String error in printErrors) {
+        // Make the error more readable if it's a json.
+        Map<String, dynamic>? decoded;
+        try {
+          decoded = jsonDecode(error);
+        } catch (_) {}
+        if (decoded != null && decoded["plainTextFormatted"] is List) {
+          List plainTextFormatted = decoded["plainTextFormatted"] as List;
+          if (plainTextFormatted.isNotEmpty &&
+              plainTextFormatted.first is String) {
+            error = plainTextFormatted.first;
+          }
+        }
+        s.writeln(" - $error");
+      }
+    }
+
+    return s.toString();
+  }
+
+  void _computeAllReachableLibrariesFor(
+    Library lib,
+    Set<Library> allLibraries,
+  ) {
+    Set<Library> libraries = new Set<Library>();
+    List<Library> workList = <Library>[];
+    allLibraries.add(lib);
+    libraries.add(lib);
+    workList.add(lib);
+    while (workList.isNotEmpty) {
+      Library library = workList.removeLast();
+      for (LibraryDependency dependency in library.dependencies) {
+        if (dependency.targetLibrary.importUri.isScheme("dart")) continue;
+        if (libraries.add(dependency.targetLibrary)) {
+          workList.add(dependency.targetLibrary);
+          allLibraries.add(dependency.targetLibrary);
+        }
+      }
+    }
+  }
+
+  int _countNonSyntheticLibraries(Component c) {
+    int result = 0;
+    for (Library lib in c.libraries) {
+      if (!lib.isSynthetic) result++;
+    }
+    return result;
+  }
+
+  int _countNonSyntheticPlatformLibraries(Component c) {
+    int result = 0;
+    for (Library lib in c.libraries) {
+      if (!lib.isSynthetic && lib.importUri.isScheme("dart")) result++;
+    }
+    return result;
+  }
+
+  int _countSyntheticLibraries(Component c) {
+    int result = 0;
+    for (Library lib in c.libraries) {
+      if (lib.isSynthetic) result++;
+    }
+    return result;
+  }
+
+  Result<TestData>? _performErrorAndWarningCheck(
+    World world,
+    TestData data,
+    bool gotError,
+    Set<String> formattedErrors,
+    bool gotWarning,
+    Set<String> formattedWarnings,
+  ) {
+    if (world.errors && !gotError) {
+      return new Result<TestData>(
+        data,
+        MissingErrors,
+        "Expected error, but didn't get any.",
+      );
+    } else if (!world.errors && gotError) {
+      return new Result<TestData>(
+        data,
+        UnexpectedErrors,
+        "Got unexpected error(s): $formattedErrors.",
+      );
+    }
+    if (world.warnings && !gotWarning) {
+      return new Result<TestData>(
+        data,
+        MissingWarnings,
+        "Expected warning, but didn't get any.",
+      );
+    } else if (!world.warnings && gotWarning) {
+      return new Result<TestData>(
+        data,
+        UnexpectedWarnings,
+        "Got unexpected warnings(s): $formattedWarnings.",
+      );
+    }
+    return null;
   }
 }
 
