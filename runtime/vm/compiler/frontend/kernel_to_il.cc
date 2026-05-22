@@ -1119,10 +1119,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       STORE_NATIVE_FIELD_NO_BARRIER(CASE)
 #undef CASE
       return true;
-    case MethodRecognizer::kInteger_trailingZeroBitCount:
-      return UnaryInt64OpInstr::IsSupported(Token::kCTZ);
-    case MethodRecognizer::kInteger_oneBitCount:
-      return UnaryInt64OpInstr::IsSupported(Token::kPOPCNT);
     case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoubleRem:
@@ -1774,24 +1770,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += UnboxTruncate(kUnboxedDouble);
       body += BuildDoubleHashCode();
       body += Box(kUnboxedInt64);
-    } break;
-    case MethodRecognizer::kInteger_trailingZeroBitCount:
-    case MethodRecognizer::kInteger_oneBitCount: {
-      const auto op_kind =
-          kind == MethodRecognizer::kInteger_trailingZeroBitCount
-              ? Token::kCTZ
-              : Token::kPOPCNT;
-      if (UnaryInt64OpInstr::IsSupported(op_kind)) {
-        ASSERT_EQUAL(function.NumParameters(), 1);
-        body += LoadLocal(parsed_function_->RawParameterVariable(0));
-        body += UnboxTruncate(kUnboxedInt64);
-        Value* value = Pop();
-        UnaryInt64OpInstr* op =
-            new (Z) UnaryInt64OpInstr(op_kind, value, DeoptId::kNone);
-        Push(op);
-        body <<= op;
-        body += Box(kUnboxedInt64);
-      }
     } break;
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:

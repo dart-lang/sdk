@@ -735,31 +735,6 @@ ASSEMBLER_TEST_RUN(Lzcnt, test) {
       "ret\n");
 }
 
-ASSEMBLER_TEST_GENERATE(RepBsf, assembler) {
-  __ movq(RCX, Immediate(0));
-  __ LoadImmediate(RAX, Immediate(64));
-  __ rep_bsfq(RAX, RCX);
-  __ movq(RCX, Immediate(0xFF00));
-  __ LoadImmediate(RDX, Immediate(64));
-  __ rep_bsfq(RDX, RCX);
-  __ addq(RAX, RDX);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(RepBsf, test) {
-  typedef int64_t (*RepBsfCode)();
-  EXPECT_EQ(72, reinterpret_cast<RepBsfCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rcx,0\n"
-      "movl rax,0x40\n"
-      "tzcntq rax,rcx\n"
-      "movl rcx,0xff00\n"
-      "movl rdx,0x40\n"
-      "tzcntq rdx,rcx\n"
-      "addq rax,rdx\n"
-      "ret\n");
-}
-
 struct JumpAddress {
   uword filler1;
   uword filler2;
