@@ -166,7 +166,7 @@ void main() {
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 class B extends A {
@@ -183,7 +183,7 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
 ''');
-    _assertTypeAnnotations();
+    _assertTypeAnnotations(result);
   }
 
   test_forIn_identifier() async {
@@ -492,7 +492,7 @@ main() {
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }
 
-  void _assertTypeAnnotations() {
+  void _assertTypeAnnotations(TestResolvedUnitResult result) {
     var code = result.content;
     var unit = result.unit;
 

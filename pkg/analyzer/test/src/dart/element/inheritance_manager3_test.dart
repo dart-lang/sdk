@@ -1510,11 +1510,11 @@ mixin M on A {}
   }
 
   test_getMember_super_forObject() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {}
 ''');
     var member = manager.getMember(
-      typeProvider.objectType.element,
+      result.typeProvider.objectType.element,
       Name(null, 'hashCode'),
       forSuper: true,
     );

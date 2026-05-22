@@ -26,7 +26,7 @@ f() {
   {'a' : 0, 'b' : 1}.length;
 }
 ''');
-    await resolveTestFile();
+    var result = await resolveTestFile();
     expect(
       result.diagnostics[0].diagnosticCode,
       diag.nonConstMapAsExpressionStatement,
@@ -43,7 +43,7 @@ f() {
   {'a' : 0, 'b' : 1};
 }
 ''');
-    await resolveTestFile();
+    var result = await resolveTestFile();
     expect(
       result.diagnostics[0].diagnosticCode,
       diag.nonConstMapAsExpressionStatement,

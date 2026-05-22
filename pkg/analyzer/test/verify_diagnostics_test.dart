@@ -466,8 +466,8 @@ class DocumentationValidator {
   ) async {
     var test = _SnippetTest(snippet);
     test.setUp();
-    await test.resolveTestFile();
-    var diagnostics = test.result.diagnostics;
+    var result = await test.resolveTestFile();
+    var diagnostics = result.diagnostics;
     var filteredDiagnostics = <Diagnostic>[];
     var errorCount = 0;
     var unneededIgnores = snippet.ignores.toList();

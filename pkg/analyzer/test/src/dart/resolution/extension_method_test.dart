@@ -1396,7 +1396,7 @@ void f() {
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([]);
+    assertErrorsInTestResult(result, []);
 
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''

@@ -77,8 +77,8 @@ class A implements MapEntry<int, int> {
 }
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(a);
+    assertNoErrorsInTestResult(result);
 
     await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
@@ -128,8 +128,8 @@ class A implements MapEntry<int, int> {
 }
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(a);
+    assertNoErrorsInTestResult(result);
 
     await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';

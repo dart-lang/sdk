@@ -24,7 +24,7 @@ class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib2.dart', '''
 class _A {}
 g(h(_A a)) {}''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'lib2.dart';
 class _A {}
 f() {

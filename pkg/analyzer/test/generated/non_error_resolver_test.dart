@@ -687,7 +687,7 @@ void testNewSet(Set<C> setEls) {
   }
 
   test_class_type_alias_documentationComment() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 /**
  * Documentation
  */
@@ -2079,7 +2079,7 @@ f(S s) async {
   }
 
   test_issue_32394() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
@@ -2770,7 +2770,7 @@ class B {
   final Bounded? bounded;
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 @B.named1()

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -27,40 +26,36 @@ class InferredTypeTest extends PubPackageResolutionTest {
     return getFile('${sdkRoot.posixPath}/lib/async/async.dart');
   }
 
-  LibraryElement get _resultLibraryElement {
-    return result.libraryElement;
-  }
-
   test_asyncClosureReturnType_flatten() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 Future<int> futureInt = null;
 //                      ^^^^
 // [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Future<int>'.
 var f = () => futureInt;
 var g = () async => futureInt;
 ''');
-    var futureInt = _resultLibraryElement.topLevelVariables[0];
+    var futureInt = result.libraryElement.topLevelVariables[0];
     expect(futureInt.name, 'futureInt');
     _assertTypeStr(futureInt.type, 'Future<int>');
-    var f = _resultLibraryElement.topLevelVariables[1];
+    var f = result.libraryElement.topLevelVariables[1];
     expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
-    var g = _resultLibraryElement.topLevelVariables[2];
+    var g = result.libraryElement.topLevelVariables[2];
     expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_future() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var f = () async => 0;
 ''');
-    var f = _resultLibraryElement.topLevelVariables[0];
+    var f = result.libraryElement.topLevelVariables[0];
     expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_futureOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 FutureOr<int> futureOrInt = null;
 //                          ^^^^
@@ -68,13 +63,13 @@ FutureOr<int> futureOrInt = null;
 var f = () => futureOrInt;
 var g = () async => futureOrInt;
 ''');
-    var futureOrInt = _resultLibraryElement.topLevelVariables[0];
+    var futureOrInt = result.libraryElement.topLevelVariables[0];
     expect(futureOrInt.name, 'futureOrInt');
     _assertTypeStr(futureOrInt.type, 'FutureOr<int>');
-    var f = _resultLibraryElement.topLevelVariables[1];
+    var f = result.libraryElement.topLevelVariables[1];
     expect(f.name, 'f');
     _assertTypeStr(f.type, 'FutureOr<int> Function()');
-    var g = _resultLibraryElement.topLevelVariables[2];
+    var g = result.libraryElement.topLevelVariables[2];
     expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
@@ -216,13 +211,13 @@ main() {
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference_topLevel() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 String f() => null;
 //            ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'String'.
 var g = f;
 ''');
-    var g = _resultLibraryElement.topLevelVariables[0];
+    var g = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(g.type, 'String Function()');
   }
 
@@ -410,23 +405,23 @@ main() {
   }
 
   test_bottom() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = null;
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'dynamic');
   }
 
   test_bottom_inClosure() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () => null;
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'Null Function()');
   }
 
   test_circularReference_viaClosures() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var x = () => y;
 //  ^
 // [diag.topLevelCycle] The type of 'x' can't be inferred because it depends on itself through the cycle: x, y.
@@ -435,8 +430,8 @@ var y = () => x;
 // [diag.topLevelCycle] The type of 'y' can't be inferred because it depends on itself through the cycle: x, y.
 ''');
 
-    var x = _resultLibraryElement.topLevelVariables[0];
-    var y = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[0];
+    var y = result.libraryElement.topLevelVariables[1];
     expect(x.name, 'x');
     expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
@@ -446,7 +441,7 @@ var y = () => x;
   @SkippedTest(reason: 'Element model rewrite')
   test_circularReference_viaClosures_initializerTypes() async {
     print('-' * 64);
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       '''
 var x = () => y;
 var y = () => x;
@@ -454,8 +449,8 @@ var y = () => x;
       [error(diag.topLevelCycle, 4, 1), error(diag.topLevelCycle, 21, 1)],
     );
 
-    var x = _resultLibraryElement.topLevelVariables[0];
-    var y = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[0];
+    var y = result.libraryElement.topLevelVariables[1];
     expect(x.name, 'x');
     expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
@@ -2068,7 +2063,7 @@ void main() {
   }
 
   test_fieldRefersToStaticGetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final x = _x;
   static int get _x => null;
@@ -2076,12 +2071,12 @@ class C {
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function '_x' because it has a return type of 'int'.
 }
 ''');
-    var x = _resultLibraryElement.classes[0].fields[0];
+    var x = result.libraryElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
   test_fieldRefersToTopLevelGetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final x = y;
 }
@@ -2089,7 +2084,7 @@ int get y => null;
 //           ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'y' because it has a return type of 'int'.
 ''');
-    var x = _resultLibraryElement.classes[0].fields[0];
+    var x = result.libraryElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
@@ -2880,7 +2875,7 @@ main() {
   }
 
   test_genericMethods_inferGenericFunctionParameterType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> extends D<T> {
   f<U>(x) { return null; }
 //                 ^^^^
@@ -2893,12 +2888,12 @@ class D<T> {
 }
 typedef void F<V>(V v);
 ''');
-    var f = _resultLibraryElement.getClass('C')!.methods[0];
+    var f = result.libraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
   test_genericMethods_inferGenericFunctionParameterType2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> extends D<T> {
   f<U>(g) => null;
 }
@@ -2907,12 +2902,12 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = _resultLibraryElement.getClass('C')!.methods[0];
+    var f = result.libraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
   test_genericMethods_inferGenericFunctionReturnType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> extends D<T> {
   f<U>(x) { return null; }
 //                 ^^^^
@@ -2925,7 +2920,7 @@ class D<T> {
 }
 typedef V F<V>();
 ''');
-    var f = _resultLibraryElement.getClass('C')!.methods[0];
+    var f = result.libraryElement.getClass('C')!.methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
@@ -3016,7 +3011,7 @@ main() {
   }
 
   test_genericMethods_usesGreatestLowerBound_topLevel() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
@@ -3026,7 +3021,7 @@ T generic<T>(a(T _), b(T _)) => null;
 
 var v = generic((F f) => null, (G g) => null);
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
 
@@ -3716,7 +3711,7 @@ main() {
   }
 
   test_inferParameterType_setter_fromField() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C extends D {
   set foo(x) {}
 }
@@ -3726,12 +3721,12 @@ class D {
 // [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 'foo' must be initialized.
 }
 ''');
-    var f = _resultLibraryElement.getClass('C')!.setters[0];
+    var f = result.libraryElement.getClass('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
   test_inferParameterType_setter_fromSetter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C extends D {
   set foo(x) {}
 }
@@ -3739,12 +3734,12 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = _resultLibraryElement.getClass('C')!.setters[0];
+    var f = result.libraryElement.getClass('C')!.setters[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
   test_inferred_nonstatic_field_depends_on_static_field_complex() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static var x = 'x';
   var y = {
@@ -3753,25 +3748,25 @@ class C {
   };
 }
 ''');
-    var x = _resultLibraryElement.getClass('C')!.fields[0];
+    var x = result.libraryElement.getClass('C')!.fields[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass('C')!.fields[1];
+    var y = result.libraryElement.getClass('C')!.fields[1];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
 
   test_inferred_nonstatic_field_depends_on_toplevel_var_simple() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var x = 'x';
 class C {
   var y = x;
 }
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = _resultLibraryElement.getClass('C')!.fields[0];
+    var y = result.libraryElement.getClass('C')!.fields[0];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
@@ -3801,7 +3796,7 @@ main() {
   }
 
   test_inferredType_cascade() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int a;
 //    ^
@@ -3813,12 +3808,12 @@ class A {
 }
 var v = new A()..a = 1..b.add(2)..m();
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'A');
   }
 
   test_inferredType_customBinaryOp() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool operator*(C other) => true;
 }
@@ -3827,13 +3822,13 @@ C c;
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 var x = c*c;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customBinaryOp_viaInterface() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {
   bool operator*(C other) => true;
 }
@@ -3843,7 +3838,7 @@ C c;
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 var x = c*c;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
@@ -3890,7 +3885,7 @@ main() {
   }
 
   test_inferredType_customUnaryOp() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool operator-() => true;
 }
@@ -3899,13 +3894,13 @@ C c;
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 var x = -c;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customUnaryOp_viaInterface() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {
   bool operator-() => true;
 }
@@ -3915,13 +3910,13 @@ C c;
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 var x = -c;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_extractMethodTearOff() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool g() => true;
 }
@@ -3930,13 +3925,13 @@ C f() => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'C'.
 var x = f().g;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
   test_inferredType_extractMethodTearOff_viaInterface() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {
   bool g() => true;
 }
@@ -3946,21 +3941,21 @@ C f() => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'C'.
 var x = f().g;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
   test_inferredType_fromTopLevelExecutableTearoff() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = print;
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'void Function(Object?)');
   }
 
   test_inferredType_invokeMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool g() => true;
 }
@@ -3969,13 +3964,13 @@ C f() => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'C'.
 var x = f().g();
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_invokeMethod_viaInterface() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class I {
   bool g() => true;
 }
@@ -3985,49 +3980,49 @@ C f() => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'C'.
 var x = f().g();
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_isEnum() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E { v1 }
 final x = E.v1;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'E');
   }
 
   test_inferredType_isEnumValues() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E { v1 }
 final x = E.values;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'List<E>');
   }
 
   test_inferredType_isTypedef() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef void F();
 final x = <String, F>{};
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Map<String, void Function()>');
   }
 
   test_inferredType_isTypedef_parameterized() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef T F<T>();
 final x = <String, F<int>>{};
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Map<String, int Function()>');
   }
 
   test_inferredType_usesSyntheticFunctionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => null;
 //         ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'int'.
@@ -4036,12 +4031,12 @@ String g() => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'String'.
 var v = [f, g];
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function()>');
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f(int x(String y)) => null;
 //                        ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'int'.
@@ -4050,12 +4045,12 @@ String g(int x(String y)) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'String'.
 var v = [f, g];
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function(int Function(String))>');
   }
 
   test_inferredType_usesSyntheticFunctionType_namedParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f({int x}) => null;
 //         ^
 // [diag.missingDefaultValueForParameter] The parameter 'x' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
@@ -4068,12 +4063,12 @@ String g({int x}) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'String'.
 var v = [f, g];
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function({int x})>');
   }
 
   test_inferredType_usesSyntheticFunctionType_positionalParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f([int x]) => null;
 //         ^
 // [diag.missingDefaultValueForParameterPositional] The parameter 'x' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
@@ -4086,12 +4081,12 @@ String g([int x]) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'String'.
 var v = [f, g];
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function([int])>');
   }
 
   test_inferredType_usesSyntheticFunctionType_requiredParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f(int x) => null;
 //              ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'int'.
@@ -4100,46 +4095,46 @@ String g(int x) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'String'.
 var v = [f, g];
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function(int)>');
   }
 
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static final f = (bool b) =>
       (int i) => {i: b};
 }
 ''');
-    var f = _resultLibraryElement.getClass('C')!.fields[0];
+    var f = result.libraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
   test_inferredType_viaClosure_typeDependsOnArgs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = _resultLibraryElement.getClass('C')!.fields[0];
+    var f = result.libraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = _resultLibraryElement.getClass('C')!.fields[0];
+    var f = result.libraryElement.getClass('C')!.fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 final f = (bool b) => 1;
 ''');
-    var f = _resultLibraryElement.topLevelVariables[0];
+    var f = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 
@@ -4708,11 +4703,11 @@ test() {
   }
 
   test_inferVariableVoid() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {}
 var x = f();
   ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'void');
   }
@@ -4799,10 +4794,10 @@ test2() {
   }
 
   test_listLiteralsCanInferNull_topLevel() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var x = [null];
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'List<Null>');
   }
 
@@ -4921,15 +4916,15 @@ test1() {
   }
 
   test_mapLiteralsCanInferNull_topLevel() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var x = { null: null };
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Map<Null, Null>');
   }
 
   test_methodCall_withTypeArguments_instanceMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   D<T> f<T>() => null;
 //               ^^^^
@@ -4938,12 +4933,12 @@ class C {
 class D<T> {}
 var f = new C().f<int>();
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_instanceMethod_identifierSequence() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   D<T> f<T>() => null;
 //               ^^^^
@@ -4955,13 +4950,13 @@ C c;
 // [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
 var f = c.f<int>();
 ''');
-    var v = _resultLibraryElement.topLevelVariables[1];
+    var v = result.libraryElement.topLevelVariables[1];
     expect(v.name, 'f');
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_staticMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static D<T> f<T>() => null;
 //                      ^^^^
@@ -4970,19 +4965,19 @@ class C {
 class D<T> {}
 var f = C.f<int>();
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_topLevelFunction() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 D<T> f<T>() => null;
 //             ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'D<T>'.
 class D<T> {}
 var g = f<int>();
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
@@ -5155,11 +5150,11 @@ void main() {
   }
 
   test_referenceToTypedef() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef void F();
 final x = F;
 ''');
-    var x = _resultLibraryElement.topLevelVariables[0];
+    var x = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Type');
   }
 
@@ -5269,7 +5264,7 @@ class C<T extends num> {
   }
 
   test_staticMethod_tearoff() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const v = C.f;
 class C {
   static int f(String s) => null;
@@ -5277,7 +5272,7 @@ class C {
 // [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'int'.
 }
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'int Function(String)');
   }
 
@@ -5297,25 +5292,25 @@ main() {
   }
 
   test_unsafeBlockClosureInference_constructorCall_explicitDynamicParam() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C(T x());
 }
 var v = new C<dynamic>(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<dynamic>');
   }
 
   test_unsafeBlockClosureInference_constructorCall_explicitTypeParam() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C(T x());
 }
 var v = new C<int>(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
@@ -5341,23 +5336,23 @@ main() {
   }
 
   test_unsafeBlockClosureInference_constructorCall_noTypeParam() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   C(x());
 }
 var v = new C(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<dynamic>(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
@@ -5365,31 +5360,31 @@ var v = f<dynamic>(() { return 1; });
   // Failing without null safety.
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
     // Note: (f<dynamic>) is not a valid syntax.
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<dynamic>(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
@@ -5399,21 +5394,21 @@ var v = f<int>(() { return 1; });
   // Failing without null safety.
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
     // Note: (f<int>) is not a valid syntax.
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<int>(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
@@ -5618,19 +5613,19 @@ main() {
   }
 
   test_unsafeBlockClosureInference_methodCall_noTypeParam() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   double f(x) => 1.0;
 }
 var v = new C().f(() { return 1; });
 ''');
-    var v = _resultLibraryElement.topLevelVariables[0];
+    var v = result.libraryElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_voidReturnTypeEquivalentToDynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T run<T>(T f()) {
   print("running");
   var t = f();
@@ -5658,8 +5653,8 @@ main() {
 }
 ''');
 
-    var x = _resultLibraryElement.topLevelVariables[0];
-    var y = _resultLibraryElement.topLevelVariables[1];
+    var x = result.libraryElement.topLevelVariables[0];
+    var y = result.libraryElement.topLevelVariables[1];
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'void');
   }
@@ -5668,7 +5663,7 @@ main() {
     String code,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
     assertErrorsInList(
       result.diagnostics.where((e) {
         return e.diagnosticCode != diag.unusedLocalVariable &&

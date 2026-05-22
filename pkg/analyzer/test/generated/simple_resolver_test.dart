@@ -448,7 +448,7 @@ void f() {
 main() {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
 ''');
 
@@ -460,7 +460,7 @@ export 'a.dart';
   }
 
   test_entryPoint_local() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {}
 ''');
 
@@ -472,7 +472,7 @@ main() {}
   }
 
   test_entryPoint_none() async {
-    await resolveTestCodeWithDiagnostics('');
+    var result = await resolveTestCodeWithDiagnostics('');
 
     var library = result.libraryElement;
     expect(library.entryPoint, isNull);
@@ -1071,7 +1071,7 @@ Annotation
   }
 
   test_metadata_libraryDirective() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @A library lib;
 const A = null;''');
 

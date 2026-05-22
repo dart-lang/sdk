@@ -41,7 +41,8 @@ import 'resolution.dart';
 export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
     show ExpectedDiagnostic;
 
-export 'resolution.dart' show TestResolvedUnitResult;
+export 'resolution.dart'
+    show ResolvedUnitResultExtension, TestResolvedUnitResult;
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -465,8 +466,8 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
     String code,
     List<ExpectedError> expectedErrors,
   ) async {
-    await resolveTestCode(code);
-    assertNoErrorsInResult();
+    var result = await resolveTestCode(code);
+    assertErrorsInTestResult(result, const []);
 
     await disposeAnalysisContextCollection();
 
@@ -474,8 +475,8 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
       analysisOptionsContent(experiments: experiments, strictCasts: true),
     );
 
-    await resolveTestFile();
-    assertErrorsInResult(expectedErrors);
+    result = await resolveTestFile();
+    assertErrorsInTestResult(result, expectedErrors);
   }
 
   /// Asserts that no errors are reported in [code], both when implicit casts

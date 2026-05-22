@@ -47,11 +47,16 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageBlazeBinPath/lib/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageBlazeBinPath/lib/bar.dart',
+      r'''
 export 'src/foo.dart';
-''');
+''',
+    );
 
-    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidExportOfInternalElement, 0, 22),
+    ]);
   }
 
   void test_exporterIsInBlazeBinLibSrc() async {
@@ -60,11 +65,14 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageBlazeBinPath/lib/src/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageBlazeBinPath/lib/src/bar.dart',
+      r'''
 export 'foo.dart';
-''');
+''',
+    );
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInGenfilesLib() async {
@@ -73,11 +81,16 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageGenfilesPath/lib/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageGenfilesPath/lib/bar.dart',
+      r'''
 export 'src/foo.dart';
-''');
+''',
+    );
 
-    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidExportOfInternalElement, 0, 22),
+    ]);
   }
 
   void test_exporterIsInGenfilesLibSrc() async {
@@ -86,11 +99,14 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageGenfilesPath/lib/src/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageGenfilesPath/lib/src/bar.dart',
+      r'''
 export 'foo.dart';
-''');
+''',
+    );
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInLib() async {
@@ -99,11 +115,13 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageLibPath/bar.dart', r'''
+    var result = await resolveFileCode('$testPackageLibPath/bar.dart', r'''
 export 'src/foo.dart';
 ''');
 
-    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidExportOfInternalElement, 0, 22),
+    ]);
   }
 
   void test_exporterIsInLibSrc() async {
@@ -112,11 +130,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
+    var result = await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
 export 'foo.dart';
 ''');
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInTest() async {
@@ -125,11 +143,14 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$myPackageRootPath/test/foo_test.dart', r'''
+    var result = await resolveFileCode(
+      '$myPackageRootPath/test/foo_test.dart',
+      r'''
 export 'package:dart.my/src/foo.dart';
-''');
+''',
+    );
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_internalIsInBlazeBin() async {
@@ -187,11 +208,16 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageDartToolPath/lib/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageDartToolPath/lib/bar.dart',
+      r'''
 export 'package:test/src/foo.dart';
-''');
+''',
+    );
 
-    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 35)]);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidExportOfInternalElement, 0, 35),
+    ]);
   }
 
   @FailingTest(
@@ -206,11 +232,14 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageDartToolPath/lib/src/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageDartToolPath/lib/src/bar.dart',
+      r'''
 export 'package:test/src/foo.dart';
-''');
+''',
+    );
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterInLib() async {
@@ -219,11 +248,13 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageRootPath/lib/bar.dart', r'''
+    var result = await resolveFileCode('$testPackageRootPath/lib/bar.dart', r'''
 export 'package:test/src/foo.dart';
 ''');
 
-    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 35)]);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidExportOfInternalElement, 0, 35),
+    ]);
   }
 
   void test_exporterInLibSrc() async {
@@ -232,11 +263,14 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageRootPath/lib/src/bar.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageRootPath/lib/src/bar.dart',
+      r'''
 export 'package:test/src/foo.dart';
-''');
+''',
+    );
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_internalIsInGeneratedLibSrc() async {
@@ -285,11 +319,13 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageLibPath/bar.dart', r'''
+    var result = await resolveFileCode('$testPackageLibPath/bar.dart', r'''
 export 'src/foo.dart';
 ''');
 
-    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidExportOfInternalElement, 0, 22),
+    ]);
   }
 
   void test_exporterIsInLibSrc() async {
@@ -298,11 +334,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
+    var result = await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
 export 'foo.dart';
 ''');
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInTest() async {
@@ -311,11 +347,14 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    await resolveFileCode('$testPackageRootPath/test/foo_test.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageRootPath/test/foo_test.dart',
+      r'''
 export 'package:test/src/foo.dart';
-''');
+''',
+    );
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   void test_internalIsLibSrc() async {

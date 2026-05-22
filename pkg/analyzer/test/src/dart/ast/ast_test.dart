@@ -1343,7 +1343,7 @@ class IntegerLiteralImplTest {
 @reflectiveTest
 class NodeCoveringTest extends PubPackageResolutionTest {
   Future<AstNode> coveringNode(String sourceCode) async {
-    var range = await _range(sourceCode);
+    var (result, range) = await _range(sourceCode);
     var node = result.unit.nodeCovering(
       offset: range.offset,
       length: range.length,
@@ -1352,7 +1352,7 @@ class NodeCoveringTest extends PubPackageResolutionTest {
   }
 
   void test_after_EOF() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 library myLib;
 ''');
     var node = result.unit.nodeCovering(offset: 100, length: 20);
@@ -1747,7 +1747,9 @@ class C { void call() {} }  Function f = C^();
     node as NamedType;
   }
 
-  Future<SourceRange> _range(String sourceCode) async {
+  Future<(TestResolvedUnitResult, SourceRange)> _range(
+    String sourceCode,
+  ) async {
     // TODO(brianwilkerson): Move TestCode to the analyzer package and make use
     //  of it here.
     var offset = sourceCode.indexOf('^');
@@ -1756,7 +1758,7 @@ class C { void call() {} }  Function f = C^();
     }
     var testCode =
         sourceCode.substring(0, offset) + sourceCode.substring(offset + 1);
-    await resolveTestCode(testCode);
-    return SourceRange(offset, 0);
+    var result = await resolveTestCode(testCode);
+    return (result, SourceRange(offset, 0));
   }
 }

@@ -3878,7 +3878,7 @@ const v2 = -v1;
     String name,
   ) {
     var value = _evaluateConstant(unitResult, name);
-    var featureSet = result.libraryElement.featureSet;
+    var featureSet = unitResult.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isFalse);
   }
@@ -3888,7 +3888,7 @@ const v2 = -v1;
     String name,
   ) {
     var value = _evaluateConstant(unitResult, name);
-    var featureSet = result.libraryElement.featureSet;
+    var featureSet = unitResult.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
   }
@@ -3901,7 +3901,10 @@ mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
+    );
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -3910,7 +3913,10 @@ const c = [1, if (1 < 0) 2 else 3, 4];
 const c = [1, if (1 < 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
+    );
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -3919,7 +3925,10 @@ const c = [1, if (1 < 0) 2, 3];
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
+    );
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -3928,7 +3937,10 @@ const c = [1, if (1 > 0) 2 else 3, 4];
 const c = [1, if (1 > 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
+    );
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -3939,7 +3951,10 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     // The expected type ought to be `List<int>`, but type inference isn't yet
     // implemented.
-    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
+    );
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -3948,7 +3963,10 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 const c = [1, ...[2, 3], 4];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
+    );
     expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
@@ -3959,7 +3977,10 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
-      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+      unitResult.typeProvider.mapType(
+        unitResult.typeProvider.stringType,
+        unitResult.typeProvider.intType,
+      ),
     );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
@@ -3976,7 +3997,10 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
-      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+      unitResult.typeProvider.mapType(
+        unitResult.typeProvider.stringType,
+        unitResult.typeProvider.intType,
+      ),
     );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
@@ -3993,7 +4017,10 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
-      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+      unitResult.typeProvider.mapType(
+        unitResult.typeProvider.stringType,
+        unitResult.typeProvider.intType,
+      ),
     );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
@@ -4010,7 +4037,10 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
-      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+      unitResult.typeProvider.mapType(
+        unitResult.typeProvider.stringType,
+        unitResult.typeProvider.intType,
+      ),
     );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
@@ -4029,7 +4059,10 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
-      typeProvider.mapType(typeProvider.intType, typeProvider.intType),
+      unitResult.typeProvider.mapType(
+        unitResult.typeProvider.intType,
+        unitResult.typeProvider.intType,
+      ),
     );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
@@ -4046,7 +4079,10 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
-      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+      unitResult.typeProvider.mapType(
+        unitResult.typeProvider.stringType,
+        unitResult.typeProvider.intType,
+      ),
     );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
@@ -4064,7 +4100,10 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
+    );
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -4073,7 +4112,10 @@ const c = {1, if (1 < 0) 2 else 3, 4};
 const c = {1, if (1 < 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
+    );
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -4082,7 +4124,10 @@ const c = {1, if (1 < 0) 2, 3};
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
+    );
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -4091,7 +4136,10 @@ const c = {1, if (1 > 0) 2 else 3, 4};
 const c = {1, if (1 > 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
+    );
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -4100,7 +4148,10 @@ const c = {1, if (1 > 0) 2, 3};
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
+    );
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -4109,7 +4160,10 @@ const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 const c = {1, ...{2, 3}, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(
+      result.type,
+      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
+    );
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
@@ -4293,7 +4347,7 @@ const c = a && true;
 const c = false & true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_bool_known_unknown() async {
@@ -4302,7 +4356,7 @@ const b = bool.fromEnvironment('y');
 const c = false & b;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_bool_true_invalid() async {
@@ -4320,7 +4374,7 @@ const a = bool.fromEnvironment('x');
 const c = a & true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_bool_unknown_unknown() async {
@@ -4330,7 +4384,7 @@ const b = bool.fromEnvironment('y');
 const c = a & b;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_and_int() async {
@@ -4533,7 +4587,7 @@ const c = a || true;
 const c = false | true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_bool_known_unknown() async {
@@ -4542,7 +4596,7 @@ const b = bool.fromEnvironment('y');
 const c = false | b;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_bool_true_invalid() async {
@@ -4562,7 +4616,7 @@ const a = bool.fromEnvironment('x');
 const c = a | true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_bool_unknown_unknown() async {
@@ -4572,7 +4626,7 @@ const b = bool.fromEnvironment('y');
 const c = a | b;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_or_int() async {
@@ -4580,7 +4634,7 @@ const c = a | b;
 const c = 3 | 5;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.intType);
+    expect(result.type, unitResult.typeProvider.intType);
   }
 
   test_visitBinaryExpression_or_known_known() async {
@@ -4611,7 +4665,7 @@ const c = 3 | false;
 const c = 'a' ?? 'b';
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.stringType);
+    expect(result.type, unitResult.typeProvider.stringType);
     expect(result.toStringValue(), 'a');
   }
 
@@ -4629,7 +4683,7 @@ class C {}
 const c = null ?? 'b';
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.stringType);
+    expect(result.type, unitResult.typeProvider.stringType);
     expect(result.toStringValue(), 'b');
   }
 
@@ -4646,7 +4700,7 @@ const c = null ?? null;
 const c = false ^ true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_bool_known_unknown() async {
@@ -4655,7 +4709,7 @@ const b = bool.fromEnvironment('y');
 const c = false ^ b;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_bool_unknown_known() async {
@@ -4664,7 +4718,7 @@ const a = bool.fromEnvironment('x');
 const c = a ^ true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_bool_unknown_unknown() async {
@@ -4674,7 +4728,7 @@ const b = bool.fromEnvironment('y');
 const c = a ^ b;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.boolType);
+    expect(result.type, unitResult.typeProvider.boolType);
   }
 
   test_visitBinaryExpression_xor_int() async {
@@ -4682,7 +4736,7 @@ const c = a ^ b;
 const c = 3 ^ 5;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(result.type, typeProvider.intType);
+    expect(result.type, unitResult.typeProvider.intType);
   }
 
   test_visitBinaryExpression_xor_mixed() async {
@@ -4878,7 +4932,7 @@ double 3.45
 const double d = 3;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'd');
-    expect(result.type, typeProvider.doubleType);
+    expect(result.type, unitResult.typeProvider.doubleType);
     expect(result.toDoubleValue(), 3.0);
   }
 
@@ -5131,8 +5185,8 @@ const y = B(x);
 const a = dynamic;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'a');
-    expect(result.type, typeProvider.typeType);
-    expect(result.toTypeValue(), typeProvider.dynamicType);
+    expect(result.type, unitResult.typeProvider.typeType);
+    expect(result.toTypeValue(), unitResult.typeProvider.dynamicType);
   }
 
   test_visitSimpleIdentifier_variable() async {
@@ -5227,6 +5281,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
         .topVariableDeclarationByName(name)
         .initializer!;
     return _evaluateExpression(
+      unitResult,
       expression,
       diagnosticCodes: diagnosticCodes,
       declaredVariables: declaredVariables,
@@ -5234,11 +5289,12 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   }
 
   DartObjectImpl? _evaluateExpression(
+    TestResolvedUnitResult unitResult,
     Expression expression, {
     List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
   }) {
-    var unit = this.result.unit;
+    var unit = unitResult.unit;
     var source = unit.declaredFragment!.source;
     var errorListener = GatheringDiagnosticListener();
     var diagnosticReporter = DiagnosticReporter(errorListener, source);
@@ -5247,7 +5303,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
         configuration: ConstantEvaluationConfiguration(),
       ),
-      this.result.libraryElement,
+      unitResult.libraryElement,
       diagnosticReporter,
     );
 

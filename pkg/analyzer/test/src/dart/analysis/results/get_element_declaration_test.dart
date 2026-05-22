@@ -45,7 +45,7 @@ class A {} // 2
       expect(node.namePart.typeName.lexeme, 'A');
       expect(
         node.namePart.typeName.offset,
-        this.result.content.indexOf('A {} // 1'),
+        unitResult.content.indexOf('A {} // 1'),
       );
     }
 
@@ -58,7 +58,7 @@ class A {} // 2
       expect(node.namePart.typeName.lexeme, 'A');
       expect(
         node.namePart.typeName.offset,
-        this.result.content.indexOf('A {} // 2'),
+        unitResult.content.indexOf('A {} // 2'),
       );
     }
   }
@@ -137,7 +137,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
-      expect(node.name!.offset, this.result.content.indexOf('named(); // 1'));
+      expect(node.name!.offset, unitResult.content.indexOf('named(); // 1'));
     }
 
     {
@@ -147,7 +147,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
-      expect(node.name!.offset, this.result.content.indexOf('named(); // 2'));
+      expect(node.name!.offset, unitResult.content.indexOf('named(); // 2'));
     }
   }
 
@@ -165,7 +165,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(node.typeName!.offset, this.result.content.indexOf('A(); // 1'));
+      expect(node.typeName!.offset, unitResult.content.indexOf('A(); // 1'));
     }
 
     {
@@ -175,7 +175,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(node.typeName!.offset, this.result.content.indexOf('A(); // 2'));
+      expect(node.typeName!.offset, unitResult.content.indexOf('A(); // 2'));
     }
   }
 
@@ -338,8 +338,8 @@ int get x => 0;
   }
 
   test_libraryFragment() async {
-    await resolveTestCode('');
-    var fragment = this.result.libraryFragment;
+    var unitResult = await resolveTestCode('');
+    var fragment = unitResult.libraryFragment;
     var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }

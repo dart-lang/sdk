@@ -355,7 +355,7 @@ part of 'test.dart';
 ''');
 
     var result = await resolveFile2(a);
-    assertNoErrorsInResult();
+    assertErrorsInTestResult(result, const []);
 
     _assertAtFoo42(result);
   }

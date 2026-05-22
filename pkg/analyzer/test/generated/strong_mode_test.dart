@@ -67,14 +67,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   late final AsserterBuilder<Element, DartType> _hasElement;
 
-  CompilationUnit get unit => result.unit;
-
   @override
   Future<TestResolvedUnitResult> resolveTestFile() async {
     var result = await super.resolveTestFile();
 
     var assertions = _assertions;
     if (assertions == null) {
+      var typeProvider = result.typeProvider;
       assertions = _assertions = TypeAssertions(typeProvider);
       _isType = assertions.isType;
       _hasElement = assertions.hasElement;
@@ -123,10 +122,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         Future<int> g5() async { return await new Future.value(3); }
       }
    ''';
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
+      MethodDeclaration test = AstFinder.getMethodInClass(
+        result.unit,
+        "A",
+        name,
+      );
       FunctionBody body = test.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
@@ -178,10 +181,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       Future<int> g4() async { return new Future.value(3); }
       Future<int> g5() async { return await new Future.value(3); }
    ''';
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
+      FunctionDeclaration test = AstFinder.getTopLevelFunction(
+        result.unit,
+        name,
+      );
       var body = test.functionExpression.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
@@ -225,9 +231,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         A<int> a = new A()..map(0, (x) => [x]);
      }
    ''';
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     CascadeExpression fetch(int i) {
@@ -237,7 +243,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       return exp;
     }
 
-    var elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    var elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
@@ -245,14 +254,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var function = invoke.argumentList.arguments[1] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);
-    expect(f0.type.normalParameterTypes[0], typeProvider.intType);
+    expect(f0.type.normalParameterTypes[0], result.typeProvider.intType);
   }
 
   test_constrainedByBounds1() async {
     // Test that upwards inference with two type variables correctly
     // propagates from the constrained variable to the unconstrained
     // variable if they are ordered left to right.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     T f<S, T extends S>(S x) => null;
 //                              ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
@@ -262,7 +271,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -275,7 +284,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // Test that upwards inference with two type variables does
     // propagate from the constrained variable to the unconstrained
     // variable if they are ordered right to left.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     T f<T extends S, S>(S x) => null;
 //                              ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
@@ -285,7 +294,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -295,7 +304,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_constrainedByBounds3() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       T f<T extends S, S extends int>(S x) => null;
 //                                            ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
@@ -305,7 +314,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -319,7 +328,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // propagates from the constrained variable to the unconstrained
     // variable if they are ordered left to right, when the variable
     // appears co and contra variantly
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     T f<S, T extends Func1<S, S>>(S x) => null;
 //                                        ^^^^
@@ -330,7 +339,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -350,7 +359,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T f<T extends Func1<S, S>, S>(S x) => null;
     void test() { var x = f(3)(null); }
    ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.returnOfInvalidTypeFromFunction, 82, 4),
       error(diag.unusedLocalVariable, 110, 1),
       error(diag.couldNotInfer, 114, 1),
@@ -358,7 +367,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -374,9 +383,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         A() : this.x = [];
       }
    ''';
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -386,7 +395,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_factoryConstructor_propagation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A<T> {
         factory A() { return new B(); }
       }
@@ -396,7 +405,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -404,11 +413,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
     ClassElement elementB = AstFinder.getClass(
-      unit,
+      result.unit,
       "B",
     ).declaredFragment!.element;
     ClassElement elementA = AstFinder.getClass(
-      unit,
+      result.unit,
       "A",
     ).declaredFragment!.element;
     var type = exp.constructorName.type.typeOrThrow as InterfaceType;
@@ -428,15 +437,19 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         List<String> f0 = ["hello"];
       }
    ''';
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    VariableDeclaration field = AstFinder.getFieldInClass(unit, "A", "f0");
+    VariableDeclaration field = AstFinder.getFieldInClass(
+      result.unit,
+      "A",
+      "f0",
+    );
 
     _isListOf(_isString)(field.initializer!.staticType as InterfaceType);
   }
 
   test_functionDeclaration_body_propagation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       List<int> test1() => [];
@@ -453,12 +466,15 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
 
-    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(unit, "test1");
+    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test1",
+    );
     var body = test1.functionExpression.body as ExpressionFunctionBody;
     assertListOfInt(body.expression.staticType as InterfaceType);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test2",
     );
 
@@ -468,19 +484,19 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var return0 = body0.block.statements[0] as ReturnStatement;
     Expression anon0 = return0.expression!;
     var type0 = anon0.staticType as FunctionType;
-    expect(type0.returnType, typeProvider.intType);
-    expect(type0.normalParameterTypes[0], typeProvider.stringType);
+    expect(type0.returnType, result.typeProvider.intType);
+    expect(type0.normalParameterTypes[0], result.typeProvider.stringType);
 
     var anon1 =
         (statements[1] as ReturnStatement).expression as FunctionExpression;
     FunctionType type1 = anon1.declaredFragment!.element.type;
-    expect(type1.returnType, typeProvider.intType);
-    expect(type1.normalParameterTypes[0], typeProvider.intType);
+    expect(type1.returnType, result.typeProvider.intType);
+    expect(type1.normalParameterTypes[0], result.typeProvider.intType);
   }
 
   test_functionLiteral_assignment_typedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
-      typedef T Function2<S, T>(S x);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+        typedef T Function2<S, T>(S x);
 
       void main () {
         Function2<int, String> l0 = (int x) => null;
@@ -510,7 +526,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -528,7 +544,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_assignment_unTypedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       void main () {
@@ -557,7 +573,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -575,7 +591,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_body_propagation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       void main () {
@@ -601,7 +617,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     Expression functionReturnValue(int i) {
@@ -625,7 +641,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionExpressionInvocation_typedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
 //                                     ^^^^
@@ -650,7 +666,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -668,7 +684,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionExpressionInvocation_unTypedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
 //                                     ^^^^
@@ -691,7 +707,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -709,7 +725,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionInvocation_typedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       String map(String mapper(int x)) => mapper(null);
 //                                               ^^^^
 // [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'int'.
@@ -732,7 +748,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -750,7 +766,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionInvocation_unTypedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       String map(String mapper(int x)) => mapper(null);
 //                                               ^^^^
 // [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'int'.
@@ -771,7 +787,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -789,7 +805,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_methodInvocation_typedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
 //                                     ^^^^
@@ -814,7 +830,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -832,7 +848,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_methodInvocation_unTypedArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
 //                                     ^^^^
@@ -855,7 +871,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -873,7 +889,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_unTypedArgument_propagation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       void main () {
@@ -900,7 +916,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     Expression functionReturnValue(int i) {
@@ -916,11 +932,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       }
     }
 
-    expect(functionReturnValue(0).staticType, typeProvider.intType);
-    expect(functionReturnValue(1).staticType, typeProvider.intType);
-    expect(functionReturnValue(2).staticType, typeProvider.intType);
+    expect(functionReturnValue(0).staticType, result.typeProvider.intType);
+    expect(functionReturnValue(1).staticType, result.typeProvider.intType);
+    expect(functionReturnValue(2).staticType, result.typeProvider.intType);
     expect(functionReturnValue(3).staticType, InvalidTypeImpl.instance);
-    expect(functionReturnValue(4).staticType, typeProvider.stringType);
+    expect(functionReturnValue(4).staticType, result.typeProvider.stringType);
   }
 
   test_futureOr_assignFromFuture() async {
@@ -1288,7 +1304,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // type schemas correctly.  Downwards inference in a partial context
     // (e.g. Map<String, ?>) should still allow upwards inference to fill
     // in the missing information.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T x);
   A.fromA(A<T> a) {}
@@ -1321,9 +1337,12 @@ void test() {
 }
    ''');
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     void check(int i) {
@@ -1353,7 +1372,10 @@ void test() {
         ''');
 
     DartType cType = result.findElement.localVar('c').type;
-    Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
+    Element elementC = AstFinder.getClass(
+      result.unit,
+      "C",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementC))([_isType])(cType);
   }
@@ -1368,12 +1390,12 @@ test() {
   var h = g((int x) => 42.0);
 }
  ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.unusedLocalVariable, 84, 1),
       error(diag.couldNotInfer, 88, 1),
       error(diag.argumentTypeNotAssignable, 90, 15),
     ]);
-    _expectInferenceError(r'''
+    _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'double' for 'T' which doesn't work:
@@ -1395,13 +1417,13 @@ test() {
   var h = g((int x) => 42.0, (double x) => 42);
 }
  ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.unusedLocalVariable, 95, 1),
       error(diag.couldNotInfer, 99, 1),
       error(diag.argumentTypeNotAssignable, 101, 15),
       error(diag.argumentTypeNotAssignable, 118, 16),
     ]);
-    _expectInferenceError(r'''
+    _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1503,12 +1525,12 @@ test() {
   F<num, int> h = g(42);
 }
  ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.unusedLocalVariable, 80, 1),
       error(diag.couldNotInfer, 84, 1),
       error(diag.invalidAssignment, 84, 5),
     ]);
-    _expectInferenceError(r'''
+    _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -2169,7 +2191,7 @@ MethodInvocation
         get map => { 43: [] };
       }
    ''';
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
     Asserter<InterfaceType> assertMapOfIntToListOfInt = _isMapOf(
@@ -2177,8 +2199,16 @@ MethodInvocation
       (DartType type) => assertListOfInt(type as InterfaceType),
     );
 
-    VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
-    MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
+    VariableDeclaration mapB = AstFinder.getFieldInClass(
+      result.unit,
+      "B",
+      "map",
+    );
+    MethodDeclaration mapC = AstFinder.getMethodInClass(
+      result.unit,
+      "C",
+      "map",
+    );
     assertMapOfIntToListOfInt(
       mapB.declaredFragment!.element.type as InterfaceType,
     );
@@ -2201,7 +2231,7 @@ MethodInvocation
   }
 
   test_instanceCreation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A<S, T> {
         S x;
         T y;
@@ -2441,12 +2471,30 @@ MethodInvocation
     void hasType(Asserter<DartType> assertion, Expression exp) =>
         assertion(exp.typeOrThrow);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
-    Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
-    Element elementD = AstFinder.getClass(unit, "D").declaredFragment!.element;
-    Element elementE = AstFinder.getClass(unit, "E").declaredFragment!.element;
-    Element elementF = AstFinder.getClass(unit, "F").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
+    Element elementC = AstFinder.getClass(
+      result.unit,
+      "C",
+    ).declaredFragment!.element;
+    Element elementD = AstFinder.getClass(
+      result.unit,
+      "D",
+    ).declaredFragment!.element;
+    Element elementE = AstFinder.getClass(
+      result.unit,
+      "E",
+    ).declaredFragment!.element;
+    Element elementF = AstFinder.getClass(
+      result.unit,
+      "F",
+    ).declaredFragment!.element;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -2463,7 +2511,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test0",
       ).cast<VariableDeclarationStatement>();
 
@@ -2478,7 +2526,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test1",
       ).cast<VariableDeclarationStatement>();
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
@@ -2487,7 +2535,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test2",
       ).cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
@@ -2500,7 +2548,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test3",
       ).cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
@@ -2509,7 +2557,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test4",
       ).cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
@@ -2522,7 +2570,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test5",
       ).cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
@@ -2534,7 +2582,7 @@ MethodInvocation
       // context.  We could choose a tighter type, but currently
       // we just use dynamic.
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test6",
       ).cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
@@ -2547,7 +2595,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test7",
       ).cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
@@ -2556,7 +2604,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test8",
       ).cast<VariableDeclarationStatement>();
       hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
@@ -2564,7 +2612,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test9",
       ).cast<VariableDeclarationStatement>();
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
@@ -2577,7 +2625,7 @@ MethodInvocation
   }
 
   test_listLiteral_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         List<List<int>> l0 = [[]];
 //                      ^^
@@ -2597,7 +2645,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     ListLiteral literal(int i) {
@@ -2629,7 +2677,7 @@ MethodInvocation
   }
 
   test_listLiteral_simple() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         List<int> l0 = [];
 //                ^^
@@ -2651,7 +2699,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -2670,7 +2718,7 @@ MethodInvocation
   }
 
   test_listLiteral_simple_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         const List<int> c0 = const [];
 //                      ^^
@@ -2692,7 +2740,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -2711,7 +2759,7 @@ MethodInvocation
   }
 
   test_listLiteral_simple_disabled() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         List<int> l0 = <num>[];
 //                ^^
@@ -2737,7 +2785,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -2754,7 +2802,7 @@ MethodInvocation
   }
 
   test_listLiteral_simple_subtype() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Iterable<int> l0 = [];
 //                    ^^
@@ -2776,7 +2824,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     InterfaceType literal(int i) {
@@ -2795,7 +2843,7 @@ MethodInvocation
   }
 
   test_mapLiteral_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Map<int, List<String>> l0 = {};
 //                             ^^
@@ -2824,7 +2872,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     SetOrMapLiteral literal(int i) {
@@ -2865,7 +2913,7 @@ MethodInvocation
   }
 
   test_mapLiteral_simple() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Map<int, String> l0 = {};
 //                       ^^
@@ -2894,7 +2942,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     InterfaceType literal(int i) {
@@ -2916,7 +2964,7 @@ MethodInvocation
   }
 
   test_mapLiteral_simple_disabled() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Map<int, String> l0 = <int, dynamic>{};
 //                       ^^
@@ -2944,7 +2992,7 @@ MethodInvocation
    ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     InterfaceType literal(int i) {
@@ -2966,7 +3014,7 @@ MethodInvocation
   }
 
   test_methodDeclaration_body_propagation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A {
         List<String> m0(int x) => ["hello"];
         List<String> m1(int x) {return [3];}
@@ -2977,7 +3025,7 @@ MethodInvocation
 
     Expression methodReturnValue(String methodName) {
       MethodDeclaration method = AstFinder.getMethodInClass(
-        unit,
+        result.unit,
         "A",
         methodName,
       );
@@ -2999,7 +3047,7 @@ MethodInvocation
     // Test that downwards inference with a partial type
     // correctly uses the partial information to fill in subterm
     // types
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     S f<S, T>(Func1<S, T> g) => null;
 //                              ^^^^
@@ -3007,7 +3055,10 @@ MethodInvocation
     String test() => f((l) => l.length);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     _isString(body.expression.typeOrThrow);
     var invoke = body.expression as MethodInvocation;
@@ -3021,7 +3072,7 @@ MethodInvocation
     // Test that downwards inference with two different downwards covariant
     // constraints on the same parameter correctly fails to infer when
     // the types do not share a common subtype
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3036,11 +3087,17 @@ MethodInvocation
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNever])(type);
   }
@@ -3048,7 +3105,7 @@ MethodInvocation
   test_pinning_multipleConstraints2() async {
     // Test that downwards inference with two identical downwards covariant
     // constraints on the same parameter correctly infers and pins the type
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3061,11 +3118,17 @@ MethodInvocation
     A<num, num> test() => new B(3);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -3074,7 +3137,7 @@ MethodInvocation
     // Test that downwards inference with two different downwards covariant
     // constraints on the same parameter correctly fails to infer when
     // the types do not share a common subtype, but do share a common supertype
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3089,11 +3152,17 @@ MethodInvocation
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNever])(type);
   }
@@ -3102,7 +3171,7 @@ MethodInvocation
     // Test that downwards inference with two subtype related downwards
     // covariant constraints on the same parameter correctly infers and pins
     // the type
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3115,11 +3184,17 @@ MethodInvocation
     A<int, num> test() => new B();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -3128,7 +3203,7 @@ MethodInvocation
     // Test that downwards inference with two different downwards contravariant
     // constraints on the same parameter chooses the upper bound
     // when the only supertype is Object
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3143,12 +3218,18 @@ MethodInvocation
     Contra1<A<int, String>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -3156,7 +3237,7 @@ MethodInvocation
   test_pinning_multipleConstraints_contravariant2() async {
     // Test that downwards inference with two identical downwards contravariant
     // constraints on the same parameter correctly pins the type
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3171,12 +3252,18 @@ MethodInvocation
     Contra1<A<num, num>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3185,7 +3272,7 @@ MethodInvocation
     // Test that downwards inference with two different downwards contravariant
     // constraints on the same parameter correctly choose the least upper bound
     // when they share a common supertype
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3200,12 +3287,18 @@ MethodInvocation
     Contra1<A<int, double>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3214,7 +3307,7 @@ MethodInvocation
     // Test that downwards inference with two different downwards contravariant
     // constraints on the same parameter correctly choose the least upper bound
     // when one is a subtype of the other
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
 //      ^
@@ -3229,12 +3322,18 @@ MethodInvocation
     Contra1<A<int, num>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3249,9 +3348,9 @@ class B<T2, U2> {
   factory B() = A.named;
 }
    ''';
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    var b = unit.declarations[1] as ClassDeclaration;
+    var b = result.unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
@@ -3275,7 +3374,7 @@ class A<T> {
   }
 
   test_redirectedConstructor_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> implements B<T, U> {
   A();
 }
@@ -3305,10 +3404,10 @@ class B<T2, U2> {
         A.named(List<String> x);
       }
    ''';
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -3321,7 +3420,7 @@ class B<T2, U2> {
   test_returnType_variance1() async {
     // Check that downwards inference correctly pins a type parameter
     // when the parameter is constrained in a contravariant position
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<T, String> f<T>(T x) => null;
 //                                ^^^^
@@ -3329,7 +3428,10 @@ class B<T2, U2> {
     Func1<num, String> test() => f(42);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var invoke = body.expression as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
@@ -3340,7 +3442,7 @@ class B<T2, U2> {
   test_returnType_variance2() async {
     // Check that downwards inference correctly pins a type parameter
     // when the parameter is constrained in a covariant position
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<String, T> f<T>(T x) => null;
 //                                ^^^^
@@ -3348,7 +3450,10 @@ class B<T2, U2> {
     Func1<String, num> test() => f(42);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var invoke = body.expression as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
@@ -3360,7 +3465,7 @@ class B<T2, U2> {
     // Check that the variance heuristic chooses the most precise type
     // when the return type uses the variable in a contravariant position
     // and there is no downwards constraint.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<T, String> f<T>(T x, g(T x)) => null;
 //                                        ^^^^
@@ -3368,7 +3473,10 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
@@ -3379,7 +3487,7 @@ class B<T2, U2> {
     // Check that the variance heuristic chooses the more precise type
     // when the return type uses the variable in a covariant position
     // and there is no downwards constraint
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<String, T> f<T>(T x, g(T x)) => null;
 //                                        ^^^^
@@ -3387,7 +3495,10 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.returnType;
@@ -3397,7 +3508,7 @@ class B<T2, U2> {
   test_returnType_variance5() async {
     // Check that pinning works correctly with a partial type
     // when the return type uses the variable in a contravariant position
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<T, String> f<T>(T x) => null;
 //                                ^^^^
@@ -3408,7 +3519,10 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var call = body.expression as MethodInvocation;
     _isNum(call.typeOrThrow);
@@ -3420,7 +3534,7 @@ class B<T2, U2> {
   test_returnType_variance6() async {
     // Check that pinning works correctly with a partial type
     // when the return type uses the variable in a covariant position
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<String, T> f<T>(T x) => null;
 //                                ^^^^
@@ -3431,7 +3545,10 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var call = body.expression as MethodInvocation;
     _isNum(call.typeOrThrow);
@@ -3449,10 +3566,10 @@ class B<T2, U2> {
         A() : super([]);
       }
    ''';
-    await resolveTestCodeWithDiagnostics(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -3463,7 +3580,10 @@ class B<T2, U2> {
 
   /// Verifies the result has [diag.couldNotInfer] with
   /// the expected [errorMessage].
-  void _expectInferenceError(String errorMessage) {
+  void _expectInferenceError(
+    TestResolvedUnitResult result,
+    String errorMessage,
+  ) {
     var errors = result.diagnostics
         .where((e) => e.diagnosticCode == diag.couldNotInfer)
         .map((e) => e.message)
@@ -3492,9 +3612,12 @@ import "dart:async";
 
 $code
 """;
-    await assertErrorsInCode(fullCode, expectedDiagnostics);
+    var result = await assertErrorsInCode(fullCode, expectedDiagnostics);
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     return body.expression as MethodInvocation;
   }
@@ -3789,7 +3912,7 @@ class D<S> {
 
       for (int i = 1; i <= 5; i++) {
         Expression exp = (statements[i] as ExpressionStatement).expression;
-        expect(exp.staticType, typeProvider.dynamicType);
+        expect(exp.staticType, result.typeProvider.dynamicType);
       }
     }
 
@@ -3837,12 +3960,12 @@ main() {
     assertType(result.findElement.method('f').type, 'List<T> Function<T>(E)');
 
     var cOfString = result.findElement.localVar('cOfString');
-    var ft = inheritanceManager
+    var ft = result.inheritanceManager
         .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
         .type;
     assertType(ft, 'List<T> Function<T>(String)');
     assertType(
-      ft.instantiate([typeProvider.intType]),
+      ft.instantiate([result.typeProvider.intType]),
       'List<int> Function(String)',
     );
   }
@@ -3868,7 +3991,7 @@ main() {
     assertType(ft, 'List<int> Function(String)');
 
     var x = result.findElement.localVar('x');
-    expect(x.type, typeProvider.listType(typeProvider.intType));
+    expect(x.type, result.typeProvider.listType(result.typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
@@ -4164,12 +4287,12 @@ main() {
     );
 
     var cOfString = result.findElement.localVar('cOfString');
-    var ft = inheritanceManager
+    var ft = result.inheritanceManager
         .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
         .type;
     assertType(ft, 'List<T> Function<T>(T Function(String))');
     assertType(
-      ft.instantiate([typeProvider.intType]),
+      ft.instantiate([result.typeProvider.intType]),
       'List<int> Function(int Function(String))',
     );
   }

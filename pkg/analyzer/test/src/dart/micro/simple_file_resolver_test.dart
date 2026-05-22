@@ -427,7 +427,7 @@ import 'a.dart';
 void f(A a, B b) {}
 ''');
 
-    result = await resolveFile(b);
+    var result = await resolveFile(b);
     assertErrorsInResolvedUnit(result, [error(diag.undefinedClass, 29, 1)]);
 
     newFile(a.path, r'''
@@ -455,7 +455,7 @@ void f(A a) {
 }
 ''');
 
-    result = await resolveFile(b);
+    var result = await resolveFile(b);
     assertErrorsInResolvedUnit(result, [error(diag.assignmentToFinal, 36, 3)]);
 
     newFile(a.path, r'''
@@ -480,7 +480,7 @@ var b = B(0);
 part of 'a.dart';
 ''');
 
-    result = await resolveFile(a);
+    var result = await resolveFile(a);
     assertErrorsInResolvedUnit(result, [error(diag.undefinedFunction, 24, 1)]);
 
     // Update a.dart, and notify the resolver. We need this to have at least
@@ -1449,7 +1449,7 @@ var a = 4.2;
   }
 
   test_getFilesWithTopLevelDeclarations_cached() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 var b = 1 + 2;
 ''');
@@ -1511,8 +1511,8 @@ part of 'b.dart';
     var a = newFile('/workspace/third_party/dart/aaa/lib/a.dart', r'''
 import 'dart:math';
 ''');
-    await resolveFile(a);
-    assertNoErrorsInResult();
+    var result = await resolveFile(a);
+    assertErrorsInResolvedUnit(result, const []);
   }
 
   test_linkLibraries() async {
@@ -2455,8 +2455,8 @@ void func() {
     // No resolved files yet.
     _assertResolvedFiles([]);
 
-    await resolveFile2(testFile);
-    var result1 = result;
+    var result = await resolveFile2(testFile);
+    var result1 = result.analysisResult;
 
     // The file was resolved.
     _assertResolvedFiles([testFile]);
@@ -2465,22 +2465,22 @@ void func() {
     expect(fileResolver.cachedResults, contains(testFile.path));
 
     // Ask again, no changes, not resolved.
-    await resolveFile2(testFile);
+    result = await resolveFile2(testFile);
     _assertResolvedFiles([]);
 
     // The same result was returned.
-    expect(result, same(result1));
+    expect(result.analysisResult, same(result1));
 
     // Change a file.
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
     fileResolver.changeFiles([a_path]);
 
     // The was a change to a file, no matter which, resolve again.
-    await resolveFile2(testFile);
+    result = await resolveFile2(testFile);
     _assertResolvedFiles([testFile]);
 
     // Get should get a new result.
-    expect(result, isNot(same(result1)));
+    expect(result.analysisResult, isNot(same(result1)));
   }
 
   test_resolveLibrary() async {

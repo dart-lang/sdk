@@ -40,7 +40,7 @@ extension StringExtension on String {}
   }
 
   test_extension_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension on String {}
 ''');
 

@@ -43,8 +43,10 @@ augment class A {
 }
 ''');
 
-    await resolveFile2(b);
-    assertErrorsInResult([error(diag.invalidFactoryNameNotAClass, 47, 1)]);
+    var result = await resolveFile2(b);
+    assertErrorsInTestResult(result, [
+      error(diag.invalidFactoryNameNotAClass, 47, 1),
+    ]);
   }
 
   test_notEnclosingClassName_withoutPrimaryConstructors() async {
@@ -86,7 +88,7 @@ augment class A {
 }
 ''');
 
-    await resolveFile2(b);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(b);
+    assertNoErrorsInTestResult(result);
   }
 }

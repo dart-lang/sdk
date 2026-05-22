@@ -311,8 +311,8 @@ void f() {
 ''');
 
     // We don't have any lints configured, so no errors.
-    await resolveTestFile();
-    assertErrorsInResult([]);
+    var result = await resolveTestFile();
+    assertErrorsInTestResult(result, []);
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);
@@ -327,7 +327,7 @@ void f() {
     );
 
     // Check that the lint was run, and reported.
-    await resolveTestFile();
+    result = await resolveTestFile();
     _assertHasLintReported(result.diagnostics, 'prefer_is_not_empty');
 
     // Lints don't affect summaries, nothing should be linked.

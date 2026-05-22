@@ -999,11 +999,11 @@ class B_q extends p.A {}
   }
 
   test_scenario_ClassElement_hierarchy_class_extends_implicitObject() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {}
 ''');
     includedLibraryUris = {Uri.parse(testUriStr)};
-    var element = typeProvider.objectType.element;
+    var element = result.typeProvider.objectType.element;
     await assertElementReferencesText(element, r'''''');
     await assertSubTypesText(element, '');
   }
@@ -2389,7 +2389,7 @@ package:test/other.dart useConstructor@66
   }
 
   test_searchReferences_ConstructorElement_classTypeAlias_cycle() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class M {}
 class A = B with M;
 class B = A with M;
@@ -3344,7 +3344,7 @@ void useField(E e) {
   }
 
   test_searchReferences_FieldElement_ofEnum_instance_index() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 enum MyEnum {
   v1, v2, v3
 }
@@ -3355,7 +3355,7 @@ main() {
   MyEnum.v2;
 }
 ''');
-    var index = typeProvider.enumElement!.getField('index')!;
+    var index = result.typeProvider.enumElement!.getField('index')!;
     await assertElementReferencesText(index, r'''
 <testLibraryFragment> main@29
   50 5:13 |index| READ qualified
@@ -4764,7 +4764,7 @@ label:
 
     fileForContextSelection = testFile;
 
-    await resolveFileCode(libPath, '''
+    var result = await resolveFileCode(libPath, '''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
@@ -4781,7 +4781,7 @@ part 'unitB.dart';
   test_searchReferences_LibraryElement_partOfName() async {
     newFile('$testPackageLibPath/unitA.dart', 'part of lib;');
     newFile('$testPackageLibPath/unitB.dart', 'part of lib;');
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
@@ -4804,7 +4804,7 @@ part of 'test.dart';
 part of 'test.dart';
 ''');
 
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 part 'unitA.dart';
 part 'unitB.dart';
 ''');
@@ -7353,7 +7353,7 @@ class NoMatchABCDEF {}
   }
 
   String _getSearchResultsText(List<SearchResult> results) {
-    var analysisSession = result.session;
+    var analysisSession = driver.currentSession;
 
     var groups = results
         .groupListsBy((result) => result.enclosingFragment)
@@ -7423,7 +7423,7 @@ class NoMatchABCDEF {}
   }
 
   String _getSearchResultsText2(List<LibraryFragmentSearchMatch> results) {
-    var analysisSession = result.session;
+    var analysisSession = driver.currentSession;
 
     var groups = results
         .groupListsBy((result) => result.libraryFragment)
