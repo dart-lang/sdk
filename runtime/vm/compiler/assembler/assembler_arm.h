@@ -725,6 +725,9 @@ class Assembler : public AssemblerBase {
   void vandq(QRegister qd, QRegister qn, QRegister qm);
   void vmvnq(QRegister qd, QRegister qm);
 
+  void vcnt(DRegister dd, DRegister dm);
+  void vpaddlu(OperandSize sz, DRegister dd, DRegister dm);
+
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
   void vcgeqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);

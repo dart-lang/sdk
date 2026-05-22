@@ -3409,6 +3409,53 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       }
 
       set_dregister_bits(dd, result);
+    } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(7) == 0) &&
+               (instr->Bit(5) == 0) && (instr->Bit(4) == 0) &&
+               (instr->Bits(16, 4) == 0) && (instr->Bits(20, 2) == 3) &&
+               (instr->Bits(23, 5) == 7)) {
+      // Format(instr, "vcnt.8 'dd, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dm = instr->DmField();
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      uint8_t* in = reinterpret_cast<uint8_t*>(&dm_value);
+      uint8_t* out = reinterpret_cast<uint8_t*>(&result);
+      for (int i = 0; i < 8; i++) {
+        out[i] = Utils::CountOneBits32(in[i]);
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
+    } else if ((instr->Bits(8, 4) == 2) && (instr->Bit(7) == 1) &&
+               (instr->Bit(5) == 0) && (instr->Bit(4) == 0) &&
+               (instr->Bits(16, 2) == 0) && (instr->Bits(20, 2) == 3) &&
+               (instr->Bits(23, 5) == 7)) {
+      // Format(instr, "vpaddl.u<sz> 'dd, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dm = instr->DmField();
+      const int size = instr->Bits(18, 2);
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      if (size == 0) {
+        uint8_t* in = reinterpret_cast<uint8_t*>(&dm_value);
+        uint16_t* out = reinterpret_cast<uint16_t*>(&result);
+        for (int i = 0; i < 4; i++) {
+          out[i] = static_cast<uint16_t>(in[2 * i]) +
+                   static_cast<uint16_t>(in[2 * i + 1]);
+        }
+      } else if (size == 1) {
+        uint16_t* in = reinterpret_cast<uint16_t*>(&dm_value);
+        uint32_t* out = reinterpret_cast<uint32_t*>(&result);
+        for (int i = 0; i < 2; i++) {
+          out[i] = static_cast<uint32_t>(in[2 * i]) +
+                   static_cast<uint32_t>(in[2 * i + 1]);
+        }
+      } else if (size == 2) {
+        uint32_t* in = reinterpret_cast<uint32_t*>(&dm_value);
+        result = static_cast<uint64_t>(in[0]) + static_cast<uint64_t>(in[1]);
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
     } else {
       UnimplementedInstruction(instr);
     }

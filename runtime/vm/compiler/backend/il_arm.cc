@@ -6742,6 +6742,31 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ sbc(out_hi, out_hi, compiler::Operand(out_hi));
       __ sub(out_hi, out_hi, compiler::Operand(left_hi));
       break;
+    case Token::kPOPCNT: {
+      __ vmovdrr(DTMP, left_lo, left_hi);
+      __ vcnt(DTMP, DTMP);
+      __ vpaddlu(compiler::kByte, DTMP, DTMP);
+      __ vpaddlu(compiler::kTwoBytes, DTMP, DTMP);
+      __ vpaddlu(compiler::kFourBytes, DTMP, DTMP);
+      __ vmovrs(out_lo, EvenSRegisterOf(DTMP));
+      __ mov(out_hi, compiler::Operand(0));
+      break;
+    }
+    case Token::kCTZ: {
+      compiler::Label hi_path, done;
+      __ cmp(left_lo, compiler::Operand(0));
+      __ b(&hi_path, EQ);
+      __ rbit(out_lo, left_lo);
+      __ clz(out_lo, out_lo);
+      __ b(&done);
+      __ Bind(&hi_path);
+      __ rbit(out_lo, left_hi);
+      __ clz(out_lo, out_lo);
+      __ add(out_lo, out_lo, compiler::Operand(32));
+      __ Bind(&done);
+      __ mov(out_hi, compiler::Operand(0));
+      break;
+    }
     default:
       UNREACHABLE();
   }
