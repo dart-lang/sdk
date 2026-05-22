@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class NonNullableTest extends PubPackageResolutionTest {
   test_class_hierarchy() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 mixin class A {}
 
 class X1 extends A {} // 1
@@ -25,13 +25,13 @@ class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
 
-    assertType(findNode.namedType('A {} // 1'), 'A');
-    assertType(findNode.namedType('A {} // 2'), 'A');
-    assertType(findNode.namedType('A {} // 3'), 'A');
+    assertType(result.findNode.namedType('A {} // 1'), 'A');
+    assertType(result.findNode.namedType('A {} // 2'), 'A');
+    assertType(result.findNode.namedType('A {} // 3'), 'A');
   }
 
   test_classTypeAlias_hierarchy() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin B {}
 class C {}
@@ -39,13 +39,13 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    assertType(findNode.namedType('A with'), 'A');
-    assertType(findNode.namedType('B implements'), 'B');
-    assertType(findNode.namedType('C;'), 'C');
+    assertType(result.findNode.namedType('A with'), 'A');
+    assertType(result.findNode.namedType('B implements'), 'B');
+    assertType(result.findNode.namedType('C;'), 'C');
   }
 
   test_field_functionTypeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef F = T Function<T>(int, T);
 
 class C {
@@ -53,7 +53,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -74,17 +74,17 @@ FieldDeclaration
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int? x) {
   return x?.isEven;
 }
 ''');
 
-    assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
   }
 
   test_local_interfaceType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   int? a = 0;
 //     ^
@@ -95,12 +95,12 @@ main() {
 }
 ''');
 
-    assertType(findNode.namedType('int? a'), 'int?');
-    assertType(findNode.namedType('int b'), 'int');
+    assertType(result.findNode.namedType('int? a'), 'int?');
+    assertType(result.findNode.namedType('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   List<int?>? a = [];
 //            ^
@@ -117,14 +117,14 @@ main() {
 }
 ''');
 
-    assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
-    assertType(findNode.namedType('List<int>? b'), 'List<int>?');
-    assertType(findNode.namedType('List<int?> c'), 'List<int?>');
-    assertType(findNode.namedType('List<int> d'), 'List<int>');
+    assertType(result.findNode.namedType('List<int?>? a'), 'List<int?>?');
+    assertType(result.findNode.namedType('List<int>? b'), 'List<int>?');
+    assertType(result.findNode.namedType('List<int?> c'), 'List<int?>');
+    assertType(result.findNode.namedType('List<int> d'), 'List<int>');
   }
 
   test_local_methodNullAwareCall_interfaceType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool x() => true;
 }
@@ -134,32 +134,32 @@ f(C? c) {
 }
 ''');
 
-    assertType(findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
   test_local_nullCoalesceAssign_nullableInt_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   int? x;
   int y = 0;
   x ??= y;
 }
 ''');
-    assertType(findNode.assignment('x ??= y'), 'int');
+    assertType(result.findNode.assignment('x ??= y'), 'int');
   }
 
   test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   int? x;
   x ??= x;
 }
 ''');
-    assertType(findNode.assignment('x ??= x'), 'int?');
+    assertType(result.findNode.assignment('x ??= x'), 'int?');
   }
 
   test_local_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a) {
   T x = a;
 //  ^
@@ -170,12 +170,12 @@ void f<T>(T a) {
 }
 ''');
 
-    assertType(findNode.namedType('T x'), 'T');
-    assertType(findNode.namedType('T? y'), 'T?');
+    assertType(result.findNode.namedType('T x'), 'T');
+    assertType(result.findNode.namedType('T? y'), 'T?');
   }
 
   test_local_variable_genericFunctionType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   int? Function(bool, String?)? a;
 //                              ^
@@ -184,13 +184,13 @@ main() {
 ''');
 
     assertType(
-      findNode.genericFunctionType('Function('),
+      result.findNode.genericFunctionType('Function('),
       'int? Function(bool, String?)?',
     );
   }
 
   test_localFunction_parameter_interfaceType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   f(int? a, int b) {}
 //^
@@ -198,12 +198,12 @@ main() {
 }
 ''');
 
-    assertType(findNode.namedType('int? a'), 'int?');
-    assertType(findNode.namedType('int b'), 'int');
+    assertType(result.findNode.namedType('int? a'), 'int?');
+    assertType(result.findNode.namedType('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   int? f() => 0;
 //     ^
@@ -214,42 +214,42 @@ main() {
 }
 ''');
 
-    assertType(findNode.namedType('int? f'), 'int?');
-    assertType(findNode.namedType('int g'), 'int');
+    assertType(result.findNode.namedType('int? f'), 'int?');
+    assertType(result.findNode.namedType('int g'), 'int');
   }
 
   test_member_potentiallyNullable_called() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 m<T extends Function>() {
   List<T?> x;
   x.first();
 }
 ''');
     // Do not assert no test errors. Deliberately invokes nullable type.
-    var invocation = findNode.functionExpressionInvocation('first()');
+    var invocation = result.findNode.functionExpressionInvocation('first()');
     assertType(invocation.function, 'T?');
   }
 
   test_mixin_hierarchy() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
 
-    assertType(findNode.namedType('A {} // 1'), 'A');
-    assertType(findNode.namedType('A {} // 2'), 'A');
+    assertType(result.findNode.namedType('A {} // 1'), 'A');
+    assertType(result.findNode.namedType('A {} // 2'), 'A');
   }
 
   test_parameter_functionTyped() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f1(void p1()) {}
 void f2(void p2()?) {}
 void f3({void p3()?}) {}
 ''');
 
-    var p1 = findNode.formalParameterList('p1');
+    var p1 = result.findNode.formalParameterList('p1');
     assertResolvedNodeText(p1, r'''
 FormalParameterList
   leftParenthesis: (
@@ -269,7 +269,7 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p2 = findNode.formalParameterList('p2');
+    var p2 = result.findNode.formalParameterList('p2');
     assertResolvedNodeText(p2, r'''
 FormalParameterList
   leftParenthesis: (
@@ -290,7 +290,7 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p3 = findNode.formalParameterList('p3');
+    var p3 = result.findNode.formalParameterList('p3');
     assertResolvedNodeText(p3, r'''
 FormalParameterList
   leftParenthesis: (
@@ -315,7 +315,7 @@ FormalParameterList
   }
 
   test_parameter_functionTyped_fieldFormal() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f1;
   var f2;
@@ -326,7 +326,7 @@ class A {
 }
 ''');
 
-    var f1 = findNode.formalParameterList('f1()');
+    var f1 = result.findNode.formalParameterList('f1()');
     assertResolvedNodeText(f1, r'''
 FormalParameterList
   leftParenthesis: (
@@ -349,7 +349,7 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var f2 = findNode.formalParameterList('f2()');
+    var f2 = result.findNode.formalParameterList('f2()');
     assertResolvedNodeText(f2, r'''
 FormalParameterList
   leftParenthesis: (
@@ -373,7 +373,7 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var f3 = findNode.formalParameterList('f3()');
+    var f3 = result.findNode.formalParameterList('f3()');
     assertResolvedNodeText(f3, r'''
 FormalParameterList
   leftParenthesis: (
@@ -401,7 +401,7 @@ FormalParameterList
   }
 
   test_parameter_functionTyped_local() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f() {
   void f1(void p1()) {}
 //     ^^
@@ -415,7 +415,7 @@ f() {
 }
 ''');
 
-    var p1 = findNode.formalParameterList('p1');
+    var p1 = result.findNode.formalParameterList('p1');
     assertResolvedNodeText(p1, r'''
 FormalParameterList
   leftParenthesis: (
@@ -435,7 +435,7 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p2 = findNode.formalParameterList('p2');
+    var p2 = result.findNode.formalParameterList('p2');
     assertResolvedNodeText(p2, r'''
 FormalParameterList
   leftParenthesis: (
@@ -456,7 +456,7 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p3 = findNode.formalParameterList('p3');
+    var p3 = result.findNode.formalParameterList('p3');
     assertResolvedNodeText(p3, r'''
 FormalParameterList
   leftParenthesis: (
@@ -481,51 +481,51 @@ FormalParameterList
   }
 
   test_parameter_genericFunctionType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int? Function(bool, String?)? a) {
 }
 ''');
 
     assertType(
-      findNode.genericFunctionType('Function('),
+      result.findNode.genericFunctionType('Function('),
       'int? Function(bool, String?)?',
     );
   }
 
   test_parameter_getterNullAwareAccess_interfaceType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x?.isEven;
 }
 ''');
 
-    assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
   }
 
   test_parameter_interfaceType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int? a, int b) {
 }
 ''');
 
-    assertType(findNode.namedType('int? a'), 'int?');
-    assertType(findNode.namedType('int b'), 'int');
+    assertType(result.findNode.namedType('int? a'), 'int?');
+    assertType(result.findNode.namedType('int b'), 'int');
   }
 
   test_parameter_interfaceType_generic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
 
-    assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
-    assertType(findNode.namedType('List<int>? b'), 'List<int>?');
-    assertType(findNode.namedType('List<int?> c'), 'List<int?>');
-    assertType(findNode.namedType('List<int> d'), 'List<int>');
+    assertType(result.findNode.namedType('List<int?>? a'), 'List<int?>?');
+    assertType(result.findNode.namedType('List<int>? b'), 'List<int>?');
+    assertType(result.findNode.namedType('List<int?> c'), 'List<int?>');
+    assertType(result.findNode.namedType('List<int> d'), 'List<int>');
   }
 
   test_parameter_methodNullAwareCall_interfaceType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   bool x() => true;
 }
@@ -535,39 +535,39 @@ void f(C? c) {
 }
 ''');
 
-    assertType(findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x, int y) {
   x ??= y;
 }
 ''');
-    assertType(findNode.assignment('x ??= y'), 'int');
+    assertType(result.findNode.assignment('x ??= y'), 'int');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x ??= x;
 }
 ''');
-    assertType(findNode.assignment('x ??= x'), 'int?');
+    assertType(result.findNode.assignment('x ??= x'), 'int?');
   }
 
   test_parameter_typeParameter() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, T? b) {
 }
 ''');
 
-    assertType(findNode.namedType('T a'), 'T');
-    assertType(findNode.namedType('T? b'), 'T?');
+    assertType(result.findNode.namedType('T a'), 'T');
+    assertType(result.findNode.namedType('T? b'), 'T?');
   }
 
   test_typedef_classic() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef int? F(bool a, String? b);
 
 main() {
@@ -577,11 +577,14 @@ main() {
 }
 ''');
 
-    assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
+    assertType(
+      result.findNode.namedType('F? a'),
+      'int? Function(bool, String?)?',
+    );
   }
 
   test_typedef_function() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef F<T> = int? Function(bool, T, T?);
 
 main() {
@@ -592,24 +595,27 @@ main() {
 ''');
 
     assertType(
-      findNode.namedType('F<String>'),
+      result.findNode.namedType('F<String>'),
       'int? Function(bool, String, String?)?',
     );
   }
 
   test_typedef_function_nullable_element() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef F<T> = int Function(T)?;
 
 void f(F<int> a, F<double>? b) {}
 ''');
 
-    assertType(findNode.namedType('F<int>'), 'int Function(int)?');
-    assertType(findNode.namedType('F<double>?'), 'int Function(double)?');
+    assertType(result.findNode.namedType('F<int>'), 'int Function(int)?');
+    assertType(
+      result.findNode.namedType('F<double>?'),
+      'int Function(double)?',
+    );
   }
 
   test_typedef_function_nullable_local() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef F<T> = int Function(T)?;
 
 main() {
@@ -622,7 +628,10 @@ main() {
 }
 ''');
 
-    assertType(findNode.namedType('F<int>'), 'int Function(int)?');
-    assertType(findNode.namedType('F<double>?'), 'int Function(double)?');
+    assertType(result.findNode.namedType('F<int>'), 'int Function(int)?');
+    assertType(
+      result.findNode.namedType('F<double>?'),
+      'int Function(double)?',
+    );
   }
 }

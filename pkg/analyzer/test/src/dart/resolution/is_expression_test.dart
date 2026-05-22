@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class IsExpressionResolutionTest extends PubPackageResolutionTest {
   test_expression_super() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   void f() {
     super is T;
@@ -27,7 +27,7 @@ class A<T> {
 }
 ''');
 
-    var node = findNode.singleIsExpression;
+    var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SuperExpression
@@ -43,7 +43,7 @@ IsExpression
   }
 
   test_expression_switchExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
@@ -51,7 +51,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.isExpression('is double');
+    var node = result.findNode.isExpression('is double');
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SwitchExpression
@@ -85,13 +85,13 @@ IsExpression
   }
 
   test_is() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? a) {
   a is int;
 }
 ''');
 
-    var node = findNode.singleIsExpression;
+    var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SimpleIdentifier
@@ -108,13 +108,13 @@ IsExpression
   }
 
   test_isNot() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object? a) {
   a is! int;
 }
 ''');
 
-    var node = findNode.singleIsExpression;
+    var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
   expression: SimpleIdentifier

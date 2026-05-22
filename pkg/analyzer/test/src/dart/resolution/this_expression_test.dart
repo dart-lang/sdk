@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
   test_class_inAugmentation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 augment class A {
@@ -29,7 +29,7 @@ augment class A {
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
-    var node = findNode.singleThisExpression;
+    var node = result.findNode.singleThisExpression;
     assertResolvedNodeText(node, r'''
 ThisExpression
   thisKeyword: this
@@ -39,7 +39,7 @@ ThisExpression
   }
 
   test_mixin_inAugmentation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 
 augment mixin M {
@@ -51,7 +51,7 @@ augment mixin M {
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
-    var node = findNode.singleThisExpression;
+    var node = result.findNode.singleThisExpression;
     assertResolvedNodeText(node, r'''
 ThisExpression
   thisKeyword: this

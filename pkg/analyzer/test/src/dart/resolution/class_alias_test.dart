@@ -20,13 +20,13 @@ class ClassTypeAliasResolutionTest extends PubPackageResolutionTest {
   //     await resolveTestCodeWithDiagnostics(r'''
   // ''');
   //
-  //     final node = findNode.singleListLiteral;
+  //     final node = result.findNode.singleListLiteral;
   //     assertResolvedNodeText(node, r'''
   // ''');
   //   }
 
   test_element() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin class B {}
 class C {}
@@ -34,7 +34,7 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    var node = findNode.classTypeAlias('X =');
+    var node = result.findNode.classTypeAlias('X =');
     assertResolvedNodeText(node, r'''
 ClassTypeAlias
   typedefKeyword: class
@@ -64,37 +64,37 @@ ClassTypeAlias
   }
 
   test_element_typeFunction_extends() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 class X = Function with A;
 //        ^^^^^^^^
 // [diag.finalClassExtendedOutsideOfLibrary] The class 'Function' can't be extended outside of its library because it's a final class.
 ''');
-    var x = findElement2.class_('X');
+    var x = result.findElement.class_('X');
     assertType(x.supertype, 'Object');
   }
 
   test_element_typeFunction_implements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 class B {}
 class X = Object with A implements A, Function, B;
 //                                    ^^^^^^^^
 // [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
 ''');
-    var x = findElement2.class_('X');
+    var x = result.findElement.class_('X');
     assertElementTypes(x.interfaces, ['A', 'B']);
   }
 
   test_element_typeFunction_with() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {}
 mixin class B {}
 class X = Object with A, Function, B;
 //                       ^^^^^^^^
 // [diag.classUsedAsMixin] The class 'Function' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
-    var x = findElement2.class_('X');
+    var x = result.findElement.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
   }
 

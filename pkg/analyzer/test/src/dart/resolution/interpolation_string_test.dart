@@ -23,8 +23,8 @@ class InterpolationStringResolutionTest extends PubPackageResolutionTest {
 var bar;
 var f = "foo$bar";
 ''';
-    await resolveTestCodeWithDiagnostics(code);
-    var string = findNode.stringInterpolation(r'"foo$bar"');
+    var result = await resolveTestCodeWithDiagnostics(code);
+    var string = result.findNode.stringInterpolation(r'"foo$bar"');
 
     expect(string.elements, hasLength(3));
 
@@ -40,8 +40,8 @@ var f = "foo$bar";
 var bar;
 var f = "foo${bar}baz";
 ''';
-    await resolveTestCodeWithDiagnostics(code);
-    var string = findNode.stringInterpolation(r'"foo${bar}baz"');
+    var result = await resolveTestCodeWithDiagnostics(code);
+    var string = result.findNode.stringInterpolation(r'"foo${bar}baz"');
     expect(string.elements, hasLength(3));
     var quoteOffset = code.indexOf('"');
 
@@ -59,8 +59,8 @@ var f = "foo${bar}baz";
 var bar;
 var f = "foo${bar}";
 ''';
-    await resolveTestCodeWithDiagnostics(code);
-    var string = findNode.stringInterpolation(r'"foo${bar}"');
+    var result = await resolveTestCodeWithDiagnostics(code);
+    var string = result.findNode.stringInterpolation(r'"foo${bar}"');
     expect(string.elements, hasLength(3));
 
     var end = string.elements[2] as InterpolationString;
@@ -76,7 +76,7 @@ var f = "foo${bar}
 // deliberately unclosed
 ;
 ''';
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var bar;
 var f = "foo${bar}
 //               ^
@@ -84,7 +84,7 @@ var f = "foo${bar}
 // deliberately unclosed
 ;
 ''');
-    var string = findNode.stringInterpolation(r'"foo${bar}');
+    var string = result.findNode.stringInterpolation(r'"foo${bar}');
     expect(string.elements, hasLength(3));
 
     var end = string.elements[2] as InterpolationString;
@@ -101,7 +101,7 @@ var f = "foo${bar}'
 // deliberately closed with wrong quote
 ;
 ''';
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var bar;
 var f = "foo${bar}'
 //                ^
@@ -109,7 +109,7 @@ var f = "foo${bar}'
 // deliberately closed with wrong quote
 ;
 ''');
-    var string = findNode.stringInterpolation('"foo\${bar}\'');
+    var string = result.findNode.stringInterpolation('"foo\${bar}\'');
     expect(string.elements, hasLength(3));
 
     var end = string.elements[2] as InterpolationString;
@@ -124,8 +124,8 @@ var f = "foo${bar}'
 var bar;
 var f = "foo\n$bar";
 ''';
-    await resolveTestCodeWithDiagnostics(code);
-    var string = findNode.stringInterpolation(r'"foo\n$bar"');
+    var result = await resolveTestCodeWithDiagnostics(code);
+    var string = result.findNode.stringInterpolation(r'"foo\n$bar"');
     expect(string.elements, hasLength(3));
 
     var foo = string.elements[0] as InterpolationString;

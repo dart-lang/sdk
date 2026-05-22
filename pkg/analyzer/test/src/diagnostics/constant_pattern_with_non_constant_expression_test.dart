@@ -16,13 +16,13 @@ main() {
 class ConstantPatternWithNonConstantExpressionTest
     extends PubPackageResolutionTest {
   test_boolLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case true) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -34,7 +34,7 @@ GuardedPattern
   }
 
   test_class_field_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static const a = 0;
 }
@@ -44,7 +44,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -79,13 +79,13 @@ void f(x) {
   }
 
   test_doubleLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 1.2) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -103,7 +103,7 @@ class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -111,7 +111,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -145,7 +145,7 @@ class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f(x) {
@@ -153,7 +153,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -181,7 +181,7 @@ GuardedPattern
   }
 
   test_instanceCreation_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -191,7 +191,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -212,13 +212,13 @@ GuardedPattern
   }
 
   test_intLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -230,13 +230,13 @@ GuardedPattern
   }
 
   test_listLiteral_element_intLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const [0]) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -254,14 +254,14 @@ GuardedPattern
   }
 
   test_listLiteral_element_localVariable_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const [a]) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -291,14 +291,14 @@ void f(x) {
   }
 
   test_localVariable_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case a) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -322,13 +322,13 @@ void f(x) {
   }
 
   test_mapLiteral_entries_intLiteral_intLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0: 1}) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -352,14 +352,14 @@ GuardedPattern
   }
 
   test_mapLiteral_entries_key_localVariable_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const {a: 1}) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -395,14 +395,14 @@ void f(x) {
   }
 
   test_mapLiteral_entries_value_localVariable_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const {0: a}) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -438,13 +438,13 @@ void f(x) {
   }
 
   test_setLiteral_element_intLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const {0}) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -463,14 +463,14 @@ GuardedPattern
   }
 
   test_setLiteral_element_localVariable_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   const a = 0;
   if (x case const {a}) {}
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -503,7 +503,7 @@ void f(e, int a) {
   }
 
   test_topLevelVariable_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 void f(x) {
@@ -511,7 +511,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -524,7 +524,7 @@ GuardedPattern
   }
 
   test_topLevelVariable_notConst() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final a = 0;
 
 void f(x) {
@@ -534,7 +534,7 @@ void f(x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
@@ -547,7 +547,7 @@ GuardedPattern
   }
 
   test_unresolvedIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case foo) {}
 //           ^^^
@@ -555,7 +555,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.singleGuardedPattern;
+    var node = result.findNode.singleGuardedPattern;
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern

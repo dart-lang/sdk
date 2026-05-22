@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
   test_initializer_late_super() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   late Object f = super;
 //                ^^^^^
@@ -26,7 +26,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -49,13 +49,13 @@ FieldDeclaration
   }
 
   test_initializer_late_this() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   late Object f = this;
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -78,7 +78,7 @@ FieldDeclaration
   }
 
   test_initializer_notLate_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final int a = 0;
   final int b = a;
@@ -87,7 +87,7 @@ class A {
 }
 ''');
 
-    var node = findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -111,7 +111,7 @@ FieldDeclaration
   }
 
   test_initializer_notLate_getterInvocation() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get a => 0;
   final int b = a;
@@ -120,7 +120,7 @@ class A {
 }
 ''');
 
-    var node = findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -144,7 +144,7 @@ FieldDeclaration
   }
 
   test_initializer_notLate_methodInvocation() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int a() => 0;
   final int b = a();
@@ -153,7 +153,7 @@ class A {
 }
 ''');
 
-    var node = findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -183,7 +183,7 @@ FieldDeclaration
   }
 
   test_initializer_notLate_this() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   final a = this;
 //          ^^^^
@@ -191,7 +191,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList
@@ -210,62 +210,62 @@ FieldDeclaration
   }
 
   test_session_getterSetter() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   var f = 0;
 }
 ''');
-    var getter = findElement2.getter('f');
+    var getter = result.findElement.getter('f');
     expect(getter.session, result.session);
 
-    var setter = findElement2.setter('f');
+    var setter = result.findElement.setter('f');
     expect(setter.session, result.session);
   }
 
   test_type_inferred_int() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   var f = 0;
 }
 ''');
-    assertType(findElement2.field('f').type, 'int');
+    assertType(result.findElement.field('f').type, 'int');
   }
 
   test_type_inferred_Never() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   var f = throw 42;
 }
 ''');
-    assertType(findElement2.field('f').type, 'Never');
+    assertType(result.findElement.field('f').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   var f;
 }
 ''');
-    assertType(findElement2.field('f').type, 'dynamic');
+    assertType(result.findElement.field('f').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   var f = null;
 }
 ''');
-    assertType(findElement2.field('f').type, 'dynamic');
+    assertType(result.findElement.field('f').type, 'dynamic');
   }
 
   test_type_scope() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   var f = <T>[];
 }
 ''');
 
-    var node = findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
 FieldDeclaration
   fields: VariableDeclarationList

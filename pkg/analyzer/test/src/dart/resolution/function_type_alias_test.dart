@@ -17,13 +17,13 @@ main() {
 @reflectiveTest
 class FunctionTypeAliasResolutionTest extends PubPackageResolutionTest {
   test_type_element() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 G<int> g;
 
 typedef T G<T>();
 ''');
 
-    var node = findNode.namedType('G<int>');
+    var node = result.findNode.namedType('G<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: G

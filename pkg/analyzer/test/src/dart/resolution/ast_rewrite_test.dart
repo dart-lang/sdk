@@ -27,7 +27,7 @@ main() {
 @reflectiveTest
 class AstRewriteImplicitCallReferenceTest extends PubPackageResolutionTest {
   test_assignment_indexExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -38,7 +38,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: AssignmentExpression
@@ -79,7 +79,7 @@ ImplicitCallReference
   }
 
   test_conditional_else() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 abstract class C extends A {
   void call();
@@ -89,7 +89,7 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? a : c);
     // `c` is in the "else" position of a conditional expression, so implicit
     // call tearoff logic should not apply to it.
     // Therefore the type of `b ? a : c` should be `A`.
-    var expr = findNode.conditionalExpression('b ? a : c');
+    var expr = result.findNode.conditionalExpression('b ? a : c');
     assertResolvedNodeText(expr, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -111,7 +111,7 @@ ConditionalExpression
   }
 
   test_conditional_then() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 abstract class C extends A {
   void call();
@@ -121,7 +121,7 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? c : a);
     // `c` is in the "then" position of a conditional expression, so implicit
     // call tearoff logic should not apply to it.
     // Therefore the type of `b ? c : a` should be `A`.
-    var expr = findNode.conditionalExpression('b ? c : a');
+    var expr = result.findNode.conditionalExpression('b ? c : a');
     assertResolvedNodeText(expr, r'''
 ConditionalExpression
   condition: SimpleIdentifier
@@ -143,7 +143,7 @@ ConditionalExpression
   }
 
   test_explicitTypeArguments() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   T call<T>(T t) => t;
 }
@@ -154,7 +154,7 @@ void foo() {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c<int>');
+    var node = result.findNode.implicitCallReference('c<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -177,7 +177,7 @@ ImplicitCallReference
   }
 
   test_ifNull_lhs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 abstract class C extends A {
   void call();
@@ -192,7 +192,7 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
     // Therefore the type of `c ?? a` should be `A`.
-    var expr = findNode.binary('c ?? a');
+    var expr = result.findNode.binary('c ?? a');
     assertResolvedNodeText(expr, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -212,7 +212,7 @@ BinaryExpression
   }
 
   test_ifNull_rhs() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -222,7 +222,7 @@ void Function(int) foo(C? c1, C c2) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c1 ?? c2');
+    var node = result.findNode.implicitCallReference('c1 ?? c2');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: BinaryExpression
@@ -245,7 +245,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_element() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -255,7 +255,7 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c]');
+    var node = result.findNode.implicitCallReference('c]');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -268,7 +268,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_forElement() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -280,7 +280,7 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c,');
+    var node = result.findNode.implicitCallReference('c,');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -293,7 +293,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_ifElement() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -305,7 +305,7 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c,');
+    var node = result.findNode.implicitCallReference('c,');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -318,7 +318,7 @@ ImplicitCallReference
   }
 
   test_listLiteral_ifElement_else() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -331,7 +331,7 @@ List<void Function(int)> foo(C c1, C c2) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c2,');
+    var node = result.findNode.implicitCallReference('c2,');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -344,7 +344,7 @@ ImplicitCallReference
   }
 
   test_parenthesized_cascade_target() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call();
   void m();
@@ -352,7 +352,7 @@ abstract class C {
 void Function() f(C c) => (c)..m();
 ''');
 
-    var node = findNode.implicitCallReference('(c)');
+    var node = result.findNode.implicitCallReference('(c)');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: CascadeExpression
@@ -383,7 +383,7 @@ ImplicitCallReference
   }
 
   test_prefixedIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   C get c;
   void call(int t) => t;
@@ -394,7 +394,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c.c;');
+    var node = result.findNode.implicitCallReference('c.c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: PrefixedIdentifier
@@ -415,7 +415,7 @@ ImplicitCallReference
   }
 
   test_propertyAccess() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   C get c;
   void call(int t) => t;
@@ -426,7 +426,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c.c.c');
+    var node = result.findNode.implicitCallReference('c.c.c');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: PropertyAccess
@@ -454,7 +454,7 @@ ImplicitCallReference
   }
 
   test_setOrMapLiteral_element() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -464,7 +464,7 @@ Set<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c}');
+    var node = result.findNode.implicitCallReference('c}');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -477,7 +477,7 @@ ImplicitCallReference
   }
 
   test_setOrMapLiteral_mapLiteralEntry_key() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -487,7 +487,7 @@ Map<void Function(int), int> foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c:');
+    var node = result.findNode.implicitCallReference('c:');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -500,7 +500,7 @@ ImplicitCallReference
   }
 
   test_setOrMapLiteral_mapLiteralEntry_value() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -510,7 +510,7 @@ Map<int, void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c}');
+    var node = result.findNode.implicitCallReference('c}');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -523,7 +523,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   void call(int t) => t;
 }
@@ -533,7 +533,7 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -546,7 +546,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
@@ -554,7 +554,7 @@ typedef B = A;
 Function f(B b) => b;
 ''');
 
-    var node = findNode.implicitCallReference('b;');
+    var node = result.findNode.implicitCallReference('b;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -568,14 +568,14 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
 Function f<X extends A>(X x) => x;
 ''');
 
-    var node = findNode.implicitCallReference('x;');
+    var node = result.findNode.implicitCallReference('x;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -588,14 +588,14 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable2() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
 Function f<X extends A, Y extends X>(Y y) => y;
 ''');
 
-    var node = findNode.implicitCallReference('y;');
+    var node = result.findNode.implicitCallReference('y;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression: SimpleIdentifier
@@ -608,7 +608,7 @@ ImplicitCallReference
   }
 
   test_simpleIdentifier_typeVariable2_nullable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
@@ -618,7 +618,7 @@ Function f<X extends A, Y extends X?>(Y y) => y;
 ''');
 
     // Verify that no ImplicitCallReference was inserted.
-    var node = findNode.expressionFunctionBody('y;').expression;
+    var node = result.findNode.expressionFunctionBody('y;').expression;
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: y
@@ -628,7 +628,7 @@ SimpleIdentifier
   }
 
   test_simpleIdentifier_typeVariable_nullable() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void call() {}
 }
@@ -638,7 +638,7 @@ Function f<X extends A>(X? x) => x;
 ''');
 
     // Verify that no ImplicitCallReference was inserted.
-    var node = findNode.expressionFunctionBody('x;').expression;
+    var node = result.findNode.expressionFunctionBody('x;').expression;
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: x
@@ -654,7 +654,7 @@ class AstRewriteMethodInvocationTest extends PubPackageResolutionTest
 
 mixin AstRewriteMethodInvocationTestCases on PubPackageResolutionTest {
   test_targetNull_cascade() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -664,7 +664,7 @@ f(A a) {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo();');
+    var node = result.findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   operator: ..
@@ -681,7 +681,7 @@ MethodInvocation
   }
 
   test_targetNull_class() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A(int a);
 }
@@ -691,7 +691,7 @@ f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('A<int, String>(0);');
+    var node = result.findNode.instanceCreation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -729,7 +729,7 @@ InstanceCreationExpression
   }
 
   test_targetNull_extension() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E<T> on A {
@@ -740,7 +740,7 @@ f(A a) {
   E<int>(a).foo();
 }
 ''');
-    var node = findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -770,14 +770,14 @@ ExtensionOverride
   }
 
   test_targetNull_function() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void A<T, U>(int a) {}
 
 f() {
   A<int, String>(0);
 }
 ''');
-    var node = findNode.methodInvocation('A<int, String>(0);');
+    var node = result.findNode.methodInvocation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -815,7 +815,7 @@ MethodInvocation
   }
 
   test_targetNull_typeAlias_interfaceType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A(int _);
 }
@@ -826,7 +826,7 @@ void f() {
   X<int, String>(0);
 }
 ''');
-    var node = findNode.instanceCreation('X<int, String>(0);');
+    var node = result.findNode.instanceCreation('X<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -864,7 +864,7 @@ InstanceCreationExpression
   }
 
   test_targetNull_typeAlias_Never() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X = Never;
 
 void f() {
@@ -874,7 +874,7 @@ void f() {
 }
 ''');
     // Not rewritten.
-    findNode.methodInvocation('X(0)');
+    result.findNode.methodInvocation('X(0)');
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
@@ -884,14 +884,14 @@ class A<T> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A.named(0);
 }
 ''');
-    var node = findNode.instanceCreation('A.named(0);');
+    var node = result.findNode.instanceCreation('A.named(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -934,7 +934,7 @@ class A<T> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
@@ -943,7 +943,7 @@ f() {
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'prefix.A.named' doesn't have type parameters.
 }
 ''');
-    var node = findNode.instanceCreation('named<int>(0);');
+    var node = result.findNode.instanceCreation('named<int>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -994,7 +994,7 @@ class A<T> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
@@ -1003,7 +1003,7 @@ f() {
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'prefix.A.new' doesn't have type parameters.
 }
 ''');
-    var node = findNode.instanceCreation('new<int>(0);');
+    var node = result.findNode.instanceCreation('new<int>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1056,14 +1056,14 @@ class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.foo.bar(0);
 }
 ''');
-    var node = findNode.methodInvocation('bar(0);');
+    var node = result.findNode.methodInvocation('bar(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: PrefixedIdentifier
@@ -1105,14 +1105,14 @@ class A<T> {
 typedef X<T> = A<T>;
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
   prefix.X.named(0);
 }
 ''');
-    var node = findNode.instanceCreation('X.named(0);');
+    var node = result.findNode.instanceCreation('X.named(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1149,7 +1149,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T a);
 }
@@ -1159,7 +1159,7 @@ f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('A.named(0);');
+    var node = result.findNode.instanceCreation('A.named(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1192,7 +1192,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A.named(int a);
 }
@@ -1205,7 +1205,7 @@ f() {
 ''');
 
     // TODO(scheglov): Move type arguments
-    var node = findNode.instanceCreation('named<int, String>(0);');
+    var node = result.findNode.instanceCreation('named<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1250,7 +1250,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_constructor_typeArguments_new() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A.new(int a);
 }
@@ -1263,7 +1263,7 @@ f() {
 ''');
 
     // TODO(scheglov): Move type arguments
-    var node = findNode.instanceCreation('new<int, String>(0);');
+    var node = result.findNode.instanceCreation('new<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1308,7 +1308,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_class_staticMethod() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo(int a) {}
 }
@@ -1317,7 +1317,7 @@ f() {
   A.foo(0);
 }
 ''');
-    var node = findNode.methodInvocation('foo(0);');
+    var node = result.findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -1349,14 +1349,14 @@ class A<T, U> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
   prefix.A<int, String>(0);
 }
 ''');
-    var node = findNode.instanceCreation('A<int, String>(0);');
+    var node = result.findNode.instanceCreation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1406,14 +1406,14 @@ extension E<T> on A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f(prefix.A a) {
   prefix.E<int>(a).foo();
 }
 ''');
-    var node = findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride('E<int>(a)');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   importPrefix: ImportPrefixReference
@@ -1451,7 +1451,7 @@ ExtensionOverride
 void A<T, U>(int a) {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 f() {
@@ -1459,7 +1459,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('A<int, String>(0);');
+    var node = result.findNode.methodInvocation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -1502,7 +1502,7 @@ MethodInvocation
   }
 
   test_targetSimpleIdentifier_typeAlias_interfaceType_constructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T a);
 }
@@ -1514,7 +1514,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('X.named(0);');
+    var node = result.findNode.instanceCreation('X.named(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1550,7 +1550,7 @@ InstanceCreationExpression
 @reflectiveTest
 class AstRewritePrefixedIdentifierTest extends PubPackageResolutionTest {
   test_constructorReference_inAssignment_onLeftSide() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
 void f() {
@@ -1560,7 +1560,7 @@ void f() {
 }
 ''');
 
-    var identifier = findNode.prefixed('C.new');
+    var identifier = result.findNode.prefixed('C.new');
     // The left side of the assignment is resolved by
     // [PropertyElementResolver._resolveTargetClassElement], which looks for
     // getters and setters on `C`, and does not recover with other elements
@@ -1570,7 +1570,7 @@ void f() {
   }
 
   test_constructorReference_inAssignment_onRightSide() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
 Function? f;
@@ -1579,7 +1579,7 @@ void g() {
 }
 ''');
 
-    var node = findNode.constructorReference('C.new');
+    var node = result.findNode.constructorReference('C.new');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName

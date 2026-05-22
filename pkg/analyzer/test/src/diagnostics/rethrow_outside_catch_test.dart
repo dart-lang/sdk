@@ -55,7 +55,7 @@ void f() {
   }
 
   test_withoutCatch() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   rethrow;
 //^^^^^^^
@@ -63,7 +63,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleRethrowExpression;
+    var node = result.findNode.singleRethrowExpression;
     assertResolvedNodeText(node, r'''
 RethrowExpression
   rethrowKeyword: rethrow

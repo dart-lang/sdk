@@ -296,13 +296,13 @@ mixin M implements Enum {}
   }
 
   test_mixin_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M implements int {}
 //                 ^^^
 // [diag.implementsDisallowedClass] Classes and mixins can't implement 'int'.
 ''');
 
-    var node = findNode.singleImplementsClause;
+    var node = result.findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
 ImplementsClause
   implementsKeyword: implements

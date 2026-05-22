@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class StaticTypeAnalyzerTest extends PubPackageResolutionTest {
   test_flatten_derived() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class Derived<T> implements Future<T> {}
 late Derived<dynamic> derivedDynamic;
 late Derived<int> derivedInt;
@@ -28,10 +28,12 @@ late Derived<Derived> derivedDerived;
 late Derived<Derived<int>> derivedDerivedInt;
     ''');
     var dynamicType = typeProvider.dynamicType;
-    var derivedDynamicType = findElement2.topVar('derivedDynamic').type;
-    var derivedIntType = findElement2.topVar('derivedInt').type;
-    var derivedDerivedType = findElement2.topVar('derivedDerived').type;
-    var derivedDerivedIntType = findElement2.topVar('derivedDerivedInt').type;
+    var derivedDynamicType = result.findElement.topVar('derivedDynamic').type;
+    var derivedIntType = result.findElement.topVar('derivedInt').type;
+    var derivedDerivedType = result.findElement.topVar('derivedDerived').type;
+    var derivedDerivedIntType = result.findElement
+        .topVar('derivedDerivedInt')
+        .type;
     // class Derived<T> extends Future<T> { ... }
     // flatten(Derived) = dynamic
     expect(_flatten(derivedDynamicType), dynamicType);
@@ -44,7 +46,7 @@ late Derived<Derived<int>> derivedDerivedInt;
   }
 
   test_flatten_inhibit_recursion() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A extends B {}
 //    ^
 // [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
@@ -54,8 +56,8 @@ class B extends A {}
 late A a;
 late B b;
 ''');
-    var aType = findElement2.topVar('a').type;
-    var bType = findElement2.topVar('b').type;
+    var aType = result.findElement.topVar('a').type;
+    var bType = result.findElement.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither class contains Future
     // in its class hierarchy.  Even though there is a loop in the class
     // hierarchy, flatten() should terminate.
@@ -64,7 +66,7 @@ late B b;
   }
 
   test_flatten_related_derived_types() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class Derived<T> implements Future<T> {}
 abstract class A extends Derived<int> implements Derived<num> {}
 //             ^
@@ -81,8 +83,8 @@ late B2 b;
 ''');
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
-    var aType = findElement2.topVar('a').type;
-    var bType = findElement2.topVar('b').type;
+    var aType = result.findElement.topVar('a').type;
+    var bType = result.findElement.topVar('b').type;
     // The code in flatten() that inhibits infinite recursion shouldn't be
     // fooled by the fact that Derived appears twice in the type hierarchy.
     expect(_flatten(aType), intType);
@@ -90,7 +92,7 @@ late B2 b;
   }
 
   test_flatten_related_types() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A1 implements Future<int> {}
 abstract class A2 extends A1 implements Future<num> {}
 //             ^^
@@ -104,8 +106,8 @@ late B2 b;
 ''');
     InterfaceType intType = typeProvider.intType;
     InterfaceType numType = typeProvider.numType;
-    var aType = findElement2.topVar('a').type;
-    var bType = findElement2.topVar('b').type;
+    var aType = result.findElement.topVar('a').type;
+    var bType = result.findElement.topVar('b').type;
     expect(_flatten(aType), intType);
     expect(_flatten(bType), numType);
   }
@@ -135,7 +137,7 @@ late B2 b;
   }
 
   test_flatten_unrelated_types() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A1 implements Future<int> {}
 abstract class A2 extends A1 implements Future<String> {}
 //             ^^
@@ -153,8 +155,8 @@ abstract class B2 extends B1 implements Future<int> {}
 late A2 a;
 late B2 b;
 ''');
-    var aType = findElement2.topVar('a').type;
-    var bType = findElement2.topVar('b').type;
+    var aType = result.findElement.topVar('a').type;
+    var bType = result.findElement.topVar('b').type;
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
     expect(_flatten(aType), intType);
@@ -162,162 +164,169 @@ late B2 b;
   }
 
   test_visitAdjacentStrings() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => 'a' 'b';
 ''');
     expect(
-      findNode.adjacentStrings("'a' 'b'").staticType,
+      result.findNode.adjacentStrings("'a' 'b'").staticType,
       same(typeProvider.stringType),
     );
   }
 
   test_visitAsExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   test() => this as B;
 }
 class B extends A {}
 late B b;
 ''');
-    var bType = findElement2.topVar('b').type;
-    expect(findNode.as_('this as B').staticType, bType);
+    var bType = result.findElement.topVar('b').type;
+    expect(result.findNode.as_('this as B').staticType, bType);
   }
 
   test_visitAwaitExpression_flattened() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(Future<Future<int>> e) async => await e;
 ''');
     InterfaceType futureIntType = typeProvider.futureType(typeProvider.intType);
-    expect(findNode.awaitExpression('await e').staticType, futureIntType);
+    expect(
+      result.findNode.awaitExpression('await e').staticType,
+      futureIntType,
+    );
   }
 
   test_visitAwaitExpression_simple() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(Future<int> e) async => await e;
 ''');
     // await e, where e has type Future<int>
     InterfaceType intType = typeProvider.intType;
-    expect(findNode.awaitExpression('await e').staticType, intType);
+    expect(result.findNode.awaitExpression('await e').staticType, intType);
   }
 
   test_visitBooleanLiteral_false() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => false;
 ''');
     expect(
-      findNode.booleanLiteral('false').staticType,
+      result.findNode.booleanLiteral('false').staticType,
       same(typeProvider.boolType),
     );
   }
 
   test_visitBooleanLiteral_true() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => true;
 ''');
     expect(
-      findNode.booleanLiteral('true').staticType,
+      result.findNode.booleanLiteral('true').staticType,
       same(typeProvider.boolType),
     );
   }
 
   test_visitCascadeExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(String a) => a..length;
 ''');
-    expect(findNode.cascade('a..length').staticType, typeProvider.stringType);
+    expect(
+      result.findNode.cascade('a..length').staticType,
+      typeProvider.stringType,
+    );
   }
 
   test_visitConditionalExpression_differentTypes() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(bool b) => b ? 1.0 : 0;
 ''');
     expect(
-      findNode.conditionalExpression('b ? 1.0 : 0').staticType,
+      result.findNode.conditionalExpression('b ? 1.0 : 0').staticType,
       typeProvider.numType,
     );
   }
 
   test_visitConditionalExpression_sameTypes() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(bool b) => b ? 1 : 0;
 ''');
     expect(
-      findNode.conditionalExpression('b ? 1 : 0').staticType,
+      result.findNode.conditionalExpression('b ? 1 : 0').staticType,
       same(typeProvider.intType),
     );
   }
 
   test_visitDoubleLiteral() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => 4.33;
 ''');
     expect(
-      findNode.doubleLiteral('4.33').staticType,
+      result.findNode.doubleLiteral('4.33').staticType,
       same(typeProvider.doubleType),
     );
   }
 
   test_visitInstanceCreationExpression_named() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   C.m();
 }
 test() => new C.m();
 late C c;
 ''');
-    var cType = findElement2.topVar('c').type;
-    expect(findNode.instanceCreation('new C.m()').staticType, cType);
+    var cType = result.findElement.topVar('c').type;
+    expect(result.findNode.instanceCreation('new C.m()').staticType, cType);
   }
 
   test_visitInstanceCreationExpression_typeParameters() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<E> {}
 class I {}
 test() => new C<I>();
 late I i;
 ''');
-    var iType = findElement2.topVar('i').type;
+    var iType = result.findElement.topVar('i').type;
     InterfaceType type =
-        findNode.instanceCreation('new C<I>()').staticType as InterfaceType;
+        result.findNode.instanceCreation('new C<I>()').staticType
+            as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
     expect(typeArgs[0], iType);
   }
 
   test_visitInstanceCreationExpression_unnamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 test() => new C();
 late C c;
 ''');
-    var cType = findElement2.topVar('c').type;
-    expect(findNode.instanceCreation('new C()').staticType, cType);
+    var cType = result.findElement.topVar('c').type;
+    expect(result.findNode.instanceCreation('new C()').staticType, cType);
   }
 
   test_visitIntegerLiteral() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => 42;
 ''');
-    var node = findNode.integerLiteral('42');
+    var node = result.findNode.integerLiteral('42');
     expect(node.staticType, same(typeProvider.intType));
   }
 
   test_visitIsExpression_negated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(Object a) => a is! String;
 ''');
     expect(
-      findNode.isExpression('a is! String').staticType,
+      result.findNode.isExpression('a is! String').staticType,
       same(typeProvider.boolType),
     );
   }
 
   test_visitIsExpression_notNegated() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test(Object a) => a is String;
 ''');
     expect(
-      findNode.isExpression('a is String').staticType,
+      result.findNode.isExpression('a is String').staticType,
       same(typeProvider.boolType),
     );
   }
@@ -330,47 +339,47 @@ test() => m();
   }
 
   test_visitNullLiteral() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => null;
 ''');
     expect(
-      findNode.nullLiteral('null').staticType,
+      result.findNode.nullLiteral('null').staticType,
       same(typeProvider.nullType),
     );
   }
 
   test_visitParenthesizedExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => (0);
 ''');
     expect(
-      findNode.parenthesized('(0)').staticType,
+      result.findNode.parenthesized('(0)').staticType,
       same(typeProvider.intType),
     );
   }
 
   test_visitSimpleStringLiteral() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => 'a';
 ''');
     expect(
-      findNode.stringLiteral("'a'").staticType,
+      result.findNode.stringLiteral("'a'").staticType,
       same(typeProvider.stringType),
     );
   }
 
   test_visitStringInterpolation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 test() => "a${'b'}c";
 ''');
     expect(
-      findNode.stringInterpolation(r'''"a${'b'}c"''').staticType,
+      result.findNode.stringInterpolation(r'''"a${'b'}c"''').staticType,
       same(typeProvider.stringType),
     );
   }
 
   test_visitSuperExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int get foo => 0;
 }
@@ -379,37 +388,37 @@ class B extends A {
 }
 late B b;
 ''');
-    var bType = findElement2.topVar('b').type;
-    expect(findNode.super_('super').staticType, bType);
+    var bType = result.findElement.topVar('b').type;
+    expect(result.findNode.super_('super').staticType, bType);
   }
 
   test_visitSymbolLiteral() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => #a;
 ''');
     expect(
-      findNode.symbolLiteral('#a').staticType,
+      result.findNode.symbolLiteral('#a').staticType,
       same(typeProvider.symbolType),
     );
   }
 
   test_visitThisExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B extends A {
   test() => this;
 }
 late B b;
 ''');
-    var bType = findElement2.topVar('b').type;
-    expect(findNode.this_('this').staticType, bType);
+    var bType = result.findElement.topVar('b').type;
+    expect(result.findNode.this_('this').staticType, bType);
   }
 
   test_visitThrowExpression_withValue() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 test() => throw 0;
 ''');
-    var node = findNode.throw_('throw 0');
+    var node = result.findNode.throw_('throw 0');
     expect(node.staticType, same(typeProvider.bottomType));
   }
 

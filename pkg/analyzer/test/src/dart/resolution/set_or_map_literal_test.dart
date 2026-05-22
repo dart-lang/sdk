@@ -17,13 +17,13 @@ main() {
 @reflectiveTest
 class SetOrMapLiteralResolutionTest extends PubPackageResolutionTest {
   test_hasTypeArguments_1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int>{};
 }
 ''');
 
-    var node = findNode.singleSetOrMapLiteral;
+    var node = result.findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -42,13 +42,13 @@ SetOrMapLiteral
   }
 
   test_hasTypeArguments_2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int, String>{};
 }
 ''');
 
-    var node = findNode.singleSetOrMapLiteral;
+    var node = result.findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -71,7 +71,7 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_hasElements_expression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var v = {0};
 //    ^
@@ -79,7 +79,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleSetOrMapLiteral;
+    var node = result.findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
@@ -94,7 +94,7 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_hasElements_mapEntry() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var v = {0: ''};
 //    ^
@@ -102,7 +102,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleSetOrMapLiteral;
+    var node = result.findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
@@ -121,7 +121,7 @@ SetOrMapLiteral
   }
 
   test_noTypeArguments_noElements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var v = {};
 //    ^
@@ -129,7 +129,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleSetOrMapLiteral;
+    var node = result.findNode.singleSetOrMapLiteral;
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {

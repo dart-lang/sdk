@@ -146,10 +146,10 @@ var v = a?.8(b);
   }
 
   test_fuzz_01() async {
-    await _assertCanBeAnalyzed(r'''
+    var result = await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var alias = findElement2.typeAlias('F');
+    var alias = result.findElement.typeAlias('F');
     assertType(
       alias.instantiate(
         typeArguments: const [],
@@ -216,10 +216,10 @@ class C {
   }
 
   test_fuzz_09() async {
-    await _assertCanBeAnalyzed(r'''
+    var result = await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var alias = findElement2.typeAlias('F');
+    var alias = result.findElement.typeAlias('F');
     assertType(
       alias.instantiate(
         typeArguments: const [],
@@ -471,8 +471,9 @@ class B {
 ''');
   }
 
-  Future<void> _assertCanBeAnalyzed(String text) async {
-    await resolveTestCode(text);
+  Future<TestResolvedUnitResult> _assertCanBeAnalyzed(String text) async {
+    var result = await resolveTestCode(text);
     assertHasTestErrors();
+    return result;
   }
 }

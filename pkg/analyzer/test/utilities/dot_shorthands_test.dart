@@ -16,18 +16,18 @@ main() {
 
 @reflectiveTest
 class HasDependentDotShorthandTest extends PubPackageResolutionTest {
-  void assertHasDependentDotShorthand() async {
-    var initializer = findNode.singleVariableDeclaration.initializer;
+  void assertHasDependentDotShorthand(TestResolvedUnitResult result) async {
+    var initializer = result.findNode.singleVariableDeclaration.initializer;
     expect(hasDependentDotShorthand(initializer!), isTrue);
   }
 
-  void assertHasNoDependentDotShorthand() async {
-    var initializer = findNode.singleVariableDeclaration.initializer;
+  void assertHasNoDependentDotShorthand(TestResolvedUnitResult result) async {
+    var initializer = result.findNode.singleVariableDeclaration.initializer;
     expect(hasDependentDotShorthand(initializer!), isFalse);
   }
 
   test_constructorInvocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(X x);
   A.named(X x);
@@ -35,11 +35,11 @@ class A<X> {
 
 A<A> a = A(.named(null));
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_constructorInvocation_explicitTypeArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(X x);
   A.named(X x);
@@ -47,11 +47,11 @@ class A<X> {
 
 A<A> a = A<A>(.named(null));
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_constructorInvocation_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(X x);
   A.named(X x);
@@ -61,68 +61,68 @@ X id<X>(X x) => x;
 
 A<A> a = A(id(.named(null)));
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_constructorInvocation_noTypeParametersInParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<X> {
   A(int x);
 }
 
 A<String> a = A(.parse('0'));
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_functionExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 E Function() e = () => .a;
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_functionExpression_list() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 List<E> Function() e = () => [.a];
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_list() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 List<E> e = [.b];
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_map() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 Map<String, E> e = {'test': .b};
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 T f<T>(T t) => t;
 
 E e = f(.a);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_filterTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named();
 }
@@ -135,11 +135,11 @@ bar<T extends A>(T t) {
   print(m);
 }
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_functionType_parameter_blockBody() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function() s) => s();
@@ -148,11 +148,11 @@ T t<T>(T t) => t;
 
 E e = f(() { return t(.a); });
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_functionType_parameter_blockBody_independent() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function() s) => s();
@@ -161,66 +161,66 @@ E eFn(E e) => e;
 
 E e = f(() { return eFn(.a); });
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_methodInvocation_functionType_parameter_expressionBody() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function() s) => s();
 
 E e = f(() => .a);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_functionType_parameter_expressionBody2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(S Function(S) s, S input) => s(input);
 
 E e = f((E _) => .a, E.b);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_functionType_returnType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S Function(T) f<T, S>(T t, S s) => (T t) => s;
 
 E Function(E) e = f(E.a, .b);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_functionType_returnType2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S Function(T) f<T, S>(T t, S s) => (T t) => s;
 
 E Function(E) e = f(.a, E.b);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_list() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 S f<S>(List<S> s) => s[0];
 
 E e = f([.a, .b]);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_multipleTypeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 E d(E e) => e;
@@ -231,11 +231,11 @@ T g<T>(T t) => t;
 
 E e = f(d(.a), g(.b));
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_multipleTypeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 E d(E e) => e;
@@ -246,11 +246,11 @@ T g<T>(T t) => t;
 
 E e = f(d(.a), E.b);
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_methodInvocation_noTypeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c; }
 
 T id<T>(T t) => t;
@@ -259,44 +259,44 @@ E idE(E e) => e;
 
 E e = idE(id(.b));
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
 
 E e = f(.a, .b);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter_explicitTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
 
 E e = f<E>(.a, .b);
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter_functionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T? Function() d<T>(T t) => () { return t;};
 
 E? Function() e = d(.a);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter_functionType_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T? Function() d<T>(T t) => () { return t;};
@@ -304,48 +304,48 @@ T f<T>(T t, E e) => t;
 
 E? Function() e = d(f(.a, .b));
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter_independent() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
 
 E e = f(E.a, .b);
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
 
 E e = f(f(.a, .b), .c);
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 
   test_methodInvocation_singleTypeParameter_nested_independent() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 T f<T>(T t, E e) => t;
 
 E e = f(E.a, f(.b, .c));
 ''');
-    assertHasNoDependentDotShorthand();
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_set() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { a, b, c }
 
 Set<E> e = {.b};
 ''');
-    assertHasDependentDotShorthand();
+    assertHasDependentDotShorthand(result);
   }
 }

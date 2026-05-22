@@ -17,19 +17,19 @@ main() {
 @reflectiveTest
 class TopTypeInferenceResolutionTest extends PubPackageResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int a = b + 1;
 }
 final b = new A().a;
 ''');
 
-    assertType(findElement2.field('a').type, 'int');
-    assertType(findElement2.topVar('b').type, 'int');
+    assertType(result.findElement.field('a').type, 'int');
+    assertType(result.findElement.topVar('b').type, 'int');
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final a = b + 1;
 //      ^
@@ -40,7 +40,7 @@ final b = new A().a;
 // [diag.topLevelCycle] The type of 'b' can't be inferred because it depends on itself through the cycle: a, b.
 ''');
 
-    assertTypeDynamic(findElement2.field('a').type);
-    assertTypeDynamic(findElement2.topVar('b').type);
+    assertTypeDynamic(result.findElement.field('a').type);
+    assertTypeDynamic(result.findElement.topVar('b').type);
   }
 }

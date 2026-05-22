@@ -18,13 +18,13 @@ main() {
 class PatternVariableDeclarationStatementResolutionTest
     extends PubPackageResolutionTest {
   test_final_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final (num a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -53,13 +53,13 @@ PatternVariableDeclarationStatement
   }
 
   test_final_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final (a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -84,7 +84,7 @@ PatternVariableDeclarationStatement
   }
 
   test_rewrite_expression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a) = A();
 //     ^
@@ -93,7 +93,7 @@ void f() {
 
 class A {}
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -126,7 +126,7 @@ PatternVariableDeclarationStatement
   }
 
   test_scope_shadows_beforeDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 void f() {
   a;
@@ -138,7 +138,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -148,7 +148,7 @@ SimpleIdentifier
   }
 
   test_scope_shadows_class() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f() {
@@ -158,7 +158,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -192,13 +192,13 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (num a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -227,7 +227,7 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed_typeSchema() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (int a) = g();
 //         ^
@@ -236,7 +236,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -274,13 +274,13 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -305,7 +305,7 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_multiple() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) x) {
   var (a, b) = x;
 //     ^
@@ -314,7 +314,7 @@ void f((int, String) x) {
 // [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -351,7 +351,7 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_recordPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a,) = g((0,));
 //     ^
@@ -360,7 +360,7 @@ void f() {
 
 T g<T>(T a) => throw 0;
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration

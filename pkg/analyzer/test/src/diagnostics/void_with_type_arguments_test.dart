@@ -23,13 +23,13 @@ void f() {}
   }
 
   test_withArguments() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void<int> f() {}
 //  ^
 // [diag.voidWithTypeArguments] Type 'void' can't have type arguments.
 ''');
 
-    var node = findNode.namedType('void<int>');
+    var node = result.findNode.namedType('void<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: void

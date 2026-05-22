@@ -16,7 +16,7 @@ main() {
 class ExtensionOverrideAccessToStaticMemberTest
     extends PubPackageResolutionTest {
   test_call() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void call() {}
 }
@@ -28,7 +28,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('();');
+    var node = result.findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
@@ -81,7 +81,7 @@ void f() {
   }
 
   test_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static String empty() => '';
 }
@@ -92,7 +92,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('empty();');
+    var node = result.findNode.methodInvocation('empty();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride

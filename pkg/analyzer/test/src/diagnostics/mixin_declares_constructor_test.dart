@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class MixinDeclaresConstructorTest extends PubPackageResolutionTest {
   test_factory_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   factory M.named() => throw 0;
 //^^^^^^^
@@ -25,7 +25,7 @@ mixin M {
 }
 ''');
 
-    var node = findNode.singleMixinDeclaration;
+    var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -40,7 +40,7 @@ invalidNodes
   }
 
   test_factory_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   factory M() => throw 0;
 //^^^^^^^
@@ -48,7 +48,7 @@ mixin M {
 }
 ''');
 
-    var node = findNode.singleMixinDeclaration;
+    var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -63,7 +63,7 @@ invalidNodes
   }
 
   test_generative_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   M.named();
 //^
@@ -71,7 +71,7 @@ mixin M {
 }
 ''');
 
-    var node = findNode.singleMixinDeclaration;
+    var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin
@@ -86,7 +86,7 @@ invalidNodes
   }
 
   test_generative_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   M();
 //^
@@ -94,7 +94,7 @@ mixin M {
 }
 ''');
 
-    var node = findNode.singleMixinDeclaration;
+    var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
 MixinDeclaration
   mixinKeyword: mixin

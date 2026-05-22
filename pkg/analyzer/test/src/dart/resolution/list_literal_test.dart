@@ -17,13 +17,13 @@ main() {
 @reflectiveTest
 class ListLiteralResolutionTest extends PubPackageResolutionTest {
   test_hasTypeArguments_1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int>[];
 }
 ''');
 
-    var node = findNode.singleListLiteral;
+    var node = result.findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   typeArguments: TypeArgumentList
@@ -41,7 +41,7 @@ ListLiteral
   }
 
   test_hasTypeArguments_2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   <int, double>[];
 //^^^^^^^^^^^^^
@@ -49,7 +49,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleListLiteral;
+    var node = result.findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   typeArguments: TypeArgumentList
@@ -71,13 +71,13 @@ ListLiteral
   }
 
   test_noTypeArguments_hasElements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [0];
 }
 ''');
 
-    var node = findNode.singleListLiteral;
+    var node = result.findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
@@ -91,13 +91,13 @@ ListLiteral
   }
 
   test_noTypeArguments_hasElements_lub() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [0, 1.2];
 }
 ''');
 
-    var node = findNode.singleListLiteral;
+    var node = result.findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
@@ -114,13 +114,13 @@ ListLiteral
   }
 
   test_noTypeArguments_noElements() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   [];
 }
 ''');
 
-    var node = findNode.singleListLiteral;
+    var node = result.findNode.singleListLiteral;
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [

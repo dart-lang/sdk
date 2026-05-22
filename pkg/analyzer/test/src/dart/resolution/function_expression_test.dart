@@ -17,13 +17,13 @@ main() {
 @reflectiveTest
 class FunctionExpressionResolutionTest extends PubPackageResolutionTest {
   test_genericFunctionExpression_fBoundedDefaultType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   <T extends List<T>>() {};
 }
 ''');
 
-    var node = findNode.functionExpression('<T extends');
+    var node = result.findNode.functionExpression('<T extends');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   typeParameters: TypeParameterList
@@ -62,13 +62,13 @@ FunctionExpression
   }
 
   test_genericFunctionExpression_simpleDefaultType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   <T extends num>() {};
 }
 ''');
 
-    var node = findNode.functionExpression('<T extends');
+    var node = result.findNode.functionExpression('<T extends');
     assertResolvedNodeText(node, r'''
 FunctionExpression
   typeParameters: TypeParameterList
@@ -99,13 +99,13 @@ FunctionExpression
   }
 
   test_signatureScope_noFormalParameters() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var f = ({int x = x}) {};
 //                ^
 // [diag.undefinedIdentifier] Undefined name 'x'.
 ''');
 
-    var node = findNode.singleFormalParameterList;
+    var node = result.findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

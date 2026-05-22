@@ -414,7 +414,7 @@ m() {
   }
 
   test_assignment_eq_propertyAccess3_short1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -433,7 +433,7 @@ m(B b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x = 1'), r'''
+    assertResolvedNodeText(result.findNode.assignment('x = 1'), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -467,7 +467,7 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x = 2'), r'''
+    assertResolvedNodeText(result.findNode.assignment('x = 2'), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -503,14 +503,14 @@ AssignmentExpression
   }
 
   test_assignment_eq_simpleIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 m(int x, int? y) {
   x = 0;
   y = 0;
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x ='), r'''
+    assertResolvedNodeText(result.findNode.assignment('x ='), r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -529,7 +529,7 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(findNode.assignment('y ='), r'''
+    assertResolvedNodeText(result.findNode.assignment('y ='), r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
@@ -550,7 +550,7 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_propertyAccess3() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   int? y;
@@ -570,7 +570,7 @@ m(B b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x +='), r'''
+    assertResolvedNodeText(result.findNode.assignment('x +='), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -604,7 +604,7 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(findNode.assignment('y +='), r'''
+    assertResolvedNodeText(result.findNode.assignment('y +='), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -640,7 +640,7 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_propertyAccess3_short1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -659,7 +659,7 @@ m(B b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x += 1'), r'''
+    assertResolvedNodeText(result.findNode.assignment('x += 1'), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -693,7 +693,7 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x += 2'), r'''
+    assertResolvedNodeText(result.findNode.assignment('x += 2'), r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -729,7 +729,7 @@ AssignmentExpression
   }
 
   test_assignment_plusEq_simpleIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 m(int x, int? y) {
   x += 0;
   y += 0;
@@ -738,7 +738,7 @@ m(int x, int? y) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x +='), r'''
+    assertResolvedNodeText(result.findNode.assignment('x +='), r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -757,7 +757,7 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(findNode.assignment('y +='), r'''
+    assertResolvedNodeText(result.findNode.assignment('y +='), r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
@@ -1057,7 +1057,7 @@ m() {
   }
 
   test_member_nullable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 m() {
   int? x;
   x.isEven;
@@ -1066,7 +1066,7 @@ m() {
 }
 ''');
 
-    var node = findNode.simple('isEven;');
+    var node = result.findNode.simple('isEven;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven
@@ -1275,7 +1275,7 @@ m() {
   }
 
   test_nullable_dotQ_propertyAccess_dot_methodInvocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -1284,12 +1284,12 @@ void f(A? a) {
   a?.foo.abs();
 }
 ''');
-    assertType(findNode.propertyAccess('.foo'), 'int');
-    assertType(findNode.methodInvocation('.abs()'), 'int?');
+    assertType(result.findNode.propertyAccess('.foo'), 'int');
+    assertType(result.findNode.methodInvocation('.abs()'), 'int?');
   }
 
   test_nullable_dotQ_propertyAccess_dot_propertyAccess() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -1298,8 +1298,8 @@ void f(A? a) {
   a?.foo.isEven;
 }
 ''');
-    assertType(findNode.propertyAccess('.foo'), 'int');
-    assertType(findNode.propertyAccess('.isEven'), 'bool?');
+    assertType(result.findNode.propertyAccess('.foo'), 'int');
+    assertType(result.findNode.propertyAccess('.isEven'), 'bool?');
   }
 
   test_operatorMinus_nonNullable() async {
@@ -1523,7 +1523,7 @@ m(int? x) {
   }
 
   test_read_propertyAccess2_short1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   A(this.x);
@@ -1536,8 +1536,8 @@ m(A? a) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
-    var propertyAccess2 = findNode.prefixed('a.x; // 2');
+    var propertyAccess1 = result.findNode.propertyAccess('a?.x; // 1');
+    var propertyAccess2 = result.findNode.prefixed('a.x; // 2');
     assertType(propertyAccess1.target, 'A?');
     assertType(propertyAccess2.prefix, 'A?');
 
@@ -1549,7 +1549,7 @@ m(A? a) {
   }
 
   test_read_propertyAccess3_short1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -1567,8 +1567,8 @@ m(B b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
+    var propertyAccess1 = result.findNode.propertyAccess('b.a?.x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('b.a.x; // 2');
     assertType(propertyAccess1.target, 'A?');
     assertType(propertyAccess2.target, 'A?');
 
@@ -1580,7 +1580,7 @@ m(B b) {
   }
 
   test_read_propertyAccess3_short2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -1598,8 +1598,8 @@ m(B? b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
     assertType(propertyAccess1.target, 'A');
     assertType(propertyAccess2.target, 'A');
 
@@ -1611,7 +1611,7 @@ m(B? b) {
   }
 
   test_read_propertyAccess4_short1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A(this.x);
@@ -1634,8 +1634,8 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
     assertType(propertyAccess1.target, 'A?');
     assertType(propertyAccess2.target, 'A?');
 
@@ -1647,7 +1647,7 @@ m(C c) {
   }
 
   test_read_propertyAccess4_short2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   A(this.x);
@@ -1670,8 +1670,8 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
     var propertyAccess1t = propertyAccess1.target as PropertyAccess;
     var propertyAccess2t = propertyAccess1.target as PropertyAccess;
     assertType(propertyAccess1t.target, 'B?');

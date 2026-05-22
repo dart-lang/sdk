@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class LocalVariableResolutionTest extends PubPackageResolutionTest {
   test_annotation_twoVariables() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 
 void f() {
@@ -27,21 +27,21 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     assertElement(
       x.metadata.annotations.single.element,
-      declaration: findElement2.topGet('a'),
+      declaration: result.findElement.topGet('a'),
     );
 
-    var y = findElement2.localVar('y');
+    var y = result.findElement.localVar('y');
     assertElement(
       y.metadata.annotations.single.element,
-      declaration: findElement2.topGet('a'),
+      declaration: result.findElement.topGet('a'),
     );
   }
 
   test_demoteTypeParameterType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f<T>(T a, T b) {
   if (a is String) {
     var o = a;
@@ -51,11 +51,11 @@ void f<T>(T a, T b) {
 }
 ''');
 
-    assertType(findNode.simple('o; // ref'), 'T');
+    assertType(result.findNode.simple('o; // ref'), 'T');
   }
 
   test_element_block() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int x = 0;
 //    ^
@@ -63,7 +63,7 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -71,7 +71,7 @@ void f() {
   }
 
   test_element_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   const int x = 0;
 //          ^
@@ -79,7 +79,7 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isTrue);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -87,7 +87,7 @@ void f() {
   }
 
   test_element_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final int x = 0;
 //          ^
@@ -95,7 +95,7 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isTrue);
     expect(x.isLate, isFalse);
@@ -103,7 +103,7 @@ void f() {
   }
 
   test_element_ifStatement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   if (1 > 2)
     int x = 0;
@@ -112,7 +112,7 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isFalse);
@@ -120,7 +120,7 @@ void f() {
   }
 
   test_element_late() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   late int x = 0;
 //         ^
@@ -128,7 +128,7 @@ void f() {
 }
 ''');
 
-    var x = findElement2.localVar('x');
+    var x = result.findElement.localVar('x');
     expect(x.isConst, isFalse);
     expect(x.isFinal, isFalse);
     expect(x.isLate, isTrue);
@@ -136,7 +136,7 @@ void f() {
   }
 
   test_initializerReference_ifStatement_nonBlock() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool c) {
   if (c)
     // ignore: unused_local_variable
@@ -144,7 +144,7 @@ void f(bool c) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.simple('a; // ref'), r'''
+    assertResolvedNodeText(result.findNode.simple('a; // ref'), r'''
 SimpleIdentifier
   token: a
   element: a@71
@@ -166,7 +166,7 @@ f() {
   }
 
   test_localVariable_wildcardFunction_preWildcards() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -176,7 +176,7 @@ f() {
 }
 ''');
 
-    var node = findNode.simple('_();');
+    var node = result.findNode.simple('_();');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
@@ -186,7 +186,7 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardVariable_field() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   var _ = 1;
   void m() {
@@ -196,7 +196,7 @@ class C {
 }
 ''');
 
-    var node = findNode.simple('_;');
+    var node = result.findNode.simple('_;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _
@@ -206,7 +206,7 @@ SimpleIdentifier
   }
 
   test_localVariable_wildcardVariable_topLevel() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var _ = 1;
 
 void f() {
@@ -215,7 +215,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.simple('_;');
+    var node = result.findNode.simple('_;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _

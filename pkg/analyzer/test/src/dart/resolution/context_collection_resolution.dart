@@ -41,6 +41,8 @@ import 'resolution.dart';
 export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
     show ExpectedDiagnostic;
 
+export 'resolution.dart' show TestResolvedUnitResult;
+
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];

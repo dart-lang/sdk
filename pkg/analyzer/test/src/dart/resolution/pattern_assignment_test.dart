@@ -91,12 +91,12 @@ void f(bool flag) {
   }
 
   test_container_listPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x, num a) {
   [a] = x;
 }
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ListPattern
@@ -120,7 +120,7 @@ PatternAssignment
   }
 
   test_container_objectPattern_implicitGetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
 }
@@ -129,7 +129,7 @@ void f(int foo) {
   A(:foo) = A();
 }
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ObjectPattern
@@ -167,12 +167,12 @@ PatternAssignment
   }
 
   test_container_parenthesizedPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x, num a) {
   (a) = x;
 }
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -194,14 +194,14 @@ PatternAssignment
   }
 
   test_container_parenthesizedPattern_schema() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   (a) = g();
 }
 
 T g<T>() => throw 0;
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -231,12 +231,12 @@ PatternAssignment
   }
 
   test_container_recordPattern_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo}) x, num a) {
   (foo: a,) = x;
 }
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: RecordPattern
@@ -264,12 +264,12 @@ PatternAssignment
   }
 
   test_container_recordPattern_named_implicit() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   (:a) = (a: 0);
 }
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: RecordPattern
@@ -303,12 +303,12 @@ PatternAssignment
   }
 
   test_container_recordPattern_positional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int,) x, num a) {
   (a,) = x;
 }
 ''');
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: RecordPattern
@@ -333,11 +333,11 @@ PatternAssignment
   }
 
   test_context_arrowBody_formalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f(int x) => (x) = 0;
 ''');
 
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -358,13 +358,13 @@ PatternAssignment
   }
 
   test_context_returnExpression_formalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f(int x) {
   return (x) = 0;
 }
 ''');
 
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -385,7 +385,7 @@ PatternAssignment
   }
 
   test_context_variableInitializer_localVariable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int x = 1;
   var y = (x) = 0;
@@ -394,7 +394,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePatternAssignment;
+    var node = result.findNode.singlePatternAssignment;
     assertResolvedNodeText(node, r'''
 PatternAssignment
   pattern: ParenthesizedPattern
@@ -461,7 +461,7 @@ void f() {
   }
 
   test_promotes() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num a) {
   if (a is! int) {
     (a) = 0;
@@ -469,7 +469,7 @@ void f(num a) {
   a;
 }
 ''');
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a

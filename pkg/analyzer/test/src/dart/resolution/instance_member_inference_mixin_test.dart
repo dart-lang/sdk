@@ -23,7 +23,7 @@ class C extends B {}
   }
 
   test_method_parameter_named_multiple_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -34,12 +34,12 @@ mixin M on A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'num');
   }
 
   test_method_parameter_named_multiple_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -50,12 +50,12 @@ mixin M on A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
   test_method_parameter_named_multiple_same() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -66,12 +66,12 @@ mixin M on A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'int');
   }
 
   test_method_parameter_namedAndRequired() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo({int p}) {}
 }
@@ -82,12 +82,12 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
   test_method_parameter_required_multiple_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -98,12 +98,12 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'num');
   }
 
   test_method_parameter_required_multiple_different_merge() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(Object? p) {}
 }
@@ -116,12 +116,12 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'Object?');
   }
 
   test_method_parameter_required_multiple_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -132,12 +132,12 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
   test_method_parameter_required_multiple_same() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -148,12 +148,12 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'int');
   }
 
   test_method_parameter_required_single_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   void foo(E p) {}
 }
@@ -161,12 +161,12 @@ mixin M<T> on A<T> {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'T');
   }
 
   test_method_parameter_requiredAndPositional() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo(int p) {}
 }
@@ -177,12 +177,12 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement2.method('foo', of: 'M').formalParameters[0];
+    var p = result.findElement.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'int');
   }
 
   test_method_return_multiple_different_combined() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -193,12 +193,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_different_dynamic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -209,12 +209,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_different_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   E foo() => throw 0;
 }
@@ -225,12 +225,12 @@ mixin M on A<int>, B<double> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_incompatible() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -241,12 +241,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_merge() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   Object? foo() => throw 0;
 }
@@ -259,12 +259,12 @@ mixin M on A, B {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'Object?');
   }
 
   test_method_return_multiple_different_void() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -275,12 +275,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   E foo() => 0;
 }
@@ -291,12 +291,12 @@ mixin M<T> on A<T>, B<T> {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -307,12 +307,12 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_void() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void foo() {};
 }
@@ -323,12 +323,12 @@ mixin M on A, B {
   foo() {};
 }
 ''');
-    var foo = findElement2.method('foo', of: 'M');
+    var foo = result.findElement.method('foo', of: 'M');
     assertType(foo.returnType, 'void');
   }
 
   test_method_return_single() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -336,12 +336,12 @@ class B extends A {
   foo() => 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'B');
+    var foo = result.findElement.method('foo', of: 'B');
     assertType(foo.returnType, 'int');
   }
 
   test_method_return_single_generic() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A<E> {
   E foo() => throw 0;
 }
@@ -349,7 +349,7 @@ class B<T> extends A<T> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement2.method('foo', of: 'B');
+    var foo = result.findElement.method('foo', of: 'B');
     assertType(foo.returnType, 'T');
   }
 }

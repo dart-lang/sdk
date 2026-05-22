@@ -96,7 +96,7 @@ void f() {
   }
 
   test_new_notGeneric_unnamed_typeParameter2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = T;
 typedef B<T> = A<T>;
 
@@ -107,7 +107,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('new B()');
+    var node = result.findNode.instanceCreation('new B()');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class WrongNumberOfTypeArgumentsExtensionTest extends PubPackageResolutionTest {
   test_notGeneric() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
 }
@@ -29,7 +29,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.extensionOverride('E<int>');
+    var node = result.findNode.extensionOverride('E<int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -56,7 +56,7 @@ ExtensionOverride
   }
 
   test_tooFew() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E<S, T> on int {
   void foo() {}
 }
@@ -68,7 +68,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.extensionOverride('E<bool>');
+    var node = result.findNode.extensionOverride('E<bool>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E
@@ -98,7 +98,7 @@ ExtensionOverride
   }
 
   test_tooMany() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E<T> on int {
   void foo() {}
 }
@@ -110,7 +110,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.extensionOverride('E<bool, int>');
+    var node = result.findNode.extensionOverride('E<bool, int>');
     assertResolvedNodeText(node, r'''
 ExtensionOverride
   name: E

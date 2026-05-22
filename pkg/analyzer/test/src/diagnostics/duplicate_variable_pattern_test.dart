@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class DuplicateVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case var a && var a) {
 //               ^
@@ -27,7 +27,7 @@ void f(int x) {
 }
 ''');
 
-    var node = findNode.singleIfStatement;
+    var node = result.findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -71,7 +71,7 @@ IfStatement
   }
 
   test_switchStatement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case var a && var a:
@@ -84,7 +84,7 @@ void f(int x) {
 }
 ''');
 
-    var node = findNode.singleSwitchPatternCase;
+    var node = result.findNode.singleSwitchPatternCase;
     assertResolvedNodeText(node, r'''
 SwitchPatternCase
   keyword: case
@@ -118,7 +118,7 @@ SwitchPatternCase
   }
 
   test_variableDeclaration() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var [a, a] = [0, 1];
 //     ^
@@ -129,7 +129,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {

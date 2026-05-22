@@ -97,7 +97,7 @@ class C;
   }
 
   test_ClassElement_hierarchy_class_extends() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -107,7 +107,7 @@ class B_q extends p.A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 54 5:17 |A| IS_EXTENDED_BY
 54 5:17 |A| IS_REFERENCED_BY
@@ -128,7 +128,7 @@ class A {}
   }
 
   test_ClassElement_hierarchy_class_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -138,7 +138,7 @@ class B_q implements p.A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 57 5:20 |A| IS_IMPLEMENTED_BY
 57 5:20 |A| IS_REFERENCED_BY
@@ -149,7 +149,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_hierarchy_class_with() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -162,7 +162,7 @@ class D_q extends Object with p.A {}
       error(diag.classUsedAsMixin, 101, 3),
     ]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 66 5:29 |A| IS_MIXED_IN_BY
 66 5:29 |A| IS_REFERENCED_BY
@@ -173,7 +173,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_hierarchy_classTypeAlias_with() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -186,7 +186,7 @@ class D2_q = Object with p.A;
       error(diag.classUsedAsMixin, 89, 3),
     ]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 61 5:24 |A| IS_MIXED_IN_BY
 61 5:24 |A| IS_REFERENCED_BY
@@ -197,7 +197,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_hierarchy_enum_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -207,7 +207,7 @@ enum E_q implements p.A { v }
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 56 5:19 |A| IS_IMPLEMENTED_BY
 56 5:19 |A| IS_REFERENCED_BY
@@ -218,7 +218,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_hierarchy_extensionType_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -228,7 +228,7 @@ extension type E_q(A it) implements p.A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 55 5:18 |A| IS_REFERENCED_BY
 72 5:35 |A| IS_IMPLEMENTED_BY
@@ -241,7 +241,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_hierarchy_mixin_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -251,7 +251,7 @@ mixin M_q implements p.A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 57 5:20 |A| IS_IMPLEMENTED_BY
 57 5:20 |A| IS_REFERENCED_BY
@@ -262,7 +262,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_hierarchy_mixin_on() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -272,7 +272,7 @@ mixin M2_q on p.A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 50 5:13 |A| CONSTRAINS
 50 5:13 |A| IS_REFERENCED_BY
@@ -283,7 +283,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_reference_annotation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {
@@ -302,7 +302,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 44 4:9 |A| IS_REFERENCED_BY
 57 5:9 |A| IS_REFERENCED_BY
@@ -317,7 +317,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_reference_annotation_typeArgument() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 class A<T> {
   const A();
 }
@@ -327,21 +327,21 @@ class B {}
 @A<B>()
 void f() {}
 ''');
-    var element = findElement2.class_('B');
+    var element = result.findElement.class_('B');
     assertElementIndexText(element, r'''
 44 7:4 |B| IS_REFERENCED_BY
 ''');
   }
 
   test_ClassElement_reference_classTypeAlias() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {}
 class B = Object with A;
 void f(B p) {
   B v;
 }
 ''');
-    var element = findElement2.class_('B');
+    var element = result.findElement.class_('B');
     assertElementIndexText(element, r'''
 43 3:8 |B| IS_REFERENCED_BY
 52 4:3 |B| IS_REFERENCED_BY
@@ -349,7 +349,7 @@ void f(B p) {
   }
 
   test_ClassElement_reference_comment() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -357,7 +357,7 @@ class A {}
 /// [A] and [p.A].
 void f() {}
 ''');
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 43 5:6 |A| IS_REFERENCED_BY
 53 5:16 |A| IS_REFERENCED_BY qualified
@@ -366,12 +366,12 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_reference_definedInSdk() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'dart:math';
 Random v1;
 Random v2;
 ''');
-    var element = findElement2.importFind('dart:math').class_('Random');
+    var element = result.findElement.importFind('dart:math').class_('Random');
     assertElementIndexText(element, r'''
 20 2:1 |Random| IS_REFERENCED_BY
 31 3:1 |Random| IS_REFERENCED_BY
@@ -382,14 +382,14 @@ Random v2;
     newFile('$testPackageLibPath/lib.dart', r'''
 class A {}
 ''');
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'lib.dart';
 
 void f(A p) {
   A v = p;
 }
 ''');
-    var element = findNode.namedType('A p').element!;
+    var element = result.findNode.namedType('A p').element!;
     assertElementIndexText(element, r'''
 27 3:8 |A| IS_REFERENCED_BY
 36 4:3 |A| IS_REFERENCED_BY
@@ -397,7 +397,7 @@ void f(A p) {
   }
 
   test_ClassElement_reference_instanceCreation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -409,7 +409,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 51 6:3 |A| IS_REFERENCED_BY
 60 7:5 |A| IS_REFERENCED_BY qualified
@@ -418,7 +418,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_reference_memberAccess() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {
@@ -432,7 +432,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 75 8:3 |A| IS_REFERENCED_BY
 88 9:5 |A| IS_REFERENCED_BY qualified
@@ -441,7 +441,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_reference_namedType() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -460,7 +460,7 @@ void f() {
       error(diag.unusedLocalVariable, 93, 2),
     ]);
 
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 51 6:3 |A| IS_REFERENCED_BY
 61 7:5 |A| IS_REFERENCED_BY qualified
@@ -471,31 +471,31 @@ Prefixes: (unprefixed),p
   }
 
   test_ClassElement_reference_recordTypeAnnotation_named() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 class A {}
 
 void f(({int foo, A bar}) r) {}
 ''');
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 30 3:19 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_ClassElement_reference_recordTypeAnnotation_positional() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 class A {}
 
 void f((int, A) r) {}
 ''');
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 25 3:14 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_ClassElement_reference_typeLiteral() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A {}
@@ -503,7 +503,7 @@ class A {}
 var v = A;
 var v_p = p.A;
 ''');
-    var element = findElement2.class_('A');
+    var element = result.findElement.class_('A');
     assertElementIndexText(element, r'''
 46 5:9 |A| IS_REFERENCED_BY
 61 6:13 |A| IS_REFERENCED_BY qualified
@@ -512,7 +512,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ConstructorElement_class_method_sameName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A.foo() {
     foo();
@@ -522,19 +522,19 @@ class A {
 }
 ''');
 
-    var constructor = findElement2.constructor('foo');
+    var constructor = result.findElement.constructor('foo');
     assertElementIndexText(constructor, r'''
 52 6:15 |.foo| IS_INVOKED_BY qualified
 ''');
 
-    var method = findElement2.method('foo');
+    var method = result.findElement.method('foo');
     assertElementIndexText(method, r'''
 26 3:5 |foo| IS_INVOKED_BY
 ''');
   }
 
   test_ConstructorElement_class_named_newHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
 class A {
   new foo() {}
@@ -554,7 +554,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 200, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -568,7 +568,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_named_primary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
 class A.foo() {
   new bar() : this.foo();
@@ -587,7 +587,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 191, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -601,7 +601,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_named_typeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
 class A {
   A.foo() {}
@@ -621,7 +621,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 195, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -635,7 +635,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_named_typeName_viaTypeAlias() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new B.foo] and [B.foo]
 class A<T> {
   A.foo() {}
@@ -656,7 +656,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 218, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -670,7 +670,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_unnamed_implicit() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 class B {
   B();
@@ -690,7 +690,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 170, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -703,7 +703,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_unnamed_implicitInvocation_fromNewHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A();
 }
@@ -715,7 +715,7 @@ class B extends A {
 }
 ''');
 
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 42 6:3 |new| IS_INVOKED_BY qualified
 52 7:3 |new bar| IS_INVOKED_BY qualified
@@ -724,7 +724,7 @@ class B extends A {
   }
 
   test_ConstructorElement_class_unnamed_implicitInvocation_fromTypeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A();
 }
@@ -738,7 +738,7 @@ class B extends A {
 class C extends A {}
 ''');
 
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 42 6:3 |B| IS_INVOKED_BY qualified
 49 7:3 |B.bar| IS_INVOKED_BY qualified
@@ -748,7 +748,7 @@ class C extends A {}
   }
 
   test_ConstructorElement_class_unnamed_newHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 class A {
   new () {}
@@ -768,7 +768,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 177, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -791,14 +791,14 @@ void f() {
 }
 ''');
 
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   A() {}
 }
 ''');
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
 
-    await resolveFile2(otherFile);
+    result = await resolveFile2(otherFile);
     index = AnalysisDriverUnitIndex.fromBuffer(
       indexUnit(result.unit).toBuffer(),
     );
@@ -810,7 +810,7 @@ class A {
   }
 
   test_ConstructorElement_class_unnamed_primary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 class A() {
   new bar() : this();
@@ -829,7 +829,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 167, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -843,7 +843,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_unnamed_typeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 class A {
   A() {}
@@ -863,7 +863,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 171, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -877,7 +877,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_class_unnamed_typeName_explicitNew() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 class A {
   A.new() {}
@@ -897,7 +897,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 191, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -911,7 +911,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_classTypeAlias() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class M {}
 class A {
   A() {}
@@ -930,13 +930,13 @@ void useConstructor() {
       error(diag.classUsedAsMixin, 64, 1),
       error(diag.classUsedAsMixin, 84, 1),
     ]);
-    var constructor = findElement2.unnamedConstructor('A');
+    var constructor = result.findElement.unnamedConstructor('A');
     assertElementIndexText(constructor, r'''
 114 9:4 || IS_INVOKED_BY qualified
 134 11:4 || IS_INVOKED_BY qualified
 ''');
 
-    var constructorNamed = findElement2.constructor('named', of: 'A');
+    var constructorNamed = result.findElement.constructor('named', of: 'A');
     assertElementIndexText(constructorNamed, r'''
 121 10:4 |.named| IS_INVOKED_BY qualified
 141 12:4 |.named| IS_INVOKED_BY qualified
@@ -963,7 +963,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_named_newHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E.foo] and [E.foo]
 enum E {
   v.foo();
@@ -986,7 +986,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 180, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 185, 3),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -1000,7 +1000,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_named_primary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E.foo] and [E.foo]
 enum E.foo() {
   v.foo();
@@ -1022,7 +1022,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 167, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 172, 3),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -1036,7 +1036,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_named_typeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E.foo] and [E.foo]
 enum E {
   v.foo();
@@ -1059,7 +1059,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 178, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 183, 3),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -1073,7 +1073,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_unnamed_implicit() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E] and [E.new]
 enum E {
   v1,
@@ -1095,7 +1095,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 136, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 141, 3),
     ]);
-    var element = findElement2.unnamedConstructor('E');
+    var element = result.findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1110,7 +1110,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_unnamed_newHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E] and [E.new]
 enum E {
   v1,
@@ -1133,7 +1133,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 154, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 159, 3),
     ]);
-    var element = findElement2.unnamedConstructor('E');
+    var element = result.findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1148,7 +1148,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_unnamed_primary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E] and [E.new]
 enum E() {
   v1,
@@ -1170,7 +1170,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 140, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 145, 3),
     ]);
-    var element = findElement2.unnamedConstructor('E');
+    var element = result.findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1185,7 +1185,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_unnamed_typeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E] and [E.new]
 enum E {
   v1,
@@ -1208,7 +1208,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 149, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 154, 3),
     ]);
-    var element = findElement2.unnamedConstructor('E');
+    var element = result.findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1223,7 +1223,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_enum_unnamed_typeName_explicitNew() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new E] and [E.new]
 enum E {
   v1,
@@ -1246,7 +1246,7 @@ void useConstructor() {
       error(diag.unusedLocalVariable, 157, 1),
       error(diag.invalidReferenceToGenerativeEnumConstructor, 162, 3),
     ]);
-    var element = findElement2.unnamedConstructor('E');
+    var element = result.findElement.unnamedConstructor('E');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1261,7 +1261,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_named_newHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
 extension type A(int it) {
   new foo(this.it);
@@ -1278,7 +1278,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 184, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -1291,7 +1291,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_named_primary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
 extension type A.foo(int it) {
   new bar() : this.foo(0);
@@ -1307,7 +1307,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 168, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -1320,7 +1320,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_named_typeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
 extension type A(int it) {
   A.foo(this.it);
@@ -1337,7 +1337,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 182, 1),
     ]);
-    var element = findElement2.constructor('foo');
+    var element = result.findElement.constructor('foo');
     assertElementIndexText(element, r'''
 10 1:11 |.foo| IS_REFERENCED_BY qualified
 22 1:23 |.foo| IS_REFERENCED_BY qualified
@@ -1350,7 +1350,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_unnamed_newHead() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 extension type A.named(int it) {
   new (this.it);
@@ -1367,7 +1367,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 175, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1380,7 +1380,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_unnamed_primary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 extension type A(int it) {
   new bar() : this(0);
@@ -1396,7 +1396,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 152, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1409,7 +1409,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_unnamed_typeName() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 extension type A.named(int it) {
   A(this.it);
@@ -1426,7 +1426,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 172, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1439,7 +1439,7 @@ void useConstructor() {
   }
 
   test_ConstructorElement_extensionType_unnamed_typeName_explicitNew() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [new A] and [A.new]
 extension type A.named(int it) {
   A.new(this.it);
@@ -1456,7 +1456,7 @@ void useConstructor() {
       error(diag.deprecatedNewInCommentReference, 5, 3),
       error(diag.unusedLocalVariable, 184, 1),
     ]);
-    var element = findElement2.unnamedConstructor('A');
+    var element = result.findElement.unnamedConstructor('A');
     assertElementIndexText(element, r'''
 10 1:11 || IS_REFERENCED_BY qualified
 18 1:19 |.new| IS_REFERENCED_BY qualified
@@ -1483,7 +1483,7 @@ enum E;
   }
 
   test_EnumElement_reference_annotation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 enum E {
@@ -1503,7 +1503,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.enum_('E');
+    var element = result.findElement.enum_('E');
     assertElementIndexText(element, r'''
 48 5:9 |E| IS_REFERENCED_BY
 61 6:9 |E| IS_REFERENCED_BY
@@ -1518,7 +1518,7 @@ Prefixes: (unprefixed),p
   }
 
   test_EnumElement_reference_comment() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 enum E { v }
@@ -1528,7 +1528,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.enum_('E');
+    var element = result.findElement.enum_('E');
     assertElementIndexText(element, r'''
 45 5:6 |E| IS_REFERENCED_BY
 55 5:16 |E| IS_REFERENCED_BY qualified
@@ -1537,7 +1537,7 @@ Prefixes: (unprefixed),p
   }
 
   test_EnumElement_reference_instanceCreation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 enum E {
@@ -1555,7 +1555,7 @@ void f() {
       error(diag.invalidReferenceToGenerativeEnumConstructor, 88, 3),
     ]);
 
-    var element = findElement2.enum_('E');
+    var element = result.findElement.enum_('E');
     assertElementIndexText(element, r'''
 48 5:9 |E| IS_REFERENCED_BY
 75 9:9 |E| IS_REFERENCED_BY
@@ -1565,7 +1565,7 @@ Prefixes: (unprefixed),p
   }
 
   test_EnumElement_reference_memberAccess() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 enum E {
@@ -1580,7 +1580,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.enum_('E');
+    var element = result.findElement.enum_('E');
     assertElementIndexText(element, r'''
 79 9:3 |E| IS_REFERENCED_BY
 92 10:5 |E| IS_REFERENCED_BY qualified
@@ -1589,7 +1589,7 @@ Prefixes: (unprefixed),p
   }
 
   test_EnumElement_reference_namedType() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 enum E { v }
@@ -1604,7 +1604,7 @@ void f() {
       error(diag.unusedLocalVariable, 65, 2),
     ]);
 
-    var element = findElement2.enum_('E');
+    var element = result.findElement.enum_('E');
     assertElementIndexText(element, r'''
 53 6:3 |E| IS_REFERENCED_BY
 63 7:5 |E| IS_REFERENCED_BY qualified
@@ -1620,7 +1620,7 @@ extension E on int;
   }
 
   test_ExtensionElement_reference_memberAccess() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension E on int {
@@ -1634,7 +1634,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extension_('E');
+    var element = result.findElement.extension_('E');
     assertElementIndexText(element, r'''
 86 8:3 |E| IS_REFERENCED_BY
 99 9:5 |E| IS_REFERENCED_BY qualified
@@ -1643,7 +1643,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionElement_reference_override() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension E on int {
@@ -1657,7 +1657,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extension_('E');
+    var element = result.findElement.extension_('E');
     assertElementIndexText(element, r'''
 79 8:3 |E| IS_REFERENCED_BY
 95 9:5 |E| IS_REFERENCED_BY qualified
@@ -1666,7 +1666,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionTypeElement_hierarchy_extensionType_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
@@ -1676,7 +1676,7 @@ extension type B_q(int it) implements p.A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extensionType('A');
+    var element = result.findElement.extensionType('A');
     assertElementIndexText(element, r'''
 91 5:37 |A| IS_IMPLEMENTED_BY
 91 5:37 |A| IS_REFERENCED_BY
@@ -1687,7 +1687,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionTypeElement_reference_annotation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension type const A(int it) {}
@@ -1698,7 +1698,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extensionType('A');
+    var element = result.findElement.extensionType('A');
     assertElementIndexText(element, r'''
 62 5:2 |A| IS_REFERENCED_BY
 70 6:4 |A| IS_REFERENCED_BY qualified
@@ -1707,7 +1707,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionTypeElement_reference_comment() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
@@ -1717,7 +1717,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extensionType('A');
+    var element = result.findElement.extensionType('A');
     assertElementIndexText(element, r'''
 60 5:6 |A| IS_REFERENCED_BY
 70 5:16 |A| IS_REFERENCED_BY qualified
@@ -1726,7 +1726,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionTypeElement_reference_instanceCreation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
@@ -1738,7 +1738,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extensionType('A');
+    var element = result.findElement.extensionType('A');
     assertElementIndexText(element, r'''
 68 6:3 |A| IS_REFERENCED_BY
 78 7:5 |A| IS_REFERENCED_BY qualified
@@ -1747,7 +1747,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionTypeElement_reference_memberAccess() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension type A(int it) {
@@ -1761,7 +1761,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.extensionType('A');
+    var element = result.findElement.extensionType('A');
     assertElementIndexText(element, r'''
 92 8:3 |A| IS_REFERENCED_BY
 105 9:5 |A| IS_REFERENCED_BY qualified
@@ -1770,7 +1770,7 @@ Prefixes: (unprefixed),p
   }
 
   test_ExtensionTypeElement_reference_namedType() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 extension type A(int it) {}
@@ -1785,7 +1785,7 @@ void f() {
       error(diag.unusedLocalVariable, 80, 2),
     ]);
 
-    var element = findElement2.extensionType('A');
+    var element = result.findElement.extensionType('A');
     assertElementIndexText(element, r'''
 68 6:3 |A| IS_REFERENCED_BY
 78 7:5 |A| IS_REFERENCED_BY qualified
@@ -1794,7 +1794,7 @@ Prefixes: (unprefixed),p
   }
 
   test_FieldElement_ofClass_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 class A {
   int foo;
@@ -1816,7 +1816,7 @@ void useField(A a) {
 }
 ''');
 
-    var field = findElement2.class_('A').getField('foo')!;
+    var field = result.findElement.class_('A').getField('foo')!;
     assertElementIndexText(field, r'''
 53 4:11 |foo| IS_WRITTEN_BY qualified
 72 5:13 |foo| IS_WRITTEN_BY qualified
@@ -1838,47 +1838,47 @@ void useField(A a) {
   }
 
   test_FieldElement_ofClass_instance_synthetic_hasGetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A() : foo = 0;
   int get foo => 0;
 }
 ''');
-    var element = findElement2.field('foo');
+    var element = result.findElement.field('foo');
     assertElementIndexText(element, r'''
 18 2:9 |foo| IS_WRITTEN_BY qualified
 ''');
   }
 
   test_FieldElement_ofClass_instance_synthetic_hasGetterSetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A() : foo = 0;
   int get foo => 0;
   set foo(_) {}
 }
 ''');
-    var element = findElement2.field('foo');
+    var element = result.findElement.field('foo');
     assertElementIndexText(element, r'''
 18 2:9 |foo| IS_WRITTEN_BY qualified
 ''');
   }
 
   test_FieldElement_ofClass_instance_synthetic_hasSetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A() : foo = 0;
   set foo(_) {}
 }
 ''');
-    var element = findElement2.field('foo');
+    var element = result.findElement.field('foo');
     assertElementIndexText(element, r'''
 18 2:9 |foo| IS_WRITTEN_BY qualified
 ''');
   }
 
   test_FieldElement_ofClass_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 class A {
   static int foo = 0;
@@ -1897,7 +1897,7 @@ void useField() {
 }
 ''');
 
-    var field = findElement2.class_('A').getField('foo')!;
+    var field = result.findElement.class_('A').getField('foo')!;
 
     assertElementIndexText(field.getter!, r'''
 5 1:6 |foo| IS_REFERENCED_BY
@@ -1916,7 +1916,7 @@ void useField() {
   }
 
   test_FieldElement_ofEnum_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [E.foo]
 enum E {
   v;
@@ -1933,7 +1933,7 @@ void useField(E e) {
   E(foo: 0);
 }
 ''');
-    var field = findElement2.field('foo');
+    var field = result.findElement.field('foo');
     var getter = field.getter!;
     var setter = field.setter!;
 
@@ -1974,21 +1974,21 @@ void f() {
   }
 
   test_FieldElement_ofEnum_instance_synthetic_hasGetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 enum E {
   v;
   E() : foo = 0;
   int get foo => 0;
 }
 ''');
-    var element = findElement2.field('foo');
+    var element = result.findElement.field('foo');
     assertElementIndexText(element, r'''
 22 3:9 |foo| IS_WRITTEN_BY qualified
 ''');
   }
 
   test_FieldElement_ofEnum_instance_synthetic_hasGetterSetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 enum E {
   v;
   E() : foo = 0;
@@ -1996,28 +1996,28 @@ enum E {
   set foo(_) {}
 }
 ''');
-    var element = findElement2.field('foo');
+    var element = result.findElement.field('foo');
     assertElementIndexText(element, r'''
 22 3:9 |foo| IS_WRITTEN_BY qualified
 ''');
   }
 
   test_FieldElement_ofEnum_instance_synthetic_hasSetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 enum E {
   v;
   E() : foo = 0;
   set foo(_) {}
 }
 ''');
-    var element = findElement2.field('foo');
+    var element = result.findElement.field('foo');
     assertElementIndexText(element, r'''
 22 3:9 |foo| IS_WRITTEN_BY qualified
 ''');
   }
 
   test_FieldElement_ofEnum_static_constants() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 /// [v1], [MyEnum.v1], and [p.MyEnum.v1]
@@ -2034,12 +2034,12 @@ void f() {
 }
 ''');
 
-    assertElementIndexText(findElement2.getter('values'), r'''
+    assertElementIndexText(result.findElement.getter('values'), r'''
 116 8:10 |values| IS_REFERENCED_BY qualified
 195 13:12 |values| IS_REFERENCED_BY qualified
 ''');
 
-    assertElementIndexText(findElement2.getter('v1'), r'''
+    assertElementIndexText(result.findElement.getter('v1'), r'''
 31 3:6 |v1| IS_REFERENCED_BY
 44 3:19 |v1| IS_REFERENCED_BY qualified
 63 3:38 |v1| IS_REFERENCED_BY qualified
@@ -2048,13 +2048,13 @@ void f() {
 180 12:12 |v1| IS_REFERENCED_BY qualified
 ''');
 
-    assertElementIndexText(findElement2.getter('v2'), r'''
+    assertElementIndexText(result.findElement.getter('v2'), r'''
 165 11:10 |v2| IS_REFERENCED_BY qualified
 ''');
   }
 
   test_FieldElement_ofExtensionType_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 extension type A(int it) {
   static int foo = 0;
@@ -2068,7 +2068,7 @@ void useField() {
   A.foo = 0;
 }
 ''');
-    var field = findElement2.field('foo');
+    var field = result.findElement.field('foo');
     var getter = field.getter!;
     var setter = field.setter!;
 
@@ -2099,7 +2099,7 @@ class B<T> {
   }
 
   test_FieldFormalParameterElement_ofConstructor_optionalNamed_dotShorthand() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A({this.test}) : assert(test != null);
   int? test;
@@ -2109,7 +2109,7 @@ void foo() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.fieldFormalParameter('test');
+    var element = result.findElement.fieldFormalParameter('test');
     assertElementIndexText(element, r'''
 36 2:27 |test| IS_READ_BY
 92 6:14 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
@@ -2136,7 +2136,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_primary_optionalNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A({int? test}) {
   /// [test]
   this : assert(test != null) {
@@ -2164,7 +2164,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 30 2:8 |test| IS_REFERENCED_BY
 52 3:17 |test| IS_READ_BY
@@ -2182,7 +2182,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_primary_optionalNamed_genericClass() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T>({T? test}) {
   /// [test]
   this : assert(test != null) {
@@ -2209,7 +2209,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 31 2:8 |test| IS_REFERENCED_BY
 53 3:17 |test| IS_READ_BY
@@ -2226,7 +2226,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_primary_optionalPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A([int? test]) {
   /// [test]
   this : assert(test != null) {
@@ -2254,7 +2254,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 30 2:8 |test| IS_REFERENCED_BY
 52 3:17 |test| IS_READ_BY
@@ -2268,7 +2268,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_primary_requiredNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A({required int test}) {
   /// [test]
   this : assert(test != -1) {
@@ -2296,7 +2296,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 38 2:8 |test| IS_REFERENCED_BY
 60 3:17 |test| IS_READ_BY
@@ -2314,7 +2314,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_primary_requiredPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A(int test) {
   /// [test]
   this : assert(test != -1) {
@@ -2342,7 +2342,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 27 2:8 |test| IS_REFERENCED_BY
 49 3:17 |test| IS_READ_BY
@@ -2356,7 +2356,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_typeName_optionalNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   A({int? test}) : assert(test != null) {
@@ -2384,7 +2384,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 49 3:27 |test| IS_READ_BY
@@ -2402,7 +2402,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_typeName_optionalNamed_genericClass() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T> {
   /// [test]
   A({T? test}) : assert(test != null) {
@@ -2429,7 +2429,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 20 2:8 |test| IS_REFERENCED_BY
 50 3:25 |test| IS_READ_BY
@@ -2446,7 +2446,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_typeName_optionalPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   A([int? test]) : assert(test != null) {
@@ -2474,7 +2474,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 49 3:27 |test| IS_READ_BY
@@ -2488,7 +2488,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_typeName_requiredNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   A({required int test}) : assert(test != -1) {
@@ -2516,7 +2516,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 57 3:35 |test| IS_READ_BY
@@ -2534,7 +2534,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofConstructor_typeName_requiredPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   A(int test) : assert(test != -1) {
@@ -2562,7 +2562,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('A').parameter('test');
+    var element = result.findElement.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 46 3:24 |test| IS_READ_BY
@@ -2601,7 +2601,7 @@ void g(F<int> f) {
   }
 
   test_FormalParameterElement_ofLocalFunction_optionalNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 void f() {
   /// [test]
   void foo({int? test}) {
@@ -2618,13 +2618,13 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 ''');
   }
 
   test_FormalParameterElement_ofLocalFunction_optionalPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 void f() {
   /// [test]
   void foo([int? test]) {
@@ -2641,13 +2641,13 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 ''');
   }
 
   test_FormalParameterElement_ofLocalFunction_requiredNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 void f() {
   /// [test]
   void foo({required int test}) {
@@ -2664,13 +2664,13 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 ''');
   }
 
   test_FormalParameterElement_ofLocalFunction_requiredPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 void f() {
   /// [test]
   void foo(int test) {
@@ -2687,13 +2687,13 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 ''');
   }
 
   test_FormalParameterElement_ofMethod_optionalNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   void foo({int? test}) {
@@ -2712,7 +2712,7 @@ void f(A a) {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 53 4:5 |test| IS_READ_BY
@@ -2727,7 +2727,7 @@ void f(A a) {
   }
 
   test_FormalParameterElement_ofMethod_optionalNamed_genericClass() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T> {
   /// [test]
   void foo({T? test}) {
@@ -2746,7 +2746,7 @@ void f(A<int> a) {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 20 2:8 |test| IS_REFERENCED_BY
 54 4:5 |test| IS_READ_BY
@@ -2760,7 +2760,7 @@ void f(A<int> a) {
   }
 
   test_FormalParameterElement_ofMethod_optionalPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   void foo([int? test]) {
@@ -2779,7 +2779,7 @@ void f(A a) {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 53 4:5 |test| IS_READ_BY
@@ -2791,7 +2791,7 @@ void f(A a) {
   }
 
   test_FormalParameterElement_ofMethod_requiredNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   void foo({required int test}) {
@@ -2810,7 +2810,7 @@ void f(A a) {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 61 4:5 |test| IS_READ_BY
@@ -2825,7 +2825,7 @@ void f(A a) {
   }
 
   test_FormalParameterElement_ofMethod_requiredPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   /// [test]
   void foo(int test) {
@@ -2844,7 +2844,7 @@ void f(A a) {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 17 2:8 |test| IS_REFERENCED_BY
 50 4:5 |test| IS_READ_BY
@@ -2856,7 +2856,7 @@ void f(A a) {
   }
 
   test_FormalParameterElement_ofTopLevelFunction_optionalNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [test]
 void foo({int? test}) {
   test;
@@ -2872,7 +2872,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 5 1:6 |test| IS_REFERENCED_BY
 37 3:3 |test| IS_READ_BY
@@ -2887,7 +2887,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofTopLevelFunction_optionalNamed_argumentAnywhere() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [test]
 void foo(int a, int b, {int? test}) {
   test;
@@ -2904,7 +2904,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 5 1:6 |test| IS_REFERENCED_BY
 51 3:3 |test| IS_READ_BY
@@ -2919,7 +2919,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofTopLevelFunction_optionalPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [test]
 void foo([int? test]) {
   test;
@@ -2935,7 +2935,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 5 1:6 |test| IS_REFERENCED_BY
 37 3:3 |test| IS_READ_BY
@@ -2947,7 +2947,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofTopLevelFunction_requiredNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [test]
 void foo({required int test}) {
   test;
@@ -2964,7 +2964,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 5 1:6 |test| IS_REFERENCED_BY
 45 3:3 |test| IS_READ_BY
@@ -2979,7 +2979,7 @@ void f() {
   }
 
   test_FormalParameterElement_ofTopLevelFunction_requiredPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [test]
 void foo(int test) {
   test;
@@ -2996,7 +2996,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.parameter('test');
+    var element = result.findElement.parameter('test');
     assertElementIndexText(element, r'''
 5 1:6 |test| IS_REFERENCED_BY
 34 3:3 |test| IS_READ_BY
@@ -3021,7 +3021,7 @@ void g(bool b) {
   }
 
   test_GetterElement_ofClass_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 class A {
   int get foo => 0;
@@ -3035,7 +3035,7 @@ void useGetter(A a) {
   a.foo;
 }
 ''');
-    var element = findElement2.getter('foo');
+    var element = result.findElement.getter('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3046,7 +3046,7 @@ void useGetter(A a) {
   }
 
   test_GetterElement_ofClass_invocation() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   get foo => null;
   void useGetter() {
@@ -3054,7 +3054,7 @@ class A {
     foo();
   }
 }''');
-    var element = findElement2.getter('foo');
+    var element = result.findElement.getter('foo');
     assertElementIndexText(element, r'''
 59 4:10 |foo| IS_REFERENCED_BY qualified
 70 5:5 |foo| IS_REFERENCED_BY
@@ -3062,7 +3062,7 @@ class A {
   }
 
   test_GetterElement_ofClass_objectPattern() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   int get foo => 0;
 }
@@ -3072,7 +3072,7 @@ void useGetter(Object? x) {
   if (x case A(: var foo)) {}
 }
 ''');
-    var element = findElement2.getter('foo');
+    var element = result.findElement.getter('foo');
     assertElementIndexText(element, r'''
 76 6:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
 103 7:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
@@ -3080,7 +3080,7 @@ void useGetter(Object? x) {
   }
 
   test_GetterElement_ofClass_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'test.dart' as p;
 
 /// [foo], [A.foo], [p.A.foo]
@@ -3096,7 +3096,7 @@ void useGetter() {
   p.A.foo;
 }
 ''');
-    var element = findElement2.getter('foo');
+    var element = result.findElement.getter('foo');
     assertElementIndexText(element, r'''
 31 3:6 |foo| IS_REFERENCED_BY
 40 3:15 |foo| IS_REFERENCED_BY qualified
@@ -3109,10 +3109,10 @@ void useGetter() {
 
   test_LibraryFragment_reference_export() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 export 'lib.dart';
 ''');
-    var export = findElement2.export('package:test/lib.dart');
+    var export = result.findElement.export('package:test/lib.dart');
     var fragment = export.exportedLibrary!.firstFragment;
     assertLibraryFragmentIndexText(fragment, r'''
 7 1:8 |'lib.dart'|
@@ -3121,10 +3121,10 @@ export 'lib.dart';
 
   test_LibraryFragment_reference_import() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'lib.dart';
 ''');
-    var import = findElement2.import('package:test/lib.dart');
+    var import = result.findElement.import('package:test/lib.dart');
     var fragment = import.importedLibrary!.firstFragment;
     assertLibraryFragmentIndexText(fragment, r'''
 7 1:8 |'lib.dart'|
@@ -3133,10 +3133,10 @@ import 'lib.dart';
 
   test_LibraryFragment_reference_part() async {
     newFile('$testPackageLibPath/my_unit.dart', "part of 'test.dart';");
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 part 'my_unit.dart';
 ''');
-    var fragment = findElement2.part('package:test/my_unit.dart');
+    var fragment = result.findElement.part('package:test/my_unit.dart');
     assertLibraryFragmentIndexText(fragment, r'''
 5 1:6 |'my_unit.dart'|
 ''');
@@ -3157,7 +3157,7 @@ part 'b.dart';
   }
 
   test_MethodElement_normal_ofClass_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 class A {
   void foo() {}
@@ -3175,7 +3175,7 @@ void useFoo(A a) {
   a.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3191,7 +3191,7 @@ void useFoo(A a) {
   }
 
   test_MethodElement_normal_ofClass_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'test.dart' as p;
 
 /// [foo], [A.foo], [p.A.foo]
@@ -3211,7 +3211,7 @@ void useFoo() {
   p.A.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 31 3:6 |foo| IS_REFERENCED_BY
 40 3:15 |foo| IS_REFERENCED_BY qualified
@@ -3227,7 +3227,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofEnum_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [E.foo]
 enum E {
   v;
@@ -3244,7 +3244,7 @@ void useFoo(E e) {
   e.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3258,7 +3258,7 @@ void useFoo(E e) {
   }
 
   test_MethodElement_normal_ofEnum_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [E.foo]
 enum E {
   v;
@@ -3273,7 +3273,7 @@ void useFoo() {
   E.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3285,7 +3285,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofExtension_named_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [E.foo]
 extension E on int {
   void foo() {}
@@ -3296,7 +3296,7 @@ void useFoo() {
   0.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3306,7 +3306,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofExtension_named_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [E.foo]
 extension E on int {
   static void foo() {}
@@ -3317,7 +3317,7 @@ void useFoo() {
   E.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3327,7 +3327,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofExtension_unnamed_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [int.foo]
 extension on int {
   void foo() {} // int
@@ -3346,14 +3346,14 @@ void useFoo() {
 }
 ''');
 
-    var intMethod = findNode.methodDeclaration('foo() {} // int');
+    var intMethod = result.findNode.methodDeclaration('foo() {} // int');
     assertElementIndexText(intMethod.declaredFragment!.element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 167 12:5 |foo| IS_INVOKED_BY qualified
 178 13:5 |foo| IS_REFERENCED_BY qualified
 ''');
 
-    var doubleMethod = findNode.methodDeclaration('foo() {} // double');
+    var doubleMethod = result.findNode.methodDeclaration('foo() {} // double');
     assertElementIndexText(doubleMethod.declaredFragment!.element, r'''
 74 6:6 |foo| IS_REFERENCED_BY
 191 14:9 |foo| IS_INVOKED_BY qualified
@@ -3362,7 +3362,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofExtensionType_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 extension type A(int it) {
   void foo() {}
@@ -3379,7 +3379,7 @@ void useFoo() {
   a.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3393,7 +3393,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofExtensionType_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 extension type A(int it) {
   static void foo() {}
@@ -3407,7 +3407,7 @@ void useFoo() {
   A.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3419,7 +3419,7 @@ void useFoo() {
   }
 
   test_MethodElement_normal_ofMixin_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [M.foo]
 mixin M {
   void foo() {}
@@ -3435,7 +3435,7 @@ void useFoo(M m) {
   m.foo;
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3449,7 +3449,7 @@ void useFoo(M m) {
   }
 
   test_MethodElement_normal_ofMixin_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [M.foo]
 mixin M {
   static void foo() {}
@@ -3464,7 +3464,7 @@ void useFoo() {
   M m = .foo();
 }
 ''');
-    var element = findElement2.method('foo');
+    var element = result.findElement.method('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -3477,7 +3477,7 @@ void useFoo() {
   }
 
   test_MethodElement_operator_ofClass_binary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator +] and [A.operator +]
 class A {
   operator +(other) => this;
@@ -3489,7 +3489,7 @@ void useOperator(A a) {
   a++;
 }
 ''');
-    var element = findElement2.method('+');
+    var element = result.findElement.method('+');
     assertElementIndexText(element, r'''
 14 1:15 |+| IS_REFERENCED_BY
 33 1:34 |+| IS_REFERENCED_BY qualified
@@ -3501,7 +3501,7 @@ void useOperator(A a) {
   }
 
   test_MethodElement_operator_ofClass_index() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []] and [A.operator []]
 class A {
   operator [](i) => null;
@@ -3510,14 +3510,14 @@ void useOperator(A a) {
   a[0];
 }
 ''');
-    var element = findElement2.method('[]');
+    var element = result.findElement.method('[]');
     assertElementIndexText(element, r'''
 103 6:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofClass_indexEq() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []=] and [A.operator []=]
 class A {
   operator []=(i, v) {}
@@ -3526,14 +3526,14 @@ void useOperator(A a) {
   a[1] = 42;
 }
 ''');
-    var element = findElement2.method('[]=');
+    var element = result.findElement.method('[]=');
     assertElementIndexText(element, r'''
 103 6:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofClass_prefix() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator ~] and [A.operator ~]
 class A {
   A operator ~() => this;
@@ -3542,7 +3542,7 @@ void useOperator(A a) {
   ~a;
 }
 ''');
-    var element = findElement2.method('~');
+    var element = result.findElement.method('~');
     assertElementIndexText(element, r'''
 14 1:15 |~| IS_REFERENCED_BY
 33 1:34 |~| IS_REFERENCED_BY qualified
@@ -3551,7 +3551,7 @@ void useOperator(A a) {
   }
 
   test_MethodElement_operator_ofEnum_binary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator +] and [E.operator +]
 enum E {
   v;
@@ -3564,7 +3564,7 @@ void useOperator(E e) {
   e++;
 }
 ''');
-    var element = findElement2.method('+');
+    var element = result.findElement.method('+');
     assertElementIndexText(element, r'''
 14 1:15 |+| IS_REFERENCED_BY
 33 1:34 |+| IS_REFERENCED_BY qualified
@@ -3576,7 +3576,7 @@ void useOperator(E e) {
   }
 
   test_MethodElement_operator_ofEnum_index() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []] and [E.operator []]
 enum E {
   v;
@@ -3586,14 +3586,14 @@ void useOperator(E e) {
   e[0];
 }
 ''');
-    var element = findElement2.method('[]');
+    var element = result.findElement.method('[]');
     assertElementIndexText(element, r'''
 116 7:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofEnum_indexEq() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []=] and [E.operator []=]
 enum E {
   v;
@@ -3603,14 +3603,14 @@ void useOperator(E e) {
   e[1] = 42;
 }
 ''');
-    var element = findElement2.method('[]=');
+    var element = result.findElement.method('[]=');
     assertElementIndexText(element, r'''
 123 7:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofEnum_prefix() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator ~] and [E.operator ~]
 enum E {
   e;
@@ -3620,7 +3620,7 @@ void useOperator(E e) {
   ~e;
 }
 ''');
-    var element = findElement2.method('~');
+    var element = result.findElement.method('~');
     assertElementIndexText(element, r'''
 14 1:15 |~| IS_REFERENCED_BY
 33 1:34 |~| IS_REFERENCED_BY qualified
@@ -3629,7 +3629,7 @@ void useOperator(E e) {
   }
 
   test_MethodElement_operator_ofExtension_binary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator +] and [E.operator +]
 extension E on int {
   int operator +(int other) => 0;
@@ -3638,7 +3638,7 @@ void useOperator(int e) {
   E(e) + 1;
 }
 ''');
-    var element = findElement2.method('+');
+    var element = result.findElement.method('+');
     assertElementIndexText(element, r'''
 14 1:15 |+| IS_REFERENCED_BY
 33 1:34 |+| IS_REFERENCED_BY qualified
@@ -3647,7 +3647,7 @@ void useOperator(int e) {
   }
 
   test_MethodElement_operator_ofExtension_index() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []] and [E.operator []]
 extension E on int {
   int operator [](int index) => 0;
@@ -3656,14 +3656,14 @@ void useOperator(int e) {
   E(e)[0];
 }
 ''');
-    var element = findElement2.method('[]');
+    var element = result.findElement.method('[]');
     assertElementIndexText(element, r'''
 128 6:7 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofExtension_indexEq() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []=] and [E.operator []=]
 extension E on int {
   operator []=(int index, int value) {}
@@ -3672,14 +3672,14 @@ void useOperator(int e) {
   E(e)[1] = 42;
 }
 ''');
-    var element = findElement2.method('[]=');
+    var element = result.findElement.method('[]=');
     assertElementIndexText(element, r'''
 135 6:7 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofExtension_prefix() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator ~] and [E.operator ~]
 extension E on int {
   int operator ~() => 0;
@@ -3688,7 +3688,7 @@ void useOperator(int e) {
   ~E(e);
 }
 ''');
-    var element = findElement2.method('~');
+    var element = result.findElement.method('~');
     assertElementIndexText(element, r'''
 14 1:15 |~| IS_REFERENCED_BY
 33 1:34 |~| IS_REFERENCED_BY qualified
@@ -3697,7 +3697,7 @@ void useOperator(int e) {
   }
 
   test_MethodElement_operator_ofExtensionType_binary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator +] and [A.operator +]
 extension type A(int it) {
   int operator +(int other) => 0;
@@ -3709,7 +3709,7 @@ void useOperator(A a) {
   a++;
 }
 ''');
-    var element = findElement2.method('+');
+    var element = result.findElement.method('+');
     assertElementIndexText(element, r'''
 14 1:15 |+| IS_REFERENCED_BY
 33 1:34 |+| IS_REFERENCED_BY qualified
@@ -3721,7 +3721,7 @@ void useOperator(A a) {
   }
 
   test_MethodElement_operator_ofExtensionType_index() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []] and [A.operator []]
 extension type A(int it) {
   int operator [](int index) => 0;
@@ -3730,14 +3730,14 @@ void useOperator(A a) {
   a[0];
 }
 ''');
-    var element = findElement2.method('[]');
+    var element = result.findElement.method('[]');
     assertElementIndexText(element, r'''
 129 6:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofExtensionType_indexEq() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []=] and [A.operator []=]
 extension type A(int it) {
   operator []=(int index, int value) {}
@@ -3746,14 +3746,14 @@ void useOperator(A a) {
   a[1] = 42;
 }
 ''');
-    var element = findElement2.method('[]=');
+    var element = result.findElement.method('[]=');
     assertElementIndexText(element, r'''
 136 6:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofExtensionType_prefix() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator ~] and [A.operator ~]
 extension type A(int it) {
   int operator ~() => 0;
@@ -3762,7 +3762,7 @@ void useOperator(A a) {
   ~a;
 }
 ''');
-    var element = findElement2.method('~');
+    var element = result.findElement.method('~');
     assertElementIndexText(element, r'''
 14 1:15 |~| IS_REFERENCED_BY
 33 1:34 |~| IS_REFERENCED_BY qualified
@@ -3771,7 +3771,7 @@ void useOperator(A a) {
   }
 
   test_MethodElement_operator_ofMixin_binary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator +] and [M.operator +]
 mixin M {
   int operator +(int other) => 0;
@@ -3783,7 +3783,7 @@ void useOperator(M m) {
   m++;
 }
 ''');
-    var element = findElement2.method('+');
+    var element = result.findElement.method('+');
     assertElementIndexText(element, r'''
 14 1:15 |+| IS_REFERENCED_BY
 33 1:34 |+| IS_REFERENCED_BY qualified
@@ -3795,7 +3795,7 @@ void useOperator(M m) {
   }
 
   test_MethodElement_operator_ofMixin_index() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []] and [M.operator []]
 mixin M {
   int operator [](int index) => 0;
@@ -3804,14 +3804,14 @@ void useOperator(M m) {
   m[0];
 }
 ''');
-    var element = findElement2.method('[]');
+    var element = result.findElement.method('[]');
     assertElementIndexText(element, r'''
 112 6:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofMixin_indexEq() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator []=] and [M.operator []=]
 mixin M {
   operator []=(int index, int value) {}
@@ -3820,14 +3820,14 @@ void useOperator(M m) {
   m[1] = 42;
 }
 ''');
-    var element = findElement2.method('[]=');
+    var element = result.findElement.method('[]=');
     assertElementIndexText(element, r'''
 119 6:4 |[| IS_INVOKED_BY qualified
 ''');
   }
 
   test_MethodElement_operator_ofMixin_prefix() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [operator ~] and [M.operator ~]
 mixin M {
   int operator ~() => 0;
@@ -3836,7 +3836,7 @@ void useOperator(M m) {
   ~m;
 }
 ''');
-    var element = findElement2.method('~');
+    var element = result.findElement.method('~');
     assertElementIndexText(element, r'''
 14 1:15 |~| IS_REFERENCED_BY
 33 1:34 |~| IS_REFERENCED_BY qualified
@@ -3852,13 +3852,13 @@ mixin M;
   }
 
   test_MixinElement_hierarchy_class_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 class B implements A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 30 2:20 |A| IS_IMPLEMENTED_BY
 30 2:20 |A| IS_REFERENCED_BY
@@ -3866,13 +3866,13 @@ class B implements A {}
   }
 
   test_MixinElement_hierarchy_class_with() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 class B extends Object with A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 39 2:29 |A| IS_MIXED_IN_BY
 39 2:29 |A| IS_REFERENCED_BY
@@ -3880,13 +3880,13 @@ class B extends Object with A {}
   }
 
   test_MixinElement_hierarchy_classTypeAlias_with() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 class B = Object with A;
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 33 2:23 |A| IS_MIXED_IN_BY
 33 2:23 |A| IS_REFERENCED_BY
@@ -3894,7 +3894,7 @@ class B = Object with A;
   }
 
   test_MixinElement_hierarchy_enum_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 enum E implements A {
   v
@@ -3902,7 +3902,7 @@ enum E implements A {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 29 2:19 |A| IS_IMPLEMENTED_BY
 29 2:19 |A| IS_REFERENCED_BY
@@ -3910,7 +3910,7 @@ enum E implements A {
   }
 
   test_MixinElement_hierarchy_enum_with() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 enum E with A {
   v
@@ -3918,7 +3918,7 @@ enum E with A {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 23 2:13 |A| IS_MIXED_IN_BY
 23 2:13 |A| IS_REFERENCED_BY
@@ -3926,13 +3926,13 @@ enum E with A {
   }
 
   test_MixinElement_hierarchy_extensionType_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 extension type E(A it) implements A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 28 2:18 |A| IS_REFERENCED_BY
 45 2:35 |A| IS_IMPLEMENTED_BY
@@ -3941,13 +3941,13 @@ extension type E(A it) implements A {}
   }
 
   test_MixinElement_hierarchy_mixin_implements() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 mixin M implements A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 30 2:20 |A| IS_IMPLEMENTED_BY
 30 2:20 |A| IS_REFERENCED_BY
@@ -3955,13 +3955,13 @@ mixin M implements A {}
   }
 
   test_MixinElement_hierarchy_mixin_on() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 mixin A {}
 mixin M on A {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 22 2:12 |A| CONSTRAINS
 22 2:12 |A| IS_REFERENCED_BY
@@ -3969,7 +3969,7 @@ mixin M on A {}
   }
 
   test_MixinElement_reference_annotation() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 mixin A {
@@ -3982,7 +3982,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 75 7:2 |A| IS_REFERENCED_BY
 91 8:4 |A| IS_REFERENCED_BY qualified
@@ -3991,7 +3991,7 @@ Prefixes: (unprefixed),p
   }
 
   test_MixinElement_reference_comment() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 mixin A {}
@@ -4001,7 +4001,7 @@ void f() {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 43 5:6 |A| IS_REFERENCED_BY
 53 5:16 |A| IS_REFERENCED_BY qualified
@@ -4010,7 +4010,7 @@ Prefixes: (unprefixed),p
   }
 
   test_MixinElement_reference_memberAccess() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 mixin A {
@@ -4024,7 +4024,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 75 8:3 |A| IS_REFERENCED_BY
 88 9:5 |A| IS_REFERENCED_BY qualified
@@ -4033,7 +4033,7 @@ Prefixes: (unprefixed),p
   }
 
   test_MixinElement_reference_namedType() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 mixin A {}
@@ -4042,7 +4042,7 @@ void f(A v1, p.A v2) {}
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.mixin('A');
+    var element = result.findElement.mixin('A');
     assertElementIndexText(element, r'''
 45 5:8 |A| IS_REFERENCED_BY
 53 5:16 |A| IS_REFERENCED_BY qualified
@@ -4068,7 +4068,7 @@ Never f() {}
   }
 
   test_SetterElement_ofClass_instance() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 /// [foo] and [A.foo]
 class A {
   set foo(int _) {}
@@ -4082,7 +4082,7 @@ void useSetter(A a) {
   a.foo = 0;
 }
 ''');
-    var element = findElement2.setter('foo');
+    var element = result.findElement.setter('foo');
     assertElementIndexText(element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 17 1:18 |foo| IS_REFERENCED_BY qualified
@@ -4093,7 +4093,7 @@ void useSetter(A a) {
   }
 
   test_SetterElement_ofClass_static() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'test.dart' as p;
 
 /// [foo], [A.foo], [p.A.foo]
@@ -4109,7 +4109,7 @@ void useSetter() {
   p.A.foo = 0;
 }
 ''');
-    var element = findElement2.setter('foo');
+    var element = result.findElement.setter('foo');
     assertElementIndexText(element, r'''
 31 3:6 |foo| IS_REFERENCED_BY
 40 3:15 |foo| IS_REFERENCED_BY qualified
@@ -4315,7 +4315,7 @@ mixin Y on A, B implements C;
   }
 
   test_SuperFormalParameterElement_ofConstructor_optionalNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A({int? test});
 }
@@ -4331,7 +4331,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('B').parameter('test');
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
     assertElementIndexText(element, r'''
 58 6:8 |test| IS_REFERENCED_BY
 91 7:28 |test| IS_READ_BY
@@ -4341,7 +4341,7 @@ void f() {
   }
 
   test_SuperFormalParameterElement_ofConstructor_optionalPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A([int? test]);
 }
@@ -4357,7 +4357,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('B').parameter('test');
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
     assertElementIndexText(element, r'''
 58 6:8 |test| IS_REFERENCED_BY
 91 7:28 |test| IS_READ_BY
@@ -4365,7 +4365,7 @@ void f() {
   }
 
   test_SuperFormalParameterElement_ofConstructor_requiredNamed() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A({required int test});
 }
@@ -4381,7 +4381,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('B').parameter('test');
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
     assertElementIndexText(element, r'''
 66 6:8 |test| IS_REFERENCED_BY
 108 7:37 |test| IS_READ_BY
@@ -4391,7 +4391,7 @@ void f() {
   }
 
   test_SuperFormalParameterElement_ofConstructor_requiredPositional() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A {
   A(int test);
 }
@@ -4407,7 +4407,7 @@ void f() {
 }
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.unnamedConstructor('B').parameter('test');
+    var element = result.findElement.unnamedConstructor('B').parameter('test');
     assertElementIndexText(element, r'''
 55 6:8 |test| IS_REFERENCED_BY
 86 7:26 |test| IS_READ_BY
@@ -4415,7 +4415,7 @@ void f() {
   }
 
   test_TopLevelFunctionElement() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 void foo() {}
@@ -4430,7 +4430,7 @@ void f() {
 ''');
     assertErrorsInResult([]);
 
-    var element = findElement2.topFunction('foo');
+    var element = result.findElement.topFunction('foo');
     assertElementIndexText(element, r'''
 46 5:6 |foo| IS_REFERENCED_BY
 58 5:18 |foo| IS_REFERENCED_BY qualified
@@ -4443,14 +4443,14 @@ Prefixes: (unprefixed),p
   }
 
   test_TopLevelFunctionElement_loadLibrary() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'dart:math' deferred as math;
 
 void f() {
   math.loadLibrary();
 }
 ''');
-    var mathLib = findElement2.import('dart:math').importedLibrary!;
+    var mathLib = result.findElement.import('dart:math').importedLibrary!;
     var element = mathLib.loadLibraryFunction;
     assertElementIndexText(element, r'''
 56 4:8 |loadLibrary| IS_INVOKED_BY qualified
@@ -4458,7 +4458,7 @@ void f() {
   }
 
   test_TopLevelVariableElement_reference() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'test.dart' as p;
 
 var foo = 0;
@@ -4474,7 +4474,7 @@ void f() {
 }
 ''');
 
-    var element = findElement2.topVar('foo');
+    var element = result.findElement.topVar('foo');
     var getter = element.getter!;
     var setter = element.setter!;
 
@@ -4495,37 +4495,37 @@ Prefixes: (unprefixed),p
   }
 
   test_TopLevelVariableElement_reference_combinator_show_hasGetterSetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'test.dart' show foo;
 
 int get foo => 0;
 void set foo(_) {}
 ''');
-    var element = findElement2.topVar('foo');
+    var element = result.findElement.topVar('foo');
     assertElementIndexText(element, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
   test_TopLevelVariableElement_reference_combinator_show_hasSetter() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 import 'test.dart' show foo;
 
 void set foo(_) {}
 ''');
-    var element = findElement2.topVar('foo');
+    var element = result.findElement.topVar('foo');
     assertElementIndexText(element, r'''
 24 1:25 |foo| IS_REFERENCED_BY qualified
 ''');
   }
 
   test_TypeAliasElement_legacy_reference() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 typedef void A();
 /// [A]
 void f(A p) {}
 ''');
-    var element = findElement2.typeAlias('A');
+    var element = result.findElement.typeAlias('A');
     assertElementIndexText(element, r'''
 23 2:6 |A| IS_REFERENCED_BY
 33 3:8 |A| IS_REFERENCED_BY
@@ -4533,61 +4533,61 @@ void f(A p) {}
   }
 
   test_TypeAliasElement_modern_hierarchy_class_extends() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T> {}
 typedef B = A<int>;
 class C extends B {}
 ''');
-    var element = findElement2.typeAlias('B');
+    var element = result.findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 50 3:17 |B| IS_EXTENDED_BY
 50 3:17 |B| IS_REFERENCED_BY
 ''');
 
-    var aliasedClass = findElement2.class_('A');
+    var aliasedClass = result.findElement.class_('A');
     assertElementIndexText(aliasedClass, r'''
 26 2:13 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_TypeAliasElement_modern_hierarchy_class_implements() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T> {}
 typedef B = A<int>;
 class C implements B {}
 ''');
-    var element = findElement2.typeAlias('B');
+    var element = result.findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 53 3:20 |B| IS_IMPLEMENTED_BY
 53 3:20 |B| IS_REFERENCED_BY
 ''');
 
-    var aliasedClass = findElement2.class_('A');
+    var aliasedClass = result.findElement.class_('A');
     assertElementIndexText(aliasedClass, r'''
 26 2:13 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_TypeAliasElement_modern_hierarchy_class_with() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T> {}
 typedef B = A<int>;
 class C extends Object with B {}
 ''');
-    var element = findElement2.typeAlias('B');
+    var element = result.findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 62 3:29 |B| IS_MIXED_IN_BY
 62 3:29 |B| IS_REFERENCED_BY
 ''');
 
-    var aliasedClass = findElement2.class_('A');
+    var aliasedClass = result.findElement.class_('A');
     assertElementIndexText(aliasedClass, r'''
 26 2:13 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_TypeAliasElement_modern_reference() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class A<T> {
   static int field = 0;
   static void method() {}
@@ -4604,7 +4604,7 @@ void f(B p) {
   B.method();
 }
 ''');
-    var element = findElement2.typeAlias('B');
+    var element = result.findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 92 8:6 |B| IS_REFERENCED_BY
 102 9:8 |B| IS_REFERENCED_BY
@@ -4615,14 +4615,14 @@ void f(B p) {
 151 14:3 |B| IS_REFERENCED_BY
 ''');
 
-    var aliasedClass = findElement2.class_('A');
+    var aliasedClass = result.findElement.class_('A');
     assertElementIndexText(aliasedClass, r'''
 78 6:13 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_TypeAliasElement_modern_reference_comment() async {
-    await _indexTestUnit(r'''
+    var result = await _indexTestUnit(r'''
 import 'test.dart' as p;
 
 class A<T> {}
@@ -4632,21 +4632,21 @@ typedef B = A<int>;
 void f() {}
 ''');
     assertErrorsInResult([]);
-    var element = findElement2.typeAlias('B');
+    var element = result.findElement.typeAlias('B');
     assertElementIndexText(element, r'''
 66 6:6 |B| IS_REFERENCED_BY
 76 6:16 |B| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
 ''');
 
-    var aliasedClass = findElement2.class_('A');
+    var aliasedClass = result.findElement.class_('A');
     assertElementIndexText(aliasedClass, r'''
 52 4:13 |A| IS_REFERENCED_BY
 ''');
   }
 
   test_usedName_inLibraryIdentifier() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 library aaa.bbb.ccc;
 class C {
   var bbb;
@@ -4655,13 +4655,13 @@ void f(p) {
   p.bbb = 1;
 }
 ''');
-    assertThatName('bbb')
+    assertThatName(result, 'bbb')
       ..isNotUsed('bbb.ccc', IndexRelationKind.IS_READ_BY)
       ..isUsedQ('bbb = 1;', IndexRelationKind.IS_WRITTEN_BY);
   }
 
   test_usedName_qualified_resolved() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class C {
   var x;
 }
@@ -4672,7 +4672,7 @@ void f(C c) {
   c.x();
 }
 ''');
-    assertThatName('x')
+    assertThatName(result, 'x')
       ..isNotUsedQ('x; // 1', IndexRelationKind.IS_READ_BY)
       ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
@@ -4680,7 +4680,7 @@ void f(C c) {
   }
 
   test_usedName_qualified_unresolved() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 void f(p) {
   p.x;
   p.x = 1;
@@ -4688,7 +4688,7 @@ void f(p) {
   p.x();
 }
 ''');
-    assertThatName('x')
+    assertThatName(result, 'x')
       ..isUsedQ('x;', IndexRelationKind.IS_READ_BY)
       ..isUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
@@ -4696,7 +4696,7 @@ void f(p) {
   }
 
   test_usedName_unqualified_resolved() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 class C {
   var x;
   m() {
@@ -4707,7 +4707,7 @@ class C {
   }
 }
 ''');
-    assertThatName('x')
+    assertThatName(result, 'x')
       ..isNotUsedQ('x; // 1', IndexRelationKind.IS_READ_BY)
       ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
@@ -4715,7 +4715,7 @@ class C {
   }
 
   test_usedName_unqualified_unresolved() async {
-    await _indexTestUnit('''
+    var result = await _indexTestUnit('''
 void f() {
   x;
   x = 1;
@@ -4723,7 +4723,7 @@ void f() {
   x();
 }
 ''');
-    assertThatName('x')
+    assertThatName(result, 'x')
       ..isUsed('x;', IndexRelationKind.IS_READ_BY)
       ..isUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
@@ -4849,16 +4849,8 @@ void f() {
 mixin _IndexMixin on PubPackageResolutionTest {
   late AnalysisDriverUnitIndex index;
 
-  _NameIndexAssert assertThatName(String name) {
-    return _NameIndexAssert(this, name);
-  }
-
-  /// Return [ImportFindElement] for 'package:test/lib.dart' import.
-  ImportFindElement importFindLib() {
-    return findElement2.importFind(
-      'package:test/lib.dart',
-      mustBeUnique: false,
-    );
+  _NameIndexAssert assertThatName(TestResolvedUnitResult result, String name) {
+    return _NameIndexAssert(this, result, name);
   }
 
   void _assertSubtype(
@@ -4902,13 +4894,14 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   ExpectedLocation _expectedLocation(
+    TestResolvedUnitResult result,
     String search,
     bool isQualified, {
     int? length,
   }) {
-    int offset = findNode.offset(search);
-    length ??= findNode.simple(search).length;
-    return ExpectedLocation(offset, length, isQualified);
+    int offset = result.findNode.offset(search);
+    var expectedLength = length ?? result.findNode.simple(search).length;
+    return ExpectedLocation(offset, expectedLength, isQualified);
   }
 
   void _failWithIndexDump(String msg) {
@@ -4965,12 +4958,13 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return index.getLibraryFragmentId(unitElement);
   }
 
-  Future<void> _indexTestUnit(String code) async {
-    await resolveTestCode(code);
+  Future<TestResolvedUnitResult> _indexTestUnit(String code) async {
+    var result = await resolveTestCode(code);
 
     var indexBuilder = indexUnit(result.unit);
     var indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    return result;
   }
 
   String? _interfaceId(InterfaceElement element) {
@@ -4986,15 +4980,16 @@ mixin _IndexMixin on PubPackageResolutionTest {
 
 class _NameIndexAssert {
   final _IndexMixin test;
+  final TestResolvedUnitResult result;
   final String name;
 
-  _NameIndexAssert(this.test, this.name);
+  _NameIndexAssert(this.test, this.result, this.name);
 
   void isNotUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, false, length: name.length),
+      test._expectedLocation(result, search, false, length: name.length),
       true,
     );
   }
@@ -5003,7 +4998,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, true, length: name.length),
+      test._expectedLocation(result, search, true, length: name.length),
       true,
     );
   }
@@ -5012,7 +5007,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, false, length: name.length),
+      test._expectedLocation(result, search, false, length: name.length),
       false,
     );
   }
@@ -5021,7 +5016,7 @@ class _NameIndexAssert {
     test._assertUsedName(
       name,
       kind,
-      test._expectedLocation(search, true, length: name.length),
+      test._expectedLocation(result, search, true, length: name.length),
       false,
     );
   }

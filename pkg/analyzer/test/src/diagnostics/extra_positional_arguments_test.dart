@@ -59,7 +59,7 @@ main() {
   test_context() async {
     // No context type should be supplied when type inferring an extra
     // positional argument, even if there is an unmatched name parameter.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>() => throw '$T';
 g({int? named}) {}
 main() {
@@ -69,7 +69,7 @@ main() {
 }
 ''');
     assertType(
-      findNode.methodInvocation('f()').typeArgumentTypes!.single,
+      result.findNode.methodInvocation('f()').typeArgumentTypes!.single,
       'dynamic',
     );
   }

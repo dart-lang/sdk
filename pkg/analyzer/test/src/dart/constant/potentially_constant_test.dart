@@ -147,22 +147,22 @@ void x;
   }
 
   Future<void> _assertConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
+    var result = await resolveTestCode(code);
+    var type = result.findNode.variableDeclarationList('x;').type!;
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNeverConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
+    var result = await resolveTestCode(code);
+    var type = result.findNode.variableDeclarationList('x;').type!;
     expect(isPotentiallyConstantTypeExpression(type), isFalse);
     expect(isConstantTypeExpression(type), isFalse);
   }
 
   Future<void> _assertPotentiallyConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
+    var result = await resolveTestCode(code);
+    var type = result.findNode.variableDeclarationList('x;').type!;
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isFalse);
   }
@@ -173,14 +173,14 @@ class PotentiallyConstantTest extends PubPackageResolutionTest {
   test_adjacentStrings() async {
     await _assertConst(r'''
 var x = 'a' 'b';
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_asExpression() async {
     await _assertConst(r'''
 const a = 0;
 var x = a as int;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_asExpression_final() async {
@@ -189,8 +189,8 @@ var x = a as int;
 final a = 0;
 var x = a as int;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a as')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a as')],
     );
   }
 
@@ -202,7 +202,7 @@ class A<T> {
     var x = a as T;
   }
 }
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_asExpression_typeParameter_nested() async {
@@ -213,7 +213,7 @@ class A<T> {
     var x = a as List<T>;
   }
 }
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_binaryExpression_andEager_const_const() async {
@@ -221,7 +221,7 @@ class A<T> {
 const a = false;
 const b = false;
 var x = a & b;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_binaryExpression_andEager_const_notConst() async {
@@ -231,8 +231,8 @@ const a = false;
 final b = false;
 var x = a & b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('b;')],
     );
   }
 
@@ -243,8 +243,8 @@ final a = false;
 const b = false;
 var x = a & b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a &')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a &')],
     );
   }
 
@@ -255,8 +255,8 @@ final a = false;
 final b = false;
 var x = a & b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a &'), findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a &'), result.findNode.simple('b;')],
     );
   }
 
@@ -265,7 +265,7 @@ var x = a & b;
 const a = false;
 const b = false;
 var x = a && b;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_binaryExpression_andLazy_const_notConst() async {
@@ -275,8 +275,8 @@ const a = false;
 final b = false;
 var x = a && b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('b;')],
     );
   }
 
@@ -287,8 +287,8 @@ final a = false;
 const b = false;
 var x = a && b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a &')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a &')],
     );
   }
 
@@ -299,8 +299,8 @@ final a = false;
 final b = false;
 var x = a && b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a &'), findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a &'), result.findNode.simple('b;')],
     );
   }
 
@@ -309,7 +309,7 @@ var x = a && b;
 const a = 0;
 const b = 1;
 var x = a ?? b;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_binaryExpression_ifNull_const_notConst() async {
@@ -319,8 +319,8 @@ const a = 0;
 final b = 1;
 var x = a ?? b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('b;')],
     );
   }
 
@@ -331,8 +331,8 @@ final a = 0;
 const b = 1;
 var x = a ?? b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a ??')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a ??')],
     );
   }
 
@@ -343,8 +343,11 @@ final a = 0;
 final b = 1;
 var x = a ?? b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a ??'), findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [
+        result.findNode.simple('a ??'),
+        result.findNode.simple('b;'),
+      ],
     );
   }
 
@@ -353,7 +356,7 @@ var x = a ?? b;
 const a = false;
 const b = false;
 var x = a | b;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_binaryExpression_orEager_const_notConst() async {
@@ -363,8 +366,8 @@ const a = false;
 final b = false;
 var x = a | b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('b;')],
     );
   }
 
@@ -375,8 +378,8 @@ final a = false;
 const b = false;
 var x = a | b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a |')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a |')],
     );
   }
 
@@ -387,8 +390,8 @@ final a = false;
 final b = false;
 var x = a | b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a |'), findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a |'), result.findNode.simple('b;')],
     );
   }
 
@@ -397,7 +400,7 @@ var x = a | b;
 const a = false;
 const b = false;
 var x = a || b;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_binaryExpression_orLazy_const_notConst() async {
@@ -407,8 +410,8 @@ const a = false;
 final b = false;
 var x = a || b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('b;')],
     );
   }
 
@@ -419,8 +422,8 @@ final a = false;
 const b = false;
 var x = a || b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a |')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a |')],
     );
   }
 
@@ -431,8 +434,8 @@ final a = false;
 final b = false;
 var x = a || b;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a |'), findNode.simple('b;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a |'), result.findNode.simple('b;')],
     );
   }
 
@@ -442,7 +445,7 @@ const a = 0;
 const b = 0;
 const c = 0;
 var x = a ? b : c;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_conditional_final() async {
@@ -453,11 +456,11 @@ final b = 0;
 final c = 0;
 var x = a ? b : c;
 ''',
-      () => _xInitializer(),
-      () => [
-        findNode.simple('a ?'),
-        findNode.simple('b :'),
-        findNode.simple('c;'),
+      (result) => _xInitializer(result),
+      (result) => [
+        result.findNode.simple('a ?'),
+        result.findNode.simple('b :'),
+        result.findNode.simple('c;'),
       ],
     );
   }
@@ -470,7 +473,7 @@ class A {
 }
 
 class B<T> {}
-''', () => findNode.constructorReference('B<int>.new'));
+''', (result) => result.findNode.constructorReference('B<int>.new'));
   }
 
   test_constructorReference_explicitTypeArguments_nonConst() async {
@@ -484,8 +487,8 @@ class A {
 
 class B<T> {}
 ''',
-      () => findNode.constructorReference('B<self.A>.new'),
-      () => [findNode.typeAnnotation('self.A')],
+      (result) => result.findNode.constructorReference('B<self.A>.new'),
+      (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
 
@@ -497,7 +500,7 @@ class A {
 }
 
 class B {}
-''', () => findNode.constructorReference('B.new'));
+''', (result) => result.findNode.constructorReference('B.new'));
   }
 
   test_dotShorthandConstructorInvocation_const() async {
@@ -507,7 +510,7 @@ class A {
 }
 
 const A x = .new();
-''', () => findNode.dotShorthandConstructorInvocation('.new()'));
+''', (result) => result.findNode.dotShorthandConstructorInvocation('.new()'));
   }
 
   test_dotShorthandConstructorInvocation_nonConst() async {
@@ -519,8 +522,8 @@ class A {
 
 A x = .new();
 ''',
-      () => _xInitializer(),
-      () => [findNode.dotShorthandConstructorInvocation('.new()')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.dotShorthandConstructorInvocation('.new()')],
     );
   }
 
@@ -532,7 +535,7 @@ class A {
 }
 
 const A x = .a;
-''', () => findNode.dotShorthandPropertyAccess('.a'));
+''', (result) => result.findNode.dotShorthandPropertyAccess('.a'));
   }
 
   test_dotShorthandPropertyAccess_nonConst() async {
@@ -544,8 +547,8 @@ class A {
 
 A x = .a;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a;')],
     );
   }
 
@@ -557,7 +560,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', () => findNode.functionReference('id<int>'));
+''', (result) => result.findNode.functionReference('id<int>'));
   }
 
   test_functionReference_explicitTypeArguments_nonConst() async {
@@ -571,8 +574,8 @@ class A {
 
 X id<X>(X x) => x;
 ''',
-      () => findNode.functionReference('id<self.A>'),
-      () => [findNode.typeAnnotation('self.A')],
+      (result) => result.findNode.functionReference('id<self.A>'),
+      (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
 
@@ -584,7 +587,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', () => findNode.simple('id;'));
+''', (result) => result.findNode.simple('id;'));
   }
 
   test_ifElement_then() async {
@@ -592,7 +595,7 @@ X id<X>(X x) => x;
 const a = 0;
 const b = 0;
 var x = const [if (a) b];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_ifElement_then_final() async {
@@ -602,8 +605,8 @@ final a = 0;
 final b = 0;
 var x = const [if (a) b];
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a)'), findNode.simple('b]')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a)'), result.findNode.simple('b]')],
     );
   }
 
@@ -613,7 +616,7 @@ const a = 0;
 const b = 0;
 const c = 0;
 var x = const [if (a) b else c];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_instanceCreation() async {
@@ -625,8 +628,8 @@ class A {
 
 var x = new A(); // x
 ''',
-      () => _xInitializer(),
-      () => [findNode.instanceCreation('A(); // x')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.instanceCreation('A(); // x')],
     );
   }
 
@@ -637,14 +640,14 @@ class A {
 }
 
 var x = const A();
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_isExpression() async {
     await _assertConst(r'''
 const a = 0;
 var x = a is int;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_isExpression_final() async {
@@ -653,8 +656,8 @@ var x = a is int;
 final a = 0;
 var x = a is int;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a is')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a is')],
     );
   }
 
@@ -666,7 +669,7 @@ class A<T> {
     var x = a is T;
   }
 }
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_isExpression_typeParameter_nested() async {
@@ -677,13 +680,13 @@ class A<T> {
     var x = a is List<T>;
   }
 }
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_listLiteral() async {
     await _assertConst(r'''
 var x = const [0, 1, 2];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_listLiteral_notConst() async {
@@ -691,8 +694,8 @@ var x = const [0, 1, 2];
       r'''
 var x = [0, 1, 2];
 ''',
-      () => _xInitializer(),
-      () => [findNode.listLiteral('0,')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.listLiteral('0,')],
     );
   }
 
@@ -703,33 +706,33 @@ final a = 0;
 final b = 1;
 var x = const [a, b, 2];
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a,'), findNode.simple('b,')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
     );
   }
 
   test_listLiteral_ofDynamic() async {
     await _assertConst('''
 var x = const <dynamic>[];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_listLiteral_ofNever() async {
     await _assertConst('''
 var x = const <Never>[];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_listLiteral_ofVoid() async {
     await _assertConst('''
 var x = const <void>[];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_listLiteral_typeArgument() async {
     await _assertConst(r'''
 var x = const <int>[0, 1, 2];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_listLiteral_typeArgument_notConstType() async {
@@ -742,51 +745,51 @@ class A {
   }
 }
 ''',
-      () => _xInitializer(),
-      () => [findNode.namedType('A>[')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.namedType('A>[')],
     );
   }
 
   test_literal_bool() async {
     await _assertConst(r'''
 var x = true;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_literal_double() async {
     await _assertConst(r'''
 var x = 1.2;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_literal_int() async {
     await _assertConst(r'''
 var x = 0;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_literal_null() async {
     await _assertConst(r'''
 var x = null;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_literal_simpleString() async {
     await _assertConst(r'''
 var x = '123';
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_literal_symbol() async {
     await _assertConst(r'''
 var x = #a.b.c;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_mapLiteral() async {
     await _assertConst(r'''
 var x = const {0: 1};
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_mapLiteral_notConst() async {
@@ -794,8 +797,8 @@ var x = const {0: 1};
       r'''
 var x = {0: 1};
 ''',
-      () => _xInitializer(),
-      () => [findNode.setOrMapLiteral('0: 1')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.setOrMapLiteral('0: 1')],
     );
   }
 
@@ -806,8 +809,8 @@ final a = 1;
 final b = 2;
 var x = const {0: 0, a: 1, b: 2};
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a:'), findNode.simple('b:')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a:'), result.findNode.simple('b:')],
     );
   }
 
@@ -818,15 +821,15 @@ final a = 1;
 final b = 2;
 var x = const {0: 0, 1: a, 2: b};
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a,'), findNode.simple('b}')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a,'), result.findNode.simple('b}')],
     );
   }
 
   test_mapLiteral_typeArgument() async {
     await _assertConst(r'''
 var x = const <int, int>{0: 0};
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_mapLiteral_typeArgument_notConstType() async {
@@ -838,8 +841,11 @@ class A<T> {
   }
 }
 ''',
-      () => _xInitializer(),
-      () => [findNode.namedType('T,'), findNode.namedType('T>{')],
+      (result) => _xInitializer(result),
+      (result) => [
+        result.findNode.namedType('T,'),
+        result.findNode.namedType('T>{'),
+      ],
     );
   }
 
@@ -848,7 +854,7 @@ class A<T> {
 const a = 0;
 const b = 0;
 var x = identical(a, b);
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_methodInvocation_identical_final() async {
@@ -858,8 +864,8 @@ final a = 0;
 final b = 0;
 var x = identical(a, b);
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a,'), findNode.simple('b)')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a,'), result.findNode.simple('b)')],
     );
   }
 
@@ -870,8 +876,8 @@ const a = 0;
 const b = 0;
 var x = foo(a, b);
 ''',
-      () => _xInitializer(),
-      () => [findNode.methodInvocation('foo')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.methodInvocation('foo')],
     );
   }
 
@@ -880,8 +886,8 @@ var x = foo(a, b);
       r'''
 var x = a.foo();
 ''',
-      () => _xInitializer(),
-      () => [findNode.methodInvocation('a.foo()')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.methodInvocation('a.foo()')],
     );
   }
 
@@ -890,14 +896,14 @@ var x = a.foo();
 void f({a}) {}
 
 var x = f(a: 0);
-''', () => findNode.namedArgument('a: 0'));
+''', (result) => result.findNode.namedArgument('a: 0'));
   }
 
   test_parenthesizedExpression_const() async {
     await _assertConst(r'''
 const a = 0;
 var x = (a);
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_parenthesizedExpression_final() async {
@@ -906,8 +912,8 @@ var x = (a);
 final a = 0;
 var x = (a);
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a);')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a);')],
     );
   }
 
@@ -917,8 +923,8 @@ var x = (a);
 const a = 0;
 var x = a++;
 ''',
-      () => _xInitializer(),
-      () => [findNode.postfix('a++')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.postfix('a++')],
     );
   }
 
@@ -931,8 +937,8 @@ const a = 0;
 import 'a.dart' deferred as p;
 var x = p.a + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.prefixed('p.a')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.prefixed('p.a')],
     );
   }
 
@@ -943,7 +949,7 @@ void f() {}
     await _assertConst(r'''
 import 'a.dart' as p;
 var x = p.f;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixedIdentifier_importPrefix_topVar() async {
@@ -953,14 +959,14 @@ const a = 0;
     await _assertConst(r'''
 import 'a.dart' as p;
 var x = p.a + 1;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixedIdentifier_length_const() async {
     await _assertConst(r'''
 const a = 'abc';
 var x = a.length;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixedIdentifier_length_final() async {
@@ -969,8 +975,8 @@ var x = a.length;
 final a = 'abc';
 var x = a.length;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a.')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a.')],
     );
   }
 
@@ -986,8 +992,8 @@ const a = const A();
 
 var x = a.m;
 ''',
-      () => _xInitializer(),
-      () => [findNode.prefixed('a.m')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.prefixed('a.m')],
     );
   }
 
@@ -998,7 +1004,7 @@ class A {
 }
 
 var x = A.m;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixedIdentifier_method_static_viaInstance() async {
@@ -1013,8 +1019,8 @@ const a = const A();
 
 var x = a.m;
 ''',
-      () => _xInitializer(),
-      () => [findNode.prefixed('a.m')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.prefixed('a.m')],
     );
   }
 
@@ -1030,8 +1036,8 @@ const a = const A();
 
 var x = a.b + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.prefixed('a.b + 1')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.prefixed('a.b + 1')],
     );
   }
 
@@ -1041,7 +1047,7 @@ class A {
   static const a = 0;
 }
 var x = A.a + 1;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixedIdentifier_staticField_final() async {
@@ -1052,8 +1058,8 @@ class A {
 }
 var x = A.a + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.prefixed('A.a')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.prefixed('A.a')],
     );
   }
 
@@ -1064,21 +1070,21 @@ typedef A = List<int>;
     await _assertConst(r'''
 import 'a.dart' as p;
 var x = p.A;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixExpression_bang() async {
     await _assertConst(r'''
 const a = 0;
 var x = !a;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixExpression_minus() async {
     await _assertConst(r'''
 const a = 0;
 var x = -a;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_prefixExpression_minus_final() async {
@@ -1087,8 +1093,8 @@ var x = -a;
 final a = 0;
 var x = -a;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a;')],
     );
   }
 
@@ -1098,8 +1104,8 @@ var x = -a;
 const a = 0;
 var x = ++a;
 ''',
-      () => _xInitializer(),
-      () => [findNode.prefix('++a')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.prefix('++a')],
     );
   }
 
@@ -1107,7 +1113,7 @@ var x = ++a;
     await _assertConst(r'''
 const a = 0;
 var x = ~a;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_propertyAccess_instanceMethod_withPrefix() async {
@@ -1121,8 +1127,8 @@ class A {
 import 'a.dart' as p;
 var x = p.A.m;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('m;')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('m;')],
     );
   }
 
@@ -1132,15 +1138,15 @@ var x = p.A.m;
 final a = 'abc';
 var x = (a).length;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a).')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a).')],
     );
   }
 
   test_propertyAccess_length_stringLiteral() async {
     await _assertConst(r'''
 var x = 'abc'.length;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_propertyAccess_staticField_withPrefix_const() async {
@@ -1152,7 +1158,7 @@ class A {
     await _assertConst(r'''
 import 'a.dart' as p;
 var x = p.A.a + 1;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_propertyAccess_staticField_withPrefix_deferred() async {
@@ -1166,8 +1172,8 @@ class A {
 import 'a.dart' deferred as p;
 var x = p.A.a + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.propertyAccess('p.A.a')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.propertyAccess('p.A.a')],
     );
   }
 
@@ -1182,8 +1188,8 @@ class A {
 import 'a.dart' as p;
 var x = p.A.a + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a + 1')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a + 1')],
     );
   }
 
@@ -1196,7 +1202,7 @@ class A {
     await _assertConst(r'''
 import 'a.dart' as p;
 var x = p.A.m;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_propertyAccess_staticMethod_withPrefix_deferred() async {
@@ -1210,8 +1216,8 @@ class A {
 import 'a.dart' deferred as p;
 var x = p.A.m;
 ''',
-      () => _xInitializer(),
-      () => [findNode.propertyAccess('p.A.m')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.propertyAccess('p.A.m')],
     );
   }
 
@@ -1224,8 +1230,8 @@ class A {
 
 var x = A().a + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.propertyAccess('A().a')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.propertyAccess('A().a')],
     );
   }
 
@@ -1244,15 +1250,15 @@ import 'a.dart' as p;
 
 var x = p.a.b + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.propertyAccess('p.a.b + 1')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.propertyAccess('p.a.b + 1')],
     );
   }
 
   test_recordLiteral() async {
     await _assertConst(r'''
 var x = const (0, 1, 2);
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_recordLiteral_constructorParameter() async {
@@ -1261,13 +1267,13 @@ class C {
   final Object f;
   const C(int a) : f = (0, a);
 }
-''', () => findNode.recordLiteral('(0'));
+''', (result) => result.findNode.recordLiteral('(0'));
   }
 
   test_recordLiteral_namedField_const() async {
     await _assertConst(r'''
 var x = const (f1: 0);
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_recordLiteral_namedField_notConst_element() async {
@@ -1276,15 +1282,15 @@ var x = const (f1: 0);
 final a = 0;
 var x = const (f1: a);
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a)')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a)')],
     );
   }
 
   test_recordLiteral_notConst() async {
     await _assertConst(r'''
 var x = (0, 1, 2);
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_recordLiteral_notConst_element() async {
@@ -1294,15 +1300,15 @@ final a = 0;
 final b = 1;
 var x = const (a, b, 2);
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a,'), findNode.simple('b,')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
     );
   }
 
   test_setLiteral() async {
     await _assertConst(r'''
 var x = const {0, 1, 2};
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_setLiteral_notConst() async {
@@ -1310,8 +1316,8 @@ var x = const {0, 1, 2};
       r'''
 var x = {0, 1, 2};
 ''',
-      () => _xInitializer(),
-      () => [findNode.setOrMapLiteral('0,')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.setOrMapLiteral('0,')],
     );
   }
 
@@ -1322,15 +1328,15 @@ final a = 0;
 final b = 1;
 var x = const {a, b, 2};
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a,'), findNode.simple('b,')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
     );
   }
 
   test_setLiteral_typeArgument() async {
     await _assertConst(r'''
 var x = const <int>{0, 1, 2};
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_setLiteral_typeArgument_notConstType() async {
@@ -1343,15 +1349,15 @@ class A {
   }
 }
 ''',
-      () => _xInitializer(),
-      () => [findNode.namedType('A>{')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.namedType('A>{')],
     );
   }
 
   test_simpleIdentifier_class() async {
     await _assertConst(r'''
 var x = int;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_simpleIdentifier_function() async {
@@ -1359,7 +1365,7 @@ var x = int;
 var x = f;
 
 void f() {}
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_simpleIdentifier_localVar_const() async {
@@ -1368,7 +1374,7 @@ main() {
   const a = 0;
   var x = a + 1;
 }
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_simpleIdentifier_localVar_final() async {
@@ -1379,8 +1385,8 @@ main() {
   var x = a + 1;
 }
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a +')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1393,7 +1399,7 @@ class A {
 
   const A() : f = m; // ref
 }
-''', () => findNode.simple('m; // ref'));
+''', (result) => result.findNode.simple('m; // ref'));
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_instance_late() async {
@@ -1403,8 +1409,8 @@ class const C(int a) {
   late final int f = a + 1;
 }
 ''',
-      () => findNode.variableDeclaration('f =').initializer!,
-      () => [findNode.simple('a +')],
+      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1413,7 +1419,7 @@ class const C(int a) {
 class const C(int a) {
   final int f = a + 1;
 }
-''', () => findNode.variableDeclaration('f =').initializer!);
+''', (result) => result.findNode.variableDeclaration('f =').initializer!);
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_static() async {
@@ -1423,8 +1429,8 @@ class const C(int a) {
   static final int f = a + 1;
 }
 ''',
-      () => findNode.variableDeclaration('f =').initializer!,
-      () => [findNode.simple('a +')],
+      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1434,7 +1440,7 @@ class const C(int a) {
   final int f;
   this : f = a + 1;
 }
-''', () => findNode.constructorFieldInitializer('f =').expression);
+''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inBody() async {
@@ -1446,8 +1452,8 @@ class C {
   }
 }
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a +')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1457,7 +1463,7 @@ class C {
   final int f;
   const C(int a) : f = a + 1;
 }
-''', () => findNode.constructorFieldInitializer('f =').expression);
+''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
   }
 
   test_simpleIdentifier_parameterOfNotConstPrimaryConstructor_inConstructorFieldInitializer() async {
@@ -1468,8 +1474,8 @@ class C(int a) {
   this : f = a + 1;
 }
 ''',
-      () => findNode.constructorFieldInitializer('f =').expression,
-      () => [findNode.simple('a +')],
+      (result) => result.findNode.constructorFieldInitializer('f =').expression,
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1480,8 +1486,8 @@ class C(int a) {
   final int f = a + 1;
 }
 ''',
-      () => findNode.variableDeclaration('f =').initializer!,
-      () => [findNode.simple('a +')],
+      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1493,8 +1499,8 @@ class C {
   C(int a) : f = a + 1;
 }
 ''',
-      () => findNode.constructorFieldInitializer('f =').expression,
-      () => [findNode.simple('a +')],
+      (result) => result.findNode.constructorFieldInitializer('f =').expression,
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1502,7 +1508,7 @@ class C {
     await _assertConst(r'''
 const a = 0;
 var x = a + 1;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_simpleIdentifier_topVar_final() async {
@@ -1511,8 +1517,8 @@ var x = a + 1;
 final a = 0;
 var x = a + 1;
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a +')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a +')],
     );
   }
 
@@ -1520,21 +1526,21 @@ var x = a + 1;
     await _assertConst(r'''
 typedef A = void Function();
 var x = A;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_simpleIdentifier_typedef_interfaceType() async {
     await _assertConst(r'''
 typedef A = List<int>;
 var x = A;
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_spreadElement() async {
     await _assertConst(r'''
 const a = [0, 1, 2];
 var x = const [...a];
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_spreadElement_final() async {
@@ -1543,8 +1549,8 @@ var x = const [...a];
 final a = [0, 1, 2];
 var x = const [...a];
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a];')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a];')],
     );
   }
 
@@ -1552,7 +1558,7 @@ var x = const [...a];
     await _assertConst(r'''
 const a = 0;
 var x = 'a $a b';
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_stringInterpolation_topVar_final() async {
@@ -1561,15 +1567,15 @@ var x = 'a $a b';
 final a = 0;
 var x = 'a $a b';
 ''',
-      () => _xInitializer(),
-      () => [findNode.simple('a b')],
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.simple('a b')],
     );
   }
 
   test_stringLiteral() async {
     await _assertConst(r'''
 var x = 'a';
-''', () => _xInitializer());
+''', (result) => _xInitializer(result));
   }
 
   test_typeLiteral() async {
@@ -1578,7 +1584,7 @@ class A {
   Type x;
   const A(): x = List<int>;
 }
-''', () => findNode.typeLiteral('List<int>'));
+''', (result) => result.findNode.typeLiteral('List<int>'));
   }
 
   test_typeLiteral_nonConst() async {
@@ -1590,8 +1596,8 @@ class A {
   const A(): x = List<self.A>;
 }
 ''',
-      () => findNode.typeLiteral('List<self.A>'),
-      () => [findNode.typeAnnotation('self.A')],
+      (result) => result.findNode.typeLiteral('List<self.A>'),
+      (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
 
@@ -1601,7 +1607,7 @@ class A<T> {
   final Object f;
   A() : f = T;
 }
-''', () => findNode.typeLiteral('T;'));
+''', (result) => result.findNode.typeLiteral('T;'));
   }
 
   test_typeLiteral_typeParameter_class_214() async {
@@ -1613,32 +1619,35 @@ class A<T> {
   A() : f = T;
 }
 ''',
-      () => findNode.typeLiteral('T;'),
-      () => [findNode.typeLiteral('T;')],
+      (result) => result.findNode.typeLiteral('T;'),
+      (result) => [result.findNode.typeLiteral('T;')],
     );
   }
 
-  _assertConst(String code, AstNode Function() getNode) async {
-    await resolveTestCode(code);
-    var node = getNode();
+  _assertConst(
+    String code,
+    AstNode Function(TestResolvedUnitResult result) getNode,
+  ) async {
+    var result = await resolveTestCode(code);
+    var node = getNode(result);
     var notConstList = getNotPotentiallyConstants(node, featureSet: featureSet);
     expect(notConstList, isEmpty);
   }
 
   _assertNotConst(
     String code,
-    AstNode Function() getNode,
-    List<AstNode> Function() getNotConstList,
+    AstNode Function(TestResolvedUnitResult result) getNode,
+    List<AstNode> Function(TestResolvedUnitResult result) getNotConstList,
   ) async {
-    await resolveTestCode(code);
-    var node = getNode();
+    var result = await resolveTestCode(code);
+    var node = getNode(result);
     var notConstList = getNotPotentiallyConstants(node, featureSet: featureSet);
 
-    var expectedNotConst = getNotConstList();
+    var expectedNotConst = getNotConstList(result);
     expect(notConstList, unorderedEquals(expectedNotConst));
   }
 
-  Expression _xInitializer() {
-    return findNode.variableDeclaration('x = ').initializer!;
+  Expression _xInitializer(TestResolvedUnitResult result) {
+    return result.findNode.variableDeclaration('x = ').initializer!;
   }
 }

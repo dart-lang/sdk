@@ -25,7 +25,7 @@ void main() {
 @reflectiveTest
 class Dart2InferenceTest extends PubPackageResolutionTest {
   test_assertInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>(int _) => throw 0;
 
 class C {
@@ -33,7 +33,7 @@ class C {
 }
 ''');
 
-    var node = findNode.singleAssertInitializer;
+    var node = result.findNode.singleAssertInitializer;
     assertResolvedNodeText(node, r'''
 AssertInitializer
   assertKeyword: assert
@@ -82,7 +82,7 @@ AssertInitializer
   }
 
   test_assertStatement_message() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>(int _) => throw 0;
 
 void f() {
@@ -90,7 +90,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleAssertStatement;
+    var node = result.findNode.singleAssertStatement;
     assertResolvedNodeText(node, r'''
 AssertStatement
   assertKeyword: assert
@@ -146,8 +146,8 @@ void main() {
   g = () => 42;
 }
 ''';
-    await resolveTestCode(code);
-    Expression closure = findNode.expression('() => 42');
+    var result = await resolveTestCode(code);
+    Expression closure = result.findNode.expression('() => 42');
     assertType(closure, 'List<int> Function()');
   }
 
@@ -160,8 +160,8 @@ void main() {
   };
 }
 ''';
-    await resolveTestCode(code);
-    Expression closure = findNode.expression('() { // mark');
+    var result = await resolveTestCode(code);
+    Expression closure = result.findNode.expression('() { // mark');
     assertType(closure, 'List<int> Function()');
   }
 
@@ -207,9 +207,9 @@ class C {
     for (aTopLevelSetter in f()) {} // top setter
   }
 }''';
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
     void assertInvocationType(String prefix) {
-      var invocation = findNode.methodInvocation(prefix);
+      var invocation = result.findNode.methodInvocation(prefix);
       assertType(invocation, 'Iterable<A>');
     }
 
@@ -235,19 +235,19 @@ void test(List<A> listA, List<B> listB) {
   for (B b3 in f(listB)) {} // 5
 }
 ''';
-    await resolveTestCode(code);
+    var result = await resolveTestCode(code);
     void assertTypes(
       String vSearch,
       String vType,
       String fSearch,
       String fType,
     ) {
-      var node = findNode.declaredIdentifier(vSearch);
+      var node = result.findNode.declaredIdentifier(vSearch);
 
       var element = node.declaredFragment?.element as LocalVariableElement;
       assertType(element.type, vType);
 
-      var invocation = findNode.methodInvocation(fSearch);
+      var invocation = result.findNode.methodInvocation(fSearch);
       assertType(invocation, fType);
     }
 
@@ -265,8 +265,8 @@ class C {
   operator []=(int index, double value) => null;
 }
 ''';
-    await resolveTestCode(code);
-    ClassElement c = findElement2.class_('C');
+    var result = await resolveTestCode(code);
+    ClassElement c = result.findElement.class_('C');
 
     SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
@@ -286,8 +286,8 @@ class Derived extends Base {
   set x(_) {}
   operator[]=(int x, int y) {}
 }''';
-    await resolveTestCode(code);
-    ClassElement c = findElement2.class_('Derived');
+    var result = await resolveTestCode(code);
+    ClassElement c = result.findElement.class_('Derived');
 
     SetterElement x = c.setters[0];
     expect(x.returnType, VoidTypeImpl.instance);
@@ -302,12 +302,12 @@ class Derived extends Base {
 var x = [];
 var y = {};
 ''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+    var result = await resolveTestCode(code);
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xfragment = xNode.declaredFragment!;
     assertType(xfragment.element.type, 'List<dynamic>');
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yfragment = yNode.declaredFragment!;
     assertType(yfragment.element.type, 'Map<dynamic, dynamic>');
   }
@@ -317,18 +317,18 @@ var y = {};
 var x = [null];
 var y = {null: null};
 ''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+    var result = await resolveTestCode(code);
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xFragment = xNode.declaredFragment!;
     assertType(xFragment.element.type, 'List<Null>');
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     assertType(yFragment.element.type, 'Map<Null, Null>');
   }
 
   test_logicalAnd() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>() => throw 0;
 
 void f() {
@@ -336,7 +336,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -372,7 +372,7 @@ BinaryExpression
   }
 
   test_logicalOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T foo<T>() => throw 0;
 
 void f() {
@@ -380,7 +380,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
@@ -429,8 +429,8 @@ void test(C<int> x) {
       break;
   }
 }''';
-    await resolveTestCode(code);
-    var node = findNode.instanceCreation('C():');
+    var result = await resolveTestCode(code);
+    var node = result.findNode.instanceCreation('C():');
     assertType(node, 'C<int>');
   }
 
@@ -449,8 +449,8 @@ void test(C<int> x) {
       break;
   }
 }''';
-    await resolveTestCode(code);
-    var node = findNode.instanceCreation('const C():');
+    var result = await resolveTestCode(code);
+    var node = result.findNode.instanceCreation('const C():');
     assertType(node, 'C<int>');
   }
 
@@ -464,12 +464,12 @@ main() {
   var y = new C().m();
 }
 ''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+    var result = await resolveTestCode(code);
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }
@@ -482,12 +482,12 @@ main() {
   var y = f();
 }
 ''';
-    await resolveTestCode(code);
-    var xNode = findNode.variableDeclaration('x = ');
+    var result = await resolveTestCode(code);
+    var xNode = result.findNode.variableDeclaration('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }

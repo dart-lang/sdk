@@ -17,14 +17,14 @@ main() {
 @reflectiveTest
 class ThrowTest extends PubPackageResolutionTest {
   test_downward() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   throw a();
 }
 T a<T>() => throw '';
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

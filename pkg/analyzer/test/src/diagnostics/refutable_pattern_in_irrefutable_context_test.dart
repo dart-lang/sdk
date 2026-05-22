@@ -18,7 +18,7 @@ main() {
 class RefutablePatternInIrrefutableContextTest
     extends PubPackageResolutionTest {
   test_declaration_constantPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (0) = 0;
 //     ^
@@ -26,7 +26,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -48,7 +48,7 @@ PatternVariableDeclaration
   }
 
   test_declaration_logicalOrPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (_ || _) = 0;
 //     ^^^^^^
@@ -58,7 +58,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -84,7 +84,7 @@ PatternVariableDeclaration
   }
 
   test_declaration_nullCheckPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   var (_?) = x;
 //     ^^
@@ -92,7 +92,7 @@ void f(int? x) {
 }
 ''');
 
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var
@@ -116,7 +116,7 @@ PatternVariableDeclaration
   }
 
   test_declaration_relationalPattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (> 0) = 0;
 //     ^^^
@@ -124,7 +124,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePatternVariableDeclaration;
+    var node = result.findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
   keyword: var

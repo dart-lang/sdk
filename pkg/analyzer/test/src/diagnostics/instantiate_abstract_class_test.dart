@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class InstantiateAbstractClassTest extends PubPackageResolutionTest {
   test_const_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {
   const A();
 }
@@ -27,7 +27,7 @@ void f() {
 // [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }''');
 
-    assertType(findNode.instanceCreation('const A<int>'), 'A<int>');
+    assertType(result.findNode.instanceCreation('const A<int>'), 'A<int>');
   }
 
   test_const_simple() async {
@@ -45,7 +45,7 @@ void f() {
   }
 
   test_new_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {}
 void f() {
   new A<int>();
@@ -54,7 +54,7 @@ void f() {
 }
 ''');
 
-    assertType(findNode.instanceCreation('new A<int>'), 'A<int>');
+    assertType(result.findNode.instanceCreation('new A<int>'), 'A<int>');
   }
 
   test_new_interfaceTypeTypedef() async {
@@ -81,7 +81,7 @@ void f() {
   }
 
   test_noKeyword_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {}
 void f() {
   A<int>();
@@ -90,7 +90,7 @@ void f() {
 }
 ''');
 
-    assertType(findNode.instanceCreation('A<int>'), 'A<int>');
+    assertType(result.findNode.instanceCreation('A<int>'), 'A<int>');
   }
 
   test_noKeyword_interfaceTypeTypedef() async {

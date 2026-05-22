@@ -565,7 +565,7 @@ main() {
   test_not_matching_bounds() async {
     // There should be an error, because Bar's type argument T is Foo, which
     // doesn't extends Foo<T>.
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class Foo<T> {}
 class Bar<T extends Foo<T>> {}
 class Baz extends Bar {}
@@ -575,7 +575,7 @@ class Baz extends Bar {}
 void main() {}
 ''');
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(findElement2.class_('Baz').supertype, 'Bar<Foo<dynamic>>');
+    assertType(result.findElement.class_('Baz').supertype, 'Bar<Foo<dynamic>>');
   }
 
   test_notRegularBounded_notSuperBounded_parameter_invariant() async {

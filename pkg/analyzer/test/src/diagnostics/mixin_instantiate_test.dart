@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class MixinInstantiateTest extends PubPackageResolutionTest {
   test_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   M.named() {}
 //^
@@ -31,7 +31,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -56,7 +56,7 @@ invalidNodes
   }
 
   test_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 
 void f() {
@@ -66,7 +66,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

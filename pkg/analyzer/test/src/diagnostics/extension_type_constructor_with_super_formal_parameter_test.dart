@@ -16,7 +16,7 @@ main() {
 class ExtensionTypeConstructorWithSuperFormalParameterTest
     extends PubPackageResolutionTest {
   test_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named(this.it, {super.foo});
 //                  ^^^^^
@@ -24,7 +24,7 @@ extension type E(int it) {
 }
 ''');
 
-    var node = findNode.formalParameterList('super.foo');
+    var node = result.findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -50,7 +50,7 @@ FormalParameterList
   }
 
   test_positional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named(this.it, super.foo);
 //                 ^^^^^
@@ -58,7 +58,7 @@ extension type E(int it) {
 }
 ''');
 
-    var node = findNode.formalParameterList('super.foo');
+    var node = result.findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

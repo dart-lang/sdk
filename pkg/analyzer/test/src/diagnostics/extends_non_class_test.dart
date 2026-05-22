@@ -15,13 +15,13 @@ main() {
 @reflectiveTest
 class ExtendsNonClassTest extends PubPackageResolutionTest {
   test_class_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends dynamic {}
 //              ^^^^^^^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -33,14 +33,14 @@ ExtendsClause
   }
 
   test_class_enum() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { ONE }
 class A extends E {}
 //              ^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -52,14 +52,14 @@ ExtendsClause
   }
 
   test_class_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 class B extends A {}
 //              ^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -71,14 +71,14 @@ ExtendsClause
   }
 
   test_class_mixin() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class A extends M {}
 //              ^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -90,14 +90,14 @@ ExtendsClause
   }
 
   test_class_variable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int v = 0;
 class A extends v {}
 //              ^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -109,14 +109,14 @@ ExtendsClause
   }
 
   test_class_variable_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int v = 0;
 class A extends v<int> {}
 //              ^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -136,13 +136,13 @@ ExtendsClause
   }
 
   test_Never() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends Never {}
 //              ^^^^^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -154,13 +154,13 @@ ExtendsClause
   }
 
   test_undefined() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C extends A {}
 //              ^
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -172,7 +172,7 @@ ExtendsClause
   }
 
   test_undefined_ignore_import_prefix() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 //     ^^^^^^^^
 // [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
@@ -180,7 +180,7 @@ import 'a.dart' as p;
 class C extends p.A {}
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -201,12 +201,12 @@ import 'x.dart' as p;
 part 'test.dart';
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 class C extends p.A {}
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -226,7 +226,7 @@ ExtendsClause
 part 'test.dart';
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part of 'a.dart';
 import 'x.dart' as p;
 //     ^^^^^^^^
@@ -234,7 +234,7 @@ import 'x.dart' as p;
 class C extends p.A {}
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends
@@ -396,7 +396,7 @@ class C extends A {}
   }
 
   test_undefined_import_exists_prefixed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 class C extends p.A {}
@@ -404,7 +404,7 @@ class C extends p.A {}
 // [diag.extendsNonClass] Classes can only extend other classes.
 ''');
 
-    var node = findNode.singleExtendsClause;
+    var node = result.findNode.singleExtendsClause;
     assertResolvedNodeText(node, r'''
 ExtendsClause
   extendsKeyword: extends

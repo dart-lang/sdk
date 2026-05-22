@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class MissingVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase_differentStatements_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case final a) {
 //                 ^
@@ -29,7 +29,7 @@ void f(int x) {
 }
 ''');
 
-    var node1 = findNode.caseClause('case final a').guardedPattern;
+    var node1 = result.findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -41,7 +41,7 @@ GuardedPattern
     matchedValueType: int
 ''');
 
-    var node2 = findNode.caseClause('case final b').guardedPattern;
+    var node2 = result.findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -55,7 +55,7 @@ GuardedPattern
   }
 
   test_ifCase_differentStatements_sibling() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case final a) {}
 //                 ^
@@ -66,7 +66,7 @@ void f(int x) {
 }
 ''');
 
-    var node1 = findNode.caseClause('case final a').guardedPattern;
+    var node1 = result.findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -78,7 +78,7 @@ GuardedPattern
     matchedValueType: int
 ''');
 
-    var node2 = findNode.caseClause('case final b').guardedPattern;
+    var node2 = result.findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -92,7 +92,7 @@ GuardedPattern
   }
 
   test_ifCase_logicalOr2_both_direct() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case final a || final a) {}
 //                 ^
@@ -103,7 +103,7 @@ void f(int x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -126,7 +126,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr2_both_nested_logicalAnd() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case 0 && final a || final a) {}
 //                      ^
@@ -135,7 +135,7 @@ void f(int x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalAndPattern
@@ -166,7 +166,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr2_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   if (x case final int a || 2) {}
 //                     ^
@@ -175,7 +175,7 @@ void f(num x) {
 // [diag.missingVariablePattern] Variable pattern 'a' is missing in this branch of the logical-or pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -200,7 +200,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr2_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case 1 || final a) {}
 //           ^
@@ -209,7 +209,7 @@ void f(int x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: ConstantPattern
@@ -230,7 +230,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   if (x case final int a || 2 || 3) {}
 //                     ^
@@ -241,7 +241,7 @@ void f(num x) {
 // [diag.missingVariablePattern] Variable pattern 'a' is missing in this branch of the logical-or pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -274,7 +274,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_12() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   if (x case final int a || final int a || 3) {}
 //                     ^
@@ -285,7 +285,7 @@ void f(num x) {
 // [diag.missingVariablePattern] Variable pattern 'a' is missing in this branch of the logical-or pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -324,7 +324,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_123() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case final a || final a || final a) {}
 //                 ^
@@ -339,7 +339,7 @@ void f(int x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -372,7 +372,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_13() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   if (x case final int a || 2 || final int a) {}
 //                     ^
@@ -383,7 +383,7 @@ void f(num x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -422,7 +422,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   if (x case 1 || final int a || 3) {}
 //           ^
@@ -433,7 +433,7 @@ void f(num x) {
 // [diag.missingVariablePattern] Variable pattern 'a' is missing in this branch of the logical-or pattern.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -466,7 +466,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_23() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case 1 || final a || final a) {}
 //           ^
@@ -479,7 +479,7 @@ void f(int x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -510,7 +510,7 @@ LogicalOrPattern
   }
 
   test_ifCase_logicalOr3_3() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   if (x case 1 || 2 || final a) {}
 //           ^^^^^^
@@ -519,7 +519,7 @@ void f(int x) {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
@@ -548,7 +548,7 @@ LogicalOrPattern
   }
 
   test_switchStatement_case1_logicalOr2_both() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case final a || final a:
@@ -562,7 +562,7 @@ void f(int x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -585,7 +585,7 @@ LogicalOrPattern
   }
 
   test_switchStatement_case1_logicalOr2_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   switch (x) {
     case final int a || 2:
@@ -599,7 +599,7 @@ void f(num x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: DeclaredVariablePattern
@@ -624,7 +624,7 @@ LogicalOrPattern
   }
 
   test_switchStatement_case1_logicalOr2_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case 1 || final a:
@@ -636,7 +636,7 @@ void f(int x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: ConstantPattern
@@ -657,7 +657,7 @@ LogicalOrPattern
   }
 
   test_switchStatement_case2_both() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   switch (x) {
     case /*1*/ final a:
@@ -674,7 +674,7 @@ void f(int x) {
 }
 ''');
 
-    var node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
+    var node1 = result.findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern
@@ -686,7 +686,7 @@ GuardedPattern
     matchedValueType: int
 ''');
 
-    var node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
+    var node2 = result.findNode.switchPatternCase('case /*2*/').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
   pattern: DeclaredVariablePattern

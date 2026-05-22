@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class NewWithNonTypeTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef F = void Function();
 
 void foo() {
@@ -27,7 +27,7 @@ void foo() {
 }
 ''');
 
-    var node = findNode.namedType('F()');
+    var node = result.findNode.namedType('F()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -52,7 +52,7 @@ lib.B b = lib.B();
   }
 
   test_local() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var A = 0;
 void f() {
   new A();
@@ -61,7 +61,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.namedType('A()');
+    var node = result.findNode.namedType('A()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -71,7 +71,7 @@ NamedType
   }
 
   test_local_withTypeArguments() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var A = 0;
 void f() {
   new A<int>();
@@ -80,7 +80,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.namedType('A<int>()');
+    var node = result.findNode.namedType('A<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A

@@ -24,14 +24,14 @@ mixin M on Enum {}
   }
 
   test_dartCoreEnum_language216() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.16
 mixin M on Enum {}
 //         ^^^^
 // [diag.mixinSuperClassConstraintDisallowedClass] 'Enum' can't be used as a superclass constraint.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -60,13 +60,13 @@ augment mixin A on int {}
   }
 
   test_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M on int {}
 //         ^^^
 // [diag.mixinSuperClassConstraintDisallowedClass] 'int' can't be used as a superclass constraint.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on

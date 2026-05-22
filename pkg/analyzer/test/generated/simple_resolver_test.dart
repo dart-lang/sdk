@@ -20,106 +20,106 @@ main() {
 @reflectiveTest
 class SimpleResolverTest extends PubPackageResolutionTest {
   test_argumentResolution_required_matching() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3);
   }
   void g(a, b, c) {}
 }''');
-    await _validateArgumentResolution([0, 1, 2]);
+    await _validateArgumentResolution(result, [0, 1, 2]);
   }
 
   test_argumentResolution_required_tooFew() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2);
   }
   void g(a, b, c) {}
 }''');
-    await _validateArgumentResolution([0, 1]);
+    await _validateArgumentResolution(result, [0, 1]);
   }
 
   test_argumentResolution_required_tooMany() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3);
   }
   void g(a, b) {}
 }''');
-    await _validateArgumentResolution([0, 1, -1]);
+    await _validateArgumentResolution(result, [0, 1, -1]);
   }
 
   test_argumentResolution_requiredAndNamed_extra() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void f() {
     g(1, 2, c: 3, d: 4);
   }
   void g(a, b, {c}) {}
 }''');
-    await _validateArgumentResolution([0, 1, 2, -1]);
+    await _validateArgumentResolution(result, [0, 1, 2, -1]);
   }
 
   test_argumentResolution_requiredAndNamed_matching() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, c: 3);
   }
   void g(a, b, {c}) {}
 }''');
-    await _validateArgumentResolution([0, 1, 2]);
+    await _validateArgumentResolution(result, [0, 1, 2]);
   }
 
   test_argumentResolution_requiredAndNamed_missing() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void f() {
     g(1, 2, d: 3);
   }
   void g(a, b, {c, d}) {}
 }''');
-    await _validateArgumentResolution([0, 1, 3]);
+    await _validateArgumentResolution(result, [0, 1, 3]);
   }
 
   test_argumentResolution_requiredAndPositional_fewer() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 class A {
   void f() {
     g(1, 2, 3);
   }
   void g(a, b, [c, d]) {}
 }''');
-    await _validateArgumentResolution([0, 1, 2]);
+    await _validateArgumentResolution(result, [0, 1, 2]);
   }
 
   test_argumentResolution_requiredAndPositional_matching() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3, 4);
   }
   void g(a, b, [c, d]) {}
 }''');
-    await _validateArgumentResolution([0, 1, 2, 3]);
+    await _validateArgumentResolution(result, [0, 1, 2, 3]);
   }
 
   test_argumentResolution_requiredAndPositional_more() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3, 4);
   }
   void g(a, b, [c]) {}
 }''');
-    await _validateArgumentResolution([0, 1, 2, -1]);
+    await _validateArgumentResolution(result, [0, 1, 2, -1]);
   }
 
   test_argumentResolution_setter_propagated() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var a = new A();
   a.sss = 0;
@@ -127,12 +127,12 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(rhs.correspondingParameter, findElement2.parameter('x'));
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   var a = new A();
   a.b.sss = 0;
@@ -143,12 +143,12 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(rhs.correspondingParameter, findElement2.parameter('x'));
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
   test_argumentResolution_setter_static() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   A a = new A();
   a.sss = 0;
@@ -156,12 +156,12 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(rhs.correspondingParameter, findElement2.parameter('x'));
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
   test_argumentResolution_setter_static_propertyAccess() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 main() {
   A a = new A();
   a.b.sss = 0;
@@ -172,14 +172,14 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = findNode.assignment(' = 0;').rightHandSide;
-    expect(rhs.correspondingParameter, findElement2.parameter('x'));
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
   test_breakTarget_labeled() async {
     // Verify that the target of the label is correctly found and is recorded
     // as the unlabeled portion of the statement.
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   loop1: while (true) {
     loop2: for (int i = 0; i < 10; i++) {
@@ -189,56 +189,56 @@ void f() {
   }
 }
 ''');
-    var break1 = findNode.breakStatement('break loop1;');
-    var whileStatement = findNode.whileStatement('while (');
+    var break1 = result.findNode.breakStatement('break loop1;');
+    var whileStatement = result.findNode.whileStatement('while (');
     expect(break1.target, same(whileStatement));
 
-    var break2 = findNode.breakStatement('break loop2;');
-    var forStatement = findNode.forStatement('for (');
+    var break2 = result.findNode.breakStatement('break loop2;');
+    var forStatement = result.findNode.forStatement('for (');
     expect(break2.target, same(forStatement));
   }
 
   test_breakTarget_unlabeledBreakFromDo() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f() {
   do {
     break;
   } while (true);
 }
 ''');
-    var doStatement = findNode.doStatement('do {');
-    var breakStatement = findNode.breakStatement('break;');
+    var doStatement = result.findNode.doStatement('do {');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, same(doStatement));
   }
 
   test_breakTarget_unlabeledBreakFromFor() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   for (int i = 0; i < 10; i++) {
     break;
   }
 }
 ''');
-    var forStatement = findNode.forStatement('for (');
-    var breakStatement = findNode.breakStatement('break;');
+    var forStatement = result.findNode.forStatement('for (');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, same(forStatement));
   }
 
   test_breakTarget_unlabeledBreakFromForEach() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f() {
   for (x in []) {
     break;
   }
 }
 ''');
-    var forStatement = findNode.forStatement('for (');
-    var breakStatement = findNode.breakStatement('break;');
+    var forStatement = result.findNode.forStatement('for (');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, same(forStatement));
   }
 
   test_breakTarget_unlabeledBreakFromSwitch() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   while (true) {
     switch (0) {
@@ -248,13 +248,13 @@ void f() {
   }
 }
 ''');
-    var switchStatement = findNode.switchStatement('switch (');
-    var breakStatement = findNode.breakStatement('break;');
+    var switchStatement = result.findNode.switchStatement('switch (');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, same(switchStatement));
   }
 
   test_breakTarget_unlabeledBreakFromSwitch_language219() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 // @dart = 2.19
 void f() {
   while (true) {
@@ -265,28 +265,28 @@ void f() {
   }
 }
 ''');
-    var switchStatement = findNode.switchStatement('switch (');
-    var breakStatement = findNode.breakStatement('break;');
+    var switchStatement = result.findNode.switchStatement('switch (');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, same(switchStatement));
   }
 
   test_breakTarget_unlabeledBreakFromWhile() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   while (true) {
     break;
   }
 }
 ''');
-    var whileStatement = findNode.whileStatement('while (');
-    var breakStatement = findNode.breakStatement('break;');
+    var whileStatement = result.findNode.whileStatement('while (');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, same(whileStatement));
   }
 
   test_breakTarget_unlabeledBreakToOuterFunction() async {
     // Verify that unlabeled break statements can't resolve to loops in an
     // outer function.
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   while (true) {
     void g() {
@@ -295,7 +295,7 @@ void f() {
   }
 }
 ''');
-    var breakStatement = findNode.breakStatement('break;');
+    var breakStatement = result.findNode.breakStatement('break;');
     expect(breakStatement.target, isNull);
   }
 
@@ -319,7 +319,7 @@ class C {}''');
   test_continueTarget_labeled() async {
     // Verify that the target of the label is correctly found and is recorded
     // as the unlabeled portion of the statement.
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f() {
   loop1: while (true) {
     loop2: for (int i = 0; i < 10; i++) {
@@ -329,69 +329,69 @@ void f() {
   }
 }
 ''');
-    var continue1 = findNode.continueStatement('continue loop1');
-    var whileStatement = findNode.whileStatement('while (');
+    var continue1 = result.findNode.continueStatement('continue loop1');
+    var whileStatement = result.findNode.whileStatement('while (');
     expect(continue1.target, same(whileStatement));
 
-    var continue2 = findNode.continueStatement('continue loop2');
-    var forStatement = findNode.forStatement('for (');
+    var continue2 = result.findNode.continueStatement('continue loop2');
+    var forStatement = result.findNode.forStatement('for (');
     expect(continue2.target, same(forStatement));
   }
 
   test_continueTarget_unlabeledContinueFromDo() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f() {
   do {
     continue;
   } while (true);
 }
 ''');
-    var doStatement = findNode.doStatement('do {');
-    var continueStatement = findNode.continueStatement('continue;');
+    var doStatement = result.findNode.doStatement('do {');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, same(doStatement));
   }
 
   test_continueTarget_unlabeledContinueFromFor() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f() {
   for (int i = 0; i < 10; i++) {
     continue;
   }
 }
 ''');
-    var forStatement = findNode.forStatement('for (');
-    var continueStatement = findNode.continueStatement('continue;');
+    var forStatement = result.findNode.forStatement('for (');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, same(forStatement));
   }
 
   test_continueTarget_unlabeledContinueFromForEach() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   for (x in []) {
     continue;
   }
 }
 ''');
-    var forStatement = findNode.forStatement('for (');
-    var continueStatement = findNode.continueStatement('continue;');
+    var forStatement = result.findNode.forStatement('for (');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, same(forStatement));
   }
 
   test_continueTarget_unlabeledContinueFromWhile() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   while (true) {
     continue;
   }
 }
 ''');
-    var whileStatement = findNode.whileStatement('while (');
-    var continueStatement = findNode.continueStatement('continue;');
+    var whileStatement = result.findNode.whileStatement('while (');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, same(whileStatement));
   }
 
   test_continueTarget_unlabeledContinueSkipsSwitch() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   while (true) {
     switch (0) {
@@ -401,13 +401,13 @@ void f() {
   }
 }
 ''');
-    var whileStatement = findNode.whileStatement('while (');
-    var continueStatement = findNode.continueStatement('continue;');
+    var whileStatement = result.findNode.whileStatement('while (');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, same(whileStatement));
   }
 
   test_continueTarget_unlabeledContinueSkipsSwitch_language219() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 // @dart = 2.19
 void f() {
   while (true) {
@@ -418,15 +418,15 @@ void f() {
   }
 }
 ''');
-    var whileStatement = findNode.whileStatement('while (');
-    var continueStatement = findNode.continueStatement('continue;');
+    var whileStatement = result.findNode.whileStatement('while (');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, same(whileStatement));
   }
 
   test_continueTarget_unlabeledContinueToOuterFunction() async {
     // Verify that unlabeled continue statements can't resolve to loops in an
     // outer function.
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 void f() {
   while (true) {
     void g() {
@@ -435,7 +435,7 @@ void f() {
   }
 }
 ''');
-    var continueStatement = findNode.continueStatement('continue;');
+    var continueStatement = result.findNode.continueStatement('continue;');
     expect(continueStatement.target, isNull);
   }
 
@@ -501,20 +501,20 @@ class A {
   }
 
   test_fieldFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   int y;
   A(this.x) : y = x {}
 }''');
 
-    var xParameter = findNode.fieldFormalParameter('this.x');
+    var xParameter = result.findNode.fieldFormalParameter('this.x');
 
     var xParameterElement =
         xParameter.declaredFragment!.element as FieldFormalParameterElement;
-    expect(xParameterElement.field, findElement2.field('x'));
+    expect(xParameterElement.field, result.findElement.field('x'));
 
-    assertResolvedNodeText(findNode.simple('x {}'), r'''
+    assertResolvedNodeText(result.findNode.simple('x {}'), r'''
 SimpleIdentifier
   token: x
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
@@ -558,7 +558,7 @@ class A {
   }
 
   test_getter_fromMixins_bare_identifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   get x => null;
@@ -575,7 +575,7 @@ class C extends B with M1, M2 {
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
-    assertResolvedNodeText(findNode.simple('x;'), r'''
+    assertResolvedNodeText(result.findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
@@ -584,7 +584,7 @@ SimpleIdentifier
   }
 
   test_getter_fromMixins_property_access() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   get x => null;
@@ -602,7 +602,7 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    assertResolvedNodeText(findNode.simple('x;'), r'''
+    assertResolvedNodeText(result.findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
@@ -759,7 +759,7 @@ class A {
   }
 
   test_isValidMixin_badSuperclass() async {
-    await resolveTestCodeWithDiagnostics(
+    var result = await resolveTestCodeWithDiagnostics(
       r'''
 class A extends B {}
 class B {}
@@ -768,12 +768,12 @@ class C = Object with A;
 // [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.''',
     );
 
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     expect(a.isValidMixin, isFalse);
   }
 
   test_isValidMixin_constructor() async {
-    await resolveTestCodeWithDiagnostics(
+    var result = await resolveTestCodeWithDiagnostics(
       r'''
 class A {
   A() {}
@@ -783,23 +783,23 @@ class C = Object with A;
 // [diag.classUsedAsMixin] The class 'A' can't be used as a mixin because it's neither a mixin class nor a mixin.''',
     );
 
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     expect(a.isValidMixin, isFalse);
   }
 
   test_isValidMixin_factoryConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {
   factory A() => throw 0;
 }
 class C = Object with A;''');
 
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     expect(a.isValidMixin, isTrue);
   }
 
   test_isValidMixin_super_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin class A {
   toString() {
     return super.toString();
@@ -807,16 +807,16 @@ mixin class A {
 }
 class C = Object with A;''');
 
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     expect(a.isValidMixin, isTrue);
   }
 
   test_isValidMixin_valid() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 mixin class A {}
 class C = Object with A;''');
 
-    var a = findElement2.class_('A');
+    var a = result.findElement.class_('A');
     expect(a.isValidMixin, isTrue);
   }
 
@@ -850,25 +850,25 @@ void doSwitch(int target) {
   }
 
   test_localVariable_types_invoked() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 const A = null;
 main() {
   var myVar = (int p) => 'foo';
   myVar(42);
 }''');
-    var node = findNode.simple('myVar(42)');
+    var node = result.findNode.simple('myVar(42)');
     assertType(node, 'String Function(int)');
   }
 
   test_metadata_class() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A class C<A> {}''');
 
-    var annotations = findElement2.class_('C').metadata.annotations;
+    var annotations = result.findElement.class_('C').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var cDeclaration = findNode.classDeclaration('C<A>');
+    var cDeclaration = result.findNode.classDeclaration('C<A>');
     assertResolvedNodeText(cDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -881,17 +881,17 @@ Annotation
   }
 
   test_metadata_classTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A class C<A> = D with E;
 class D {}
 mixin E {}
 ''');
 
-    var annotations = findElement2.class_('C').metadata.annotations;
+    var annotations = result.findElement.class_('C').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var cDeclaration = findNode.classTypeAlias('C<A>');
+    var cDeclaration = result.findNode.classTypeAlias('C<A>');
     assertResolvedNodeText(cDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -904,15 +904,15 @@ Annotation
   }
 
   test_metadata_enum() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const A = null;
 @A enum E { A, B }
 ''');
 
-    var annotations = findElement2.enum_('E').metadata.annotations;
+    var annotations = result.findElement.enum_('E').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var eDeclaration = findNode.enumDeclaration('E');
+    var eDeclaration = result.findNode.enumDeclaration('E');
     assertResolvedNodeText(eDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -925,14 +925,14 @@ Annotation
   }
 
   test_metadata_extension() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A extension E<A> on List<A> {}''');
 
-    var annotations = findElement2.extension_('E').metadata.annotations;
+    var annotations = result.findElement.extension_('E').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var cDeclaration = findNode.extensionDeclaration('E<A>');
+    var cDeclaration = result.findNode.extensionDeclaration('E<A>');
     assertResolvedNodeText(cDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -945,46 +945,49 @@ Annotation
   }
 
   test_metadata_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   @A int f = 1;
 }''');
 
-    var metadata = findElement2.field('f').metadata.annotations;
+    var metadata = result.findElement.field('f').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
   test_metadata_fieldFormalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   int f;
   C(@A this.f);
 }''');
 
-    var metadata = findElement2.fieldFormalParameter('f').metadata.annotations;
+    var metadata = result.findElement
+        .fieldFormalParameter('f')
+        .metadata
+        .annotations;
     expect(metadata, hasLength(1));
   }
 
   test_metadata_function() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A f() {}''');
 
-    var annotations = findElement2.topFunction('f').metadata.annotations;
+    var annotations = result.findElement.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
   }
 
   test_metadata_function_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A f<A>() {}''');
 
-    var annotations = findElement2.topFunction('f').metadata.annotations;
+    var annotations = result.findElement.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var fDeclaration = findNode.functionDeclaration('f<A>');
+    var fDeclaration = result.findNode.functionDeclaration('f<A>');
     assertResolvedNodeText(fDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -997,15 +1000,15 @@ Annotation
   }
 
   test_metadata_functionTypeAlias() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const A = null;
 @A typedef F<A>(int A);
 ''');
 
-    var annotations = findElement2.typeAlias('F').metadata.annotations;
+    var annotations = result.findElement.typeAlias('F').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var fDeclaration = findNode.functionTypeAlias('F');
+    var fDeclaration = result.findNode.functionTypeAlias('F');
     assertResolvedNodeText(fDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -1018,23 +1021,23 @@ Annotation
   }
 
   test_metadata_functionTypedParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f(@A int p(int x)) {}''');
 
-    var metadata = findElement2.parameter('p').metadata.annotations;
+    var metadata = result.findElement.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
   test_metadata_functionTypedParameter_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f(@A int p<A>(int x)) {}''');
 
-    var annotations = findElement2.parameter('p').metadata.annotations;
+    var annotations = result.findElement.parameter('p').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var pDeclaration = findNode.formalParameter('p<A>');
+    var pDeclaration = result.findNode.formalParameter('p<A>');
     assertResolvedNodeText(pDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -1047,15 +1050,15 @@ Annotation
   }
 
   test_metadata_genericTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A typedef F<A> = A Function();
 ''');
 
-    var annotations = findElement2.typeAlias('F').metadata.annotations;
+    var annotations = result.findElement.typeAlias('F').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var fDeclaration = findNode.genericTypeAlias('F<A>');
+    var fDeclaration = result.findNode.genericTypeAlias('F<A>');
     assertResolvedNodeText(fDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -1077,27 +1080,27 @@ const A = null;''');
   }
 
   test_metadata_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   @A void m() {}
 }''');
 
-    var metadata = findElement2.method('m').metadata.annotations;
+    var metadata = result.findElement.method('m').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
   test_metadata_method_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 class C {
   @A void m<A>() {}
 }''');
 
-    var annotations = findElement2.method('m').metadata.annotations;
+    var annotations = result.findElement.method('m').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var mDeclaration = findNode.methodDeclaration('m<A>');
+    var mDeclaration = result.findNode.methodDeclaration('m<A>');
     assertResolvedNodeText(mDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -1110,14 +1113,14 @@ Annotation
   }
 
   test_metadata_mixin() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A mixin M<A> on Object {}''');
 
-    var annotations = findElement2.mixin('M').metadata.annotations;
+    var annotations = result.findElement.mixin('M').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var mDeclaration = findNode.mixinDeclaration('M<A>');
+    var mDeclaration = result.findNode.mixinDeclaration('M<A>');
     assertResolvedNodeText(mDeclaration.metadata[0], r'''
 Annotation
   atSign: @
@@ -1130,40 +1133,49 @@ Annotation
   }
 
   test_metadata_namedParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f({@A int p = 0}) {}''');
 
-    var metadata = findElement2.parameter('p').metadata.annotations;
+    var metadata = result.findElement.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
   test_metadata_positionalParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f([@A int p = 0]) {}''');
 
-    var metadata = findElement2.parameter('p').metadata.annotations;
+    var metadata = result.findElement.parameter('p').metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
   test_metadata_simpleParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 f(@A p1, @A int p2) {}''');
 
-    expect(findElement2.parameter('p1').metadata.annotations, hasLength(1));
-    expect(findElement2.parameter('p2').metadata.annotations, hasLength(1));
+    expect(
+      result.findElement.parameter('p1').metadata.annotations,
+      hasLength(1),
+    );
+    expect(
+      result.findElement.parameter('p2').metadata.annotations,
+      hasLength(1),
+    );
   }
 
   test_metadata_typedef() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const A = null;
 @A typedef F<A>();''');
 
-    expect(findElement2.typeAlias('F').metadata.annotations, hasLength(1));
+    expect(
+      result.findElement.typeAlias('F').metadata.annotations,
+      hasLength(1),
+    );
 
-    var annotation = findNode.annotation('@A');
+    var annotation = result.findNode.annotation('@A');
     assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
@@ -1191,7 +1203,7 @@ class C extends B with A {
   }
 
   test_method_fromMixins() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   void f() {}
@@ -1205,7 +1217,7 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.simple('f();'), r'''
+    assertResolvedNodeText(result.findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
   element: <testLibrary>::@mixin::M2::@method::f
@@ -1214,7 +1226,7 @@ SimpleIdentifier
   }
 
   test_method_fromMixins_bare_identifier() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   void f() {}
@@ -1229,7 +1241,7 @@ class C extends B with M1, M2 {
 }
 ''');
 
-    assertResolvedNodeText(findNode.simple('f();'), r'''
+    assertResolvedNodeText(result.findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
   element: <testLibrary>::@mixin::M2::@method::f
@@ -1238,7 +1250,7 @@ SimpleIdentifier
   }
 
   test_method_fromMixins_invoked_from_outside_class() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {}
 mixin M1 {
   void f() {}
@@ -1252,7 +1264,7 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.simple('f();'), r'''
+    assertResolvedNodeText(result.findNode.simple('f();'), r'''
 SimpleIdentifier
   token: f
   element: <testLibrary>::@mixin::M2::@method::f
@@ -1339,11 +1351,14 @@ main() {
   ///          parameters
   /// @throws Exception if the source could not be resolved or if the structure
   ///           of the source is not valid
-  Future<void> _validateArgumentResolution(List<int> indices) async {
-    var g = findElement2.method('g');
+  Future<void> _validateArgumentResolution(
+    TestResolvedUnitResult result,
+    List<int> indices,
+  ) async {
+    var g = result.findElement.method('g');
     var parameters = g.formalParameters;
 
-    var invocation = findNode.methodInvocation(');');
+    var invocation = result.findNode.methodInvocation(');');
 
     var arguments = invocation.argumentList.arguments;
 

@@ -17,12 +17,12 @@ main() {
 @reflectiveTest
 class WildcardPatternResolutionTest extends PubPackageResolutionTest {
   test_assignmentContext_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (_) = 0;
 }
 ''');
-    var node = findNode.singlePatternAssignment.pattern;
+    var node = result.findNode.singlePatternAssignment.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -35,12 +35,12 @@ ParenthesizedPattern
   }
 
   test_declarationContext_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (int _) = 0;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -57,12 +57,12 @@ ParenthesizedPattern
   }
 
   test_declarationContext_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (_) = 0;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclaration.pattern;
+    var node = result.findNode.singlePatternVariableDeclaration.pattern;
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
@@ -75,12 +75,12 @@ ParenthesizedPattern
   }
 
   test_matchingContext_typed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case int _) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   type: NamedType
@@ -93,12 +93,12 @@ WildcardPattern
   }
 
   test_matchingContext_typed_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case final int _) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   keyword: final
@@ -112,12 +112,12 @@ WildcardPattern
   }
 
   test_matchingContext_untyped() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case _) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   name: _
@@ -126,12 +126,12 @@ WildcardPattern
   }
 
   test_matchingContext_untyped_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case final _) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 WildcardPattern
   keyword: final

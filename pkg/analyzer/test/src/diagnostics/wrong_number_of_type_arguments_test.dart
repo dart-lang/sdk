@@ -653,7 +653,7 @@ f(p) {
 class WrongNumberOfTypeArgumentsTest_ExtensionType
     extends PubPackageResolutionTest {
   test_notGeneric() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
 void f(A<int> a) {}
@@ -661,7 +661,7 @@ void f(A<int> a) {}
 // [diag.wrongNumberOfTypeArguments] The type 'A' is declared with 0 type parameters, but 1 type arguments were given.
 ''');
 
-    var node = findNode.namedType('A<int>');
+    var node = result.findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -679,7 +679,7 @@ NamedType
   }
 
   test_tooFew() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<S, T>(int it) {}
 
 void f(A<int> a) {}
@@ -687,7 +687,7 @@ void f(A<int> a) {}
 // [diag.wrongNumberOfTypeArguments] The type 'A' is declared with 2 type parameters, but 1 type arguments were given.
 ''');
 
-    var node = findNode.namedType('A<int>');
+    var node = result.findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -705,7 +705,7 @@ NamedType
   }
 
   test_tooMany() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 
 void f(A<int, String> a) {}
@@ -713,7 +713,7 @@ void f(A<int, String> a) {}
 // [diag.wrongNumberOfTypeArguments] The type 'A' is declared with 1 type parameters, but 2 type arguments were given.
 ''');
 
-    var node = findNode.namedType('A<int, String>');
+    var node = result.findNode.namedType('A<int, String>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A

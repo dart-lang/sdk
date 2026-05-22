@@ -24,7 +24,7 @@ class B implements T {}
   }
 
   test_class_typeParameter_noTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 class B implements T {}
@@ -32,7 +32,7 @@ class B implements T {}
 // [diag.implementsTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be implemented.
 ''');
 
-    var node = findNode.namedType('T {}');
+    var node = result.findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -42,7 +42,7 @@ NamedType
   }
 
   test_class_typeParameter_withTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 class B implements T<A> {}
@@ -50,7 +50,7 @@ class B implements T<A> {}
 // [diag.implementsTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be implemented.
 ''');
 
-    var node = findNode.namedType('T<A> {}');
+    var node = result.findNode.namedType('T<A> {}');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -68,7 +68,7 @@ NamedType
   }
 
   test_mixin_typeParameter_noTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef T<X extends A> = X;
 mixin M implements T {}
@@ -76,7 +76,7 @@ mixin M implements T {}
 // [diag.implementsTypeAliasExpandsToTypeParameter] A type alias that expands to a type parameter can't be implemented.
 ''');
 
-    var node = findNode.namedType('T {}');
+    var node = result.findNode.namedType('T {}');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T

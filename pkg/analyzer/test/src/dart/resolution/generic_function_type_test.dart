@@ -51,25 +51,25 @@ int Function(int a)? y;
   }
 
   test_element_enclosingElement() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(
   void Function() a,
 ) {}
 ''');
 
-    var node = findNode.singleGenericFunctionType;
+    var node = result.findNode.singleGenericFunctionType;
     var element = node.declaredFragment!.element;
     expect(element.enclosingElement, same(result.libraryElement));
   }
 
   test_metadata_typeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 42;
 
 Function<@a T>()? x;
 ''');
 
-    var T = findNode.typeParameter('T');
+    var T = result.findNode.typeParameter('T');
     assertResolvedNodeText(T, r'''
 TypeParameter
   metadata
@@ -89,7 +89,7 @@ TypeParameter
   /// Test that when multiple [GenericFunctionType]s are used in a
   /// [FunctionDeclaration], all of them are resolved correctly.
   test_typeAnnotation_function() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void Function()? f<T extends bool Function()>(int Function() a) {
   return null;
 }
@@ -97,19 +97,19 @@ void Function()? f<T extends bool Function()>(int Function() a) {
 double Function()? x;
 ''');
     assertType(
-      findNode.genericFunctionType('void Function()?'),
+      result.findNode.genericFunctionType('void Function()?'),
       'void Function()?',
     );
     assertType(
-      findNode.genericFunctionType('bool Function()'),
+      result.findNode.genericFunctionType('bool Function()'),
       'bool Function()',
     );
     assertType(
-      findNode.genericFunctionType('int Function()'),
+      result.findNode.genericFunctionType('int Function()'),
       'int Function()',
     );
     assertType(
-      findNode.genericFunctionType('double Function()?'),
+      result.findNode.genericFunctionType('double Function()?'),
       'double Function()?',
     );
   }
@@ -141,7 +141,7 @@ void f(
   /// Test that when multiple [GenericFunctionType]s are used in a
   /// [FunctionDeclaration], all of them are resolved correctly.
   test_typeAnnotation_method() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   void Function()? m<T extends bool Function()>(int Function() a) {
     return null;
@@ -151,19 +151,19 @@ class C {
 double Function()? x;
 ''');
     assertType(
-      findNode.genericFunctionType('void Function()?'),
+      result.findNode.genericFunctionType('void Function()?'),
       'void Function()?',
     );
     assertType(
-      findNode.genericFunctionType('bool Function()'),
+      result.findNode.genericFunctionType('bool Function()'),
       'bool Function()',
     );
     assertType(
-      findNode.genericFunctionType('int Function()'),
+      result.findNode.genericFunctionType('int Function()'),
       'int Function()',
     );
     assertType(
-      findNode.genericFunctionType('double Function()?'),
+      result.findNode.genericFunctionType('double Function()?'),
       'double Function()?',
     );
   }

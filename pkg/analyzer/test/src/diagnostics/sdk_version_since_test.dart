@@ -565,7 +565,7 @@ class A {
 ''');
 
     writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
@@ -575,7 +575,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.prefixed('.foo');
+    var node = result.findNode.prefixed('.foo');
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -603,7 +603,7 @@ class A {
 ''');
 
     writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
@@ -613,7 +613,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.propertyAccess('.foo');
+    var node = result.findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

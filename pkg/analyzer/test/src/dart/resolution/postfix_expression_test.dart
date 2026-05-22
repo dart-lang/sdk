@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class InferenceUpdate4Test extends PubPackageResolutionTest {
   test_isExpression_notPromoted() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f() {
   num x = 2;
   if ((x++) is int) {
@@ -27,7 +27,7 @@ f() {
   }
 }
 ''');
-    var nonPromotedIdentifier = findNode.simple('x;');
+    var nonPromotedIdentifier = result.findNode.simple('x;');
     assertResolvedNodeText(nonPromotedIdentifier, r'''
 SimpleIdentifier
   token: x
@@ -41,13 +41,13 @@ SimpleIdentifier
 @reflectiveTest
 class PostfixExpressionResolutionTest extends PubPackageResolutionTest {
   test_dec_simpleIdentifier_parameter_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x--;
 }
 ''');
 
-    var node = findNode.postfix('x--');
+    var node = result.findNode.postfix('x--');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -65,7 +65,7 @@ PostfixExpression
   }
 
   test_formalParameter_inc_inc() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x ++ ++;
 //     ^^
@@ -73,7 +73,7 @@ void f(int x) {
 }
 ''');
 
-    var node = findNode.postfix('++;');
+    var node = result.findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PostfixExpression
@@ -99,7 +99,7 @@ PostfixExpression
   }
 
   test_formalParameter_incUnresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f(A a) {
@@ -109,7 +109,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.postfix('++;');
+    var node = result.findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -127,13 +127,13 @@ PostfixExpression
   }
 
   test_inc_dynamicIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic x) {
   x++;
 }
 ''');
 
-    var node = findNode.singlePostfixExpression;
+    var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -151,7 +151,7 @@ PostfixExpression
   }
 
   test_inc_formalParameter_inc() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   ++x++;
 //   ^^
@@ -159,7 +159,7 @@ void f(int x) {
 }
 ''');
 
-    var node = findNode.prefix('++x');
+    var node = result.findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
@@ -185,7 +185,7 @@ PrefixExpression
   }
 
   test_inc_indexExpression_instance() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -196,7 +196,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.postfix('a[0]++');
+    var node = result.findNode.postfix('a[0]++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: IndexExpression
@@ -223,7 +223,7 @@ PostfixExpression
   }
 
   test_inc_indexExpression_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -236,7 +236,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.postfix('[0]++');
+    var node = result.findNode.postfix('[0]++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: IndexExpression
@@ -262,7 +262,7 @@ PostfixExpression
   }
 
   test_inc_indexExpression_this() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator[](int index) => 0;
   operator[]=(int index, num _) {}
@@ -273,7 +273,7 @@ class A {
 }
 ''');
 
-    var node = findNode.postfix('[0]++');
+    var node = result.findNode.postfix('[0]++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: IndexExpression
@@ -299,7 +299,7 @@ PostfixExpression
   }
 
   test_inc_notLValue_parenthesized() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (0)++;
 //   ^^
@@ -307,7 +307,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.postfix('(0)++');
+    var node = result.findNode.postfix('(0)++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: ParenthesizedExpression
@@ -328,7 +328,7 @@ PostfixExpression
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   int++;
 //^^^
@@ -336,7 +336,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.postfix('int++');
+    var node = result.findNode.postfix('int++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -354,7 +354,7 @@ PostfixExpression
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral_typeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {
   T++;
 //^
@@ -362,7 +362,7 @@ void f<T>() {
 }
 ''');
 
-    var node = findNode.postfix('T++');
+    var node = result.findNode.postfix('T++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -380,7 +380,7 @@ PostfixExpression
   }
 
   test_inc_ofExtensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   int get foo => 0;
   set foo(int _) {}
@@ -391,7 +391,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.singlePostfixExpression;
+    var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PrefixedIdentifier
@@ -417,7 +417,7 @@ PostfixExpression
   }
 
   test_inc_prefixedIdentifier_instance() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -427,7 +427,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PrefixedIdentifier
@@ -456,7 +456,7 @@ PostfixExpression
     newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 void f() {
@@ -464,7 +464,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PrefixedIdentifier
@@ -490,7 +490,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_instance() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
 }
@@ -500,7 +500,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PropertyAccess
@@ -532,7 +532,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_nullShorting() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
@@ -542,7 +542,7 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.postfix('foo++'), r'''
+    assertResolvedNodeText(result.findNode.postfix('foo++'), r'''
 PostfixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -566,7 +566,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -582,7 +582,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PropertyAccess
@@ -606,7 +606,7 @@ PostfixExpression
   }
 
   test_inc_propertyAccess_this() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
   int get x => 0;
@@ -617,7 +617,7 @@ class A {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PropertyAccess
@@ -641,7 +641,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_depromote() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   Object operator +(int _) => this;
 }
@@ -654,7 +654,7 @@ void f(Object x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.postfix('x++'), r'''
+    assertResolvedNodeText(result.findNode.postfix('x++'), r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -669,17 +669,17 @@ PostfixExpression
   staticType: A
 ''');
 
-    assertType(findNode.simple('x; // ref'), 'Object');
+    assertType(result.findNode.simple('x; // ref'), 'Object');
   }
 
   test_inc_simpleIdentifier_parameter_double() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(double x) {
   x++;
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -697,13 +697,13 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   x++;
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -721,13 +721,13 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_parameter_num() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(num x) {
   x++;
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -745,7 +745,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_thisGetter_superSetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   set x(num _) {}
 }
@@ -758,7 +758,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -776,7 +776,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 set x(num _) {}
@@ -786,7 +786,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -804,7 +804,7 @@ PostfixExpression
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter_fromClass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
 
 set x(num _) {}
@@ -816,7 +816,7 @@ class A {
 }
 ''');
 
-    var node = findNode.postfix('x++');
+    var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -834,7 +834,7 @@ PostfixExpression
   }
 
   test_inc_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     super++;
@@ -844,7 +844,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singlePostfixExpression;
+    var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SuperExpression
@@ -861,7 +861,7 @@ PostfixExpression
   }
 
   test_inc_switchExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
@@ -871,7 +871,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.postfix('++');
+    var node = result.findNode.postfix('++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SwitchExpression
@@ -906,7 +906,7 @@ PostfixExpression
   }
 
   test_inc_unresolvedIdentifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   x++;
 //^
@@ -914,7 +914,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePostfixExpression;
+    var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -932,13 +932,13 @@ PostfixExpression
   }
 
   test_nullCheck() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x!;
 }
 ''');
 
-    assertResolvedNodeText(findNode.postfix('x!'), r'''
+    assertResolvedNodeText(result.findNode.postfix('x!'), r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -959,14 +959,14 @@ void f(Function f2) {
   }
 
   test_nullCheck_indexExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Map<String, int> a) {
   int v = a['foo']!;
   v;
 }
 ''');
 
-    assertResolvedNodeText(findNode.index('a['), r'''
+    assertResolvedNodeText(result.findNode.index('a['), r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -982,7 +982,7 @@ IndexExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(findNode.postfix(']!'), r'''
+    assertResolvedNodeText(result.findNode.postfix(']!'), r'''
 PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
@@ -1004,7 +1004,7 @@ PostfixExpression
   }
 
   test_nullCheck_interfaceType_viaAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A = String;
 
 void f(A? x) {
@@ -1012,7 +1012,7 @@ void f(A? x) {
 }
 ''');
 
-    var node = findNode.postfix('x!');
+    var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -1029,7 +1029,7 @@ PostfixExpression
   }
 
   test_nullCheck_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Null x) {
   x!;
 //^^
@@ -1037,17 +1037,17 @@ void f(Null x) {
 }
 ''');
 
-    assertType(findNode.postfix('x!'), 'Never');
+    assertType(result.findNode.postfix('x!'), 'Never');
   }
 
   test_nullCheck_nullableContext() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T t) => t;
 
 int g() => f(null)!;
 ''');
 
-    var node = findNode.postfix('f(null)!');
+    var node = result.findNode.postfix('f(null)!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: MethodInvocation
@@ -1077,7 +1077,7 @@ PostfixExpression
 
   /// See https://github.com/dart-lang/language/issues/1163
   test_nullCheck_participatesNullShorting() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   int zero;
   int? zeroOrNull;
@@ -1119,7 +1119,7 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
 ''');
 
     void assertTestType(int index, String expected) {
-      var function = findNode.functionDeclaration('test$index(');
+      var function = result.findNode.functionDeclaration('test$index(');
       var body = function.functionExpression.body as ExpressionFunctionBody;
       assertType(body.expression, expected);
     }
@@ -1138,7 +1138,7 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
   }
 
   test_nullCheck_recordType_viaAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A = (int,);
 
 void f(A? x) {
@@ -1146,7 +1146,7 @@ void f(A? x) {
 }
 ''');
 
-    var node = findNode.postfix('x!');
+    var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -1163,7 +1163,7 @@ PostfixExpression
   }
 
   test_nullCheck_superExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
 }
@@ -1177,7 +1177,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo();');
+    var node = result.findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: PostfixExpression
@@ -1201,13 +1201,13 @@ MethodInvocation
   }
 
   test_nullCheck_typeParameter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T? x) {
   x!;
 }
 ''');
 
-    var postfixExpression = findNode.postfix('x!');
+    var postfixExpression = result.findNode.postfix('x!');
     assertResolvedNodeText(postfixExpression, r'''
 PostfixExpression
   operand: SimpleIdentifier
@@ -1221,7 +1221,7 @@ PostfixExpression
   }
 
   test_nullCheck_typeParameter_already_promoted() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f<T>(T? x) {
   if (x is num?) {
     x!;
@@ -1229,7 +1229,7 @@ void f<T>(T? x) {
 }
 ''');
 
-    var postfixExpression = findNode.postfix('x!');
+    var postfixExpression = result.findNode.postfix('x!');
     assertResolvedNodeText(postfixExpression, r'''
 PostfixExpression
   operand: SimpleIdentifier

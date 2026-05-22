@@ -18,7 +18,7 @@ main() {
 class FunctionDeclarationStatementResolutionTest
     extends PubPackageResolutionTest {
   test_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   T g<T, U>(T a, U b) => a;
 //  ^
@@ -26,7 +26,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -87,7 +87,7 @@ FunctionDeclarationStatement
   }
 
   test_generic_fBounded() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T extends U, U, V extends U>(T x, U y, V z) {}
 //     ^
@@ -95,7 +95,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -176,7 +176,7 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_optionalNamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>({T? a}) {}
 //     ^
@@ -184,7 +184,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -232,7 +232,7 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_optionalPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>([T? a]) {}
 //     ^
@@ -240,7 +240,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -288,7 +288,7 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_requiredNamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>({required T? a}) {}
 //     ^
@@ -296,7 +296,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -345,7 +345,7 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_requiredPositional() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void g<T>(T a) {}
 //     ^
@@ -353,7 +353,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -398,7 +398,7 @@ FunctionDeclarationStatement
   }
 
   test_returnType_implicit_blockBody() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   g() {}
 //^
@@ -406,7 +406,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -430,7 +430,7 @@ FunctionDeclarationStatement
   }
 
   test_returnType_implicit_expressionBody() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   g() => 0;
 //^
@@ -438,7 +438,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration

@@ -17,11 +17,11 @@ main() {
 @reflectiveTest
 class LibraryDirectiveResolutionTest extends PubPackageResolutionTest {
   test_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library foo.bar;
 ''');
 
-    var node = findNode.singleLibraryDirective;
+    var node = result.findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
@@ -36,11 +36,11 @@ LibraryDirective
   }
 
   test_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 library;
 ''');
 
-    var node = findNode.singleLibraryDirective;
+    var node = result.findNode.singleLibraryDirective;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library

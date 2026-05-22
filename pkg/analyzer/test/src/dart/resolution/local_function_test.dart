@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class LocalFunctionResolutionTest extends PubPackageResolutionTest {
   test_defaultValue_functionReference() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   void g({void Function(int _) a = foo}) {}
 //     ^
@@ -28,25 +28,25 @@ void f() {
 void foo<T>(T _) {}
 ''');
 
-    var formalParameter = findElement2.parameter('a');
+    var formalParameter = result.findElement.parameter('a');
     expect(formalParameter.constantInitializer, isA<FunctionReference>());
   }
 
   test_element_block() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f() {
   g() {}
   g();
 }
 ''');
 
-    var element = findElement2.localFunction('g');
+    var element = result.findElement.localFunction('g');
     var fragment = element.firstFragment;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset, 8);
     expect(element.name, 'g');
 
-    var node = findNode.methodInvocation('g();');
+    var node = result.findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -62,7 +62,7 @@ MethodInvocation
   }
 
   test_element_ifStatement() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f() {
   if (1 > 2)
     g() {}
@@ -70,7 +70,7 @@ f() {
 // [diag.unusedElement] The declaration 'g' isn't referenced.
 }
 ''');
-    var node = findNode.functionDeclaration('g() {}');
+    var node = result.findNode.functionDeclaration('g() {}');
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     expect(fragment.name, 'g');
@@ -79,7 +79,7 @@ f() {
   }
 
   test_element_switchCase() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a) {
   switch (a) {
     case 1:
@@ -90,13 +90,13 @@ f(int a) {
 }
 ''');
 
-    var element = findElement2.localFunction('g');
+    var element = result.findElement.localFunction('g');
     var fragment = element.firstFragment;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset, 44);
     expect(element.name, 'g');
 
-    var node = findNode.methodInvocation('g();');
+    var node = result.findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -112,7 +112,7 @@ MethodInvocation
   }
 
   test_element_switchCase_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 f(int a) {
   switch (a) {
@@ -124,13 +124,13 @@ f(int a) {
 }
 ''');
 
-    var element = findElement2.localFunction('g');
+    var element = result.findElement.localFunction('g');
     var fragment = element.firstFragment;
     expect(fragment.name, 'g');
     expect(fragment.nameOffset, 60);
     expect(element.name, 'g');
 
-    var node = findNode.methodInvocation('g();');
+    var node = result.findNode.methodInvocation('g();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -146,7 +146,7 @@ MethodInvocation
   }
 
   test_recursiveReference_ifStatement_nonBlock() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(bool c) {
   if (c)
     g() {
@@ -157,7 +157,7 @@ f(bool c) {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

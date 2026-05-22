@@ -74,7 +74,7 @@ void main() {
   }
 
   test_abstractClass_factory() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() async {
   var iter = [1, 2];
   await for (var x in .fromIterable(iter)) {
@@ -83,7 +83,7 @@ void main() async {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -110,7 +110,7 @@ DotShorthandConstructorInvocation
   }
 
   test_abstractClass_factory_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -124,7 +124,7 @@ class _Foo<T> extends Foo<T> {
 Foo<T> bar<T>() => const .a();
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
@@ -204,7 +204,7 @@ void main() {
   }
 
   test_chain_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -217,7 +217,7 @@ void main() {
 }
 ''');
 
-    var method = findNode.methodInvocation('method();');
+    var method = result.findNode.methodInvocation('method();');
     assertResolvedNodeText(method, r'''
 MethodInvocation
   target: DotShorthandConstructorInvocation
@@ -250,7 +250,7 @@ MethodInvocation
   }
 
   test_chain_method_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C(this.x);
@@ -263,7 +263,7 @@ void main() {
 }
 ''');
 
-    var method = findNode.methodInvocation('method();');
+    var method = result.findNode.methodInvocation('method();');
     assertResolvedNodeText(method, r'''
 MethodInvocation
   target: DotShorthandConstructorInvocation
@@ -297,7 +297,7 @@ MethodInvocation
   }
 
   test_chain_property() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -310,7 +310,7 @@ void main() {
 }
 ''');
 
-    var propertyAccess = findNode.singlePropertyAccess;
+    var propertyAccess = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(propertyAccess, r'''
 PropertyAccess
   target: DotShorthandConstructorInvocation
@@ -339,7 +339,7 @@ PropertyAccess
   }
 
   test_chain_property_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C(this.x);
@@ -352,7 +352,7 @@ void main() {
 }
 ''');
 
-    var propertyAccess = findNode.singlePropertyAccess;
+    var propertyAccess = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(propertyAccess, r'''
 PropertyAccess
   target: DotShorthandConstructorInvocation
@@ -382,7 +382,7 @@ PropertyAccess
   }
 
   test_conflict_instance_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int value; // Same name as constructor
   A.value(this.value);
@@ -394,7 +394,7 @@ void main() {
 ''');
 
     assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
+      result.findNode.singleDotShorthandConstructorInvocation,
       r'''
 DotShorthandConstructorInvocation
   period: .
@@ -417,7 +417,7 @@ DotShorthandConstructorInvocation
   }
 
   test_conflict_instance_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int val;
   A.value(this.val);
@@ -430,7 +430,7 @@ void main() {
 ''');
 
     assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
+      result.findNode.singleDotShorthandConstructorInvocation,
       r'''
 DotShorthandConstructorInvocation
   period: .
@@ -453,7 +453,7 @@ DotShorthandConstructorInvocation
   }
 
   test_conflict_instance_method_factory() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int val;
   A._(this.val);
@@ -467,7 +467,7 @@ void main() {
 ''');
 
     assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
+      result.findNode.singleDotShorthandConstructorInvocation,
       r'''
 DotShorthandConstructorInvocation
   period: .
@@ -485,7 +485,7 @@ DotShorthandConstructorInvocation
   }
 
   test_conflict_instance_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int? val;
   A.value(this.val);
@@ -502,7 +502,7 @@ void main() {
 ''');
 
     assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
+      result.findNode.singleDotShorthandConstructorInvocation,
       r'''
 DotShorthandConstructorInvocation
   period: .
@@ -525,7 +525,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_assert() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -537,7 +537,7 @@ class CAssert {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
@@ -561,7 +561,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_inConstantContext() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -573,7 +573,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -595,7 +595,7 @@ DotShorthandConstructorInvocation
   }
 
   test_const_keyword() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -607,7 +607,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
@@ -663,7 +663,7 @@ void main() {
   }
 
   test_constructor_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C.named(this.x);
@@ -675,7 +675,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -697,7 +697,7 @@ DotShorthandConstructorInvocation
   }
 
   test_constructor_named_futureOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 class C<T> {
@@ -711,7 +711,7 @@ void main() async {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -754,7 +754,7 @@ void f() {
   }
 
   test_equality() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C.named(this.x);
@@ -767,7 +767,7 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandConstructorInvocation;
+    var identifier = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(identifier, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -790,14 +790,14 @@ DotShorthandConstructorInvocation
   }
 
   test_equality_inferTypeParameters() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void main() {
   bool x = <int>[] == .filled(2, '2');
   print(x);
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandConstructorInvocation;
+    var identifier = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(identifier, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -826,7 +826,7 @@ DotShorthandConstructorInvocation
   }
 
   test_equality_pattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -838,7 +838,7 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandConstructorInvocation;
+    var identifier = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(identifier, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
@@ -861,7 +861,7 @@ DotShorthandConstructorInvocation
   }
 
   test_factory() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   factory Foo.a() = _Foo;
 
@@ -875,7 +875,7 @@ class _Foo<T> extends Foo<T> {
 Foo<T> bar<T>() => .a();
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -894,7 +894,7 @@ DotShorthandConstructorInvocation
   }
 
   test_factory_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -908,7 +908,7 @@ class _Foo<T> extends Foo<T> {
 Foo<T> bar<T>() => const .a();
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
@@ -976,7 +976,7 @@ void main() {
   }
 
   test_functionExpression_call() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C call() => this;
 }
@@ -986,7 +986,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
@@ -1010,7 +1010,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_argument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C call(int x) => this;
 }
@@ -1020,7 +1020,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
@@ -1049,7 +1049,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_extension() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 extension CallC on C {
@@ -1061,7 +1061,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
@@ -1085,7 +1085,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_generic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C call<T>(T t) => this;
 }
@@ -1095,7 +1095,7 @@ void main() {
 }
 ''');
 
-    var constructor = findNode.singleFunctionExpressionInvocation;
+    var constructor = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(constructor, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
@@ -1136,7 +1136,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named();
   C call() => this;
@@ -1147,7 +1147,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
@@ -1171,7 +1171,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C(C c);
   C.a();
@@ -1183,7 +1183,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
@@ -1235,7 +1235,7 @@ void main() {
   }
 
   test_nested_invocation() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C member() => C(1);
   T x;
@@ -1248,7 +1248,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -1283,7 +1283,7 @@ DotShorthandConstructorInvocation
   }
 
   test_nested_property() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C get member => C(1);
   T x;
@@ -1296,7 +1296,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -1327,7 +1327,7 @@ DotShorthandConstructorInvocation
   }
 
   test_new() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -1339,7 +1339,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleDotShorthandConstructorInvocation;
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
@@ -1437,7 +1437,7 @@ void main() {
   }
 
   test_privateClass_sameLibrary_constConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class _Private {
   const _Private.named();
 }
@@ -1453,7 +1453,7 @@ void main() {
 ''');
 
     assertResolvedNodeText(
-      findNode.singleDotShorthandConstructorInvocation,
+      result.findNode.singleDotShorthandConstructorInvocation,
       r'''
 DotShorthandConstructorInvocation
   constKeyword: const

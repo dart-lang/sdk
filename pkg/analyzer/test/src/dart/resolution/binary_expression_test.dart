@@ -19,7 +19,7 @@ main() {
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
     with BinaryExpressionResolutionTestCases {
   test_eqEq_alwaysBool() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type MyBool(bool it) implements bool {}
 
 class A {
@@ -30,7 +30,7 @@ void f(A a) {
   a == 0;
 }
 ''');
-    var node = findNode.binary('a == 0');
+    var node = result.findNode.binary('a == 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -49,14 +49,14 @@ BinaryExpression
   }
 
   test_eqEq_switchExpression_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     _ => 1,
   } == 0);
 }
 ''');
-    var node = findNode.binary('== 0');
+    var node = result.findNode.binary('== 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SwitchExpression
@@ -92,14 +92,14 @@ BinaryExpression
   }
 
   test_eqEq_switchExpression_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   0 == switch (x) {
     _ => 1,
   };
 }
 ''');
-    var node = findNode.binary('0 ==');
+    var node = result.findNode.binary('0 ==');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: IntegerLiteral
@@ -135,7 +135,7 @@ BinaryExpression
   }
 
   test_expression_recordType_hasOperator() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((String,) a) {
   a + 0;
 }
@@ -144,7 +144,7 @@ extension on (String,) {
   int operator +(int other) => 0;
 }
 ''');
-    var node = findNode.binary('+ 0');
+    var node = result.findNode.binary('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -163,14 +163,14 @@ BinaryExpression
   }
 
   test_expression_recordType_noOperator() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((String,) a) {
   a + 0;
 //  ^
 // [diag.undefinedOperator] The operator '+' isn't defined for the type '(String,)'.
 }
 ''');
-    var node = findNode.binary('+ 0');
+    var node = result.findNode.binary('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -189,7 +189,7 @@ BinaryExpression
   }
 
   test_gtGtGt() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A operator >>>(int amount) => this;
 }
@@ -198,7 +198,7 @@ void f(A a) {
   a >>> 3;
 }
 ''');
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -217,13 +217,13 @@ BinaryExpression
   }
 
   test_ifNull_left_nullableContext() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T t) => t;
 
 int g() => f(null) ?? 0;
 ''');
 
-    assertResolvedNodeText(findNode.binary('?? 0'), r'''
+    assertResolvedNodeText(result.findNode.binary('?? 0'), r'''
 BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
@@ -256,7 +256,7 @@ BinaryExpression
   }
 
   test_ifNull_lubUsedEvenIfItDoesNotSatisfyContext() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart=3.3
 class A {}
 class B1 extends A {}
@@ -270,7 +270,7 @@ f(C1? c1, C2 c2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('c1 ?? c2'), r'''
+    assertResolvedNodeText(result.findNode.binary('c1 ?? c2'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
@@ -290,13 +290,13 @@ BinaryExpression
   }
 
   test_ifNull_nullableInt_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x, int y) {
   x ?? y;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x ?? y'), r'''
+    assertResolvedNodeText(result.findNode.binary('x ?? y'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -315,13 +315,13 @@ BinaryExpression
   }
 
   test_ifNull_nullableInt_nullableDouble() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x, double? y) {
   x ?? y;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x ?? y'), r'''
+    assertResolvedNodeText(result.findNode.binary('x ?? y'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -340,13 +340,13 @@ BinaryExpression
   }
 
   test_ifNull_nullableInt_nullableInt() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int? x) {
   x ?? x;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x ?? x'), r'''
+    assertResolvedNodeText(result.findNode.binary('x ?? x'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -365,7 +365,7 @@ BinaryExpression
   }
 
   test_plus_extensionType_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension type Int(int i) implements int {
   Int operator +(int other) {
     return Int(i + other);
@@ -377,7 +377,7 @@ void f(Int a, int b) {
 }
 ''');
 
-    var node = findNode.binary('a + b');
+    var node = result.findNode.binary('a + b');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -397,13 +397,13 @@ BinaryExpression
   }
 
   test_plus_int_never() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(int a, Never b) {
   a + b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -422,7 +422,7 @@ BinaryExpression
   }
 
   test_plus_never_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Never a, int b) {
   a + b;
 //^
@@ -432,7 +432,7 @@ f(Never a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -451,7 +451,7 @@ BinaryExpression
   }
 
   test_plus_switchExpression_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   (switch (x) {
     _ => 1,
@@ -459,7 +459,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.binary('+ 0');
+    var node = result.findNode.binary('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SwitchExpression
@@ -495,7 +495,7 @@ BinaryExpression
   }
 
   test_plus_switchExpression_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   0 + switch (x) {
     _ => 1,
@@ -503,7 +503,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.binary('0 +');
+    var node = result.findNode.binary('0 +');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: IntegerLiteral
@@ -539,7 +539,7 @@ BinaryExpression
   }
 
   test_star_syntheticOperand_both() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final v = * ;
 //      ^
@@ -551,7 +551,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -571,7 +571,7 @@ BinaryExpression
   }
 
   test_star_syntheticOperand_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final v = * 2;
 //      ^
@@ -581,7 +581,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -600,7 +600,7 @@ BinaryExpression
   }
 
   test_star_syntheticOperand_right() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final v = 2 * ;
 //      ^
@@ -610,7 +610,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleBinaryExpression;
+    var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: IntegerLiteral
@@ -629,7 +629,7 @@ BinaryExpression
   }
 
   test_superQualifier_plus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator +(int other) => 0;
 }
@@ -643,7 +643,7 @@ class B extends A {
 }
 ''');
 
-    var node = findNode.binary('+ 0');
+    var node = result.findNode.binary('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SuperExpression
@@ -661,7 +661,7 @@ BinaryExpression
   }
 
   test_thisExpression_plus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int operator +(int other) => 0;
 
@@ -671,7 +671,7 @@ class A {
 }
 ''');
 
-    var node = findNode.binary('+ 0');
+    var node = result.findNode.binary('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ThisExpression
@@ -691,13 +691,13 @@ BinaryExpression
 
 mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bangEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a != b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a != b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a != b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -716,7 +716,7 @@ BinaryExpression
   }
 
   test_bangEq_extensionOverride_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f(int a) {
@@ -726,7 +726,7 @@ void f(int a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('!= 0'), r'''
+    assertResolvedNodeText(result.findNode.binary('!= 0'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -754,7 +754,7 @@ BinaryExpression
   }
 
   test_bangEqEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a !== b;
 //  ^
@@ -762,7 +762,7 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a !== b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a !== b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -781,13 +781,13 @@ BinaryExpression
   }
 
   test_eqEq_dynamic_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(dynamic a) {
   a == 0;
 }
 ''');
 
-    var node = findNode.binary('a == 0');
+    var node = result.findNode.binary('a == 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -806,7 +806,7 @@ BinaryExpression
   }
 
   test_eqEq_extensionOverride_left() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f(int a) {
@@ -816,7 +816,7 @@ void f(int a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('== 0'), r'''
+    assertResolvedNodeText(result.findNode.binary('== 0'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -844,13 +844,13 @@ BinaryExpression
   }
 
   test_eqEq_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a == b;
 }
 ''');
 
-    var node = findNode.binary('a == b');
+    var node = result.findNode.binary('a == b');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -870,7 +870,7 @@ BinaryExpression
   }
 
   test_eqEq_invalidType_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(A a) {
 //     ^
 // [diag.undefinedClass] Undefined class 'A'.
@@ -878,7 +878,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.binary('a == 0');
+    var node = result.findNode.binary('a == 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -897,7 +897,7 @@ BinaryExpression
   }
 
   test_eqEqEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a === b;
 //  ^
@@ -905,7 +905,7 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a === b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a === b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -924,13 +924,13 @@ BinaryExpression
   }
 
   test_ifNull() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(int? a, double b) {
   a ?? b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a ?? b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a ?? b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -949,13 +949,13 @@ BinaryExpression
   }
 
   test_logicalAnd() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(bool a, bool b) {
   a && b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a && b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a && b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -974,13 +974,13 @@ BinaryExpression
   }
 
   test_logicalOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(bool a, bool b) {
   a || b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a || b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a || b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -999,7 +999,7 @@ BinaryExpression
   }
 
   test_minus_int_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a - f());
@@ -1007,7 +1007,7 @@ g(int a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1026,13 +1026,13 @@ MethodInvocation
   }
 
   test_minus_int_double() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, double b) {
   a - b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a - b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a - b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1051,13 +1051,13 @@ BinaryExpression
   }
 
   test_minus_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a - b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a - b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a - b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1076,7 +1076,7 @@ BinaryExpression
   }
 
   test_mod_int_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a % f());
@@ -1084,7 +1084,7 @@ g(int a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1103,13 +1103,13 @@ MethodInvocation
   }
 
   test_mod_int_double() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, double b) {
   a % b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a % b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a % b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1128,13 +1128,13 @@ BinaryExpression
   }
 
   test_mod_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a % b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a % b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a % b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1153,7 +1153,7 @@ BinaryExpression
   }
 
   test_plus_double_context_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   h(a + f());
@@ -1161,7 +1161,7 @@ g(double a) {
 h(double x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1180,7 +1180,7 @@ MethodInvocation
   }
 
   test_plus_double_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   h(a + f());
@@ -1189,7 +1189,7 @@ g(double a) {
 }
 h(int x) {}
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1208,13 +1208,13 @@ MethodInvocation
   }
 
   test_plus_double_context_none() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(double a) {
   a + f();
 }
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1233,12 +1233,12 @@ MethodInvocation
   }
 
   test_plus_double_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(double a, dynamic b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1257,14 +1257,14 @@ BinaryExpression
   }
 
   test_plus_int_context_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a + f());
 }
 h(double x) {}
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1283,14 +1283,14 @@ MethodInvocation
   }
 
   test_plus_int_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a + f());
 }
 h(int x) {}
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1309,14 +1309,14 @@ MethodInvocation
   }
 
   test_plus_int_context_int_target_rewritten() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int Function() a) {
   h(a() + f());
 }
 h(int x) {}
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1335,7 +1335,7 @@ MethodInvocation
   }
 
   test_plus_int_context_int_via_extension_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   String operator+(num x) => '';
 }
@@ -1347,7 +1347,7 @@ g(int a) {
 }
 h(int x) {}
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1366,13 +1366,13 @@ MethodInvocation
   }
 
   test_plus_int_context_none() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   a + f();
 }
 ''');
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1391,12 +1391,12 @@ MethodInvocation
   }
 
   test_plus_int_double() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, double b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1415,12 +1415,12 @@ BinaryExpression
   }
 
   test_plus_int_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, dynamic b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1439,12 +1439,12 @@ BinaryExpression
   }
 
   test_plus_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1463,12 +1463,12 @@ BinaryExpression
   }
 
   test_plus_int_int_target_rewritten() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(int Function() a, int b) {
   a() + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('a() + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a() + b'), r'''
 BinaryExpression
   leftOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
@@ -1494,7 +1494,7 @@ BinaryExpression
   }
 
   test_plus_int_int_via_extension_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   String operator+(int other) => '';
 }
@@ -1502,7 +1502,7 @@ f(int a, int b) {
   E(a) + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('E(a) + b'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -1531,12 +1531,12 @@ BinaryExpression
   }
 
   test_plus_int_num() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, num b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1555,7 +1555,7 @@ BinaryExpression
   }
 
   test_plus_int_typeVariable_via_extension() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class Foo {}
 
 extension FooExtension<F extends Foo> on F {
@@ -1564,7 +1564,7 @@ extension FooExtension<F extends Foo> on F {
   F get gg => this + 1;
 }
 ''');
-    assertResolvedNodeText(findNode.binary('this + 1'), r'''
+    assertResolvedNodeText(result.findNode.binary('this + 1'), r'''
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -1583,14 +1583,14 @@ BinaryExpression
   }
 
   test_plus_invalidType_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   x + 0;
 //^
 // [diag.undefinedIdentifier] Undefined name 'x'.
 }
 ''');
-    var node = findNode.binary('x + 0');
+    var node = result.findNode.binary('x + 0');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1609,7 +1609,7 @@ BinaryExpression
   }
 
   test_plus_num_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(num a) {
   h(a + f());
@@ -1619,7 +1619,7 @@ g(num a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1638,7 +1638,7 @@ MethodInvocation
   }
 
   test_plus_other_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
   num operator+(String x);
 }
@@ -1651,7 +1651,7 @@ g(A a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1670,7 +1670,7 @@ MethodInvocation
   }
 
   test_plus_other_context_int_via_extension_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String operator+(num x) => '';
@@ -1684,7 +1684,7 @@ g(A a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1703,7 +1703,7 @@ MethodInvocation
   }
 
   test_plus_other_context_int_via_extension_implicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String operator+(num x) => '';
@@ -1717,7 +1717,7 @@ g(A a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1736,7 +1736,7 @@ MethodInvocation
   }
 
   test_plus_other_double() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
   String operator+(double other);
 }
@@ -1745,7 +1745,7 @@ f(A a, double b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1764,7 +1764,7 @@ BinaryExpression
   }
 
   test_plus_other_int_via_extension_explicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String operator+(int other) => '';
@@ -1774,7 +1774,7 @@ f(A a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('E(a) + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('E(a) + b'), r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -1803,7 +1803,7 @@ BinaryExpression
   }
 
   test_plus_other_int_via_extension_implicit() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   String operator+(int other) => '';
@@ -1813,7 +1813,7 @@ f(A a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a + b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1832,13 +1832,13 @@ BinaryExpression
   }
 
   test_receiverTypeParameter_bound_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f<T extends dynamic>(T a) {
   a + 0;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a + 0'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + 0'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1856,13 +1856,13 @@ BinaryExpression
   }
 
   test_receiverTypeParameter_bound_num() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f<T extends num>(T a) {
   a + 0;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a + 0'), r'''
+    assertResolvedNodeText(result.findNode.binary('a + 0'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1880,13 +1880,13 @@ BinaryExpression
   }
 
   test_slash() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a / b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a / b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a / b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1905,7 +1905,7 @@ BinaryExpression
   }
 
   test_star_int_context_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>() => throw Error();
 g(int a) {
   h(a * f());
@@ -1913,7 +1913,7 @@ g(int a) {
 h(int x) {}
 ''');
 
-    var node = findNode.methodInvocation('f()');
+    var node = result.findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1932,13 +1932,13 @@ MethodInvocation
   }
 
   test_star_int_double() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, double b) {
   a * b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a * b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a * b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1957,13 +1957,13 @@ BinaryExpression
   }
 
   test_star_int_int() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(int a, int b) {
   a * b;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('a * b'), r'''
+    assertResolvedNodeText(result.findNode.binary('a * b'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1985,7 +1985,7 @@ BinaryExpression
 @reflectiveTest
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   test_ifNull_contextIsConvertedToATypeUsingGreatestClosure() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1<T> extends A {}
 class B2<T> extends A {}
@@ -1997,7 +1997,9 @@ f(C1<int>? c1, C2<double> c2) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('c1 ?? c2'), r'''BinaryExpression
+    assertResolvedNodeText(
+      result.findNode.binary('c1 ?? c2'),
+      r'''BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2014,11 +2016,12 @@ f(C1<int>? c1, C2<double> c2) {
   element: <null>
   staticInvokeType: null
   staticType: B1<Object?>
-''');
+''',
+    );
   }
 
   test_ifNull_contextNotUsedIfLhsDoesNotSatisfyContext() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -2031,7 +2034,9 @@ f(B2? b2, C1 c1, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('b2 ?? c1'), r'''BinaryExpression
+    assertResolvedNodeText(
+      result.findNode.binary('b2 ?? c1'),
+      r'''BinaryExpression
   leftOperand: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
@@ -2046,11 +2051,12 @@ f(B2? b2, C1 c1, Object? o) {
   element: <null>
   staticInvokeType: null
   staticType: B2
-''');
+''',
+    );
   }
 
   test_ifNull_contextNotUsedIfRhsDoesNotSatisfyContext() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -2063,7 +2069,9 @@ f(C1? c1, B2 b2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('c1 ?? b2'), r'''BinaryExpression
+    assertResolvedNodeText(
+      result.findNode.binary('c1 ?? b2'),
+      r'''BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2078,11 +2086,12 @@ f(C1? c1, B2 b2, Object? o) {
   element: <null>
   staticInvokeType: null
   staticType: B2
-''');
+''',
+    );
   }
 
   test_ifNull_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B1 extends A {}
 class B2 extends A {}
@@ -2091,7 +2100,7 @@ class C2 implements B1, B2 {}
 B1 f(C1? c1, C2 c2) => c1 ?? c2;
 ''');
 
-    assertResolvedNodeText(findNode.binary('c1 ?? c2'), r'''
+    assertResolvedNodeText(result.findNode.binary('c1 ?? c2'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1

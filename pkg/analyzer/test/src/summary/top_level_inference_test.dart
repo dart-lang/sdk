@@ -119,26 +119,26 @@ var b1 = a[1];
   }
 
   test_initializer_functionLiteral_blockBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var t = (int p) {};
 ''');
-    assertType(findElement2.topVar('t').type, 'Null Function(int)');
+    assertType(result.findElement.topVar('t').type, 'Null Function(int)');
   }
 
   test_initializer_functionLiteral_expressionBody() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var t = (int p) => (a = 1);
 ''');
-    assertType(findElement2.topVar('t').type, 'int Function(int)');
+    assertType(result.findElement.topVar('t').type, 'int Function(int)');
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var t = (int a, b,int c, d) => 0;
 ''');
     assertType(
-      findElement2.topVar('t').type,
+      result.findElement.topVar('t').type,
       'int Function(int, dynamic, int, dynamic)',
     );
   }

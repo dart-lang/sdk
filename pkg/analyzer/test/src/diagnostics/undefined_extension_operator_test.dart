@@ -28,7 +28,7 @@ f() {
   }
 
   test_binary_undefined() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on String {}
 f() {
   E('a') + 1;
@@ -37,7 +37,7 @@ f() {
 }
 ''');
 
-    var node = findNode.binary('+ 1');
+    var node = result.findNode.binary('+ 1');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride

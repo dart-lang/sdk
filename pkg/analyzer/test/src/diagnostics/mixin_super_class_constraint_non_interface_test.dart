@@ -18,13 +18,13 @@ main() {
 class MixinSuperClassConstraintNonInterfaceTest
     extends PubPackageResolutionTest {
   test_dynamic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M on dynamic {}
 //         ^^^^^^^
 // [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -37,14 +37,14 @@ MixinOnClause
   }
 
   test_enum() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E { v }
 mixin M on E {}
 //         ^
 // [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -57,14 +57,14 @@ MixinOnClause
   }
 
   test_extensionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 mixin M on A {}
 //         ^
 // [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -77,13 +77,13 @@ MixinOnClause
   }
 
   test_Never() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 mixin M on Never {}
 //         ^^^^^
 // [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
@@ -96,14 +96,14 @@ MixinOnClause
   }
 
   test_void() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin M on void {}
 //         ^^^^
 // [diag.expectedTypeName] Expected a type name.
 // [diag.mixinSuperClassConstraintNonInterface] Only classes and mixins can be used as superclass constraints.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on

@@ -17,17 +17,17 @@ main() {
 @reflectiveTest
 class LocalVariableTest extends PubPackageResolutionTest {
   test_int() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   var v = 0;
   v;
 }
 ''');
-    _assertTypeOfV('int');
+    _assertTypeOfV(result, 'int');
   }
 
   test_Never() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Never a) {
   var v = a;
   v;
@@ -35,21 +35,21 @@ void f(Never a) {
 // [diag.deadCode] Dead code.
 }
 ''');
-    _assertTypeOfV('Never');
+    _assertTypeOfV(result, 'Never');
   }
 
   test_null() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   var v = null;
   v;
 }
 ''');
-    _assertTypeOfV('dynamic');
+    _assertTypeOfV(result, 'dynamic');
   }
 
-  void _assertTypeOfV(String expected) {
-    assertType(findElement2.localVar('v').type, expected);
-    assertType(findNode.simple('v;'), expected);
+  void _assertTypeOfV(TestResolvedUnitResult result, String expected) {
+    assertType(result.findElement.localVar('v').type, expected);
+    assertType(result.findNode.simple('v;'), expected);
   }
 }

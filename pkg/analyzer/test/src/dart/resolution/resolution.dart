@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -48,8 +49,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ResolvedNodeTextConfiguration();
 
   late ResolvedUnitResultImpl result;
-  late FindNode findNode;
-  late FindElement2 findElement2;
 
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
@@ -169,14 +168,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  Future<void> assertErrorsInCode(
+  Future<TestResolvedUnitResult> assertErrorsInCode(
     String code,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     addTestFile(code);
-    await resolveTestFile();
+    var result = await resolveTestFile();
 
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
+    assertErrorsInList(result.diagnostics, expectedDiagnostics);
+    return result;
   }
 
   Future<ResolvedUnitResult> assertErrorsInFile(
@@ -226,9 +226,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Resolve the [code], and ensure that it can be resolved without a crash,
   /// and is invalid, i.e. produces a diagnostic.
-  Future<void> assertInvalidTestCode(String code) async {
-    await resolveTestCode(code);
-    assertHasTestErrors();
+  Future<TestResolvedUnitResult> assertInvalidTestCode(String code) async {
+    var result = await resolveTestCode(code);
+    expect(result.diagnostics, isNotEmpty);
+    return result;
   }
 
   void assertNoErrorsInResult() {
@@ -436,32 +437,33 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResultImpl> resolveFile(File file);
 
-  /// Resolve [file] into [result].
-  Future<void> resolveFile2(File file) async {
+  /// Resolve [file] into [result] and return a test view of it.
+  Future<TestResolvedUnitResult> resolveFile2(File file) async {
     result = await resolveFile(file);
 
-    findNode = FindNode(result.content, result.unit);
-    findElement2 = FindElement2(result.unit);
+    return TestResolvedUnitResult(result);
   }
 
   /// Create a new file with the [path] and [content], resolve it into [result].
-  Future<void> resolveFileCode(String path, String content) {
+  Future<TestResolvedUnitResult> resolveFileCode(String path, String content) {
     var file = newFile(path, content);
     return resolveFile2(file);
   }
 
   /// Put the [code] into the test file, and resolve it.
-  Future<void> resolveTestCode(String code) {
+  Future<TestResolvedUnitResult> resolveTestCode(String code) {
     addTestFile(code);
     return resolveTestFile();
   }
 
   /// Resolves [code] and checks that its inline diagnostic markers match the
   /// diagnostics. Unmarked code is expected to have no diagnostics.
-  Future<void> resolveTestCodeWithDiagnostics(String code) async {
+  Future<TestResolvedUnitResult> resolveTestCodeWithDiagnostics(
+    String code,
+  ) async {
     var cleanCode = removeDiagnosticExpectations(code);
     addTestFile(cleanCode);
-    await resolveTestFile();
+    var result = await resolveTestFile();
 
     var actual = updateExpectedDiagnostics(
       content: cleanCode,
@@ -472,9 +474,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
       printPrettyDiff(code, actual);
       fail('See the difference above.');
     }
+
+    return result;
   }
 
-  Future<void> resolveTestFile() {
+  Future<TestResolvedUnitResult> resolveTestFile() {
     return resolveFile2(testFile);
   }
 
@@ -512,6 +516,49 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     return buffer.toString();
   }
+}
+
+/// A test-facing view of a resolved unit, with utilities derived from it.
+final class TestResolvedUnitResult {
+  final ResolvedUnitResultImpl analysisResult;
+
+  late final FindElement2 findElement = FindElement2(unit);
+
+  late final FindNode findNode = FindNode(content, unit);
+
+  TestResolvedUnitResult(this.analysisResult);
+
+  String get content => analysisResult.content;
+
+  List<Diagnostic> get diagnostics => analysisResult.diagnostics;
+
+  List<Diagnostic> get errors => analysisResult.errors;
+
+  bool get exists => analysisResult.exists;
+
+  File get file => analysisResult.file;
+
+  bool get isLibrary => analysisResult.isLibrary;
+
+  bool get isPart => analysisResult.isPart;
+
+  LibraryElementImpl get libraryElement => analysisResult.libraryElement;
+
+  LibraryFragmentImpl get libraryFragment => analysisResult.libraryFragment;
+
+  String get path => analysisResult.path;
+
+  AnalysisSession get session => analysisResult.session;
+
+  TypeProviderImpl get typeProvider => analysisResult.typeProvider;
+
+  TypeSystemImpl get typeSystem => analysisResult.typeSystem;
+
+  CompilationUnitImpl get unit => analysisResult.unit;
+
+  Uri get uri => analysisResult.uri;
+
+  String get uriStr => '$uri';
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {

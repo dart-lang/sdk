@@ -30,7 +30,7 @@ class InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest
     with WithoutConstructorTearoffsMixin {
   test_unnamedViaNew() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A(int a);
 }
@@ -43,7 +43,7 @@ void f() {
 ''');
 
     // Resolution should continue even though the experiment is not enabled.
-    var node = findNode.instanceCreation('A.new(0)');
+    var node = result.findNode.instanceCreation('A.new(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -75,7 +75,7 @@ class InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters
     extends PubPackageResolutionTest
     with WithoutPrivateNamedParametersMixin {
   test_preFeature() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   int? _x;
 //     ^^
@@ -92,7 +92,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -119,7 +119,7 @@ InstanceCreationExpression
 
 mixin InstanceCreationTestCases on PubPackageResolutionTest {
   test_arguments_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a, {required bool b, required double c});
 }
@@ -129,7 +129,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -173,7 +173,7 @@ augment class A<T2> {
   A.named(T2 value);
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A<T> {}
@@ -183,7 +183,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     // TODO(scheglov): should be `A<int>`
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -231,7 +231,7 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 part 'a.dart';
 
@@ -246,7 +246,7 @@ void f() {
       [error(diag.unusedElement, 33, 1)],
     );
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -276,7 +276,7 @@ InstanceCreationExpression
   }
 
   test_class_generic_named_inferTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T t);
 }
@@ -286,7 +286,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('A.named(0)');
+    var node = result.findNode.instanceCreation('A.named(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -319,7 +319,7 @@ InstanceCreationExpression
   }
 
   test_class_generic_named_withTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named();
 }
@@ -329,7 +329,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('A<int>');
+    var node = result.findNode.instanceCreation('A<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -363,7 +363,7 @@ InstanceCreationExpression
   }
 
   test_class_generic_unnamed_inferTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T t);
 }
@@ -373,7 +373,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('A(0)');
+    var node = result.findNode.instanceCreation('A(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -399,7 +399,7 @@ InstanceCreationExpression
   }
 
   test_class_generic_unnamed_withTypeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 void f() {
@@ -407,7 +407,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('A<int>');
+    var node = result.findNode.instanceCreation('A<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -442,7 +442,7 @@ augment class A {
   augment A.named();
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -454,7 +454,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -487,7 +487,7 @@ augment class A {
   A.named();
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -497,7 +497,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -530,7 +530,7 @@ augment class A {
   augment A();
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {
@@ -542,7 +542,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -569,7 +569,7 @@ augment class A {
   A();
 }
 ''');
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 part 'a.dart';
 
@@ -584,7 +584,7 @@ void f() {
       [error(diag.unusedElement, 30, 1)],
     );
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -603,7 +603,7 @@ InstanceCreationExpression
   }
 
   test_class_notGeneric_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named(int a);
 }
@@ -613,7 +613,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -640,7 +640,7 @@ InstanceCreationExpression
   }
 
   test_class_notGeneric_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(int a);
 }
@@ -651,7 +651,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -673,7 +673,7 @@ InstanceCreationExpression
   }
 
   test_class_notGeneric_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f() {
@@ -684,7 +684,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -712,7 +712,7 @@ InstanceCreationExpression
   }
 
   test_demoteType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T t);
 }
@@ -725,7 +725,7 @@ void f<S>(S s) {
 
 ''');
 
-    var node = findNode.instanceCreation('A(s)');
+    var node = result.findNode.instanceCreation('A(s)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -752,13 +752,13 @@ InstanceCreationExpression
   }
 
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final foo = Map<int>();
 //          ^^^^^^^^
 // [diag.wrongNumberOfTypeArguments] The type 'Map' is declared with 2 type parameters, but 1 type arguments were given.
 ''');
 
-    var node = findNode.instanceCreation('Map<int>');
+    var node = result.findNode.instanceCreation('Map<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -785,7 +785,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -797,7 +797,7 @@ main() {
 }
 ''');
 
-    var node = findNode.instanceCreation('Foo.bar<int>');
+    var node = result.findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -832,7 +832,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_new() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<X> {
   Foo.new();
 }
@@ -844,7 +844,7 @@ main() {
 }
 ''');
 
-    var node = findNode.instanceCreation('Foo.new<int>');
+    var node = result.findNode.instanceCreation('Foo.new<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -884,7 +884,7 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 
 main() {
@@ -896,7 +896,7 @@ main() {
 
     // TODO(brianwilkerson): Test this more carefully after we can re-write the
     // AST to reflect the expected structure.
-    var node = findNode.instanceCreation('Foo.bar<int>');
+    var node = result.findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -935,7 +935,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -947,7 +947,7 @@ main() {
 }
 ''');
 
-    var node = findNode.instanceCreation('Foo.bar<int>');
+    var node = result.findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -986,7 +986,7 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 
 main() {
@@ -996,7 +996,7 @@ main() {
 }
 ''');
 
-    var node = findNode.instanceCreation('Foo.bar<int>');
+    var node = result.findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1034,7 +1034,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_generic_primary_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(T it) {}
 
 void f() {
@@ -1042,7 +1042,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1068,7 +1068,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_generic_secondary_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>.named(T it) {
   A(this.it);
 }
@@ -1078,7 +1078,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1104,7 +1104,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_primary_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {}
 
 void f() {
@@ -1112,7 +1112,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1139,7 +1139,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_primary_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
 void f() {
@@ -1147,7 +1147,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1169,7 +1169,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_secondary_named() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
   A.named(this.it);
 }
@@ -1179,7 +1179,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1206,7 +1206,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_secondary_unnamed() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A.named(int it) {
   A(this.it);
 }
@@ -1216,7 +1216,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1238,7 +1238,7 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
 void f() {
@@ -1248,7 +1248,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1276,7 +1276,7 @@ InstanceCreationExpression
   }
 
   test_importPrefix() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
 
 void f() {
@@ -1287,7 +1287,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1325,7 +1325,7 @@ augment class A<T2> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1333,7 +1333,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     // TODO(scheglov): should be `A<int>`
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -1395,7 +1395,7 @@ augment class A<T2> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1403,7 +1403,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1444,7 +1444,7 @@ class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1453,7 +1453,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1499,7 +1499,7 @@ augment class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1507,7 +1507,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1554,7 +1554,7 @@ augment class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1562,7 +1562,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1592,7 +1592,7 @@ class A<T> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1601,7 +1601,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1652,7 +1652,7 @@ class A<T> {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1661,7 +1661,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1705,7 +1705,7 @@ class A {
 }
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1714,7 +1714,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1744,7 +1744,7 @@ InstanceCreationExpression
 class A {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as prefix;
 
 void f() {
@@ -1755,7 +1755,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1787,7 +1787,7 @@ InstanceCreationExpression
   }
 
   test_importPrefix_unresolved_identifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
 
 void f() {
@@ -1798,7 +1798,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -1830,7 +1830,7 @@ InstanceCreationExpression
   }
 
   test_namedArgument_anywhere() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 class B {}
 class C {}
@@ -1850,7 +1850,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('X(g');
+    var node = result.findNode.instanceCreation('X(g');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1926,7 +1926,7 @@ InstanceCreationExpression
   }
 
   test_privateNamedParameter_privateNamedArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? _x;
 //     ^^
@@ -1941,7 +1941,7 @@ main() {
 }
 ''');
 
-    var node = findNode.instanceCreation('C(_x');
+    var node = result.findNode.instanceCreation('C(_x');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1966,7 +1966,7 @@ InstanceCreationExpression
   }
 
   test_privateNamedParameter_publicNamedArgument() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int? _x;
 //     ^^
@@ -1979,7 +1979,7 @@ main() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2012,7 +2012,7 @@ augment class A<T2> {
   A.named(T2 value);
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A<T> {}
@@ -2024,7 +2024,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2071,7 +2071,7 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 part 'a.dart';
 
@@ -2088,7 +2088,7 @@ void f() {
       [error(diag.unusedElement, 33, 1)],
     );
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2118,7 +2118,7 @@ InstanceCreationExpression
   }
 
   test_typeAlias_generic_class_generic_named_infer_all() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T t);
 }
@@ -2130,7 +2130,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B.named(0)');
+    var node = result.findNode.instanceCreation('B.named(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2163,7 +2163,7 @@ InstanceCreationExpression
   }
 
   test_typeAlias_generic_class_generic_named_infer_partial() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A.named(T t, U u);
 }
@@ -2175,7 +2175,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B.named(0, ');
+    var node = result.findNode.instanceCreation('B.named(0, ');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2210,7 +2210,7 @@ InstanceCreationExpression
   }
 
   test_typeAlias_generic_class_generic_unnamed_infer_all() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T t);
 }
@@ -2222,7 +2222,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B(0)');
+    var node = result.findNode.instanceCreation('B(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2248,7 +2248,7 @@ InstanceCreationExpression
   }
 
   test_typeAlias_generic_class_generic_unnamed_infer_partial() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {
   A(T t, U u);
 }
@@ -2260,7 +2260,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B(0, ');
+    var node = result.findNode.instanceCreation('B(0, ');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2288,7 +2288,7 @@ InstanceCreationExpression
   }
 
   test_typeAlias_notGeneric_class_generic_named_argumentTypeMismatch() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A.named(T t);
 }
@@ -2302,7 +2302,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B.named(0)');
+    var node = result.findNode.instanceCreation('B.named(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2335,7 +2335,7 @@ InstanceCreationExpression
   }
 
   test_typeAlias_notGeneric_class_generic_unnamed_argumentTypeMismatch() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T t);
 }
@@ -2349,7 +2349,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.instanceCreation('B(0)');
+    var node = result.findNode.instanceCreation('B(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2383,7 +2383,7 @@ augment class A {
   A.named();
 }
 ''');
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 part 'a.dart';
 
 class A {}
@@ -2395,7 +2395,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2428,7 +2428,7 @@ augment class A {
   A();
 }
 ''');
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 part 'a.dart';
 
@@ -2445,7 +2445,7 @@ void f() {
       [error(diag.unusedElement, 30, 1)],
     );
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2464,7 +2464,7 @@ InstanceCreationExpression
   }
 
   test_unnamed_declaredNew() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A.new(int a);
 }
@@ -2475,7 +2475,7 @@ void f() {
 
 ''');
 
-    var node = findNode.instanceCreation('A(0)');
+    var node = result.findNode.instanceCreation('A(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2497,7 +2497,7 @@ InstanceCreationExpression
   }
 
   test_unnamedViaNew_declaredNew() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A.new(int a);
 }
@@ -2508,7 +2508,7 @@ void f() {
 
 ''');
 
-    var node = findNode.instanceCreation('A.new(0)');
+    var node = result.findNode.instanceCreation('A.new(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2535,7 +2535,7 @@ InstanceCreationExpression
   }
 
   test_unnamedViaNew_declaredUnnamed() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A(int a);
 }
@@ -2546,7 +2546,7 @@ void f() {
 
 ''');
 
-    var node = findNode.instanceCreation('A.new(0)');
+    var node = result.findNode.instanceCreation('A.new(0)');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -2573,7 +2573,7 @@ InstanceCreationExpression
   }
 
   test_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new Unresolved(0);
 //    ^^^^^^^^^^
@@ -2582,7 +2582,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2605,7 +2605,7 @@ InstanceCreationExpression
   }
 
   test_unresolved_identifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new Unresolved.named(0);
 //    ^^^^^^^^^^^^^^^^
@@ -2614,7 +2614,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new
@@ -2641,7 +2641,7 @@ InstanceCreationExpression
   }
 
   test_unresolved_identifier_identifier() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new unresolved.Foo.bar(0);
 //    ^^^^^^^^^^^^^^
@@ -2650,7 +2650,7 @@ void f() {
 
 ''');
 
-    var node = findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

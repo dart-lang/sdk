@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class InvalidUseOfNeverTest extends PubPackageResolutionTest {
   test_binaryExpression_eqEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '') == 1 + 2;
 //^^^^^^^^^^
@@ -27,7 +27,7 @@ void f() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('=='), r'''
+    assertResolvedNodeText(result.findNode.binary('=='), r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
@@ -59,7 +59,7 @@ BinaryExpression
   }
 
   test_binaryExpression_never_eqEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x == 1 + 2;
 //^
@@ -69,7 +69,7 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x =='), r'''
+    assertResolvedNodeText(result.findNode.binary('x =='), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -96,7 +96,7 @@ BinaryExpression
   }
 
   test_binaryExpression_never_plus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x + (1 + 2);
 //^
@@ -106,7 +106,7 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x +'), r'''
+    assertResolvedNodeText(result.findNode.binary('x +'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -137,13 +137,13 @@ BinaryExpression
   }
 
   test_binaryExpression_neverQ_eqEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x == 1 + 2;
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x =='), r'''
+    assertResolvedNodeText(result.findNode.binary('x =='), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -170,7 +170,7 @@ BinaryExpression
   }
 
   test_binaryExpression_neverQ_plus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x + (1 + 2);
 //  ^
@@ -178,7 +178,7 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('x +'), r'''
+    assertResolvedNodeText(result.findNode.binary('x +'), r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -209,7 +209,7 @@ BinaryExpression
   }
 
   test_binaryExpression_plus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '') + (1 + 2);
 //^^^^^^^^^^
@@ -219,7 +219,7 @@ void f() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.binary('+ ('), r'''
+    assertResolvedNodeText(result.findNode.binary('+ ('), r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
@@ -253,7 +253,7 @@ BinaryExpression
   staticType: Never
 ''');
 
-    assertType(findNode.binary('1 + 2'), 'int');
+    assertType(result.findNode.binary('1 + 2'), 'int');
   }
 
   test_conditionalExpression_falseBranch() async {
@@ -295,7 +295,7 @@ void f(Never? x) {
   }
 
   test_indexExpression_never_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x[0];
 //^
@@ -305,7 +305,7 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.index('x[0]'), r'''
+    assertResolvedNodeText(result.findNode.index('x[0]'), r'''
 IndexExpression
   target: SimpleIdentifier
     token: x
@@ -323,7 +323,7 @@ IndexExpression
   }
 
   test_indexExpression_never_readWrite() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x[0] += 1 + 2;
 //^
@@ -333,7 +333,7 @@ void f(Never x) {
 }
 ''');
 
-    var assignment = findNode.assignment('[0] +=');
+    var assignment = result.findNode.assignment('[0] +=');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -373,7 +373,7 @@ AssignmentExpression
   }
 
   test_indexExpression_never_write() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x[0] = 1 + 2;
 //^
@@ -383,7 +383,7 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+    assertResolvedNodeText(result.findNode.assignment('x[0]'), r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -422,7 +422,7 @@ AssignmentExpression
   }
 
   test_indexExpression_neverQ_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x[0];
 // ^
@@ -430,7 +430,7 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.index('x[0]'), r'''
+    assertResolvedNodeText(result.findNode.index('x[0]'), r'''
 IndexExpression
   target: SimpleIdentifier
     token: x
@@ -448,7 +448,7 @@ IndexExpression
   }
 
   test_indexExpression_neverQ_readWrite() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x[0] += 1 + 2;
 // ^
@@ -456,7 +456,7 @@ void f(Never? x) {
 }
 ''');
 
-    var assignment = findNode.assignment('[0] +=');
+    var assignment = result.findNode.assignment('[0] +=');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
@@ -496,7 +496,7 @@ AssignmentExpression
   }
 
   test_indexExpression_neverQ_write() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x[0] = 1 + 2;
 // ^
@@ -504,7 +504,7 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('x[0]'), r'''
+    assertResolvedNodeText(result.findNode.assignment('x[0]'), r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -551,7 +551,7 @@ void f(g, Never x) {
   }
 
   test_methodInvocation_never() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo(1 + 2);
 //^
@@ -561,7 +561,7 @@ void f(Never x) {
 }
 ''');
 
-    var node = findNode.methodInvocation('.foo(1 + 2)');
+    var node = result.findNode.methodInvocation('.foo(1 + 2)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -596,7 +596,7 @@ MethodInvocation
   }
 
   test_methodInvocation_never_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.toString(1 + 2);
 //^
@@ -606,7 +606,7 @@ void f(Never x) {
 }
 ''');
 
-    var node = findNode.methodInvocation('.toString(1 + 2)');
+    var node = result.findNode.methodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -641,7 +641,7 @@ MethodInvocation
   }
 
   test_methodInvocation_neverQ_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.toString(1 + 2);
 //           ^^^^^
@@ -649,7 +649,7 @@ void f(Never? x) {
 }
 ''');
 
-    var node = findNode.methodInvocation('.toString(1 + 2)');
+    var node = result.findNode.methodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -684,7 +684,7 @@ MethodInvocation
   }
 
   test_methodInvocation_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').toString();
 //^^^^^^^^^^
@@ -694,7 +694,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('toString()');
+    var node = result.findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ParenthesizedExpression
@@ -720,7 +720,7 @@ MethodInvocation
   }
 
   test_postfixExpression_never_plusPlus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x++;
 //^
@@ -728,7 +728,7 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.postfix('x++'), r'''
+    assertResolvedNodeText(result.findNode.postfix('x++'), r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -745,7 +745,7 @@ PostfixExpression
   }
 
   test_postfixExpression_neverQ_plusPlus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x++;
 // ^^
@@ -753,7 +753,7 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.postfix('x++'), r'''
+    assertResolvedNodeText(result.findNode.postfix('x++'), r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -771,7 +771,7 @@ PostfixExpression
 
   test_prefixExpression_never_plusPlus() async {
     // Reports 'undefined operator'
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   ++x;
 //  ^
@@ -779,7 +779,7 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.prefix('++x'), r'''
+    assertResolvedNodeText(result.findNode.prefix('++x'), r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -796,7 +796,7 @@ PrefixExpression
   }
 
   test_prefixExpression_neverQ_plusPlus() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   ++x;
 //^^
@@ -804,7 +804,7 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.prefix('++x'), r'''
+    assertResolvedNodeText(result.findNode.prefix('++x'), r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -821,7 +821,7 @@ PrefixExpression
   }
 
   test_propertyAccess_never_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo;
 //  ^^^^
@@ -829,7 +829,7 @@ void f(Never x) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -847,7 +847,7 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_read_hashCode() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.hashCode;
 //  ^^^^^^^^^
@@ -855,7 +855,7 @@ void f(Never x) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -873,7 +873,7 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_readWrite() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo += 0;
 //         ^^
@@ -881,7 +881,7 @@ void f(Never x) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo += 0');
+    var assignment = result.findNode.assignment('foo += 0');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -911,7 +911,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_never_tearOff_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.toString;
 //  ^^^^^^^^^
@@ -919,7 +919,7 @@ void f(Never x) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -937,7 +937,7 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_write() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {
   x.foo = 0;
 //        ^^
@@ -945,7 +945,7 @@ void f(Never x) {
 }
 ''');
 
-    var assignment = findNode.assignment('foo = 0');
+    var assignment = result.findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -975,7 +975,7 @@ AssignmentExpression
   }
 
   test_propertyAccess_neverQ_read() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.foo;
 //  ^^^
@@ -983,7 +983,7 @@ void f(Never? x) {
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1001,13 +1001,13 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_neverQ_read_hashCode() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.hashCode;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1025,13 +1025,13 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_neverQ_tearOff_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never? x) {
   x.toString;
 }
 ''');
 
-    var node = findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -1049,7 +1049,7 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_toString() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').toString;
 //           ^^^^^^^^^
@@ -1057,7 +1057,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression
@@ -1079,7 +1079,7 @@ PropertyAccess
   }
 
   test_throw_getter_hashCode() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (throw '').hashCode;
 //           ^^^^^^^^^
@@ -1087,7 +1087,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ParenthesizedExpression

@@ -19,13 +19,13 @@ main() {
 @reflectiveTest
 class IfStatementResolutionTest extends PubPackageResolutionTest {
   test_caseClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0) {}
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -50,7 +50,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_consistent() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || [int a] when a > 0) {
     a;
@@ -58,7 +58,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -129,7 +129,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case <int>[var a || var a] when a > 0) {
 //                       ^^^^^^^^
@@ -139,7 +139,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -212,7 +212,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_notConsistent_differentFinality() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || [final int a] when a > 0) {
 //                               ^
@@ -222,7 +222,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -294,7 +294,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr2_notConsistent_differentType() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || [double a] when a > 0) {
 //                            ^
@@ -304,7 +304,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -375,7 +375,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_1() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || 2 || 3 when a > 0) {
 //                    ^
@@ -387,7 +387,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -455,7 +455,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_12() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || int a || 3 when a > 0) {
 //                             ^
@@ -465,7 +465,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -538,7 +538,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_123() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || int a || int a when a > 0) {
     a;
@@ -546,7 +546,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -624,7 +624,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_13() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a || 2 || int a when a > 0) {
 //                    ^
@@ -634,7 +634,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -707,7 +707,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_2() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case 1 || int a || 3 when a > 0) {
 //           ^
@@ -719,7 +719,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -787,7 +787,7 @@ IfStatement
   }
 
   test_caseClause_variables_logicalOr3_23() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case 1 || int a || int a when a > 0) {
 //           ^
@@ -797,7 +797,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -876,7 +876,7 @@ IfStatement
     // but they are considered initialized after the entire case pattern,
     // before the guard expression if there is one. However, all pattern
     // variables are in scope in the entire pattern.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 void f(Object? x) {
   if (x case [int a, == a] when a > 0) {
@@ -892,7 +892,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -969,7 +969,7 @@ IfStatement
   }
 
   test_caseClause_variables_scope_logicalOr() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 void f(Object? x) {
   if (x case bool a || a when a) {
@@ -983,7 +983,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.singleIfStatement;
+    var node = result.findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1046,7 +1046,7 @@ IfStatement
   }
 
   test_caseClause_variables_single() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   if (x case int a when a > 0) {
     a;
@@ -1058,7 +1058,7 @@ void f(Object? x) {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1121,7 +1121,7 @@ IfStatement
   }
 
   test_expression_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     if (super) {}
@@ -1132,7 +1132,7 @@ class A {
 }
 ''');
 
-    var node = findNode.singleIfStatement;
+    var node = result.findNode.singleIfStatement;
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1148,7 +1148,7 @@ IfStatement
   }
 
   test_rewrite_caseClause_pattern() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case const A()) {}
 }
@@ -1158,7 +1158,7 @@ class A {
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1192,13 +1192,13 @@ IfStatement
   }
 
   test_rewrite_expression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool Function() a) {
   if (a()) {}
 }
 ''');
 
-    var node = findNode.ifStatement('if (a');
+    var node = result.findNode.ifStatement('if (a');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1222,13 +1222,13 @@ IfStatement
   }
 
   test_rewrite_expression_caseClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int Function() a) {
   if (a() case 42) {}
 }
 ''');
 
-    var node = findNode.ifStatement('if (a');
+    var node = result.findNode.ifStatement('if (a');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1260,13 +1260,13 @@ IfStatement
   }
 
   test_rewrite_whenClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x, bool Function() a) {
   if (x case 0 when a()) {}
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1304,13 +1304,13 @@ IfStatement
   }
 
   test_whenClause() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case 0 when true) {}
 }
 ''');
 
-    var node = findNode.ifStatement('if (x');
+    var node = result.findNode.ifStatement('if (x');
     assertResolvedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1348,7 +1348,7 @@ class InferenceUpdate4Test extends PubPackageResolutionTest {
   }
 
   test_finalPromotionKept_isExpression() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(bool b) {
   final num x;
   if (b) {
@@ -1362,7 +1362,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.ifStatement('if (x is int) {'), r'''
+    assertResolvedNodeText(result.findNode.ifStatement('if (x is int) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1410,7 +1410,7 @@ IfStatement
   }
 
   test_finalPromotionKept_isExpression_late() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(bool b) {
   late final num x;
   if (b) {
@@ -1424,7 +1424,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.ifStatement('if (x is int) {'), r'''
+    assertResolvedNodeText(result.findNode.ifStatement('if (x is int) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1472,7 +1472,7 @@ IfStatement
   }
 
   test_finalPromotionKept_notEqNull() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(bool b) {
   final int? x;
   if (b) {
@@ -1486,7 +1486,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.ifStatement('if (x != null) {'), r'''
+    assertResolvedNodeText(result.findNode.ifStatement('if (x != null) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1536,7 +1536,7 @@ IfStatement
   }
 
   test_finalPromotionKept_notEqNull_late() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(bool b) {
   late final int? x;
   if (b) {
@@ -1550,7 +1550,7 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.ifStatement('if (x != null) {'), r'''
+    assertResolvedNodeText(result.findNode.ifStatement('if (x != null) {'), r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (

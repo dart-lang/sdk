@@ -18,14 +18,14 @@ main() {
 class MixinSuperClassConstraintDeferredClassTest
     extends PubPackageResolutionTest {
   test_error_onClause_deferredClass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' deferred as math;
 mixin M on math.Random {}
 //         ^^^^^^^^^^^
 // [diag.mixinSuperClassConstraintDeferredClass] Deferred classes can't be used as superclass constraints.
 ''');
 
-    var node = findNode.singleMixinOnClause;
+    var node = result.findNode.singleMixinOnClause;
     assertResolvedNodeText(node, r'''
 MixinOnClause
   onKeyword: on
