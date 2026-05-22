@@ -890,44 +890,75 @@ class LivenessAnalysis : public ValueObject {
   BitVector does_block_have_throw;
 };
 
-class DefinitionWorklist : public ValueObject {
+template <typename T, typename E>
+class Worklist : public ValueObject {
  public:
-  DefinitionWorklist(FlowGraph* flow_graph, intptr_t initial_capacity)
-      : defs_(initial_capacity),
-        contains_vector_(new BitVector(flow_graph->zone(),
-                                       flow_graph->current_ssa_temp_index())) {}
+  Worklist(FlowGraph* flow_graph, intptr_t initial_capacity)
+      : elements_(initial_capacity),
+        contains_vector_(
+            new BitVector(flow_graph->zone(), T::FirstUnusedId(flow_graph))) {}
 
-  void Add(Definition* defn) {
-    if (!Contains(defn)) {
-      defs_.Add(defn);
-      contains_vector_->Add(defn->ssa_temp_index());
+  void Add(E* e) {
+    if (!Contains(e)) {
+      elements_.Add(e);
+      contains_vector_->Add(T::IdOf(e));
     }
   }
 
-  bool Contains(Definition* defn) const {
-    return (defn->ssa_temp_index() >= 0) &&
-           contains_vector_->Contains(defn->ssa_temp_index());
+  bool Contains(E* e) const {
+    const intptr_t id = T::IdOf(e);
+    return id >= 0 && contains_vector_->Contains(id);
   }
 
-  bool IsEmpty() const { return defs_.is_empty(); }
+  bool IsEmpty() const { return elements_.is_empty(); }
 
-  Definition* RemoveLast() {
-    Definition* defn = defs_.RemoveLast();
-    contains_vector_->Remove(defn->ssa_temp_index());
-    return defn;
+  E* RemoveLast() {
+    E* e = elements_.RemoveLast();
+    contains_vector_->Remove(T::IdOf(e));
+    return e;
   }
 
-  const GrowableArray<Definition*>& definitions() const { return defs_; }
   BitVector* contains_vector() const { return contains_vector_; }
 
   void Clear() {
-    defs_.TruncateTo(0);
+    elements_.TruncateTo(0);
     contains_vector_->Clear();
   }
 
- private:
-  GrowableArray<Definition*> defs_;
+ protected:
+  GrowableArray<E*> elements_;
   BitVector* contains_vector_;
+};
+
+class DefinitionWorklist : public Worklist<DefinitionWorklist, Definition> {
+ public:
+  DefinitionWorklist(FlowGraph* flow_graph, intptr_t initial_capacity)
+      : Worklist(flow_graph, initial_capacity) {}
+
+  const GrowableArray<Definition*>& definitions() const { return elements_; }
+
+  static intptr_t FirstUnusedId(FlowGraph* flow_graph) {
+    return flow_graph->current_ssa_temp_index();
+  }
+
+  static intptr_t IdOf(Definition* defn) { return defn->ssa_temp_index(); }
+};
+
+class BlockEntryWorklist
+    : public Worklist<BlockEntryWorklist, BlockEntryInstr> {
+ public:
+  BlockEntryWorklist(FlowGraph* flow_graph, intptr_t initial_capacity)
+      : Worklist(flow_graph, initial_capacity) {}
+
+  const GrowableArray<BlockEntryInstr*>& blocks() const { return elements_; }
+
+  static intptr_t FirstUnusedId(FlowGraph* flow_graph) {
+    return flow_graph->preorder().length();
+  }
+
+  static intptr_t IdOf(BlockEntryInstr* block) {
+    return block->preorder_number();
+  }
 };
 
 }  // namespace dart

@@ -248,6 +248,7 @@ _full_sdk_libraries = [
   "js",
   "js_interop",
   "js_interop_unsafe",
+  "_js_interop_wasm",
   "js_util",
   "math",
   "mirrors",

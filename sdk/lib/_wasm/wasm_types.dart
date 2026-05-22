@@ -4,7 +4,9 @@
 
 library dart._wasm;
 
-import 'dart:js_interop';
+// TODO(63166): Remove this export after migrating Flutter to import that
+// library directly.
+export 'dart:_js_interop_wasm';
 
 part 'memory.dart';
 
@@ -786,15 +788,6 @@ extension DoubleWasmInstructions on double {
   @pragma("wasm:prefer-inline")
   double sqrt() => this.toWasmF64().sqrt().toDouble();
 }
-
-extension WasmExternRefToJSAny on WasmExternRef {
-  external JSAny get toJS;
-}
-
-// Note: We would make this an extension method on JSAny, but external methods
-// on JS interop types are assumed to be JS interop functions, not methods that
-// are patched in patch files. So instead we just use a plain function here.
-external WasmExternRef? externRefForJSAny(JSAny object);
 
 // Tests whether the given object's class is a subclass of T.
 //

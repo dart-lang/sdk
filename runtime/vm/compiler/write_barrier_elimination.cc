@@ -124,9 +124,6 @@ class WriteBarrierElimination : public ValueObject {
   // at the end of the block.
   GrowableArray<BitVector*> usable_allocs_out_;
 
-  // Remaining blocks to process.
-  GrowableArray<BlockEntryInstr*> worklist_;
-
   // Temporary used in many functions to avoid repeated zone allocation.
   BitVector* vector_;
 
@@ -164,19 +161,19 @@ WriteBarrierElimination::WriteBarrierElimination(Zone* zone,
 }
 
 void WriteBarrierElimination::Analyze() {
+  BlockEntryWorklist worklist(flow_graph_, block_order_->length());
   for (intptr_t i = 0; i < block_order_->length(); ++i) {
-    worklist_.Add(block_order_->At(i));
+    worklist.Add(block_order_->At(i));
   }
 
-  while (!worklist_.is_empty()) {
-    auto* const entry = worklist_.RemoveLast();
+  while (!worklist.IsEmpty()) {
+    BlockEntryInstr* const entry = worklist.RemoveLast();
     if (AnalyzeBlock(entry)) {
-      for (intptr_t i = 0; i < entry->last_instruction()->SuccessorCount();
-           ++i) {
+      for (auto succ : entry->last_instruction()->successors()) {
         if (tracing_) {
-          THR_Print("Enqueueing block %" Pd "\n", entry->block_id());
+          THR_Print("Enqueueing block %" Pd "\n", succ->block_id());
         }
-        worklist_.Add(entry->last_instruction()->SuccessorAt(i));
+        worklist.Add(succ);
       }
     }
   }
