@@ -360,6 +360,7 @@ class SnapshotSerializer {
     ast.StructuralParameterType() => getPredefinedCluster(
       PredefinedClusters.typeParameterTypes,
     ),
+    TypeParameters() => getPredefinedCluster(PredefinedClusters.typeParameters),
     TypeArgumentsConstant() => getPredefinedCluster(
       PredefinedClusters.typeArguments,
     ),
@@ -379,40 +380,39 @@ class SnapshotSerializer {
   SerializationCluster getInstanceCluster(ast.Class cls) =>
       (_instanceClusters[cls] ??= InstanceSerializationCluster(cls));
 
-  SerializationCluster _createPredefinedCluster(
-    PredefinedClusters clusterId,
-  ) => switch (clusterId) {
-    .libraryRefs => LibraryRefSerializationCluster(),
-    .classRefs => ClassRefSerializationCluster(),
-    .fieldRefs => FieldRefSerializationCluster(),
-    .functionRefs => FunctionRefSerializationCluster(),
-    .closureFunctionRefs => ClosureFunctionRefSerializationCluster(),
-    .closureRefs => ClosureRefSerializationCluster(),
-    .argumentsDescriptorRefs => ArgumentsDescriptorRefSerializationCluster(),
-    .recordShapeRefs => RecordShapeRefSerializationCluster(),
-    .oneByteStrings => OneByteStringSerializationCluster(),
-    .twoByteStrings => TwoByteStringSerializationCluster(),
-    .privateNames => PrivateNameSerializationCluster(),
-    .ints => IntSerializationCluster(),
-    .doubles => DoubleSerializationCluster(),
-    .lists => ListSerializationCluster(),
-    .maps => MapSerializationCluster(),
-    .sets => SetSerializationCluster(),
-    .records => RecordSerializationCluster(),
-    .instantiatedClosures => throw 'Unimplemented cluster $clusterId',
-    .typeParameters =>
-      throw 'Unimplemented cluster $clusterId', // TypeParametersSerializationCluster(),
-    .typeArguments => TypeArgumentsSerializationCluster(),
-    .interfaceTypes => InterfaceTypeSerializationCluster(),
-    .functionTypes => FunctionTypeSerializationCluster(),
-    .recordTypes => RecordTypeSerializationCluster(),
-    .typeParameterTypes => TypeParameterTypeSerializationCluster(),
-    .codes => CodeSerializationCluster(),
-    .icDatas => ICDataSerializationCluster(),
-    .subtypeTestCaches => SubtypeTestCacheSerializationCluster(),
-    .objectPools => ObjectPoolSerializationCluster(),
-    .instances => throw 'Each class has a separate instance cluster',
-  };
+  SerializationCluster _createPredefinedCluster(PredefinedClusters clusterId) =>
+      switch (clusterId) {
+        .libraryRefs => LibraryRefSerializationCluster(),
+        .classRefs => ClassRefSerializationCluster(),
+        .fieldRefs => FieldRefSerializationCluster(),
+        .functionRefs => FunctionRefSerializationCluster(),
+        .closureFunctionRefs => ClosureFunctionRefSerializationCluster(),
+        .closureRefs => ClosureRefSerializationCluster(),
+        .argumentsDescriptorRefs =>
+          ArgumentsDescriptorRefSerializationCluster(),
+        .recordShapeRefs => RecordShapeRefSerializationCluster(),
+        .oneByteStrings => OneByteStringSerializationCluster(),
+        .twoByteStrings => TwoByteStringSerializationCluster(),
+        .privateNames => PrivateNameSerializationCluster(),
+        .ints => IntSerializationCluster(),
+        .doubles => DoubleSerializationCluster(),
+        .lists => ListSerializationCluster(),
+        .maps => MapSerializationCluster(),
+        .sets => SetSerializationCluster(),
+        .records => RecordSerializationCluster(),
+        .instantiatedClosures => throw 'Unimplemented cluster $clusterId',
+        .typeParameters => TypeParametersSerializationCluster(),
+        .typeArguments => TypeArgumentsSerializationCluster(),
+        .interfaceTypes => InterfaceTypeSerializationCluster(),
+        .functionTypes => FunctionTypeSerializationCluster(),
+        .recordTypes => RecordTypeSerializationCluster(),
+        .typeParameterTypes => TypeParameterTypeSerializationCluster(),
+        .codes => CodeSerializationCluster(),
+        .icDatas => ICDataSerializationCluster(),
+        .subtypeTestCaches => SubtypeTestCacheSerializationCluster(),
+        .objectPools => ObjectPoolSerializationCluster(),
+        .instances => throw 'Each class has a separate instance cluster',
+      };
 }
 
 /// AST Constant which wraps an arbitrary object.
@@ -1221,8 +1221,58 @@ final class InterfaceTypeSerializationCluster extends SerializationCluster {
 
 /// Declaration of type parameters, corresponds to the VM TypeParameters object.
 class TypeParameters {
-  final List<ast.StructuralParameter> params;
-  TypeParameters(this.params);
+  final ast.ListConstant names;
+  final TypeArgumentsConstant bounds;
+  final TypeArgumentsConstant defaultTypes;
+
+  TypeParameters._(this.names, this.bounds, this.defaultTypes);
+
+  factory TypeParameters.fromStructuralParameters(
+    List<ast.StructuralParameter> params,
+  ) {
+    final names = getListConstant([for (final p in params) p.name!]);
+    final bounds = TypeArgumentsConstant([for (final p in params) p.bound]);
+    final defaultTypes = TypeArgumentsConstant([
+      for (final p in params) p.defaultType,
+    ]);
+    return TypeParameters._(names, bounds, defaultTypes);
+  }
+}
+
+final class TypeParametersSerializationCluster extends SerializationCluster {
+  final List<TypeParameters> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final obj = object as TypeParameters;
+    _objects.add(obj);
+    serializer.push(obj.names);
+    serializer.push(obj.bounds);
+    serializer.push(obj.defaultTypes);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.typeParameters.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final obj in _objects) {
+      serializer.assignRef(obj);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (var i = 0; i < _objects.length; i++) {
+      final obj = _objects[i];
+      serializer.writeRefId(obj.names);
+      serializer.writeRefId(obj.bounds);
+      serializer.writeRefId(obj.defaultTypes);
+    }
+  }
 }
 
 final class FunctionTypeSerializationCluster extends SerializationCluster {
@@ -1250,7 +1300,7 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
       }
     }
     final typeParameters = type.typeParameters.isNotEmpty
-        ? TypeParameters(type.typeParameters)
+        ? TypeParameters.fromStructuralParameters(type.typeParameters)
         : null;
     final parameterTypes = getListConstant([
       const ast.DynamicType(), // implicit closure parameter
