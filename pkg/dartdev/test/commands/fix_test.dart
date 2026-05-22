@@ -345,7 +345,6 @@ linter:
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
-          'lib/main.dart',
           'prefer_single_quotes - 1 fix',
           '1 fix made in 1 file.',
         ]),

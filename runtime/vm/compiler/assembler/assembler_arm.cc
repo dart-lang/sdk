@@ -1391,6 +1391,28 @@ void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
 
+void Assembler::vcnt(DRegister dd, DRegister dm) {
+  EmitSIMDddd(B24 | B23 | B21 | B20 | B10 | B8, kByte, dd, D0, dm);
+}
+
+void Assembler::vpaddlu(OperandSize sz, DRegister dd, DRegister dm) {
+  int32_t size_bits = 0;
+  switch (sz) {
+    case kByte:
+      size_bits = 0;
+      break;
+    case kTwoBytes:
+      size_bits = B18;
+      break;
+    case kFourBytes:
+      size_bits = B19;
+      break;
+    default:
+      UNREACHABLE();
+  }
+  EmitSIMDddd(B24 | B23 | B21 | B20 | size_bits | B9 | B7, kByte, dd, D0, dm);
+}
+
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
 }
