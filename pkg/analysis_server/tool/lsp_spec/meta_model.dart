@@ -185,23 +185,49 @@ abstract class LspEntity {
 class LspEnum extends LspEntity {
   final TypeBase typeOfValues;
   final bool flags;
-  final List<Member> members;
+  final List<Constant> constants;
   LspEnum({
     required super.name,
     super.comment,
     super.isProposed,
     required this.typeOfValues,
     this.flags = false,
-    required this.members,
-  }) : assert(
-         !flags ||
-             members
-                 .whereType<Constant>()
-                 .map((member) => int.tryParse(member.value))
-                 .every((value) => value != null && _isPowerOfTwo(value)),
-         'flags enums require all enum values to be int powers of two.',
-       ) {
-    members.sortBy((member) => member.name.toLowerCase());
+    required this.constants,
+  }) {
+    _validateFlagsEnum();
+    constants.sortBy((constant) => constant.name.toLowerCase());
+  }
+
+  void _validateFlagsEnum() {
+    if (!flags) {
+      return;
+    }
+
+    if (typeOfValues.dartTypeWithTypeArgs != 'int') {
+      throw ArgumentError(
+        'Flags enum $name has value type ${typeOfValues.dartTypeWithTypeArgs}; '
+        'flags enum values must be ints.',
+      );
+    }
+
+    var usedValues = <int>{};
+    for (var constant in constants) {
+      var value = int.tryParse(constant.value);
+      if (value == null || !_isPowerOfTwo(value)) {
+        throw ArgumentError(
+          'Flags enum $name constant ${constant.name} has value '
+          '${constant.value}; '
+          'flags enum values must be int powers of two.',
+        );
+      }
+
+      if (!usedValues.add(value)) {
+        throw ArgumentError(
+          'Flags enum $name has duplicate value $value; '
+          'flags enum values must be unique.',
+        );
+      }
+    }
   }
 }
 

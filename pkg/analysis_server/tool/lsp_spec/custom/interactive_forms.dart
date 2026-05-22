@@ -137,7 +137,7 @@ final interactiveFormClasses = <LspEntity>[
     name: 'FileExistence',
     typeOfValues: TypeReference.int,
     flags: true,
-    members: [
+    constants: [
       // Values should be powers of 2 to allow New|Existing.
       Constant(
         name: 'New',
@@ -161,7 +161,7 @@ final interactiveFormClasses = <LspEntity>[
     name: 'FileType',
     typeOfValues: TypeReference.int,
     flags: true,
-    members: [
+    constants: [
       // Values should be powers of 2 to allow Regular|Directory.
       Constant(
         name: 'Regular',

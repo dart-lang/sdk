@@ -191,9 +191,9 @@ class LspMetaModelCleaner {
       isProposed: namespace.isProposed,
       typeOfValues: namespace.typeOfValues,
       flags: namespace.flags,
-      members: namespace.members
+      constants: namespace.constants
           .where(_includeEntityInOutput)
-          .map((member) => _cleanMember(namespace.name, member))
+          .map(_cleanConst)
           .toList(),
     );
   }
@@ -387,7 +387,7 @@ class LspMetaModelCleaner {
         isProposed: dest.isProposed,
         typeOfValues: dest.typeOfValues,
         flags: dest.flags || source.flags,
-        members: [...dest.members, ...source.members],
+        constants: [...dest.constants, ...source.constants],
       );
     } else if (source is Interface && dest is Interface) {
       return Interface(
@@ -533,7 +533,7 @@ class LspMetaModelCleaner {
           isProposed: type.isProposed,
           typeOfValues: type.typeOfValues,
           flags: type.flags,
-          members: type.members,
+          constants: type.constants,
         );
       } else {
         throw 'Renaming ${type.runtimeType} is not implemented';

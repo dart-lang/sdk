@@ -633,7 +633,7 @@ void _writeDocCommentsAndAnnotations(
 
 void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
   _writeDocCommentsAndAnnotations(buffer, namespace);
-  var consts = namespace.members.cast<Constant>().toList();
+  var consts = namespace.constants;
   var namespaceName = namespace.name;
   var typeOfValues = namespace.typeOfValues;
   var allowsAnyValue = enumClassAllowsAnyValue(namespaceName);
@@ -674,10 +674,10 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
       ..outdent()
       ..writeIndentedln('}');
   }
-  namespace.members.whereType<Constant>().forEach((cons) {
+  for (var cons in consts) {
     // We don't use any deprecated enum values, so omit them entirely.
     if (cons.isDeprecated) {
-      return;
+      continue;
     }
     _writeDocCommentsAndAnnotations(buffer, cons);
     var memberName = cons.dartSafeName;
@@ -685,7 +685,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
     buffer.writeIndentedln(
       'static const $memberName = $namespaceName$constructorName($value);',
     );
-  });
+  }
   if (namespace.flags) {
     buffer
       ..writeln()
