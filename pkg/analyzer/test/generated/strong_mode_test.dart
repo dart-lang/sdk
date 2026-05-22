@@ -5775,7 +5775,8 @@ main() {
   v = 3;
   v; // marker
 }''');
-    assertResolvedNodeText(result.findNode.assignment('= 3'), r'''
+    var node = result.findNode.assignment('= 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: v

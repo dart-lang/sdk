@@ -212,8 +212,8 @@ void f(A<int> a) {
   a.foo = 0;
 }
 ''');
-    var assignment = result.findNode.assignment('foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -324,8 +324,8 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('(x).test');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('(x).test');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -592,8 +592,8 @@ void f(A<int> a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
@@ -816,7 +816,8 @@ void f(A<int> a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('foo ='), r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride

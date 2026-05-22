@@ -111,8 +111,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -151,8 +151,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -221,8 +221,8 @@ void f(E e) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier

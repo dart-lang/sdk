@@ -69,8 +69,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
@@ -120,8 +120,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
@@ -202,8 +202,8 @@ int Function() foo() {
 }
 ''');
 
-    var identifier = result.findNode.simple('a; // ref');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a; // ref');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@class::B::@getter::a
@@ -574,8 +574,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -620,8 +620,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -1236,8 +1236,8 @@ void f(E e) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -1493,8 +1493,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -1541,8 +1541,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -2379,8 +2379,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo += 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -2419,8 +2419,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -2517,8 +2517,8 @@ bar() {
 }
 ''');
 
-    var identifier = result.findNode.simple('foo;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@method::foo

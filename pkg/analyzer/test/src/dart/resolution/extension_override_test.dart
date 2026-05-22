@@ -460,7 +460,8 @@ void f(int? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.index('[0]'), r'''
+    var node = result.findNode.index('[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: ExtensionOverride
     name: E
@@ -499,7 +500,8 @@ void f(int? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('[0] ='), r'''
+    var node = result.findNode.assignment('[0] =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: ExtensionOverride

@@ -32,8 +32,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -60,8 +60,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -87,8 +87,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -166,8 +166,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -189,8 +189,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -215,8 +215,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -238,8 +238,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -266,8 +266,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -293,8 +293,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -319,8 +319,8 @@ main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -346,8 +346,8 @@ main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -369,8 +369,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -446,8 +446,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -727,8 +727,8 @@ main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -752,8 +752,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -777,8 +777,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -812,8 +812,8 @@ void main() {
 
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -901,9 +901,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandPropertyAccess,
-      r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -913,8 +912,7 @@ DotShorthandPropertyAccess
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateEnum_otherLibrary() async {
@@ -951,9 +949,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandPropertyAccess,
-      r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -963,8 +960,7 @@ DotShorthandPropertyAccess
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateExtensionType_otherLibrary() async {
@@ -1005,9 +1001,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandPropertyAccess,
-      r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1017,8 +1012,7 @@ DotShorthandPropertyAccess
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateMixin_otherLibrary() async {
@@ -1061,9 +1055,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandPropertyAccess,
-      r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1073,8 +1066,7 @@ DotShorthandPropertyAccess
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_tearOff_constructor() async {
@@ -1092,8 +1084,8 @@ main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1135,8 +1127,8 @@ void main() {
 }
 ''');
 
-    var dotShorthand = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(dotShorthand, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1157,8 +1149,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier

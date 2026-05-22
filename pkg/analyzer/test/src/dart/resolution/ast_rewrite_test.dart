@@ -89,8 +89,8 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? a : c);
     // `c` is in the "else" position of a conditional expression, so implicit
     // call tearoff logic should not apply to it.
     // Therefore the type of `b ? a : c` should be `A`.
-    var expr = result.findNode.conditionalExpression('b ? a : c');
-    assertResolvedNodeText(expr, r'''
+    var node = result.findNode.conditionalExpression('b ? a : c');
+    assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
@@ -121,8 +121,8 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? c : a);
     // `c` is in the "then" position of a conditional expression, so implicit
     // call tearoff logic should not apply to it.
     // Therefore the type of `b ? c : a` should be `A`.
-    var expr = result.findNode.conditionalExpression('b ? c : a');
-    assertResolvedNodeText(expr, r'''
+    var node = result.findNode.conditionalExpression('b ? c : a');
+    assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
@@ -192,8 +192,8 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
     // Therefore the type of `c ?? a` should be `A`.
-    var expr = result.findNode.binary('c ?? a');
-    assertResolvedNodeText(expr, r'''
+    var node = result.findNode.binary('c ?? a');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c

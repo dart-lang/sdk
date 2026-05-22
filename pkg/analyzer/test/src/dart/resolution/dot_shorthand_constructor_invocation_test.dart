@@ -217,8 +217,8 @@ void main() {
 }
 ''');
 
-    var method = result.findNode.methodInvocation('method();');
-    assertResolvedNodeText(method, r'''
+    var node = result.findNode.methodInvocation('method();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: DotShorthandConstructorInvocation
     period: .
@@ -263,8 +263,8 @@ void main() {
 }
 ''');
 
-    var method = result.findNode.methodInvocation('method();');
-    assertResolvedNodeText(method, r'''
+    var node = result.findNode.methodInvocation('method();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: DotShorthandConstructorInvocation
     constKeyword: const
@@ -310,8 +310,8 @@ void main() {
 }
 ''');
 
-    var propertyAccess = result.findNode.singlePropertyAccess;
-    assertResolvedNodeText(propertyAccess, r'''
+    var node = result.findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
 PropertyAccess
   target: DotShorthandConstructorInvocation
     period: .
@@ -352,8 +352,8 @@ void main() {
 }
 ''');
 
-    var propertyAccess = result.findNode.singlePropertyAccess;
-    assertResolvedNodeText(propertyAccess, r'''
+    var node = result.findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
 PropertyAccess
   target: DotShorthandConstructorInvocation
     constKeyword: const
@@ -393,9 +393,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -412,8 +411,7 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   isDotShorthand: true
   staticType: A
-''',
-    );
+''');
   }
 
   test_conflict_instance_method() async {
@@ -429,9 +427,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -448,8 +445,7 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   isDotShorthand: true
   staticType: A
-''',
-    );
+''');
   }
 
   test_conflict_instance_method_factory() async {
@@ -466,9 +462,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -480,8 +475,7 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   isDotShorthand: true
   staticType: A
-''',
-    );
+''');
   }
 
   test_conflict_instance_setter() async {
@@ -501,9 +495,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -520,8 +513,7 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   isDotShorthand: true
   staticType: A
-''',
-    );
+''');
   }
 
   test_const_assert() async {
@@ -767,8 +759,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandConstructorInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -797,8 +789,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandConstructorInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -838,8 +830,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandConstructorInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
   period: .
@@ -1095,8 +1087,8 @@ void main() {
 }
 ''');
 
-    var constructor = result.findNode.singleFunctionExpressionInvocation;
-    assertResolvedNodeText(constructor, r'''
+    var node = result.findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
@@ -1452,9 +1444,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   constKeyword: const
   period: .
@@ -1468,8 +1459,7 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_requiredParameters_missing() async {

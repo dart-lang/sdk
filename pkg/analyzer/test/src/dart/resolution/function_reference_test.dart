@@ -31,9 +31,8 @@ class A<T> {
 var x = (A.foo)<int>;
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('(A.foo)<int>;'),
-      r'''
+    var node = result.findNode.functionReference('(A.foo)<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: ParenthesizedExpression
     leftParenthesis: (
@@ -63,8 +62,7 @@ FunctionReference
   staticType: A<int> Function()
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_constructorFunction_unnamed() async {
@@ -76,9 +74,8 @@ class A<T> {
 var x = (A.new)<int>;
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('(A.new)<int>;'),
-      r'''
+    var node = result.findNode.functionReference('(A.new)<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: ParenthesizedExpression
     leftParenthesis: (
@@ -108,8 +105,7 @@ FunctionReference
   staticType: A<int> Function()
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_constructorReference() async {
@@ -123,9 +119,8 @@ var x = A.foo<int>;
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.foo' doesn't have type parameters.
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('A.foo<int>;'),
-      r'''
+    var node = result.findNode.functionReference('A.foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: ConstructorReference
     constructorName: ConstructorName
@@ -149,8 +144,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: InvalidType
-''',
-    );
+''');
   }
 
   test_constructorReference_prefixed() async {
@@ -160,9 +154,8 @@ var x = a.Future.delayed<int>;
 //                      ^^^^^
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'a.Future.delayed' doesn't have type parameters.
 ''');
-    assertResolvedNodeText(
-      result.findNode.functionReference('a.Future.delayed<int>;'),
-      r'''
+    var node = result.findNode.functionReference('a.Future.delayed<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: ConstructorReference
     constructorName: ConstructorName
@@ -190,8 +183,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: InvalidType
-''',
-    );
+''');
   }
 
   test_dynamicTyped() async {
@@ -205,7 +197,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('i<int>;'), r'''
+    var node = result.findNode.functionReference('i<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: i
@@ -234,9 +227,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('i<int>.foo();'),
-      r'''
+    var node = result.findNode.functionReference('i<int>.foo();');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: i
@@ -251,8 +243,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: InvalidType
-''',
-    );
+''');
   }
 
   test_explicitReceiver_dynamicTyped() async {
@@ -266,9 +257,8 @@ foo() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('f().instanceMethod<int>;'),
-      r'''
+    var node = result.findNode.functionReference('f().instanceMethod<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: MethodInvocation
@@ -296,8 +286,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: InvalidType
-''',
-    );
+''');
   }
 
   test_explicitReceiver_unknown() async {
@@ -309,7 +298,8 @@ bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -389,8 +379,8 @@ void foo() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('E<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('E<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: E
@@ -422,8 +412,8 @@ void foo() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('E<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('E<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -464,7 +454,8 @@ bar(A a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
@@ -512,8 +503,8 @@ extension E on A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -546,8 +537,8 @@ extension E on A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ThisExpression
@@ -588,8 +579,8 @@ bar(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
@@ -643,8 +634,8 @@ bar(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     operator: ..
@@ -682,8 +673,8 @@ bar(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
@@ -733,7 +724,8 @@ bar(A a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ExtensionOverride
@@ -781,8 +773,8 @@ extension E on A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -815,7 +807,8 @@ extension on double {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -842,9 +835,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('foo.call<int>;'),
-      r'''
+    var node = result.findNode.functionReference('foo.call<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -869,8 +861,7 @@ FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_function_call_tooFewTypeArgs() async {
@@ -884,9 +875,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('foo.call<int>;'),
-      r'''
+    var node = result.findNode.functionReference('foo.call<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -912,8 +902,7 @@ FunctionReference
   typeArgumentTypes
     dynamic
     dynamic
-''',
-    );
+''');
   }
 
   test_function_call_tooManyTypeArgs() async {
@@ -927,9 +916,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('foo.call<int>;'),
-      r'''
+    var node = result.findNode.functionReference('foo.call<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -952,8 +940,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: void Function(String)
-''',
-    );
+''');
   }
 
   test_function_call_typeArgNotMatchingBound() async {
@@ -967,9 +954,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('foo.call<String>;'),
-      r'''
+    var node = result.findNode.functionReference('foo.call<String>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -994,8 +980,7 @@ FunctionReference
   staticType: void Function(String)
   typeArgumentTypes
     String
-''',
-    );
+''');
   }
 
   test_function_extensionOnFunction() async {
@@ -1013,9 +998,8 @@ extension on Function {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('foo.m<int>;'),
-      r'''
+    var node = result.findNode.functionReference('foo.m<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1040,8 +1024,7 @@ FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_function_extensionOnFunction_static() async {
@@ -1059,9 +1042,8 @@ extension E on Function {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('foo.m<int>;'),
-      r'''
+    var node = result.findNode.functionReference('foo.m<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1084,8 +1066,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: InvalidType
-''',
-    );
+''');
   }
 
   test_implicitCallTearoff() async {
@@ -1429,7 +1410,8 @@ bar(A a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1469,7 +1451,8 @@ abstract class A {
 
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -1536,7 +1519,8 @@ void foo(A a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f<String>'), r'''
+    var node = result.findNode.functionReference('f<String>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1575,7 +1559,8 @@ void foo(A a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f<String>'), r'''
+    var node = result.findNode.functionReference('f<String>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ParenthesizedExpression
@@ -1615,8 +1600,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -1647,11 +1632,11 @@ class C {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionReference('foo.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1690,11 +1675,11 @@ void bar(C c) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionReference('foo.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -1744,8 +1729,8 @@ class B {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1787,8 +1772,8 @@ void f(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<double>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<double>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ParenthesizedExpression
@@ -1828,9 +1813,8 @@ void f(A? a, A b) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('(a ?? b).foo<int>;'),
-      r'''
+    var node = result.findNode.functionReference('(a ?? b).foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ParenthesizedExpression
@@ -1868,8 +1852,7 @@ FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_instanceMethod_explicitReceiver_parameter_promoted() async {
@@ -1888,10 +1871,10 @@ extension StaticType<T> on T {
 typedef Exactly<T> = T Function(T);
 ''');
 
-    var reference = result.findNode.functionReference(
+    var node = result.findNode.functionReference(
       'expectStaticType<Exactly<int>>;',
     );
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1946,11 +1929,11 @@ extension on List<Object?> {
 var a = [].foo.call<int>;
 ''');
 
-    var reference = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionReference('foo.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PropertyAccess
@@ -1996,8 +1979,8 @@ class B extends A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: SuperExpression
@@ -2034,7 +2017,8 @@ class A {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: SuperExpression
@@ -2067,7 +2051,8 @@ bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: SuperExpression
@@ -2105,8 +2090,8 @@ bar(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2145,8 +2130,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ThisExpression
@@ -2184,8 +2169,8 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2228,8 +2213,8 @@ bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -2322,7 +2307,8 @@ bar<T>() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2359,8 +2345,8 @@ bar(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2399,8 +2385,8 @@ bar(A a) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     operator: ..
@@ -2440,10 +2426,10 @@ extension StaticType<T> on T {
 typedef Exactly<T> = T Function(T);
 ''');
 
-    var reference = result.findNode.functionReference(
+    var node = result.findNode.functionReference(
       'expectStaticType<Exactly<int>>;',
     );
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2502,8 +2488,8 @@ class B extends A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2672,8 +2658,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2756,8 +2742,8 @@ enum B with A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2791,8 +2777,8 @@ enum A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2825,8 +2811,8 @@ extension E on int {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2859,8 +2845,8 @@ extension type A(int it) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2895,8 +2881,8 @@ mixin M on A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2929,8 +2915,8 @@ mixin M {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -2961,7 +2947,8 @@ class A {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3020,8 +3007,8 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3048,8 +3035,8 @@ void bar(void Function<T>(T a) foo) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3079,11 +3066,11 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('fn.call<int>;');
+    var node = result.findNode.functionReference('fn.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3123,11 +3110,11 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('fn.call<int>;');
+    var node = result.findNode.functionReference('fn.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('fn')` here, we must change the
     // policy over there.
-    assertResolvedNodeText(reference, r'''
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3162,8 +3149,8 @@ void bar<T extends Function>(T foo) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3188,8 +3175,8 @@ void bar<T extends void Function<U>(U)>(T foo) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3218,8 +3205,8 @@ void bar<T>(T foo) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3248,7 +3235,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('i<int>;'), r'''
+    var node = result.findNode.functionReference('i<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: i
@@ -3279,8 +3267,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3337,9 +3325,8 @@ bar(dynamic a) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('a.foo<int>;'),
-      r'''
+    var node = result.findNode.functionReference('a.foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3362,8 +3349,7 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: InvalidType
-''',
-    );
+''');
   }
 
   test_recordField_explicitReceiver_named() async {
@@ -3435,8 +3421,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3467,7 +3453,8 @@ bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3509,8 +3496,8 @@ bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -3559,8 +3546,8 @@ bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -3610,8 +3597,8 @@ bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
@@ -3658,8 +3645,8 @@ bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3736,8 +3723,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3771,8 +3758,8 @@ class A {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int, int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int, int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3805,8 +3792,8 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -3838,8 +3825,8 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3882,8 +3869,8 @@ void bar() {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3920,7 +3907,8 @@ bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3995,7 +3983,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>'), r'''
+    var node = result.findNode.functionReference('foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -4111,7 +4100,8 @@ var a = Cb.foo<int>;
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4146,7 +4136,8 @@ var a = T.foo<int>;
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4181,7 +4172,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo
@@ -4212,7 +4204,8 @@ class B {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4250,7 +4243,8 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('foo<int>;'), r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4287,9 +4281,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('as void Function<T>(T);'),
-      r'''
+    var node = result.findNode.functionReference('as void Function<T>(T);');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: AsExpression
     expression: ParenthesizedExpression
@@ -4346,8 +4339,7 @@ FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_assignmentExpression() async {
@@ -4358,7 +4350,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('g = f;'), r'''
+    var node = result.findNode.functionReference('g = f;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: AssignmentExpression
     leftHandSide: SimpleIdentifier
@@ -4396,7 +4389,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f += 1'), r'''
+    var node = result.findNode.functionReference('f += 1');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: AssignmentExpression
     leftHandSide: SimpleIdentifier
@@ -4427,7 +4421,8 @@ Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('await f'), r'''
+    var node = result.findNode.functionReference('await f');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: AwaitExpression
     awaitKeyword: await
@@ -4455,7 +4450,8 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('c + 1'), r'''
+    var node = result.findNode.functionReference('c + 1');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -4483,9 +4479,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('f..toString()'),
-      r'''
+    var node = result.findNode.functionReference('f..toString()');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: f
@@ -4494,8 +4489,7 @@ FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_constructorReference() async {
@@ -4510,7 +4504,8 @@ C<int> Function(int) foo() {
 
     // TODO(srawlins): Leave the constructor reference uninstantiated, then
     // perform generic function instantiation as a wrapping node.
-    assertResolvedNodeText(result.findNode.constructorReference('C.new'), r'''
+    var node = result.findNode.constructorReference('C.new');
+    assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -4536,9 +4531,8 @@ Null Function(int) foo() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionReference('<T>(T a) {};'),
-      r'''
+    var node = result.findNode.functionReference('<T>(T a) {};');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: FunctionExpression
     typeParameters: TypeParameterList
@@ -4572,8 +4566,7 @@ FunctionReference
   staticType: Null Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_functionExpressionInvocation() async {
@@ -4583,7 +4576,8 @@ void Function(int) foo(void Function<T>(T) Function() f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('(f)()'), r'''
+    var node = result.findNode.functionReference('(f)()');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: FunctionExpressionInvocation
     function: ParenthesizedExpression
@@ -4615,7 +4609,8 @@ void Function(int) foo(Fn f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f;'), r'''
+    var node = result.findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: f
@@ -4660,7 +4655,8 @@ void Function(int) foo(List<void Function<T>(T)> f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f[0];'), r'''
+    var node = result.findNode.functionReference('f[0];');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: IndexExpression
     target: SimpleIdentifier
@@ -4697,7 +4693,8 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('c.m();'), r'''
+    var node = result.findNode.functionReference('c.m();');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: MethodInvocation
     target: SimpleIdentifier
@@ -4733,7 +4730,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f++'), r'''
+    var node = result.findNode.functionReference('f++');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PostfixExpression
     operand: SimpleIdentifier
@@ -4764,7 +4762,8 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('c.f;'), r'''
+    var node = result.findNode.functionReference('c.f;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4797,7 +4796,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('++f'), r'''
+    var node = result.findNode.functionReference('++f');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixExpression
     operator: ++
@@ -4828,7 +4828,8 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('(c).f;'), r'''
+    var node = result.findNode.functionReference('(c).f;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
     target: ParenthesizedExpression
@@ -4858,7 +4859,8 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f;'), r'''
+    var node = result.findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: f
@@ -4887,8 +4889,8 @@ void bar(void Function<T>(T a) foo) {
 }
 ''');
 
-    var reference = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(reference, r'''
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: foo

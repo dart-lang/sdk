@@ -152,7 +152,8 @@ void f({a = b?[0]}) {}
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
-    assertResolvedNodeText(result.findNode.index('[0]'), r'''
+    var node = result.findNode.index('[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: b
@@ -175,7 +176,8 @@ IndexExpression
 typedef void F({a = b?[0]});
 ''');
 
-    assertResolvedNodeText(result.findNode.index('[0]'), r'''
+    var node = result.findNode.index('[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: b
@@ -204,8 +206,8 @@ void f(A a) {
 }
 ''');
 
-    var indexExpression = result.findNode.index('a[0]');
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.index('a[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -233,7 +235,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.index('..[0]'), r'''
+    var node1 = result.findNode.index('..[0]');
+    assertResolvedNodeText(node1, r'''
 IndexExpression
   period: ?..
   leftBracket: [
@@ -246,7 +249,8 @@ IndexExpression
   staticType: bool
 ''');
 
-    assertResolvedNodeText(result.findNode.index('..[1]'), r'''
+    var node2 = result.findNode.index('..[1]');
+    assertResolvedNodeText(node2, r'''
 IndexExpression
   period: ..
   leftBracket: [
@@ -273,8 +277,8 @@ void f(A<double> a) {
 }
 ''');
 
-    var indexExpression = result.findNode.index('a[0]');
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.index('a[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -367,8 +371,8 @@ void f(A? a) {
 }
 ''');
 
-    var indexExpression = result.findNode.index('a?[0]');
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.index('a?[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -397,8 +401,8 @@ void f() {
 }
 ''');
 
-    var indexExpression = result.findNode.singleIndexExpression;
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: IntegerLiteral
     literal: 0
@@ -427,8 +431,8 @@ augment extension E {
 }
 ''');
 
-    var indexExpression = result.findNode.singleIndexExpression;
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.singleIndexExpression;
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: IntegerLiteral
     literal: 0
@@ -564,8 +568,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[0]');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -606,9 +610,8 @@ void f(A<double> a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[0]');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -655,9 +658,8 @@ void f(A? a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a?[0]');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a?[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -737,9 +739,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[0]');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -848,9 +849,8 @@ void f(A<double> a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[0]');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -896,9 +896,8 @@ void f(A? a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a?[0]');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a?[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -939,8 +938,8 @@ void f() {
 }
 ''');
 
-    var indexExpression = result.findNode.singleAssignmentExpression;
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: IntegerLiteral
@@ -988,8 +987,8 @@ void f() {
 }
 ''');
 
-    var indexExpression = result.findNode.singleAssignmentExpression;
-    assertResolvedNodeText(indexExpression, r'''
+    var node = result.findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: IntegerLiteral

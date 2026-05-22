@@ -148,7 +148,6 @@ class C {
 }
 ''');
     var node = result.findNode.variableDeclaration('_ = _;');
-
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: _

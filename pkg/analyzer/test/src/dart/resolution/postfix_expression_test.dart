@@ -27,14 +27,14 @@ f() {
   }
 }
 ''');
-    var nonPromotedIdentifier = result.findNode.simple('x;');
-    assertResolvedNodeText(nonPromotedIdentifier, r'''
+    var node = result.findNode.simple('x;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: x
   element: x@12
   staticType: num
 ''');
-    assertType(nonPromotedIdentifier, 'num');
+    assertType(node, 'num');
   }
 }
 
@@ -542,7 +542,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.postfix('foo++'), r'''
+    var node = result.findNode.postfix('foo++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -654,7 +655,8 @@ void f(Object x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.postfix('x++'), r'''
+    var node = result.findNode.postfix('x++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -938,7 +940,8 @@ void f(int? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.postfix('x!'), r'''
+    var node = result.findNode.postfix('x!');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -966,7 +969,8 @@ void f(Map<String, int> a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.index('a['), r'''
+    var node1 = result.findNode.index('a[');
+    assertResolvedNodeText(node1, r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -982,7 +986,8 @@ IndexExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(result.findNode.postfix(']!'), r'''
+    var node2 = result.findNode.postfix(']!');
+    assertResolvedNodeText(node2, r'''
 PostfixExpression
   operand: IndexExpression
     target: SimpleIdentifier
@@ -1207,8 +1212,8 @@ void f<T>(T? x) {
 }
 ''');
 
-    var postfixExpression = result.findNode.postfix('x!');
-    assertResolvedNodeText(postfixExpression, r'''
+    var node = result.findNode.postfix('x!');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -1229,8 +1234,8 @@ void f<T>(T? x) {
 }
 ''');
 
-    var postfixExpression = result.findNode.postfix('x!');
-    assertResolvedNodeText(postfixExpression, r'''
+    var node = result.findNode.postfix('x!');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x

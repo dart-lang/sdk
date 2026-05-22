@@ -100,7 +100,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('!a'), r'''
+    var node = result.findNode.prefix('!a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: !
   operand: PropertyAccess
@@ -557,7 +558,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('-a'), r'''
+    var node = result.findNode.prefix('-a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: PropertyAccess
@@ -609,7 +611,8 @@ void f(Object x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('++x'), r'''
+    var node = result.findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -706,7 +709,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('++a'), r'''
+    var node = result.findNode.prefix('++a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: PropertyAccess
@@ -1322,7 +1326,8 @@ void f(A? a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('~a'), r'''
+    var node = result.findNode.prefix('~a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ~
   operand: PropertyAccess

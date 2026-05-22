@@ -200,7 +200,8 @@ AssignmentExpression
   staticType: num
 ''');
 
-    assertResolvedNodeText(result.findNode.simple('a;'), r'''
+    var node2 = result.findNode.simple('a;');
+    assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::g::@formalParameter::a
@@ -325,7 +326,8 @@ f(Object? o1, Object? o2, List<num> listNum) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('o1 ??= listNum'), r'''
+    var node = result.findNode.assignment('o1 ??= listNum');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o1
@@ -400,9 +402,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     period: ..
@@ -477,9 +478,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -520,9 +520,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] += 2.0');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] += 2.0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -563,9 +562,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] ??= 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] ??= 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -605,9 +603,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -754,9 +751,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SuperExpression
@@ -796,9 +792,8 @@ class A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: ThisExpression
@@ -837,9 +832,8 @@ void f(int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[b] = c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[b] = c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -881,9 +875,8 @@ void f(int a, int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[b] = c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[b] = c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -927,9 +920,8 @@ void f(A a, int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a[b] = c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a[b] = c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -1056,9 +1048,8 @@ void f(int a, int b, double c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -1099,9 +1090,8 @@ void f(int a, int b, double c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: ParenthesizedExpression
     leftParenthesis: (
@@ -1224,9 +1214,8 @@ void f(num x, int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
@@ -1265,9 +1254,8 @@ void f(num x, int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
@@ -1306,9 +1294,8 @@ void f(num x, int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PostfixExpression
     operand: SimpleIdentifier
@@ -1347,9 +1334,8 @@ void f(num x, int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixExpression
     operator: ++
@@ -1388,9 +1374,8 @@ void f(num x, int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixExpression
     operator: ++
@@ -1429,9 +1414,8 @@ void f(num x, int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixExpression
     operator: ++
@@ -1473,9 +1457,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('C = 0');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('C = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: C
@@ -1508,9 +1491,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('C = 0');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('C = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: C
@@ -1580,9 +1562,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1622,9 +1603,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x ??= 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x ??= 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1663,9 +1643,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -1706,9 +1685,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2186,9 +2164,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2229,9 +2206,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2272,9 +2248,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2316,9 +2291,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2355,9 +2329,8 @@ void f(int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a.b = c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a.b = c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2396,9 +2369,8 @@ void f(int a, int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a.b += c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a.b += c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2439,9 +2411,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     operator: ..
@@ -2478,9 +2449,8 @@ main() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 1');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: InstanceCreationExpression
@@ -2527,9 +2497,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -2580,9 +2549,8 @@ void f(C c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -2625,9 +2593,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x ??= 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x ??= 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -2669,9 +2636,8 @@ void f(A a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -3980,9 +3946,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -4020,9 +3985,8 @@ class A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ThisExpression
@@ -4057,9 +4021,8 @@ void f(int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('(a).b = c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('(a).b = c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -4100,9 +4063,8 @@ void f(int a, int c) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('(a).b = c');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('(a).b = c');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -4176,9 +4138,8 @@ class C {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4209,9 +4170,8 @@ class C {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4244,9 +4204,8 @@ class C {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4279,9 +4238,8 @@ class C {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4312,9 +4270,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4351,9 +4308,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4384,9 +4340,8 @@ main() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4415,9 +4370,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 3');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4446,9 +4400,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4479,9 +4432,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4512,9 +4464,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4541,9 +4492,8 @@ void f(num? x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x ??=');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x ??=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4576,9 +4526,8 @@ void f(B? x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x ??=');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x ??=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4615,9 +4564,8 @@ void f(double? a, int b) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('a ??=');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a ??=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
@@ -4685,9 +4633,8 @@ void f(num x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4716,9 +4663,8 @@ void f(Object x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 1');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4747,9 +4693,8 @@ void f(int x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = true');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = true');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4779,9 +4724,8 @@ void f(final int x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4820,9 +4764,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4861,9 +4804,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4896,9 +4838,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4927,9 +4868,8 @@ void f(int y) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('= y');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('= y');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: <empty> <synthetic>
@@ -4965,9 +4905,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -4999,9 +4938,8 @@ class C {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5040,9 +4978,8 @@ class C with M1, M2 {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5074,9 +5011,8 @@ class C {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x ??= 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x ??= 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5114,9 +5050,8 @@ class B extends A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5146,9 +5081,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5184,9 +5118,8 @@ B? get x => B();
 set x(B? _) {}
 ''');
 
-    var assignment = result.findNode.assignment('x ??=');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x ??=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5226,9 +5159,8 @@ class A {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5257,9 +5189,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5290,9 +5221,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = true');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = true');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5323,9 +5253,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = 2');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5354,9 +5283,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('int += 3');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('int += 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: int
@@ -5385,9 +5313,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('int = 0');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('int = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: int
@@ -5416,9 +5343,8 @@ void f() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x += 1');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x += 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5447,9 +5373,8 @@ void f(int a) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('x = a');
-
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('x = a');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -5488,9 +5413,8 @@ f(Object? o, C2<double> c2) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.assignment('o ??= c2'),
-      r'''AssignmentExpression
+    var node = result.findNode.assignment('o ??= c2');
+    assertResolvedNodeText(node, r'''AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o
     element: <testLibrary>::@function::f::@formalParameter::o
@@ -5510,8 +5434,7 @@ f(Object? o, C2<double> c2) {
   writeType: Object?
   element: <null>
   staticType: B1<Object?>
-''',
-    );
+''');
   }
 
   test_ifNull_contextNotUsedIfLhsDoesNotSatisfyContext() async {
@@ -5523,9 +5446,8 @@ f(Object? o1, Object? o2, int? i) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.assignment('o2 ??= i'),
-      r'''AssignmentExpression
+    var node = result.findNode.assignment('o2 ??= i');
+    assertResolvedNodeText(node, r'''AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o2
     element: <testLibrary>::@function::f::@formalParameter::o2
@@ -5542,8 +5464,7 @@ f(Object? o1, Object? o2, int? i) {
   writeType: Object?
   element: <null>
   staticType: num?
-''',
-    );
+''');
   }
 
   test_ifNull_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
@@ -5561,7 +5482,8 @@ f(Object? o, C2 c2) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('o ??= c2'), r'''
+    var node = result.findNode.assignment('o ??= c2');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: o

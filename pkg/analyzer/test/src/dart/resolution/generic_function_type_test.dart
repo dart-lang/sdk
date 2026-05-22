@@ -69,8 +69,8 @@ const a = 42;
 Function<@a T>()? x;
 ''');
 
-    var T = result.findNode.typeParameter('T');
-    assertResolvedNodeText(T, r'''
+    var node = result.findNode.typeParameter('T');
+    assertResolvedNodeText(node, r'''
 TypeParameter
   metadata
     Annotation

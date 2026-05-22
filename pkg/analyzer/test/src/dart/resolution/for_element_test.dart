@@ -66,16 +66,16 @@ main() {
 }
 ''');
 
-    var node_1 = result.findNode.simple('i]; // 1');
-    assertResolvedNodeText(node_1, r'''
+    var node1 = result.findNode.simple('i]; // 1');
+    assertResolvedNodeText(node1, r'''
 SimpleIdentifier
   token: i
   element: i@26
   staticType: int
 ''');
 
-    var node_2 = result.findNode.simple('i]; // 2');
-    assertResolvedNodeText(node_2, r'''
+    var node2 = result.findNode.simple('i]; // 2');
+    assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: i
   element: i@65
@@ -1015,16 +1015,16 @@ main() {
 }
 ''');
 
-    var node_1 = result.findNode.simple('i]; // 1');
-    assertResolvedNodeText(node_1, r'''
+    var node1 = result.findNode.simple('i]; // 1');
+    assertResolvedNodeText(node1, r'''
 SimpleIdentifier
   token: i
   element: i@26
   staticType: int
 ''');
 
-    var node_2 = result.findNode.simple('i]; // 2');
-    assertResolvedNodeText(node_2, r'''
+    var node2 = result.findNode.simple('i]; // 2');
+    assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: i
   element: i@78

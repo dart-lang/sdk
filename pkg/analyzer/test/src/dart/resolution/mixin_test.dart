@@ -439,8 +439,8 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var assignment = result.findNode.assignment('foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression

@@ -144,7 +144,8 @@ void f(bool c) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.simple('a; // ref'), r'''
+    var node = result.findNode.simple('a; // ref');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: a@71

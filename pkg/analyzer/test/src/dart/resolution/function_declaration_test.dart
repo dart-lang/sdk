@@ -143,16 +143,16 @@ void bar(a a) {
 }
 ''');
 
-    var node_1 = result.findNode.namedType('a a');
-    assertResolvedNodeText(node_1, r'''
+    var node1 = result.findNode.namedType('a a');
+    assertResolvedNodeText(node1, r'''
 NamedType
   name: a
   element: <testLibrary>::@class::a
   type: a
 ''');
 
-    var node_2 = result.findNode.simple('a;');
-    assertResolvedNodeText(node_2, r'''
+    var node2 = result.findNode.simple('a;');
+    assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::bar::@formalParameter::a

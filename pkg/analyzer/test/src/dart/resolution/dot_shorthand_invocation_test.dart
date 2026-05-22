@@ -162,8 +162,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -194,8 +194,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -226,8 +226,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -262,8 +262,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -358,8 +358,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -713,8 +713,8 @@ void main() {
 
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -900,9 +900,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -915,8 +914,7 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateClass_sameLibrary_invocation() async {
@@ -935,7 +933,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1015,9 +1014,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -1030,8 +1028,7 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateEnum_sameLibrary_invocation() async {
@@ -1051,7 +1048,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1129,9 +1127,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.singleDotShorthandConstructorInvocation,
-      r'''
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
@@ -1149,8 +1146,7 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
-''',
-    );
+''');
   }
 
   test_privateExtensionType_sameLibrary_invocation() async {
@@ -1169,7 +1165,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1226,7 +1223,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.singleDotShorthandInvocation, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier
@@ -1272,8 +1270,8 @@ void main() {
 }
 ''');
 
-    var identifier = result.findNode.singleDotShorthandInvocation;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandInvocation;
+    assertResolvedNodeText(node, r'''
 DotShorthandInvocation
   period: .
   memberName: SimpleIdentifier

@@ -494,7 +494,8 @@ abstract class B extends A {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('foo ='), r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -535,7 +536,8 @@ mixin M implements A {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('foo ='), r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -576,7 +578,8 @@ class B extends Object with A {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('foo ='), r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -616,7 +619,8 @@ class B extends A {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('foo ='), r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -660,7 +664,8 @@ class C extends B {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('foo ='), r'''
+    var node = result.findNode.assignment('foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
