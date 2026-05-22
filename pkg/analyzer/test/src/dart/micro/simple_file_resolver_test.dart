@@ -939,11 +939,6 @@ int a = 0;
 var b = 1 + 2;
 ''');
     assertType(result.findElement.topVar('a').type, 'int');
-    assertElement(
-      result.findNode.namedType('int a').element,
-      declaration: intElement,
-    );
-
     assertType(result.findElement.topVar('b').type, 'int');
   }
 

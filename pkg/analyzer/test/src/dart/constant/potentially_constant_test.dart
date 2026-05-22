@@ -1630,7 +1630,10 @@ class A<T> {
   ) async {
     var result = await resolveTestCode(code);
     var node = getNode(result);
-    var notConstList = getNotPotentiallyConstants(node, featureSet: featureSet);
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      featureSet: result.libraryElement.featureSet,
+    );
     expect(notConstList, isEmpty);
   }
 
@@ -1641,7 +1644,10 @@ class A<T> {
   ) async {
     var result = await resolveTestCode(code);
     var node = getNode(result);
-    var notConstList = getNotPotentiallyConstants(node, featureSet: featureSet);
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      featureSet: result.libraryElement.featureSet,
+    );
 
     var expectedNotConst = getNotConstList(result);
     expect(notConstList, unorderedEquals(expectedNotConst));

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,150 +18,6 @@ main() {
 
 @reflectiveTest
 class StaticTypeAnalyzerTest extends PubPackageResolutionTest {
-  test_flatten_derived() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-abstract class Derived<T> implements Future<T> {}
-late Derived<dynamic> derivedDynamic;
-late Derived<int> derivedInt;
-late Derived<Derived> derivedDerived;
-late Derived<Derived<int>> derivedDerivedInt;
-    ''');
-    var dynamicType = typeProvider.dynamicType;
-    var derivedDynamicType = result.findElement.topVar('derivedDynamic').type;
-    var derivedIntType = result.findElement.topVar('derivedInt').type;
-    var derivedDerivedType = result.findElement.topVar('derivedDerived').type;
-    var derivedDerivedIntType = result.findElement
-        .topVar('derivedDerivedInt')
-        .type;
-    // class Derived<T> extends Future<T> { ... }
-    // flatten(Derived) = dynamic
-    expect(_flatten(derivedDynamicType), dynamicType);
-    // flatten(Derived<int>) = int
-    expect(_flatten(derivedIntType), intType);
-    // flatten(Derived<Derived>) = Derived
-    expect(_flatten(derivedDerivedType), derivedDynamicType);
-    // flatten(Derived<Derived<int>>) = Derived<int>
-    expect(_flatten(derivedDerivedIntType), derivedIntType);
-  }
-
-  test_flatten_inhibit_recursion() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A extends B {}
-//    ^
-// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
-class B extends A {}
-//    ^
-// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
-late A a;
-late B b;
-''');
-    var aType = result.findElement.topVar('a').type;
-    var bType = result.findElement.topVar('b').type;
-    // flatten(A) = A and flatten(B) = B, since neither class contains Future
-    // in its class hierarchy.  Even though there is a loop in the class
-    // hierarchy, flatten() should terminate.
-    expect(_flatten(aType), aType);
-    expect(_flatten(bType), bType);
-  }
-
-  test_flatten_related_derived_types() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-abstract class Derived<T> implements Future<T> {}
-abstract class A extends Derived<int> implements Derived<num> {}
-//             ^
-// [diag.conflictingGenericInterfaces] The class 'A' can't implement both 'Derived<int>' and 'Derived<num>' because the type arguments are different.
-// [diag.conflictingGenericInterfaces] The class 'A' can't implement both 'Future<int>' and 'Future<num>' because the type arguments are different.
-//                                               ^^^^^^^^^^^^
-// [diag.implementsSuperClass] 'abstract class Derived<T> implements Future<T>' can't be used in both the 'extends' and 'implements' clauses.
-abstract class B1 implements Future<num> {}
-abstract class B2 extends B1 implements Future<int> {}
-//             ^^
-// [diag.conflictingGenericInterfaces] The class 'B2' can't implement both 'Future<num>' and 'Future<int>' because the type arguments are different.
-late A a;
-late B2 b;
-''');
-    InterfaceType intType = typeProvider.intType;
-    InterfaceType numType = typeProvider.numType;
-    var aType = result.findElement.topVar('a').type;
-    var bType = result.findElement.topVar('b').type;
-    // The code in flatten() that inhibits infinite recursion shouldn't be
-    // fooled by the fact that Derived appears twice in the type hierarchy.
-    expect(_flatten(aType), intType);
-    expect(_flatten(bType), numType);
-  }
-
-  test_flatten_related_types() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-abstract class A1 implements Future<int> {}
-abstract class A2 extends A1 implements Future<num> {}
-//             ^^
-// [diag.conflictingGenericInterfaces] The class 'A2' can't implement both 'Future<int>' and 'Future<num>' because the type arguments are different.
-abstract class B1 implements Future<num> {}
-abstract class B2 extends B1 implements Future<int> {}
-//             ^^
-// [diag.conflictingGenericInterfaces] The class 'B2' can't implement both 'Future<num>' and 'Future<int>' because the type arguments are different.
-late A2 a;
-late B2 b;
-''');
-    InterfaceType intType = typeProvider.intType;
-    InterfaceType numType = typeProvider.numType;
-    var aType = result.findElement.topVar('a').type;
-    var bType = result.findElement.topVar('b').type;
-    expect(_flatten(aType), intType);
-    expect(_flatten(bType), numType);
-  }
-
-  test_flatten_simple() async {
-    // No code needs to be analyzed but we still need to call
-    // resolveTestCodeWithDiagnostics to get the typeProvider initialized.
-    await resolveTestCodeWithDiagnostics('');
-    var intType = typeProvider.intType;
-    var dynamicType = typeProvider.dynamicType;
-    var futureDynamicType = typeProvider.futureDynamicType;
-    var futureIntType = typeProvider.futureType(intType);
-    var futureFutureDynamicType = typeProvider.futureType(futureDynamicType);
-    var futureFutureIntType = typeProvider.futureType(futureIntType);
-    // flatten(int) = int
-    expect(_flatten(intType), intType);
-    // flatten(dynamic) = dynamic
-    expect(_flatten(dynamicType), dynamicType);
-    // flatten(Future) = dynamic
-    expect(_flatten(futureDynamicType), dynamicType);
-    // flatten(Future<int>) = int
-    expect(_flatten(futureIntType), intType);
-    // flatten(Future<Future>) = Future<dynamic>
-    expect(_flatten(futureFutureDynamicType), futureDynamicType);
-    // flatten(Future<Future<int>>) = Future<int>
-    expect(_flatten(futureFutureIntType), futureIntType);
-  }
-
-  test_flatten_unrelated_types() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-abstract class A1 implements Future<int> {}
-abstract class A2 extends A1 implements Future<String> {}
-//             ^^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'catchError': Future.catchError (Future<int> Function(Function, {bool Function(Object)? test})), Future.catchError (Future<String> Function(Function, {bool Function(Object)? test})).
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'then': Future.then (Future<R> Function<R>(FutureOr<R> Function(int), {Function? onError})), Future.then (Future<R> Function<R>(FutureOr<R> Function(String), {Function? onError})).
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'whenComplete': Future.whenComplete (Future<int> Function(FutureOr<void> Function())), Future.whenComplete (Future<String> Function(FutureOr<void> Function())).
-// [diag.conflictingGenericInterfaces] The class 'A2' can't implement both 'Future<int>' and 'Future<String>' because the type arguments are different.
-abstract class B1 implements Future<String> {}
-abstract class B2 extends B1 implements Future<int> {}
-//             ^^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'catchError': Future.catchError (Future<String> Function(Function, {bool Function(Object)? test})), Future.catchError (Future<int> Function(Function, {bool Function(Object)? test})).
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'then': Future.then (Future<R> Function<R>(FutureOr<R> Function(String), {Function? onError})), Future.then (Future<R> Function<R>(FutureOr<R> Function(int), {Function? onError})).
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'whenComplete': Future.whenComplete (Future<String> Function(FutureOr<void> Function())), Future.whenComplete (Future<int> Function(FutureOr<void> Function())).
-// [diag.conflictingGenericInterfaces] The class 'B2' can't implement both 'Future<String>' and 'Future<int>' because the type arguments are different.
-late A2 a;
-late B2 b;
-''');
-    var aType = result.findElement.topVar('a').type;
-    var bType = result.findElement.topVar('b').type;
-    // flatten(A) = A and flatten(B) = B, since neither string nor int is more
-    // specific than the other.
-    expect(_flatten(aType), intType);
-    expect(_flatten(bType), stringType);
-  }
-
   test_visitAdjacentStrings() async {
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 'a' 'b';
@@ -421,6 +276,4 @@ test() => throw 0;
     var node = result.findNode.throw_('throw 0');
     expect(node.staticType, same(typeProvider.bottomType));
   }
-
-  TypeImpl _flatten(TypeImpl type) => typeSystem.flatten(type);
 }

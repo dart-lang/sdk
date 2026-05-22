@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -53,47 +52,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
 
-  ClassElement get boolElement => typeProvider.boolElement;
-
-  ClassElement get doubleElement => typeProvider.doubleElement;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  Element get dynamicElement =>
-      (typeProvider.dynamicType as DynamicTypeImpl).element;
-
-  FeatureSet get featureSet => result.libraryElement.featureSet;
-
-  ClassElement get futureElement => typeProvider.futureElement;
-
   InheritanceManager3 get inheritanceManager {
     var library = result.libraryElement;
     return library.session.inheritanceManager;
   }
-
-  ClassElement get intElement => typeProvider.intElement;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  ClassElement get listElement => typeProvider.listElement;
-
-  ClassElement get mapElement => typeProvider.mapElement;
-
-  NeverElementImpl get neverElement => NeverElementImpl.instance;
-
-  ClassElement get numElement => typeProvider.numElement;
-
-  ClassElement get objectElement => typeProvider.objectElement;
 
   bool get strictCasts {
     var analysisOptions = result.session.analysisContext
         .getAnalysisOptionsForFile(result.file);
     return analysisOptions.strictCasts;
   }
-
-  ClassElement get stringElement => typeProvider.stringElement;
-
-  InterfaceType get stringType => typeProvider.stringType;
 
   File get testFile;
 
