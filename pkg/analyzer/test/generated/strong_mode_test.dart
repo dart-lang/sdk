@@ -4208,7 +4208,7 @@ void foo() {
 MethodInvocation
   target: SimpleIdentifier
     token: list
-    element: list@237
+    element: list@68
     staticType: List<dynamic>
   operator: .
   methodName: SimpleIdentifier
@@ -4225,7 +4225,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
-            declaredFragment: <testLibraryFragment> e@389
+            declaredFragment: <testLibraryFragment> e@93
               element: hasImplicitType isPublic
                 type: dynamic
           rightParenthesis: )
@@ -4233,7 +4233,7 @@ MethodInvocation
           functionDefinition: =>
           expression: SimpleIdentifier
             token: e
-            element: e@389
+            element: e@93
             staticType: dynamic
         declaredFragment: <testLibraryFragment> null@null
           element: null@null
@@ -4254,7 +4254,7 @@ MethodInvocation
 MethodInvocation
   target: SimpleIdentifier
     token: list
-    element: list@237
+    element: list@68
     staticType: List<dynamic>
   operator: .
   methodName: SimpleIdentifier
@@ -4271,7 +4271,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
-            declaredFragment: <testLibraryFragment> e@411
+            declaredFragment: <testLibraryFragment> e@115
               element: hasImplicitType isPublic
                 type: dynamic
           rightParenthesis: )
@@ -4563,7 +4563,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredFragment: <testLibraryFragment> T@221
+        declaredFragment: <testLibraryFragment> T@61
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -4574,7 +4574,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: y
-      declaredFragment: <testLibraryFragment> y@226
+      declaredFragment: <testLibraryFragment> y@66
         element: isPublic
           type: T
     rightParenthesis: )
@@ -4584,7 +4584,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredFragment: <testLibraryFragment> f@219
+  declaredFragment: <testLibraryFragment> f@59
     element: <testLibrary>::@class::D::@method::f
       type: T Function<T>(T)
 ''');

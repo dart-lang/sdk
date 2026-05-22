@@ -47,7 +47,7 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: b
-    declaredFragment: isFinal isPublic b@160
+    declaredFragment: isFinal isPublic b@61
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -84,7 +84,7 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: b
-    declaredFragment: isFinal isPublic b@159
+    declaredFragment: isFinal isPublic b@60
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -692,7 +692,7 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredFragment: isFinal isPublic a@177
+    declaredFragment: isFinal isPublic a@76
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int

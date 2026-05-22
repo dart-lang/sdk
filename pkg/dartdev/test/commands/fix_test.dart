@@ -344,7 +344,11 @@ linter:
       expect(result.stderr, isEmpty);
       expect(
         result.stdout,
-        stringContainsInOrderWithVariableBullets(['Nothing to fix!']),
+        stringContainsInOrderWithVariableBullets([
+          'lib/main.dart',
+          'prefer_single_quotes - 1 fix',
+          '1 fix made in 1 file.',
+        ]),
       );
     });
 

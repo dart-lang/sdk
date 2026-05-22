@@ -12,7 +12,7 @@ class MapEntryMatcher extends Matcher {
   final Matcher keyMatcher;
   final Matcher valueMatcher;
 
-  MapEntryMatcher(Object? key, Object? value)
+  new(Object? key, Object? value)
     : keyMatcher = wrapMatcher(key),
       valueMatcher = wrapMatcher(value);
 

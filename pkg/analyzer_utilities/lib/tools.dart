@@ -232,7 +232,7 @@ class CodeGeneratorSettings {
   /// String used for indenting code.
   String indent;
 
-  CodeGeneratorSettings({
+  new({
     this.languageName = 'java',
     this.lineCommentLineLeader = '// ',
     this.docCommentStartMarker = '/**',
@@ -322,7 +322,7 @@ class GeneratedDirectory extends GeneratedContent {
   /// Callback function that computes the directory contents.
   final DirectoryContentsComputer directoryContentsComputer;
 
-  GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
+  new(this.outputDirPath, this.directoryContentsComputer);
 
   @override
   Future<void> generate(String pkgRoot) async {
@@ -366,7 +366,7 @@ class GeneratedFile extends GeneratedContent {
   /// Callback function which computes the file.
   final FileContentsComputer computeContents;
 
-  GeneratedFile(this.outputPath, this.computeContents);
+  new(this.outputPath, this.computeContents);
 
   bool get isDartFile => outputPath.endsWith('.dart');
 

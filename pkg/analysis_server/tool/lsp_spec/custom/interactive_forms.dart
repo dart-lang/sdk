@@ -136,6 +136,7 @@ final interactiveFormClasses = <LspEntity>[
   LspEnum(
     name: 'FileExistence',
     typeOfValues: TypeReference.int,
+    flags: true,
     members: [
       // Values should be powers of 2 to allow New|Existing.
       Constant(
@@ -159,6 +160,7 @@ final interactiveFormClasses = <LspEntity>[
   LspEnum(
     name: 'FileType',
     typeOfValues: TypeReference.int,
+    flags: true,
     members: [
       // Values should be powers of 2 to allow Regular|Directory.
       Constant(

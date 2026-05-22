@@ -75,11 +75,10 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     if (node.name case var name?) {
       _addOccurrence(node.declaredFragment!.element, name);
     } else {
-      _addOccurrence(
-        node.declaredFragment!.element,
-        // TODO(scheglov): support primary constructors
-        node.typeName!.beginToken,
-      );
+      var typeName = node.typeName;
+      if (typeName != null) {
+        _addOccurrence(node.declaredFragment!.element, typeName.beginToken);
+      }
     }
 
     super.visitConstructorDeclaration(node);

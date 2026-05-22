@@ -22,7 +22,7 @@ class VerifyTests {
   /// Paths to exclude from analysis completely.
   final List<String>? excludedPaths;
 
-  VerifyTests(this.testDirPath, {this.excludedPaths});
+  new(this.testDirPath, {this.excludedPaths});
 
   /// Build tests.
   void build({bool Function(AnalysisContext)? analysisContextPredicate}) {

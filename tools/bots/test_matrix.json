@@ -1336,6 +1336,7 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-modaot-${system}-${mode}-${arch}",
+            "corelib",
             "language"
           ],
           "fileset": "vm",

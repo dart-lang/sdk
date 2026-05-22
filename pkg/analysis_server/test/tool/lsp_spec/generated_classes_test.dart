@@ -119,6 +119,23 @@ class GeneratedClassesTest {
     expect(a.hashCode, equals(b.hashCode));
   }
 
+  void test_generatedClasses_flagsEnum_combined() {
+    var combined = FileExistence.combine([
+      FileExistence.New,
+      FileExistence.Existing,
+    ]);
+
+    expect(combined.toJson(), 3);
+    expect(combined.hasFlag(FileExistence.New), isTrue);
+    expect(combined.hasFlag(FileExistence.Existing), isTrue);
+    expect(combined.hasFlag(FileExistence(64)), isFalse);
+  }
+
+  void test_generatedClasses_flagsEnum_notCombined() {
+    expect(FileExistence.New.hasFlag(FileExistence.New), isTrue);
+    expect(FileExistence.New.hasFlag(FileExistence.Existing), isFalse);
+  }
+
   void test_interactiveForms_deserialize_formFieldsIntoSubclasses() {
     var stringField = FormField.fromJson({
       'type': {'kind': 'string'},

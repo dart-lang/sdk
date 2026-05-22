@@ -45,22 +45,19 @@ class LintMessage extends AnalyzerMessage {
 
   final Map<LintStateName, Version>? state;
 
-  LintMessage(
-    super.messageYaml, {
-    required super.analyzerCode,
-    required super.package,
-  }) : categories = messageYaml.get(
-         'categories',
-         decode: decodeCategories,
-         ifAbsent: () => null,
-       ),
-       deprecatedDetails = messageYaml.getOptionalString('deprecatedDetails'),
-       state = messageYaml.get(
-         'state',
-         decode: decodeState,
-         ifAbsent: () => null,
-       ),
-       super.internal();
+  new(super.messageYaml, {required super.analyzerCode, required super.package})
+    : categories = messageYaml.get(
+        'categories',
+        decode: decodeCategories,
+        ifAbsent: () => null,
+      ),
+      deprecatedDetails = messageYaml.getOptionalString('deprecatedDetails'),
+      state = messageYaml.get(
+        'state',
+        decode: decodeState,
+        ifAbsent: () => null,
+      ),
+      super.internal();
 
   static Set<LintCategory> decodeCategories(YamlNode node) {
     if (node is! YamlList) throw 'Must be a list';

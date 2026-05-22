@@ -172,7 +172,7 @@ ConstructorDeclaration
       thisKeyword: this
       period: .
       name: _x
-      declaredFragment: <testLibraryFragment> x@103
+      declaredFragment: <testLibraryFragment> x@31
         element: hasImplicitType isFinal isPublic
           type: int?
           field: <testLibrary>::@class::C::@field::_x

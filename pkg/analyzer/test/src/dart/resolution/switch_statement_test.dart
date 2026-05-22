@@ -1197,7 +1197,7 @@ SwitchStatement
             element: dart:core::@class::int
             type: int
           name: a
-          declaredFragment: isPublic a@128
+          declaredFragment: isPublic a@61
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1206,7 +1206,7 @@ SwitchStatement
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              element: a@128
+              element: a@61
               staticType: int
             operator: >
             rightOperand: IntegerLiteral

@@ -624,6 +624,19 @@ void main() {}
     ]);
   }
 
+  test_constructor_named_new() async {
+    // https://github.com/dart-lang/sdk/issues/63425
+    await assertDiagnosticsFromMarkdown(r'''
+void main() {
+  C;
+}
+
+class C {
+  new [!named!]();
+}
+''');
+  }
+
   test_constructor_named_onEnum() async {
     await assertNoDiagnostics(r'''
 void main() {

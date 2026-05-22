@@ -190,6 +190,7 @@ class LspMetaModelCleaner {
       comment: _cleanComment(namespace.comment),
       isProposed: namespace.isProposed,
       typeOfValues: namespace.typeOfValues,
+      flags: namespace.flags,
       members: namespace.members
           .where(_includeEntityInOutput)
           .map((member) => _cleanMember(namespace.name, member))
@@ -385,6 +386,7 @@ class LspMetaModelCleaner {
         comment: comment,
         isProposed: dest.isProposed,
         typeOfValues: dest.typeOfValues,
+        flags: dest.flags || source.flags,
         members: [...dest.members, ...source.members],
       );
     } else if (source is Interface && dest is Interface) {
@@ -530,6 +532,7 @@ class LspMetaModelCleaner {
           comment: type.comment,
           isProposed: type.isProposed,
           typeOfValues: type.typeOfValues,
+          flags: type.flags,
           members: type.members,
         );
       } else {
