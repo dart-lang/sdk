@@ -47,27 +47,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   final ResolvedNodeTextConfiguration nodeTextConfiguration =
       ResolvedNodeTextConfiguration();
 
-  late ResolvedUnitResultImpl result;
-
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
 
-  InheritanceManager3 get inheritanceManager {
-    var library = result.libraryElement;
-    return library.session.inheritanceManager;
-  }
-
-  bool get strictCasts {
-    var analysisOptions = result.session.analysisContext
-        .getAnalysisOptionsForFile(result.file);
-    return analysisOptions.strictCasts;
-  }
-
   File get testFile;
-
-  TypeProviderImpl get typeProvider => result.typeProvider;
-
-  TypeSystemImpl get typeSystem => result.typeSystem;
 
   void addTestFile(String content) {
     newFile(testFile.path, content);
@@ -184,11 +167,21 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInList(result.diagnostics, expectedDiagnostics);
   }
 
-  void assertErrorsInResult(List<ExpectedDiagnostic> expectedDiagnostics) {
+  void assertErrorsInResult(
+    ResolvedUnitResult result,
+    List<ExpectedDiagnostic> expectedDiagnostics,
+  ) {
     assertErrorsInResolvedUnit(result, expectedDiagnostics);
   }
 
-  void assertHasTestErrors() {
+  void assertErrorsInTestResult(
+    TestResolvedUnitResult result,
+    List<ExpectedDiagnostic> expectedDiagnostics,
+  ) {
+    assertErrorsInList(result.diagnostics, expectedDiagnostics);
+  }
+
+  void assertHasTestErrors(TestResolvedUnitResult result) {
     expect(result.diagnostics, isNotEmpty);
   }
 
@@ -200,8 +193,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return result;
   }
 
-  void assertNoErrorsInResult() {
-    assertErrorsInResult(const []);
+  void assertNoErrorsInResult(ResolvedUnitResult result) {
+    assertErrorsInResult(result, const []);
+  }
+
+  void assertNoErrorsInTestResult(TestResolvedUnitResult result) {
+    assertErrorsInTestResult(result, const []);
   }
 
   void assertParsedNodeText(AstNode node, String expected) {
@@ -405,14 +402,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResultImpl> resolveFile(File file);
 
-  /// Resolve [file] into [result] and return a test view of it.
+  /// Resolve [file] and return a test view of it.
   Future<TestResolvedUnitResult> resolveFile2(File file) async {
-    result = await resolveFile(file);
-
+    var result = await resolveFile(file);
     return TestResolvedUnitResult(result);
   }
 
-  /// Create a new file with the [path] and [content], resolve it into [result].
+  /// Create a new file with the [path] and [content], and resolve it.
   Future<TestResolvedUnitResult> resolveFileCode(String path, String content) {
     var file = newFile(path, content);
     return resolveFile2(file);
@@ -506,6 +502,10 @@ final class TestResolvedUnitResult {
 
   File get file => analysisResult.file;
 
+  InheritanceManager3 get inheritanceManager {
+    return libraryElement.session.inheritanceManager;
+  }
+
   bool get isLibrary => analysisResult.isLibrary;
 
   bool get isPart => analysisResult.isPart;
@@ -536,6 +536,11 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
 
   FindNode get findNode {
     return FindNode(content, unit);
+  }
+
+  InheritanceManager3 get inheritanceManager {
+    var library = libraryElement as LibraryElementImpl;
+    return library.session.inheritanceManager;
   }
 
   String get uriStr => '$uri';

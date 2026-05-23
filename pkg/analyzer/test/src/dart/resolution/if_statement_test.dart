@@ -1362,7 +1362,8 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.ifStatement('if (x is int) {'), r'''
+    var node1 = result.findNode.ifStatement('if (x is int) {');
+    assertResolvedNodeText(node1, r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1424,7 +1425,8 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.ifStatement('if (x is int) {'), r'''
+    var node2 = result.findNode.ifStatement('if (x is int) {');
+    assertResolvedNodeText(node2, r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1486,7 +1488,8 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.ifStatement('if (x != null) {'), r'''
+    var node3 = result.findNode.ifStatement('if (x != null) {');
+    assertResolvedNodeText(node3, r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
@@ -1550,7 +1553,8 @@ f(bool b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.ifStatement('if (x != null) {'), r'''
+    var node4 = result.findNode.ifStatement('if (x != null) {');
+    assertResolvedNodeText(node4, r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (

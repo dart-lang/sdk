@@ -498,7 +498,8 @@ f() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('= 3'), r'''
+    var node = result.findNode.assignment('= 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: IntegerLiteral

@@ -57,8 +57,8 @@ import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(a);
+    assertNoErrorsInTestResult(result);
 
     await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
@@ -99,8 +99,8 @@ import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(a);
+    assertNoErrorsInTestResult(result);
 
     await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';

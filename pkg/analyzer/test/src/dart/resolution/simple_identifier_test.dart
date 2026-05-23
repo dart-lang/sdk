@@ -285,8 +285,8 @@ int Function() foo(A a) {
 }
 ''');
 
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::foo::@formalParameter::a
@@ -307,8 +307,8 @@ int Function() foo(A? a) {
 }
 ''');
 
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::foo::@formalParameter::a
@@ -663,8 +663,8 @@ class C<T> {
 }
 ''');
 
-    var identifier = result.findNode.simple('f;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('f;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
   element: f@50
@@ -681,8 +681,8 @@ main() {
 }
 ''');
 
-    var identifier = result.findNode.simple('foo;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   element: <testLibrary>::@function::foo
@@ -701,8 +701,8 @@ class A {
 }
 ''');
 
-    var identifier = result.findNode.simple('foo;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@method::foo

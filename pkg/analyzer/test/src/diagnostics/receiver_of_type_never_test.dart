@@ -27,7 +27,8 @@ void f() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('=='), r'''
+    var node = result.findNode.binary('==');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
@@ -69,7 +70,8 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x =='), r'''
+    var node = result.findNode.binary('x ==');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -106,7 +108,8 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x +'), r'''
+    var node = result.findNode.binary('x +');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -143,7 +146,8 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x =='), r'''
+    var node = result.findNode.binary('x ==');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -178,7 +182,8 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x +'), r'''
+    var node = result.findNode.binary('x +');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -219,7 +224,8 @@ void f() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('+ ('), r'''
+    var node = result.findNode.binary('+ (');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ParenthesizedExpression
     leftParenthesis: (
@@ -305,7 +311,8 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.index('x[0]'), r'''
+    var node = result.findNode.index('x[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: x
@@ -333,8 +340,8 @@ void f(Never x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] +=');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] +=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -383,7 +390,8 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x[0]'), r'''
+    var node = result.findNode.assignment('x[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -430,7 +438,8 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.index('x[0]'), r'''
+    var node = result.findNode.index('x[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: x
@@ -456,8 +465,8 @@ void f(Never? x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('[0] +=');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[0] +=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -504,7 +513,8 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x[0]'), r'''
+    var node = result.findNode.assignment('x[0]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -728,7 +738,8 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.postfix('x++'), r'''
+    var node = result.findNode.postfix('x++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -753,7 +764,8 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.postfix('x++'), r'''
+    var node = result.findNode.postfix('x++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: x
@@ -779,7 +791,8 @@ void f(Never x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('++x'), r'''
+    var node = result.findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -804,7 +817,8 @@ void f(Never? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.prefix('++x'), r'''
+    var node = result.findNode.prefix('++x');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -881,8 +895,8 @@ void f(Never x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo += 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo += 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -945,8 +959,8 @@ void f(Never x) {
 }
 ''');
 
-    var assignment = result.findNode.assignment('foo = 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier

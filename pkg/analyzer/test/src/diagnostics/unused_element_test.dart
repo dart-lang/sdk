@@ -1236,7 +1236,7 @@ void foo() {
   C._();
 }
 ''');
-    await resolveTestFile();
+    var result = await resolveTestFile();
     expect(result.diagnostics, isNotEmpty);
   }
 
@@ -3326,7 +3326,7 @@ void foo() {
   _f();
 }
 ''');
-    await resolveTestFile();
+    var result = await resolveTestFile();
     expect(result.diagnostics, isNotEmpty);
   }
 
@@ -3341,7 +3341,7 @@ void foo() {
   C()._m();
 }
 ''');
-    await resolveTestFile();
+    var result = await resolveTestFile();
     expect(result.diagnostics, isNotEmpty);
   }
 

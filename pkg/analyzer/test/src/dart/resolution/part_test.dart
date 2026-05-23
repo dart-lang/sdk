@@ -144,11 +144,11 @@ part 'b.dart';
 part of my.lib;
 ''');
 
-    await resolveFile2(b);
-    assertNoErrorsInResult();
+    var bResult = await resolveFile2(b);
+    assertErrorsInTestResult(bResult, const []);
 
     var result = await resolveFile2(a);
-    assertNoErrorsInResult();
+    assertErrorsInTestResult(result, const []);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -175,11 +175,11 @@ part 'b.dart';
 part of my.lib;
 ''');
 
-    await resolveFile2(b);
-    assertNoErrorsInResult();
+    var bResult = await resolveFile2(b);
+    assertErrorsInTestResult(bResult, const []);
 
     var result = await resolveFile2(a);
-    assertNoErrorsInResult();
+    assertErrorsInTestResult(result, const []);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -206,11 +206,13 @@ part 'b.dart';
 part of bar;
 ''');
 
-    await resolveFile2(b);
-    assertNoErrorsInResult();
+    var bResult = await resolveFile2(b);
+    assertErrorsInTestResult(bResult, const []);
 
     var result = await resolveFile2(a);
-    assertErrorsInResult([error(diag.partOfDifferentLibrary, 33, 8)]);
+    assertErrorsInTestResult(result, [
+      error(diag.partOfDifferentLibrary, 33, 8),
+    ]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -334,7 +336,7 @@ part 'c.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriDoesNotExist, 23, 8)]);
+    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 23, 8)]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -360,7 +362,7 @@ part ':net';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.invalidUri, 23, 6)]);
+    assertErrorsInTestResult(result, [error(diag.invalidUri, 23, 6)]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -386,7 +388,9 @@ part '${'foo'}.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriWithInterpolation, 23, 15)]);
+    assertErrorsInTestResult(result, [
+      error(diag.uriWithInterpolation, 23, 15),
+    ]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -422,7 +426,7 @@ part 'foo:bar';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriDoesNotExist, 23, 9)]);
+    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 23, 9)]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -451,12 +455,12 @@ part 'c.dart';
 part of my.lib;
 ''');
 
-    await resolveFile2(c);
-    assertErrorsInResult([error(diag.partOfName, 8, 6)]);
+    var cResult = await resolveFile2(c);
+    assertErrorsInTestResult(cResult, [error(diag.partOfName, 8, 6)]);
 
     // We already reported an error above.
     var result = await resolveFile2(b);
-    assertNoErrorsInResult();
+    assertErrorsInTestResult(result, const []);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -486,7 +490,7 @@ part of 'b.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertNoErrorsInResult();
+    assertErrorsInTestResult(result, const []);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -516,7 +520,9 @@ part of 'a.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.partOfDifferentLibrary, 23, 8)]);
+    assertErrorsInTestResult(result, [
+      error(diag.partOfDifferentLibrary, 23, 8),
+    ]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -544,7 +550,7 @@ part 'c.dart';
     newFile('$testPackageLibPath/c.dart', '');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.partOfNonPart, 23, 8)]);
+    assertErrorsInTestResult(result, [error(diag.partOfNonPart, 23, 8)]);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''

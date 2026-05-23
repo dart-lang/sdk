@@ -729,7 +729,7 @@ import 'c.dart';
 
     var result = await resolveFile2(b);
     // TODO(scheglov): update the hint.
-    // assertErrorsInResult([
+    // assertErrorsInTestResult(result, [
     //   error(WarningCode.UNUSED_IMPORT, 33, 8),
     // ]);
 
@@ -757,7 +757,7 @@ import 'c.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 8)]);
+    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 25, 8)]);
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -783,7 +783,7 @@ import ':net';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.invalidUri, 25, 6)]);
+    assertErrorsInTestResult(result, [error(diag.invalidUri, 25, 6)]);
 
     var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -809,7 +809,9 @@ import '${'foo'}.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriWithInterpolation, 25, 15)]);
+    assertErrorsInTestResult(result, [
+      error(diag.uriWithInterpolation, 25, 15),
+    ]);
 
     var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -845,7 +847,7 @@ import 'foo:bar';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 9)]);
+    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 25, 9)]);
 
     var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -875,7 +877,7 @@ part of my.lib;
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.importOfNonLibrary, 25, 8)]);
+    assertErrorsInTestResult(result, [error(diag.importOfNonLibrary, 25, 8)]);
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -905,7 +907,7 @@ part of 'b.dart';
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([error(diag.importOfNonLibrary, 25, 8)]);
+    assertErrorsInTestResult(result, [error(diag.importOfNonLibrary, 25, 8)]);
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''

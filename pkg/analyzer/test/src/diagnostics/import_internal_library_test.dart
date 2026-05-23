@@ -35,8 +35,8 @@ import 'dart:_internal';
     var file = newFile('$packageRootPath/lib/js.dart', '''
 import 'dart:_wasm';
 ''');
-    await resolveFile2(file);
-    assertErrorsInResolvedUnit(result, [error(diag.unusedImport, 7, 12)]);
+    var result = await resolveFile2(file);
+    assertErrorsInTestResult(result, [error(diag.unusedImport, 7, 12)]);
   }
 
   test_wasm_fromTest() async {
@@ -53,8 +53,8 @@ import 'dart:_wasm';
     var file = newFile('$packageRootPath/lib/ui.dart', '''
 import 'dart:_wasm';
 ''');
-    await resolveFile2(file);
-    assertErrorsInResolvedUnit(result, [error(diag.unusedImport, 7, 12)]);
+    var result = await resolveFile2(file);
+    assertErrorsInTestResult(result, [error(diag.unusedImport, 7, 12)]);
   }
 
   String _newPackage(String packageName) {

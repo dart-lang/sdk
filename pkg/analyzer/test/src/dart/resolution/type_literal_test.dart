@@ -7828,8 +7828,8 @@ class C<T> {
 }
 ''');
 
-    var thenNode = result.findNode.typeLiteral('T: 1');
-    assertResolvedNodeText(thenNode, r'''
+    var node2 = result.findNode.typeLiteral('T: 1');
+    assertResolvedNodeText(node2, r'''
 TypeLiteral
   type: NamedType
     name: T
@@ -7838,8 +7838,8 @@ TypeLiteral
   staticType: Type
 ''');
 
-    var elseNode = result.findNode.typeLiteral('Never: 2');
-    assertResolvedNodeText(elseNode, r'''
+    var node3 = result.findNode.typeLiteral('Never: 2');
+    assertResolvedNodeText(node3, r'''
 TypeLiteral
   type: NamedType
     name: Never

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +22,7 @@ main() {
 @reflectiveTest
 class ExperimentalExtendTest extends _TestBase {
   test_annotatedClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -39,7 +38,7 @@ class Bar extends Foo {}
   }
 
   test_annotatedClass_indirect() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -54,7 +53,7 @@ class Baz extends Bar {}
   }
 
   test_annotatedClass_typedef() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -69,7 +68,7 @@ class Bar extends Foo2 {}
   }
 
   test_annotatedClassTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -86,7 +85,7 @@ class Bar extends Foo {}
   }
 
   test_classTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -113,7 +112,7 @@ class Bar extends Foo {}
   }
 
   test_noAnnotation() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class Foo {}
 ''');
 
@@ -127,7 +126,7 @@ class Bar extends Foo {}
 @reflectiveTest
 class ExperimentalImplementTest extends _TestBase {
   test_annotatedClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -143,7 +142,7 @@ class Bar implements Foo {}
   }
 
   test_annotatedClass_indirect() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -158,7 +157,7 @@ class Baz implements Bar {}
   }
 
   test_annotatedClass_typedef() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -173,7 +172,7 @@ class Bar implements Foo2 {}
   }
 
   test_annotatedClassTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -190,7 +189,7 @@ class Bar implements Foo {}
   }
 
   test_classTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -207,7 +206,7 @@ class Bar = Object with M implements Foo;
   }
 
   test_enum() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -233,7 +232,7 @@ class Bar implements Foo {}
   }
 
   test_mixinImplementsClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -249,7 +248,7 @@ mixin Bar implements Foo {}
   }
 
   test_mixinOnClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -265,7 +264,7 @@ mixin Bar on Foo {}
   }
 
   test_noAnnotation() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class Foo {}
 ''');
 
@@ -279,7 +278,7 @@ class Bar implements Foo {}
 @reflectiveTest
 class ExperimentalInstantiateTest extends _TestBase {
   test_annotatedClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -295,7 +294,7 @@ var x = Foo();
   }
 
   test_annotatedClass_tearoff() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -311,7 +310,7 @@ var x = Foo.new;
   }
 
   test_annotatedClass_typedef() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -326,7 +325,7 @@ var x = Foo2();
   }
 
   test_annotatedClass_typedef_tearoff() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -341,7 +340,7 @@ var x = Foo2.new;
   }
 
   test_annotatedClassTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -368,7 +367,7 @@ var x = Foo();
   }
 
   test_noAnnotation() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class Foo {}
 ''');
 
@@ -382,7 +381,7 @@ var x = Foo();
 @reflectiveTest
 class ExperimentalMemberUseTest extends _TestBase {
   test_assignmentExpression_compound_experimentalGetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -402,7 +401,7 @@ void f() {
   }
 
   test_assignmentExpression_compound_experimentalSetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
@@ -422,7 +421,7 @@ void f() {
   }
 
   test_assignmentExpression_simple_experimentalGetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -440,7 +439,7 @@ void f() {
   }
 
   test_assignmentExpression_simple_experimentalGetterSetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -458,7 +457,7 @@ void f() {
   }
 
   test_assignmentExpression_simple_experimentalSetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
@@ -478,7 +477,7 @@ void f() {
   }
 
   test_call() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -498,7 +497,7 @@ void f(A a) {
   }
 
   test_class() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -514,7 +513,7 @@ void f(A a) {}
   }
 
   test_class_inExperimentalFunctionTypeAlias() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -531,7 +530,7 @@ typedef A T();
   }
 
   test_class_inExperimentalGenericTypeAlias() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -548,7 +547,7 @@ typedef T = A Function();
   }
 
   test_compoundAssignment() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -568,7 +567,7 @@ f(A a, A b) {
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_experimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -594,7 +593,7 @@ void f() {
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_unexperimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -616,7 +615,7 @@ void f() {
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_unexperimentalNamedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -638,7 +637,7 @@ void f() {
   }
 
   test_dotShorthandConstructorInvocation_namedConstructor() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -659,7 +658,7 @@ f() {
   }
 
   test_dotShorthandConstructorInvocation_unexperimentalClass_experimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -681,7 +680,7 @@ void f() {
   }
 
   test_experimentalField_inObjectPattern_explicitName() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -703,7 +702,7 @@ int g(Object s) =>
   }
 
   test_experimentalField_inObjectPattern_inferredName() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -725,7 +724,7 @@ int g(Object s) =>
   }
 
   test_export() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -752,7 +751,7 @@ export 'lib2.dart';
   }
 
   test_extensionOverride() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -772,7 +771,7 @@ void f() {
   }
 
   test_field_implicitGetter() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -793,7 +792,7 @@ void f(A a) {
   }
 
   test_field_implicitSetter() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -814,7 +813,7 @@ void f(A a) {
   }
 
   test_field_inExperimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -838,7 +837,7 @@ class B extends A {
   }
 
   test_hideCombinator() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -851,7 +850,7 @@ import 'package:aaa/a.dart' hide A;
   }
 
   test_import() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -889,7 +888,7 @@ const z = C(x: '');
   }
 
   test_indexExpression() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -909,7 +908,7 @@ void f(A a) {
   }
 
   test_inEnum() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -931,7 +930,7 @@ enum E {
   }
 
   test_inExperimentalClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -952,7 +951,7 @@ class C {
   }
 
   test_inExperimentalDefaultFormalParameter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -970,7 +969,7 @@ f({@experimental C? c = const C()}) {}
   }
 
   test_inExperimentalEnum() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -993,7 +992,7 @@ enum E {
   }
 
   test_inExperimentalExtension() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1014,7 +1013,7 @@ extension E on int {
   }
 
   test_inExperimentalExtensionType() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1035,7 +1034,7 @@ extension type E(int i) {
   }
 
   test_inExperimentalField() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1055,7 +1054,7 @@ class X {
   }
 
   test_inExperimentalFieldFormalParameter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1074,7 +1073,7 @@ class A {
   }
 
   test_inExperimentalFunction() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1093,7 +1092,7 @@ g() {
   }
 
   test_inExperimentalFunctionTypedFormalParameter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1109,7 +1108,7 @@ f({@experimental C? callback()?}) {}
   }
 
   test_inExperimentalLibrary() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1130,7 +1129,7 @@ class C {
   }
 
   test_inExperimentalMethod() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1151,7 +1150,7 @@ class C {
   }
 
   test_inExperimentalMethod_inExperimentalClass() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1173,7 +1172,7 @@ class C {
   }
 
   test_inExperimentalMixin() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1194,7 +1193,7 @@ mixin M {
   }
 
   test_inExperimentalSimpleFormalParameter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1210,7 +1209,7 @@ f({@experimental C? c}) {}
   }
 
   test_inExperimentalSuperFormalParameter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1231,7 +1230,7 @@ class B extends A {
   }
 
   test_inExperimentalTopLevelVariable() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1249,7 +1248,7 @@ C v = x;
   }
 
   test_inExtension() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1269,7 +1268,7 @@ extension E on int {
   }
 
   test_instanceCreation_experimentalClass_experimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1291,7 +1290,7 @@ void f() {
   }
 
   test_instanceCreation_experimentalClass_unexperimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1312,7 +1311,7 @@ void f() {
   }
 
   test_instanceCreation_experimentalClass_unexperimentalNamedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1333,7 +1332,7 @@ void f() {
   }
 
   test_instanceCreation_namedConstructor() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1351,7 +1350,7 @@ var a = A.named(1);
   }
 
   test_instanceCreation_namedConstructor_primary() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A.named() {
@@ -1369,7 +1368,7 @@ var a = A.named();
   }
 
   test_instanceCreation_unexperimentalClass_experimentalConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1390,26 +1389,28 @@ void f() {
   }
 
   test_instanceCreation_unnamedConstructor() async {
-    await assertErrorsInCode2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
   @experimental
   A(int i) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f() {
   return new A(1);
+//           ^
+// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
-''',
-      [error(diag.experimentalMemberUse, 48, 1)],
-    );
+''');
   }
 
   test_methodInvocation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1430,7 +1431,7 @@ void f(A a) {
   }
 
   test_methodInvocation_constantAnnotation() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1446,7 +1447,7 @@ var x = f();
   }
 
   test_methodInvocation_constructorAnnotation() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1497,7 +1498,7 @@ class A {
   }
 
   test_mixin_inExperimentalClassTypeAlias() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1531,7 +1532,7 @@ var z = C(x: '');
   }
 
   test_operator() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1551,7 +1552,7 @@ f(A a, A b) {
   }
 
   test_parameter_named() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 void f({@experimental int x = 0}) {}
@@ -1598,7 +1599,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_inFieldFormalParameter_notName() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {}
@@ -1683,7 +1684,7 @@ class C({@experimental int y = 0}) {
   }
 
   test_parameter_named_ofFunction() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 void foo({@experimental int a}) {}
@@ -1701,7 +1702,7 @@ void f() {
   }
 
   test_parameter_named_ofMethod() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1721,7 +1722,7 @@ void f(A a) {
   }
 
   test_parameter_positionalOptional() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1740,7 +1741,7 @@ void f(A a) {
   }
 
   test_parameter_positionalOptional_inExperimentalConstructor() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 void foo([@experimental int x = 0]) {}
@@ -1760,7 +1761,7 @@ class A {
   }
 
   test_parameter_positionalOptional_inExperimentalFunction() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1780,7 +1781,7 @@ void f(A a) {
   }
 
   test_parameter_positionalOptional_inExperimentalPrimaryConstructor() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 void foo([@experimental int x = 0]) {}
@@ -1800,7 +1801,7 @@ class A() {
   }
 
   test_parameter_positionalRequired() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1817,7 +1818,7 @@ void f(A a) {
   }
 
   test_postfixExpression_experimentalGetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1837,7 +1838,7 @@ void f() {
   }
 
   test_postfixExpression_experimentalNothing() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 int get x => 0;
 
 set x(int _) {}
@@ -1852,7 +1853,7 @@ void f() {
   }
 
   test_postfixExpression_experimentalSetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
@@ -1872,7 +1873,7 @@ void f() {
   }
 
   test_prefixedIdentifier_identifier() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1892,7 +1893,7 @@ void f() {
   }
 
   test_prefixedIdentifier_prefix() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1912,7 +1913,7 @@ void f() {
   }
 
   test_prefixExpression_experimentalGetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -1932,7 +1933,7 @@ void f() {
   }
 
   test_prefixExpression_experimentalSetter() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 int get x => 0;
@@ -1952,7 +1953,7 @@ void f() {
   }
 
   test_propertyAccess_super() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -1985,7 +1986,7 @@ class A {
   }
 
   test_setterInvocation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -2005,7 +2006,7 @@ void f(A a) {
   }
 
   test_showCombinator() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2020,7 +2021,7 @@ import 'package:aaa/a.dart' show A;
   }
 
   test_superConstructor_namedConstructor() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -2040,7 +2041,7 @@ class B extends A {
   }
 
   test_superConstructor_unnamedConstructor() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -2060,7 +2061,7 @@ class B extends A {
   }
 
   test_topLevelVariable_argument() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2078,7 +2079,7 @@ void f() {
   }
 
   test_topLevelVariable_assignment_right() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2096,7 +2097,7 @@ void f(int a) {
   }
 
   test_topLevelVariable_binaryExpression() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2114,7 +2115,7 @@ void f() {
   }
 
   test_topLevelVariable_constructorFieldInitializer() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2133,7 +2134,7 @@ class A {
   }
 
   test_topLevelVariable_expressionFunctionBody() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2149,7 +2150,7 @@ int f() => x;
   }
 
   test_topLevelVariable_expressionStatement() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2167,7 +2168,7 @@ void f() {
   }
 
   test_topLevelVariable_forElement_condition() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2185,7 +2186,7 @@ void f() {
   }
 
   test_topLevelVariable_forStatement_condition() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2203,7 +2204,7 @@ void f() {
   }
 
   test_topLevelVariable_ifElement_condition() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2221,7 +2222,7 @@ void f() {
   }
 
   test_topLevelVariable_ifStatement_condition() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2239,7 +2240,7 @@ void f() {
   }
 
   test_topLevelVariable_listLiteral() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2257,7 +2258,7 @@ void f() {
   }
 
   test_topLevelVariable_mapLiteralEntry() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2277,7 +2278,7 @@ void f() {
   }
 
   test_topLevelVariable_namedExpression() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2296,7 +2297,7 @@ void f() {
   }
 
   test_topLevelVariable_returnStatement() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2314,7 +2315,7 @@ int f() {
   }
 
   test_topLevelVariable_setLiteral() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2332,7 +2333,7 @@ void f() {
   }
 
   test_topLevelVariable_spreadElement() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2350,7 +2351,7 @@ void f() {
   }
 
   test_topLevelVariable_switchCase() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2371,7 +2372,7 @@ void f(int a) {
   }
 
   test_topLevelVariable_switchCase_language219() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2392,7 +2393,7 @@ void f(int a) {
   }
 
   test_topLevelVariable_switchStatement() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2410,7 +2411,7 @@ void f() {
   }
 
   test_topLevelVariable_switchStatement_language219() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2428,7 +2429,7 @@ void f() {
   }
 
   test_topLevelVariable_unaryExpression() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2446,7 +2447,7 @@ void f() {
   }
 
   test_topLevelVariable_variableDeclaration_initializer() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2465,7 +2466,7 @@ void f() {
   }
 
   test_topLevelVariable_whileStatement_condition() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2492,7 +2493,7 @@ void f() {
 @reflectiveTest
 class ExperimentalMixinTest extends _TestBase {
   test_annotatedClass_typedef() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2509,7 +2510,7 @@ class Bar with Foo {}
   }
 
   test_annotatedClassTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 mixin M {}
 import 'package:meta/meta.dart';
 
@@ -2526,7 +2527,7 @@ class Bar with Foo {}
   }
 
   test_class() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2542,7 +2543,7 @@ class Bar with Foo {}
   }
 
   test_classTypeAlias() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2558,7 +2559,7 @@ class Bar = Object with Foo;
   }
 
   test_enum() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
 @experimental
@@ -2586,7 +2587,7 @@ class Bar with Foo {}
   }
 
   test_noAnnotation() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 mixin class Foo {}
 ''');
 
@@ -2598,34 +2599,7 @@ class Bar with Foo {}
 }
 
 class _TestBase extends PubPackageResolutionTest {
-  String get externalLibPath => '$workspaceRootPath/aaa/lib/a.dart';
-
-  String get externalLibUri => 'package:aaa/a.dart';
-
-  Future<void> assertErrorsInCode2(
-    List<ExpectedDiagnostic> expectedErrors, {
-    required String externalCode,
-    required String code,
-  }) async {
-    newFile(externalLibPath, externalCode);
-
-    await assertErrorsInCode('''
-import '$externalLibUri';
-$code
-''', expectedErrors);
-  }
-
-  Future<void> resolveTestCodeWithDiagnostics2({
-    required String externalCode,
-    required String code,
-  }) async {
-    newFile(externalLibPath, externalCode);
-
-    await resolveTestCodeWithDiagnostics('''
-import '$externalLibUri';
-$code
-''');
-  }
+  String get aaaPackageRootPath => '$workspaceRootPath/aaa';
 
   @override
   void setUp() {
@@ -2633,7 +2607,7 @@ $code
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
       meta: true,
     );
   }

@@ -87,8 +87,8 @@ class C {}
 @ann
 extension E on C {}
 ''');
-    var annotation = result.findNode.annotation('@ann');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@ann');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -224,8 +224,8 @@ f(C c) {
   c.a;
 }
 ''');
-    var access = result.findNode.prefixed('c.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
@@ -259,8 +259,8 @@ f(Object o, A a) {
   o.a;
 }
 ''');
-    var access = result.findNode.prefixed('o.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('o.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: o
@@ -293,8 +293,8 @@ f(C c) {
   c.a;
 }
 ''');
-    var access = result.findNode.prefixed('c.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
@@ -323,8 +323,8 @@ f(C c) {
   c.a;
 }
 ''');
-    var access = result.findNode.prefixed('c.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
@@ -355,8 +355,8 @@ f(C c) {
   c.a;
 }
 ''');
-    var access = result.findNode.prefixed('c.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
@@ -413,8 +413,8 @@ class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
 class C<T> {}
 extension E<S> on C<S> {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('C<S>');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('C<S>');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: C
   typeArguments: TypeArgumentList
@@ -434,8 +434,8 @@ NamedType
     var result = await resolveTestCodeWithDiagnostics('''
 extension E on dynamic {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('dynamic');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('dynamic');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
   element: dynamic
@@ -448,8 +448,8 @@ NamedType
 enum A {a, b, c}
 extension E on A {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('A {}');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('A {}');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: A
   element: <testLibrary>::@enum::A
@@ -461,8 +461,8 @@ NamedType
     var result = await resolveTestCodeWithDiagnostics('''
 extension E on int Function(int) {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('Function');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('Function');
+    assertResolvedNodeText(node, r'''
 GenericFunctionType
   returnType: NamedType
     name: int
@@ -500,8 +500,8 @@ extension E on C {}
 
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    var extendedType = result.findNode.typeAnnotation('C {}');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('C {}');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: C
   element: <testLibrary>::@class::C
@@ -515,8 +515,8 @@ mixin M {
 }
 extension E on M {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('M {}');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('M {}');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: M
   element: <testLibrary>::@mixin::M
@@ -529,8 +529,8 @@ NamedType
 class C<T> {}
 extension<S> on C<S> {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('C<S>');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('C<S>');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: C
   typeArguments: TypeArgumentList
@@ -550,8 +550,8 @@ NamedType
     var result = await resolveTestCodeWithDiagnostics('''
 extension on dynamic {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('dynamic');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('dynamic');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
   element: dynamic
@@ -564,8 +564,8 @@ NamedType
 enum A {a, b, c}
 extension on A {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('A {}');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('A {}');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: A
   element: <testLibrary>::@enum::A
@@ -577,8 +577,8 @@ NamedType
     var result = await resolveTestCodeWithDiagnostics('''
 extension on int Function(String) {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('Function');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('Function');
+    assertResolvedNodeText(node, r'''
 GenericFunctionType
   returnType: NamedType
     name: int
@@ -613,8 +613,8 @@ GenericFunctionType
 class C { }
 extension on C {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('C {}');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('C {}');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: C
   element: <testLibrary>::@class::C
@@ -628,8 +628,8 @@ mixin M {
 }
 extension on M {}
 ''');
-    var extendedType = result.findNode.typeAnnotation('M {}');
-    assertResolvedNodeText(extendedType, r'''
+    var node = result.findNode.typeAnnotation('M {}');
+    assertResolvedNodeText(node, r'''
 NamedType
   name: M
   element: <testLibrary>::@mixin::M
@@ -674,8 +674,8 @@ f(C c) {
   c(2);
 }
 ''');
-    var invocation = result.findNode.functionExpressionInvocation('c(2)');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.functionExpressionInvocation('c(2)');
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
@@ -707,8 +707,8 @@ f(C c) {
   c(2);
 }
 ''');
-    var invocation = result.findNode.functionExpressionInvocation('c(2)');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.functionExpressionInvocation('c(2)');
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
@@ -738,8 +738,8 @@ f() {
   1(2);
 }
 ''');
-    var invocation = result.findNode.functionExpressionInvocation('1(2)');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.functionExpressionInvocation('1(2)');
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: IntegerLiteral
     literal: 1
@@ -770,8 +770,8 @@ f(C c) {
   c += 2;
 }
 ''');
-    var assignment = result.findNode.assignment('+=');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('+=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
@@ -801,8 +801,8 @@ f(C c) {
   c += 2;
 }
 ''');
-    var assignment = result.findNode.assignment('+=');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('+=');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
@@ -834,8 +834,8 @@ extension E2<T extends B> on T {
   }
 }
 ''');
-    var identifier = result.findNode.simple('g;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('g;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: g
   element: <testLibrary>::@extension::E1::@getter::g
@@ -855,8 +855,8 @@ extension E2 on C {
   }
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E1::@getter::a
@@ -875,8 +875,8 @@ extension E<T extends B> on T {
   }
 }
 ''');
-    var identifier = result.findNode.simple('g;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('g;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: g
   element: <testLibrary>::@class::B::@getter::g
@@ -895,8 +895,8 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@getter::a
@@ -913,8 +913,8 @@ g(int Function(int) f) {
   f.a;
 }
 ''');
-    var access = result.findNode.prefixed('f.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('f.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
@@ -942,8 +942,8 @@ f(C c) {
   c.a;
 }
 ''');
-    var access = result.findNode.prefixed('c.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
@@ -1001,8 +1001,8 @@ f(Never a) {
 // [diag.deadCode] Dead code.
 }
 ''');
-    var access = result.findNode.prefixed('a.foo');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('a.foo');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
@@ -1028,8 +1028,8 @@ f(int? a) {
   a.foo;
 }
 ''');
-    var access = result.findNode.prefixed('a.foo');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('a.foo');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
@@ -1055,8 +1055,8 @@ f(int? a) {
   a?.foo;
 }
 ''');
-    var access = result.findNode.propertyAccess('foo;');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
     token: a
@@ -1083,8 +1083,8 @@ f(C c) {
   c.a(0);
 }
 ''');
-    var invocation = result.findNode.functionExpressionInvocation('c.a(0)');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.functionExpressionInvocation('c.a(0)');
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
@@ -1127,8 +1127,8 @@ f(B b) {
   b.a;
 }
 ''');
-    var access = result.findNode.prefixed('b.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.prefixed('b.a');
+    assertResolvedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: b
@@ -1153,8 +1153,8 @@ g(int Function(int) f) {
   f.a();
 }
 ''');
-    var invocation = result.findNode.functionExpressionInvocation('f.a()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.functionExpressionInvocation('f.a()');
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
@@ -1188,8 +1188,8 @@ extension E2<T extends B> on T {
   }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('m();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('m();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
@@ -1215,8 +1215,8 @@ extension E2 on B {
   }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -1241,8 +1241,8 @@ extension E<T extends B> on T {
   }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('m();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('m();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
@@ -1267,8 +1267,8 @@ extension E on B {
   void a() {}
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -1291,8 +1291,8 @@ g(int Function(int) f) {
   f.a();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('f.a()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('f.a()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: f
@@ -1323,8 +1323,8 @@ f(B b) {
   b.a();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('b.a()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('b.a()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: b
@@ -1396,7 +1396,7 @@ void f() {
 ''');
 
     var result = await resolveFile2(b);
-    assertErrorsInResult([]);
+    assertErrorsInTestResult(result, []);
 
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -1462,8 +1462,8 @@ f(int? a) {
   a.foo();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a.foo()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
@@ -1492,8 +1492,8 @@ f(int? a) {
   null.foo();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('null.foo()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('null.foo()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: NullLiteral
     literal: null
@@ -1521,8 +1521,8 @@ f(int? a) {
   a?.foo();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a?.foo()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a?.foo()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: a
@@ -1551,8 +1551,8 @@ f() {
   null.foo();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('null.foo()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('null.foo()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: NullLiteral
     literal: null
@@ -1580,8 +1580,8 @@ void f() {
   0._foo();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('_foo();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('_foo();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: IntegerLiteral
     literal: 0
@@ -1616,8 +1616,8 @@ void f() {
 }
 ''');
 
-    var invocation = result.findNode.methodInvocation('_foo();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('_foo();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: IntegerLiteral
     literal: 0
@@ -1652,8 +1652,8 @@ f(B b) {
 }
 ''');
 
-    var invocation = result.findNode.methodInvocation('b.a()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('b.a()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: b
@@ -1692,8 +1692,8 @@ f(B<C> x, C o) {
   x.f(o);
 }
 ''');
-    var invocation = result.findNode.methodInvocation('x.f(o)');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('x.f(o)');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: x
@@ -1732,8 +1732,8 @@ f(C c) {
   c + 2;
 }
 ''');
-    var binary = result.findNode.binary('+ ');
-    assertResolvedNodeText(binary, r'''
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
@@ -1759,8 +1759,8 @@ g(int Function(int) f) {
   f + 2;
 }
 ''');
-    var binary = result.findNode.binary('+ ');
-    assertResolvedNodeText(binary, r'''
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
@@ -1787,8 +1787,8 @@ f(C c) {
   c + 2;
 }
 ''');
-    var binary = result.findNode.binary('+ ');
-    assertResolvedNodeText(binary, r'''
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
@@ -1817,8 +1817,8 @@ f(A? a) {
   a + 1;
 }
 ''');
-    var binary = result.findNode.binary('a + 1');
-    assertResolvedNodeText(binary, r'''
+    var node = result.findNode.binary('a + 1');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1859,8 +1859,8 @@ f(C c) {
   c[2];
 }
 ''');
-    var index = result.findNode.index('c[2]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('c[2]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: c
@@ -1886,8 +1886,8 @@ g(int Function(int) f) {
   f[2];
 }
 ''');
-    var index = result.findNode.index('f[2]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('f[2]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: f
@@ -1914,8 +1914,8 @@ f(C c) {
   c[2];
 }
 ''');
-    var index = result.findNode.index('c[2]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('c[2]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: c
@@ -1942,8 +1942,8 @@ f(int? a) {
   a[0];
 }
 ''');
-    var index = result.findNode.index('a[0]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('a[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -1970,8 +1970,8 @@ f(int? a) {
   a?[0];
 }
 ''');
-    var index = result.findNode.index('a?[0]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('a?[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: SimpleIdentifier
     token: a
@@ -2001,8 +2001,8 @@ f(C c) {
   c[2] = 1;
 }
 ''');
-    var assignment = result.findNode.assignment('[2] =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('[2] =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -2040,8 +2040,8 @@ g(int Function(int) f) {
   f[2] = 3;
 }
 ''');
-    var assignment = result.findNode.assignment('f[2]');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('f[2]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -2080,8 +2080,8 @@ f(C c) {
   c[2] = 3;
 }
 ''');
-    var assignment = result.findNode.assignment('c[2]');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('c[2]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
@@ -2122,8 +2122,8 @@ f(C c) {
   c++;
 }
 ''');
-    var postfix = result.findNode.postfix('++');
-    assertResolvedNodeText(postfix, r'''
+    var node = result.findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: c
@@ -2148,8 +2148,8 @@ g(int Function(int) f) {
   f++;
 }
 ''');
-    var postfix = result.findNode.postfix('++');
-    assertResolvedNodeText(postfix, r'''
+    var node = result.findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: f
@@ -2175,8 +2175,8 @@ f(C c) {
   c++;
 }
 ''');
-    var postfix = result.findNode.postfix('++');
-    assertResolvedNodeText(postfix, r'''
+    var node = result.findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: c
@@ -2204,8 +2204,8 @@ f(A? a) {
   a++;
 }
 ''');
-    var expression = result.findNode.postfix('a++');
-    assertResolvedNodeText(expression, r'''
+    var node = result.findNode.postfix('a++');
+    assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: SimpleIdentifier
     token: a
@@ -2233,8 +2233,8 @@ f(C c) {
   ++c;
 }
 ''');
-    var prefix = result.findNode.prefix('++');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('++');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2259,8 +2259,8 @@ g(int Function(int) f) {
   ++f;
 }
 ''');
-    var prefix = result.findNode.prefix('++');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('++');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2286,8 +2286,8 @@ f(C c) {
   ++c;
 }
 ''');
-    var prefix = result.findNode.prefix('++');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('++');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2315,8 +2315,8 @@ f(A? a) {
   ++a;
 }
 ''');
-    var expression = result.findNode.prefix('++a');
-    assertResolvedNodeText(expression, r'''
+    var node = result.findNode.prefix('++a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -2344,8 +2344,8 @@ f(C c) {
   -c;
 }
 ''');
-    var prefix = result.findNode.prefix('-c');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('-c');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2366,8 +2366,8 @@ g(int Function(int) f) {
   -f;
 }
 ''');
-    var prefix = result.findNode.prefix('-f');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('-f');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2389,8 +2389,8 @@ f(C c) {
   -c;
 }
 ''');
-    var prefix = result.findNode.prefix('-c');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('-c');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2414,8 +2414,8 @@ f(A? a) {
   -a;
 }
 ''');
-    var expression = result.findNode.prefix('-a');
-    assertResolvedNodeText(expression, r'''
+    var node = result.findNode.prefix('-a');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: SimpleIdentifier
@@ -2436,8 +2436,8 @@ g(int Function(int) f) {
   f.a = 1;
 }
 ''');
-    var assignment = result.findNode.assignment('a = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2517,7 +2517,8 @@ f(int? a) {
   a.foo = 1;
 }
 ''');
-    assertResolvedNodeText(result.findNode.assignment('foo = 1'), r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2555,7 +2556,8 @@ f(int? a) {
   a?.foo = 1;
 }
 ''');
-    assertResolvedNodeText(result.findNode.assignment('foo = 1'), r'''
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: SimpleIdentifier
@@ -2594,8 +2596,8 @@ f(C c) {
   c.a = 1;
 }
 ''');
-    var assignment = result.findNode.assignment('a = 1');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 1');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3244,8 +3246,8 @@ f() {
   p.E.a();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('E.a()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('E.a()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -3284,8 +3286,8 @@ f() {
   E.a();
 }
 ''');
-    var invocation = result.findNode.methodInvocation('E.a()');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('E.a()');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
     token: E
@@ -3377,8 +3379,8 @@ f() {
   p.E.a = 3;
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -3425,8 +3427,8 @@ f() {
   E.a = 3;
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4028,8 +4030,8 @@ extension E on C {
   int m() => this(2);
 }
 ''');
-    var invocation = result.findNode.functionExpressionInvocation('this(2)');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.functionExpressionInvocation('this(2)');
+    assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ThisExpression
     thisKeyword: this
@@ -4063,8 +4065,8 @@ extension E2 on int {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('foo = 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('foo = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
@@ -4095,8 +4097,8 @@ extension E on C {
   int m() => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@getter::a
@@ -4115,8 +4117,8 @@ extension E on C {
   int m() => this.a;
 }
 ''');
-    var access = result.findNode.propertyAccess('this.a');
-    assertResolvedNodeText(access, r'''
+    var node = result.findNode.propertyAccess('this.a');
+    assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
     thisKeyword: this
@@ -4165,8 +4167,8 @@ extension E on C {
   void b() { a(); }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -4190,8 +4192,8 @@ extension E on C {
   void b() { this.a(); }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('this.a');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('this.a');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
     thisKeyword: this
@@ -4217,8 +4219,8 @@ extension E on C {
   void b() { this.a(); }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('this.a');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('this.a');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ThisExpression
     thisKeyword: this
@@ -4246,8 +4248,8 @@ extension E on C {
   void b() { this + 2; }
 }
 ''');
-    var binary = result.findNode.binary('+ ');
-    assertResolvedNodeText(binary, r'''
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -4271,8 +4273,8 @@ extension E on C {
   void b() { this + 2; }
 }
 ''');
-    var binary = result.findNode.binary('+ ');
-    assertResolvedNodeText(binary, r'''
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -4298,8 +4300,8 @@ extension E on C {
   void b() { this[2]; }
 }
 ''');
-    var index = result.findNode.index('this[2]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('this[2]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: ThisExpression
     thisKeyword: this
@@ -4323,8 +4325,8 @@ extension E on C {
   void b() { this[2]; }
 }
 ''');
-    var index = result.findNode.index('this[2]');
-    assertResolvedNodeText(index, r'''
+    var node = result.findNode.index('this[2]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: ThisExpression
     thisKeyword: this
@@ -4350,8 +4352,8 @@ extension E on C {
   void b() { this[2] = 1; }
 }
 ''');
-    var assignment = result.findNode.assignment('this[2]');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('this[2]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: ThisExpression
@@ -4387,8 +4389,8 @@ extension E on C {
   void b() { this[2] = 3; }
 }
 ''');
-    var assignment = result.findNode.assignment('this[2]');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('this[2]');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: ThisExpression
@@ -4426,8 +4428,8 @@ extension E on C {
   void b() { -this; }
 }
 ''');
-    var prefix = result.findNode.prefix('-this');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('-this');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: ThisExpression
@@ -4446,8 +4448,8 @@ extension E on C {
   void b() { -this; }
 }
 ''');
-    var prefix = result.findNode.prefix('-this');
-    assertResolvedNodeText(prefix, r'''
+    var node = result.findNode.prefix('-this');
+    assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: -
   operand: ThisExpression
@@ -4495,8 +4497,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
@@ -4529,8 +4531,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ThisExpression
@@ -4567,8 +4569,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: ThisExpression
@@ -4603,8 +4605,8 @@ extension E on C {
   get b => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@method::a
@@ -4621,8 +4623,8 @@ extension E on C {
   get c => this.a;
 }
 ''');
-    var identifier = result.findNode.propertyAccess('this.a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.propertyAccess('this.a;');
+    assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ThisExpression
     thisKeyword: this
@@ -4645,8 +4647,8 @@ extension E on C {
   int m() => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@getter::a
@@ -4663,8 +4665,8 @@ extension E on C {
   static int m() => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@getter::a
@@ -4681,8 +4683,8 @@ extension E on C {
   int m() => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@getter::a
@@ -4699,8 +4701,8 @@ extension E on C {
   static int m() => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@getter::a
@@ -4716,8 +4718,8 @@ extension E on C {
   void b() { a(); }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -4739,8 +4741,8 @@ extension E on C {
   static void b() { a(); }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -4765,8 +4767,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
@@ -4797,8 +4799,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 3');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
@@ -4827,8 +4829,8 @@ extension E on C {
   get b => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@method::a
@@ -4845,8 +4847,8 @@ extension E on C {
   static get c => a;
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@extension::E::@method::a
@@ -4868,8 +4870,8 @@ extension E on C {
   }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -4897,8 +4899,8 @@ extension E on C {
   }
 }
 ''');
-    var invocation = result.findNode.methodInvocation('a();');
-    assertResolvedNodeText(invocation, r'''
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
@@ -4926,8 +4928,8 @@ extension E on C {
   }
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@getter::a
@@ -4949,8 +4951,8 @@ extension E on C {
   }
 }
 ''');
-    var identifier = result.findNode.simple('a;');
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@getter::a
@@ -4972,8 +4974,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
@@ -5007,8 +5009,8 @@ extension E on C {
   }
 }
 ''');
-    var assignment = result.findNode.assignment('a = 0');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('a = 0');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a

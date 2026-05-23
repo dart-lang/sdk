@@ -249,8 +249,8 @@ void f2(void p2()?) {}
 void f3({void p3()?}) {}
 ''');
 
-    var p1 = result.findNode.formalParameterList('p1');
-    assertResolvedNodeText(p1, r'''
+    var node1 = result.findNode.formalParameterList('p1');
+    assertResolvedNodeText(node1, r'''
 FormalParameterList
   leftParenthesis: (
   parameter: RegularFormalParameter
@@ -269,8 +269,8 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p2 = result.findNode.formalParameterList('p2');
-    assertResolvedNodeText(p2, r'''
+    var node2 = result.findNode.formalParameterList('p2');
+    assertResolvedNodeText(node2, r'''
 FormalParameterList
   leftParenthesis: (
   parameter: RegularFormalParameter
@@ -290,8 +290,8 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p3 = result.findNode.formalParameterList('p3');
-    assertResolvedNodeText(p3, r'''
+    var node3 = result.findNode.formalParameterList('p3');
+    assertResolvedNodeText(node3, r'''
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
@@ -326,8 +326,8 @@ class A {
 }
 ''');
 
-    var f1 = result.findNode.formalParameterList('f1()');
-    assertResolvedNodeText(f1, r'''
+    var node1 = result.findNode.formalParameterList('f1()');
+    assertResolvedNodeText(node1, r'''
 FormalParameterList
   leftParenthesis: (
   parameter: FieldFormalParameter
@@ -349,8 +349,8 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var f2 = result.findNode.formalParameterList('f2()');
-    assertResolvedNodeText(f2, r'''
+    var node2 = result.findNode.formalParameterList('f2()');
+    assertResolvedNodeText(node2, r'''
 FormalParameterList
   leftParenthesis: (
   parameter: FieldFormalParameter
@@ -373,8 +373,8 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var f3 = result.findNode.formalParameterList('f3()');
-    assertResolvedNodeText(f3, r'''
+    var node3 = result.findNode.formalParameterList('f3()');
+    assertResolvedNodeText(node3, r'''
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
@@ -415,8 +415,8 @@ f() {
 }
 ''');
 
-    var p1 = result.findNode.formalParameterList('p1');
-    assertResolvedNodeText(p1, r'''
+    var node1 = result.findNode.formalParameterList('p1');
+    assertResolvedNodeText(node1, r'''
 FormalParameterList
   leftParenthesis: (
   parameter: RegularFormalParameter
@@ -435,8 +435,8 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p2 = result.findNode.formalParameterList('p2');
-    assertResolvedNodeText(p2, r'''
+    var node2 = result.findNode.formalParameterList('p2');
+    assertResolvedNodeText(node2, r'''
 FormalParameterList
   leftParenthesis: (
   parameter: RegularFormalParameter
@@ -456,8 +456,8 @@ FormalParameterList
   rightParenthesis: )
 ''');
 
-    var p3 = result.findNode.formalParameterList('p3');
-    assertResolvedNodeText(p3, r'''
+    var node3 = result.findNode.formalParameterList('p3');
+    assertResolvedNodeText(node3, r'''
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {

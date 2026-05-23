@@ -458,7 +458,7 @@ void main() {
   }
 
   test_locate_LibraryElement() async {
-    await resolveTestCode('// only comment');
+    var result = await resolveTestCode('// only comment');
 
     var element = ElementLocator.locate(result.unit);
     _assertElement(element, r'''

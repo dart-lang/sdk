@@ -473,7 +473,7 @@ class B {
 
   Future<TestResolvedUnitResult> _assertCanBeAnalyzed(String text) async {
     var result = await resolveTestCode(text);
-    assertHasTestErrors();
+    assertHasTestErrors(result);
     return result;
   }
 }

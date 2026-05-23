@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'completion/test_all.dart' as completion;
 import 'correction/test_all.dart' as correction;
 import 'flutter/test_all.dart' as flutter;
+import 'interactive_forms/test_all.dart' as interactive_forms;
 import 'refactoring/test_all.dart' as refactoring;
 
 void main() {
@@ -14,6 +15,7 @@ void main() {
     completion.main();
     correction.main();
     flutter.main();
+    interactive_forms.main();
     refactoring.main();
   }, name: 'services');
 }

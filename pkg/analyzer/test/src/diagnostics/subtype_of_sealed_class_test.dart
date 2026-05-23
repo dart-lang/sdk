@@ -160,14 +160,14 @@ import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    await resolveFileCode('$testPackageLibPath/src/b.dart', r'''
+    var result = await resolveFileCode('$testPackageLibPath/src/b.dart', r'''
 import '../a.dart';
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   test_withinPackageTestDirectory_language219() async {
@@ -177,15 +177,18 @@ import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    await resolveFileCode('$testPackageRootPath/test/test.dart', r'''
+    var result = await resolveFileCode(
+      '$testPackageRootPath/test/test.dart',
+      r'''
 import 'package:test/a.dart';
 
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
-''');
-    assertNoErrorsInResult();
+''',
+    );
+    assertNoErrorsInTestResult(result);
   }
 
   test_withinPart_language219() async {
@@ -205,10 +208,10 @@ class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
 
-    await resolveFile2(lib);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(lib);
+    assertNoErrorsInTestResult(result);
 
-    await resolveFile2(part);
-    assertNoErrorsInResult();
+    result = await resolveFile2(part);
+    assertNoErrorsInTestResult(result);
   }
 }

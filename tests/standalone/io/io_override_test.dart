@@ -349,9 +349,22 @@ void emptyIOOverride() {
   );
 }
 
-main() async {
+Future<void> emptyIOOverrideAsync() async {
+  await IOOverrides.runWithIOOverrides(
+    () async => Expect.equals(
+      await FileSystemEntity.type('/'),
+      FileSystemEntityType.directory,
+    ),
+    EmptyOverride(),
+  );
+}
+
+void main() async {
+  asyncStart();
   await ioOverridesRunTest();
   globalIOOverridesTest();
   globalIOOverridesZoneTest();
   emptyIOOverride();
+  await emptyIOOverrideAsync();
+  asyncEnd();
 }

@@ -540,7 +540,8 @@ int Function() foo(int Function<T extends int>() f) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.functionReference('f;'), r'''
+    var node = result.findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
     token: f

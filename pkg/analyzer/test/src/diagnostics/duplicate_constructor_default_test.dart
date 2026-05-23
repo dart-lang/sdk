@@ -33,11 +33,11 @@ augment class A {
 }
 ''');
 
-    await resolveFile2(testFile);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(testFile);
+    assertNoErrorsInTestResult(result);
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
+    result = await resolveFile2(a);
+    assertNoErrorsInTestResult(result);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -58,11 +58,13 @@ augment class A {
 }
 ''');
 
-    await resolveFile2(testFile);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(testFile);
+    assertNoErrorsInTestResult(result);
 
-    await resolveFile2(a);
-    assertErrorsInResult([error(diag.duplicateConstructorDefault, 42, 1)]);
+    result = await resolveFile2(a);
+    assertErrorsInTestResult(result, [
+      error(diag.duplicateConstructorDefault, 42, 1),
+    ]);
   }
 
   test_class_primary_unnamed_typeName_new() async {

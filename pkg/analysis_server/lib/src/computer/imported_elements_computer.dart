@@ -148,7 +148,6 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {
     var parent = node.parent;
-    // TODO(scheglov): support primary constructors
-    return parent is ConstructorDeclaration && parent.typeName! == node;
+    return parent is ConstructorDeclaration && parent.typeName == node;
   }
 }

@@ -33,7 +33,6 @@ import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
-import '../resolution/resolution.dart';
 import 'result_printer.dart';
 
 void main() {
@@ -119,7 +118,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
 
   test_getResolvedUnit_lint_existingFile() async {
     addTestFile('');
-    await resolveTestFile();
+    var result = await resolveTestFile();
 
     // Existing/empty file triggers the lint.
     _assertHasLintReported(
@@ -129,10 +128,10 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   }
 
   test_getResolvedUnit_lint_notExistingFile() async {
-    await resolveTestFile();
+    var result = await resolveTestFile();
 
     // No errors for a file that doesn't exist.
-    assertErrorsInResult([]);
+    assertErrorsInTestResult(result, []);
   }
 
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {

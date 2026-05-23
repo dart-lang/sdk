@@ -85,8 +85,8 @@ import 'target.dart';
     analysisDriver.removeFile(filePath);
     await analysisDriver.applyPendingFileChanges();
 
-    await resolveTestFile();
-    assertErrorsInResult([error(diag.uriDoesNotExist, 7, 13)]);
+    var result = await resolveTestFile();
+    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 7, 13)]);
   }
 
   test_libraryImport_cannotResolve() async {
@@ -129,8 +129,8 @@ import 'target.dart';
     // Make sure the error goes away.
     // TODO(brianwilkerson): The error does not go away, possibly because the
     //  file is not being reanalyzed.
-    await resolveTestFile();
-    assertErrorsInResult([error(diag.unusedImport, 0, 0)]);
+    var result = await resolveTestFile();
+    assertErrorsInTestResult(result, [error(diag.unusedImport, 0, 0)]);
   }
 
   test_part() async {

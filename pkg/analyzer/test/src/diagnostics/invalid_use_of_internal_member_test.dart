@@ -46,9 +46,9 @@ import 'src/a.dart';
 
 A a = A();
 ''');
-    await resolveFile2(a);
+    var result = await resolveFile2(a);
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   test_insidePackage_extensionType() async {
@@ -62,9 +62,9 @@ import 'src/a.dart';
 
 E e = E(1);
 ''');
-    await resolveFile2(a);
+    var result = await resolveFile2(a);
 
-    assertNoErrorsInResult();
+    assertNoErrorsInTestResult(result);
   }
 
   test_outsidePackage_class() async {

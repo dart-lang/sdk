@@ -25,8 +25,8 @@ const a = 42;
 List<void Function(@a int b)> f() => [];
 ''');
 
-    var annotation = result.findNode.annotation('@a');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@a');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -35,7 +35,7 @@ Annotation
     staticType: null
   element: <testLibrary>::@getter::a
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::a
 ''');
@@ -98,8 +98,8 @@ enum E {
 }
 ''');
 
-    var annotation = result.findNode.annotation('@v');
-    assertResolvedNodeText(annotation, '''
+    var node = result.findNode.annotation('@v');
+    assertResolvedNodeText(node, '''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -109,7 +109,7 @@ Annotation
   element: <testLibrary>::@enum::E::@getter::v
 ''');
 
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 E
   _name: String v
   index: int 0
@@ -141,8 +141,8 @@ class B {
   B({@A( A(0) ) required this.f});
 }
 ''');
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -172,7 +172,7 @@ Annotation
     rightParenthesis: )
   element: <testLibrary>::@class::A::@constructor::new
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A
   f: A
     f: int 0
@@ -263,8 +263,8 @@ void f() {
 }
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, '''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, '''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -355,7 +355,7 @@ part of 'test.dart';
 ''');
 
     var result = await resolveFile2(a);
-    assertNoErrorsInResult();
+    assertErrorsInTestResult(result, const []);
 
     _assertAtFoo42(result);
   }
@@ -467,8 +467,8 @@ class A {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -493,7 +493,7 @@ Annotation
     rightParenthesis: )
   element: <testLibrary>::@class::A::@constructor::named
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 A
   f: int 42
   constructorInvocation
@@ -601,8 +601,8 @@ class A {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -619,7 +619,7 @@ Annotation
     staticType: null
   element: <testLibrary>::@class::A::@getter::foo
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 int 42
   variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -807,8 +807,8 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -842,7 +842,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: Object?}
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 A<Object?>
   f: List
     elementType: List<Object?>
@@ -867,8 +867,8 @@ A<Object?>
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -890,7 +890,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: Object?}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<Object?>
   f: List
     elementType: List<Object?>
@@ -915,8 +915,8 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -949,7 +949,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 A<int>
   f: int 42
   constructorInvocation
@@ -972,8 +972,8 @@ A<int>
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -994,7 +994,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -1016,7 +1016,8 @@ class A<T> {
 void f() {}
 ''');
 
-    assertResolvedNodeText(result.findNode.annotation('@A'), r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1046,8 +1047,8 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1080,7 +1081,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: dynamic}
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 A<dynamic>
   f: int 42
   constructorInvocation
@@ -1102,8 +1103,8 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -1120,7 +1121,7 @@ Annotation
     staticType: null
   element: <testLibrary>::@class::A::@getter::foo
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 <null>
 ''');
   }
@@ -1136,8 +1137,8 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1173,7 +1174,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 A<int>
   f: int 42
   constructorInvocation
@@ -1196,8 +1197,8 @@ A<int>
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1226,7 +1227,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -1250,8 +1251,8 @@ class A<T> {
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1272,7 +1273,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: dynamic}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<dynamic>
   f: int 42
   constructorInvocation
@@ -1299,8 +1300,8 @@ class B<T> = A<T> with M;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1321,7 +1322,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -1358,8 +1359,8 @@ class D {}
 mixin E {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1380,7 +1381,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -1414,8 +1415,8 @@ class B<T> = A<T> with M;
 typedef T F<T>();
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1436,7 +1437,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -1469,8 +1470,8 @@ class B<T> = A<T> with M;
 f(@B(42) g()) {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1491,7 +1492,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -1525,8 +1526,8 @@ class B<T> = A<T> with M;
 typedef F = void Function();
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1547,7 +1548,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -1583,8 +1584,8 @@ class C {
 }
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1605,7 +1606,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -1639,8 +1640,8 @@ class B<T> = A<T> with M;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1669,7 +1670,7 @@ Annotation
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 B<int>
   (super): A<int>
     f: int 42
@@ -2002,8 +2003,8 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@prefix.B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@prefix.B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2025,7 +2026,7 @@ Annotation
     staticType: null
   element: package:test/a.dart::@class::A::@getter::foo
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 int 42
   variable: package:test/a.dart::@class::A::@field::foo
 ''');
@@ -2047,8 +2048,8 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@prefix.B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@prefix.B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2084,7 +2085,7 @@ Annotation
     baseElement: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2112,8 +2113,8 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@prefix.B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@prefix.B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2142,7 +2143,7 @@ Annotation
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2170,8 +2171,8 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@prefix.B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@prefix.B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2215,7 +2216,7 @@ Annotation
     baseElement: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2243,8 +2244,8 @@ import 'a.dart' as prefix;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@prefix.B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@prefix.B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2281,7 +2282,7 @@ Annotation
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2316,8 +2317,8 @@ typedef B = A;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2334,7 +2335,7 @@ Annotation
     staticType: null
   element: <testLibrary>::@class::A::@getter::foo
 ''');
-    _assertAnnotationValueText(annotation, '''
+    _assertAnnotationValueText(node, '''
 int 42
   variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -2354,8 +2355,8 @@ typedef B<T> = A<T, double>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2397,7 +2398,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int, U: double}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int, double>
   t: int 42
   u: double 1.2
@@ -2425,8 +2426,8 @@ typedef B<T> = A<T, double>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2461,7 +2462,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int, U: double}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int, double>
   t: int 42
   u: double 1.2
@@ -2488,8 +2489,8 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2522,7 +2523,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2547,8 +2548,8 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2569,7 +2570,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2594,8 +2595,8 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2631,7 +2632,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2656,8 +2657,8 @@ typedef B<U> = A<U>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2686,7 +2687,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2711,8 +2712,8 @@ typedef B = A<int>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2745,7 +2746,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2770,8 +2771,8 @@ typedef B = A<int>;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2792,7 +2793,7 @@ Annotation
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A<int>
   f: int 42
   constructorInvocation
@@ -2817,8 +2818,8 @@ typedef B = A;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -2843,7 +2844,7 @@ Annotation
     rightParenthesis: )
   element: <testLibrary>::@class::A::@constructor::named
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A
   f: int 42
   constructorInvocation
@@ -2866,8 +2867,8 @@ typedef B = A;
 void f() {}
 ''');
 
-    var annotation = result.findNode.annotation('@B');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@B');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -2884,7 +2885,7 @@ Annotation
     rightParenthesis: )
   element: <testLibrary>::@class::A::@constructor::new
 ''');
-    _assertAnnotationValueText(annotation, r'''
+    _assertAnnotationValueText(node, r'''
 A
   f: int 42
   constructorInvocation

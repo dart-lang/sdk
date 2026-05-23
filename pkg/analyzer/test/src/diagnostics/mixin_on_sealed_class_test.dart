@@ -61,11 +61,11 @@ import '../lib1.dart';
 mixin Bar on Foo {}
 ''');
 
-    await resolveFile2(lib1);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(lib1);
+    assertNoErrorsInTestResult(result);
 
-    await resolveFile2(lib2);
-    assertNoErrorsInResult();
+    result = await resolveFile2(lib2);
+    assertNoErrorsInTestResult(result);
   }
 
   test_withinPackageTestDirectory_OK() async {
@@ -79,11 +79,11 @@ import 'package:test/lib1.dart';
 mixin Bar on Foo {}
 ''');
 
-    await resolveFile2(lib1);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(lib1);
+    assertNoErrorsInTestResult(result);
 
-    await resolveFile2(lib2);
-    assertNoErrorsInResult();
+    result = await resolveFile2(lib2);
+    assertNoErrorsInTestResult(result);
   }
 
   test_withinPart_OK() async {
@@ -98,10 +98,10 @@ part of 'lib1.dart';
 mixin Bar on Foo {}
 ''');
 
-    await resolveFile2(lib1);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(lib1);
+    assertNoErrorsInTestResult(result);
 
-    await resolveFile2(lib2);
-    assertNoErrorsInResult();
+    result = await resolveFile2(lib2);
+    assertNoErrorsInTestResult(result);
   }
 }

@@ -209,7 +209,7 @@ import 'package:somepackage/other.dart';
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     var file = newFile(path, content);
-    result = await resolveFile(file);
+    var result = await resolveFile(file);
 
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(result.diagnostics);

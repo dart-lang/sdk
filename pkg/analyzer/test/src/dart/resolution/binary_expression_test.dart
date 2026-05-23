@@ -223,7 +223,8 @@ T f<T>(T t) => t;
 int g() => f(null) ?? 0;
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('?? 0'), r'''
+    var node = result.findNode.binary('?? 0');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
@@ -270,7 +271,8 @@ f(C1? c1, C2 c2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('c1 ?? c2'), r'''
+    var node = result.findNode.binary('c1 ?? c2');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
@@ -296,7 +298,8 @@ void f(int? x, int y) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x ?? y'), r'''
+    var node = result.findNode.binary('x ?? y');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -321,7 +324,8 @@ void f(int? x, double? y) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x ?? y'), r'''
+    var node = result.findNode.binary('x ?? y');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -346,7 +350,8 @@ void f(int? x) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('x ?? x'), r'''
+    var node = result.findNode.binary('x ?? x');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -403,7 +408,8 @@ f(int a, Never b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -432,7 +438,8 @@ f(Never a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -697,7 +704,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a != b'), r'''
+    var node = result.findNode.binary('a != b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -726,7 +734,8 @@ void f(int a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('!= 0'), r'''
+    var node = result.findNode.binary('!= 0');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -762,7 +771,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a !== b'), r'''
+    var node = result.findNode.binary('a !== b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -816,7 +826,8 @@ void f(int a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('== 0'), r'''
+    var node = result.findNode.binary('== 0');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -905,7 +916,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a === b'), r'''
+    var node = result.findNode.binary('a === b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -930,7 +942,8 @@ f(int? a, double b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a ?? b'), r'''
+    var node = result.findNode.binary('a ?? b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -955,7 +968,8 @@ f(bool a, bool b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a && b'), r'''
+    var node = result.findNode.binary('a && b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -980,7 +994,8 @@ f(bool a, bool b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a || b'), r'''
+    var node = result.findNode.binary('a || b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1032,7 +1047,8 @@ f(int a, double b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a - b'), r'''
+    var node = result.findNode.binary('a - b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1057,7 +1073,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a - b'), r'''
+    var node = result.findNode.binary('a - b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1109,7 +1126,8 @@ f(int a, double b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a % b'), r'''
+    var node = result.findNode.binary('a % b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1134,7 +1152,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a % b'), r'''
+    var node = result.findNode.binary('a % b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1238,7 +1257,8 @@ f(double a, dynamic b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1396,7 +1416,8 @@ f(int a, double b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1420,7 +1441,8 @@ f(int a, dynamic b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1444,7 +1466,8 @@ f(int a, int b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1468,7 +1491,8 @@ f(int Function() a, int b) {
   a() + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('a() + b'), r'''
+    var node = result.findNode.binary('a() + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
@@ -1502,7 +1526,8 @@ f(int a, int b) {
   E(a) + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('E(a) + b'), r'''
+    var node = result.findNode.binary('E(a) + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -1536,7 +1561,8 @@ f(int a, num b) {
   a + b;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1564,7 +1590,8 @@ extension FooExtension<F extends Foo> on F {
   F get gg => this + 1;
 }
 ''');
-    assertResolvedNodeText(result.findNode.binary('this + 1'), r'''
+    var node = result.findNode.binary('this + 1');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
@@ -1745,7 +1772,8 @@ f(A a, double b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1774,7 +1802,8 @@ f(A a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('E(a) + b'), r'''
+    var node = result.findNode.binary('E(a) + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
     name: E
@@ -1813,7 +1842,8 @@ f(A a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a + b'), r'''
+    var node = result.findNode.binary('a + b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1838,7 +1868,8 @@ f<T extends dynamic>(T a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a + 0'), r'''
+    var node = result.findNode.binary('a + 0');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1862,7 +1893,8 @@ f<T extends num>(T a) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a + 0'), r'''
+    var node = result.findNode.binary('a + 0');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1886,7 +1918,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a / b'), r'''
+    var node = result.findNode.binary('a / b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1938,7 +1971,8 @@ f(int a, double b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a * b'), r'''
+    var node = result.findNode.binary('a * b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1963,7 +1997,8 @@ f(int a, int b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('a * b'), r'''
+    var node = result.findNode.binary('a * b');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
@@ -1997,9 +2032,8 @@ f(C1<int>? c1, C2<double> c2) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.binary('c1 ?? c2'),
-      r'''BinaryExpression
+    var node = result.findNode.binary('c1 ?? c2');
+    assertResolvedNodeText(node, r'''BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2016,8 +2050,7 @@ f(C1<int>? c1, C2<double> c2) {
   element: <null>
   staticInvokeType: null
   staticType: B1<Object?>
-''',
-    );
+''');
   }
 
   test_ifNull_contextNotUsedIfLhsDoesNotSatisfyContext() async {
@@ -2034,9 +2067,8 @@ f(B2? b2, C1 c1, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.binary('b2 ?? c1'),
-      r'''BinaryExpression
+    var node = result.findNode.binary('b2 ?? c1');
+    assertResolvedNodeText(node, r'''BinaryExpression
   leftOperand: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
@@ -2051,8 +2083,7 @@ f(B2? b2, C1 c1, Object? o) {
   element: <null>
   staticInvokeType: null
   staticType: B2
-''',
-    );
+''');
   }
 
   test_ifNull_contextNotUsedIfRhsDoesNotSatisfyContext() async {
@@ -2069,9 +2100,8 @@ f(C1? c1, B2 b2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.binary('c1 ?? b2'),
-      r'''BinaryExpression
+    var node = result.findNode.binary('c1 ?? b2');
+    assertResolvedNodeText(node, r'''BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2086,8 +2116,7 @@ f(C1? c1, B2 b2, Object? o) {
   element: <null>
   staticInvokeType: null
   staticType: B2
-''',
-    );
+''');
   }
 
   test_ifNull_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
@@ -2100,7 +2129,8 @@ class C2 implements B1, B2 {}
 B1 f(C1? c1, C2 c2) => c1 ?? c2;
 ''');
 
-    assertResolvedNodeText(result.findNode.binary('c1 ?? c2'), r'''
+    var node = result.findNode.binary('c1 ?? c2');
+    assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1

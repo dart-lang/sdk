@@ -181,11 +181,16 @@ language = struct(
 )
 ''');
 
-    await resolveFileCode('$myPackageRootPath/lib/a.dart', '');
-    _assertLanguageVersion(package: Version.parse('3.1.0'), override: null);
+    var result = await resolveFileCode('$myPackageRootPath/lib/a.dart', '');
+    _assertLanguageVersion(
+      result,
+      package: Version.parse('3.1.0'),
+      override: null,
+    );
   }
 
-  void _assertLanguageVersion({
+  void _assertLanguageVersion(
+    TestResolvedUnitResult result, {
     required Version package,
     required Version? override,
   }) {

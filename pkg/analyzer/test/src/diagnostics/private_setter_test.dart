@@ -32,8 +32,8 @@ main() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('_foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('_foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -92,8 +92,8 @@ main() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('_foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('_foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -137,8 +137,8 @@ main() {
 }
 ''');
 
-    var assignment = result.findNode.assignment('_foo =');
-    assertResolvedNodeText(assignment, r'''
+    var node = result.findNode.assignment('_foo =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier

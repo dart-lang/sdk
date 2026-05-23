@@ -448,7 +448,7 @@ void f() {
 main() {}
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
 ''');
 
@@ -460,7 +460,7 @@ export 'a.dart';
   }
 
   test_entryPoint_local() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {}
 ''');
 
@@ -472,7 +472,7 @@ main() {}
   }
 
   test_entryPoint_none() async {
-    await resolveTestCodeWithDiagnostics('');
+    var result = await resolveTestCodeWithDiagnostics('');
 
     var library = result.libraryElement;
     expect(library.entryPoint, isNull);
@@ -514,7 +514,8 @@ class A {
         xParameter.declaredFragment!.element as FieldFormalParameterElement;
     expect(xParameterElement.field, result.findElement.field('x'));
 
-    assertResolvedNodeText(result.findNode.simple('x {}'), r'''
+    var node1 = result.findNode.simple('x {}');
+    assertResolvedNodeText(node1, r'''
 SimpleIdentifier
   token: x
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
@@ -575,7 +576,8 @@ class C extends B with M1, M2 {
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
-    assertResolvedNodeText(result.findNode.simple('x;'), r'''
+    var node2 = result.findNode.simple('x;');
+    assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
@@ -602,7 +604,8 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    assertResolvedNodeText(result.findNode.simple('x;'), r'''
+    var node3 = result.findNode.simple('x;');
+    assertResolvedNodeText(node3, r'''
 SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
@@ -869,7 +872,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var cDeclaration = result.findNode.classDeclaration('C<A>');
-    assertResolvedNodeText(cDeclaration.metadata[0], r'''
+    var node = cDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -892,7 +896,8 @@ mixin E {}
     expect(annotations, hasLength(1));
 
     var cDeclaration = result.findNode.classTypeAlias('C<A>');
-    assertResolvedNodeText(cDeclaration.metadata[0], r'''
+    var node = cDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -913,7 +918,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var eDeclaration = result.findNode.enumDeclaration('E');
-    assertResolvedNodeText(eDeclaration.metadata[0], r'''
+    var node = eDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -933,7 +939,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var cDeclaration = result.findNode.extensionDeclaration('E<A>');
-    assertResolvedNodeText(cDeclaration.metadata[0], r'''
+    var node = cDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -988,7 +995,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var fDeclaration = result.findNode.functionDeclaration('f<A>');
-    assertResolvedNodeText(fDeclaration.metadata[0], r'''
+    var node = fDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1009,7 +1017,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var fDeclaration = result.findNode.functionTypeAlias('F');
-    assertResolvedNodeText(fDeclaration.metadata[0], r'''
+    var node = fDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1038,7 +1047,8 @@ f(@A int p<A>(int x)) {}''');
     expect(annotations, hasLength(1));
 
     var pDeclaration = result.findNode.formalParameter('p<A>');
-    assertResolvedNodeText(pDeclaration.metadata[0], r'''
+    var node = pDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1059,7 +1069,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var fDeclaration = result.findNode.genericTypeAlias('F<A>');
-    assertResolvedNodeText(fDeclaration.metadata[0], r'''
+    var node = fDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1071,7 +1082,7 @@ Annotation
   }
 
   test_metadata_libraryDirective() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 @A library lib;
 const A = null;''');
 
@@ -1101,7 +1112,8 @@ class C {
     expect(annotations, hasLength(1));
 
     var mDeclaration = result.findNode.methodDeclaration('m<A>');
-    assertResolvedNodeText(mDeclaration.metadata[0], r'''
+    var node = mDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1121,7 +1133,8 @@ const A = null;
     expect(annotations, hasLength(1));
 
     var mDeclaration = result.findNode.mixinDeclaration('M<A>');
-    assertResolvedNodeText(mDeclaration.metadata[0], r'''
+    var node = mDeclaration.metadata[0];
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1175,8 +1188,8 @@ const A = null;
       hasLength(1),
     );
 
-    var annotation = result.findNode.annotation('@A');
-    assertResolvedNodeText(annotation, r'''
+    var node = result.findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -1217,7 +1230,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.simple('f();'), r'''
+    var node4 = result.findNode.simple('f();');
+    assertResolvedNodeText(node4, r'''
 SimpleIdentifier
   token: f
   element: <testLibrary>::@mixin::M2::@method::f
@@ -1241,7 +1255,8 @@ class C extends B with M1, M2 {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.simple('f();'), r'''
+    var node5 = result.findNode.simple('f();');
+    assertResolvedNodeText(node5, r'''
 SimpleIdentifier
   token: f
   element: <testLibrary>::@mixin::M2::@method::f
@@ -1264,7 +1279,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.simple('f();'), r'''
+    var node6 = result.findNode.simple('f();');
+    assertResolvedNodeText(node6, r'''
 SimpleIdentifier
   token: f
   element: <testLibrary>::@mixin::M2::@method::f

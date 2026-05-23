@@ -24,7 +24,7 @@ test() => 'a' 'b';
 ''');
     expect(
       result.findNode.adjacentStrings("'a' 'b'").staticType,
-      same(typeProvider.stringType),
+      same(result.typeProvider.stringType),
     );
   }
 
@@ -44,7 +44,9 @@ late B b;
     var result = await resolveTestCodeWithDiagnostics('''
 test(Future<Future<int>> e) async => await e;
 ''');
-    InterfaceType futureIntType = typeProvider.futureType(typeProvider.intType);
+    InterfaceType futureIntType = result.typeProvider.futureType(
+      result.typeProvider.intType,
+    );
     expect(
       result.findNode.awaitExpression('await e').staticType,
       futureIntType,
@@ -56,7 +58,7 @@ test(Future<Future<int>> e) async => await e;
 test(Future<int> e) async => await e;
 ''');
     // await e, where e has type Future<int>
-    InterfaceType intType = typeProvider.intType;
+    InterfaceType intType = result.typeProvider.intType;
     expect(result.findNode.awaitExpression('await e').staticType, intType);
   }
 
@@ -66,7 +68,7 @@ test() => false;
 ''');
     expect(
       result.findNode.booleanLiteral('false').staticType,
-      same(typeProvider.boolType),
+      same(result.typeProvider.boolType),
     );
   }
 
@@ -76,7 +78,7 @@ test() => true;
 ''');
     expect(
       result.findNode.booleanLiteral('true').staticType,
-      same(typeProvider.boolType),
+      same(result.typeProvider.boolType),
     );
   }
 
@@ -86,7 +88,7 @@ test(String a) => a..length;
 ''');
     expect(
       result.findNode.cascade('a..length').staticType,
-      typeProvider.stringType,
+      result.typeProvider.stringType,
     );
   }
 
@@ -96,7 +98,7 @@ test(bool b) => b ? 1.0 : 0;
 ''');
     expect(
       result.findNode.conditionalExpression('b ? 1.0 : 0').staticType,
-      typeProvider.numType,
+      result.typeProvider.numType,
     );
   }
 
@@ -106,7 +108,7 @@ test(bool b) => b ? 1 : 0;
 ''');
     expect(
       result.findNode.conditionalExpression('b ? 1 : 0').staticType,
-      same(typeProvider.intType),
+      same(result.typeProvider.intType),
     );
   }
 
@@ -116,7 +118,7 @@ test() => 4.33;
 ''');
     expect(
       result.findNode.doubleLiteral('4.33').staticType,
-      same(typeProvider.doubleType),
+      same(result.typeProvider.doubleType),
     );
   }
 
@@ -163,7 +165,7 @@ late C c;
 test() => 42;
 ''');
     var node = result.findNode.integerLiteral('42');
-    expect(node.staticType, same(typeProvider.intType));
+    expect(node.staticType, same(result.typeProvider.intType));
   }
 
   test_visitIsExpression_negated() async {
@@ -172,7 +174,7 @@ test(Object a) => a is! String;
 ''');
     expect(
       result.findNode.isExpression('a is! String').staticType,
-      same(typeProvider.boolType),
+      same(result.typeProvider.boolType),
     );
   }
 
@@ -182,7 +184,7 @@ test(Object a) => a is String;
 ''');
     expect(
       result.findNode.isExpression('a is String').staticType,
-      same(typeProvider.boolType),
+      same(result.typeProvider.boolType),
     );
   }
 
@@ -199,7 +201,7 @@ test() => null;
 ''');
     expect(
       result.findNode.nullLiteral('null').staticType,
-      same(typeProvider.nullType),
+      same(result.typeProvider.nullType),
     );
   }
 
@@ -209,7 +211,7 @@ test() => (0);
 ''');
     expect(
       result.findNode.parenthesized('(0)').staticType,
-      same(typeProvider.intType),
+      same(result.typeProvider.intType),
     );
   }
 
@@ -219,7 +221,7 @@ test() => 'a';
 ''');
     expect(
       result.findNode.stringLiteral("'a'").staticType,
-      same(typeProvider.stringType),
+      same(result.typeProvider.stringType),
     );
   }
 
@@ -229,7 +231,7 @@ test() => "a${'b'}c";
 ''');
     expect(
       result.findNode.stringInterpolation(r'''"a${'b'}c"''').staticType,
-      same(typeProvider.stringType),
+      same(result.typeProvider.stringType),
     );
   }
 
@@ -253,7 +255,7 @@ test() => #a;
 ''');
     expect(
       result.findNode.symbolLiteral('#a').staticType,
-      same(typeProvider.symbolType),
+      same(result.typeProvider.symbolType),
     );
   }
 
@@ -274,6 +276,6 @@ late B b;
 test() => throw 0;
 ''');
     var node = result.findNode.throw_('throw 0');
-    expect(node.staticType, same(typeProvider.bottomType));
+    expect(node.staticType, same(result.typeProvider.bottomType));
   }
 }

@@ -92,9 +92,8 @@ void f(C? c) {
 }
 ''');
     // The `!` in the first statement promotes _field within the cascade
-    assertResolvedNodeText(
-      result.findNode.propertyAccess('_field.toString'),
-      r'''
+    var node2 = result.findNode.propertyAccess('_field.toString');
+    assertResolvedNodeText(node2, r'''
 PropertyAccess
   operator: ..
   propertyName: SimpleIdentifier
@@ -102,11 +101,11 @@ PropertyAccess
     element: <testLibrary>::@class::C::@getter::_field
     staticType: Object
   staticType: Object
-''',
-    );
+''');
     // But the promotion doesn't last beyond the cascade expression, due to the
     // implicit control flow join when the `?..` stops taking effect.
-    assertResolvedNodeText(result.findNode.propertyAccess('c?._field'), r'''
+    var node = result.findNode.propertyAccess('c?._field');
+    assertResolvedNodeText(node, r'''
 PropertyAccess
   target: SimpleIdentifier
     token: c
@@ -967,8 +966,8 @@ class C extends B {
   }
 }
 ''');
-    var blockA = result.findNode.block('// A');
-    assertResolvedNodeText(blockA, r'''
+    var node1 = result.findNode.block('// A');
+    assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
   statements
@@ -992,8 +991,8 @@ Block
       semicolon: ;
   rightBracket: }
 ''');
-    var blockB = result.findNode.block('// B');
-    assertResolvedNodeText(blockB, r'''
+    var node2 = result.findNode.block('// B');
+    assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
   statements
@@ -1041,8 +1040,8 @@ class C<T extends Object> extends B<T> {
   }
 }
 ''');
-    var blockA = result.findNode.block('// A');
-    assertResolvedNodeText(blockA, r'''
+    var node1 = result.findNode.block('// A');
+    assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
   statements
@@ -1070,8 +1069,8 @@ Block
       semicolon: ;
   rightBracket: }
 ''');
-    var blockB = result.findNode.block('// B');
-    assertResolvedNodeText(blockB, r'''
+    var node2 = result.findNode.block('// B');
+    assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
   statements
@@ -1123,8 +1122,8 @@ class C extends B {
   }
 }
 ''');
-    var blockA = result.findNode.block('// A');
-    assertResolvedNodeText(blockA, r'''
+    var node1 = result.findNode.block('// A');
+    assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
   statements
@@ -1162,8 +1161,8 @@ Block
       semicolon: ;
   rightBracket: }
 ''');
-    var blockB = result.findNode.block('// B');
-    assertResolvedNodeText(blockB, r'''
+    var node2 = result.findNode.block('// B');
+    assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
   statements
@@ -1225,8 +1224,8 @@ class C<T extends Object> extends B<T> {
   }
 }
 ''');
-    var blockA = result.findNode.block('// A');
-    assertResolvedNodeText(blockA, r'''
+    var node1 = result.findNode.block('// A');
+    assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
   statements
@@ -1268,8 +1267,8 @@ Block
       semicolon: ;
   rightBracket: }
 ''');
-    var blockB = result.findNode.block('// B');
-    assertResolvedNodeText(blockB, r'''
+    var node2 = result.findNode.block('// B');
+    assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
   statements

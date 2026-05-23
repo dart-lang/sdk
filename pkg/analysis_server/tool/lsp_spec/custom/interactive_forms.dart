@@ -187,53 +187,56 @@ final interactiveFormClasses = <LspEntity>[
   interface('FormFieldTypeNumber', baseType: 'FormFieldType', [
     field('kind', type: 'number', literal: true),
   ], comment: 'A numeric input.'),
-  interface(
-    'FormFieldTypeEnum',
-    baseType: 'FormFieldType',
-    [
-      field('kind', type: 'enum', literal: true),
-      field(
-        'name',
-        type: 'string',
-        canBeUndefined: true,
-        comment: 'An optional identifier for the enum type.',
-      ),
-      field(
-        'entries',
-        array: true,
-        type: 'FormEnumEntry',
-        comment: 'The list of allowable options.',
-      ),
-    ],
-    comment:
-        'FormFieldTypeEnum defines a selection from a set of values.\n\n'
-        'Use this type when:\n'
-        '- The number of options is small (e.g., < 20).\n'
-        '- All options are known at the time the form is created.\n',
-  ),
-  interface('FormEnumEntry', [
-    field(
-      'value',
-      type: 'string',
-      comment:
-          'The unique string identifier for this option.\n\n'
-          'This is the value that will be sent back to the server in '
-          '`FormAnswers` if the user selects this option.',
-    ),
-    field(
-      'description',
-      type: 'string',
-      comment: 'The human-readable label presented to the user.',
-    ),
-  ], comment: 'A single option in an enumeration.'),
-  interface('FormFieldTypeList', baseType: 'FormFieldType', [
-    field('kind', type: 'list', literal: true),
-    field(
-      'elementType',
-      type: 'FormFieldType',
-      comment:
-          'ElementType specifies the type of the items in the list. '
-          'Recursive reference to the union type.',
-    ),
-  ], comment: 'A homogenous list of items.'),
+  // TODO(dantup): Add these back when we have support for them.
+  //  If we add them now, we'd need to implement validation (due to exhaustive
+  //  checking on the switch()).
+  // interface(
+  //   'FormFieldTypeEnum',
+  //   baseType: 'FormFieldType',
+  //   [
+  //     field('kind', type: 'enum', literal: true),
+  //     field(
+  //       'name',
+  //       type: 'string',
+  //       canBeUndefined: true,
+  //       comment: 'An optional identifier for the enum type.',
+  //     ),
+  //     field(
+  //       'entries',
+  //       array: true,
+  //       type: 'FormEnumEntry',
+  //       comment: 'The list of allowable options.',
+  //     ),
+  //   ],
+  //   comment:
+  //       'FormFieldTypeEnum defines a selection from a set of values.\n\n'
+  //       'Use this type when:\n'
+  //       '- The number of options is small (e.g., < 20).\n'
+  //       '- All options are known at the time the form is created.\n',
+  // ),
+  // interface('FormEnumEntry', [
+  //   field(
+  //     'value',
+  //     type: 'string',
+  //     comment:
+  //         'The unique string identifier for this option.\n\n'
+  //         'This is the value that will be sent back to the server in '
+  //         '`FormAnswers` if the user selects this option.',
+  //   ),
+  //   field(
+  //     'description',
+  //     type: 'string',
+  //     comment: 'The human-readable label presented to the user.',
+  //   ),
+  // ], comment: 'A single option in an enumeration.'),
+  // interface('FormFieldTypeList', baseType: 'FormFieldType', [
+  //   field('kind', type: 'list', literal: true),
+  //   field(
+  //     'elementType',
+  //     type: 'FormFieldType',
+  //     comment:
+  //         'ElementType specifies the type of the items in the list. '
+  //         'Recursive reference to the union type.',
+  //   ),
+  // ], comment: 'A homogenous list of items.'),
 ];

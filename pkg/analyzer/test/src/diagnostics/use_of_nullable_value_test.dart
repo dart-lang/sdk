@@ -433,7 +433,8 @@ m(B b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x = 1'), r'''
+    var node1 = result.findNode.assignment('x = 1');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -467,7 +468,8 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x = 2'), r'''
+    var node2 = result.findNode.assignment('x = 2');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -510,7 +512,8 @@ m(int x, int? y) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x ='), r'''
+    var node1 = result.findNode.assignment('x =');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -529,7 +532,8 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('y ='), r'''
+    var node2 = result.findNode.assignment('y =');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
@@ -570,7 +574,8 @@ m(B b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x +='), r'''
+    var node1 = result.findNode.assignment('x +=');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -604,7 +609,8 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('y +='), r'''
+    var node2 = result.findNode.assignment('y +=');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -659,7 +665,8 @@ m(B b) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x += 1'), r'''
+    var node1 = result.findNode.assignment('x += 1');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -693,7 +700,8 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x += 2'), r'''
+    var node2 = result.findNode.assignment('x += 2');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
@@ -738,7 +746,8 @@ m(int x, int? y) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('x +='), r'''
+    var node1 = result.findNode.assignment('x +=');
+    assertResolvedNodeText(node1, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -757,7 +766,8 @@ AssignmentExpression
   staticType: int
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('y +='), r'''
+    var node2 = result.findNode.assignment('y +=');
+    assertResolvedNodeText(node2, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y

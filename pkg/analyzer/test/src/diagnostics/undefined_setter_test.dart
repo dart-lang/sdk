@@ -246,7 +246,8 @@ f(C c) {
 }
 ''');
 
-    assertResolvedNodeText(result.findNode.assignment('a ='), r'''
+    var node = result.findNode.assignment('a =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier

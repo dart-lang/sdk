@@ -293,7 +293,7 @@ part of 'test.dart';
 augment enum E with M {}
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
+    var result = await resolveFile2(a);
+    assertNoErrorsInTestResult(result);
   }
 }

@@ -22,6 +22,8 @@ void main() {
 @reflectiveTest
 class DeprecatedMemberUse_BlazeWorkspaceTest
     extends BlazeWorkspaceResolutionTest {
+  String get aaaPackageRootPath => '$workspaceRootPath/aaa';
+
   test_dart() async {
     newFile('$workspaceRootPath/foo/bar/lib/a.dart', r'''
 @deprecated
@@ -57,6 +59,8 @@ void f(A a) {}
 
 @reflectiveTest
 class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
+  String get aaaPackageRootPath => '$workspaceRootPath/aaa';
+
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -96,7 +100,7 @@ ${outFolder.path}
       'my': myPackageLibPath,
     });
 
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -139,11 +143,17 @@ void f(A a) {}
 
 @reflectiveTest
 class DeprecatedMemberUse_PackageBuildWorkspaceTest
-    extends _PackageConfigWorkspaceBase {
+    extends PubPackageResolutionTest {
+  String get aaaPackageRootPath => '$workspaceRootPath/aaa';
+
+  String get testPackageGeneratedPath {
+    return '$testPackageRootPath/.dart_tool/build/generated';
+  }
+
   test_generated() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
     newPubspecYamlFile(testPackageRootPath, 'name: test');
@@ -168,10 +178,10 @@ void f(A a) {}
   test_lib() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -187,39 +197,30 @@ void f(A a) {}
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 ''');
   }
+
+  @override
+  void verifyCreatedCollection() {
+    super.verifyCreatedCollection();
+    assertPackageConfigWorkspaceFor(testFile);
+  }
+
+  void _createTestPackageBuildMarker() {
+    newFolder(testPackageGeneratedPath);
+  }
+
+  void _newTestPackageGeneratedFile({
+    required String packageName,
+    required String pathInLib,
+    required String content,
+  }) {
+    newFile('$testPackageGeneratedPath/$packageName/lib/$pathInLib', content);
+  }
 }
 
 @reflectiveTest
 class DeprecatedMemberUse_PackageConfigWorkspaceTest
     extends PubPackageResolutionTest {
-  String get externalLibPath => '$workspaceRootPath/aaa/lib/a.dart';
-
-  String get externalLibUri => 'package:aaa/a.dart';
-
-  Future<void> assertErrorsInCode2(
-    List<ExpectedDiagnostic> expectedDiagnostics, {
-    required String externalCode,
-    required String code,
-  }) async {
-    newFile(externalLibPath, externalCode);
-
-    await assertErrorsInCode('''
-import '$externalLibUri';
-$code
-''', expectedDiagnostics);
-  }
-
-  Future<void> resolveTestCodeWithDiagnostics2({
-    required String externalCode,
-    required String code,
-  }) async {
-    newFile(externalLibPath, externalCode);
-
-    await resolveTestCodeWithDiagnostics('''
-import '$externalLibUri';
-$code
-''');
-  }
+  String get aaaPackageRootPath => '$workspaceRootPath/aaa';
 
   @override
   void setUp() {
@@ -227,130 +228,137 @@ $code
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
   }
 
   test_assignmentExpression_compound_deprecatedGetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x += 2;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_assignmentExpression_compound_deprecatedSetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 int get x => 0;
 
 @deprecated
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x += 2;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_assignmentExpression_simple_deprecatedGetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x = 0;
 }
-''',
-    );
+''');
   }
 
   test_assignmentExpression_simple_deprecatedGetterSetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x = 0;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_assignmentExpression_simple_deprecatedSetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 int get x => 0;
 
 @deprecated
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x = 0;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_call() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   call() {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f(A a) {
   a();
 //^^^
 // [diag.deprecatedMemberUse] 'call' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_class() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f(A a) {}
 //     ^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_class_inDeprecatedFunctionTypeAlias() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -364,7 +372,7 @@ typedef A T();
   }
 
   test_class_inDeprecatedGenericTypeAlias() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -378,48 +386,52 @@ typedef T = A Function();
   }
 
   test_compoundAssignment() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A operator+(A a) { return a; }
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f(A a, A b) {
   a += b;
 //^^^^^^
 // [diag.deprecatedMemberUse] '+' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_constructor_inAnnotation() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class MyAnnotation {
   @deprecated
   const MyAnnotation();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @MyAnnotation()
 // [diag.deprecatedMemberUse][column 2][length 12] 'MyAnnotation' is deprecated and shouldn't be used.
 void g() {}
-''',
-    );
+''');
   }
 
   test_deprecatedField_inObjectPattern_explicitName() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class C {
   @Deprecated('')
   final int foo = 0;
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 int g(Object s) =>
   switch (s) {
     C(foo: var f) => f,
@@ -427,19 +439,20 @@ int g(Object s) =>
 // [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
     _ => 7,
   };
-''',
-    );
+''');
   }
 
   test_deprecatedField_inObjectPattern_inferredName() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class C {
   @Deprecated('')
   final int foo = 0;
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 int g(Object s) =>
   switch (s) {
     C(:var foo) => foo,
@@ -447,12 +460,11 @@ int g(Object s) =>
 // [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
     _ => 7,
   };
-''',
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_deprecatedClass_deprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   @deprecated
@@ -475,7 +487,7 @@ void f() {
   }
 
   test_dotShorthandConstructorInvocation_deprecatedClass_undeprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   A();
@@ -495,7 +507,7 @@ void f() {
   }
 
   test_dotShorthandConstructorInvocation_deprecatedClass_undeprecatedNamedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   A.a();
@@ -515,26 +527,27 @@ void f() {
   }
 
   test_dotShorthandConstructorInvocation_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A.named(int i) {}
 }
 void wantA(A _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f() {
   wantA(.named(1));
 //       ^^^^^
 // [diag.deprecatedMemberUse] 'A.named' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_dotShorthandConstructorInvocation_undeprecatedClass_deprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A();
@@ -554,7 +567,7 @@ void f() {
   }
 
   test_dotShorthandInvocation_deprecatedMethod() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   static A m() => A();
@@ -574,7 +587,7 @@ void f() {
   }
 
   test_dotShorthandPropertyAccess() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   static A get x => A();
@@ -594,7 +607,7 @@ void f() {
   }
 
   test_export() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 library a;
 ''');
@@ -617,25 +630,26 @@ export 'lib2.dart';
   }
 
   test_extensionOverride() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 extension E on int {
   int get foo => 0;
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 void f() {
   E(0).foo;
 //^
 // [diag.deprecatedMemberUse] 'E' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_field_implicitGetter() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   int foo = 0;
@@ -654,7 +668,7 @@ void f(A a) {
   }
 
   test_field_implicitSetter() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   int foo = 0;
@@ -673,7 +687,7 @@ void f(A a) {
   }
 
   test_field_inDeprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   int x = 0;
@@ -694,7 +708,7 @@ class B extends A {
   }
 
   test_hideCombinator() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -705,7 +719,7 @@ import 'package:aaa/a.dart' hide A;
   }
 
   test_import() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 library a;
 ''');
@@ -741,43 +755,47 @@ const z = C(x: '');
   }
 
   test_inDeprecatedClass() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @deprecated
 class C {
   m() {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedDefaultFormalParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {
   const C();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f({@deprecated C? c = const C()}) {}
-''',
-    );
+''');
   }
 
   test_inDeprecatedEnum() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @deprecated
 enum E {
   one, two;
@@ -786,104 +804,109 @@ enum E {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedExtension() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @deprecated
 extension E on int {
   void m() {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedExtensionType() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 @deprecated
 extension type E(int i) {
   m() {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedField() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class X {
   @deprecated
   C f;
   X(this.f);
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedFieldFormalParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   Object? o;
   A({@deprecated C? this.o});
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedFunction() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 @deprecated
 g() {
   f();
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedFunctionTypedFormalParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f({@deprecated C? callback()?}) {}
-''',
-    );
+''');
   }
 
   test_inDeprecatedLibrary() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
 ''');
@@ -901,29 +924,32 @@ class C {
   }
 
   test_inDeprecatedMethod() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 class C {
   @deprecated
   m() {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedMethod_inDeprecatedClass() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 @deprecated
 class C {
   @deprecated
@@ -931,95 +957,101 @@ class C {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedMixin() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 f() {}
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 @deprecated
 mixin M {
   m() {
     f();
   }
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedSimpleFormalParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f({@deprecated C? c}) {}
-''',
-    );
+''');
   }
 
   test_inDeprecatedSuperFormalParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   A({Object? o});
 }
 class B extends A {
   B({@deprecated C? super.o});
 }
-''',
-    );
+''');
   }
 
   test_inDeprecatedTopLevelVariable() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class C {}
 var x = C();
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @deprecated
 C v = x;
-''',
-    );
+''');
   }
 
   test_indexExpression() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   operator[](int i) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f(A a) {
   return a[1];
 //       ^^^^
 // [diag.deprecatedMemberUse] '[]' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_inEnum() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 enum E {
   one, two;
 
@@ -1029,17 +1061,18 @@ enum E {
 // [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
   }
 }
-''',
-    );
+''');
   }
 
   test_inExtension() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 void f() {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 extension E on int {
   void m() {
     f();
@@ -1047,12 +1080,11 @@ extension E on int {
 // [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
   }
 }
-''',
-    );
+''');
   }
 
   test_instanceCreation_deprecatedClass_deprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   @deprecated
@@ -1072,7 +1104,7 @@ void f() {
   }
 
   test_instanceCreation_deprecatedClass_undeprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   A();
@@ -1091,7 +1123,7 @@ void f() {
   }
 
   test_instanceCreation_deprecatedClass_undeprecatedNamedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   A.a();
@@ -1110,25 +1142,26 @@ void f() {
   }
 
   test_instanceCreation_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A.named(int i) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f() {
   return new A.named(1);
 //           ^^^^^^^
 // [diag.deprecatedMemberUse] 'A.named' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_instanceCreation_undeprecatedClass_deprecatedConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A();
@@ -1147,7 +1180,7 @@ void f() {
   }
 
   test_instanceCreation_undeprecatedClass_deprecatedConstructor_primary() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A() {
   @deprecated
   this;
@@ -1166,25 +1199,26 @@ void f() {
   }
 
   test_instanceCreation_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A(int i) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f() {
   return new A(1);
 //           ^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_methodInvocation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   void foo() {}
@@ -1203,87 +1237,93 @@ void f(A a) {
   }
 
   test_methodInvocation_constantAnnotation() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 var x = f();
 //      ^
 // [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_methodInvocation_constructorAnnotation() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @Deprecated('0.9')
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 var x = f();
 //      ^
 // [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. 0.9.
-''',
-    );
+''');
   }
 
   test_methodInvocation_constructorAnnotation_dot() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @Deprecated('0.9.')
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 var x = f();
 //      ^
 // [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. 0.9.
-''',
-    );
+''');
   }
 
   test_methodInvocation_constructorAnnotation_exclamationMark() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @Deprecated(' Really! ')
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 var x = f();
 //      ^
 // [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. Really!
-''',
-    );
+''');
   }
 
   test_methodInvocation_constructorAnnotation_onlyDot() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @Deprecated('.')
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 var x = f();
 //      ^
 // [diag.deprecatedMemberUse] 'f' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_methodInvocation_constructorAnnotation_questionMark() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @Deprecated('Are you sure?')
 int f() => 0;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 var x = f();
 //      ^
 // [diag.deprecatedMemberUseWithMessage] 'f' is deprecated and shouldn't be used. Are you sure?
-''',
-    );
+''');
   }
 
   test_methodInvocation_fromSamePackage() async {
@@ -1338,7 +1378,7 @@ class A() {
   }
 
   test_methodInvocation_nonUseKind() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @Deprecated.extend()
   void foo() {}
@@ -1355,7 +1395,7 @@ void f(A a) {
   }
 
   test_methodInvocation_unrelatedAnnotation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @override
   void foo() {}
@@ -1372,7 +1412,7 @@ void f(A a) {
   }
 
   test_methodInvocation_withMessage() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @Deprecated('0.9')
   void foo() {}
@@ -1391,7 +1431,7 @@ void f(A a) {
   }
 
   test_mixin_inDeprecatedClassTypeAlias() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 mixin A {}
 ''');
@@ -1422,50 +1462,53 @@ var z = C(x: '');
   }
 
   test_operator() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   operator+(A a) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 f(A a, A b) {
   return a + b;
 //       ^^^^^
 // [diag.deprecatedMemberUse] '+' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_parameter_named() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 void f({@deprecated int x = 0}) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void g() => f(x: 1);
 //            ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_parameter_named_inAnnotation() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class MyAnnotation {
   const MyAnnotation({@deprecated int? x});
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @MyAnnotation(x: 1)
 //            ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 void g() {}
-''',
-    );
+''');
   }
 
   test_parameter_named_inDefiningConstructor_asFieldFormalParameter() async {
@@ -1495,8 +1538,7 @@ class C {
   }
 
   test_parameter_named_inDefiningConstructor_inFieldFormalParameter_notName() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {}
 
 @deprecated
@@ -1505,16 +1547,18 @@ class B extends A {
 }
 
 const B instance = const B();
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class C {
   final A a;
   C({B this.a = instance});
 //   ^
 // [diag.deprecatedMemberUse] 'B' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_parameter_named_inDefiningFunction() async {
@@ -1560,7 +1604,7 @@ class C {
   }
 
   test_parameter_named_ofFunction() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 void foo({@deprecated int a}) {}
 ''');
 
@@ -1576,7 +1620,7 @@ void f() {
   }
 
   test_parameter_named_ofMethod() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   void foo({@deprecated int a}) {}
 }
@@ -1594,113 +1638,120 @@ void f(A a) {
   }
 
   test_parameter_namedInPrimaryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A({@deprecated int x = 0});
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 var x = A(x: 7);
 //        ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptional() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   void foo([@deprecated int x = 0]) {}
 }
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 void f(A a) {
   a.foo(0);
 //      ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptional_inDeprecatedConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 void foo([@deprecated int x = 0]) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   @deprecated
   A() {
     foo(0);
   }
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptional_inDeprecatedFunction() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   void foo([@deprecated int x = 0]) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 @deprecated
 void f(A a) {
   a.foo(0);
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptional_inDeprecatedPrimaryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 void foo([@deprecated int x = 0]) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A() {
   @deprecated
   this {
     foo(0);
   }
 }
-''',
-    );
+''');
   }
 
   test_parameter_positionalOptionalInPrimaryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A([@deprecated int x = 0]);
-''',
-      code: '''
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:aaa/a.dart';
+
 var x = A(7);
 //        ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_parameter_positionalRequired() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   void foo(@deprecated int x) {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f(A a) {
   a.foo(0);
 }
-''',
-    );
+''');
   }
 
   test_parameterInSuper_explicitInvocation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A([@deprecated int? p]);
 }
@@ -1718,7 +1769,7 @@ class B extends A {
   }
 
   test_parameterInSuper_explicitInvocation_inPrimaryConstructorBody() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A([@deprecated int? p]);
 }
@@ -1736,7 +1787,7 @@ class B() extends A {
   }
 
   test_parameterInSuper_explicitInvocation_namedParameter() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A({@deprecated int? p});
 }
@@ -1754,7 +1805,7 @@ class B extends A {
   }
 
   test_parameterInSuper_implicitArgument() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A([@deprecated int? p]);
 }
@@ -1772,7 +1823,7 @@ class B extends A {
   }
 
   test_parameterInSuper_implicitArgument_alsoDeprecated() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A([@deprecated int? p]);
 }
@@ -1788,7 +1839,7 @@ class B extends A {
   }
 
   test_parameterInSuper_implicitArgument_alsoDeprecated_inPrimaryConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A([@deprecated int? p]);
 }
@@ -1802,7 +1853,7 @@ class B([@deprecated super.p]) extends A;
   }
 
   test_parameterInSuper_implicitArgument_explicitInvocation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A.named([@deprecated int? p]);
 }
@@ -1820,7 +1871,7 @@ class B extends A {
   }
 
   test_parameterInSuper_implicitArgument_explicitInvocation_inPrimaryConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A.named([@deprecated int? p]);
 }
@@ -1838,7 +1889,7 @@ class B([super.p]) extends A {
   }
 
   test_parameterInSuper_implicitArgument_inPrimaryConstructor() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A([@deprecated int? p]);
 }
@@ -1854,7 +1905,7 @@ class B([super.p]) extends A;
   }
 
   test_parameterInSuper_implicitInvocation_namedParameter() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   A({@deprecated int? p});
 }
@@ -1879,137 +1930,146 @@ typedef F = void Function(@deprecated int x);
   }
 
   test_postfixExpression_deprecatedGetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x++;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_postfixExpression_deprecatedNothing() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x++;
 }
-''',
-    );
+''');
   }
 
   test_postfixExpression_deprecatedSetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 int get x => 0;
 
 @deprecated
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x++;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_prefixedIdentifier_identifier() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   static const foo = 0;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   A.foo;
 //  ^^^
 // [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_prefixedIdentifier_prefix() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {
   static const foo = 0;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   A.foo;
 //^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_prefixExpression_deprecatedGetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int get x => 0;
 
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   ++x;
 //  ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_prefixExpression_deprecatedSetter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 int get x => 0;
 
 @deprecated
 set x(int _) {}
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   ++x;
 //  ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_propertyAccess_super() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   int get foo => 0;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   void bar() {
     super.foo;
@@ -2017,113 +2077,118 @@ class B extends A {
 // [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
   }
 }
-''',
-    );
+''');
   }
 
   test_redirectedConstructor_fromFactoryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:test/test.dart';
 class B extends A {
   @deprecated
   B();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   factory A.two() = B;
 //                  ^
 // [diag.deprecatedMemberUse] 'B' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_redirectedParameter_redirectingFactoryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:test/test.dart';
 class B extends A {
   B([@deprecated int? p]);
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   factory A.two([int? p]) = B;
 //               ^^^^^^
 // [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_deprecatedFunctionTypedParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:test/test.dart';
 class B extends A {
   B([@deprecated void p()?]);
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   factory A.two([@deprecated void p()?]) = B;
 }
-''',
-    );
+''');
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_deprecatedParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:test/test.dart';
 class B extends A {
   B([@deprecated int? p]);
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   factory A.two([@deprecated int? p]) = B;
 }
-''',
-    );
+''');
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_functionTypedParameter() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:test/test.dart';
 class B extends A {
   B([@deprecated void p()?]);
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   factory A.two([void p()?]) = B;
 //               ^^^^^^^^^
 // [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_redirectedParameter_redirectingFactoryConstructor_named() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:test/test.dart';
 class B extends A {
   B({@deprecated int? p});
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   factory A.two({int? p}) = B;
 //               ^^^^^^
 // [diag.deprecatedMemberUse] 'p' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_redirectingConstructorInvocation_namedParameter() async {
@@ -2136,7 +2201,7 @@ class A {
   }
 
   test_setterInvocation() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   set foo(int _) {}
@@ -2155,7 +2220,7 @@ void f(A a) {
   }
 
   test_showCombinator() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 class A {}
 ''');
@@ -2168,295 +2233,314 @@ import 'package:aaa/a.dart' show A;
   }
 
   test_superConstructor_factoryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A();
   A.two();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   factory B() => B.two();
   B.two() : super.two();
 }
-''',
-    );
+''');
   }
 
   test_superConstructor_implicitCall() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   B();
 //^^^^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_superConstructor_namedConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A.named() {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   B() : super.named() {}
 //      ^^^^^^^^^^^^^
 // [diag.deprecatedMemberUse] 'A.named' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_superConstructor_primaryConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A() {
   @deprecated
   this;
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   B() : super();
 //      ^^^^^^^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_superConstructor_redirectingConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A();
   A.two();
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   B() : this.two();
   B.two() : super.two();
 }
-''',
-    );
+''');
   }
 
   test_superConstructor_unnamedConstructor() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
   @deprecated
   A() {}
 }
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class B extends A {
   B() : super() {}
 //      ^^^^^^^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_argument() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   print(x);
 //      ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_assignment_right() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f(int a) {
   a = x;
 //    ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_binaryExpression() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x + 1;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_constructorFieldInitializer() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 const int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 class A {
   final int f;
   A() : f = x;
 //          ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_expressionFunctionBody() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 int f() => x;
 //         ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
-''',
-    );
+''');
   }
 
   test_topLevelVariable_expressionStatement() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   x;
 //^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_forElement_condition() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   [for (;x;) 0];
 //       ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_forStatement_condition() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   for (;x;) {}
 //      ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_ifElement_condition() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   [if (x) 0];
 //     ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_ifStatement_condition() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   if (x) {}
 //    ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_listLiteral() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   [x];
 // ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_mapLiteralEntry() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   ({0: x, x: 0});
 //     ^
@@ -2464,82 +2548,87 @@ void f() {
 //        ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_namedExpression() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void g({int a = 0}) {}
 void f() {
   g(a: x);
 //     ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_returnStatement() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 int f() {
   return x;
 //       ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_setLiteral() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   ({x});
 //  ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_spreadElement() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = [0];
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   [...x];
 //    ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_switchCase() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 const int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f(int a) {
   switch (a) {
     case x:
@@ -2548,12 +2637,11 @@ void f(int a) {
       break;
   }
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_switchCase_language219() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 const int x = 1;
 ''');
@@ -2572,23 +2660,24 @@ void f(int a) {
   }
 
   test_topLevelVariable_switchStatement() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   switch (x) {}
 //        ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_switchStatement_language219() async {
-    newFile(externalLibPath, r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
 ''');
@@ -2604,81 +2693,60 @@ void f() {
   }
 
   test_topLevelVariable_unaryExpression() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   -x;
 // ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_variableDeclaration_initializer() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = 1;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   // ignore: unused_local_variable
   var v = x;
 //        ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   test_topLevelVariable_whileStatement_condition() async {
-    await resolveTestCodeWithDiagnostics2(
-      externalCode: r'''
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 var x = true;
-''',
-      code: r'''
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
 void f() {
   while (x) {}
 //       ^
 // [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
 }
-''',
-    );
+''');
   }
 
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
     assertPackageConfigWorkspaceFor(testFile);
-  }
-}
-
-class _PackageConfigWorkspaceBase extends PubPackageResolutionTest {
-  String get testPackageGeneratedPath {
-    return '$testPackageRootPath/.dart_tool/build/generated';
-  }
-
-  @override
-  void verifyCreatedCollection() {
-    super.verifyCreatedCollection();
-    assertPackageConfigWorkspaceFor(testFile);
-  }
-
-  void _createTestPackageBuildMarker() {
-    newFolder(testPackageGeneratedPath);
-  }
-
-  void _newTestPackageGeneratedFile({
-    required String packageName,
-    required String pathInLib,
-    required String content,
-  }) {
-    newFile('$testPackageGeneratedPath/$packageName/lib/$pathInLib', content);
   }
 }

@@ -119,15 +119,13 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     File file, {
     OperationPerformanceImpl? performance,
   }) async {
-    result =
-        await fileResolver.resolve(path: file.path, performance: performance)
-            as ResolvedUnitResultImpl;
-    return result;
+    return await fileResolver.resolve(path: file.path, performance: performance)
+        as ResolvedUnitResultImpl;
   }
 
   @override
   Future<TestResolvedUnitResult> resolveTestFile() async {
-    result = await resolveFile(testFile);
+    var result = await resolveFile(testFile);
     return TestResolvedUnitResult(result);
   }
 

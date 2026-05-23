@@ -117,9 +117,8 @@ f(bool b, C1 c1, C2 c2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.conditionalExpression('b ? c1 : c2'),
-      r'''
+    var node = result.findNode.conditionalExpression('b ? c1 : c2');
+    assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
@@ -137,8 +136,7 @@ ConditionalExpression
     staticType: C2
   correspondingParameter: <null>
   staticType: A
-''',
-    );
+''');
   }
 
   test_issue49692() async {
@@ -339,9 +337,8 @@ f(bool b, C1<int> c1, C2<double> c2) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.conditionalExpression('b ? c1 : c2'),
-      r'''ConditionalExpression
+    var node = result.findNode.conditionalExpression('b ? c1 : c2');
+    assertResolvedNodeText(node, r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -360,8 +357,7 @@ f(bool b, C1<int> c1, C2<double> c2) {
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>
-''',
-    );
+''');
   }
 
   test_contextNotUsedIfLhsDoesNotSatisfyContext() async {
@@ -378,9 +374,8 @@ f(bool b, B2 b2, C1 c1, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.conditionalExpression('b ? b2 : c1'),
-      r'''ConditionalExpression
+    var node = result.findNode.conditionalExpression('b ? b2 : c1');
+    assertResolvedNodeText(node, r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -397,8 +392,7 @@ f(bool b, B2 b2, C1 c1, Object? o) {
     staticType: C1
   correspondingParameter: <null>
   staticType: B2
-''',
-    );
+''');
   }
 
   test_contextNotUsedIfRhsDoesNotSatisfyContext() async {
@@ -415,9 +409,8 @@ f(bool b, C1 c1, B2 b2, Object? o) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.conditionalExpression('b ? c1 : b2'),
-      r'''ConditionalExpression
+    var node = result.findNode.conditionalExpression('b ? c1 : b2');
+    assertResolvedNodeText(node, r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -434,8 +427,7 @@ f(bool b, C1 c1, B2 b2, Object? o) {
     staticType: B2
   correspondingParameter: <null>
   staticType: B2
-''',
-    );
+''');
   }
 
   test_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {
@@ -448,9 +440,8 @@ class C2 implements B1, B2 {}
 B1 f(bool b, C1 c1, C2 c2) => b ? c1 : c2;
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.conditionalExpression('b ? c1 : c2'),
-      r'''
+    var node = result.findNode.conditionalExpression('b ? c1 : c2');
+    assertResolvedNodeText(node, r'''
 ConditionalExpression
   condition: SimpleIdentifier
     token: b
@@ -467,7 +458,6 @@ ConditionalExpression
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
   staticType: B1
-''',
-    );
+''');
   }
 }
