@@ -177,6 +177,8 @@ extension type A<T>(int it) {}
 augment extension type A<T extends num>(int it) {}
 //                                 ^^^
 // [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+//                                     ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 
@@ -186,6 +188,8 @@ extension type A<T extends num>(int it) {}
 augment extension type A<T extends int>(int it) {}
 //                                 ^^^
 // [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+//                                     ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 
@@ -193,6 +197,8 @@ augment extension type A<T extends int>(int it) {}
     await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
 augment extension type A<T>(int it) {}
+//                         ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 
@@ -200,6 +206,8 @@ augment extension type A<T>(int it) {}
     await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
 augment extension type A<T extends num>(int it) {}
+//                                     ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 

@@ -19,6 +19,8 @@ class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
   test_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type A(int it) {}
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -45,6 +47,8 @@ ExtensionTypeDeclaration
   test_augment_implementsClause() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) implements I {}
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
@@ -621,6 +625,8 @@ ExtensionTypeDeclaration
   test_members_constructor_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment E.named();
 }
 ''');
@@ -662,6 +668,8 @@ ExtensionTypeDeclaration
   test_members_constructor_augment_factory_unnamed() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment factory E() => E(0);
 }
 ''');
@@ -694,6 +702,8 @@ ConstructorDeclaration
   test_members_field_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment int foo = 0;
 }
 ''');
@@ -736,6 +746,8 @@ ExtensionTypeDeclaration
   test_members_field_augment_static() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment static int foo = 0;
 }
 ''');
@@ -897,6 +909,8 @@ ExtensionTypeDeclaration
   test_members_getter_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment int get foo => 0;
 }
 ''');
@@ -938,6 +952,8 @@ ExtensionTypeDeclaration
   test_members_getter_augment_static() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment static int get foo => 0;
 }
 ''');
@@ -1019,6 +1035,8 @@ ExtensionTypeDeclaration
   test_members_method_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment void foo() {}
 }
 ''');
@@ -1061,6 +1079,8 @@ ExtensionTypeDeclaration
   test_members_method_augment_static() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment static void foo() {}
 }
 ''');
@@ -1104,6 +1124,8 @@ ExtensionTypeDeclaration
   test_members_operator_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment int operator+(int other) => 0;
 }
 ''');
@@ -1194,6 +1216,8 @@ ExtensionTypeDeclaration
   test_members_setter_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment set foo(int x) {}
 }
 ''');
@@ -1239,6 +1263,8 @@ ExtensionTypeDeclaration
   test_members_setter_augment_static() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension type E(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment static set foo(int x) {}
 }
 ''');

@@ -3723,8 +3723,12 @@ class Parser {
   Token parsePrimaryConstructorOpt(
     DeclarationKind kind,
     Token token,
-    Token? constKeyword,
-  ) {
+    Token? constKeyword, {
+    bool allowExtensionTypeRepresentation = true,
+  }) {
+    assert(
+      allowExtensionTypeRepresentation || kind == DeclarationKind.ExtensionType,
+    );
     if (token.next!.isA(TokenType.OPEN_PAREN) ||
         token.next!.isA(TokenType.PERIOD)) {
       Token beginPrimaryConstructor = token.next!;
@@ -3761,9 +3765,18 @@ class Parser {
             );
           }
         case DeclarationKind.Class:
+          // Valid case.
+          break;
         case DeclarationKind.ExtensionType:
+          if (!allowExtensionTypeRepresentation) {
+            reportRecoverableError(
+              constKeyword ?? beginPrimaryConstructor,
+              diag.extensionTypeAugmentationSpecifiesRepresentationField,
+            );
+          }
+          break;
         case DeclarationKind.Enum:
-          // Valid cases.
+          // Valid case.
           break;
       }
 
@@ -3778,7 +3791,8 @@ class Parser {
       if (token.next!.isA(TokenType.OPEN_PAREN)) {
         token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
       } else {
-        if (kind == DeclarationKind.ExtensionType) {
+        if (kind == DeclarationKind.ExtensionType &&
+            allowExtensionTypeRepresentation) {
           reportRecoverableError(
             token,
             diag.missingPrimaryConstructorParameters,
@@ -3794,7 +3808,8 @@ class Parser {
         hasConstructorName,
       );
     } else {
-      if (kind == DeclarationKind.ExtensionType) {
+      if (kind == DeclarationKind.ExtensionType &&
+          allowExtensionTypeRepresentation) {
         reportRecoverableError(token, diag.missingPrimaryConstructor);
       } else if (constKeyword != null) {
         if (isPrimaryConstructorsFeatureEnabled) {
@@ -3912,7 +3927,9 @@ class Parser {
       DeclarationKind.ExtensionType,
       token,
       constKeyword,
+      allowExtensionTypeRepresentation: augmentToken == null,
     );
+
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (token.next!.isA(TokenType.SEMICOLON)) {

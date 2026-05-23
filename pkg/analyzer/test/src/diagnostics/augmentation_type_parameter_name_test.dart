@@ -71,6 +71,8 @@ extension type A<T>(int it) {}
 augment extension type A<U>(int it) {}
 //                       ^
 // [diag.augmentationTypeParameterName] The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
+//                         ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 

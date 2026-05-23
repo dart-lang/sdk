@@ -730,6 +730,8 @@ extension_override_without_access:
   status: noFix
 extension_primary_constructor:
   status: hasFix
+extension_type_augmentation_specifies_representation_field:
+  status: needsEvaluation
 extension_type_constructor_with_super_formal_parameter:
   status: needsFix
   notes: |-
