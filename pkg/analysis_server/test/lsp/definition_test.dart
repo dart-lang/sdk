@@ -1057,6 +1057,31 @@ class MyClass {
     await testContents(contents);
   }
 
+  Future<void> test_keywordNavigation_return_toConstructor_withFactory() async {
+    var contents = '''
+class MyClass {
+  [!factory!] () {
+    ret^urn MyClass.n();
+  }
+  MyClass.n();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_return_toConstructor_withNew() async {
+    var contents = '''
+class MyClass {
+  [!new!] () {
+    ret^urn;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_keywordNavigation_return_toFunction() async {
     var contents = '''
 int [!foo!]() {
