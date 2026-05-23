@@ -590,6 +590,8 @@ extension type A(int it) {}
 augment extension type A<T>(int it) {}
 //                       ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+//                         ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -638,6 +640,8 @@ extension type A<T>(int it) {}
 augment extension type A(int it) {}
 //                     ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -676,6 +680,8 @@ ExtensionTypeDeclaration
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
 augment extension type A<T>(int it) {}
+//                         ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -724,6 +730,8 @@ extension type A<T>(int it) {}
 augment extension type A<T, U>(int it) {}
 //                          ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+//                            ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -776,6 +784,8 @@ extension type A<T, U>(int it) {}
 augment extension type A<T>(int it) {}
 //                        ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
+//                         ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',

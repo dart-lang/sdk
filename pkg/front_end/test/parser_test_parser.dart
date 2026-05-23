@@ -1216,16 +1216,23 @@ class TestParser extends Parser {
   Token parsePrimaryConstructorOpt(
     DeclarationKind kind,
     Token token,
-    Token? constKeyword,
-  ) {
+    Token? constKeyword, {
+    bool allowExtensionTypeRepresentation = true,
+  }) {
     doPrint(
       'parsePrimaryConstructorOpt('
       '$kind, '
       '$token, '
-      '$constKeyword)',
+      '$constKeyword, '
+      'allowExtensionTypeRepresentation: $allowExtensionTypeRepresentation)',
     );
     indent++;
-    var result = super.parsePrimaryConstructorOpt(kind, token, constKeyword);
+    var result = super.parsePrimaryConstructorOpt(
+      kind,
+      token,
+      constKeyword,
+      allowExtensionTypeRepresentation: allowExtensionTypeRepresentation,
+    );
     indent--;
     return result;
   }

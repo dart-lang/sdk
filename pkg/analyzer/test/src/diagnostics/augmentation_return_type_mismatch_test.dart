@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AugmentationReturnTypeMismatchTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -170,6 +172,8 @@ extension type A(int it) {
 }
 
 augment extension type A(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment String get foo;
 //        ^^^^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
@@ -184,6 +188,8 @@ extension type A(int it) {
 }
 
 augment extension type A(int it) {
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
   augment int foo();
 //        ^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.

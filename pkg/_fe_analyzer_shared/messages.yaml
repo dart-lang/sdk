@@ -1714,6 +1714,18 @@ extensionAugmentationHasOnClause:
     augment extension E on int {}
   comment: No parameters.
 
+extensionTypeAugmentationSpecifiesRepresentationField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type augmentation can't specify a representation field."
+  correctionMessage: "Try removing the representation field."
+  analyzerCode: extensionTypeAugmentationSpecifiesRepresentationField
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    augment extension type E(int x) {}
+  comment: No parameters.
+
 annotationOnTypeArgument:
   type: syntacticError
   parameters: none

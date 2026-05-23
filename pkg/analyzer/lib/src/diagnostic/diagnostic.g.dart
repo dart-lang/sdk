@@ -5353,6 +5353,21 @@ extensionPrimaryConstructor = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+///
+/// No parameters.
+const DiagnosticWithoutArguments
+extensionTypeAugmentationSpecifiesRepresentationField =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'extension_type_augmentation_specifies_representation_field',
+      problemMessage:
+          "An extension type augmentation can't specify a representation field.",
+      correctionMessage: "Try removing the representation field.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'extension_type_augmentation_specifies_representation_field',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
 extensionTypeConstructorWithSuperFormalParameter =
     DiagnosticWithoutArgumentsImpl(

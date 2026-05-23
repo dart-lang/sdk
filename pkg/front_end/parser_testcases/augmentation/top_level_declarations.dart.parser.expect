@@ -14,6 +14,7 @@ augment late int field;
 augment class Class {}
 augment abstract class Class {}
 augment mixin Mixin {}
+augment extension type ExtensionType {}
 
 
 augment[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
@@ -32,4 +33,5 @@ augment[KeywordToken] late[KeywordToken] int[StringToken] field[StringToken];[Si
 augment[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
 augment[KeywordToken] abstract[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
 augment[KeywordToken] mixin[KeywordToken] Mixin[StringToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] extension[KeywordToken] type[StringToken] ExtensionType[StringToken] {[BeginToken]}[SimpleToken]
 [SimpleToken]

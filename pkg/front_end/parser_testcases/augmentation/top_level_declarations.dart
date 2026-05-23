@@ -14,3 +14,4 @@ augment late int field;
 augment class Class {}
 augment abstract class Class {}
 augment mixin Mixin {}
+augment extension type ExtensionType {}
