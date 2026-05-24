@@ -12530,7 +12530,7 @@ LinterLintCode:
       using `var` and its type is [non-obvious](https://dart.dev/glossary/obviously-typed).
 
       Type annotations on local variables improve code readability by making the
-      expected type explicit, helping readers understand the code without analyzing
+      expected type explicit, which helps readers understand the code without analyzing
       complex initializer expressions.
 
       #### Example
