@@ -22,10 +22,6 @@
 #include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 
-#if defined(DEBUG)
-#define SNAPSHOT_BACKTRACE
-#endif
-
 namespace dart {
 
 // Forward declarations.
