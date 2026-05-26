@@ -237,7 +237,7 @@ class DartUnitHoverComputer {
       EnumDeclaration() => node.namePart.typeName,
       Expression() => node,
       ExtensionDeclaration() => node.name,
-      ExtensionTypeDeclaration() => node.primaryConstructor.typeName,
+      ExtensionTypeDeclaration() => node.namePart.typeName,
       FormalParameter() => node.name,
       FunctionDeclaration() => node.name,
       ImportPrefixReference() => node.name,

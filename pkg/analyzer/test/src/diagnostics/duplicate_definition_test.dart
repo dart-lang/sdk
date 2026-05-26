@@ -2253,9 +2253,7 @@ extension type E(int it) {
 // [context 1] The corresponding getter is declared here.
 }
 
-augment extension type E(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type E {
   augment int foo = 0;
 //            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
@@ -2378,9 +2376,7 @@ extension type E(int it) {
 // [context 1] The corresponding setter is declared here.
 }
 
-augment extension type E(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type E {
   augment int foo = 0;
 //            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
@@ -2493,9 +2489,7 @@ extension type E(int it) {
 // [context 1] The corresponding getter is declared here.
 }
 
-augment extension type E(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type E {
   augment static int foo = 0;
 //                   ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
@@ -2585,9 +2579,7 @@ extension type E(int it) {
 // [context 1] The corresponding setter is declared here.
 }
 
-augment extension type E(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type E {
   augment static int foo = 0;
 //                   ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.

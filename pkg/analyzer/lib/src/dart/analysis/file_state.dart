@@ -1030,9 +1030,7 @@ class FileState {
           topLevelDeclarations.add(name.lexeme);
         }
       } else if (declaration is ExtensionTypeDeclaration) {
-        topLevelDeclarations.add(
-          declaration.primaryConstructor.typeName.lexeme,
-        );
+        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
       } else if (declaration is FunctionDeclaration) {
         topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is MixinDeclaration) {

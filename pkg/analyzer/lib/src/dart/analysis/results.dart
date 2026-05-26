@@ -90,7 +90,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       } else if (node is ExtensionTypeDeclaration) {
-        if (_hasOffset(node.primaryConstructor.typeName)) {
+        if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
       }

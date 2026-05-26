@@ -16,6 +16,46 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeResolutionTest extends PubPackageResolutionTest {
+  test_augment_primaryConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) {}
+
+augment extension type A(int it) {}
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+''');
+
+    var node = result.findNode.extensionTypeDeclaration('augment');
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@58
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@52
+''');
+  }
+
   test_constructor_factoryHead_named() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {
@@ -516,7 +556,7 @@ extension type A(String it) {
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -588,7 +628,7 @@ extension type A(int it) implements num {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -704,7 +744,7 @@ extension type A({int a = 0}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -746,7 +786,7 @@ extension type A([int a = 0]) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -790,7 +830,7 @@ extension type A(this.it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -826,7 +866,7 @@ extension type A(this.it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -859,7 +899,7 @@ extension type A(int it()) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -901,7 +941,7 @@ extension type A(int it()) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -942,7 +982,7 @@ extension type A(const int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -981,7 +1021,7 @@ extension type A(const int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1019,7 +1059,7 @@ extension type A(covariant int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1058,7 +1098,7 @@ extension type A(covariant int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1094,7 +1134,7 @@ extension type A(final int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1133,7 +1173,7 @@ extension type A(final int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1169,7 +1209,7 @@ extension type A(final it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1206,7 +1246,7 @@ extension type A(final it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1240,7 +1280,7 @@ extension type A(required int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1278,7 +1318,7 @@ extension type A(static int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1315,7 +1355,7 @@ extension type A(var it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1352,7 +1392,7 @@ extension type A(var it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1384,7 +1424,7 @@ extension type A({int? it}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1425,7 +1465,7 @@ extension type A({int? it}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1465,7 +1505,7 @@ extension type A({int? a, int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1516,7 +1556,7 @@ extension type A({int? a, int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1566,7 +1606,7 @@ extension type A({int? a, required int b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1614,7 +1654,7 @@ extension type A([int? it]) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1655,7 +1695,7 @@ extension type A([int? it]) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1695,7 +1735,7 @@ extension type A([int? a, int? b]) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1746,7 +1786,7 @@ extension type A([int? a, int? b]) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1794,7 +1834,7 @@ extension type A({required int it}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1835,7 +1875,7 @@ extension type A({required int it}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1875,7 +1915,7 @@ extension type A({required int a, int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1925,7 +1965,7 @@ extension type A({required int a, required int b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -1973,7 +2013,7 @@ extension type A(int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2009,7 +2049,7 @@ extension type A(int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2046,7 +2086,7 @@ extension type A(int a, {int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2096,7 +2136,7 @@ extension type A(int a, {int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2145,7 +2185,7 @@ extension type A(int a, {int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2195,7 +2235,7 @@ extension type A(int a, {int? b}) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2244,7 +2284,7 @@ extension type A(int a, int b) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2291,7 +2331,7 @@ extension type A(int a, int b) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2337,7 +2377,7 @@ extension type A(int A) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2375,7 +2415,7 @@ extension type A(int A) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2410,7 +2450,7 @@ extension type A(@deprecated int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2455,7 +2495,7 @@ extension type A() {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2483,7 +2523,7 @@ extension type A() {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2508,7 +2548,7 @@ extension type A(it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2542,7 +2582,7 @@ extension type A(it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2573,7 +2613,7 @@ extension type A(@deprecated it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2615,7 +2655,7 @@ extension type A(@deprecated it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2658,7 +2698,7 @@ extension type A(int it) {
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2714,7 +2754,7 @@ extension type A(int it) {
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2769,7 +2809,7 @@ extension type A(super.it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2804,7 +2844,7 @@ extension type A(super.it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2836,7 +2876,7 @@ extension type A(int it,) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2874,7 +2914,7 @@ extension type A(int it,) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -2913,7 +2953,7 @@ extension type E {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: ( <synthetic>
@@ -2938,7 +2978,7 @@ extension type A.named(int it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     constructorName: PrimaryConstructorName
       period: .
@@ -3098,7 +3138,7 @@ extension type A({bool it = false}) {
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3305,7 +3345,7 @@ extension type A(int it) {
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3366,7 +3406,7 @@ extension type A(num it) {
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
@@ -3455,7 +3495,7 @@ extension type A<T, U>(Map<T, U> it) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -3514,7 +3554,7 @@ extension type ET<_, _, _ extends num>(int _) {}
 ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: PrimaryConstructorDeclaration
     typeName: ET
     typeParameters: TypeParameterList
       leftBracket: <

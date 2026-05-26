@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (parent is ExtensionTypeDeclaration) {
         _checkForShadowing(
           typeParameters,
-          parent.primaryConstructor.typeParameters,
+          parent.namePart.typeParameters,
           'extension type',
         );
       } else if (parent is MethodDeclaration) {

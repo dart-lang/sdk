@@ -171,9 +171,7 @@ extension type A(int it) {
   int get foo => 0;
 }
 
-augment extension type A(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A {
   augment String get foo;
 //        ^^^^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
@@ -187,9 +185,7 @@ extension type A(int it) {
   void foo() {}
 }
 
-augment extension type A(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A {
   augment int foo();
 //        ^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'int' must be the same as the introductory declaration's return type 'void'.

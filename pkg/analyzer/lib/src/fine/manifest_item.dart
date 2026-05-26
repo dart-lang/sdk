@@ -185,6 +185,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
           flags.isConst == element.isConst &&
           flags.isFactory == element.isFactory &&
           flags.isOriginDeclaration == element.isOriginDeclaration &&
+          flags.isOriginExtensionTypeRecovery ==
+              element.isOriginExtensionTypeRecovery &&
           flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
           flags.isOriginMixinApplication == element.isOriginMixinApplication &&
           flags.isPrimary == element.isPrimary &&
@@ -1649,6 +1651,7 @@ enum _ConstructorItemFlag {
   isConst,
   isFactory,
   isOriginDeclaration,
+  isOriginExtensionTypeRecovery,
   isOriginImplicitDefault,
   isOriginMixinApplication,
   isPrimary,
@@ -1815,6 +1818,9 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isOriginDeclaration) {
       bits |= _maskFor(_ConstructorItemFlag.isOriginDeclaration);
     }
+    if (element.isOriginExtensionTypeRecovery) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginExtensionTypeRecovery);
+    }
     if (element.isOriginImplicitDefault) {
       bits |= _maskFor(_ConstructorItemFlag.isOriginImplicitDefault);
     }
@@ -1841,6 +1847,10 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isOriginDeclaration {
     return _has(_ConstructorItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginExtensionTypeRecovery {
+    return _has(_ConstructorItemFlag.isOriginExtensionTypeRecovery);
   }
 
   bool get isOriginImplicitDefault {

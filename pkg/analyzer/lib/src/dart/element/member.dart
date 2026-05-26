@@ -62,6 +62,10 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isOriginDeclaration => baseElement.isOriginDeclaration;
 
   @override
+  bool get isOriginExtensionTypeRecovery =>
+      baseElement.isOriginExtensionTypeRecovery;
+
+  @override
   bool get isOriginImplicitDefault => baseElement.isOriginImplicitDefault;
 
   @override

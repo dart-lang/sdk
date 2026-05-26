@@ -241,21 +241,24 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is from an explicit [ConstructorDeclaration]
   /// or [PrimaryConstructorDeclaration].
   ///
-  /// When this is `true`, [isOriginImplicitDefault] and
-  /// [isOriginMixinApplication] are `false`.
+  /// Constructor origin getters are mutually exclusive. Exactly one of the
+  /// following is `true`:
+  ///
+  /// * [isOriginDeclaration]
+  /// * [isOriginExtensionTypeRecovery]
+  /// * [isOriginImplicitDefault]
+  /// * [isOriginMixinApplication]
   bool get isOriginDeclaration;
+
+  /// Whether the constructor represents the recovery constructor of an extension
+  /// type when no introductory declaration is present in the library.
+  bool get isOriginExtensionTypeRecovery;
 
   /// Whether the constructor was created because there are no explicit
   /// constructors.
-  ///
-  /// When this is `true`, [isOriginDeclaration] and
-  /// [isOriginMixinApplication] are `false`.
   bool get isOriginImplicitDefault;
 
   /// Whether the constructor was created for a mixin application.
-  ///
-  /// When this is `true`, [isOriginDeclaration] and
-  /// [isOriginImplicitDefault] are `false`.
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
@@ -297,6 +300,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   ///
   /// It is `null` if the fragment is synthetic, or does not have the keyword.
   int? get factoryKeywordOffset;
+
+  /// Whether the constructor represents the recovery constructor of an extension
+  /// type when no introductory declaration is present in the library.
+  bool get isOriginExtensionTypeRecovery;
 
   @override
   String get name;

@@ -139,11 +139,14 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     node.metadata.accept(this);
-    node.primaryConstructor.typeParameters?.accept(this);
+    node.namePart.typeParameters?.accept(this);
 
     _scope = node.bodyScope!;
     try {
-      node.primaryConstructor.formalParameters.accept(this);
+      node.namePart
+          .tryCast<PrimaryConstructorDeclaration>()
+          ?.formalParameters
+          .accept(this);
       node.body.accept(this);
     } finally {
       _scope = _containerScope;

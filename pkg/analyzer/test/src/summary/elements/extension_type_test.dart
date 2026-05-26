@@ -6692,6 +6692,249 @@ library
 
   test_extensionType_augmentation_chain_noIntroductoryDeclaration() async {
     var library = await buildLibrary(r'''
+augment extension type A {
+  void foo1() {}
+}
+
+augment extension type A {
+  void foo2() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 isAugmentation extension type A (nameOffset:23) (firstTokenOffset:0) (offset:23)
+          element: <testLibrary>::@extensionType::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@field::#0
+              inducedGetter: #F4
+          constructors
+            #F5 isConst isOriginExtensionTypeRecovery isPrimary new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@getter::#1
+              inducingVariable: #F3
+          methods
+            #F6 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+              element: <testLibrary>::@extensionType::A::@method::foo1
+        #F2 isAugmentation extension type A (nameOffset:70) (firstTokenOffset:47) (offset:70)
+          element: <testLibrary>::@extensionType::A
+          previousFragment: #F1
+          methods
+            #F7 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:81) (firstTokenOffset:76) (offset:81)
+              element: <testLibrary>::@extensionType::A::@method::foo2
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::#0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: dynamic
+      fields
+        hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
+          reference: <testLibrary>::@extensionType::A::@field::#0
+          firstFragment: #F3
+          type: dynamic
+          getter: <testLibrary>::@extensionType::A::@getter::#1
+      constructors
+        isConst isExtensionTypeMember isOriginExtensionTypeRecovery isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+      getters
+        isExtensionTypeMember isOriginVariable <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::#1
+          firstFragment: #F4
+          returnType: dynamic
+          variable: <testLibrary>::@extensionType::A::@field::#0
+      methods
+        isExtensionTypeMember isOriginDeclaration foo1
+          reference: <testLibrary>::@extensionType::A::@method::foo1
+          firstFragment: #F6
+          returnType: void
+        isExtensionTypeMember isOriginDeclaration foo2
+          reference: <testLibrary>::@extensionType::A::@method::foo2
+          firstFragment: #F7
+          returnType: void
+''');
+  }
+
+  test_extensionType_augmentation_chain_noIntroductoryDeclaration_emptyThenSecondaryConstructor() async {
+    var library = await buildLibrary(r'''
+augment extension type A {}
+
+augment extension type A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 isAugmentation extension type A (nameOffset:23) (firstTokenOffset:0) (offset:23)
+          element: <testLibrary>::@extensionType::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@field::#0
+              inducedGetter: #F4
+          constructors
+            #F5 isConst isOriginExtensionTypeRecovery isPrimary new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@getter::#1
+              inducingVariable: #F3
+        #F2 isAugmentation extension type A (nameOffset:52) (firstTokenOffset:29) (offset:52)
+          element: <testLibrary>::@extensionType::A
+          previousFragment: #F1
+          constructors
+            #F6 isOriginDeclaration named (nameOffset:60) (firstTokenOffset:58) (offset:60)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              typeName: A
+              typeNameOffset: 58
+              periodOffset: 59
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::#0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: dynamic
+      fields
+        hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
+          reference: <testLibrary>::@extensionType::A::@field::#0
+          firstFragment: #F3
+          type: dynamic
+          getter: <testLibrary>::@extensionType::A::@getter::#1
+      constructors
+        isConst isExtensionTypeMember isOriginExtensionTypeRecovery isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+        isExtensionTypeMember isOriginDeclaration named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F6
+      getters
+        isExtensionTypeMember isOriginVariable <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::#1
+          firstFragment: #F4
+          returnType: dynamic
+          variable: <testLibrary>::@extensionType::A::@field::#0
+''');
+  }
+
+  test_extensionType_augmentation_chain_noIntroductoryDeclaration_emptyThenStaticField() async {
+    var library = await buildLibrary(r'''
+augment extension type A {}
+
+augment extension type A {
+  static int foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 isAugmentation extension type A (nameOffset:23) (firstTokenOffset:0) (offset:23)
+          element: <testLibrary>::@extensionType::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@field::#0
+              inducedGetter: #F4
+          constructors
+            #F5 isConst isOriginExtensionTypeRecovery isPrimary new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@getter::#1
+              inducingVariable: #F3
+        #F2 isAugmentation extension type A (nameOffset:52) (firstTokenOffset:29) (offset:52)
+          element: <testLibrary>::@extensionType::A
+          previousFragment: #F1
+          fields
+            #F6 hasInitializer isOriginDeclaration isStatic foo (nameOffset:69) (firstTokenOffset:69) (offset:69)
+              element: <testLibrary>::@extensionType::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F8
+          getters
+            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+              element: <testLibrary>::@extensionType::A::@getter::foo
+              inducingVariable: #F6
+          setters
+            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+              element: <testLibrary>::@extensionType::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+                  element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::#0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: dynamic
+      fields
+        hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
+          reference: <testLibrary>::@extensionType::A::@field::#0
+          firstFragment: #F3
+          type: dynamic
+          getter: <testLibrary>::@extensionType::A::@getter::#1
+        hasInitializer isOriginDeclaration isStatic foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F6
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::foo
+          setter: <testLibrary>::@extensionType::A::@setter::foo
+      constructors
+        isConst isExtensionTypeMember isOriginExtensionTypeRecovery isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+      getters
+        isExtensionTypeMember isOriginVariable <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::#1
+          firstFragment: #F4
+          returnType: dynamic
+          variable: <testLibrary>::@extensionType::A::@field::#0
+        isExtensionTypeMember isOriginVariable isStatic foo
+          reference: <testLibrary>::@extensionType::A::@getter::foo
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::foo
+      setters
+        isExtensionTypeMember isOriginVariable isStatic foo
+          reference: <testLibrary>::@extensionType::A::@setter::foo
+          firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
+          variable: <testLibrary>::@extensionType::A::@field::foo
+''');
+  }
+
+  test_extensionType_augmentation_chain_noIntroductoryDeclaration_primaryConstructor() async {
+    var library = await buildLibrary(r'''
 augment extension type A(int it) {
   void foo1() {}
 }
@@ -6798,6 +7041,218 @@ library
           reference: <testLibrary>::@extensionType::A::@method::foo2
           firstFragment: #F12
           returnType: void
+''');
+  }
+
+  test_extensionType_augmentation_chain_noIntroductoryDeclaration_secondaryConstructor() async {
+    var library = await buildLibrary(r'''
+augment extension type A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 isAugmentation extension type A (nameOffset:23) (firstTokenOffset:0) (offset:23)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@field::#0
+              inducedGetter: #F3
+          constructors
+            #F4 isConst isOriginExtensionTypeRecovery isPrimary new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+            #F5 isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              typeName: A
+              typeNameOffset: 29
+              periodOffset: 30
+          getters
+            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@getter::#1
+              inducingVariable: #F2
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::#0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: dynamic
+      fields
+        hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
+          reference: <testLibrary>::@extensionType::A::@field::#0
+          firstFragment: #F2
+          type: dynamic
+          getter: <testLibrary>::@extensionType::A::@getter::#1
+      constructors
+        isConst isExtensionTypeMember isOriginExtensionTypeRecovery isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
+        isExtensionTypeMember isOriginDeclaration named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+      getters
+        isExtensionTypeMember isOriginVariable <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::#1
+          firstFragment: #F3
+          returnType: dynamic
+          variable: <testLibrary>::@extensionType::A::@field::#0
+''');
+  }
+
+  test_extensionType_augmentation_chain_noIntroductoryDeclaration_secondaryConstructor_unnamed() async {
+    var library = await buildLibrary(r'''
+augment extension type A {
+  A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 isAugmentation extension type A (nameOffset:23) (firstTokenOffset:0) (offset:23)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@field::#0
+              inducedGetter: #F3
+          constructors
+            #F4 isConst isOriginExtensionTypeRecovery isPrimary new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
+              typeName: A
+              typeNameOffset: 29
+          getters
+            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@getter::#1
+              inducingVariable: #F2
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::#0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: dynamic
+      fields
+        hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
+          reference: <testLibrary>::@extensionType::A::@field::#0
+          firstFragment: #F2
+          type: dynamic
+          getter: <testLibrary>::@extensionType::A::@getter::#1
+      constructors
+        isConst isExtensionTypeMember isOriginExtensionTypeRecovery isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F4
+        isExtensionTypeMember isOriginDeclaration new
+          reference: <testLibrary>::@extensionType::A::@constructor::new#1
+          firstFragment: #F5
+      getters
+        isExtensionTypeMember isOriginVariable <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::#1
+          firstFragment: #F3
+          returnType: dynamic
+          variable: <testLibrary>::@extensionType::A::@field::#0
+''');
+  }
+
+  test_extensionType_augmentation_chain_noIntroductoryDeclaration_staticField() async {
+    var library = await buildLibrary(r'''
+augment extension type A {
+  static int foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 isAugmentation extension type A (nameOffset:23) (firstTokenOffset:0) (offset:23)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@field::#0
+              inducedGetter: #F3
+            #F4 hasInitializer isOriginDeclaration isStatic foo (nameOffset:40) (firstTokenOffset:40) (offset:40)
+              element: <testLibrary>::@extensionType::A::@field::foo
+              inducedGetter: #F5
+              inducedSetter: #F6
+          constructors
+            #F7 isConst isOriginExtensionTypeRecovery isPrimary new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+          getters
+            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@extensionType::A::@getter::#1
+              inducingVariable: #F2
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@extensionType::A::@getter::foo
+              inducingVariable: #F4
+          setters
+            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@extensionType::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                  element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
+  extensionTypes
+    isSimplyBounded extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::#0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: dynamic
+      fields
+        hasImplicitType isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
+          reference: <testLibrary>::@extensionType::A::@field::#0
+          firstFragment: #F2
+          type: dynamic
+          getter: <testLibrary>::@extensionType::A::@getter::#1
+        hasInitializer isOriginDeclaration isStatic foo
+          reference: <testLibrary>::@extensionType::A::@field::foo
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::foo
+          setter: <testLibrary>::@extensionType::A::@setter::foo
+      constructors
+        isConst isExtensionTypeMember isOriginExtensionTypeRecovery isPrimary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F7
+      getters
+        isExtensionTypeMember isOriginVariable <null-name>
+          reference: <testLibrary>::@extensionType::A::@getter::#1
+          firstFragment: #F3
+          returnType: dynamic
+          variable: <testLibrary>::@extensionType::A::@field::#0
+        isExtensionTypeMember isOriginVariable isStatic foo
+          reference: <testLibrary>::@extensionType::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::foo
+      setters
+        isExtensionTypeMember isOriginVariable isStatic foo
+          reference: <testLibrary>::@extensionType::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F8
+              type: int
+          returnType: void
+          variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
   }
 

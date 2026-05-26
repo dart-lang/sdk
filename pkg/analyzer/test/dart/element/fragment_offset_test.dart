@@ -250,7 +250,7 @@ extension type E(int i) {}
     checkOffset<ExtensionTypeFragment>(
       extensionTypeDeclaration,
       extensionTypeDeclaration.declaredFragment!,
-      extensionTypeDeclaration.primaryConstructor.typeName.offset,
+      extensionTypeDeclaration.namePart.typeName.offset,
     );
   }
 

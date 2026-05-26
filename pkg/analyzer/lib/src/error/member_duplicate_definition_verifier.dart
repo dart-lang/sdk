@@ -522,7 +522,7 @@ class MemberDuplicateDefinitionVerifier {
     _checkClassMembers(
       node.declaredFragment!,
       node.body.members,
-      primaryConstructor: node.primaryConstructor,
+      primaryConstructor: node.namePart.tryCast(),
     );
   }
 

@@ -12116,7 +12116,17 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   /// The `implements` clause.
   ImplementsClause? get implementsClause;
 
+  /// The name of the extension type. In valid code the introductory declaration
+  /// has [PrimaryConstructorDeclaration], and augmentations have
+  /// [NameWithTypeParameters].
+  ClassNamePart get namePart;
+
   /// The primary constructor of the extension type.
+  ///
+  /// Use [namePart] instead. It is a [PrimaryConstructorDeclaration] for an
+  /// introductory declaration with a primary constructor, and a
+  /// [NameWithTypeParameters] for an augmentation.
+  @Deprecated('Use namePart instead')
   PrimaryConstructorDeclaration get primaryConstructor;
 
   /// The `type` keyword.
@@ -12128,7 +12138,7 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('extensionKeyword'),
     GenerateNodeProperty('typeKeyword'),
-    GenerateNodeProperty('primaryConstructor'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('body'),
   ],
@@ -12149,7 +12159,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   final Token typeKeyword;
 
   @generated
-  PrimaryConstructorDeclarationImpl _primaryConstructor;
+  ClassNamePartImpl _namePart;
 
   @generated
   ImplementsClauseImpl? _implementsClause;
@@ -12169,13 +12179,13 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required PrimaryConstructorDeclarationImpl primaryConstructor,
+    required ClassNamePartImpl namePart,
     required ImplementsClauseImpl? implementsClause,
     required ClassBodyImpl body,
-  }) : _primaryConstructor = primaryConstructor,
+  }) : _namePart = namePart,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf(primaryConstructor);
+    _becomeParentOf(namePart);
     _becomeParentOf(implementsClause);
     _becomeParentOf(body);
   }
@@ -12215,17 +12225,27 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  PrimaryConstructorDeclarationImpl get primaryConstructor =>
-      _primaryConstructor;
+  ClassNamePartImpl get namePart => _namePart;
 
   @generated
-  set primaryConstructor(PrimaryConstructorDeclarationImpl primaryConstructor) {
-    _primaryConstructor = _becomeParentOf(primaryConstructor);
+  set namePart(ClassNamePartImpl namePart) {
+    _namePart = _becomeParentOf(namePart);
   }
+
+  @override
+  @Deprecated('Use namePart instead')
+  PrimaryConstructorDeclarationImpl get primaryConstructor =>
+      namePart as PrimaryConstructorDeclarationImpl;
 
   /// Usually, the only formal parameter of the primary constructor.
   /// But could be `null` in invalid code.
   RegularFormalParameterImpl? get representationFormalParameter {
+    var primaryConstructor = namePart
+        .tryCast<PrimaryConstructorDeclarationImpl>();
+    if (primaryConstructor == null) {
+      return null;
+    }
+
     var formalParameters = primaryConstructor.formalParameters;
     return formalParameters.parameters.firstOrNull.tryCast();
   }
@@ -12236,7 +12256,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('typeKeyword', typeKeyword)
-    ..addNode('primaryConstructor', primaryConstructor)
+    ..addNode('namePart', namePart)
     ..addNode('implementsClause', implementsClause)
     ..addNode('body', body);
 
@@ -12255,10 +12275,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(primaryConstructor, oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove required child 'primaryConstructor'.",
-      );
+    if (identical(namePart, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'namePart'.");
     }
     if (identical(implementsClause, oldNode)) {
       implementsClause = null;
@@ -12273,8 +12291,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(primaryConstructor, oldNode)) {
-      primaryConstructor = newNode as PrimaryConstructorDeclarationImpl;
+    if (identical(namePart, oldNode)) {
+      namePart = newNode as ClassNamePartImpl;
       return;
     }
     if (identical(implementsClause, oldNode)) {
@@ -12292,7 +12310,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    primaryConstructor.accept(visitor);
+    namePart.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
   }
@@ -12305,15 +12323,15 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(PrimaryConstructorDeclarationImpl)? visitPrimaryConstructor,
+    void Function(ClassNamePartImpl)? visitNamePart,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
     super.visitChildren(visitor);
-    if (visitPrimaryConstructor != null) {
-      visitPrimaryConstructor(primaryConstructor);
+    if (visitNamePart != null) {
+      visitNamePart(namePart);
     } else {
-      primaryConstructor.accept(visitor);
+      namePart.accept(visitor);
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
@@ -12335,8 +12353,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (primaryConstructor._containsOffset(rangeOffset, rangeEnd)) {
-      return primaryConstructor;
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
     }
     if (implementsClause case var implementsClause?) {
       if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
@@ -26808,7 +26826,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
       case EnumDeclarationImpl parent:
         return parent.namePart.tryCast();
       case ExtensionTypeDeclarationImpl parent:
-        return parent.primaryConstructor;
+        return parent.namePart.tryCast();
       default:
         return null;
     }

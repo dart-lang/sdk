@@ -1332,12 +1332,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
 
+    var namePart = node.namePart;
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
-    } else if (offset <= node.primaryConstructor.typeName.end) {
-      if (offset < node.primaryConstructor.typeName.offset &&
+    } else if (offset <= namePart.typeName.end) {
+      if (offset < namePart.typeName.offset &&
           featureSet.isEnabled(Feature.primary_constructors) &&
-          !node.primaryConstructor.hasConst) {
+          namePart is PrimaryConstructorDeclaration &&
+          !namePart.hasConst) {
         keywordHelper.addKeyword(Keyword.CONST);
       }
       var hasSyntheticBody =
@@ -1345,7 +1347,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       identifierHelper(
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: hasSyntheticBody);
-    } else if (offset >= node.primaryConstructor.end &&
+    } else if (offset >= namePart.end &&
         (offset <= body.leftBracket.offset || body.leftBracket.isSynthetic)) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
     } else if (offset >= body.leftBracket.end &&

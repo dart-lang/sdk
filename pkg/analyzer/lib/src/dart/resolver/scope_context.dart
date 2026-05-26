@@ -198,18 +198,24 @@ class ScopeContext {
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.primaryConstructor.typeParameters?.accept(visitor);
+      node.namePart.typeParameters?.accept(visitor);
       node.implementsClause?.accept(visitor);
 
       if (_featureSet.isEnabled(Feature.primary_constructors)) {
         withInstanceScope(element, () {
           node.bodyScope = nameScope;
           node.documentationComment?.accept(visitor);
-          node.primaryConstructor.formalParameters.accept(visitor);
+          node.namePart
+              .tryCast<PrimaryConstructorDeclarationImpl>()
+              ?.formalParameters
+              .accept(visitor);
           node.body.accept(visitor);
         });
       } else {
-        node.primaryConstructor.formalParameters.accept(visitor);
+        node.namePart
+            .tryCast<PrimaryConstructorDeclarationImpl>()
+            ?.formalParameters
+            .accept(visitor);
         withInstanceScope(element, () {
           node.bodyScope = nameScope;
           node.documentationComment?.accept(visitor);
