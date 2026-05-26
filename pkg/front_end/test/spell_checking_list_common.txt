@@ -1630,6 +1630,7 @@ initializers
 initializes
 initializing
 initially
+initiates
 inject
 injected
 injection

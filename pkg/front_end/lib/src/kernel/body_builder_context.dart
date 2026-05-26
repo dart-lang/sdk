@@ -385,6 +385,8 @@ abstract class BodyBuilderContext {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
   }

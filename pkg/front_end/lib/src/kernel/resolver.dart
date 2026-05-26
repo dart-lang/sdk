@@ -1312,6 +1312,7 @@ class Resolver {
           parameters: parameters,
           internalThisVariable: internalThisVariable,
           contextAllocationStrategy: contextAllocationStrategy,
+          isConstructorWithoutBody: body == null,
         );
 
     if (body == null && !bodyBuilderContext.isExternalConstructor) {

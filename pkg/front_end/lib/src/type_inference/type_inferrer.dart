@@ -82,6 +82,8 @@ abstract class TypeInferrer {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   });
 
   /// Performs type inference on the given metadata [annotations].
@@ -281,7 +283,7 @@ class TypeInferrerImpl implements TypeInferrer {
       isRoot: true,
     );
     if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = visitor.beginFunctionBodyInference(
+      scopeProviderInfo = visitor.beginClosureContextAllocation(
         parameters,
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
@@ -289,7 +291,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     StatementInferenceResult result = visitor.inferStatement(body, bodyContext);
     if (scopeProviderInfo != null) {
-      visitor.endFunctionBodyInference(scopeProviderInfo);
+      visitor.endClosureContextAllocation(scopeProviderInfo);
     }
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -333,7 +335,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = visitor.beginFunctionBodyInference(
+      scopeProviderInfo = visitor.beginClosureContextAllocation(
         [
           for (Variable positionalParameter
               in redirectingFactoryFunction.positionalParameters)
@@ -430,7 +432,7 @@ class TypeInferrerImpl implements TypeInferrer {
     visitor.checkCleanState();
 
     if (scopeProviderInfo != null) {
-      visitor.endFunctionBodyInference(scopeProviderInfo);
+      visitor.endClosureContextAllocation(scopeProviderInfo);
     }
 
     DartType resultType = result.inferredType;
@@ -450,7 +452,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
-    bool isLastInitializerWithoutBody = false,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
@@ -462,8 +465,8 @@ class TypeInferrerImpl implements TypeInferrer {
       constructorContext: constructorContext,
       contextAllocationStrategy: contextAllocationStrategy,
     );
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = visitor.beginFunctionBodyInference(
+    if (isClosureContextLoweringEnabled && isFirstInitializer) {
+      scopeProviderInfo = visitor.beginClosureContextAllocation(
         parameters,
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
@@ -472,8 +475,7 @@ class TypeInferrerImpl implements TypeInferrer {
     InitializerInferenceResult initializerInferenceResult = visitor
         .inferInitializer(initializer);
     if (scopeProviderInfo != null && isLastInitializerWithoutBody) {
-      // Coverage-ignore-block(suite): Not run.
-      visitor.endFunctionBodyInference(scopeProviderInfo);
+      visitor.endClosureContextAllocation(scopeProviderInfo);
     }
     visitor.checkCleanState();
     return new InferredConstructorInitializer(
@@ -619,6 +621,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InferredConstructorInitializer result = impl.inferInitializer(
@@ -629,6 +633,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       internalThisVariable: internalThisVariable,
       scopeProviderInfo: scopeProviderInfo,
       contextAllocationStrategy: contextAllocationStrategy,
+      isFirstInitializer: isFirstInitializer,
+      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
     );
     benchmarker.endSubdivide();
     return result;

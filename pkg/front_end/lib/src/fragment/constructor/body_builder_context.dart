@@ -114,6 +114,8 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     return typeInferrer.inferInitializer(
       fileUri: fileUri,
@@ -123,6 +125,8 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
       internalThisVariable: internalThisVariable,
       scopeProviderInfo: scopeProviderInfo,
       contextAllocationStrategy: contextAllocationStrategy,
+      isFirstInitializer: isFirstInitializer,
+      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
     );
   }
 

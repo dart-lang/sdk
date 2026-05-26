@@ -5706,17 +5706,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// temporary type inference state has been properly cleaned up.
   void checkCleanState();
 
-  /// Performs preliminary computations before inferring the body of a function.
+  /// Initiates closure context allocation as a part of type inference.
   ///
   /// [parameters] are those of the function being inferred.
-  ScopeProviderInfo beginFunctionBodyInference(
+  ScopeProviderInfo beginClosureContextAllocation(
     List<Variable> parameters, {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  /// Finishes computations after inferring the body of a function.
-  void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
+  /// Finishes closure context allocation after inferring the function body.
+  void endClosureContextAllocation(ScopeProviderInfo scopeProviderInfo);
 
   /// Performs preliminary computations before inferring the field initializer.
   ScopeProviderInfo beginFieldInference({
