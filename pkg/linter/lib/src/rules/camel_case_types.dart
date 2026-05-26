@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.primaryConstructor.typeName);
+    check(node.namePart.typeName);
   }
 
   @override

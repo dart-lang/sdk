@@ -30,8 +30,50 @@ class ElementBuilder {
     required Map<FragmentImpl, List<FragmentImpl>> parentChildFragments,
   }) {
     _buildTopFragments(topFragments);
+    _addExtensionTypeRecoveryFragments(parentChildFragments);
     _buildInstanceElementMembers(parentChildFragments);
     _buildFormalParameterElements();
+  }
+
+  /// Ensures that every extension type has the representation field and primary
+  /// constructor fragments expected by element model.
+  ///
+  /// Augmentations and invalid declarations can reach this point without those
+  /// fragments, so this synthesizes recovery fragments before member elements
+  /// are built.
+  void _addExtensionTypeRecoveryFragments(
+    Map<FragmentImpl, List<FragmentImpl>> parentChildFragments,
+  ) {
+    for (var extensionType in libraryElement.extensionTypes) {
+      var firstFragment = extensionType.firstFragment;
+      var childFragments = parentChildFragments[firstFragment] ??= [];
+
+      var hasPrimaryConstructor = childFragments.any(
+        (fragment) => fragment is ConstructorFragmentImpl && fragment.isPrimary,
+      );
+
+      if (!hasPrimaryConstructor) {
+        void prependChild(FragmentImpl child) {
+          child.enclosingFragment = firstFragment;
+          childFragments.insert(0, child);
+        }
+
+        prependChild(
+          ConstructorFragmentImpl(name: 'new')
+            ..isPrimary = true
+            ..isConst = true
+            ..isOriginExtensionTypeRecovery = true
+            ..typeName = extensionType.name,
+        );
+
+        prependChild(
+          FieldFragmentImpl(name: null)
+            ..isFinal = true
+            ..isOriginExtensionTypeRecoveryRepresentation = true
+            ..hasImplicitType = true,
+        );
+      }
+    }
   }
 
   /// Builds elements for formal parameter fragment chains.
@@ -53,21 +95,19 @@ class ElementBuilder {
   void _buildInstanceElementMembers(
     Map<FragmentImpl, List<FragmentImpl>> parentChildFragments,
   ) {
-    var elementChildFragments =
-        Map<InstanceElementImpl, List<FragmentImpl>>.identity();
-
-    for (var entry in parentChildFragments.entries) {
-      var element = entry.key.element;
-      if (element is InstanceElementImpl) {
-        (elementChildFragments[element] ??= []).addAll(entry.value);
+    for (var instanceElement in libraryElement.children) {
+      if (instanceElement is! InstanceElementImpl) {
+        continue;
       }
-    }
 
-    for (var instanceEntry in elementChildFragments.entries) {
-      var instanceElement = instanceEntry.key;
+      var childFragments = [
+        for (var instanceFragment in instanceElement.fragments)
+          ...?parentChildFragments[instanceFragment],
+      ];
+
       var lastInstanceFragments = <String?, FragmentImpl>{};
       var lastStaticFragments = <String?, FragmentImpl>{};
-      for (var fragment in instanceEntry.value) {
+      for (var fragment in childFragments) {
         var isInStaticNamespace = switch (fragment) {
           ConstructorFragmentImpl() => true,
           FieldFragmentImpl(:var isStatic) => isStatic,
@@ -80,9 +120,10 @@ class ElementBuilder {
             ? lastStaticFragments
             : lastInstanceFragments;
         var lastFragment = lastFragments[fragment.name];
+        var fragmentToTrack = fragment;
         switch (fragment) {
           case FieldFragmentImpl():
-            _handleInstanceFieldFragment(
+            fragmentToTrack = _handleInstanceFieldFragment(
               instanceElement,
               lastFragment,
               fragment,
@@ -114,7 +155,7 @@ class ElementBuilder {
           default:
             throw UnimplementedError('${fragment.runtimeType}');
         }
-        lastFragments[fragment.name] = fragment;
+        lastFragments[fragmentToTrack.name] = fragmentToTrack;
       }
 
       // Mark extension type members.
@@ -363,7 +404,15 @@ class ElementBuilder {
     interfaceElement.addConstructor(element);
   }
 
-  void _handleInstanceFieldFragment(
+  /// Adds [fieldFragment] into the element model for [instanceElement].
+  ///
+  /// The returned fragment is the one that should be tracked as the last
+  /// fragment with this name in its namespace. Usually this is [fieldFragment].
+  /// For a synthetic enum `values` field from an augmentation, the synthetic
+  /// field itself is discarded after its initializer elements are moved into
+  /// the introductory `values` field, so the introductory `values` fragment is
+  /// returned instead.
+  FieldFragmentImpl _handleInstanceFieldFragment(
     InstanceElementImpl instanceElement,
     FragmentImpl? lastFragment,
     FieldFragmentImpl fieldFragment,
@@ -371,7 +420,7 @@ class ElementBuilder {
     var instanceFragment = fieldFragment.enclosingFragment;
 
     // Move elements of `values` from augmentation to the first fragment.
-    if (fieldFragment.name == 'values' &&
+    if (fieldFragment.isOriginEnumValues &&
         instanceFragment is EnumFragmentImpl &&
         instanceFragment.previousFragment != null) {
       var implicitsMap = libraryBuilder.implicitEnumNodes;
@@ -381,7 +430,7 @@ class ElementBuilder {
       firstImplicit.valuesInitializer.addElements(
         augmentationImplicit.valuesInitializer.elements,
       );
-      return;
+      return firstImplicit.valuesFragment;
     }
 
     instanceFragment.addField(fieldFragment);
@@ -479,6 +528,8 @@ class ElementBuilder {
         setterElement.variable = fieldElement;
       }
     }
+
+    return fieldFragment;
   }
 
   void _handleInstanceGetterFragment(
@@ -1595,7 +1646,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var nameToken = node.primaryConstructor.typeName;
+    var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
 
     var fragment = ExtensionTypeFragmentImpl(name: fragmentName);
@@ -1609,7 +1660,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      node.primaryConstructor.accept(this);
+      node.namePart.accept(this);
       node.body.accept(this);
     });
 

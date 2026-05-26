@@ -12,8 +12,8 @@ template("create_timestamp_file") {
   action(target_name) {
     script = "$_dart_root/tools/list_dart_files_as_depfile.py"
     args = [
-      rebase_path(output),
-      path,
+      rebase_path(output, root_build_dir),
+      rebase_path(path, root_build_dir),
     ]
     if (defined(invoker.pattern)) {
       args += [ invoker.pattern ]

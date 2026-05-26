@@ -46,17 +46,15 @@ template("_compiled_action") {
   assert(defined(invoker.args), "args must be defined for $target_name")
 
   action(target_name) {
-    if (defined(invoker.visibility)) {
-      visibility = invoker.visibility
-    }
-
-    if (defined(invoker.testonly)) {
-      testonly = invoker.testonly
-    }
-
-    if (defined(invoker.pool)) {
-      pool = invoker.pool
-    }
+    forward_variables_from(invoker,
+                           [
+                             "depfile",
+                             "mnemonic",
+                             "outputs",
+                             "pool",
+                             "testonly",
+                             "visibility",
+                           ])
 
     script = "$_dart_root/build/gn_run_binary.py"
 
@@ -65,7 +63,6 @@ template("_compiled_action") {
     } else {
       inputs = []
     }
-    outputs = invoker.outputs
 
     # Construct the host toolchain version of the tool.
     host_tool = invoker.tool + "($host_toolchain)"
@@ -84,10 +81,6 @@ template("_compiled_action") {
     deps = [ host_tool ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
-    }
-
-    if (defined(invoker.depfile)) {
-      depfile = invoker.depfile
     }
 
     # The "compiled_action" argument to gn_run_binary.py indicates that
@@ -125,6 +118,7 @@ template("_prebuilt_tool_action") {
                            [
                              "depfile",
                              "deps",
+                             "mnemonic",
                              "outputs",
                              "pool",
                              "testonly",
@@ -297,10 +291,11 @@ template("_built_tool_action") {
                              "deps",
                              "inputs",
                              "metadata",
+                             "mnemonic",
                              "outputs",
                              "pool",
-                             "tool",
                              "testonly",
+                             "tool",
                              "visibility",
                            ])
 
@@ -362,6 +357,7 @@ template("dart_action") {
                              "depfile",
                              "deps",
                              "inputs",
+                             "mnemonic",
                              "metadata",
                              "outputs",
                              "packages",
@@ -418,6 +414,7 @@ template("gen_snapshot_action") {
       !defined(invoker.script),
       "script must not be defined for $target_name. If there is a script use args instead.")
   _built_tool_action(target_name) {
+    mnemonic = "GEN_SNAPSHOT"
     if (product_mode) {
       tool = "$_dart_root/runtime/bin:gen_snapshot_product"
     } else {

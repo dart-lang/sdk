@@ -915,7 +915,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     _addSubtype(
-      node.primaryConstructor.typeName.lexeme,
+      node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );

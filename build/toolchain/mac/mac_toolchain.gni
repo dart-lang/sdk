@@ -203,7 +203,8 @@ template("mac_toolchain") {
       commands += [ "$dsymutil -o $dsymdir $outfile" ]
 
       symbolizer_script =
-          rebase_path("//runtime/tools/dart_profiler_symbols.py")
+          rebase_path("//runtime/tools/dart_profiler_symbols.py",
+                      root_build_dir)
       commands +=
           [ "$symbolizer_script --nm $nm --output $symfile --binary $outfile" ]
 

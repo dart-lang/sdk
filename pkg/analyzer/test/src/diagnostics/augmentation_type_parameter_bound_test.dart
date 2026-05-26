@@ -174,40 +174,32 @@ augment extension A<T extends num> {}
   test_extensionType_nothing_num() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
-augment extension type A<T extends num>(int it) {}
+augment extension type A<T extends num> {}
 //                                 ^^^
 // [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
-//                                     ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 
   test_extensionType_num_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
-augment extension type A<T extends int>(int it) {}
+augment extension type A<T extends int> {}
 //                                 ^^^
 // [diag.augmentationTypeParameterBound] The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
-//                                     ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 
   test_extensionType_num_nothing() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
-augment extension type A<T>(int it) {}
-//                         ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A<T> {}
 ''');
   }
 
   test_extensionType_num_num() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(int it) {}
-augment extension type A<T extends num>(int it) {}
-//                                     ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A<T extends num> {}
 ''');
   }
 

@@ -215,7 +215,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    _visitMembers(node, node.primaryConstructor.typeName, node.body.members);
+    _visitMembers(node, node.namePart.typeName, node.body.members);
   }
 
   @override

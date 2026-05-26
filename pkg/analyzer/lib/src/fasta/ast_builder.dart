@@ -1587,11 +1587,13 @@ class AstBuilder extends StackListener {
 
     if (enableInlineClass) {
       var builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      primaryConstructorBuilder ??= _PrimaryConstructorBuilder(
-        constKeyword: null,
-        constructorName: null,
-        formalParameterList: _syntheticFormalParameterList(builder.name),
-      );
+      if (builder.augmentKeyword == null) {
+        primaryConstructorBuilder ??= _PrimaryConstructorBuilder(
+          constKeyword: null,
+          constructorName: null,
+          formalParameterList: _syntheticFormalParameterList(builder.name),
+        );
+      }
 
       declarations.add(
         builder.build(
@@ -2714,6 +2716,7 @@ class AstBuilder extends StackListener {
       case DeclarationKind.ExtensionType:
         // Always valid.
         break;
+
       case DeclarationKind.Class:
       case DeclarationKind.Enum:
         if (!_featureSet.isEnabled(Feature.primary_constructors)) {
@@ -6621,7 +6624,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   ExtensionTypeDeclarationImpl build({
     required Token typeKeyword,
     required Token? constKeyword,
-    required _PrimaryConstructorBuilder primaryConstructorBuilder,
+    required _PrimaryConstructorBuilder? primaryConstructorBuilder,
     required ImplementsClauseImpl? implementsClause,
   }) {
     ClassBodyImpl body;
@@ -6635,9 +6638,9 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       );
     }
 
-    var primaryConstructor = primaryConstructorBuilder.build(
+    var namePart = buildClassNamePart(
       typeName: name,
-      typeParameters: typeParameters,
+      primaryConstructorBuilder: primaryConstructorBuilder,
     );
 
     return ExtensionTypeDeclarationImpl(
@@ -6646,7 +6649,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
-      primaryConstructor: primaryConstructor,
+      namePart: namePart,
       implementsClause: implementsClause,
       body: body,
     );

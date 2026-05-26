@@ -47,6 +47,9 @@ class Heap {
 #endif
     kCanonicalHashes,
     kObjectIds,
+#if defined(SNAPSHOT_BACKTRACE)
+    kSnapshotParents,
+#endif
     kLoadingUnits,
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     kHeapSamplingData,
@@ -201,6 +204,16 @@ class Heap {
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
+
+#if defined(SNAPSHOT_BACKTRACE)
+  void SetSnapshotParent(ObjectPtr obj, Object* parent) {
+    SetWeakEntry(obj, kSnapshotParents, reinterpret_cast<intptr_t>(parent));
+  }
+  Object* GetSnapshotParent(ObjectPtr obj) const {
+    return reinterpret_cast<Object*>(GetWeakEntry(obj, kSnapshotParents));
+  }
+  void ResetSnapshotParentTable();
+#endif
 
   void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
     ASSERT(Thread::Current()->IsDartMutatorThread());

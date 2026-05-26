@@ -370,8 +370,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'externalKeyword': node.externalKeyword,
       'constKeyword': node.constKeyword,
       'factoryKeyword': node.factoryKeyword,
-      // TODO(scheglov): support primary constructors
-      'returnType': node.typeName!,
+      'returnType': ?node.typeName,
       'name': node.name,
       'parameters': node.parameters,
       'initializers': node.initializers,

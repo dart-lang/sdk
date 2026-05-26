@@ -188,7 +188,7 @@ class MemberSorter {
           name = member.namePart.typeName.lexeme;
         case ExtensionTypeDeclaration():
           kind = _MemberKind.unitExtensionType;
-          name = member.primaryConstructor.typeName.lexeme;
+          name = member.namePart.typeName.lexeme;
         case ExtensionDeclaration():
           kind = _MemberKind.unitExtension;
           name = member.name?.lexeme ?? '';

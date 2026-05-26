@@ -85,7 +85,7 @@ SyntacticEntity getNodeToAnnotate(AstNode node) {
   } else if (node is VariableDeclaration) {
     return node.name;
   } else if (node is ExtensionTypeDeclaration) {
-    return node.primaryConstructor.typeName;
+    return node.namePart.typeName;
   }
   assert(false, "Unaccounted for node type: '${node.runtimeType}'");
   return node;

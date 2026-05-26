@@ -622,7 +622,7 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is EnumDeclaration) {
       nameNode = node.namePart.typeName;
     } else if (node is ExtensionTypeDeclaration) {
-      nameNode = node.primaryConstructor.typeName;
+      nameNode = node.namePart.typeName;
     } else if (node is FunctionDeclaration) {
       nameNode = node.name;
     } else if (node is MixinDeclaration) {

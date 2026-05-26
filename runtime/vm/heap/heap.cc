@@ -879,6 +879,13 @@ void Heap::ResetObjectIdTable() {
   old_weak_tables_[kObjectIds]->Reset();
 }
 
+#if defined(SNAPSHOT_BACKTRACE)
+void Heap::ResetSnapshotParentTable() {
+  new_weak_tables_[kSnapshotParents]->Reset();
+  old_weak_tables_[kSnapshotParents]->Reset();
+}
+#endif
+
 intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
   if (raw_obj->IsImmediateOrOldObject()) {
     return old_weak_tables_[sel]->GetValue(raw_obj);

@@ -22,6 +22,8 @@ template("copy_tree") {
   source = invoker.source
   dest = invoker.dest
   action(target_name) {
+    mnemonic = "COPY_TREE"
+
     if (defined(invoker.visibility)) {
       visibility = invoker.visibility
     }
@@ -36,13 +38,13 @@ template("copy_tree") {
 
     common_args = [
       "--from",
-      rebase_path(source),
+      rebase_path(source, root_build_dir),
       "--to",
-      rebase_path(dest),
+      rebase_path(dest, root_build_dir),
       "--depfile",
-      rebase_path(depfile),
+      rebase_path(depfile, root_build_dir),
       "--stamp",
-      rebase_path(stampfile),
+      rebase_path(stampfile, root_build_dir),
     ]
     if (defined(invoker.exclude)) {
       common_args += [

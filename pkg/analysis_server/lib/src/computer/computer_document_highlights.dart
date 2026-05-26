@@ -296,7 +296,7 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _addOccurrence(
       node.declaredFragment?.element,
-      node.primaryConstructor.typeName,
+      node.namePart.typeName,
       .Write,
     );
 

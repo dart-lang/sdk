@@ -978,7 +978,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // No other completions are valid after `extension`.
     _unrecorded(node.typeKeyword);
 
-    _recordDeclaration(node.primaryConstructor.typeName);
+    _recordDeclaration(node.namePart.typeName);
 
     for (var member in node.body.members) {
       _recordDataForNode(

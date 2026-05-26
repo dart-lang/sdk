@@ -1008,10 +1008,8 @@ augment extension A {
 
   test_extensionType() async {
     await resolveTestCodeWithDiagnostics(r'''
-augment extension type A(int it) {}
+augment extension type A {}
 // [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
   }
 
@@ -1019,9 +1017,7 @@ augment extension type A(int it) {}
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
-augment extension type A(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A {
   augment A.named() : this(0);
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
@@ -1029,13 +1025,20 @@ augment extension type A(int it) {
 ''');
   }
 
+  test_extensionType_hasPrimaryConstructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment extension type A(int it) {}
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                      ^
+// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+''');
+  }
+
   test_extensionType_instanceGetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
-augment extension type A(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A {
   augment int get foo => 0;
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
@@ -1047,9 +1050,7 @@ augment extension type A(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
-augment extension type A(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A {
   augment void foo() {}
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
@@ -1061,9 +1062,7 @@ augment extension type A(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 
-augment extension type A(int it) {
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A {
   augment set foo(int _) {}
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.

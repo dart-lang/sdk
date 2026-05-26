@@ -965,14 +965,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForAugmentationTypeParameters(
         fragment: declaredFragment,
         firstTypeParameters: firstFragment.typeParameters,
-        nameOrKeywordToken: node.primaryConstructor.typeName,
-        typeParameterList: node.primaryConstructor.typeParameters,
+        nameOrKeywordToken: node.namePart.typeName,
+        typeParameterList: node.namePart.typeParameters,
       );
 
       _enclosingClass = firstFragment.asElement2;
 
       _checkForBuiltInIdentifierAsName(
-        node.primaryConstructor.typeName,
+        node.namePart.typeName,
         diag.builtInIdentifierAsExtensionTypeName,
       );
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
@@ -990,13 +990,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConflictingClassMembers(declaredFragment);
       _checkForConflictingGenerics(
         node: node,
-        nameToken: node.primaryConstructor.typeName,
+        nameToken: node.namePart.typeName,
       );
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         declaredElement,
         members,
-        node.primaryConstructor,
+        node.namePart,
       );
 
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
@@ -4291,7 +4291,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (fragment.element.hasImplementsSelfReference) {
       diagnosticReporter.report(
-        diag.extensionTypeImplementsItself.at(node.primaryConstructor.typeName),
+        diag.extensionTypeImplementsItself.at(node.namePart.typeName),
       );
     }
   }
@@ -4315,11 +4315,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.report(
         diag.extensionTypeInheritedMemberConflict
             .withArguments(
-              extensionTypeName: node.primaryConstructor.typeName.lexeme,
+              extensionTypeName: node.namePart.typeName.lexeme,
               memberName: memberName,
             )
             .withContextMessages(contextMessages)
-            .at(node.primaryConstructor.typeName),
+            .at(node.namePart.typeName),
       );
     }
 
@@ -4346,7 +4346,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (fragment.element.hasRepresentationSelfReference) {
       diagnosticReporter.report(
         diag.extensionTypeRepresentationDependsOnItself.at(
-          node.primaryConstructor.typeName,
+          node.namePart.typeName,
         ),
       );
     }
@@ -4355,7 +4355,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeRepresentationErrorCodes(
     ExtensionTypeDeclarationImpl node,
   ) {
-    var formalParameterList = node.primaryConstructor.formalParameters;
+    var primaryConstructor = node.namePart;
+    if (primaryConstructor is! PrimaryConstructorDeclarationImpl) {
+      return;
+    }
+
+    var formalParameterList = primaryConstructor.formalParameters;
     var formalParameters = formalParameterList.parameters;
 
     if (formalParameters.isEmpty) {
@@ -4397,7 +4402,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (nameToken.lexeme == node.primaryConstructor.typeName.lexeme) {
+    if (nameToken.lexeme == primaryConstructor.typeName.lexeme) {
       diagnosticReporter.report(diag.memberWithClassName.at(nameToken));
     }
 
@@ -4490,7 +4495,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             diag.extensionTypeWithAbstractMember
                 .withArguments(
                   methodName: member.name.lexeme,
-                  extensionTypeName: node.primaryConstructor.typeName.lexeme,
+                  extensionTypeName: node.namePart.typeName.lexeme,
                 )
                 .at(member),
           );
@@ -5909,7 +5914,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeDeclaration node,
     ExtensionTypeFragmentImpl fragment,
   ) {
-    var typeParameters = node.primaryConstructor.typeParameters?.typeParameters;
+    var typeParameters = node.namePart.typeParameters?.typeParameters;
     if (typeParameters == null) {
       return;
     }

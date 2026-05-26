@@ -34,6 +34,208 @@ enum E {
 ''');
   }
 
+  test_constant_augmentation_add() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v1
+}
+
+augment enum A {
+  v2
+}
+
+void f() {
+  A.v2;
+}
+''');
+
+    assertResolvedNodeText(result.unit, r'''
+CompilationUnit
+  declarations
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v1
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v1@11
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@5
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v2
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v2@36
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@30
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: A
+                    element: <testLibrary>::@enum::A
+                    staticType: null
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: v2
+                    element: <testLibrary>::@enum::A::@getter::v2
+                    staticType: A
+                  element: <testLibrary>::@enum::A::@getter::v2
+                  staticType: A
+                semicolon: ;
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> f@47
+          element: <testLibrary>::@function::f
+            type: void Function()
+        staticType: void Function()
+      declaredFragment: <testLibraryFragment> f@47
+        element: <testLibrary>::@function::f
+          type: void Function()
+''');
+  }
+
+  test_constant_augmentation_valuesGetter_recovery() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v1
+}
+
+augment enum A {;
+  static int get values => 0;
+//               ^^^^^^
+// [diag.valuesDeclarationInEnum] A member named 'values' can't be declared in an enum.
+}
+
+augment enum A {
+  v2
+}
+
+void f() {
+  A.values;
+}
+''');
+
+    assertResolvedNodeText(result.unit, r'''
+CompilationUnit
+  declarations
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v1
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v1@11
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@5
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        semicolon: ;
+        members
+          MethodDeclaration
+            modifierKeyword: static
+            returnType: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            propertyKeyword: get
+            name: values
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+                staticType: int
+              semicolon: ;
+            declaredFragment: <testLibraryFragment> values@52
+              element: <testLibrary>::@enum::A::@getter::values#1
+                type: int Function()
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@30
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v2
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v2@87
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@81
+    FunctionDeclaration
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: A
+                    element: <testLibrary>::@enum::A
+                    staticType: null
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: values
+                    element: <testLibrary>::@enum::A::@getter::values
+                    staticType: List<A>
+                  element: <testLibrary>::@enum::A::@getter::values
+                  staticType: List<A>
+                semicolon: ;
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> f@98
+          element: <testLibrary>::@function::f
+            type: void Function()
+        staticType: void Function()
+      declaredFragment: <testLibraryFragment> f@98
+        element: <testLibrary>::@function::f
+          type: void Function()
+''');
+  }
+
   test_constructor_argumentList_contextType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {

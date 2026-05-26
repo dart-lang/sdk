@@ -871,6 +871,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       'isConst': isConst,
       'isFactory': isFactory,
       'isOriginDeclaration': isOriginDeclaration,
+      'isOriginExtensionTypeRecovery': isOriginExtensionTypeRecovery,
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
@@ -915,6 +916,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   bool get isOriginDeclaration {
     return _firstFragment.isOriginDeclaration;
+  }
+
+  @generated
+  @override
+  @trackedIncludedInId
+  bool get isOriginExtensionTypeRecovery {
+    return _firstFragment.isOriginExtensionTypeRecovery;
   }
 
   @generated
@@ -1170,6 +1178,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       'isConst': isConst,
       'isFactory': isFactory,
       'isOriginDeclaration': isOriginDeclaration,
+      'isOriginExtensionTypeRecovery': isOriginExtensionTypeRecovery,
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
@@ -1229,6 +1238,22 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   set isOriginDeclaration(bool value) {
     setFlag(
       _FragmentStorageFlag.constructorFragment_isOriginDeclaration,
+      value,
+    );
+  }
+
+  @generated
+  @override
+  bool get isOriginExtensionTypeRecovery {
+    return hasFlag(
+      _FragmentStorageFlag.constructorFragment_isOriginExtensionTypeRecovery,
+    );
+  }
+
+  @generated
+  set isOriginExtensionTypeRecovery(bool value) {
+    setFlag(
+      _FragmentStorageFlag.constructorFragment_isOriginExtensionTypeRecovery,
       value,
     );
   }
@@ -11910,6 +11935,10 @@ enum _ConstructorElementFlags {
     fragment: true,
     element: _ElementFlagSource.firstFragment,
   ),
+  isOriginExtensionTypeRecovery(
+    fragment: true,
+    element: _ElementFlagSource.firstFragment,
+  ),
   isOriginImplicitDefault(
     fragment: true,
     element: _ElementFlagSource.firstFragment,
@@ -12055,6 +12084,7 @@ enum _FragmentStorageFlag {
   constructorFragment_isConst,
   constructorFragment_isFactory,
   constructorFragment_isOriginDeclaration,
+  constructorFragment_isOriginExtensionTypeRecovery,
   constructorFragment_isOriginImplicitDefault,
   constructorFragment_isOriginMixinApplication,
   constructorFragment_isPrimary,

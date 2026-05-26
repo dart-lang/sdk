@@ -64,11 +64,14 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
       case ExtensionTypeDeclarationImpl():
-        appendName(names.topLevelNames, member.primaryConstructor.typeName);
-        appendDeclaringFormalParameterNames(
-          member.primaryConstructor,
-          isExtensionType: true,
-        );
+        appendName(names.topLevelNames, member.namePart.typeName);
+        if (member.namePart
+            case PrimaryConstructorDeclarationImpl primaryConstructor) {
+          appendDeclaringFormalParameterNames(
+            primaryConstructor,
+            isExtensionType: true,
+          );
+        }
         member.body.members.forEach(appendClassMemberName);
       case FunctionDeclarationImpl():
         appendName(names.topLevelNames, member.name);

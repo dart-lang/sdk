@@ -325,7 +325,7 @@ class DartUnitOutlineComputer {
     ExtensionTypeDeclaration node,
     List<Outline> extensionContents,
   ) {
-    var nameToken = node.primaryConstructor.typeName;
+    var nameToken = node.namePart.typeName;
     var name = nameToken.lexeme;
     var element = Element(
       ElementKind.EXTENSION_TYPE,
@@ -335,9 +335,7 @@ class DartUnitOutlineComputer {
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
-      typeParameters: _getTypeParametersStr(
-        node.primaryConstructor.typeParameters,
-      ),
+      typeParameters: _getTypeParametersStr(node.namePart.typeParameters),
     );
     return _nodeOutline(node, element, extensionContents);
   }

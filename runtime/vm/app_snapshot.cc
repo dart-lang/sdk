@@ -636,7 +636,6 @@ class Serializer : public ThreadStackResource {
 
 #if defined(SNAPSHOT_BACKTRACE)
   ObjectPtr current_parent_;
-  GrowableArray<Object*> parent_pairs_;
 #endif
 
 #if defined(DART_PRECOMPILER)
@@ -7754,8 +7753,7 @@ Serializer::Serializer(Thread* thread,
       profile_writer_(profile_writer)
 #if defined(SNAPSHOT_BACKTRACE)
       ,
-      current_parent_(Object::null()),
-      parent_pairs_()
+      current_parent_(Object::null())
 #endif
 #if defined(DART_PRECOMPILER)
       ,
@@ -8759,8 +8757,7 @@ void Serializer::Push(ObjectPtr object, intptr_t cid_override) {
       num_written_objects_++;
     }
 #if defined(SNAPSHOT_BACKTRACE)
-    parent_pairs_.Add(&Object::Handle(zone_, object));
-    parent_pairs_.Add(&Object::Handle(zone_, current_parent_));
+    heap()->SetSnapshotParent(object, &Object::Handle(zone_, current_parent_));
 #endif
   }
 }
@@ -8851,19 +8848,17 @@ void Serializer::UnexpectedObject(ObjectPtr raw_object, const char* message) {
 
 #if defined(SNAPSHOT_BACKTRACE)
 ObjectPtr Serializer::ParentOf(ObjectPtr object) const {
-  for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
-    if (parent_pairs_[i]->ptr() == object) {
-      return parent_pairs_[i + 1]->ptr();
-    }
+  Object* parent = heap()->GetSnapshotParent(object);
+  if (parent != nullptr) {
+    return parent->ptr();
   }
   return Object::null();
 }
 
 ObjectPtr Serializer::ParentOf(const Object& object) const {
-  for (intptr_t i = 0; i < parent_pairs_.length(); i += 2) {
-    if (parent_pairs_[i]->ptr() == object.ptr()) {
-      return parent_pairs_[i + 1]->ptr();
-    }
+  Object* parent = heap()->GetSnapshotParent(object.ptr());
+  if (parent != nullptr) {
+    return parent->ptr();
   }
   return Object::null();
 }
@@ -9104,6 +9099,9 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   PrintSnapshotSizes();
 
   heap()->ResetObjectIdTable();
+#if defined(SNAPSHOT_BACKTRACE)
+  heap()->ResetSnapshotParentTable();
+#endif
 
   return objects_;
 }

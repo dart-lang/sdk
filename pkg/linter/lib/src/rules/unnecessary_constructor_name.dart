@@ -52,9 +52,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     var parent = node.parent?.parent;
-    if (parent is ExtensionTypeDeclaration &&
-        parent.primaryConstructor.constructorName == null) {
-      return;
+    if (parent is ExtensionTypeDeclaration) {
+      var namePart = parent.namePart;
+      if (namePart is PrimaryConstructorDeclaration &&
+          namePart.constructorName == null) {
+        return;
+      }
     }
 
     _check(node.name);

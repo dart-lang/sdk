@@ -528,8 +528,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // TODO(scheglov): support primary constructors
-    if (identical(entity, node.typeName!)) {
+    if (identical(entity, node.typeName)) {
       optype.completionLocation = 'ConstructorDeclaration_returnType';
       optype.includeTypeNameSuggestions = true;
     } else if (node.initializers.contains(entity)) {

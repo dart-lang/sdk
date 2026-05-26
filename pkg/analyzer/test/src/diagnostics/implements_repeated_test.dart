@@ -221,7 +221,7 @@ extension type A(int it) implements int {}
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment extension type A(int it) implements int {}
+augment extension type A implements int {}
 ''');
 
     await assertErrorsInFile2(a, []);

@@ -4,6 +4,9 @@ analyzer:
   errors:
     constant_identifier_names: ignore
     non_constant_identifier_names: ignore
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
     # Existing violations (109)
     unintended_html_in_doc_comment: ignore
 

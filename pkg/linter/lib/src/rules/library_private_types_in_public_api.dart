@@ -93,17 +93,19 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (Identifier.isPrivateName(node.primaryConstructor.typeName.lexeme)) {
+    var namePart = node.namePart;
+    if (Identifier.isPrivateName(namePart.typeName.lexeme)) {
       return;
     }
-    node.primaryConstructor.typeParameters?.accept(this);
+    namePart.typeParameters?.accept(this);
 
-    for (var formalParameter
-        in node.primaryConstructor.formalParameters.parameters) {
-      if (formalParameter is RegularFormalParameter) {
-        var name = formalParameter.name;
-        if (name != null && !Identifier.isPrivateName(name.lexeme)) {
-          formalParameter.type?.accept(this);
+    if (namePart is PrimaryConstructorDeclaration) {
+      for (var formalParameter in namePart.formalParameters.parameters) {
+        if (formalParameter is RegularFormalParameter) {
+          var name = formalParameter.name;
+          if (name != null && !Identifier.isPrivateName(name.lexeme)) {
+            formalParameter.type?.accept(this);
+          }
         }
       }
     }

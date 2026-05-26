@@ -523,7 +523,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
     _visitToken(node.typeKeyword, suffix: ' ');
-    _visitNode(node.primaryConstructor);
+    _visitNode(node.namePart);
     _visitNode(node.implementsClause, prefix: ' ');
     _visitNode(node.body);
   }

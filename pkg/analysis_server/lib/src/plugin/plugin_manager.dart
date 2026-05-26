@@ -540,16 +540,17 @@ class PluginManager {
 
     var stopwatch = Stopwatch()..start();
     var depfile = entrypoint.parent.getChildAssumingFile('depfile.txt');
-    if (entrypoint.exists) {
+    var aotSnapshotFile = entrypoint.parent.getChildAssumingFile('plugin.aot');
+    if (aotSnapshotFile.exists) {
       try {
         // Delete any existing AOT snapshot. On MacOS, sometimes this file
         // becomes quarantined due to a race condition with codesigning and
         // overwriting the file.
-        entrypoint.delete();
+        aotSnapshotFile.delete();
       } catch (e) {
         instrumentationService.logInfo(
-          'Could not delete existing AOT plugin entrypoint at "$entrypoint": '
-          '$e.',
+          'Could not delete existing AOT plugin entrypoint at '
+          '"$aotSnapshotFile": $e.',
         );
       }
     }

@@ -352,6 +352,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeHeaderFlags(e.flagsForTesting);
       _assertHasExactlyOneTrue([
         e.isOriginDeclaration,
+        e.isOriginExtensionTypeRecovery,
         e.isOriginImplicitDefault,
         e.isOriginMixinApplication,
       ]);
@@ -413,6 +414,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeHeaderFlags(f.flagsForTesting);
       _assertHasExactlyOneTrue([
         f.isOriginDeclaration,
+        f.isOriginExtensionTypeRecovery,
         f.isOriginImplicitDefault,
         f.isOriginMixinApplication,
       ]);

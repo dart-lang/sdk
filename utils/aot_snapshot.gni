@@ -52,6 +52,7 @@ template("aot_snapshot") {
   # simulator builds.
   kernel_label = target_name + "_dill"
   prebuilt_dart_action(kernel_label) {
+    mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
     }
@@ -121,35 +122,36 @@ template("aot_snapshot") {
 
     outputs = [ unsigned_snapshot ]
 
-    abs_output = rebase_path(unsigned_snapshot)
+    rebased_output = rebase_path(unsigned_snapshot, root_build_dir)
 
     # TODO(60813): Generate PE DLL on Windows.
     if (is_mac) {
       vm_args = [
                   "--deterministic",
                   "--snapshot-kind=app-aot-macho-dylib",
-                  "--macho=$abs_output",
+                  "--macho=$rebased_output",
                 ] + gen_snapshot_args
     } else {
       vm_args = [
                   "--deterministic",
                   "--snapshot-kind=app-aot-elf",
-                  "--elf=$abs_output",
+                  "--elf=$rebased_output",
                 ] + gen_snapshot_args
     }
     if (defined(invoker.vm_args)) {
       vm_args += invoker.vm_args
     }
 
-    args = [ rebase_path(dill) ]
+    args = [ rebase_path(dill, root_build_dir) ]
 
     force_product_mode = product_mode
   }
 
   if (is_mac && codesigning_identity != "") {
     action(target_name) {
-      deps = [ ":$gen_snapshot_label" ]
+      mnemonic = "CODESIGN"
 
+      deps = [ ":$gen_snapshot_label" ]
       inputs = [ unsigned_snapshot ]
       outputs = [ signed_snapshot ]
 
@@ -158,9 +160,9 @@ template("aot_snapshot") {
         "--identity",
         codesigning_identity,
         "--input",
-        rebase_path(unsigned_snapshot),
+        rebase_path(unsigned_snapshot, root_build_dir),
         "--output",
-        rebase_path(signed_snapshot),
+        rebase_path(signed_snapshot, root_build_dir),
       ]
     }
   } else {

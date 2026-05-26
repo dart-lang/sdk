@@ -279,7 +279,7 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
             return null;
           }
         case ExtensionTypeDeclaration():
-          nameToken = node.primaryConstructor.typeName;
+          nameToken = node.namePart.typeName;
           if (!validSelection(nameToken)) {
             return null;
           }

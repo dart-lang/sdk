@@ -152,10 +152,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _addOccurrence(
-      node.declaredFragment!.element,
-      node.primaryConstructor.typeName,
-    );
+    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
 
     super.visitExtensionTypeDeclaration(node);
   }

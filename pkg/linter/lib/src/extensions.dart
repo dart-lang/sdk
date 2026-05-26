@@ -53,8 +53,7 @@ extension AstNodeExtension on AstNode {
       ClassDeclaration() => parent.namePart.typeName.isPrivate,
       EnumDeclaration() => parent.namePart.typeName.isPrivate,
       ExtensionDeclaration() => parent.name == null || parent.name.isPrivate,
-      ExtensionTypeDeclaration() =>
-        parent.primaryConstructor.typeName.isPrivate,
+      ExtensionTypeDeclaration() => parent.namePart.typeName.isPrivate,
       MixinDeclaration() => parent.name.isPrivate,
       _ => false,
     };

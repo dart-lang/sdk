@@ -718,7 +718,7 @@ extension on Declaration {
         var name = self.name;
         return name?.lexeme ?? 'the unnamed extension';
       case ExtensionTypeDeclaration():
-        return self.primaryConstructor.typeName.lexeme;
+        return self.namePart.typeName.lexeme;
       case FunctionDeclaration():
         return self.name.lexeme;
       case MethodDeclaration():

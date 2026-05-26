@@ -587,11 +587,9 @@ ExtensionDeclaration
   test_extensionType_0_1() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
-augment extension type A<T>(int it) {}
+augment extension type A<T> {}
 //                       ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
-//                         ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -601,7 +599,7 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -611,22 +609,6 @@ ExtensionTypeDeclaration
           declaredFragment: <testLibraryFragment> T@53
             defaultType: dynamic
       rightBracket: >
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: it
-        declaredFragment: <testLibraryFragment> it@60
-          element: isFinal isPublic
-            type: int
-            field: <testLibrary>::@extensionType::A::@field::it
-      rightParenthesis: )
-    declaredFragment: <testLibraryFragment> new@null
-      element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A<T> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -637,11 +619,9 @@ ExtensionTypeDeclaration
   test_extensionType_1_0() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
-augment extension type A(int it) {}
+augment extension type A {}
 //                     ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
-//                      ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -651,24 +631,8 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: A
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: it
-        declaredFragment: <testLibraryFragment> it@60
-          element: isFinal isPublic
-            type: int
-            field: <testLibrary>::@extensionType::A::@field::it
-      rightParenthesis: )
-    declaredFragment: <testLibraryFragment> new@null
-      element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A<T> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -679,9 +643,7 @@ ExtensionTypeDeclaration
   test_extensionType_1_1() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
-augment extension type A<T>(int it) {}
-//                         ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
+augment extension type A<T> {}
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -691,7 +653,7 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -701,22 +663,6 @@ ExtensionTypeDeclaration
           declaredFragment: <testLibraryFragment> T@56
             defaultType: dynamic
       rightBracket: >
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: it
-        declaredFragment: <testLibraryFragment> it@63
-          element: isFinal isPublic
-            type: int
-            field: <testLibrary>::@extensionType::A::@field::it
-      rightParenthesis: )
-    declaredFragment: <testLibraryFragment> new@null
-      element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A<T> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -727,11 +673,9 @@ ExtensionTypeDeclaration
   test_extensionType_1_2() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(int it) {}
-augment extension type A<T, U>(int it) {}
+augment extension type A<T, U> {}
 //                          ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
-//                            ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -741,7 +685,7 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -755,22 +699,6 @@ ExtensionTypeDeclaration
           declaredFragment: <testLibraryFragment> U@59
             defaultType: dynamic
       rightBracket: >
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: it
-        declaredFragment: <testLibraryFragment> it@66
-          element: isFinal isPublic
-            type: int
-            field: <testLibrary>::@extensionType::A::@field::it
-      rightParenthesis: )
-    declaredFragment: <testLibraryFragment> new@null
-      element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A<T, U> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -781,11 +709,9 @@ ExtensionTypeDeclaration
   test_extensionType_2_1() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T, U>(int it) {}
-augment extension type A<T>(int it) {}
+augment extension type A<T> {}
 //                        ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
-//                         ^
-// [diag.extensionTypeAugmentationSpecifiesRepresentationField] An extension type augmentation can't specify a representation field.
 ''');
     var node = result.findNode.extensionTypeDeclaration(
       'augment extension type A',
@@ -795,7 +721,7 @@ ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
-  primaryConstructor: PrimaryConstructorDeclaration
+  namePart: NameWithTypeParameters
     typeName: A
     typeParameters: TypeParameterList
       leftBracket: <
@@ -805,22 +731,6 @@ ExtensionTypeDeclaration
           declaredFragment: <testLibraryFragment> T@59
             defaultType: dynamic
       rightBracket: >
-    formalParameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: it
-        declaredFragment: <testLibraryFragment> it@66
-          element: isFinal isPublic
-            type: int
-            field: <testLibrary>::@extensionType::A::@field::it
-      rightParenthesis: )
-    declaredFragment: <testLibraryFragment> new@null
-      element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A<T, U> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
