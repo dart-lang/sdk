@@ -395,6 +395,8 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
     if (reachable_->Contains(
             block->PredecessorAt(pred_idx)->preorder_number())) {
       Join(&value, instr->InputAt(pred_idx)->definition()->constant_value());
+      // Once top is reached, further Joins cannot change the value.
+      if (IsNonConstant(value)) break;
     }
   }
   SetValue(instr, value);

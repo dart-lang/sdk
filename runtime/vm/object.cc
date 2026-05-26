@@ -25978,13 +25978,14 @@ float Float32x4::w() const {
 }
 
 bool Float32x4::CanonicalizeEquals(const Instance& other) const {
+  NoSafepointScope no_safepoint;
   return memcmp(&untag()->value_, Float32x4::Cast(other).untag()->value_,
                 sizeof(simd128_value_t)) == 0;
 }
 
 uint32_t Float32x4::CanonicalizeHash() const {
-  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
-                   sizeof(simd128_value_t));
+  NoSafepointScope no_safepoint;
+  return HashBytes(&untag()->value_, sizeof(simd128_value_t), kHashBits);
 }
 
 const char* Float32x4::ToCString() const {
@@ -26062,13 +26063,14 @@ void Int32x4::set_value(simd128_value_t value) const {
 }
 
 bool Int32x4::CanonicalizeEquals(const Instance& other) const {
+  NoSafepointScope no_safepoint;
   return memcmp(&untag()->value_, Int32x4::Cast(other).untag()->value_,
                 sizeof(simd128_value_t)) == 0;
 }
 
 uint32_t Int32x4::CanonicalizeHash() const {
-  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
-                   sizeof(simd128_value_t));
+  NoSafepointScope no_safepoint;
+  return HashBytes(&untag()->value_, sizeof(simd128_value_t), kHashBits);
 }
 
 const char* Int32x4::ToCString() const {
@@ -26122,13 +26124,14 @@ void Float64x2::set_value(simd128_value_t value) const {
 }
 
 bool Float64x2::CanonicalizeEquals(const Instance& other) const {
+  NoSafepointScope no_safepoint;
   return memcmp(&untag()->value_, Float64x2::Cast(other).untag()->value_,
                 sizeof(simd128_value_t)) == 0;
 }
 
 uint32_t Float64x2::CanonicalizeHash() const {
-  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
-                   sizeof(simd128_value_t));
+  NoSafepointScope no_safepoint;
+  return HashBytes(&untag()->value_, sizeof(simd128_value_t), kHashBits);
 }
 
 const char* Float64x2::ToCString() const {
@@ -26181,19 +26184,8 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
 }
 
 uint32_t TypedData::CanonicalizeHash() const {
-  const intptr_t len = this->LengthInBytes();
-  if (len == 0) {
-    return 1;
-  }
-  uint32_t hash = len;
-  const intptr_t chunks = len / kInt32Size;
-  for (intptr_t i = 0; i < chunks; i++) {
-    hash = CombineHashes(hash, GetUint32(i * kInt32Size));
-  }
-  for (intptr_t i = chunks * kInt32Size; i < len; i++) {
-    hash = CombineHashes(hash, GetUint8(i));
-  }
-  return FinalizeHash(hash, kHashBits);
+  NoSafepointScope no_safepoint;
+  return HashBytes(DataAddr(0), LengthInBytes(), kHashBits);
 }
 
 TypedDataPtr TypedData::New(intptr_t class_id,

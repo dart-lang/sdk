@@ -402,6 +402,27 @@ trace to find the place to insert the appropriate support.
                         os.path.join(self.dart_subdir,
                                      'snapshots/dart2js_aot.dart.snapshot')))
                 return self.parse_dart2js()
+            if arg == 'exe':
+                self.extra_paths.add(
+                    self.rebase(os.path.join(self.dart_subdir,
+                                             'dartaotruntime')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, 'snapshots',
+                                     'dartdev_aot.dart.snapshot')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, 'snapshots',
+                                     'gen_kernel_aot.dart.snapshot')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, '..', 'lib', '_internal',
+                                     'vm_platform_product.dill')))
+                self.extra_paths.add(
+                    self.rebase(
+                        os.path.join(self.dart_subdir, 'utils',
+                                     'gen_snapshot')))
+                return self.parse_compile_exe()
             else:
                 self.unsupported('compile', arg)
 
@@ -465,6 +486,18 @@ trace to find the place to insert the appropriate support.
                     self.extra_paths.add(self.rebase(arg))
             else:
                 self.unsupported('dartdevc', arg)
+
+    def parse_compile_exe(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['-o', '--output', '--depfile']):
+                self.outputs.append(self.rebase(self.optarg))
+            elif self.get_option(['--packages']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            elif not arg.startswith('-'):
+                self.entry_points.add(self.rebase(arg))
+            else:
+                self.unsupported('compile exe', arg)
 
     def parse_dartanalyzer(self):
         while self.has_next_arg:
