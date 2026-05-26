@@ -976,11 +976,37 @@ void g() {}
     await assertOpType(typeNames: false);
   }
 
+  Future<void> test_constructorDeclaration_factory_named_noTypeName() async {
+    // ConstructorDeclaration
+    addTestSource('''
+      class ABC {
+        int i;
+        factory^ b(this.i);
+      }''');
+    await assertOpType(
+      completionLocation: 'ClassDeclaration_member',
+      typeNames: true,
+    );
+  }
+
   Future<void> test_constructorDeclaration_factory_unnamed() async {
     // ConstructorDeclaration
     addTestSource('class A { factory A^() {} }');
     await assertOpType(
       completionLocation: 'ConstructorDeclaration_returnType',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_constructorDeclaration_factory_unnamed_noTypeName() async {
+    // ConstructorDeclaration
+    addTestSource('''
+      class ABC {
+        int i;
+        factory^(this.i);
+      }''');
+    await assertOpType(
+      completionLocation: 'ClassDeclaration_member',
       typeNames: true,
     );
   }
@@ -993,6 +1019,32 @@ void g() {}
       class ABC {
         int i;
         A^(this.i) : assert(i != 0);
+      }''');
+    await assertOpType(
+      completionLocation: 'ClassDeclaration_member',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_constructorDeclaration_new_named_noTypeName() async {
+    // ConstructorDeclaration
+    addTestSource('''
+      class ABC {
+        int i;
+        new^ b(this.i);
+      }''');
+    await assertOpType(
+      completionLocation: 'ClassDeclaration_member',
+      typeNames: true,
+    );
+  }
+
+  Future<void> test_constructorDeclaration_new_unnamed_noTypeName() async {
+    // ConstructorDeclaration
+    addTestSource('''
+      class ABC {
+        int i;
+        new^(this.i);
       }''');
     await assertOpType(
       completionLocation: 'ClassDeclaration_member',
