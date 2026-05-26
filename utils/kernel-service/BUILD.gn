@@ -175,7 +175,7 @@ template("kernel_service_dill") {
                "--packages=" + scheme + ":///.dart_tool/package_config.json",
                "--platform=" + rebase_path("$root_out_dir/vm_platform.dill",
                                            root_build_dir),
-               "--filesystem-root=" + rebase_path("../../"),
+               "--filesystem-root=" + rebase_path("../../", root_build_dir),
                "--filesystem-scheme=" + scheme,
                "--no-aot",
                "--no-embed-sources",

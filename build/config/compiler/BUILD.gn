@@ -231,26 +231,18 @@ config("compiler") {
     common_mac_flags = []
 
     # CPU architecture.
-    if (current_cpu == "x64") {
-      common_mac_flags += [
-        "-arch",
-        "x86_64",
-      ]
-    } else if (current_cpu == "x86") {
-      common_mac_flags += [
-        "-arch",
-        "i386",
-      ]
-    } else if (current_cpu == "arm") {
-      common_mac_flags += [
-        "-arch",
-        "armv7",
-      ]
-    } else if (current_cpu == "arm64") {
-      common_mac_flags += [
-        "-arch",
-        "arm64",
-      ]
+    if (is_mac) {
+      if (current_cpu == "x64") {
+        common_mac_flags += [ "--target=x86_64-apple-macos" ]
+      } else if (current_cpu == "arm64") {
+        common_mac_flags += [ "--target=arm64-apple-macos" ]
+      }
+    } else if (is_ios) {
+      if (current_cpu == "x64") {
+        common_mac_flags += [ "--target=x86_64-apple-darwin" ]
+      } else if (current_cpu == "arm64") {
+        common_mac_flags += [ "--target=arm64-apple-darwin" ]
+      }
     }
 
     cflags += common_mac_flags
