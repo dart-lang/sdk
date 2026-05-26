@@ -120,9 +120,10 @@ class ElementBuilder {
             ? lastStaticFragments
             : lastInstanceFragments;
         var lastFragment = lastFragments[fragment.name];
+        var fragmentToTrack = fragment;
         switch (fragment) {
           case FieldFragmentImpl():
-            _handleInstanceFieldFragment(
+            fragmentToTrack = _handleInstanceFieldFragment(
               instanceElement,
               lastFragment,
               fragment,
@@ -154,7 +155,7 @@ class ElementBuilder {
           default:
             throw UnimplementedError('${fragment.runtimeType}');
         }
-        lastFragments[fragment.name] = fragment;
+        lastFragments[fragmentToTrack.name] = fragmentToTrack;
       }
 
       // Mark extension type members.
@@ -403,7 +404,15 @@ class ElementBuilder {
     interfaceElement.addConstructor(element);
   }
 
-  void _handleInstanceFieldFragment(
+  /// Adds [fieldFragment] into the element model for [instanceElement].
+  ///
+  /// The returned fragment is the one that should be tracked as the last
+  /// fragment with this name in its namespace. Usually this is [fieldFragment].
+  /// For a synthetic enum `values` field from an augmentation, the synthetic
+  /// field itself is discarded after its initializer elements are moved into
+  /// the introductory `values` field, so the introductory `values` fragment is
+  /// returned instead.
+  FieldFragmentImpl _handleInstanceFieldFragment(
     InstanceElementImpl instanceElement,
     FragmentImpl? lastFragment,
     FieldFragmentImpl fieldFragment,
@@ -411,7 +420,7 @@ class ElementBuilder {
     var instanceFragment = fieldFragment.enclosingFragment;
 
     // Move elements of `values` from augmentation to the first fragment.
-    if (fieldFragment.name == 'values' &&
+    if (fieldFragment.isOriginEnumValues &&
         instanceFragment is EnumFragmentImpl &&
         instanceFragment.previousFragment != null) {
       var implicitsMap = libraryBuilder.implicitEnumNodes;
@@ -421,7 +430,7 @@ class ElementBuilder {
       firstImplicit.valuesInitializer.addElements(
         augmentationImplicit.valuesInitializer.elements,
       );
-      return;
+      return firstImplicit.valuesFragment;
     }
 
     instanceFragment.addField(fieldFragment);
@@ -519,6 +528,8 @@ class ElementBuilder {
         setterElement.variable = fieldElement;
       }
     }
+
+    return fieldFragment;
   }
 
   void _handleInstanceGetterFragment(

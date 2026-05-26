@@ -16,6 +16,24 @@ main() {
 
 @reflectiveTest
 class EnumDeclarationParserTest extends ParserDiagnosticsTest {
+  test_augment_blockBody_empty() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E {}
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_augment_constant_add() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E {
@@ -95,6 +113,23 @@ EnumDeclaration
 ''');
   }
 
+  test_augment_emptyBody() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E;
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EmptyEnumBody
+    semicolon: ;
+''');
+  }
+
   test_augment_implementsClause() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment enum E implements B {}
@@ -112,6 +147,25 @@ EnumDeclaration
         name: B
   body: BlockEnumBody
     leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_noConstants_semicolon() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment enum E {;}
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
     rightBracket: }
 ''');
   }
