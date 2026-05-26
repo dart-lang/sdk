@@ -120,6 +120,7 @@ template("application_snapshot") {
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
+    mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
     }
@@ -145,7 +146,8 @@ template("application_snapshot") {
     depfile = "$output.d"
 
     vm_args = [
-      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
+      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
+      # kernel.
       "-Dsdk_hash=$sdk_hash",
     ]
 
@@ -190,6 +192,7 @@ template("application_snapshot") {
     }
   } else {
     dart_action(target_name) {
+      mnemonic = "APP_JIT"
       if (defined(invoker.pool)) {
         pool = invoker.pool
       }
@@ -202,8 +205,8 @@ template("application_snapshot") {
 
       outputs = [ output ]
 
-      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
-      # snapshot (creating a circular dep. for kernel-service_snapshot).
+      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel
+      # service snapshot (creating a circular dep. for kernel-service_snapshot).
       dfe = "NEVER_LOADED"
 
       vm_args = [

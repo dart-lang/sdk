@@ -52,6 +52,7 @@ template("aot_snapshot") {
   # simulator builds.
   kernel_label = target_name + "_dill"
   prebuilt_dart_action(kernel_label) {
+    mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
     }
@@ -148,8 +149,9 @@ template("aot_snapshot") {
 
   if (is_mac && codesigning_identity != "") {
     action(target_name) {
-      deps = [ ":$gen_snapshot_label" ]
+      mnemonic = "CODESIGN"
 
+      deps = [ ":$gen_snapshot_label" ]
       inputs = [ unsigned_snapshot ]
       outputs = [ signed_snapshot ]
 

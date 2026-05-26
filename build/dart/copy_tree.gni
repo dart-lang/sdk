@@ -22,6 +22,8 @@ template("copy_tree") {
   source = invoker.source
   dest = invoker.dest
   action(target_name) {
+    mnemonic = "COPY_TREE"
+
     if (defined(invoker.visibility)) {
       visibility = invoker.visibility
     }
