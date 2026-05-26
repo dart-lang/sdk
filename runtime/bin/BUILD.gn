@@ -780,9 +780,7 @@ bin_to_linkable("platform_dill_linkable") {
 
 bin_to_linkable("icudtl_linkable") {
   deps = []
-  if (exec_script("../tools/exists.py",
-                  [ rebase_path("//third_party/icu/flutter/icudtl.dat") ],
-                  "value")) {
+  if (path_exists("//third_party/icu/flutter/icudtl.dat")) {
     input = "//third_party/icu/flutter/icudtl.dat"
   } else {
     input = "//flutter/third_party/icu/flutter/icudtl.dat"
