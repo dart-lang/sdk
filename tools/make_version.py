@@ -130,8 +130,13 @@ def main():
                                       args.no_sdk_hash, args.version_file)
 
         if args.output:
-            with open(args.output, 'w') as fh:
-                fh.write(version)
+            # If the output already exists and there is no change, don't even
+            # write to the file. Ninja will notice the output's modified time
+            # is unchanged and avoid rebuilding dependents.
+            if not os.path.exists(args.output) or open(
+                    args.output).read() != version:
+                with open(args.output, 'w') as fh:
+                    fh.write(version)
         else:
             sys.stdout.write(version)
 
