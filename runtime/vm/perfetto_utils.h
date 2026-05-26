@@ -162,10 +162,7 @@ struct Span {
     return memcmp(data, other.data, length * sizeof(T)) == 0;
   }
 
-  uword Hash() const {
-    return HashBytes(reinterpret_cast<const uint8_t*>(data),
-                     length * sizeof(T));
-  }
+  uword Hash() const { return HashBytes(data, length * sizeof(T)); }
 };
 
 template <typename T, typename Allocator>
@@ -197,7 +194,7 @@ struct Interned {
     if constexpr (DefinesHashAndEquality<T>) {
       return data.Hash();
     } else {
-      return HashBytes(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
+      return HashBytes(&data, sizeof(T));
     }
   }
 

@@ -5959,7 +5959,7 @@ class Instructions : public Object {
   uint32_t Hash() const { return Hash(ptr()); }
 
   static uint32_t Hash(const InstructionsPtr instr) {
-    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart(instr)),
+    return HashBytes(reinterpret_cast<const void*>(PayloadStart(instr)),
                      Size(instr));
   }
 
