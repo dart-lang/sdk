@@ -1511,9 +1511,9 @@ void Object::RegisterPrivateClass(const Class& cls,
   lib.AddClass(cls);
 }
 
-class WorkSet : public StackResource {
+class VerificationWorkSet : public StackResource {
  public:
-  explicit WorkSet(Thread* thread, Zone* zone)
+  explicit VerificationWorkSet(Thread* thread, Zone* zone)
       : StackResource(thread),
         thread_(thread),
         list_(GrowableObjectArray::Handle(zone)),
@@ -1525,7 +1525,7 @@ class WorkSet : public StackResource {
     thread->set_forward_table_new(set_);
   }
 
-  ~WorkSet() {
+  ~VerificationWorkSet() {
     thread_->set_forward_table_new(nullptr);
     set_ = nullptr;
   }
@@ -1579,7 +1579,7 @@ class WorkSet : public StackResource {
 
 void Object::EnsureDeeplyImmutable(Zone* zone) const {
   auto thread = Thread::Current();
-  WorkSet workset(thread, zone);
+  VerificationWorkSet workset(thread, zone);
   workset.Add(*this);
 
   Object& current = Object::Handle(zone);
