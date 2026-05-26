@@ -1033,10 +1033,7 @@ dart_executable("dartaotruntime_product") {
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   dart_executable("dart") {
     use_product_mode = true
-    extra_configs = [
-      "..:dartdev_config",
-      "..:add_empty_macho_section_config",
-    ]
+    extra_configs = [ "..:dartdev_config" ]
     extra_deps = [
       ":shared_object_loaders_product",
       "..:libdart_aotruntime_product",
