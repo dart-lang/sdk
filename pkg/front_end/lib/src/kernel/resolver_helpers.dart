@@ -221,6 +221,8 @@ class _InitializerBuilder {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     InferredConstructorInitializer result = _bodyBuilderContext
         .inferInitializer(
@@ -231,6 +233,8 @@ class _InitializerBuilder {
           internalThisVariable: internalThisVariable,
           scopeProviderInfo: scopeProviderInfo,
           contextAllocationStrategy: contextAllocationStrategy,
+          isFirstInitializer: isFirstInitializer,
+          isLastInitializerWithoutBody: isLastInitializerWithoutBody,
         );
     if (!_bodyBuilderContext.isExternalConstructor) {
       _addInferredInitializer(result.initializerInferenceResult);
@@ -248,6 +252,7 @@ class _InitializerBuilder {
     required List<Variable> parameters,
     required ThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isConstructorWithoutBody,
   }) {
     if (initializers.isNotEmpty) {
       if (_bodyBuilderContext.isMixinClass) {
@@ -271,7 +276,15 @@ class _InitializerBuilder {
     }
 
     ScopeProviderInfo? scopeProviderInfo;
-    for (Initializer initializer in initializers) {
+    for (
+      int initializerIndex = 0;
+      initializerIndex < initializers.length;
+      initializerIndex++
+    ) {
+      Initializer initializer = initializers[initializerIndex];
+      bool isFirstInitializer = initializerIndex == 0;
+      bool isLastExplicitInitializer =
+          initializerIndex == initializers.length - 1;
       switch (initializer) {
         case AuxiliaryInitializer():
           if (initializer is InternalInitializer) {
@@ -284,6 +297,11 @@ class _InitializerBuilder {
                   internalThisVariable: internalThisVariable,
                   scopeProviderInfo: scopeProviderInfo,
                   contextAllocationStrategy: contextAllocationStrategy,
+                  isFirstInitializer: isFirstInitializer,
+                  isLastInitializerWithoutBody:
+                      isLastExplicitInitializer &&
+                      !_needsImplicitSuperInitializer &&
+                      isConstructorWithoutBody,
                 );
               case ExtensionTypeRepresentationFieldInitializer():
                 scopeProviderInfo = _inferInitializer(
@@ -292,6 +310,11 @@ class _InitializerBuilder {
                   internalThisVariable: internalThisVariable,
                   scopeProviderInfo: scopeProviderInfo,
                   contextAllocationStrategy: contextAllocationStrategy,
+                  isFirstInitializer: isFirstInitializer,
+                  isLastInitializerWithoutBody:
+                      isLastExplicitInitializer &&
+                      !_needsImplicitSuperInitializer &&
+                      isConstructorWithoutBody,
                 );
               case InternalRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
@@ -320,6 +343,11 @@ class _InitializerBuilder {
                   internalThisVariable: internalThisVariable,
                   scopeProviderInfo: scopeProviderInfo,
                   contextAllocationStrategy: contextAllocationStrategy,
+                  isFirstInitializer: isFirstInitializer,
+                  isLastInitializerWithoutBody:
+                      isLastExplicitInitializer &&
+                      !_needsImplicitSuperInitializer &&
+                      isConstructorWithoutBody,
                 );
               case InternalSuperInitializer():
                 _needsImplicitSuperInitializer = false;
@@ -377,6 +405,11 @@ class _InitializerBuilder {
                   internalThisVariable: internalThisVariable,
                   scopeProviderInfo: scopeProviderInfo,
                   contextAllocationStrategy: contextAllocationStrategy,
+                  isFirstInitializer: isFirstInitializer,
+                  isLastInitializerWithoutBody:
+                      isLastExplicitInitializer &&
+                      !_needsImplicitSuperInitializer &&
+                      isConstructorWithoutBody,
                 );
             }
           }
@@ -388,6 +421,11 @@ class _InitializerBuilder {
             internalThisVariable: internalThisVariable,
             scopeProviderInfo: scopeProviderInfo,
             contextAllocationStrategy: contextAllocationStrategy,
+            isFirstInitializer: isFirstInitializer,
+            isLastInitializerWithoutBody:
+                isLastExplicitInitializer &&
+                !_needsImplicitSuperInitializer &&
+                isConstructorWithoutBody,
           );
         case FieldInitializer():
         case LocalInitializer():
@@ -398,6 +436,11 @@ class _InitializerBuilder {
             internalThisVariable: internalThisVariable,
             scopeProviderInfo: scopeProviderInfo,
             contextAllocationStrategy: contextAllocationStrategy,
+            isFirstInitializer: isFirstInitializer,
+            isLastInitializerWithoutBody:
+                isLastExplicitInitializer &&
+                !_needsImplicitSuperInitializer &&
+                isConstructorWithoutBody,
           );
         // Coverage-ignore(suite): Not run.
         case SuperInitializer():
@@ -424,6 +467,8 @@ class _InitializerBuilder {
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
         contextAllocationStrategy: contextAllocationStrategy,
+        isFirstInitializer: initializers.isEmpty,
+        isLastInitializerWithoutBody: isConstructorWithoutBody,
       );
       _needsImplicitSuperInitializer = false;
     }
@@ -437,6 +482,8 @@ class _InitializerBuilder {
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
         contextAllocationStrategy: contextAllocationStrategy,
+        isFirstInitializer: initializers.isEmpty,
+        isLastInitializerWithoutBody: isConstructorWithoutBody,
       );
     }
     _bodyBuilderContext.registerInitializers([
@@ -633,6 +680,8 @@ class _InitializerBuilder {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
+    required bool isFirstInitializer,
+    required bool isLastInitializerWithoutBody,
   }) {
     /// >If no superinitializer is provided, an implicit superinitializer
     /// >of the form super() is added at the end of the constructor's
@@ -833,6 +882,8 @@ class _InitializerBuilder {
       internalThisVariable: internalThisVariable,
       scopeProviderInfo: scopeProviderInfo,
       contextAllocationStrategy: contextAllocationStrategy,
+      isFirstInitializer: isFirstInitializer,
+      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
     );
   }
 }

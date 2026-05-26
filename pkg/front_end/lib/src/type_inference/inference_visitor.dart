@@ -3574,7 +3574,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  ScopeProviderInfo beginFunctionBodyInference(
+  ScopeProviderInfo beginClosureContextAllocation(
     List<Variable> parameters, {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
@@ -3595,7 +3595,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo) {
+  void endClosureContextAllocation(ScopeProviderInfo scopeProviderInfo) {
     _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
   }
 
