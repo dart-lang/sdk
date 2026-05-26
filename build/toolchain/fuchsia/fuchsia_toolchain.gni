@@ -165,7 +165,8 @@ template("fuchsia_toolchain") {
       rspfile = "$outfile.rsp"
       symfile = "$outfile.sym"
       symbolizer_script =
-          rebase_path("//runtime/tools/dart_profiler_symbols.py")
+          rebase_path("//runtime/tools/dart_profiler_symbols.py",
+                      root_build_dir)
 
       # Note that the unstripped_outfile is in the exe.stripped folder.
       # We should probably clean this up, but changing this and dart.cmx

@@ -318,7 +318,7 @@ action("build_devtools") {
   script = "../tools/build_devtools.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
 }
 
@@ -820,7 +820,7 @@ action("write_version_file") {
   script = "../tools/write_version_file.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
   if (!dart_version_git_info) {
     args += [ "--no-git-hash" ]
@@ -836,7 +836,7 @@ action("write_revision_file") {
   script = "../tools/write_revision_file.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
   if (!dart_version_git_info) {
     args += [ "--no-git-hash" ]
@@ -866,7 +866,7 @@ action("write_dartdoc_options") {
   script = "../tools/write_dartdoc_options_file.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
   if (!dart_version_git_info) {
     args += [ "--no-git-hash" ]

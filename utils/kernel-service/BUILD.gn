@@ -29,11 +29,7 @@ application_snapshot("kernel-service_snapshot") {
   main_dart = "../../$_kernel_service_script"
   training_args = [
     "--train",
-
-    # Force triple-slashes both on Windows and otherwise.
-    # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
-    # Without the ', "/"' part, on Linux it would get four slashes.
-    "file:///" + rebase_path("../../$_kernel_service_script", "/"),
+    rebase_path("../../$_kernel_service_script", root_build_dir),
   ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
