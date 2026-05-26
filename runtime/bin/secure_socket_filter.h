@@ -19,6 +19,10 @@
 namespace dart {
 namespace bin {
 
+/* These are defined in root_certificates.cc. */
+extern const unsigned char* root_certificates_pem;
+extern unsigned int root_certificates_pem_length;
+
 class X509TrustState {
  public:
   X509TrustState(const X509* x509, bool is_trusted)

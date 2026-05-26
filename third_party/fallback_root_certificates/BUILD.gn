@@ -1,0 +1,14 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+source_set("fallback_root_certificates") {
+  configs += [
+    "../../runtime:dart_arch_config",
+    "../../runtime:dart_config",
+    "../../runtime:dart_os_config",
+  ]
+  public_configs = [ "../../runtime:dart_public_config" ]
+  include_dirs = [ "../../runtime" ]
+  sources = [ "root_certificates.cc" ]
+}

@@ -208,13 +208,6 @@ These changes are [language versioned][] and only affect code at 3.13 or higher:
 
 [language versioned]: https://dart.dev/to/language-version
 
-### Dart Runtime
-
-- Built-in fallback root certificates used if the system certificates cannot be
-found are no longer included. The existing `--root-certs-file` and
-`--root-certs-cache` options to the standalone VM may be used to provide
-certificates if the system certificates cannot be found.
-
 ## 3.12.0
 
 **Released on:** Unreleased
