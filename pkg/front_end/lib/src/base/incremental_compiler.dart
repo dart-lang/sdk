@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/type_inference/inference_results.dart';
 import 'package:front_end/src/type_inference/object_access_target.dart';
@@ -617,6 +618,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         classHierarchy: currentKernelTarget.loader.hierarchy,
         coreTypes: currentKernelTarget.loader.coreTypes,
         neededDillLibraries: neededDillLibraries,
+        loadedComponents: data.loadedModules ?? const [],
       );
     });
   }
@@ -1821,6 +1823,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         byteCount: bytesLength,
       );
     }
+    List<Component>? loadedModules = data.loadedModules;
+    if (loadedModules != null) {
+      // Coverage-ignore-block(suite): Not run.
+      for (Component module in loadedModules) {
+        _dillLoadedData!.loader.appendLibraries(module);
+      }
+    }
     _ticker.logMs("Appended libraries");
   }
 
@@ -2730,6 +2739,7 @@ class InitializeFromComponentError {
 class IncrementalCompilerData {
   Component? component = null;
   List<int>? initializationBytes = null;
+  List<Component>? loadedModules = null;
 }
 
 class ReusageResult {
@@ -2858,14 +2868,24 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
     IncrementalSerializer? incrementalSerializer,
     RecorderForTesting? recorderForTesting,
   ) async {
-    Uint8List? summaryBytes = await context.options.loadSdkSummaryBytes();
-    return _prepareSummary(
+    ProcessedOptions options = context.options;
+    Uint8List? summaryBytes = await options.loadSdkSummaryBytes();
+    int bytesLength = _prepareSummary(
       dillLoadedData,
       summaryBytes,
       uriTranslator,
       context,
       data,
     );
+
+    if (options.hasAdditionalDillModules) {
+      List<Component> loadedModules = await options.loadAdditionalDillModules(
+        data.component?.root,
+      );
+      data.loadedModules = loadedModules;
+    }
+
+    return bytesLength;
   }
 
   // Coverage-ignore(suite): Not run.

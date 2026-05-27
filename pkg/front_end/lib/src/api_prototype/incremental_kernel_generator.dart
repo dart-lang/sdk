@@ -165,6 +165,7 @@ class IncrementalCompilerResult {
   final Component component;
   final ClassHierarchy classHierarchy;
   final CoreTypes coreTypes;
+  final List<Component> loadedComponents;
   final Set<Library>? neededDillLibraries;
 
   IncrementalCompilerResult(
@@ -172,5 +173,6 @@ class IncrementalCompilerResult {
     required this.classHierarchy,
     required this.coreTypes,
     this.neededDillLibraries,
+    this.loadedComponents = const [],
   });
 }

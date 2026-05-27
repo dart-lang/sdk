@@ -351,8 +351,8 @@ Future<Map<String, Uint8List>> createModules(
   Map<String, Map<String, String>> module,
   List<int> sdkSummaryData,
   Target target,
-  Target originalTarget,
   String sdkSummary, {
+  required bool isDdc,
   required bool trackNeededDillLibraries,
   required Uri checkoutRoot,
 }) async {
@@ -390,10 +390,7 @@ Future<Map<String, Uint8List>> createModules(
         moduleSources.add(uri);
       }
     }
-    bool outlineOnly = false;
-    if (originalTarget is DevCompilerTarget) {
-      outlineOnly = true;
-    }
+    bool outlineOnly = isDdc;
     CompilerOptions options = getOptions(
       target: target,
       sdkSummary: sdkSummary,
@@ -816,9 +813,6 @@ class NewWorldTest {
   // via the leak detector test.
   Component? newestWholeComponent;
   Component? sdk;
-  Component? component;
-  Component? component2;
-  Component? component3;
 
   NewWorldTest({
     required this.data,
@@ -833,380 +827,88 @@ class NewWorldTest {
   });
 
   Future<Result<TestData>> newWorldTest() async {
-    final Uri platformBinariesRoot = computePlatformBinariesLocation(
-      forceBuildDir: true,
-    );
+    NewWorldTestData newWorldTestData = await _initializeNewWorldTestData();
+    await _initializeModules(newWorldTestData);
 
-    // This is somewhat of a hack but will do for now.
-    final Uri checkoutRoot = data.loadedFrom.resolve("../../../../");
-
-    TestTargetFlags targetFlags = new TestTargetFlags(
-      forceLateLoweringsForTesting: forceLateLoweringForTesting
-          ? LateLowering.all
-          : null,
-      trackCreationLocations: trackCreationLocations,
-    );
-    Target target = new VmTarget(targetFlags);
-    if (targetName != null) {
-      if (targetName == NewWorldTestProperties.target_none) {
-        target = new NoneTarget(targetFlags);
-      } else if (targetName == NewWorldTestProperties.target_dartdevc) {
-        target = new DevCompilerTarget(targetFlags);
-      } else if (targetName == NewWorldTestProperties.target_dart2js) {
-        target = new Dart2jsTarget("dart2js", targetFlags);
-      } else if (targetName == NewWorldTestProperties.target_vm) {
-        // default.
-      } else {
-        throw "Unknown target name '$targetName'";
-      }
-    }
-    Target originalTarget = target;
-    target = new TestTargetWrapper(target, targetFlags);
-
-    String sdkSummary = computePlatformDillName(
-      target,
-      () => throw new UnsupportedError(
-        "No platform dill for target '${targetName}'.",
-      ),
-    )!;
-
-    final Uri base = Uri.parse("org-dartlang-test:///");
-    final Uri sdkSummaryUri = base.resolve(sdkSummary);
-    final Uri initializeFrom = base.resolve("initializeFrom.dill");
-    Uri platformUri = platformBinariesRoot.resolve(sdkSummary);
-    final Uint8List sdkSummaryData = await new File.fromUri(
-      platformUri,
-    ).readAsBytes();
-
-    Uint8List? newestWholeComponentData;
-    TestMemoryFileSystem? fs;
-    Map<String, String?>? sourceFiles;
-    CompilerOptions? options;
-    TestIncrementalCompiler? compiler;
-    IncrementalSerializer? incrementalSerializer;
-
-    Map<String, Uint8List>? moduleData;
-    Map<String, Component>? moduleComponents;
-
-    if (modules != null) {
-      moduleData = await createModules(
-        modules!,
-        sdkSummaryData,
-        target,
-        originalTarget,
-        sdkSummary,
-        checkoutRoot: checkoutRoot,
-        trackNeededDillLibraries: false,
-      );
-      sdk = newestWholeComponent = new Component();
-      new BinaryBuilder(
-        sdkSummaryData,
-        filename: null,
-        disableLazyReading: false,
-      ).readComponent(newestWholeComponent!);
-    }
-
-    int worldNum = 0;
-    // TODO: When needed, we can do this for warnings too.
-    List<Set<String>> worldErrors = [];
     for (World world in worlds) {
-      worldNum++;
+      newWorldTestData.worldNum++;
       print("----------------");
-      print("World #$worldNum");
+      print("World #${newWorldTestData.worldNum}");
       print("----------------");
-      List<Component>? modulesToUse;
-      if (world.modules != null) {
-        moduleComponents ??= new Map<String, Component>();
 
-        sdk!.adoptChildren();
-        for (Component c in moduleComponents.values) {
-          c.adoptChildren();
-        }
-
-        modulesToUse = <Component>[];
-        for (String moduleName in world.modules!) {
-          Component? moduleComponent = moduleComponents[moduleName];
-          if (moduleComponent != null) {
-            modulesToUse.add(moduleComponent);
-          }
-        }
-        for (String moduleName in world.modules!) {
-          Component? moduleComponent = moduleComponents[moduleName];
-          if (moduleComponent == null) {
-            moduleComponent = new Component(nameRoot: sdk!.root);
-            new BinaryBuilder(
-              moduleData![moduleName]!,
-              filename: null,
-              disableLazyReading: false,
-              alwaysCreateNewNamedNodes: true,
-            ).readComponent(moduleComponent);
-            moduleComponents[moduleName] = moduleComponent;
-            modulesToUse.add(moduleComponent);
-          }
-        }
-      }
-
-      if (!world.updateWorldType) {
-        fs = new TestMemoryFileSystem(base, holePunchBase: checkoutRoot);
-      }
-      fs!.entityForUri(sdkSummaryUri).writeAsBytesSync(sdkSummaryData);
-      bool expectInitializeFromDill = false;
-      if (newestWholeComponentData != null &&
-          newestWholeComponentData.isNotEmpty) {
-        fs
-            .entityForUri(initializeFrom)
-            .writeAsBytesSync(newestWholeComponentData);
-        expectInitializeFromDill = true;
-      }
-      if (world.expectInitializeFromDill != null) {
-        expectInitializeFromDill = world.expectInitializeFromDill!;
-      }
-      if (!world.updateWorldType) {
-        sourceFiles = new Map<String, String?>.from(world.sources);
-      } else {
-        sourceFiles!.addAll(new Map<String, String?>.from(world.sources));
-      }
-      Uri? packagesUri;
-      for (String filename in sourceFiles.keys) {
-        String data = sourceFiles[filename] ?? "";
-        Uri uri = base.resolve(filename);
-        if (filename == ".dart_tool/package_config.json") {
-          packagesUri = uri;
-        }
-        if (world.enableStringReplacement) {
-          data = replaceMarkersWithVersions(data);
-        }
-        fs.entityForUri(uri).writeAsStringSync(data);
-      }
-      if (world.packageConfigFile != null) {
-        packagesUri = base.resolve(world.packageConfigFile!);
-      }
-
-      if (!world.updateWorldType) {
-        options = getOptions(target: target, sdkSummary: sdkSummary);
-        options.fileSystem = fs;
-        options.sdkRoot = null;
-        options.sdkSummary = sdkSummaryUri;
-        if (world.useBadSdk) {
-          options.sdkSummary = sdkSummaryUri.resolve("nonexisting.dill");
-        }
-        options.omitPlatform = omitPlatform;
-        if (world.experiments != null) {
-          Map<String, bool> flagsFromOptions = parseExperimentalArguments([
-            world.experiments!,
-          ]);
-          // Ensure that we run with non-nullable turned off even when the
-          // flag is on by default.
-          Map<ExperimentalFlag, bool> explicitExperimentalFlags =
-              parseExperimentalFlags(
-                flagsFromOptions,
-                onError: (e) => throw "Error on parsing experiments flags: $e",
-              );
-          options.explicitExperimentalFlags = explicitExperimentalFlags;
-        } else {
-          options.explicitExperimentalFlags = {};
-        }
-      }
-      if (packagesUri != null) {
-        options!.packagesFileUri = packagesUri;
-      }
-      bool gotError = false;
-      final Set<String> formattedErrors = Set<String>();
-      bool gotWarning = false;
-      final Set<String> formattedWarnings = Set<String>();
-      final Set<String> seenDiagnosticCodes = Set<String>();
-
-      options!.onDiagnostic = (CfeDiagnosticMessage message) {
-        String? code = getMessageCodeObject(message)?.name;
-        if (code != null) seenDiagnosticCodes.add(code);
-
-        String stringId = message.ansiFormatted.join("\n");
-        if (message is FormattedMessage) {
-          stringId = message.toJsonString();
-        } else if (message is DiagnosticMessageFromJson) {
-          stringId = message.toJsonString();
-        }
-        if (message.severity == CfeSeverity.error) {
-          gotError = true;
-          if (!formattedErrors.add(stringId) && !world.allowDuplicateErrors) {
-            Expect.fail("Got the same message twice: ${stringId}");
-          }
-        } else if (message.severity == CfeSeverity.warning) {
-          gotWarning = true;
-          if (!formattedWarnings.add(stringId) &&
-              !world.allowDuplicateWarnings) {
-            Expect.fail("Got the same message twice: ${stringId}");
-          }
-        }
-      };
-
-      List<Uri> entries = world.entries.map((e) => base.resolve(e)).toList();
-      if (!world.updateWorldType) {
-        if (incrementalSerialization == true) {
-          incrementalSerializer = new IncrementalSerializer();
-        }
-        if (world.fromComponent) {
-          compiler = new TestIncrementalCompiler.fromComponent(
-            options,
-            entries.first,
-            (modulesToUse != null) ? sdk : newestWholeComponent,
-            world.outlineOnly,
-            incrementalSerializer,
-          );
-        } else {
-          compiler = new TestIncrementalCompiler(
-            options,
-            entries.first,
-            initializeFrom,
-            world.outlineOnly,
-            incrementalSerializer,
-          );
-
-          if (modulesToUse != null) {
-            throw "You probably shouldn't do this! "
-                "Any modules will have another sdk loaded!";
-          }
-        }
-      }
-
-      List<Uri> invalidated = <Uri>[];
-      if (world.invalidate != null) {
-        for (String filename in world.invalidate!) {
-          Uri uri = base.resolve(filename);
-          invalidated.add(uri);
-          compiler!.invalidate(uri);
-        }
-      }
-
-      if (modulesToUse != null) {
-        compiler!.setModulesToLoadOnNextComputeDelta(modulesToUse);
-        compiler.invalidateAllSources();
-      }
+      WorldSpecificTestData worldTestData = new WorldSpecificTestData();
+      _loadWorldModules(world, newWorldTestData, worldTestData);
+      _setupFileSystemAndSourcesEtc(world, newWorldTestData, worldTestData);
+      _setupOptions(world, newWorldTestData, worldTestData);
+      _setupCompilerAndInvalidate(world, newWorldTestData, worldTestData);
+      _setupModules(worldTestData, newWorldTestData);
 
       Stopwatch stopwatch = new Stopwatch()..start();
-      IncrementalCompilerResult? compilerResult = await compiler!.computeDelta(
-        entryPoints: entries,
-        fullComponent: !world.updateWorldType
-            ? false
-            : (world.noFullComponent ? false : true),
-        trackNeededDillLibraries: modulesToUse != null,
-        simulateTransformer: world.simulateTransformer,
-      );
-      component = compilerResult.component;
+      IncrementalCompilerResult? compilerResult = await newWorldTestData
+          .compiler
+          .computeDelta(
+            entryPoints: worldTestData.entries,
+            fullComponent: !world.updateWorldType
+                ? false
+                : (world.noFullComponent ? false : true),
+            trackNeededDillLibraries: worldTestData.modulesToUse != null,
+            simulateTransformer: world.simulateTransformer,
+          );
       // compilerResult is null'ed out at the end to avoid any
       // "artificial memory leak" on that account.
-      if (world.outlineOnly && !world.skipOutlineBodyCheck) {
-        for (Library lib in component!.libraries) {
-          for (Class c in lib.classes) {
-            for (Procedure p in c.procedures) {
-              if (p.function.body != null &&
-                  p.function.body is! EmptyStatement) {
-                throw "Got body (${p.function.body.runtimeType})";
-              }
-            }
-          }
-          for (Procedure p in lib.procedures) {
-            if (p.function.body != null && p.function.body is! EmptyStatement) {
-              throw "Got body (${p.function.body.runtimeType})";
-            }
-          }
-        }
-      }
-      Result<TestData>? result = _performErrorAndWarningCheck(
-        world,
-        data,
-        gotError,
-        formattedErrors,
-        gotWarning,
-        formattedWarnings,
-      );
-      if (result != null) return result;
-      bool? expectInitializationError = world.expectInitializationError;
-      if (expectInitializationError != null) {
-        Set<String> seenInitializationError = seenDiagnosticCodes.intersection({
-          "InitializeFromDillNotSelfContainedNoDump",
-          "InitializeFromDillNotSelfContained",
-          "InitializeFromDillUnknownProblem",
-          "InitializeFromDillUnknownProblemNoDump",
-        });
-        if (expectInitializationError) {
-          if (seenInitializationError.isEmpty) {
-            return new Result<TestData>(
-              data,
-              MissingInitializationError,
-              "Expected to see an initialization error but didn't.",
-            );
-          }
-        } else {
-          if (seenInitializationError.isNotEmpty) {
-            return new Result<TestData>(
-              data,
-              UnexpectedInitializationError,
-              "Expected not to see an initialization error but did: "
-              "$seenInitializationError.",
-            );
-          }
-        }
-      }
-      util.throwOnEmptyMixinBodies(component!);
+      _checkBodies(world, compilerResult);
+
+      Result<TestData>? subtestResult;
+      subtestResult = _performErrorAndWarningCheck(world, data, worldTestData);
+      if (subtestResult != null) return subtestResult;
+
+      subtestResult = _checkExpectedInitializationError(world, worldTestData);
+      if (subtestResult != null) return subtestResult;
+
+      util.throwOnEmptyMixinBodies(compilerResult.component);
       await util.throwOnInsufficientUriToSource(
-        component!,
-        fileSystem: gotError ? null : fs,
+        compilerResult.component,
+        fileSystem: worldTestData.gotError ? null : newWorldTestData.fs,
       );
       print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-      Result? contentResult = _checkExpectedContent(world, component!);
-      if (contentResult != null) return contentResult.copyWithOutput(data);
-      result = _checkNeededDillLibraries(
+      subtestResult = _checkExpectedContent(world, compilerResult.component);
+      if (subtestResult != null) return subtestResult.copyWithOutput(data);
+
+      subtestResult = _checkNeededDillLibraries(
         world,
-        data,
-        compilerResult.neededDillLibraries,
-        base,
+        compilerResult,
+        newWorldTestData,
       );
-      if (result != null) return result;
+      if (subtestResult != null) return subtestResult;
 
-      if (!world.noFullComponent) {
-        Set<Library> allLibraries = new Set<Library>();
-        for (Library lib in component!.libraries) {
-          _computeAllReachableLibrariesFor(lib, allLibraries);
-        }
-        if (allLibraries.length != component!.libraries.length) {
-          return new Result<TestData>(
-            data,
-            ReachableLibrariesError,
-            "Expected for the reachable stuff to be equal to "
-            "${component!.libraries} but it was $allLibraries",
-          );
-        }
-        Set<Library> tooMany = allLibraries.toSet()
-          ..removeAll(component!.libraries);
-        if (tooMany.isNotEmpty) {
-          return new Result<TestData>(
-            data,
-            ReachableLibrariesError,
-            "Expected for the reachable stuff to be equal to "
-            "${component!.libraries} but these were there too: $tooMany "
-            "(and others were missing)",
-          );
-        }
-      }
+      subtestResult = _checkFullCompile(world, compilerResult, worldTestData);
+      if (subtestResult != null) return subtestResult;
 
-      util.postProcessComponent(component!);
+      util.postProcessComponent(compilerResult.component);
       String actualSerialized = _componentToStringSdkFiltered(
-        component!,
-        printErrors: world.printErrorsInExpect ? formattedErrors : null,
+        compilerResult.component,
+        printErrors: world.printErrorsInExpect
+            ? worldTestData.formattedErrors
+            : null,
       );
       print(
         "*****\n\ncomponent:\n"
         "${actualSerialized}\n\n\n",
       );
-      result = _checkExpectFile(data, worldNum, "", context, actualSerialized);
-      if (result != null) return result;
+      subtestResult = _checkExpectFile(
+        data,
+        newWorldTestData.worldNum,
+        "",
+        context,
+        actualSerialized,
+      );
+      if (subtestResult != null) return subtestResult;
 
       if (world.compareToPrevious && newestWholeComponent != null) {
         EquivalenceResult result = checkEquivalence(
           newestWholeComponent!,
-          component!,
+          compilerResult.component,
           strategy: const Strategy(),
         );
         if (!result.isEquivalent) {
@@ -1219,7 +921,7 @@ class NewWorldTest {
       }
 
       if (world.reject) {
-        util.postProcess(component!);
+        util.postProcess(compilerResult.component);
 
         // Reject: We keep the original "newest whole component" and also
         // reject/relink it.
@@ -1227,7 +929,7 @@ class NewWorldTest {
         newestWholeComponent?.relink();
 
         // Add errors or assert will trigger in later worlds.
-        worldErrors.add(formattedErrors.toSet());
+        newWorldTestData.worldErrors.add(worldTestData.formattedErrors.toSet());
 
         // But otherwise skip other stuff - e.g. doing a leak check will find a
         // leak because we (on purpose) have two of the same library at the same
@@ -1235,110 +937,38 @@ class NewWorldTest {
         continue;
       } else {
         // Save it.
-        newestWholeComponentData = util.postProcess(component!);
-        newestWholeComponent = component;
-      }
-
-      if (world.checkConstantCoverageReferences) {
-        Result<TestData>? result = _checkConstantCoverageReferences(
-          newestWholeComponentData,
-          omitPlatform,
-          sdkSummaryData,
-          data,
+        newWorldTestData.newestWholeComponentData = util.postProcess(
+          compilerResult.component,
         );
-        if (result != null) return result;
+        newestWholeComponent = compilerResult.component;
       }
 
-      if (world.uriToSourcesDoesntInclude != null) {
-        for (String filename in world.uriToSourcesDoesntInclude!) {
-          Uri uri = base.resolve(filename);
-          if (component!.uriToSource[uri] != null) {
-            return new Result<TestData>(
-              data,
-              UriToSourceError,
-              "Expected no uriToSource for $uri but found "
-              "${component!.uriToSource[uri]}",
-            );
-          }
-        }
-      }
-      if (world.uriToSourcesOnlyIncludes != null) {
-        Set<Uri> allowed = {};
-        for (String filename in world.uriToSourcesOnlyIncludes!) {
-          Uri uri = base.resolve(filename);
-          allowed.add(uri);
-        }
-        for (Uri uri in component!.uriToSource.keys) {
-          // null is always there, so allow it implicitly.
-          // Dart scheme uris too.
-          if (uri.isScheme("org-dartlang-sdk")) continue;
-          if (!allowed.contains(uri)) {
-            return new Result<TestData>(
-              data,
-              UriToSourceError,
-              "Expected no uriToSource for $uri but found "
-              "${component!.uriToSource[uri]}",
-            );
-          }
-        }
-      }
-
-      if (!world.skipClassHierarchyTest) {
-        result = _checkClassHierarchy(compilerResult, data, worldNum, context);
-        if (result != null) return result;
-      }
-
-      int nonSyntheticLibraries = _countNonSyntheticLibraries(component!);
-      int nonSyntheticPlatformLibraries = _countNonSyntheticPlatformLibraries(
-        component!,
+      Result<TestData>? result = _checkConstantCoverageReferences(
+        world,
+        newWorldTestData,
+        data,
       );
-      int syntheticLibraries = _countSyntheticLibraries(component!);
-      if (world.expectsPlatform) {
-        if (nonSyntheticPlatformLibraries < 5) {
-          return new Result<TestData>(
-            data,
-            MissingPlatformLibraries,
-            "Expected to have at least 5 platform libraries "
-            "(actually, the entire sdk), "
-            "but got $nonSyntheticPlatformLibraries.",
-          );
-        }
-      } else {
-        if (nonSyntheticPlatformLibraries != 0) {
-          return new Result<TestData>(
-            data,
-            UnexpectedPlatformLibraries,
-            "Expected to have 0 platform libraries "
-            "but got $nonSyntheticPlatformLibraries.",
-          );
-        }
-      }
-      if (world.expectedLibraryCount != null) {
-        if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=
-            world.expectedLibraryCount!) {
-          return new Result<TestData>(
-            data,
-            LibraryCountMismatch,
-            "Expected ${world.expectedLibraryCount} non-synthetic "
-            "libraries, got "
-            "${nonSyntheticLibraries - nonSyntheticPlatformLibraries} "
-            "(not counting platform libraries)",
-          );
-        }
-      }
-      if (world.expectedSyntheticLibraryCount != null) {
-        if (syntheticLibraries != world.expectedSyntheticLibraryCount!) {
-          return new Result<TestData>(
-            data,
-            LibraryCountMismatch,
-            "Expected ${world.expectedSyntheticLibraryCount} synthetic "
-            "libraries, got ${syntheticLibraries}",
-          );
-        }
-      }
+      if (result != null) return result;
 
-      AdvancedInvalidationResult? actualAdvancedInvalidation =
-          compiler.recorderForTesting.advancedInvalidationResult;
+      subtestResult = _checkSources(world, newWorldTestData, compilerResult);
+      if (subtestResult != null) return subtestResult;
+
+      subtestResult = _checkClassHierarchy(
+        world,
+        compilerResult,
+        data,
+        newWorldTestData.worldNum,
+        context,
+      );
+      if (subtestResult != null) return subtestResult;
+
+      subtestResult = _checkLibraryCount(compilerResult, world);
+      if (subtestResult != null) return subtestResult;
+
+      AdvancedInvalidationResult? actualAdvancedInvalidation = newWorldTestData
+          .compiler
+          .recorderForTesting
+          .advancedInvalidationResult;
       if (world.advancedInvalidation != actualAdvancedInvalidation) {
         return new Result<TestData>(
           data,
@@ -1350,46 +980,33 @@ class NewWorldTest {
         );
       }
 
-      if (!world.noFullComponent) {
-        if (world.checkEntries) {
-          List<Library> entryLib = component!.libraries
-              .where(
-                (Library lib) =>
-                    entries.contains(lib.importUri) ||
-                    entries.contains(lib.fileUri),
-              )
-              .toList();
-          if (entryLib.length != entries.length) {
-            return new Result<TestData>(
-              data,
-              UnexpectedEntryToLibraryCount,
-              "Expected the entries to become libraries. "
-              "Got ${entryLib.length} libraries for the expected "
-              "${entries.length} entries.",
-            );
-          }
-        }
-      }
-      if (compiler.initializedFromDillForTesting != expectInitializeFromDill) {
+      if (newWorldTestData.compiler.initializedFromDillForTesting !=
+          worldTestData.expectInitializeFromDill) {
         return new Result<TestData>(
           data,
           InitializedFromDillMismatch,
           "Expected that initializedFromDill would be "
-          "$expectInitializeFromDill but was "
-          "${compiler.initializedFromDillForTesting}",
+          "${worldTestData.expectInitializeFromDill} but was "
+          "${newWorldTestData.compiler.initializedFromDillForTesting}",
         );
       }
 
       if (incrementalSerialization == true &&
-          compiler.initializedFromDillForTesting) {
-        Expect.isTrue(compiler.initializedIncrementalSerializerForTesting);
+          newWorldTestData.compiler.initializedFromDillForTesting) {
+        Expect.isTrue(
+          newWorldTestData.compiler.initializedIncrementalSerializerForTesting,
+        );
       } else {
-        Expect.isFalse(compiler.initializedIncrementalSerializerForTesting);
+        Expect.isFalse(
+          newWorldTestData.compiler.initializedIncrementalSerializerForTesting,
+        );
       }
 
       if (world.checkInvalidatedFiles) {
-        Set<Uri>? filteredInvalidated = compiler
-            .getFilteredInvalidatedImportUrisForTesting(invalidated);
+        Set<Uri>? filteredInvalidated = newWorldTestData.compiler
+            .getFilteredInvalidatedImportUrisForTesting(
+              worldTestData.invalidated,
+            );
         if (world.invalidate != null) {
           Expect.equals(
             world.invalidate!.length,
@@ -1399,7 +1016,9 @@ class NewWorldTest {
           );
           if (world.expectedInvalidatedUri != null) {
             Expect.setEquals(
-              world.expectedInvalidatedUri!.map((s) => base.resolve(s)),
+              world.expectedInvalidatedUri!.map(
+                (s) => newWorldTestData.base.resolve(s),
+              ),
               filteredInvalidated!,
             );
           }
@@ -1410,268 +1029,68 @@ class NewWorldTest {
       }
       Result<Uint8List?> serializationResult = _checkIncrementalSerialization(
         incrementalSerialization,
-        component!,
-        incrementalSerializer,
+        compilerResult.component,
+        newWorldTestData.incrementalSerializer,
         world,
       );
+      compilerResult = null;
       if (!serializationResult.isPass) {
         return serializationResult.copyWithOutput(data);
       }
       Uint8List? incrementalSerializationBytes = serializationResult.output;
 
-      worldErrors.add(formattedErrors.toSet());
-      assert(worldErrors.length == worldNum);
+      newWorldTestData.worldErrors.add(worldTestData.formattedErrors.toSet());
+      assert(newWorldTestData.worldErrors.length == newWorldTestData.worldNum);
       if (world.expectSameErrorsAsWorld != null) {
         _checkErrorsAndWarnings(
-          worldErrors[world.expectSameErrorsAsWorld! - 1],
-          formattedErrors,
+          newWorldTestData.worldErrors[world.expectSameErrorsAsWorld! - 1],
+          worldTestData.formattedErrors,
           {},
           {},
         );
       }
 
-      Set<String> prevFormattedErrors = formattedErrors.toSet();
-      Set<String> prevFormattedWarnings = formattedWarnings.toSet();
+      Set<String> prevFormattedErrors = worldTestData.formattedErrors.toSet();
+      Set<String> prevFormattedWarnings = worldTestData.formattedWarnings
+          .toSet();
 
-      void clearPrevErrorsEtc() {
-        gotError = false;
-        formattedErrors.clear();
-        gotWarning = false;
-        formattedWarnings.clear();
-      }
+      subtestResult = await _compileToFullComponent(
+        world,
+        worldTestData,
+        newWorldTestData,
+        prevFormattedErrors,
+        prevFormattedWarnings,
+        incrementalSerializationBytes,
+      );
+      if (subtestResult != null) return subtestResult;
 
-      if (!world.noFullComponent) {
-        clearPrevErrorsEtc();
-        IncrementalCompilerResult? compilerResult2 = await compiler
-            .computeDelta(
-              entryPoints: entries,
-              fullComponent: true,
-              simulateTransformer: world.simulateTransformer,
-            );
-        component2 = compilerResult2.component;
-        compilerResult2 = null;
-        Result<TestData>? result = _performErrorAndWarningCheck(
-          world,
-          data,
-          gotError,
-          formattedErrors,
-          gotWarning,
-          formattedWarnings,
-        );
-        if (result != null) return result;
-        List<int> thisWholeComponent = util.postProcess(component2!);
-        String component2String = _componentToStringSdkFiltered(
-          component2!,
-          printErrors: world.printErrorsInExpect ? formattedErrors : null,
-        );
-        print("*****\n\ncomponent2:\n$component2String\n\n\n");
-        checkIsEqual(newestWholeComponentData, thisWholeComponent);
-        _checkErrorsAndWarnings(
-          prevFormattedErrors,
-          formattedErrors,
-          prevFormattedWarnings,
-          formattedWarnings,
-        );
-        newestWholeComponent = component2;
+      subtestResult = await _compileExpressions(
+        world,
+        worldTestData,
+        newWorldTestData,
+      );
+      if (subtestResult != null) return subtestResult;
 
-        Result<List<int>?> serializationResult = _checkIncrementalSerialization(
-          incrementalSerialization,
-          component2!,
-          incrementalSerializer,
-          world,
-        );
-        if (!serializationResult.isPass) {
-          return serializationResult.copyWithOutput(data);
-        }
-        List<int>? incrementalSerializationBytes2 = serializationResult.output;
+      subtestResult = await _compareFromScratch(
+        world,
+        worldTestData,
+        newWorldTestData,
+        prevFormattedErrors,
+        prevFormattedWarnings,
+        incrementalSerializationBytes,
+      );
+      if (subtestResult != null) return subtestResult;
 
-        if ((incrementalSerializationBytes == null &&
-                incrementalSerializationBytes2 != null) ||
-            (incrementalSerializationBytes != null &&
-                incrementalSerializationBytes2 == null)) {
-          return new Result<TestData>(
-            data,
-            IncrementalSerializationError,
-            "Incremental serialization gave results in one instance, "
-            "but not another.",
-          );
-        }
+      // Load modules via additionalDillModules.
+      subtestResult = await _loadModulesViaAdditionalDillModules(
+        world,
+        worldTestData,
+        newWorldTestData,
+        prevFormattedErrors,
+        prevFormattedWarnings,
+      );
+      if (subtestResult != null) return subtestResult;
 
-        if (incrementalSerializationBytes != null) {
-          checkIsEqual(
-            incrementalSerializationBytes,
-            incrementalSerializationBytes2!,
-          );
-        }
-      }
-
-      if (world.expressionCompilation != null) {
-        int expressionCompilationNum = 0;
-        for (ExpressionCompilation compilation
-            in world.expressionCompilation!) {
-          expressionCompilationNum++;
-          clearPrevErrorsEtc();
-          Uri uri = base.resolve(compilation.uri);
-          Procedure procedure = (await compiler.compileExpression(
-            compilation.expression,
-            {},
-            [],
-            "debugExpr",
-            uri,
-            className: compilation.className,
-          ))!;
-          if (gotError && !compilation.errors) {
-            return new Result<TestData>(
-              data,
-              UnexpectedErrors,
-              "Got error(s) on expression compilation: ${formattedErrors}.",
-            );
-          } else if (!gotError && compilation.errors) {
-            return new Result<TestData>(
-              data,
-              MissingErrors,
-              "Didn't get any errors.",
-            );
-          }
-          if (gotWarning && !compilation.warnings) {
-            return new Result<TestData>(
-              data,
-              UnexpectedWarnings,
-              "Got warning(s) on expression compilation: "
-              "${formattedWarnings}.",
-            );
-          } else if (!gotWarning && compilation.warnings) {
-            return new Result<TestData>(
-              data,
-              MissingWarnings,
-              "Didn't get any warnings.",
-            );
-          }
-          Result<TestData>? result = _checkExpectFile(
-            data,
-            worldNum,
-            ".expression.$expressionCompilationNum",
-            context,
-            nodeToString(procedure),
-          );
-          if (result != null) return result;
-        }
-      }
-
-      if (!world.noFullComponent &&
-          (incrementalSerialization == true || world.compareWithFromScratch)) {
-        // Do compile from scratch and compare.
-        clearPrevErrorsEtc();
-        TestIncrementalCompiler? compilerFromScratch;
-
-        IncrementalSerializer? incrementalSerializer2;
-        if (incrementalSerialization == true) {
-          incrementalSerializer2 = new IncrementalSerializer();
-        }
-
-        if (world.fromComponent || modulesToUse != null) {
-          compilerFromScratch = new TestIncrementalCompiler.fromComponent(
-            options,
-            entries.first,
-            sdk,
-            world.outlineOnly,
-            incrementalSerializer2,
-          );
-        } else {
-          compilerFromScratch = new TestIncrementalCompiler(
-            options,
-            entries.first,
-            null,
-            world.outlineOnly,
-            incrementalSerializer2,
-          );
-        }
-
-        if (modulesToUse != null) {
-          compilerFromScratch.setModulesToLoadOnNextComputeDelta(modulesToUse);
-          compilerFromScratch.invalidateAllSources();
-        }
-
-        Stopwatch stopwatch = new Stopwatch()..start();
-        IncrementalCompilerResult? compilerResult3 = await compilerFromScratch
-            .computeDelta(
-              entryPoints: entries,
-              trackNeededDillLibraries: modulesToUse != null,
-              simulateTransformer: world.simulateTransformer,
-            );
-        component3 = compilerResult3.component;
-        compilerResult3 = null;
-        compilerFromScratch = null;
-        Result<TestData>? result = _performErrorAndWarningCheck(
-          world,
-          data,
-          gotError,
-          formattedErrors,
-          gotWarning,
-          formattedWarnings,
-        );
-        if (result != null) return result;
-        util.throwOnEmptyMixinBodies(component3!);
-        await util.throwOnInsufficientUriToSource(component3!);
-        print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-
-        List<int> thisWholeComponent = util.postProcess(component3!);
-        String component3String = _componentToStringSdkFiltered(
-          component3!,
-          printErrors: world.printErrorsInExpect ? formattedErrors : null,
-        );
-        print("*****\n\ncomponent3:\n$component3String\n\n\n");
-        if (world.compareWithFromScratch) {
-          checkIsEqual(newestWholeComponentData, thisWholeComponent);
-        }
-        _checkErrorsAndWarnings(
-          prevFormattedErrors,
-          formattedErrors,
-          prevFormattedWarnings,
-          formattedWarnings,
-        );
-
-        Result<List<int>?> serializationResult = _checkIncrementalSerialization(
-          incrementalSerialization,
-          component3!,
-          incrementalSerializer2,
-          world,
-        );
-        if (!serializationResult.isPass) {
-          return serializationResult.copyWithOutput(data);
-        }
-        List<int>? incrementalSerializationBytes3 = serializationResult.output;
-
-        if ((incrementalSerializationBytes == null &&
-                incrementalSerializationBytes3 != null) ||
-            (incrementalSerializationBytes != null &&
-                incrementalSerializationBytes3 == null)) {
-          return new Result<TestData>(
-            data,
-            IncrementalSerializationError,
-            "Incremental serialization gave results in one instance, "
-            "but not another.",
-          );
-        }
-
-        if (incrementalSerializationBytes != null) {
-          if (world.brandNewIncrementalSerializationAllowDifferent) {
-            // Don't check for equality when we allow it to be different
-            // (e.g. when the old one contains more, and the new one doesn't).
-          } else {
-            checkIsEqual(
-              incrementalSerializationBytes,
-              incrementalSerializationBytes3!,
-            );
-          }
-          newestWholeComponentData = incrementalSerializationBytes;
-        }
-      }
-
-      component = null;
-      compilerResult = null;
-      component2 = null;
-      component3 = null;
       // Dummy tree nodes can (currently) leak though the parent pointer.
       // To avoid that (here) (for leak testing) we'll null them out.
       for (TreeNode treeNode in dummyTreeNodes) {
@@ -1704,218 +1123,240 @@ class NewWorldTest {
     return actualContent;
   }
 
+  void _checkBodies(World world, IncrementalCompilerResult compilerResult) {
+    if (world.outlineOnly && !world.skipOutlineBodyCheck) {
+      for (Library lib in compilerResult.component.libraries) {
+        for (Class c in lib.classes) {
+          for (Procedure p in c.procedures) {
+            if (p.function.body != null && p.function.body is! EmptyStatement) {
+              throw "Got body (${p.function.body.runtimeType})";
+            }
+          }
+        }
+        for (Procedure p in lib.procedures) {
+          if (p.function.body != null && p.function.body is! EmptyStatement) {
+            throw "Got body (${p.function.body.runtimeType})";
+          }
+        }
+      }
+    }
+  }
+
   /// Check that the class hierarchy is up-to-date with reality.
   ///
   /// This has the option to do expect files, but it's disabled by default
   /// while we're trying to figure out if it's useful or not.
   Result<TestData>? _checkClassHierarchy(
+    World world,
     IncrementalCompilerResult compilerResult,
     TestData data,
     int worldNum,
     Context context, {
     bool checkExpectFile = false,
   }) {
-    ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
-    if (classHierarchy is! ClosedWorldClassHierarchy) {
-      return new Result<TestData>(
-        data,
-        ClassHierarchyError,
-        "Expected the class hierarchy to be ClosedWorldClassHierarchy "
-        "but it wasn't. It was ${classHierarchy.runtimeType}",
-      );
-    }
-    List<ForTestingClassInfo> classHierarchyData = classHierarchy
-        .getTestingClassInfo();
-    Map<Class, ForTestingClassInfo> classHierarchyMap =
-        new Map<Class, ForTestingClassInfo>();
-    for (ForTestingClassInfo info in classHierarchyData) {
-      if (classHierarchyMap[info.classNode] != null) {
+    if (!world.skipClassHierarchyTest) {
+      ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
+      if (classHierarchy is! ClosedWorldClassHierarchy) {
         return new Result<TestData>(
           data,
           ClassHierarchyError,
-          "Two entries for ${info.classNode}",
+          "Expected the class hierarchy to be ClosedWorldClassHierarchy "
+          "but it wasn't. It was ${classHierarchy.runtimeType}",
         );
       }
-      classHierarchyMap[info.classNode] = info;
-    }
+      List<ForTestingClassInfo> classHierarchyData = classHierarchy
+          .getTestingClassInfo();
+      Map<Class, ForTestingClassInfo> classHierarchyMap =
+          new Map<Class, ForTestingClassInfo>();
+      for (ForTestingClassInfo info in classHierarchyData) {
+        if (classHierarchyMap[info.classNode] != null) {
+          return new Result<TestData>(
+            data,
+            ClassHierarchyError,
+            "Two entries for ${info.classNode}",
+          );
+        }
+        classHierarchyMap[info.classNode] = info;
+      }
 
-    Component component = compilerResult.component;
-    StringBuffer sb = new StringBuffer();
-    for (Library library in component.libraries) {
-      if (library.importUri.isScheme("dart")) continue;
-      sb.writeln("Library ${library.importUri}");
-      for (Class c in library.classes) {
-        sb.writeln("  - Class ${c.name}");
+      Component component = compilerResult.component;
+      StringBuffer sb = new StringBuffer();
+      for (Library library in component.libraries) {
+        if (library.importUri.isScheme("dart")) continue;
+        sb.writeln("Library ${library.importUri}");
+        for (Class c in library.classes) {
+          sb.writeln("  - Class ${c.name}");
 
-        Set<Class> checkedSupertypes = <Class>{};
-        Result<TestData>? checkSupertype(Supertype? supertype) {
-          if (supertype == null) return null;
-          Class superclass = supertype.classNode;
-          if (checkedSupertypes.add(superclass)) {
-            Supertype? asSuperClass = classHierarchy.getClassAsInstanceOf(
-              c,
-              superclass,
-            );
-            if (asSuperClass == null) {
-              return new Result<TestData>(
-                data,
-                ClassHierarchyError,
-                "${superclass} not found as a superclass of $c",
+          Set<Class> checkedSupertypes = <Class>{};
+          Result<TestData>? checkSupertype(Supertype? supertype) {
+            if (supertype == null) return null;
+            Class superclass = supertype.classNode;
+            if (checkedSupertypes.add(superclass)) {
+              Supertype? asSuperClass = classHierarchy.getClassAsInstanceOf(
+                c,
+                superclass,
               );
-            }
-            Result<TestData>? result = checkSupertype(superclass.supertype);
-            if (result != null) return result;
-            result = checkSupertype(superclass.mixedInType);
-            if (result != null) return result;
-            for (Supertype interface in superclass.implementedTypes) {
-              result = checkSupertype(interface);
+              if (asSuperClass == null) {
+                return new Result<TestData>(
+                  data,
+                  ClassHierarchyError,
+                  "${superclass} not found as a superclass of $c",
+                );
+              }
+              Result<TestData>? result = checkSupertype(superclass.supertype);
               if (result != null) return result;
+              result = checkSupertype(superclass.mixedInType);
+              if (result != null) return result;
+              for (Supertype interface in superclass.implementedTypes) {
+                result = checkSupertype(interface);
+                if (result != null) return result;
+              }
             }
-          }
-          return null;
-        }
-
-        Result<TestData>? result = checkSupertype(c.asThisSupertype);
-        if (result != null) return result;
-
-        ForTestingClassInfo? info = classHierarchyMap[c];
-        if (info == null) {
-          return new Result<TestData>(
-            data,
-            ClassHierarchyError,
-            "Didn't find any class hierarchy info for $c",
-          );
-        }
-
-        if (info.lazyDeclaredGettersAndCalls != null) {
-          sb.writeln("    - lazyDeclaredGettersAndCalls:");
-          for (Member member in info.lazyDeclaredGettersAndCalls!) {
-            sb.writeln("      - ${member.name.text}");
+            return null;
           }
 
-          // Expect these to be the same as in the class.
-          Set<Member> members = info.lazyDeclaredGettersAndCalls!.toSet();
-          for (Field f in c.fields) {
-            if (f.isStatic) continue;
-            if (!members.remove(f)) {
+          Result<TestData>? result = checkSupertype(c.asThisSupertype);
+          if (result != null) return result;
+
+          ForTestingClassInfo? info = classHierarchyMap[c];
+          if (info == null) {
+            return new Result<TestData>(
+              data,
+              ClassHierarchyError,
+              "Didn't find any class hierarchy info for $c",
+            );
+          }
+
+          if (info.lazyDeclaredGettersAndCalls != null) {
+            sb.writeln("    - lazyDeclaredGettersAndCalls:");
+            for (Member member in info.lazyDeclaredGettersAndCalls!) {
+              sb.writeln("      - ${member.name.text}");
+            }
+
+            // Expect these to be the same as in the class.
+            Set<Member> members = info.lazyDeclaredGettersAndCalls!.toSet();
+            for (Field f in c.fields) {
+              if (f.isStatic) continue;
+              if (!members.remove(f)) {
+                return new Result<TestData>(
+                  data,
+                  ClassHierarchyError,
+                  "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
+                  "for ${c.name} in ${library.importUri}",
+                );
+              }
+            }
+            for (Procedure p in c.procedures) {
+              if (p.isStatic) continue;
+              if (p.isSetter) continue;
+              if (!members.remove(p)) {
+                return new Result<TestData>(
+                  data,
+                  ClassHierarchyError,
+                  "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
+                  "for ${c.name} in ${library.importUri}",
+                );
+              }
+            }
+            if (members.isNotEmpty) {
               return new Result<TestData>(
                 data,
                 ClassHierarchyError,
-                "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
+                "Still have ${members.map((m) => m.name.text)} left "
                 "for ${c.name} in ${library.importUri}",
               );
             }
           }
-          for (Procedure p in c.procedures) {
-            if (p.isStatic) continue;
-            if (p.isSetter) continue;
-            if (!members.remove(p)) {
+          if (info.lazyDeclaredSetters != null) {
+            sb.writeln("    - lazyDeclaredSetters:");
+            for (Member member in info.lazyDeclaredSetters!) {
+              sb.writeln("      - ${member.name.text}");
+            }
+
+            // Expect these to be the same as in the class.
+            Set<Member> members = info.lazyDeclaredSetters!.toSet();
+            for (Field f in c.fields) {
+              if (f.isStatic) continue;
+              if (!f.hasSetter) continue;
+              if (!members.remove(f)) {
+                return new Result<TestData>(
+                  data,
+                  ClassHierarchyError,
+                  "Didn't find $f in lazyDeclaredSetters for $c",
+                );
+              }
+            }
+            for (Procedure p in c.procedures) {
+              if (p.isStatic) continue;
+              if (!p.isSetter) continue;
+              if (!members.remove(p)) {
+                return new Result<TestData>(
+                  data,
+                  ClassHierarchyError,
+                  "Didn't find $p in lazyDeclaredSetters for $c",
+                );
+              }
+            }
+            if (members.isNotEmpty) {
               return new Result<TestData>(
                 data,
                 ClassHierarchyError,
-                "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
+                "Still have ${members.map((m) => m.name.text)} left "
                 "for ${c.name} in ${library.importUri}",
               );
             }
           }
-          if (members.isNotEmpty) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "Still have ${members.map((m) => m.name.text)} left "
-              "for ${c.name} in ${library.importUri}",
-            );
-          }
-        }
-        if (info.lazyDeclaredSetters != null) {
-          sb.writeln("    - lazyDeclaredSetters:");
-          for (Member member in info.lazyDeclaredSetters!) {
-            sb.writeln("      - ${member.name.text}");
-          }
-
-          // Expect these to be the same as in the class.
-          Set<Member> members = info.lazyDeclaredSetters!.toSet();
-          for (Field f in c.fields) {
-            if (f.isStatic) continue;
-            if (!f.hasSetter) continue;
-            if (!members.remove(f)) {
-              return new Result<TestData>(
-                data,
-                ClassHierarchyError,
-                "Didn't find $f in lazyDeclaredSetters for $c",
-              );
+          if (info.lazyImplementedGettersAndCalls != null) {
+            sb.writeln("    - lazyImplementedGettersAndCalls:");
+            for (Member member in info.lazyImplementedGettersAndCalls!) {
+              sb.writeln("      - ${member.name.text}");
             }
           }
-          for (Procedure p in c.procedures) {
-            if (p.isStatic) continue;
-            if (!p.isSetter) continue;
-            if (!members.remove(p)) {
-              return new Result<TestData>(
-                data,
-                ClassHierarchyError,
-                "Didn't find $p in lazyDeclaredSetters for $c",
-              );
+          if (info.lazyImplementedSetters != null) {
+            sb.writeln("    - lazyImplementedSetters:");
+            for (Member member in info.lazyImplementedSetters!) {
+              sb.writeln("      - ${member.name.text}");
             }
           }
-          if (members.isNotEmpty) {
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "Still have ${members.map((m) => m.name.text)} left "
-              "for ${c.name} in ${library.importUri}",
-            );
+          if (info.lazyInterfaceGettersAndCalls != null) {
+            sb.writeln("    - lazyInterfaceGettersAndCalls:");
+            for (Member member in info.lazyInterfaceGettersAndCalls!) {
+              sb.writeln("      - ${member.name.text}");
+            }
           }
-        }
-        if (info.lazyImplementedGettersAndCalls != null) {
-          sb.writeln("    - lazyImplementedGettersAndCalls:");
-          for (Member member in info.lazyImplementedGettersAndCalls!) {
-            sb.writeln("      - ${member.name.text}");
-          }
-        }
-        if (info.lazyImplementedSetters != null) {
-          sb.writeln("    - lazyImplementedSetters:");
-          for (Member member in info.lazyImplementedSetters!) {
-            sb.writeln("      - ${member.name.text}");
-          }
-        }
-        if (info.lazyInterfaceGettersAndCalls != null) {
-          sb.writeln("    - lazyInterfaceGettersAndCalls:");
-          for (Member member in info.lazyInterfaceGettersAndCalls!) {
-            sb.writeln("      - ${member.name.text}");
-          }
-        }
-        if (info.lazyInterfaceSetters != null) {
-          sb.writeln("    - lazyInterfaceSetters:");
-          for (Member member in info.lazyInterfaceSetters!) {
-            sb.writeln("      - ${member.name.text}");
+          if (info.lazyInterfaceSetters != null) {
+            sb.writeln("    - lazyInterfaceSetters:");
+            for (Member member in info.lazyInterfaceSetters!) {
+              sb.writeln("      - ${member.name.text}");
+            }
           }
         }
       }
-    }
-    if (checkExpectFile) {
-      String actualClassHierarchy = sb.toString();
-      Uri uri = data.loadedFrom.resolve(
-        data.loadedFrom.pathSegments.last +
-            ".world.$worldNum.class_hierarchy.expect",
-      );
-      String? expected;
-      File file = new File.fromUri(uri);
-      if (file.existsSync()) {
-        expected = file.readAsStringSync();
-      }
-      if (expected != actualClassHierarchy) {
-        if (context.updateExpectations) {
-          file.writeAsStringSync(actualClassHierarchy);
-        } else {
-          String extra = "";
-          if (expected == null) extra = "Expect file did not exist.\n";
-          return new Result<TestData>(
-            data,
-            ClassHierarchyError,
-            "${extra}Unexpected serialized representation. "
-            "Fix or update $uri to contain the below:\n\n"
-            "$actualClassHierarchy",
-          );
+      if (checkExpectFile) {
+        String actualClassHierarchy = sb.toString();
+        Uri uri = data.loadedFrom.resolve(
+          data.loadedFrom.pathSegments.last +
+              ".world.$worldNum.class_hierarchy.expect",
+        );
+        String? expected;
+        File file = new File.fromUri(uri);
+        if (file.existsSync()) {
+          expected = file.readAsStringSync();
+        }
+        if (expected != actualClassHierarchy) {
+          if (context.updateExpectations) {
+            file.writeAsStringSync(actualClassHierarchy);
+          } else {
+            String extra = "";
+            if (expected == null) extra = "Expect file did not exist.\n";
+            return new Result<TestData>(
+              data,
+              ClassHierarchyError,
+              "${extra}Unexpected serialized representation. "
+              "Fix or update $uri to contain the below:\n\n"
+              "$actualClassHierarchy",
+            );
+          }
         }
       }
     }
@@ -1923,36 +1364,38 @@ class NewWorldTest {
   }
 
   Result<TestData>? _checkConstantCoverageReferences(
-    Uint8List newestWholeComponentData,
-    bool omitPlatform,
-    Uint8List sdkSummaryData,
+    World world,
+    NewWorldTestData newWorldTestData,
     TestData data,
   ) {
-    // Note that this is in a method to avoid "semi-leaks".
-    Component loadedComponent = new Component();
-    if (omitPlatform) {
+    if (world.checkConstantCoverageReferences) {
+      // Note that this is in a method to avoid "semi-leaks".
+      Component loadedComponent = new Component();
+      if (omitPlatform) {
+        new BinaryBuilder(
+          newWorldTestData.sdkSummaryData,
+          filename: null,
+        ).readComponent(loadedComponent);
+      }
       new BinaryBuilder(
-        sdkSummaryData,
+        newWorldTestData.newestWholeComponentData!,
         filename: null,
       ).readComponent(loadedComponent);
-    }
-    new BinaryBuilder(
-      newestWholeComponentData,
-      filename: null,
-    ).readComponent(loadedComponent);
 
-    for (MapEntry<Uri, Source> source in loadedComponent.uriToSource.entries) {
-      Set<Reference>? references = source.value.constantCoverageConstructors;
-      if (references != null) {
-        for (Reference reference in references) {
-          if (reference.node == null) {
-            return new Result<TestData>(
-              data,
-              ConstantCoverageReferenceWithoutNode,
-              "Constant coverage reference without node: "
-              "${reference.canonicalName} from ${source.value.importUri} "
-              "indexed in ${source.key}",
-            );
+      for (MapEntry<Uri, Source> source
+          in loadedComponent.uriToSource.entries) {
+        Set<Reference>? references = source.value.constantCoverageConstructors;
+        if (references != null) {
+          for (Reference reference in references) {
+            if (reference.node == null) {
+              return new Result<TestData>(
+                data,
+                ConstantCoverageReferenceWithoutNode,
+                "Constant coverage reference without node: "
+                "${reference.canonicalName} from ${source.value.importUri} "
+                "indexed in ${source.key}",
+              );
+            }
           }
         }
       }
@@ -1998,7 +1441,7 @@ class NewWorldTest {
     }
   }
 
-  Result? _checkExpectedContent(World world, Component component) {
+  Result<TestData>? _checkExpectedContent(World world, Component component) {
     if (world.expectedContent != null) {
       Map<String, Set<String>> actualContent = _buildMapOfContent(component);
       return _checkExpectedContentData(actualContent, world.expectedContent!);
@@ -2006,7 +1449,7 @@ class NewWorldTest {
     return null;
   }
 
-  Result? _checkExpectedContentData(
+  Result<TestData>? _checkExpectedContentData(
     Map<String, Set<String>> actualContent,
     Map<String, Iterable<String>> expectedContent,
   ) {
@@ -2037,6 +1480,41 @@ class NewWorldTest {
       actual.removeAll(expected);
       if (actual.isNotEmpty) {
         return createFailureResult();
+      }
+    }
+    return null;
+  }
+
+  Result<TestData>? _checkExpectedInitializationError(
+    World world,
+    WorldSpecificTestData worldTestData,
+  ) {
+    bool? expectInitializationError = world.expectInitializationError;
+    if (expectInitializationError != null) {
+      Set<String> seenInitializationError = worldTestData.seenDiagnosticCodes
+          .intersection({
+            "InitializeFromDillNotSelfContainedNoDump",
+            "InitializeFromDillNotSelfContained",
+            "InitializeFromDillUnknownProblem",
+            "InitializeFromDillUnknownProblemNoDump",
+          });
+      if (expectInitializationError) {
+        if (seenInitializationError.isEmpty) {
+          return new Result<TestData>(
+            data,
+            MissingInitializationError,
+            "Expected to see an initialization error but didn't.",
+          );
+        }
+      } else {
+        if (seenInitializationError.isNotEmpty) {
+          return new Result<TestData>(
+            data,
+            UnexpectedInitializationError,
+            "Expected not to see an initialization error but did: "
+            "$seenInitializationError.",
+          );
+        }
       }
     }
     return null;
@@ -2073,6 +1551,58 @@ class NewWorldTest {
           autoFixCommand: "updateExpectations=true",
           canBeFixWithUpdateExpectations: true,
         );
+      }
+    }
+    return null;
+  }
+
+  Result<TestData>? _checkFullCompile(
+    World world,
+    IncrementalCompilerResult compilerResult,
+    WorldSpecificTestData worldTestData,
+  ) {
+    if (!world.noFullComponent) {
+      Set<Library> allLibraries = new Set<Library>();
+      for (Library lib in compilerResult.component.libraries) {
+        _computeAllReachableLibrariesFor(lib, allLibraries);
+      }
+      if (allLibraries.length != compilerResult.component.libraries.length) {
+        return new Result<TestData>(
+          data,
+          ReachableLibrariesError,
+          "Expected for the reachable stuff to be equal to "
+          "${compilerResult.component.libraries} but it was $allLibraries",
+        );
+      }
+      Set<Library> tooMany = allLibraries.toSet()
+        ..removeAll(compilerResult.component.libraries);
+      if (tooMany.isNotEmpty) {
+        return new Result<TestData>(
+          data,
+          ReachableLibrariesError,
+          "Expected for the reachable stuff to be equal to "
+          "${compilerResult.component.libraries} but these were there too: "
+          "$tooMany (and others were missing)",
+        );
+      }
+
+      if (world.checkEntries) {
+        List<Library> entryLib = compilerResult.component.libraries
+            .where(
+              (Library lib) =>
+                  worldTestData.entries.contains(lib.importUri) ||
+                  worldTestData.entries.contains(lib.fileUri),
+            )
+            .toList();
+        if (entryLib.length != worldTestData.entries.length) {
+          return new Result<TestData>(
+            data,
+            UnexpectedEntryToLibraryCount,
+            "Expected the entries to become libraries. "
+            "Got ${entryLib.length} libraries for the expected "
+            "${worldTestData.entries.length} entries.",
+          );
+        }
       }
     }
     return null;
@@ -2126,7 +1656,7 @@ class NewWorldTest {
       }
       if (librariesAfter < librariesBefore) {
         // If we actually did incrementally serialize anything,
-        // check the output!
+        // check the output.
         BinaryPrinter printer = new BinaryPrinter(sink);
         printer.writeComponentFile(c);
         Uint8List bytes = sink.builder.takeBytes();
@@ -2180,22 +1710,78 @@ class NewWorldTest {
     return new Result<Uint8List?>.pass(null);
   }
 
+  Result<TestData>? _checkLibraryCount(
+    IncrementalCompilerResult compilerResult,
+    World world,
+  ) {
+    int nonSyntheticLibraries = _countNonSyntheticLibraries(
+      compilerResult.component,
+    );
+    int nonSyntheticPlatformLibraries = _countNonSyntheticPlatformLibraries(
+      compilerResult.component,
+    );
+    int syntheticLibraries = _countSyntheticLibraries(compilerResult.component);
+    if (world.expectsPlatform) {
+      if (nonSyntheticPlatformLibraries < 5) {
+        return new Result<TestData>(
+          data,
+          MissingPlatformLibraries,
+          "Expected to have at least 5 platform libraries "
+          "(actually, the entire sdk), "
+          "but got $nonSyntheticPlatformLibraries.",
+        );
+      }
+    } else {
+      if (nonSyntheticPlatformLibraries != 0) {
+        return new Result<TestData>(
+          data,
+          UnexpectedPlatformLibraries,
+          "Expected to have 0 platform libraries "
+          "but got $nonSyntheticPlatformLibraries.",
+        );
+      }
+    }
+    if (world.expectedLibraryCount != null) {
+      if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=
+          world.expectedLibraryCount!) {
+        return new Result<TestData>(
+          data,
+          LibraryCountMismatch,
+          "Expected ${world.expectedLibraryCount} non-synthetic "
+          "libraries, got "
+          "${nonSyntheticLibraries - nonSyntheticPlatformLibraries} "
+          "(not counting platform libraries)",
+        );
+      }
+    }
+    if (world.expectedSyntheticLibraryCount != null) {
+      if (syntheticLibraries != world.expectedSyntheticLibraryCount!) {
+        return new Result<TestData>(
+          data,
+          LibraryCountMismatch,
+          "Expected ${world.expectedSyntheticLibraryCount} synthetic "
+          "libraries, got ${syntheticLibraries}",
+        );
+      }
+    }
+    return null;
+  }
+
   Result<TestData>? _checkNeededDillLibraries(
     World world,
-    TestData data,
-    Set<Library>? neededDillLibraries,
-    Uri base,
+    IncrementalCompilerResult compilerResult,
+    NewWorldTestData newWorldTestData,
   ) {
     if (world.neededDillLibraries != null) {
       List<Uri> actualContent = <Uri>[];
-      for (Library lib in neededDillLibraries!) {
+      for (Library lib in compilerResult.neededDillLibraries!) {
         if (lib.importUri.isScheme("dart")) continue;
         actualContent.add(lib.importUri);
       }
 
       List<Uri> expectedContent = <Uri>[];
       for (String entry in world.neededDillLibraries!) {
-        expectedContent.add(base.resolve(entry));
+        expectedContent.add(newWorldTestData.base.resolve(entry));
       }
 
       Result<TestData> createFailureResult() {
@@ -2246,6 +1832,314 @@ class NewWorldTest {
           );
         }
       }
+    }
+    return null;
+  }
+
+  Result<TestData>? _checkSources(
+    World world,
+    NewWorldTestData newWorldTestData,
+    IncrementalCompilerResult compilerResult,
+  ) {
+    if (world.uriToSourcesDoesntInclude != null) {
+      for (String filename in world.uriToSourcesDoesntInclude!) {
+        Uri uri = newWorldTestData.base.resolve(filename);
+        if (compilerResult.component.uriToSource[uri] != null) {
+          return new Result<TestData>(
+            data,
+            UriToSourceError,
+            "Expected no uriToSource for $uri but found "
+            "${compilerResult.component.uriToSource[uri]}",
+          );
+        }
+      }
+    }
+    if (world.uriToSourcesOnlyIncludes != null) {
+      Set<Uri> allowed = {};
+      for (String filename in world.uriToSourcesOnlyIncludes!) {
+        Uri uri = newWorldTestData.base.resolve(filename);
+        allowed.add(uri);
+      }
+      for (Uri uri in compilerResult.component.uriToSource.keys) {
+        // null is always there, so allow it implicitly.
+        // Dart scheme uris too.
+        if (uri.isScheme("org-dartlang-sdk")) continue;
+        if (!allowed.contains(uri)) {
+          return new Result<TestData>(
+            data,
+            UriToSourceError,
+            "Expected no uriToSource for $uri but found "
+            "${compilerResult.component.uriToSource[uri]}",
+          );
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<Result<TestData>?> _compareFromScratch(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+    Uint8List? incrementalSerializationBytes,
+  ) async {
+    if (!world.noFullComponent &&
+        (incrementalSerialization == true || world.compareWithFromScratch)) {
+      // Do compile from scratch and compare.
+      worldTestData.clearPrevErrorsEtc();
+      TestIncrementalCompiler? compilerFromScratch;
+
+      IncrementalSerializer? incrementalSerializer2;
+      if (incrementalSerialization == true) {
+        incrementalSerializer2 = new IncrementalSerializer();
+      }
+
+      if (world.fromComponent || worldTestData.modulesToUse != null) {
+        compilerFromScratch = new TestIncrementalCompiler.fromComponent(
+          newWorldTestData.options,
+          worldTestData.entries.first,
+          sdk,
+          world.outlineOnly,
+          incrementalSerializer2,
+        );
+      } else {
+        compilerFromScratch = new TestIncrementalCompiler(
+          newWorldTestData.options,
+          worldTestData.entries.first,
+          null,
+          world.outlineOnly,
+          incrementalSerializer2,
+        );
+      }
+
+      if (worldTestData.modulesToUse != null) {
+        compilerFromScratch.setModulesToLoadOnNextComputeDelta(
+          worldTestData.modulesToUse!,
+        );
+        compilerFromScratch.invalidateAllSources();
+      }
+
+      Stopwatch stopwatch = new Stopwatch()..start();
+      IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
+          .computeDelta(
+            entryPoints: worldTestData.entries,
+            trackNeededDillLibraries: worldTestData.modulesToUse != null,
+            simulateTransformer: world.simulateTransformer,
+          );
+      Component? componentLocal = compilerResultLocal.component;
+      compilerResultLocal = null;
+      compilerFromScratch = null;
+      Result<TestData>? result = _performErrorAndWarningCheck(
+        world,
+        data,
+        worldTestData,
+      );
+      if (result != null) return result;
+      util.throwOnEmptyMixinBodies(componentLocal);
+      await util.throwOnInsufficientUriToSource(componentLocal);
+      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      String componentLocalString = _componentToStringSdkFiltered(
+        componentLocal,
+        printErrors: world.printErrorsInExpect
+            ? worldTestData.formattedErrors
+            : null,
+      );
+      print("*****\n\ncomponent (3):\n$componentLocalString\n\n\n");
+      if (world.compareWithFromScratch) {
+        checkIsEqual(
+          newWorldTestData.newestWholeComponentData!,
+          thisWholeComponent,
+        );
+      }
+      _checkErrorsAndWarnings(
+        prevFormattedErrors,
+        worldTestData.formattedErrors,
+        prevFormattedWarnings,
+        worldTestData.formattedWarnings,
+      );
+
+      Result<List<int>?> serializationResult = _checkIncrementalSerialization(
+        incrementalSerialization,
+        componentLocal,
+        incrementalSerializer2,
+        world,
+      );
+      if (!serializationResult.isPass) {
+        return serializationResult.copyWithOutput(data);
+      }
+      List<int>? incrementalSerializationBytes3 = serializationResult.output;
+
+      if ((incrementalSerializationBytes == null &&
+              incrementalSerializationBytes3 != null) ||
+          (incrementalSerializationBytes != null &&
+              incrementalSerializationBytes3 == null)) {
+        return new Result<TestData>(
+          data,
+          IncrementalSerializationError,
+          "Incremental serialization gave results in one instance, "
+          "but not another.",
+        );
+      }
+
+      if (incrementalSerializationBytes != null) {
+        if (world.brandNewIncrementalSerializationAllowDifferent) {
+          // Don't check for equality when we allow it to be different
+          // (e.g. when the old one contains more, and the new one doesn't).
+        } else {
+          checkIsEqual(
+            incrementalSerializationBytes,
+            incrementalSerializationBytes3!,
+          );
+        }
+        newWorldTestData.newestWholeComponentData =
+            incrementalSerializationBytes;
+      }
+
+      componentLocal = null;
+    }
+    return null;
+  }
+
+  Future<Result<TestData>?> _compileExpressions(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+  ) async {
+    if (world.expressionCompilation != null) {
+      int expressionCompilationNum = 0;
+      for (ExpressionCompilation compilation in world.expressionCompilation!) {
+        expressionCompilationNum++;
+        worldTestData.clearPrevErrorsEtc();
+        Uri uri = newWorldTestData.base.resolve(compilation.uri);
+        Procedure procedure = (await newWorldTestData.compiler
+            .compileExpression(
+              compilation.expression,
+              {},
+              [],
+              "debugExpr",
+              uri,
+              className: compilation.className,
+            ))!;
+        if (worldTestData.gotError && !compilation.errors) {
+          return new Result<TestData>(
+            data,
+            UnexpectedErrors,
+            "Got error(s) on expression compilation: "
+            "${worldTestData.formattedErrors}.",
+          );
+        } else if (!worldTestData.gotError && compilation.errors) {
+          return new Result<TestData>(
+            data,
+            MissingErrors,
+            "Didn't get any errors.",
+          );
+        }
+        if (worldTestData.gotWarning && !compilation.warnings) {
+          return new Result<TestData>(
+            data,
+            UnexpectedWarnings,
+            "Got warning(s) on expression compilation: "
+            "${worldTestData.formattedWarnings}.",
+          );
+        } else if (!worldTestData.gotWarning && compilation.warnings) {
+          return new Result<TestData>(
+            data,
+            MissingWarnings,
+            "Didn't get any warnings.",
+          );
+        }
+        Result<TestData>? result = _checkExpectFile(
+          data,
+          newWorldTestData.worldNum,
+          ".expression.$expressionCompilationNum",
+          context,
+          nodeToString(procedure),
+        );
+        if (result != null) return result;
+      }
+    }
+    return null;
+  }
+
+  Future<Result<TestData>?> _compileToFullComponent(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+    Uint8List? incrementalSerializationBytes,
+  ) async {
+    if (!world.noFullComponent) {
+      worldTestData.clearPrevErrorsEtc();
+      IncrementalCompilerResult? compilerResultLocal = await newWorldTestData
+          .compiler
+          .computeDelta(
+            entryPoints: worldTestData.entries,
+            fullComponent: true,
+            simulateTransformer: world.simulateTransformer,
+          );
+      Component? componentLocal = compilerResultLocal.component;
+      compilerResultLocal = null;
+      Result<TestData>? result = _performErrorAndWarningCheck(
+        world,
+        data,
+        worldTestData,
+      );
+      if (result != null) return result;
+      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      String component2String = _componentToStringSdkFiltered(
+        componentLocal,
+        printErrors: world.printErrorsInExpect
+            ? worldTestData.formattedErrors
+            : null,
+      );
+      print("*****\n\ncomponent2:\n$component2String\n\n\n");
+      checkIsEqual(
+        newWorldTestData.newestWholeComponentData!,
+        thisWholeComponent,
+      );
+      _checkErrorsAndWarnings(
+        prevFormattedErrors,
+        worldTestData.formattedErrors,
+        prevFormattedWarnings,
+        worldTestData.formattedWarnings,
+      );
+      newestWholeComponent = componentLocal;
+
+      Result<List<int>?> serializationResult = _checkIncrementalSerialization(
+        incrementalSerialization,
+        componentLocal,
+        newWorldTestData.incrementalSerializer,
+        world,
+      );
+      if (!serializationResult.isPass) {
+        return serializationResult.copyWithOutput(data);
+      }
+      List<int>? incrementalSerializationBytes2 = serializationResult.output;
+
+      if ((incrementalSerializationBytes == null &&
+              incrementalSerializationBytes2 != null) ||
+          (incrementalSerializationBytes != null &&
+              incrementalSerializationBytes2 == null)) {
+        return new Result<TestData>(
+          data,
+          IncrementalSerializationError,
+          "Incremental serialization gave results in one instance, "
+          "but not another.",
+        );
+      }
+
+      if (incrementalSerializationBytes != null) {
+        checkIsEqual(
+          incrementalSerializationBytes,
+          incrementalSerializationBytes2!,
+        );
+      }
+      componentLocal = null;
     }
     return null;
   }
@@ -2355,42 +2249,508 @@ class NewWorldTest {
     return result;
   }
 
+  CompilerOptions _createOptionsForWorld(
+    NewWorldTestData newWorldTestData,
+    WorldSpecificTestData worldTestData,
+    World world, {
+    bool createNewTarget = false,
+  }) {
+    CompilerOptions options = getOptions(
+      target: createNewTarget ? _createTarget() : newWorldTestData.target,
+      sdkSummary: newWorldTestData.sdkSummary,
+    );
+    options.fileSystem = newWorldTestData.fs;
+    options.sdkRoot = null;
+    options.sdkSummary = newWorldTestData.sdkSummaryUri;
+    if (world.useBadSdk) {
+      options.sdkSummary = newWorldTestData.sdkSummaryUri.resolve(
+        "nonexisting.dill",
+      );
+    }
+    options.omitPlatform = omitPlatform;
+    if (world.experiments != null) {
+      Map<String, bool> flagsFromOptions = parseExperimentalArguments([
+        world.experiments!,
+      ]);
+      // Ensure that we run with non-nullable turned off even when the
+      // flag is on by default.
+      Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+          parseExperimentalFlags(
+            flagsFromOptions,
+            onError: (e) => throw "Error on parsing experiments flags: $e",
+          );
+      options.explicitExperimentalFlags = explicitExperimentalFlags;
+    } else {
+      options.explicitExperimentalFlags = {};
+    }
+    if (worldTestData.packagesUri != null) {
+      options.packagesFileUri = worldTestData.packagesUri;
+    }
+    return options;
+  }
+
+  Target _createTarget() {
+    TestTargetFlags targetFlags = new TestTargetFlags(
+      forceLateLoweringsForTesting: forceLateLoweringForTesting
+          ? LateLowering.all
+          : null,
+      trackCreationLocations: trackCreationLocations,
+    );
+    Target target = new VmTarget(targetFlags);
+    if (targetName != null) {
+      if (targetName == NewWorldTestProperties.target_none) {
+        target = new NoneTarget(targetFlags);
+      } else if (targetName == NewWorldTestProperties.target_dartdevc) {
+        target = new DevCompilerTarget(targetFlags);
+      } else if (targetName == NewWorldTestProperties.target_dart2js) {
+        target = new Dart2jsTarget("dart2js", targetFlags);
+      } else if (targetName == NewWorldTestProperties.target_vm) {
+        // default.
+      } else {
+        throw "Unknown target name '$targetName'";
+      }
+    }
+    return new TestTargetWrapper(target, targetFlags);
+  }
+
+  void Function(CfeDiagnosticMessage message) _getDiagnosticsHandler(
+    World world,
+    WorldSpecificTestData worldTestData,
+  ) {
+    return (CfeDiagnosticMessage message) {
+      String? code = getMessageCodeObject(message)?.name;
+      if (code != null) worldTestData.seenDiagnosticCodes.add(code);
+
+      String stringId = message.ansiFormatted.join("\n");
+      if (message is FormattedMessage) {
+        stringId = message.toJsonString();
+      } else if (message is DiagnosticMessageFromJson) {
+        stringId = message.toJsonString();
+      }
+      if (message.severity == CfeSeverity.error) {
+        worldTestData.gotError = true;
+        if (!worldTestData.formattedErrors.add(stringId) &&
+            !world.allowDuplicateErrors) {
+          Expect.fail("Got the same message twice: ${stringId}");
+        }
+      } else if (message.severity == CfeSeverity.warning) {
+        worldTestData.gotWarning = true;
+        if (!worldTestData.formattedWarnings.add(stringId) &&
+            !world.allowDuplicateWarnings) {
+          Expect.fail("Got the same message twice: ${stringId}");
+        }
+      }
+    };
+  }
+
+  Future<void> _initializeModules(NewWorldTestData newWorldTestData) async {
+    if (modules != null) {
+      newWorldTestData.moduleData = await createModules(
+        modules!,
+        newWorldTestData.sdkSummaryData,
+        newWorldTestData.target,
+        newWorldTestData.sdkSummary,
+        checkoutRoot: newWorldTestData.checkoutRoot,
+        trackNeededDillLibraries: false,
+        isDdc: newWorldTestData.isDdc,
+      );
+      sdk = newestWholeComponent = new Component();
+      new BinaryBuilder(
+        newWorldTestData.sdkSummaryData,
+        filename: null,
+        disableLazyReading: false,
+      ).readComponent(newestWholeComponent!);
+    }
+  }
+
+  Future<NewWorldTestData> _initializeNewWorldTestData() async {
+    final Uri platformBinariesRoot = computePlatformBinariesLocation(
+      forceBuildDir: true,
+    );
+
+    // This is somewhat of a hack but will do for now.
+    final Uri checkoutRoot = data.loadedFrom.resolve("../../../../");
+
+    Target target = _createTarget();
+
+    String sdkSummary = computePlatformDillName(
+      target,
+      () => throw new UnsupportedError(
+        "No platform dill for target '${targetName}'.",
+      ),
+    )!;
+
+    final Uri base = Uri.parse("org-dartlang-test:///");
+    final Uri sdkSummaryUri = base.resolve(sdkSummary);
+    final Uri initializeFrom = base.resolve("initializeFrom.dill");
+    Uri platformUri = platformBinariesRoot.resolve(sdkSummary);
+    final Uint8List sdkSummaryData = await new File.fromUri(
+      platformUri,
+    ).readAsBytes();
+
+    NewWorldTestData newWorldTestData = new NewWorldTestData(
+      platformBinariesRoot: platformBinariesRoot,
+      checkoutRoot: checkoutRoot,
+      target: target,
+      sdkSummary: sdkSummary,
+      base: base,
+      sdkSummaryUri: sdkSummaryUri,
+      initializeFrom: initializeFrom,
+      platformUri: platformUri,
+      sdkSummaryData: sdkSummaryData,
+      isDdc: targetName == NewWorldTestProperties.target_dartdevc,
+    );
+
+    return newWorldTestData;
+  }
+
+  Future<Result<TestData>?> _loadModulesViaAdditionalDillModules(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+  ) async {
+    // Load modules via additionalDillModules.
+    if (!world.noFullComponent && world.modules != null) {
+      // Do compile from scratch and compare.
+      worldTestData.clearPrevErrorsEtc();
+      CompilerOptions options = _createOptionsForWorld(
+        newWorldTestData,
+        worldTestData,
+        world,
+        // The DDC target saves stuff in the target that causes leaks
+        // in this config where we've loaded a new sdk etc, so we create
+        // a new target to avoid it.
+        createNewTarget: true,
+      );
+
+      List<Uri> additionalDillModules = [];
+      int moduleNum = 0;
+      for (String moduleName in world.modules!) {
+        moduleNum++;
+        final Uri moduleUri = newWorldTestData.base.resolve(
+          "module_$moduleNum.dill",
+        );
+        newWorldTestData.fs
+            .entityForUri(moduleUri)
+            .writeAsBytesSync(newWorldTestData.moduleData![moduleName]!);
+        additionalDillModules.add(moduleUri);
+      }
+
+      options.additionalDillModules = additionalDillModules;
+
+      TestIncrementalCompiler? compilerFromScratch =
+          new TestIncrementalCompiler(
+            options,
+            worldTestData.entries.first,
+            null,
+            world.outlineOnly,
+          );
+      Stopwatch stopwatch = new Stopwatch()..start();
+      IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
+          .computeDelta(
+            entryPoints: worldTestData.entries,
+            simulateTransformer: world.simulateTransformer,
+          );
+      Component? componentLocal = compilerResultLocal.component;
+      compilerResultLocal = null;
+      compilerFromScratch = null;
+      Result<TestData>? result = _performErrorAndWarningCheck(
+        world,
+        data,
+        worldTestData,
+      );
+      if (result != null) return result;
+      util.throwOnEmptyMixinBodies(componentLocal);
+      await util.throwOnInsufficientUriToSource(componentLocal);
+      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      String component4String = _componentToStringSdkFiltered(
+        componentLocal,
+        printErrors: world.printErrorsInExpect
+            ? worldTestData.formattedErrors
+            : null,
+      );
+      print("*****\n\ncomponent (4):\n$component4String\n\n\n");
+      if (world.compareWithFromScratch) {
+        checkIsEqual(
+          newWorldTestData.newestWholeComponentData!,
+          thisWholeComponent,
+        );
+      }
+      _checkErrorsAndWarnings(
+        prevFormattedErrors,
+        worldTestData.formattedErrors,
+        prevFormattedWarnings,
+        worldTestData.formattedWarnings,
+      );
+
+      componentLocal = null;
+
+      // For whatever reason the above introduces a "temporary leak" that
+      // awaiting something here removes.
+      await null;
+    }
+    return null;
+  }
+
+  void _loadWorldModules(
+    World world,
+    NewWorldTestData newWorldTestData,
+    WorldSpecificTestData worldTestData,
+  ) {
+    if (world.modules != null) {
+      sdk!.adoptChildren();
+      for (Component c in newWorldTestData.moduleComponents.values) {
+        c.adoptChildren();
+      }
+
+      worldTestData.modulesToUse = <Component>[];
+      for (String moduleName in world.modules!) {
+        Component? moduleComponent =
+            newWorldTestData.moduleComponents[moduleName];
+        if (moduleComponent != null) {
+          worldTestData.modulesToUse!.add(moduleComponent);
+        }
+      }
+      for (String moduleName in world.modules!) {
+        Component? moduleComponent =
+            newWorldTestData.moduleComponents[moduleName];
+        if (moduleComponent == null) {
+          moduleComponent = new Component(nameRoot: sdk!.root);
+          new BinaryBuilder(
+            newWorldTestData.moduleData![moduleName]!,
+            filename: null,
+            disableLazyReading: false,
+            alwaysCreateNewNamedNodes: true,
+          ).readComponent(moduleComponent);
+          newWorldTestData.moduleComponents[moduleName] = moduleComponent;
+          worldTestData.modulesToUse!.add(moduleComponent);
+        }
+      }
+    }
+  }
+
   Result<TestData>? _performErrorAndWarningCheck(
     World world,
     TestData data,
-    bool gotError,
-    Set<String> formattedErrors,
-    bool gotWarning,
-    Set<String> formattedWarnings,
+    WorldSpecificTestData worldTestData,
   ) {
-    if (world.errors && !gotError) {
+    if (world.errors && !worldTestData.gotError) {
       return new Result<TestData>(
         data,
         MissingErrors,
         "Expected error, but didn't get any.",
       );
-    } else if (!world.errors && gotError) {
+    } else if (!world.errors && worldTestData.gotError) {
       return new Result<TestData>(
         data,
         UnexpectedErrors,
-        "Got unexpected error(s): $formattedErrors.",
+        "Got unexpected error(s): ${worldTestData.formattedErrors}.",
       );
     }
-    if (world.warnings && !gotWarning) {
+    if (world.warnings && !worldTestData.gotWarning) {
       return new Result<TestData>(
         data,
         MissingWarnings,
         "Expected warning, but didn't get any.",
       );
-    } else if (!world.warnings && gotWarning) {
+    } else if (!world.warnings && worldTestData.gotWarning) {
       return new Result<TestData>(
         data,
         UnexpectedWarnings,
-        "Got unexpected warnings(s): $formattedWarnings.",
+        "Got unexpected warnings(s): ${worldTestData.formattedWarnings}.",
       );
     }
     return null;
   }
+
+  void _setupCompilerAndInvalidate(
+    World world,
+    NewWorldTestData newWorldTestData,
+    WorldSpecificTestData worldTestData,
+  ) {
+    worldTestData.entries = world.entries
+        .map((e) => newWorldTestData.base.resolve(e))
+        .toList();
+
+    if (!world.updateWorldType) {
+      if (incrementalSerialization == true) {
+        newWorldTestData.incrementalSerializer = new IncrementalSerializer();
+      }
+      if (world.fromComponent) {
+        newWorldTestData.compiler = new TestIncrementalCompiler.fromComponent(
+          newWorldTestData.options,
+          worldTestData.entries.first,
+          (worldTestData.modulesToUse != null) ? sdk : newestWholeComponent,
+          world.outlineOnly,
+          newWorldTestData.incrementalSerializer,
+        );
+      } else {
+        newWorldTestData.compiler = new TestIncrementalCompiler(
+          newWorldTestData.options,
+          worldTestData.entries.first,
+          newWorldTestData.initializeFrom,
+          world.outlineOnly,
+          newWorldTestData.incrementalSerializer,
+        );
+
+        if (worldTestData.modulesToUse != null) {
+          throw "You probably shouldn't do this! "
+              "Any modules will have another sdk loaded!";
+        }
+      }
+    }
+    worldTestData.invalidated = [];
+    if (world.invalidate != null) {
+      for (String filename in world.invalidate!) {
+        Uri uri = newWorldTestData.base.resolve(filename);
+        worldTestData.invalidated.add(uri);
+        newWorldTestData.compiler.invalidate(uri);
+      }
+    }
+  }
+
+  void _setupFileSystemAndSourcesEtc(
+    World world,
+    NewWorldTestData newWorldTestData,
+    WorldSpecificTestData worldTestData,
+  ) {
+    if (!world.updateWorldType) {
+      newWorldTestData.fs = new TestMemoryFileSystem(
+        newWorldTestData.base,
+        holePunchBase: newWorldTestData.checkoutRoot,
+      );
+    }
+    newWorldTestData.fs
+        .entityForUri(newWorldTestData.sdkSummaryUri)
+        .writeAsBytesSync(newWorldTestData.sdkSummaryData);
+
+    if (newWorldTestData.newestWholeComponentData != null &&
+        newWorldTestData.newestWholeComponentData!.isNotEmpty) {
+      newWorldTestData.fs
+          .entityForUri(newWorldTestData.initializeFrom)
+          .writeAsBytesSync(newWorldTestData.newestWholeComponentData!);
+      worldTestData.expectInitializeFromDill = true;
+    }
+    if (world.expectInitializeFromDill != null) {
+      worldTestData.expectInitializeFromDill = world.expectInitializeFromDill!;
+    }
+    if (!world.updateWorldType) {
+      newWorldTestData.sourceFiles = new Map<String, String?>.from(
+        world.sources,
+      );
+    } else {
+      newWorldTestData.sourceFiles.addAll(
+        new Map<String, String?>.from(world.sources),
+      );
+    }
+
+    for (String filename in newWorldTestData.sourceFiles.keys) {
+      String data = newWorldTestData.sourceFiles[filename] ?? "";
+      Uri uri = newWorldTestData.base.resolve(filename);
+      if (filename == ".dart_tool/package_config.json") {
+        worldTestData.packagesUri = uri;
+      }
+      if (world.enableStringReplacement) {
+        data = replaceMarkersWithVersions(data);
+      }
+      newWorldTestData.fs.entityForUri(uri).writeAsStringSync(data);
+    }
+    if (world.packageConfigFile != null) {
+      worldTestData.packagesUri = newWorldTestData.base.resolve(
+        world.packageConfigFile!,
+      );
+    }
+  }
+
+  void _setupModules(
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+  ) {
+    if (worldTestData.modulesToUse != null) {
+      newWorldTestData.compiler.setModulesToLoadOnNextComputeDelta(
+        worldTestData.modulesToUse!,
+      );
+      newWorldTestData.compiler.invalidateAllSources();
+    }
+  }
+
+  void _setupOptions(
+    World world,
+    NewWorldTestData newWorldTestData,
+    WorldSpecificTestData worldTestData,
+  ) {
+    if (!world.updateWorldType) {
+      newWorldTestData.options = _createOptionsForWorld(
+        newWorldTestData,
+        worldTestData,
+        world,
+      );
+    }
+    if (worldTestData.packagesUri != null) {
+      newWorldTestData.options.packagesFileUri = worldTestData.packagesUri;
+    }
+    newWorldTestData.options.onDiagnostic = _getDiagnosticsHandler(
+      world,
+      worldTestData,
+    );
+  }
+}
+
+class NewWorldTestData {
+  final Uri platformBinariesRoot;
+  final Uri checkoutRoot;
+  final Target target;
+  final String sdkSummary;
+  final Uri base;
+  final Uri sdkSummaryUri;
+  final Uri initializeFrom;
+  final Uri platformUri;
+  final Uint8List sdkSummaryData;
+  final bool isDdc;
+
+  TestMemoryFileSystem? _fs;
+  Map<String, String?>? _sourceFiles;
+  CompilerOptions? _options;
+
+  TestIncrementalCompiler? _compiler;
+  Uint8List? newestWholeComponentData;
+  IncrementalSerializer? incrementalSerializer;
+
+  Map<String, Uint8List>? moduleData;
+  Map<String, Component> moduleComponents = {};
+  int worldNum = 0;
+
+  // TODO: When needed, we can do this for warnings too.
+  List<Set<String>> worldErrors = [];
+  NewWorldTestData({
+    required this.platformBinariesRoot,
+    required this.checkoutRoot,
+    required this.target,
+    required this.sdkSummary,
+    required this.base,
+    required this.sdkSummaryUri,
+    required this.initializeFrom,
+    required this.platformUri,
+    required this.sdkSummaryData,
+    required this.isDdc,
+  });
+  TestIncrementalCompiler get compiler => _compiler!;
+
+  set compiler(TestIncrementalCompiler newCompiler) => _compiler = newCompiler;
+  TestMemoryFileSystem get fs => _fs!;
+
+  set fs(TestMemoryFileSystem newFs) => _fs = newFs;
+  CompilerOptions get options => _options!;
+
+  set options(CompilerOptions newOptions) => _options = newOptions;
+  Map<String, String?> get sourceFiles => _sourceFiles!;
+
+  set sourceFiles(Map<String, String?> newSourceFiles) =>
+      _sourceFiles = newSourceFiles;
 }
 
 /// Additional yaml properties for a [NewWorldTest].
@@ -3309,4 +3669,26 @@ class WorldProperties {
     BoolValue(),
     defaultValue: false,
   );
+}
+
+class WorldSpecificTestData {
+  List<Component>? modulesToUse;
+  bool expectInitializeFromDill = false;
+  Uri? packagesUri;
+
+  bool gotError = false;
+  final Set<String> formattedErrors = Set<String>();
+  bool gotWarning = false;
+  final Set<String> formattedWarnings = Set<String>();
+  final Set<String> seenDiagnosticCodes = Set<String>();
+
+  List<Uri> entries = const [];
+  List<Uri> invalidated = <Uri>[];
+
+  void clearPrevErrorsEtc() {
+    gotError = false;
+    formattedErrors.clear();
+    gotWarning = false;
+    formattedWarnings.clear();
+  }
 }
