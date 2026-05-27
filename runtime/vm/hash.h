@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HASH_H_
 
 #include "platform/globals.h"
+#include "platform/unaligned.h"
 
 namespace dart {
 
@@ -41,7 +42,8 @@ inline uint32_t HashBytes(const void* bytes,
   uint32_t hash = len;
   const intptr_t chunks = len / kInt32Size;
   for (intptr_t i = 0; i < chunks; i++) {
-    hash = CombineHashes(hash, reinterpret_cast<const uint32_t*>(bytes)[i]);
+    hash = CombineHashes(
+        hash, LoadUnaligned(&(reinterpret_cast<const uint32_t*>(bytes)[i])));
   }
   for (intptr_t i = chunks * kInt32Size; i < len; i++) {
     hash = CombineHashes(hash, reinterpret_cast<const uint8_t*>(bytes)[i]);
