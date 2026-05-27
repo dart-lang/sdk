@@ -686,27 +686,20 @@ JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
     final list2 = list[2].toExternRef;
     if (length == 3) {
       return JSValue(
-            JS<WasmExternRef>(
-              "(o0, o1, o2) => [o0, o1, o2]",
-              list0,
-              list1,
-              list2,
-            ),
-          )
-          as JSArray<T>;
+        JS<WasmExternRef>("(o0, o1, o2) => [o0, o1, o2]", list0, list1, list2),
+      ) as JSArray<T>;
     }
     final list3 = list[3].toExternRef;
     if (length == 4) {
       return JSValue(
-            JS<WasmExternRef>(
-              "(o0, o1, o2, o3) => [o0, o1, o2, o3]",
-              list0,
-              list1,
-              list2,
-              list3,
-            ),
-          )
-          as JSArray<T>;
+        JS<WasmExternRef>(
+          "(o0, o1, o2, o3) => [o0, o1, o2, o3]",
+          list0,
+          list1,
+          list2,
+          list3,
+        ),
+      ) as JSArray<T>;
     }
   }
 
