@@ -93,7 +93,16 @@ def main():
             elif os.path.exists(args.output):
                 os.remove(args.output)
             shutil.copytree(build_dir, args.output)
-            shutil.rmtree(build_dir)
+
+            print(f'Running {flutter_bin} clean...')
+            subprocess.run([flutter_bin, 'clean'],
+                           cwd=devtools_app_dir,
+                           check=True)
+
+            print(f'Running git checkout pupspec.lock...')
+            subprocess.run(['git', 'checkout', 'pubspec.lock'],
+                           cwd=devtools_src_dir,
+                           check=True)
 
         print('DevTools build successful.')
         return 0
