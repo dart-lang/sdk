@@ -28,7 +28,7 @@ class Histogram {
 
   int get totalCount => _counts.values.fold(0, (a, b) => a + b);
 
-  Histogram({SortOrder? order, bool? showBar, bool? showAll, int? minCount})
+  new({SortOrder? order, bool? showBar, bool? showAll, int? minCount})
       : _order = order ?? SortOrder.descending,
         _showBar = showBar ?? true,
         _showAll = showAll ?? false,
