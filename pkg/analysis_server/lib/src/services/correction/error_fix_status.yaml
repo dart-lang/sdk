@@ -235,7 +235,11 @@ async_for_in_wrong_context:
   status: hasFix
 augmentation_extends_clause_already_present:
   status: needsEvaluation
+augmentation_induced_getter_already_complete:
+  status: needsEvaluation
 augmentation_induced_getter_return_type_mismatch:
+  status: needsEvaluation
+augmentation_induced_setter_already_complete:
   status: needsEvaluation
 augmentation_modifier_extra:
   status: hasFix

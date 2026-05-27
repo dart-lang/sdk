@@ -144,7 +144,7 @@ class A {
   int foo = 0;
 }
 augment class A {
-  augment int foo = 1;
+  augment abstract int foo;
 }
 ''');
   }

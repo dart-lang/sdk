@@ -1042,6 +1042,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           variable.name,
           declaredFragment,
         );
+        _checkForAugmentationInducedAccessorsAlreadyComplete(
+          errorToken: variable.name,
+          fragment: declaredFragment,
+        );
         if (declaredFragment.inducedGetter case var inducedGetter?) {
           _checkForAugmentationReturnTypeMismatch(
             fragment: inducedGetter,
@@ -2015,6 +2019,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           variable.name,
           declaredFragment,
         );
+        _checkForAugmentationInducedAccessorsAlreadyComplete(
+          errorToken: variable.name,
+          fragment: declaredFragment,
+        );
         if (declaredFragment.inducedGetter case var inducedGetter?) {
           _checkForAugmentationReturnTypeMismatch(
             fragment: inducedGetter,
@@ -2687,6 +2695,45 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               .at(extendsClause.extendsKeyword),
         );
         break;
+      }
+    }
+  }
+
+  void _checkForAugmentationInducedAccessorsAlreadyComplete({
+    required Token errorToken,
+    required PropertyInducingFragmentImpl fragment,
+  }) {
+    if (fragment.inducedGetter case var inducedGetter?) {
+      if (inducedGetter.isCompleteDeclaration) {
+        var precedingComplete = inducedGetter.nearestPrecedingCompleteFragment;
+        if (precedingComplete != null) {
+          diagnosticReporter.report(
+            diag.augmentationInducedGetterAlreadyComplete
+                .withContextMessages([
+                  ?precedingComplete.contextMessageAt(
+                    "The complete declaration is here.",
+                  ),
+                ])
+                .at(errorToken),
+          );
+        }
+      }
+    }
+
+    if (fragment.inducedSetter case var inducedSetter?) {
+      if (inducedSetter.isCompleteDeclaration) {
+        var precedingComplete = inducedSetter.nearestPrecedingCompleteFragment;
+        if (precedingComplete != null) {
+          diagnosticReporter.report(
+            diag.augmentationInducedSetterAlreadyComplete
+                .withContextMessages([
+                  ?precedingComplete.contextMessageAt(
+                    "The complete declaration is here.",
+                  ),
+                ])
+                .at(errorToken),
+          );
+        }
       }
     }
   }

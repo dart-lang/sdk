@@ -31,7 +31,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment Future<Null>? f;
+  augment abstract Future<Null>? f;
 }
 ''');
   }
@@ -110,7 +110,7 @@ Future<Null>? v;
     await assertNoDiagnostics(r'''
 part of 'a.dart';
 
-augment Future<Null>? v;
+augment abstract Future<Null>? v;
 ''');
   }
 

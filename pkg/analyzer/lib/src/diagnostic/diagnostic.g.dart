@@ -888,6 +888,21 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+augmentationInducedGetterAlreadyComplete = DiagnosticWithoutArgumentsImpl(
+  name: 'declaration_already_complete',
+  problemMessage:
+      "The getter induced by this augmentation is complete, but the getter being "
+      "augmented is already complete.",
+  correctionMessage:
+      "Try removing the augmentation, or making one of the declarations "
+      "'abstract'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_induced_getter_already_complete',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// Type expectedType: the return type of the getter being augmented
 /// Type actualType: the return type of the induced getter
@@ -909,6 +924,21 @@ augmentationInducedGetterReturnTypeMismatch = DiagnosticWithArguments(
   uniqueName: 'augmentation_induced_getter_return_type_mismatch',
   withArguments: _withArgumentsAugmentationInducedGetterReturnTypeMismatch,
   expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
+augmentationInducedSetterAlreadyComplete = DiagnosticWithoutArgumentsImpl(
+  name: 'declaration_already_complete',
+  problemMessage:
+      "The setter induced by this augmentation is complete, but the setter being "
+      "augmented is already complete.",
+  correctionMessage:
+      "Try removing the augmentation, or making one of the declarations "
+      "'abstract'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_induced_setter_already_complete',
+  expectedTypes: [],
 );
 
 /// Parameters:

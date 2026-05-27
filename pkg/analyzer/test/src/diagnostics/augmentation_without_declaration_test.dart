@@ -104,22 +104,22 @@ class A {
 }
 
 augment class A {
-  augment int foo = 1;
+  augment abstract int foo;
 }
 ''');
   }
 
   test_class_instanceField_augments_instanceField_final() async {
     await resolveTestCodeWithDiagnostics(r'''
-class A {
+abstract class A {
   final int foo = 0;
 //          ^^^
 // [context 1] The corresponding getter is induced by this declaration.
 }
 
-augment class A {
-  augment int foo = 1;
-//            ^^^
+augment abstract class A {
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -127,15 +127,15 @@ augment class A {
 
   test_class_instanceField_augments_instanceGetter() async {
     await resolveTestCodeWithDiagnostics(r'''
-class A {
+abstract class A {
   int get foo => 0;
 //        ^^^
 // [context 1] The corresponding getter is declared here.
 }
 
-augment class A {
-  augment int foo = 0;
-//            ^^^
+augment abstract class A {
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -147,12 +147,14 @@ class A {
   set foo(int _) {}
 //    ^^^
 // [context 1] The corresponding setter is declared here.
+// [context 2] The complete declaration is here.
 }
 
 augment class A {
   augment int foo = 0;
 //            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
+// [diag.augmentationInducedSetterAlreadyComplete][context 2] The setter induced by this augmentation is complete, but the setter being augmented is already complete.
 }
 ''');
   }
@@ -216,7 +218,7 @@ class A {
 }
 
 augment class A {
-  augment final int foo = 1;
+  augment abstract final int foo;
 }
 ''');
   }
@@ -228,22 +230,22 @@ class A {
 }
 
 augment class A {
-  augment final int foo = 1;
+  augment abstract final int foo;
 }
 ''');
   }
 
   test_class_instanceField_final_augments_instanceSetter() async {
     await resolveTestCodeWithDiagnostics(r'''
-class A {
+abstract class A {
   set foo(int _) {}
 //    ^^^
 // [context 1] The corresponding setter is declared here.
 }
 
-augment class A {
-  augment final int foo = 1;
-//                  ^^^
+augment abstract class A {
+  augment abstract final int foo;
+//                           ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -570,7 +572,7 @@ class A {
 }
 
 augment class A {
-  augment static int foo = 1;
+  augment static abstract int foo;
 }
 ''');
   }
@@ -584,8 +586,8 @@ class A {
 }
 
 augment class A {
-  augment static int foo = 1;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -600,8 +602,8 @@ class A {
 }
 
 augment class A {
-  augment static int foo = 1;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -616,8 +618,8 @@ class A {
 }
 
 augment class A {
-  augment static int foo = 1;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -630,7 +632,7 @@ class A {
 }
 
 augment class A {
-  augment static final int foo = 1;
+  augment static abstract final int foo;
 }
 ''');
   }
@@ -642,7 +644,7 @@ class A {
 }
 
 augment class A {
-  augment static final int foo = 1;
+  augment static abstract final int foo;
 }
 ''');
   }
@@ -656,8 +658,8 @@ class A {
 }
 
 augment class A {
-  augment static final int foo = 1;
-//                         ^^^
+  augment static abstract final int foo;
+//                                  ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -1176,73 +1178,78 @@ augment int foo = 0;
 
   test_topLevel_variable_augments_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
-int get foo => 0;
-//      ^^^
+int? get foo => 0;
+//       ^^^
 // [context 1] The corresponding getter is declared here.
 
-augment int foo = 1;
-//          ^^^
+augment abstract int? foo;
+//                    ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 ''');
   }
 
   test_topLevel_variable_augments_setter() async {
     await resolveTestCodeWithDiagnostics(r'''
-set foo(int _) {}
+set foo(int? _) {}
 //  ^^^
 // [context 1] The corresponding setter is declared here.
 
-augment int foo = 1;
-//          ^^^
+augment abstract int? foo;
+//                    ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 ''');
   }
 
   test_topLevel_variable_augments_variable() async {
     await resolveTestCodeWithDiagnostics(r'''
-int foo = 0;
+int? foo = 0;
 
-augment int foo = 1;
+augment abstract int? foo;
 ''');
   }
 
   test_topLevel_variable_augments_variable_final() async {
     await resolveTestCodeWithDiagnostics(r'''
-final int foo = 0;
-//        ^^^
+final int? foo = 0;
+//         ^^^
 // [context 1] The corresponding getter is induced by this declaration.
 
-augment int foo = 1;
-//          ^^^
+augment abstract int? foo;
+//                    ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 ''');
   }
 
   test_topLevel_variable_final_augments_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
-int get foo => 0;
+int? get foo => 0;
 
-augment final int foo = 1;
+augment abstract final int? foo;
+//                          ^^^
+// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
   test_topLevel_variable_final_augments_setter() async {
     await resolveTestCodeWithDiagnostics(r'''
-set foo(int _) {}
+set foo(int? _) {}
 //  ^^^
 // [context 1] The corresponding setter is declared here.
 
-augment final int foo = 1;
-//                ^^^
+augment abstract final int? foo;
+//                          ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
+// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
   test_topLevel_variable_final_augments_variable_final() async {
     await resolveTestCodeWithDiagnostics(r'''
-final int foo = 0;
+final int? foo = 0;
 
-augment final int foo = 1;
+augment abstract final int? foo;
+//                          ^^^
+// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
@@ -1258,10 +1265,10 @@ augment int foo = 0, bar = 0;
 
   test_topLevel_variable_multiple_oneMissing() async {
     await resolveTestCodeWithDiagnostics(r'''
-int bar = 0;
+int? bar = 0;
 
-augment int foo = 1, bar = 2;
-//          ^^^
+augment abstract int? foo, bar;
+//                    ^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 ''');
   }
