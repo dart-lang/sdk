@@ -5,6 +5,8 @@
 import("../../utils/aot_snapshot.gni")
 import("../../utils/application_snapshot.gni")
 
+_dart_root = get_path_info("../..", "abspath")
+
 # All samples.
 group("all") {
   deps = [
@@ -112,6 +114,15 @@ template("sample") {
         deps += [ "${dep}${conf.suffix}" ]
       }
       deps += extra_deps
+
+      # Can't be added by tool("link"), but make sure changes to entitlements
+      # trigger re-links.
+      if (is_mac) {
+        inputs = [
+          "$_dart_root/runtime/tools/dart_codesign.py",
+          "$_dart_root/runtime/tools/entitlements/${target_name}_aot.plist",
+        ]
+      }
     }
 
     executable("${target_name}${conf.suffix}_static") {
@@ -143,6 +154,15 @@ template("sample") {
         deps += [ "${dep}${conf.suffix}_static" ]
       }
       deps += extra_deps
+
+      # Can't be added by tool("link"), but make sure changes to entitlements
+      # trigger re-links.
+      if (is_mac) {
+        inputs = [
+          "$_dart_root/runtime/tools/dart_codesign.py",
+          "$_dart_root/runtime/tools/entitlements/${target_name}_aot_static.plist",
+        ]
+      }
     }
   }
 }
@@ -188,8 +208,6 @@ template("snapshots") {
     }
   }
 }
-
-_dart_root = get_path_info("../..", "abspath")
 
 template("shims") {
   name = target_name

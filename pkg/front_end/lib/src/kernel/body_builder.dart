@@ -3178,7 +3178,9 @@ class BodyBuilderImpl extends StackListenerImpl
   ) {
     debugEvent("ReturnStatement");
     Expression? expression = hasExpression ? popForValue() : null;
-    if (expression != null && inConstructor) {
+    if (expression != null &&
+        inConstructor &&
+        _parameterlessAnonymousMethodDepth == 0) {
       push(
         buildProblemStatement(
           diag.constructorWithReturnType,
@@ -8123,73 +8125,50 @@ class BodyBuilderImpl extends StackListenerImpl
       exitLocalScope(expectedScopeKinds: const [LocalScopeKind.formals]);
     }
 
+    Expression? bodyExpr;
     if (isExpression) {
-      Expression bodyExpr;
-      Expression receiver;
-      Variable variable;
+      bodyExpr = toValue(body);
+    }
 
-      bool isImplicitlyTyped;
-      int typeOffset;
-      if (formals is FormalParameters &&
-          formals.parameters?.length == 1 &&
-          formals.parameters![0].isRequiredPositional) {
-        bodyExpr = toValue(body);
-        receiver = popForValue();
-        FormalParameterBuilder formal = formals.parameters![0];
+    Expression receiver;
+    Variable variable;
+    bool isImplicitlyTyped;
+    int typeOffset;
 
-        // Build the variable declaration.
-        variable = formal.build(libraryBuilder);
-        variable.initializer = receiver;
-        variable.initializer!.parent = variable;
+    if (formals is FormalParameters &&
+        formals.parameters?.length == 1 &&
+        formals.parameters![0].isRequiredPositional) {
+      receiver = popForValue();
+      FormalParameterBuilder formal = formals.parameters![0];
 
-        isImplicitlyTyped = false;
-        if (variable is InternalVariable) {
-          isImplicitlyTyped = (variable as InternalVariable).isImplicitlyTyped;
-        }
-        typeOffset = formal.type.charOffset ?? variable.fileOffset;
-      } else if (formals == null) {
-        bodyExpr = toValue(body);
-        variable = _thisVariables.pop();
-        _parameterlessAnonymousMethodDepth--;
-        receiver = popForValue();
-        isImplicitlyTyped = true;
-        typeOffset = variable.fileOffset;
-      } else {
-        FormalParameters formalParameters = formals as FormalParameters;
-        addProblem(
-          diag.anonymousMethodWrongParameterList,
-          formalParameters.charOffset,
-          formalParameters.length,
-        );
-        popForValue();
-        bodyExpr = toValue(body);
-        Expression result = new InvalidExpression(
-          "An anonymous method must have a single mandatory positional "
-          "parameter, or no parameter list at all",
-        )..fileOffset = offsetForToken(beginToken);
-        push(result);
-        assignedVariables.endNode(
-          result,
-          isClosureOrLateVariableInitializer: false,
-        );
-        return;
+      // Build the variable declaration.
+      variable = formal.build(libraryBuilder);
+      variable.initializer = receiver;
+      variable.initializer!.parent = variable;
+
+      isImplicitlyTyped = false;
+      if (variable is InternalVariable) {
+        isImplicitlyTyped = (variable as InternalVariable).isImplicitlyTyped;
       }
-      int variableOffset = variable.initializer!.fileOffset;
-
-      // Build the result expression.
-      bool isNullAware =
-          beginToken.lexeme == '?.' || beginToken.lexeme == '?..';
-      bool isCascade = beginToken.lexeme == '..' || beginToken.lexeme == '?..';
-
-      Expression result = new AnonymousMethodExpression(
-        variable,
-        bodyExpr,
-        isImplicitlyTyped: isImplicitlyTyped,
-        isNullAware: isNullAware,
-        isCascade: isCascade,
-        typeOffset: typeOffset,
-      )..fileOffset = variableOffset;
-
+      typeOffset = formal.type.charOffset ?? variable.fileOffset;
+    } else if (formals == null) {
+      variable = _thisVariables.pop();
+      _parameterlessAnonymousMethodDepth--;
+      receiver = popForValue();
+      isImplicitlyTyped = true;
+      typeOffset = variable.fileOffset;
+    } else {
+      FormalParameters formalParameters = formals as FormalParameters;
+      addProblem(
+        diag.anonymousMethodWrongParameterList,
+        formalParameters.charOffset,
+        formalParameters.length,
+      );
+      popForValue();
+      Expression result = new InvalidExpression(
+        "An anonymous method must have a single mandatory positional "
+        "parameter, or no parameter list at all",
+      )..fileOffset = offsetForToken(beginToken);
       push(result);
       assignedVariables.endNode(
         result,
@@ -8197,9 +8176,39 @@ class BodyBuilderImpl extends StackListenerImpl
       );
       return;
     }
+    int variableOffset = variable.initializer!.fileOffset;
 
-    // Coverage-ignore-block(suite): Not run.
-    throw new UnimplementedError("endAnonymousMethodInvocation other cases");
+    // Build the result expression.
+    bool isNullAware = beginToken.lexeme == '?.' || beginToken.lexeme == '?..';
+    bool isCascade = beginToken.lexeme == '..' || beginToken.lexeme == '?..';
+
+    Expression result;
+    if (isExpression) {
+      result = new AnonymousMethodExpression(
+        variable,
+        bodyExpr!,
+        isImplicitlyTyped: isImplicitlyTyped,
+        isNullAware: isNullAware,
+        isCascade: isCascade,
+        typeOffset: typeOffset,
+      )..fileOffset = variableOffset;
+    } else {
+      Statement bodyStatement = body as Statement;
+      result = new AnonymousMethodBlock(
+        variable,
+        bodyStatement,
+        isImplicitlyTyped: isImplicitlyTyped,
+        isNullAware: isNullAware,
+        isCascade: isCascade,
+        typeOffset: typeOffset,
+      )..fileOffset = variableOffset;
+    }
+
+    push(result);
+    assignedVariables.endNode(
+      result,
+      isClosureOrLateVariableInitializer: false,
+    );
   }
 
   @override
@@ -9732,7 +9741,9 @@ class BodyBuilderImpl extends StackListenerImpl
     if (target == null) {
       push(
         problemInLoopOrSwitch = buildProblemStatement(
-          diag.continueWithoutLabelInCase,
+          _switchScope != null
+              ? diag.continueWithoutLabelInCase
+              : diag.continueOutsideOfLoop,
           continueKeyword.charOffset,
           length: continueKeyword.length,
         ),

@@ -3278,7 +3278,10 @@ void Precompiler::PruneDictionaries() {
 
 // Traits for the HashTable template.
 struct CodeKeyTraits {
-  static uint32_t Hash(const Object& key) { return Code::Cast(key).Size(); }
+  static uint32_t Hash(const Object& key) {
+    // Instructions never move.
+    return FinalizeHash(Code::Cast(key).PayloadStart());
+  }
   static const char* Name() { return "CodeKeyTraits"; }
   static bool IsMatch(const Object& x, const Object& y) {
     return x.ptr() == y.ptr();

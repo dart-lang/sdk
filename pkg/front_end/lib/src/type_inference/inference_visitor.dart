@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
+import 'package:front_end/src/util/local_stack.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/non_null.dart';
@@ -104,6 +105,25 @@ abstract class InferenceVisitor {
   InitializerInferenceResult inferInitializer(Initializer initializer);
 }
 
+abstract class ReturnContext {}
+
+class StandardReturnContext implements ReturnContext {
+  const StandardReturnContext();
+}
+
+class AnonymousMethodReturnContext extends ReturnContext {
+  final Variable resultVariable;
+  final LabeledStatement label;
+  final List<DartType> returnTypes = [];
+  final DartType typeContext;
+
+  AnonymousMethodReturnContext({
+    required this.resultVariable,
+    required this.label,
+    required this.typeContext,
+  });
+}
+
 class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<
@@ -140,6 +160,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   BodyInferenceContext? _bodyContext;
+
+  /// Stack for return contexts.
+  final LocalStack<ReturnContext> _returnContexts = new LocalStack([]);
+
+  ReturnContext? get returnContext => _returnContexts.currentOrNull;
 
   /// If a switch statement is being visited and the type being switched on is a
   /// (possibly nullable) enumerated type, the set of enum values for which no
@@ -3522,6 +3547,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = true;
     Variable variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
+    _returnContexts.push(const StandardReturnContext());
     inferMetadata(this, variable);
     DartType? returnContext = node.hasImplicitReturnType
         ? null
@@ -3546,6 +3572,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       initialized: true,
     );
     flowAnalysis.functionExpression_end();
+    _returnContexts.pop();
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return const StatementInferenceResult();
   }
@@ -3612,6 +3639,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
     flowAnalysis.functionExpression_begin(node);
+    _returnContexts.push(const StandardReturnContext());
     FunctionType inferredType = visitFunctionNode(
       node.function,
       typeContext,
@@ -3624,6 +3652,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferredType.returnType;
     }
     flowAnalysis.functionExpression_end();
+    _returnContexts.pop();
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
@@ -11918,6 +11947,163 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
+  ExpressionInferenceResult visitAnonymousMethodBlock(
+    AnonymousMethodBlock node,
+    DartType typeContext,
+  ) {
+    Variable resultVar = new Variable(null, isSynthesized: true)
+      ..fileOffset = node.fileOffset;
+    LabeledStatement label = new LabeledStatement(null)
+      ..fileOffset = node.fileOffset;
+
+    AnonymousMethodReturnContext context = new AnonymousMethodReturnContext(
+      resultVariable: resultVar,
+      label: label,
+      typeContext: typeContext,
+    );
+    _returnContexts.push(context);
+
+    DartType variableType = node.variable.type;
+    ExpressionInferenceResult initializerResult = inferExpression(
+      node.variable.initializer!,
+      const UnknownType(),
+      continueNullShorting: true,
+    );
+
+    Expression initializer = initializerResult.expression;
+    DartType initializerType = initializerResult.inferredType;
+
+    if (initializerType is VoidType) {
+      initializer = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: initializer,
+        message: diag.voidExpression,
+        fileUri: fileUri,
+        fileOffset: initializer.fileOffset,
+        length: noLength,
+      );
+    }
+
+    if (node.isImplicitlyTyped) {
+      node.variable.type = node.isNullAware
+          ? initializerType.toNonNull()
+          : initializerType;
+    } else {
+      DartType checkedType = node.isNullAware
+          ? initializerType.toNonNull()
+          : initializerType;
+      if (!isAssignable(variableType, checkedType)) {
+        initializer = wrapUnassignableExpression(
+          initializer,
+          checkedType,
+          variableType,
+          diag.anonymousMethodWrongParameterTypeCfe.withArguments(
+            receiverType: checkedType,
+            parameterType: variableType,
+          ),
+          fileOffset: node.typeOffset,
+        );
+      }
+    }
+    node.variable.initializer = initializer..parent = node.variable;
+
+    flowAnalysis.declare(
+      node.variable,
+      new SharedTypeView(node.variable.type),
+      initialized: false,
+    );
+    flowAnalysis.initialize(
+      node.variable,
+      new SharedTypeView(node.variable.type),
+      flowAnalysis.getExpressionInfo(node.variable.initializer!),
+      isFinal: false,
+      isLate: false,
+      isImplicitlyTyped: node.isImplicitlyTyped,
+      inheritPromotableProperties: node.isParameterless,
+    );
+    bool isNullAwareAccess = node.isNullAware && _enclosingCascade == null;
+    if (node.isNullAware) {
+      Expression receiverExpr = node.variable.initializer!;
+      Variable? tempVar;
+
+      if (isNullAwareAccess) {
+        tempVar =
+            new Variable(null, initializer: receiverExpr, isSynthesized: true)
+              ..type = initializerType
+              ..fileOffset = node.fileOffset;
+        receiverExpr = new VariableGet(tempVar);
+      }
+
+      node.variable.initializer =
+          new AsExpression(receiverExpr, node.variable.type)
+            ..fileOffset = node.fileOffset
+            ..parent = node.variable;
+
+      if (isNullAwareAccess) {
+        startNullShorting(
+          new NullAwareGuard(tempVar!, node.variable.fileOffset, this),
+          flowAnalysis.getExpressionInfo(tempVar.initializer!),
+          new SharedTypeView(tempVar.type),
+          guardVariable: tempVar,
+        );
+      }
+    }
+
+    if (node.isParameterless) {
+      flow.thisBinding_begin(
+        flowAnalysis.getExpressionInfo(node.variable.initializer!),
+      );
+    }
+
+    flowAnalysis.labeledStatement_begin(label);
+    StatementInferenceResult bodyResult = inferStatement(node.body);
+    bool isReachable = flowAnalysis.isReachable;
+    flowAnalysis.labeledStatement_end();
+
+    if (node.isParameterless) {
+      flow.thisBinding_end();
+    }
+
+    _returnContexts.pop();
+
+    Statement body = bodyResult.hasChanged ? bodyResult.statement : node.body;
+    label.body = body..parent = label;
+
+    DartType inferredType = isReachable
+        ? const NullType()
+        : const NeverType.nonNullable();
+    for (DartType returnType in context.returnTypes) {
+      inferredType = typeSchemaEnvironment.getStandardUpperBound(
+        inferredType,
+        returnType,
+      );
+    }
+    resultVar.type = inferredType;
+
+    if (node.isCascade) {
+      inferredType = initializerType;
+    }
+
+    Block block = new Block([
+      extern.createVariableStatement(
+        extern.createVariableDeclaration(node.variable),
+      ),
+      extern.createVariableStatement(
+        extern.createVariableDeclaration(resultVar),
+      ),
+      label,
+    ])..fileOffset = node.fileOffset;
+
+    Expression replacement = new BlockExpression(
+      block,
+      node.isCascade
+          ? new VariableGet(node.variable)
+          : new VariableGet(resultVar),
+    )..fileOffset = node.fileOffset;
+
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
   ExpressionInferenceResult visitPropertySet(
     PropertySet node,
     DartType typeContext,
@@ -12307,6 +12493,34 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitReturnStatement(
     covariant ReturnStatementImpl node,
   ) {
+    ReturnContext? context = returnContext;
+    if (context is AnonymousMethodReturnContext) {
+      Expression expression =
+          node.expression ?? (new NullLiteral()..fileOffset = node.fileOffset);
+      ExpressionInferenceResult expressionResult = inferExpression(
+        expression,
+        context.typeContext,
+        isVoidAllowed: true,
+      );
+      context.returnTypes.add(expressionResult.inferredType);
+
+      VariableSet assignment = new VariableSet(
+        context.resultVariable,
+        expressionResult.expression,
+      )..fileOffset = node.fileOffset;
+      BreakStatement breakStmt = new BreakStatement(context.label)
+        ..fileOffset = node.fileOffset;
+
+      flowAnalysis.handleBreak(context.label);
+
+      Statement replacement = new Block([
+        new ExpressionStatement(assignment)..fileOffset = node.fileOffset,
+        breakStmt,
+      ])..fileOffset = node.fileOffset;
+
+      return new StatementInferenceResult.single(replacement);
+    }
+
     DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
     Variable? thisVariable = _constructorContext?.thisVariable;

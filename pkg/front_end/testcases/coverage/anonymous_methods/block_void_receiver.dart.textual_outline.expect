@@ -1,0 +1,3 @@
+void v = null;
+
+void test() {}
