@@ -1081,6 +1081,16 @@ class NewWorldTest {
       );
       if (subtestResult != null) return subtestResult;
 
+      // Load modules via additionalDillModules.
+      subtestResult = await _loadModulesViaAdditionalDillModules(
+        world,
+        worldTestData,
+        newWorldTestData,
+        prevFormattedErrors,
+        prevFormattedWarnings,
+      );
+      if (subtestResult != null) return subtestResult;
+
       // Dummy tree nodes can (currently) leak though the parent pointer.
       // To avoid that (here) (for leak testing) we'll null them out.
       for (TreeNode treeNode in dummyTreeNodes) {
@@ -2392,6 +2402,98 @@ class NewWorldTest {
     );
 
     return newWorldTestData;
+  }
+
+  Future<Result<TestData>?> _loadModulesViaAdditionalDillModules(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+  ) async {
+    // Load modules via additionalDillModules.
+    if (!world.noFullComponent && world.modules != null) {
+      // Do compile from scratch and compare.
+      worldTestData.clearPrevErrorsEtc();
+      CompilerOptions options = _createOptionsForWorld(
+        newWorldTestData,
+        worldTestData,
+        world,
+        // The DDC target saves stuff in the target that causes leaks
+        // in this config where we've loaded a new sdk etc, so we create
+        // a new target to avoid it.
+        createNewTarget: true,
+      );
+
+      List<Uri> additionalDillModules = [];
+      int moduleNum = 0;
+      for (String moduleName in world.modules!) {
+        moduleNum++;
+        final Uri moduleUri = newWorldTestData.base.resolve(
+          "module_$moduleNum.dill",
+        );
+        newWorldTestData.fs
+            .entityForUri(moduleUri)
+            .writeAsBytesSync(newWorldTestData.moduleData![moduleName]!);
+        additionalDillModules.add(moduleUri);
+      }
+
+      options.additionalDillModules = additionalDillModules;
+
+      TestIncrementalCompiler? compilerFromScratch =
+          new TestIncrementalCompiler(
+            options,
+            worldTestData.entries.first,
+            null,
+            world.outlineOnly,
+          );
+      Stopwatch stopwatch = new Stopwatch()..start();
+      IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
+          .computeDelta(
+            entryPoints: worldTestData.entries,
+            simulateTransformer: world.simulateTransformer,
+          );
+      Component? componentLocal = compilerResultLocal.component;
+      compilerResultLocal = null;
+      compilerFromScratch = null;
+      Result<TestData>? result = _performErrorAndWarningCheck(
+        world,
+        data,
+        worldTestData,
+      );
+      if (result != null) return result;
+      util.throwOnEmptyMixinBodies(componentLocal);
+      await util.throwOnInsufficientUriToSource(componentLocal);
+      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      String component4String = _componentToStringSdkFiltered(
+        componentLocal,
+        printErrors: world.printErrorsInExpect
+            ? worldTestData.formattedErrors
+            : null,
+      );
+      print("*****\n\ncomponent (4):\n$component4String\n\n\n");
+      if (world.compareWithFromScratch) {
+        checkIsEqual(
+          newWorldTestData.newestWholeComponentData!,
+          thisWholeComponent,
+        );
+      }
+      _checkErrorsAndWarnings(
+        prevFormattedErrors,
+        worldTestData.formattedErrors,
+        prevFormattedWarnings,
+        worldTestData.formattedWarnings,
+      );
+
+      componentLocal = null;
+
+      // For whatever reason the above introduces a "temporary leak" that
+      // awaiting something here removes.
+      await null;
+    }
+    return null;
   }
 
   void _loadWorldModules(
