@@ -268,9 +268,11 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
 
     _checkOffset(node);
 
+    node.function.accept(this);
+
     // The constructor is special in that the parameters from the contained
     // function node is in scope in the initializers.
-    node.function.accept(this);
+    // Here we add all parameters, i.e. we don't filter initializing formals.
     for (Variable param in node.function.positionalParameters) {
       scopes.last.add(param);
     }
@@ -378,9 +380,28 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void defaultVariable(Variable node) {
     if (node.isHoisted) hoistedUnwritten.add(node);
-    super.defaultVariable(node);
-    // Declare it after.
-    scopes.last.add(node);
+
+    // Special handling if on the last parameter in a function node: The VM at
+    // least "stops" on the last parameter in a function node when stepping into
+    // a method, so in that case pretend that all parameters are defined already
+    // (any initializer has to be constant anyway).
+    TreeNode? parent = node.parent;
+    if (parent is FunctionNode) {
+      scopes.add(parent.positionalParameters);
+      scopes.add(parent.namedParameters);
+      scopes.add([]);
+      super.defaultVariable(node);
+      scopes.removeLast();
+      scopes.removeLast();
+      scopes.removeLast();
+    } else {
+      super.defaultVariable(node);
+    }
+
+    // Declare it after, but filter initializing formals.
+    if (!node.isInitializingFormal && !node.isSuperInitializingFormal) {
+      scopes.last.add(node);
+    }
   }
 
   void _updateClosestFoundOffset(int offset) {

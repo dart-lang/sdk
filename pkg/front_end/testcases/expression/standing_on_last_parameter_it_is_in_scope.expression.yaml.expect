@@ -1,0 +1,6 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::int a, dart.core::int b, dart.core::int c) → dynamic
+  return (() → dart.core::bool {
+    return b.{dart.core::int::isEven}{dart.core::bool} && c.{dart.core::int::isEven}{dart.core::bool};
+  })(){() → dart.core::bool};
