@@ -553,6 +553,27 @@ LabeledStatement createLabeledStatement(Statement statement) {
   return new LabeledStatement(statement)..fileOffset = statement.fileOffset;
 }
 
+LateVariable createLateVariable({
+  required String? cosmeticName,
+  required DartType? type,
+  bool isFinal = false,
+  bool isConst = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  Expression? initializer,
+  bool hasDeclaredInitializer = false,
+}) {
+  return new LateVariable(
+    cosmeticName: cosmeticName,
+    type: type,
+    isFinal: isFinal,
+    isConst: isConst,
+    isWildcard: isWildcard,
+    initializer: initializer,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+  )..fileOffset = fileOffset;
+}
+
 Let createLetForEffect({
   required Expression effect,
   required DartType effectType,
@@ -605,7 +626,6 @@ LocalVariable createLocalVariable({
   required DartType? type,
   bool isFinal = false,
   bool isConst = false,
-  bool isLate = false,
   bool isWildcard = false,
   required int fileOffset,
   Expression? initializer,
@@ -616,7 +636,6 @@ LocalVariable createLocalVariable({
     type: type,
     isFinal: isFinal,
     isConst: isConst,
-    isLate: isLate,
     isWildcard: isWildcard,
     initializer: initializer,
     hasDeclaredInitializer: hasDeclaredInitializer,

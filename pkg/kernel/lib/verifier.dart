@@ -1167,6 +1167,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
   void visitPositionalParameter(PositionalParameter node) {
     _verifyVariable(node);
   }

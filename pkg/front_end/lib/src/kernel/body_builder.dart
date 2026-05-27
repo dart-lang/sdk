@@ -3393,22 +3393,39 @@ class BodyBuilderImpl extends StackListenerImpl
     VariableDeclaration variableDeclaration;
     InternalVariable internalVariable;
     if (isClosureContextLoweringEnabled) {
-      internalVariable = new InternalLocalVariable(
-        astVariable: intern.createLocalVariable(
-          cosmeticName: name,
-          type: currentLocalVariableType,
-          isFinal: isFinal,
-          isConst: isConst,
-          isLate: isLate,
-          isWildcard: isWildcard,
-          hasDeclaredInitializer: initializer != null,
+      if (isLate) {
+        internalVariable = new InternalLateVariable(
+          astVariable: intern.createLateVariable(
+            cosmeticName: name,
+            type: currentLocalVariableType,
+            isFinal: isFinal,
+            isConst: isConst,
+            isWildcard: isWildcard,
+            hasDeclaredInitializer: initializer != null,
+            fileOffset: identifier.nameOffset,
+            initializer: initializer,
+          ),
+          forSyntheticToken: identifier.token.isSynthetic,
+          isImplicitlyTyped: currentLocalVariableType == null,
           fileOffset: identifier.nameOffset,
-          initializer: initializer,
-        ),
-        forSyntheticToken: identifier.token.isSynthetic,
-        isImplicitlyTyped: currentLocalVariableType == null,
-        fileOffset: identifier.nameOffset,
-      );
+        );
+      } else {
+        internalVariable = new InternalLocalVariable(
+          astVariable: intern.createLocalVariable(
+            cosmeticName: name,
+            type: currentLocalVariableType,
+            isFinal: isFinal,
+            isConst: isConst,
+            isWildcard: isWildcard,
+            hasDeclaredInitializer: initializer != null,
+            fileOffset: identifier.nameOffset,
+            initializer: initializer,
+          ),
+          forSyntheticToken: identifier.token.isSynthetic,
+          isImplicitlyTyped: currentLocalVariableType == null,
+          fileOffset: identifier.nameOffset,
+        );
+      }
       variableDeclaration = intern.createVariableDeclaration(
         internalVariable.asVariableDeclaration,
         fileOffset: offsetForToken(equalsToken),

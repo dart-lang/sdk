@@ -1214,6 +1214,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitLateVariable(LateVariable node) {
+    writeIndentation();
+    writeExpressionVariable(node);
+    endLine(';');
+  }
+
+  @override
   void visitPositionalParameter(PositionalParameter node) {
     writeIndentation();
     writeExpressionVariable(node);
@@ -1259,6 +1266,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       switch (node) {
         case LocalVariable():
           writeWord('local-variable');
+        case LateVariable():
+          writeWord('late-variable');
         case PositionalParameter():
           writeWord('positional-parameter');
         case NamedParameter():
@@ -1278,6 +1287,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       if (node.hasIsLowered) {
         writeModifier(node.isLowered, 'lowered');
       }
+      // TODO(johnniwinther): Remove this. This should be equivalent to
+      //  `is LateVariable`.
       if (node.hasIsLate) {
         writeModifier(node.isLate, 'late');
       }
@@ -2767,6 +2778,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void writeVariable(Variable node, {bool useVarKeyword = false}) {
     switch (node) {
       case LocalVariable():
+      case LateVariable():
       case CatchVariable():
       case ThisVariable():
       case SyntheticVariable():

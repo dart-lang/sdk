@@ -998,6 +998,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitLateVariable(LateVariable node) {
+    visited.add(VariableKind.LateVariable);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitCatchVariable(CatchVariable node) {
     visited.add(VariableKind.CatchVariable);
     node.visitChildren(this);
@@ -1483,6 +1489,7 @@ enum StatementKind {
 
 enum VariableKind {
   CatchVariable,
+  LateVariable,
   LocalVariable,
   NamedParameter,
   PositionalParameter,

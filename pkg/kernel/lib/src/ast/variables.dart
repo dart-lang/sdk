@@ -730,7 +730,6 @@ class LocalVariable extends Variable {
     required DartType? type,
     bool isFinal = false,
     bool isConst = false,
-    bool isLate = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     this.initializer,
@@ -738,7 +737,6 @@ class LocalVariable extends Variable {
        super.empty() {
     this.isFinal = isFinal;
     this.isConst = isConst;
-    this.isLate = isLate;
     this.isWildcard = isWildcard;
     this.hasDeclaredInitializer = hasDeclaredInitializer;
     this.initializer?.parent = this;
@@ -918,6 +916,333 @@ class LocalVariable extends Variable {
   @override
   R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
       v.visitLocalVariable(this, arg);
+
+  @override
+  void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transform(initializer!);
+      initializer?.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transformOrRemoveExpression(initializer!);
+      initializer?.parent = this;
+    }
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    visitList(annotations, v);
+    initializer?.accept(v);
+  }
+
+  @override
+  String toString() {
+    return "LocalVariable(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(this);
+  }
+
+  @override
+  String? get name => cosmeticName;
+
+  @override
+  bool get hasIsFinal => true;
+
+  @override
+  bool get hasIsConst => true;
+
+  @override
+  bool get hasIsLate => true;
+
+  @override
+  bool get hasIsInitializingFormal => false;
+
+  @override
+  bool get hasIsSynthesized => true;
+
+  @override
+  bool get hasIsHoisted => true;
+
+  @override
+  bool get hasHasDeclaredInitializer => false;
+
+  @override
+  bool get hasIsCovariantByClass => false;
+
+  @override
+  bool get hasIsRequired => false;
+
+  @override
+  bool get hasIsCovariantByDeclaration => false;
+
+  @override
+  bool get hasIsLowered => true;
+
+  @override
+  bool get hasIsWildcard => true;
+
+  @override
+  bool get hasIsSuperInitializingFormal => false;
+
+  @override
+  bool get hasIsErroneouslyInitialized => false;
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
+  }
+
+  @override
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  Variable get variable => this;
+
+  @override
+  void set variable(Variable variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations.clear();
+  }
+
+  @override
+  set name(String? value) {
+    cosmeticName = value;
+  }
+}
+
+/// A late local variable.
+class LateVariable extends Variable {
+  @override
+  String? cosmeticName;
+
+  @override
+  DartType type;
+
+  @override
+  VariableDeclaration? variableDeclaration;
+
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  VariableContext? _context;
+
+  @override
+  // TODO(johnniwinther): Rename to [initialValue].
+  Expression? initializer;
+
+  LateVariable({
+    this.cosmeticName,
+    required DartType? type,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isWildcard = false,
+    bool hasDeclaredInitializer = false,
+    this.initializer,
+  }) : type = type ?? const DynamicType(),
+       super.empty() {
+    this.isFinal = isFinal;
+    this.isConst = isConst;
+    this.isLate = true;
+    this.isWildcard = isWildcard;
+    this.hasDeclaredInitializer = hasDeclaredInitializer;
+    this.initializer?.parent = this;
+  }
+
+  @override
+  VariableContext? get context {
+    assert(
+      _context != null,
+      "The context of a '${runtimeType}' variable with cosmetic name "
+      "'${cosmeticName}' is accessed, but hasn't been set yet.",
+    );
+    return _context;
+  }
+
+  @override
+  void set context(VariableContext value) {
+    _context = value;
+  }
+
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
+
+  static const int FlagFinal = 1 << 0;
+  static const int FlagWildcard = 1 << 1;
+  static const int FlagConst = 1 << 2;
+  static const int FlagLate = 1 << 3;
+  static const int FlagLowered = 1 << 4;
+  static const int FlagHoisted = 1 << 5;
+  static const int FlagHasDeclaredInitializer = 1 << 6;
+  static const int FlagErroneouslyInitialized = 1 << 7;
+
+  @override
+  bool get isFinal => flags & FlagFinal != 0;
+
+  @override
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
+  }
+
+  @override
+  bool get isWildcard => flags & FlagWildcard != 0;
+
+  @override
+  void set isWildcard(bool value) {
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
+  }
+
+  @override
+  bool get isConst => flags & FlagConst != 0;
+
+  @override
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  @override
+  bool get isLate => flags & FlagLate != 0;
+
+  @override
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  @override
+  bool get isLowered => flags & FlagLowered != 0;
+
+  @override
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
+  }
+
+  @override
+  bool get isHoisted => flags & FlagHoisted != 0;
+
+  @override
+  void set isHoisted(bool value) {
+    flags = value ? (flags | FlagHoisted) : (flags & ~FlagHoisted);
+  }
+
+  @override
+  bool get isCovariantByClass {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByClass(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    flags = value
+        ? (flags | FlagErroneouslyInitialized)
+        : (flags & ~FlagErroneouslyInitialized);
+  }
+
+  @override
+  bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    flags = value
+        ? (flags | FlagHasDeclaredInitializer)
+        : (flags & ~FlagHasDeclaredInitializer);
+  }
+
+  @override
+  bool get isInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isRequired {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isRequired(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSuperInitializingFormal {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isSynthesized => false;
+
+  @override
+  void set isSynthesized(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) return initializer == null;
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  R accept<R>(VariableVisitor<R> v) => v.visitLateVariable(this);
+
+  @override
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
+      v.visitLateVariable(this, arg);
 
   @override
   void transformChildren(Transformer v) {

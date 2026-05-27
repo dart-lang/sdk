@@ -1124,6 +1124,92 @@ class InternalLocalVariable extends TreeNode
   int binaryOffsetNoTag = -1;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  List<VariableContext>? get capturedContexts =>
+      variableDeclaration?.capturedContexts;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set capturedContexts(List<VariableContext>? value) {
+    variableDeclaration!.capturedContexts = value;
+  }
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Variable get variable => this;
+
+  @override
+  void set variable(Variable variable) {
+    throw new UnsupportedError("${this.runtimeType}.variable=");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void clearAnnotations() {
+    annotations.clear();
+  }
+}
+
+class InternalLateVariable extends TreeNode
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements LateVariable, InternalVariable {
+  @override
+  LateVariable astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalLateVariable({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(VariableVisitor<R> v) => v.visitLateVariable(astVariable);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) =>
+      v.visitLateVariable(astVariable, arg);
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
   List<VariableContext>? get capturedContexts =>
       variableDeclaration?.capturedContexts;
 

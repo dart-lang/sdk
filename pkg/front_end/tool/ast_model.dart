@@ -133,6 +133,10 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'variableDeclaration': FieldRule(isDeclaration: false),
     '_context': FieldRule(name: 'context'),
   },
+  'LateVariable': {
+    'variableDeclaration': FieldRule(isDeclaration: false),
+    '_context': FieldRule(name: 'context'),
+  },
   'CatchVariable': {'_context': FieldRule(name: 'context')},
   'PositionalParameter': {'_context': FieldRule(name: 'context')},
   'NamedParameter': {'_context': FieldRule(name: 'context')},

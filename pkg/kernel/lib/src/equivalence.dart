@@ -871,6 +871,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitLateVariable(LateVariable node, Node other) {
+    return strategy.checkLateVariable(this, node, other);
+  }
+
+  @override
   bool visitCatchVariable(CatchVariable node, Node other) {
     return strategy.checkCatchVariable(this, node, other);
   }
@@ -6108,6 +6113,50 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkLateVariable(
+    EquivalenceVisitor visitor,
+    LateVariable? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! LateVariable) return false;
+    if (other is! LateVariable) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkLateVariable_cosmeticName(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_type(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_variableDeclaration(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_initializer(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_binaryOffsetNoTag(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_fileEqualsOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -13645,6 +13694,112 @@ class EquivalenceStrategy {
     EquivalenceVisitor visitor,
     LocalVariable node,
     LocalVariable other,
+  ) {
+    return checkVariable_fileOffset(visitor, node, other);
+  }
+
+  bool checkLateVariable_cosmeticName(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkValues(
+      node.cosmeticName,
+      other.cosmeticName,
+      'cosmeticName',
+    );
+  }
+
+  bool checkLateVariable_type(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkNodes(node.type, other.type, 'type');
+  }
+
+  bool checkLateVariable_variableDeclaration(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.variableDeclaration,
+      other.variableDeclaration,
+      'variableDeclaration',
+    );
+  }
+
+  bool checkLateVariable_annotations(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkLists(
+      node.annotations,
+      other.annotations,
+      visitor.checkNodes,
+      'annotations',
+    );
+  }
+
+  bool checkLateVariable_context(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkLateVariable_initializer(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
+    );
+  }
+
+  bool checkLateVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkValues(
+      node.binaryOffsetNoTag,
+      other.binaryOffsetNoTag,
+      'binaryOffsetNoTag',
+    );
+  }
+
+  bool checkLateVariable_fileEqualsOffset(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkValues(
+      node.fileEqualsOffset,
+      other.fileEqualsOffset,
+      'fileEqualsOffset',
+    );
+  }
+
+  bool checkLateVariable_flags(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return checkVariable_flags(visitor, node, other);
+  }
+
+  bool checkLateVariable_fileOffset(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
   ) {
     return checkVariable_fileOffset(visitor, node, other);
   }

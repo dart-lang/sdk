@@ -764,6 +764,21 @@ class CloneVisitorNotMembers
   }
 
   @override
+  TreeNode visitLateVariable(LateVariable node) {
+    return setVariableClone(
+      node,
+      new LateVariable(
+          cosmeticName: node.cosmeticName,
+          type: visitOptionalType(node.type),
+          initializer: cloneOptional(node.initializer),
+        )
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
   TreeNode visitSyntheticVariable(SyntheticVariable node) {
     return setVariableClone(
       node,

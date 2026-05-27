@@ -94,6 +94,7 @@ class NodeCreator {
        _pendingVariables = _createPending<VariableKind>(variables, {
          VariableKind.CatchVariable,
          VariableKind.LocalVariable,
+         VariableKind.LateVariable,
          VariableKind.PositionalParameter,
          VariableKind.NamedParameter,
          VariableKind.SyntheticVariable,
