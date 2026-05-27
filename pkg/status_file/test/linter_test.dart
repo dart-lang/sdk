@@ -41,19 +41,26 @@ StatusFile createFromString(String text) {
   return StatusFile.parse("test", text.split('\n'));
 }
 
-void expectError(String text, String expectedError,
-    {bool disjunctions = false}) {
+void expectError(
+  String text,
+  String expectedError, {
+  bool disjunctions = false,
+}) {
   var statusFile = createFromString(text);
-  var errors = lint(statusFile,
-          checkForDisjunctions: disjunctions, checkForNonExisting: false)
-      .toList();
+  var errors = lint(
+    statusFile,
+    checkForDisjunctions: disjunctions,
+    checkForNonExisting: false,
+  ).toList();
   Expect.equals(expectedError, errors.first.toString());
 }
 
 void expectNoError(String text, {bool disjunctions = true}) {
-  var errors = lint(createFromString(text),
-          checkForDisjunctions: disjunctions, checkForNonExisting: false)
-      .toList();
+  var errors = lint(
+    createFromString(text),
+    checkForDisjunctions: disjunctions,
+    checkForNonExisting: false,
+  ).toList();
   Expect.listEquals([], errors);
 }
 
@@ -102,12 +109,13 @@ vm/tests2: Timeout # this comment is also valid
 
 void testCheckForDisjunctions_notAllowedDisjunction() {
   expectError(
-      r"""[ $mode == debug || $mode == release ]
+    r"""[ $mode == debug || $mode == release ]
 vm/tests: Skip # this comment is valid
 """,
-      "Error at line 1: Expression contains '||'. Please split the expression "
-          "into multiple separate sections.",
-      disjunctions: true);
+    "Error at line 1: Expression contains '||'. Please split the expression "
+        "into multiple separate sections.",
+    disjunctions: true,
+  );
 }
 
 void testCheckForDisjunctions_shouldBeAllowedInComments() {
@@ -119,12 +127,13 @@ vm/tests: Skip # this comment is valid
 
 void testCheckForAlphabeticalOrderingOfPaths_invalidOrdering() {
   expectError(
-      r"""[ $mode == debug ]
+    r"""[ $mode == debug ]
 vm/tests: Skip # this should come after a_test
 a_test: Pass
 """,
-      "Error at line 1: Test paths are not alphabetically ordered in "
-          "section. a_test should come before vm/tests.");
+    "Error at line 1: Test paths are not alphabetically ordered in "
+        "section. a_test should come before vm/tests.",
+  );
 }
 
 void testCheckForAlphabeticalOrderingOfPaths_okOrdering() {
@@ -138,60 +147,66 @@ xyz_test: Skip
 
 void testCheckForDuplicateEntries_hasDuplicates() {
   expectError(
-      r"""[ $mode == debug ]
+    r"""[ $mode == debug ]
 a_test: Pass
 a_test: Pass
 bc_test: Pass
 xyz_test: Skip
 """,
-      "Error at line 1: The status entry 'a_test: Pass' is duplicated on lines "
-          "2 and 3.");
+    "Error at line 1: The status entry 'a_test: Pass' is duplicated on lines "
+        "2 and 3.",
+  );
 }
 
 void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeCompiler() {
   expectError(
-      r"""[ $runtime == ff && $compiler == dart2js]
+    r"""[ $runtime == ff && $compiler == dart2js]
 a_test: Pass
 """,
-      r"Error at line 1: Condition expression should be '$compiler == dart2js "
-          r"&& $runtime == ff' but was '$runtime == ff && $compiler == dart2js'.");
+    r"Error at line 1: Condition expression should be '$compiler == dart2js "
+        r"&& $runtime == ff' but was '$runtime == ff && $compiler == dart2js'.",
+  );
 }
 
 void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeMode() {
   expectError(
-      r"""[ $runtime == ff && $mode == debug ]
+    r"""[ $runtime == ff && $mode == debug ]
 a_test: Pass
 """,
-      r"Error at line 1: Condition expression should be '$mode == debug && "
-          r"$runtime == ff' but was '$runtime == ff && $mode == debug'.");
+    r"Error at line 1: Condition expression should be '$mode == debug && "
+        r"$runtime == ff' but was '$runtime == ff && $mode == debug'.",
+  );
 }
 
 void testCheckForCorrectOrderingInSections_invalidSystemBeforeMode() {
   expectError(
-      r"""[ $system == win && $mode == debug ]
+    r"""[ $system == win && $mode == debug ]
 a_test: Pass
 """,
-      r"Error at line 1: Condition expression should be '$mode == debug && "
-          r"$system == win' but was '$system == win && $mode == debug'.");
+    r"Error at line 1: Condition expression should be '$mode == debug && "
+        r"$system == win' but was '$system == win && $mode == debug'.",
+  );
 }
 
 void testCheckForCorrectOrderingInSections_invalidStrongBeforeKernel() {
   expectError(
-      r"""[ !$strong && !$kernel ]
+    r"""[ !$strong && !$kernel ]
 a_test: Pass
 """,
-      r"Error at line 1: Condition expression should be '!$kernel && !$strong' "
-          r"but was '!$strong && !$kernel'.");
+    r"Error at line 1: Condition expression should be '!$kernel && !$strong' "
+        r"but was '!$strong && !$kernel'.",
+  );
 }
 
 void testCheckForCorrectOrderingInSections_invalidOrdering() {
   expectError(
-      r"""[ $compiler == dart2js && $builder_tag == strong && !$browser ]
+    r"""[ $compiler == dart2js && $builder_tag == strong && !$browser ]
 a_test: Pass
 """,
-      r"Error at line 1: Condition expression should be '$builder_tag == "
-          r"strong && $compiler == dart2js && !$browser' but was "
-          r"'$compiler == dart2js && $builder_tag == strong && !$browser'.");
+    r"Error at line 1: Condition expression should be '$builder_tag == "
+        r"strong && $compiler == dart2js && !$browser' but was "
+        r"'$compiler == dart2js && $builder_tag == strong && !$browser'.",
+  );
 }
 
 void testCheckForCorrectOrderingInSections_okOrdering() {
@@ -202,33 +217,35 @@ a_test: Pass
 
 void checkLintNormalizedSection_invalidAlphabeticalOrderingVariables() {
   expectError(
-      r"""[ $runtime == ff ]
+    r"""[ $runtime == ff ]
 a_test: Pass
 
 [ $compiler == dart2js ]
 a_test: Pass
 """,
-      r"Error at line 1: Section expressions are not correctly ordered in file."
-          r" '$compiler == dart2js' on line 4 should come before '$runtime == ff' "
-          r"at line 1.");
+    r"Error at line 1: Section expressions are not correctly ordered in file."
+        r" '$compiler == dart2js' on line 4 should come before '$runtime == ff' "
+        r"at line 1.",
+  );
 }
 
 void checkLintNormalizedSection_invalidAlphabeticalOrderingVariableArguments() {
   expectError(
-      r"""[ $runtime == ff ]
+    r"""[ $runtime == ff ]
 a_test: Pass
 
 [ $runtime == chrome ]
 a_test: Pass
 """,
-      r"Error at line 1: Section expressions are not correctly ordered in file."
-          r" '$runtime == chrome' on line 4 should come before '$runtime == ff' at "
-          r"line 1.");
+    r"Error at line 1: Section expressions are not correctly ordered in file."
+        r" '$runtime == chrome' on line 4 should come before '$runtime == ff' at "
+        r"line 1.",
+  );
 }
 
 void checkLintNormalizedSection_invalidOrderingWithNotEqual() {
   expectError(
-      r"""
+    r"""
 [ $ runtime == chrome ]
 a_test: Pass
 
@@ -238,14 +255,15 @@ a_test: Pass
 [ $runtime == ff ]
 a_test: Pass
 """,
-      r"Error at line 4: Section expressions are not correctly ordered in file."
-          r" '$runtime == ff' on line 7 should come before '$runtime != ff' at "
-          r"line 4.");
+    r"Error at line 4: Section expressions are not correctly ordered in file."
+        r" '$runtime == ff' on line 7 should come before '$runtime != ff' at "
+        r"line 4.",
+  );
 }
 
 void checkLintNormalizedSection_invalidOrderingWithNegation() {
   expectError(
-      r"""
+    r"""
 [ ! $browser ]
 a_test: Pass
 
@@ -256,8 +274,9 @@ a_test: Pass
 a_test: Pass
 
 """,
-      r"Error at line 4: Section expressions are not correctly ordered in file."
-          r" '$checked' on line 7 should come before '!$checked' at line 4.");
+    r"Error at line 4: Section expressions are not correctly ordered in file."
+        r" '$checked' on line 7 should come before '!$checked' at line 4.",
+  );
 }
 
 void checkLintNormalizedSection_correctOrdering() {
@@ -283,13 +302,14 @@ a_test: Pass
 
 void checkLintSectionHeaderDuplicates_invalidDuplicateSections() {
   expectError(
-      r"""
+    r"""
 [ ! $browser ]
 a_test: Pass
 
 [ ! $browser ]
 a_test: Pass
 """,
-      r"Error at line 4: The condition '!$browser' is duplicated on lines 1 "
-          r"and 4.");
+    r"Error at line 4: The condition '!$browser' is duplicated on lines 1 "
+        r"and 4.",
+  );
 }

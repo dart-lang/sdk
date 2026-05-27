@@ -165,8 +165,10 @@ class StatusFile {
       // Comments after the last empty line belong to the next section's header.
       // The empty line is not added to the section header, because it will be
       // added to the section's entries.
-      implicitSectionHeaderComments =
-          implicitSectionHeaderComments.sublist(0, lastEmptyLine - 1);
+      implicitSectionHeaderComments = implicitSectionHeaderComments.sublist(
+        0,
+        lastEmptyLine - 1,
+      );
       entries.add(sectionHeaderComments[lastEmptyLine - 1]);
       sectionHeaderComments = sectionHeaderComments.sublist(lastEmptyLine);
     } else {
@@ -176,8 +178,11 @@ class StatusFile {
 
     // The current section whose rules are being parsed. Initialized to an
     // implicit section that matches everything.
-    StatusSection section =
-        StatusSection(Expression.always, -1, implicitSectionHeaderComments);
+    StatusSection section = StatusSection(
+      Expression.always,
+      -1,
+      implicitSectionHeaderComments,
+    );
     section.entries.addAll(entries);
     sections.add(section);
 
@@ -223,11 +228,13 @@ class StatusFile {
           }
         });
         if (match[3] == null) {
-          section.entries
-              .add(StatusEntry(path, _lineCount, expectations, null));
+          section.entries.add(
+            StatusEntry(path, _lineCount, expectations, null),
+          );
         } else {
           section.entries.add(
-              StatusEntry(path, _lineCount, expectations, Comment(match[3]!)));
+            StatusEntry(path, _lineCount, expectations, Comment(match[3]!)),
+          );
         }
         continue;
       }
@@ -267,8 +274,13 @@ class StatusFile {
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
-        throw SyntaxError(_shortPath, section.lineNumber,
-            "[ ${section.condition} ]", 'Validation error$s', errors);
+        throw SyntaxError(
+          _shortPath,
+          section.lineNumber,
+          "[ ${section.condition} ]",
+          'Validation error$s',
+          errors,
+        );
       }
     }
   }

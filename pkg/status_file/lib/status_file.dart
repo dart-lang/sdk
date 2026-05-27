@@ -114,8 +114,9 @@ class StatusFile {
           sections.add(StatusSection(Expression.always, -1));
         }
 
-        sections.last.entries
-            .add(StatusEntry(path, _lineCount, expectations, issue));
+        sections.last.entries.add(
+          StatusEntry(path, _lineCount, expectations, issue),
+        );
         continue;
       }
 
@@ -138,8 +139,13 @@ class StatusFile {
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
-        throw SyntaxError(_shortPath, section.lineNumber,
-            "[ ${section.condition} ]", 'Validation error$s', errors);
+        throw SyntaxError(
+          _shortPath,
+          section.lineNumber,
+          "[ ${section.condition} ]",
+          'Validation error$s',
+          errors,
+        );
       }
     }
   }
@@ -223,8 +229,10 @@ class StatusFile {
       }
 
       for (var entry in section.entries) {
-        writeText("${entry.path}: ${entry.expectations.join(', ')}",
-            entry.lineNumber);
+        writeText(
+          "${entry.path}: ${entry.expectations.join(', ')}",
+          entry.lineNumber,
+        );
       }
 
       needBlankLine = true;

@@ -105,8 +105,10 @@ class Variable {
   String lookup(Environment environment) {
     var value = environment.lookUp(name);
     if (value == null) {
-      throw Exception("Could not find '$name' in environment "
-          "while evaluating status file expression.");
+      throw Exception(
+        "Could not find '$name' in environment "
+        "while evaluating status file expression.",
+      );
     }
 
     // Explicitly stringify all values so that things like:
@@ -291,8 +293,9 @@ class LogicExpression extends Expression {
 
     // Recurse into the operands, sort them, and remove duplicates.
     var normalized = LogicExpression(
-            op, operands.map((operand) => operand.normalize()).toList())
-        .operands;
+      op,
+      operands.map((operand) => operand.normalize()).toList(),
+    ).operands;
     normalized = flatten(normalized);
     var ordered = SplayTreeSet<Expression>.from(normalized).toList();
     return LogicExpression(op, ordered);
@@ -406,12 +409,14 @@ class _ExpressionParser {
     // of the form $variable.
     if (!_scanner.match(_Token.dollar)) {
       throw FormatException(
-          "Expected \$ in expression, got ${_scanner.current}");
+        "Expected \$ in expression, got ${_scanner.current}",
+      );
     }
 
     if (!_scanner.isIdentifier) {
       throw FormatException(
-          "Expected identifier in expression, got ${_scanner.current}");
+        "Expected identifier in expression, got ${_scanner.current}",
+      );
     }
 
     var left = Variable(_scanner.current!);
@@ -424,7 +429,8 @@ class _ExpressionParser {
 
       if (!_scanner.isIdentifier) {
         throw FormatException(
-            "Expected value in expression, got ${_scanner.current}");
+          "Expected value in expression, got ${_scanner.current}",
+        );
       }
 
       var right = _scanner.advance()!;

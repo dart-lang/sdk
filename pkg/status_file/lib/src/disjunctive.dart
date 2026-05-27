@@ -24,8 +24,9 @@ final String _comparisonToken = "__";
 /// The procedure is exponential so [expression] should not be too big.
 Expression toDisjunctiveNormalForm(Expression expression) {
   var normalizedExpression = expression.normalize();
-  var variableExpression =
-      _comparisonExpressionsToVariableExpressions(normalizedExpression);
+  var variableExpression = _comparisonExpressionsToVariableExpressions(
+    normalizedExpression,
+  );
   var minTerms = _satisfiableMinTerms(variableExpression);
   if (minTerms == null) {
     return T;
@@ -101,7 +102,9 @@ LogicExpression _minimizeByComplementation(LogicExpression expression) {
     return onesInA - onesInB;
   });
   var combinedMinSets = _combineMinSets(
-      clauses.map((e) => [LogicExpression.and(e)]).toList(), []);
+    clauses.map((e) => [LogicExpression.and(e)]).toList(),
+    [],
+  );
   List<List<LogicExpression>> minCover = _findMinCover(combinedMinSets, []);
   var finalOperands = minCover.map((minSet) => _reduceMinSet(minSet)).toList();
   return LogicExpression.or(finalOperands).normalize();
@@ -172,8 +175,10 @@ class TruthTableEnvironment extends Environment {
 /// Combines [minSets] recursively as long as possible. Prime implicants (those
 /// that cannot be reduced further) are kept track of in [primeImplicants]. When
 /// finished the function returns all combined min sets.
-List<List<LogicExpression>> _combineMinSets(List<List<LogicExpression>> minSets,
-    List<List<LogicExpression>> primeImplicants) {
+List<List<LogicExpression>> _combineMinSets(
+  List<List<LogicExpression>> minSets,
+  List<List<LogicExpression>> primeImplicants,
+) {
   List<List<LogicExpression>> combined = <List<LogicExpression>>[];
   var addedInThisIteration = <List<LogicExpression>>{};
   for (var i = 0; i < minSets.length; i++) {
@@ -205,8 +210,10 @@ List<List<LogicExpression>> _combineMinSets(List<List<LogicExpression>> minSets,
 /// Two min sets can be combined if they only differ by one. We reduce min sets
 /// and find their difference based on variables.
 bool _canCombine(List<LogicExpression> a, List<LogicExpression> b) {
-  return _difference(_reduceMinSet(a).operands, _reduceMinSet(b).operands)
-          .length ==
+  return _difference(
+        _reduceMinSet(a).operands,
+        _reduceMinSet(b).operands,
+      ).length ==
       1;
 }
 
@@ -263,8 +270,9 @@ LogicExpression _reduceMinSet(List<LogicExpression> minSet) {
 /// here. The implicants that cover only a single truth assignment can be
 /// directly added to [cover].
 List<List<LogicExpression>> _findMinCover(
-    List<List<LogicExpression>> primaryImplicants,
-    List<List<LogicExpression>> cover) {
+  List<List<LogicExpression>> primaryImplicants,
+  List<List<LogicExpression>> cover,
+) {
   var minCover = primaryImplicants.toList()..addAll(cover);
   if (cover.isEmpty) {
     var allImplicants = primaryImplicants.toList();
@@ -291,8 +299,9 @@ List<List<LogicExpression>> _findMinCover(
   for (var implicant in primaryImplicants) {
     var newCover = cover.toList()..add(implicant);
     if (!_isCover(newCover, primaryImplicants)) {
-      var newPrimaryList =
-          primaryImplicants.where((i) => i != implicant).toList();
+      var newPrimaryList = primaryImplicants
+          .where((i) => i != implicant)
+          .toList();
       newCover = _findMinCover(newPrimaryList, newCover);
     }
     if (newCover.length < minCover.length) {
@@ -345,7 +354,9 @@ T? _findFirst<T extends Expression>(T expressionToFind, List<T> expressions) {
 
 /// Adds [expressionToAdd] to [expressions] if is not present.
 void _addIfNotPresent(
-    Expression expressionToAdd, List<Expression> expressions) {
+  Expression expressionToAdd,
+  List<Expression> expressions,
+) {
   if (_findFirst(expressionToAdd, expressions) == null) {
     expressions.add(expressionToAdd);
   }
@@ -354,7 +365,8 @@ void _addIfNotPresent(
 /// Computes all unique min sets, thereby disregarding the order for which they
 /// were combined.
 List<List<LogicExpression>> _uniqueMinSets(
-    List<List<LogicExpression>> minSets) {
+  List<List<LogicExpression>> minSets,
+) {
   var uniqueMinSets = <List<LogicExpression>>[];
   for (int i = 0; i < minSets.length; i++) {
     bool foundEqual = false;
@@ -374,7 +386,9 @@ List<List<LogicExpression>> _uniqueMinSets(
 /// Measures if two min sets are equal by checking that [minSet1] c [minSet2]
 /// and minSet1.length == minSet2.length.
 bool _areMinSetsEqual(
-    List<LogicExpression> minSet1, List<LogicExpression> minSet2) {
+  List<LogicExpression> minSet1,
+  List<LogicExpression> minSet2,
+) {
   int found = 0;
   for (var expression in minSet1) {
     if (_findFirst(expression, minSet2) != null) {
@@ -409,18 +423,21 @@ List<Expression> _getVariables(Expression expression) {
 
 Expression negate(Expression expression, {bool positive = false}) {
   if (expression is LogicExpression && expression.isOr) {
-    return LogicExpression.and(expression.operands
-        .map((e) => negate(e, positive: !positive))
-        .toList());
+    return LogicExpression.and(
+      expression.operands.map((e) => negate(e, positive: !positive)).toList(),
+    );
   }
   if (expression is LogicExpression && expression.isAnd) {
-    return LogicExpression.or(expression.operands
-        .map((e) => negate(e, positive: !positive))
-        .toList());
+    return LogicExpression.or(
+      expression.operands.map((e) => negate(e, positive: !positive)).toList(),
+    );
   }
   if (expression is ComparisonExpression) {
     return ComparisonExpression(
-        expression.left, expression.right, !expression.negate);
+      expression.left,
+      expression.right,
+      !expression.negate,
+    );
   }
   if (expression is VariableExpression) {
     return VariableExpression(expression.variable, negate: !expression.negate);
@@ -433,15 +450,17 @@ Expression negate(Expression expression, {bool positive = false}) {
 Expression _comparisonExpressionsToVariableExpressions(Expression expression) {
   if (expression is LogicExpression) {
     return LogicExpression(
-        expression.op,
-        expression.operands
-            .map((exp) => _comparisonExpressionsToVariableExpressions(exp))
-            .toList());
+      expression.op,
+      expression.operands
+          .map((exp) => _comparisonExpressionsToVariableExpressions(exp))
+          .toList(),
+    );
   }
   if (expression is ComparisonExpression) {
     return VariableExpression(
-        Variable(expression.left.name + _comparisonToken + expression.right),
-        negate: expression.negate);
+      Variable(expression.left.name + _comparisonToken + expression.right),
+      negate: expression.negate,
+    );
   }
   return expression;
 }
@@ -449,19 +468,20 @@ Expression _comparisonExpressionsToVariableExpressions(Expression expression) {
 Expression _recoverComparisonExpressions(Expression expression) {
   if (expression is LogicExpression) {
     return LogicExpression(
-        expression.op,
-        expression.operands
-            .map((exp) => _recoverComparisonExpressions(exp))
-            .toList());
+      expression.op,
+      expression.operands
+          .map((exp) => _recoverComparisonExpressions(exp))
+          .toList(),
+    );
   }
   if (expression is VariableExpression &&
       expression.variable.name.contains(_comparisonToken)) {
     int tokenIndex = expression.variable.name.indexOf(_comparisonToken);
     return ComparisonExpression(
-        Variable(expression.variable.name.substring(0, tokenIndex)),
-        expression.variable.name
-            .substring(tokenIndex + _comparisonToken.length),
-        expression.negate);
+      Variable(expression.variable.name.substring(0, tokenIndex)),
+      expression.variable.name.substring(tokenIndex + _comparisonToken.length),
+      expression.negate,
+    );
   }
   return expression;
 }

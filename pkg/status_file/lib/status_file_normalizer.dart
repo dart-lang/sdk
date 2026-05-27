@@ -8,8 +8,10 @@ import 'package:status_file/status_file_entries_file_checker.dart';
 import 'canonical_status_file.dart';
 import 'dart:convert';
 
-StatusFile normalizeStatusFile(StatusFile statusFile,
-    {required bool deleteNonExisting}) {
+StatusFile normalizeStatusFile(
+  StatusFile statusFile, {
+  required bool deleteNonExisting,
+}) {
   StatusFile newStatusFile = _sortSectionsAndCombine(statusFile);
   for (var section in newStatusFile.sections) {
     if (deleteNonExisting) {
@@ -20,11 +22,13 @@ StatusFile normalizeStatusFile(StatusFile statusFile,
   }
 
   // Remove any empty sections.
-  newStatusFile.sections.removeWhere((section) =>
-      section.sectionHeaderComments.isEmpty &&
-      (section.entries.isEmpty ||
-          (section.entries.length == 1 &&
-              section.entries.single is EmptyEntry)));
+  newStatusFile.sections.removeWhere(
+    (section) =>
+        section.sectionHeaderComments.isEmpty &&
+        (section.entries.isEmpty ||
+            (section.entries.length == 1 &&
+                section.entries.single is EmptyEntry)),
+  );
 
   // Remove empty line at the end of the file
   newStatusFile.sections.last.entries.removeLast();
@@ -70,23 +74,30 @@ void _sortEntriesInSection(StatusSection section) {
 /// Ensure that there is only one empty line to end a section.
 void _oneLineBetweenSections(StatusSection section) {
   section.entries.removeWhere((entry) => entry is EmptyEntry);
-  section.entries
-      .add(EmptyEntry(section.lineNumber + section.entries.length + 1));
+  section.entries.add(
+    EmptyEntry(section.lineNumber + section.entries.length + 1),
+  );
 }
 
 StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
   // Create the new status file to be returned.
   StatusFile oldStatusFile = StatusFile.parse(
-      statusFile.path, LineSplitter.split(statusFile.toString()).toList());
+    statusFile.path,
+    LineSplitter.split(statusFile.toString()).toList(),
+  );
   List<StatusSection> newSections = [];
   // Copy over all sections and normalize all the expressions.
   for (var section in oldStatusFile.sections) {
     if (section.condition != Expression.always) {
       if (section.isEmpty()) continue;
 
-      newSections.add(StatusSection(section.condition.normalize(),
-          section.lineNumber, section.sectionHeaderComments)
-        ..entries.addAll(section.entries));
+      newSections.add(
+        StatusSection(
+          section.condition.normalize(),
+          section.lineNumber,
+          section.sectionHeaderComments,
+        )..entries.addAll(section.entries),
+      );
     } else {
       newSections.add(section);
     }
