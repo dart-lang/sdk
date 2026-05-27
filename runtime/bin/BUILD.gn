@@ -931,6 +931,15 @@ template("dart_executable") {
         "winmm.lib",
       ]
     }
+
+    # Can't be added by tool("link"), but make sure changes to entitlements
+    # trigger re-links.
+    if (is_mac) {
+      inputs = [
+        "../tools/dart_codesign.py",
+        "../tools/entitlements/${target_name}.plist",
+      ]
+    }
   }
 }
 
