@@ -56,9 +56,7 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
+    await _setRoots([contextRoot]);
 
     var pluginErrorParamsQueue = StreamQueue(
       channel.notifications
@@ -96,9 +94,7 @@ plugins:
           .map((n) => protocol.PluginErrorParams.fromNotification(n)),
     );
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
+    await _setRoots([contextRoot]);
 
     var analysisErrorsParams = await analysisErrorsParamsQueue.next;
     expect(analysisErrorsParams.errors, isEmpty);
@@ -126,9 +122,7 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
+    await _setRoots([contextRoot]);
 
     var pluginErrorParamsQueue = StreamQueue(
       channel.notifications
@@ -170,9 +164,7 @@ plugins:
           .map((n) => protocol.PluginErrorParams.fromNotification(n)),
     );
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
+    await _setRoots([contextRoot]);
 
     // Wait for initial analysis to complete and populate `_recentState`.
     var analysisErrorsParams = await analysisErrorsParamsQueue.next;
@@ -212,9 +204,7 @@ plugins:
           .where((p) => p.file == filePath),
     );
 
-    await channel.sendRequest(
-      protocol.AnalysisSetContextRootsParams([contextRoot]),
-    );
+    await _setRoots([contextRoot]);
 
     // Wait for initial analysis to complete and populate `_recentState`.
     await analysisErrorsParamsQueue.next;
@@ -247,6 +237,17 @@ plugins:
         plugins: [_PluginWithFixWithNoFixKind()],
       ),
       throwsArgumentError,
+    );
+  }
+
+  Future<void> _setRoots(List<protocol.ContextRoot> contextRoots) async {
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams(contextRoots),
+    );
+    await channel.sendRequest(
+      protocol.AnalysisSetAnalysisRootsParams([
+        for (var contextRoot in contextRoots) contextRoot.root,
+      ], []),
     );
   }
 }

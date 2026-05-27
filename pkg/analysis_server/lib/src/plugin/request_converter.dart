@@ -10,6 +10,12 @@ extension AnalysisServiceExtension on server.AnalysisService {
       plugin.AnalysisService.values.byName(name);
 }
 
+extension AnalysisSetAnalysisRootsParamsExtension
+    on server.AnalysisSetAnalysisRootsParams {
+  plugin.AnalysisSetAnalysisRootsParams get asPluginProtocol =>
+      plugin.AnalysisSetAnalysisRootsParams(included, excluded);
+}
+
 extension AnalysisSetPriorityFilesParamsExtension
     on server.AnalysisSetPriorityFilesParams {
   plugin.AnalysisSetPriorityFilesParams get asPluginProtocol =>

@@ -1219,6 +1219,22 @@ final Matcher isAnalysisOutlineParams = LazyMatcher(
   }),
 );
 
+/// analysis.setAnalysisRoots params
+///
+///     {
+///       "included": List<FilePath>
+///       "excluded": List<FilePath>
+///     }
+final Matcher isAnalysisSetAnalysisRootsParams = LazyMatcher(
+  () => MatchesJsonObject('analysis.setAnalysisRoots params', {
+    'included': isListOf(isFilePath),
+    'excluded': isListOf(isFilePath),
+  }),
+);
+
+/// analysis.setAnalysisRoots result
+final Matcher isAnalysisSetAnalysisRootsResult = isNull;
+
 /// analysis.setContextRoots params
 ///
 ///     {

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 
 /// The handler for the `analysis.setAnalysisRoots` request.
@@ -57,6 +58,11 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
         request.id,
         includedPathList,
         excludedPathList,
+      );
+
+      // Forward the request to the plugins.
+      server.pluginManager.setAnalysisSetAnalysisRootsParams(
+        params.asPluginProtocol,
       );
     }
     sendResult(AnalysisSetAnalysisRootsResult());

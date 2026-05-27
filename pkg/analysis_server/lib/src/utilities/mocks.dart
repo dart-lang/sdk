@@ -297,6 +297,11 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
+  void setAnalysisSetAnalysisRootsParams(
+    plugin.AnalysisSetAnalysisRootsParams params,
+  ) {}
+
+  @override
   void setAnalysisSetPriorityFilesParams(
     plugin.AnalysisSetPriorityFilesParams params,
   ) {
