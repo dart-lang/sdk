@@ -20,6 +20,18 @@ class ConvertToPrimaryConstructorClassTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPrimaryConstructor;
 
+  Future<void> test_genericClass() async {
+    await resolveTestCode('''
+class C<T> {
+  C^();
+}
+''');
+    await assertHasAssist('''
+class C<T>() {
+}
+''');
+  }
+
   Future<void> test_noParameters_noBody_named() async {
     await resolveTestCode('''
 class C {
@@ -482,6 +494,20 @@ class B {
 class ConvertToPrimaryConstructorEnumTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPrimaryConstructor;
+
+  Future<void> test_genericEnum() async {
+    await resolveTestCode('''
+enum C<T> {
+  a;
+  C^();
+}
+''');
+    await assertHasAssist('''
+enum C<T>() {
+  a;
+}
+''');
+  }
 
   Future<void> test_noParameters_noBody() async {
     await resolveTestCode('''
