@@ -26,7 +26,7 @@ class Step {
   final bool isTestRunner;
   final Configuration? testedConfiguration;
 
-  Step(this.name, String? script, this.arguments, this.environment,
+  new(this.name, String? script, this.arguments, this.environment,
       this.fileSet, this.shards, this.isTestRunner, this.testedConfiguration)
       : script = script ?? testScriptName;
 
@@ -102,7 +102,7 @@ class Builder {
   final Runtime? runtime;
   final Set<Configuration> testedConfigurations;
 
-  Builder(this.name, this.description, this.steps, this.system, this.mode,
+  new(this.name, this.description, this.steps, this.system, this.mode,
       this.arch, this.sanitizer, this.runtime, this.testedConfigurations);
 
   /// Create a [Builder] from its name, a list of 'step templates', the
