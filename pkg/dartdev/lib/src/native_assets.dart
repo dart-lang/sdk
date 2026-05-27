@@ -191,13 +191,30 @@ class DartNativeAssetsBuilder {
 
   Future<LinkResult?> linkNativeAssetsAOT({
     required String? recordedUsagesPath,
+    required List<Uri> entryPoints,
     required BuildResult buildResult,
   }) async {
     final builder = await _nativeAssetsBuildRunner;
     final linkResult = await builder.link(
       extensions: _extensions,
-      resourceIdentifiers: recordedUsagesPath != null
-          ? Uri.file(recordedUsagesPath)
+      recordUse: recordedUsagesPath != null
+          ? RecordUseConfig(
+              file: Uri.file(recordedUsagesPath),
+              entryPoints: entryPoints,
+              // The compiler inlines target operating system constants before Type
+              // Flow Analysis (TFA) (see VMConstantEvaluator class and its
+              // visitStaticGet method inside
+              // pkg/vm/lib/transformations/vm_constant_evaluator.dart), which
+              // alters the recorded usages (tree-shaking).
+              // Thus, we must separate the link cache by target OS. Other build targets
+              // (like architecture and sanitizers) do not affect this optimization.
+              //
+              // We also use a stable 'vm_aot' prefix rather than the dynamic SDK
+              // compiler version string, ensuring old cache directories under
+              // `.dart_tool/` are overwritten/re-used rather than accumulating
+              // indefinitely across SDK rolls.
+              compiler: 'vm_aot_${target.os.name}',
+            )
           : null,
       buildResult: buildResult,
     );

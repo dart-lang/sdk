@@ -277,6 +277,71 @@ void main(List<String> args) {
     });
   }
 
+  test('dart build link hook cache isolation', timeout: longTimeout, () async {
+    await recordUseTest('drop_dylib_recording', (dartAppUri) async {
+      // First run: compile with target drop_dylib_recording_calls.dart.
+      // This is the first compile, so it should run both build and link hooks.
+      final run1 = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'build',
+          'cli',
+          '--target',
+          'bin/drop_dylib_recording_calls.dart',
+          '-v',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+      expect(run1.stdout, contains('Running build hooks'));
+      expect(run1.stdout, contains('Running link hooks'));
+      expect(run1.stdout, isNot(contains('Skipping build for')));
+      expect(run1.stdout, isNot(contains('Skipping link for')));
+
+      // Second run: compile with target drop_dylib_recording_calls.dart again.
+      // Since no inputs changed, it should skip both build and link hooks (cache hit).
+      final run2 = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'build',
+          'cli',
+          '--target',
+          'bin/drop_dylib_recording_calls.dart',
+          '-v',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+      expect(run2.stdout, contains('Skipping build for drop_dylib_recording'));
+      expect(run2.stdout, contains('Skipping link for drop_dylib_recording'));
+      expect(run2.stdout, isNot(contains('hook.dill')));
+
+      // Third run: compile with target drop_dylib_recording_instances.dart.
+      // The entrypoint target changed.
+      // The build hook is NOT dependent on entrypoints, so build should remain a cache hit.
+      // The link hook is dependent on entrypoints, so link must cache miss and run again.
+      final run3 = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'build',
+          'cli',
+          '--target',
+          'bin/drop_dylib_recording_instances.dart',
+          '-v',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+      expect(run3.stdout, contains('Skipping build for drop_dylib_recording'));
+      expect(run3.stdout,
+          isNot(contains('Skipping link for drop_dylib_recording')));
+      expect(run3.stdout, contains('hook.dill'));
+    });
+  });
+
   test(
     'dart build with native dynamic linking',
     timeout: longTimeout,

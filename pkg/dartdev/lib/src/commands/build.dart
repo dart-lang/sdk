@@ -321,7 +321,13 @@ then that is used instead.''',
       for (final e in executables) {
         String? recordedUsagesPath;
         if (recordUseEnabled) {
-          recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
+          final stableDirUri =
+              pubspecUri?.resolve('.dart_tool/native_assets/') ?? tempDir.uri;
+          final stableDir = Directory.fromUri(stableDirUri);
+          await stableDir.create(recursive: true);
+          recordedUsagesPath = stableDir.uri
+              .resolve('recorded_usages.json')
+              .toFilePath();
         }
         final outputExeUri = binDirectory.uri.resolve(
           targetOS.executableFileName(e.name),
@@ -353,17 +359,22 @@ then that is used instead.''',
           // Multiple executables are only supported with recorded uses
           // disabled, so don't re-invoke link hooks.
           if (hasHooks) {
+            final entryPoints = executables
+                .map((e) => e.sourceEntryPoint)
+                .toList();
             linkResult = await (showProgress
                 ? progress(
                     'Running link hooks',
                     () => builder.linkNativeAssetsAOT(
                       recordedUsagesPath: recordedUsagesPath,
+                      entryPoints: entryPoints,
                       buildResult: buildResult!,
                     ),
                     progressUpdatesOnStderr: progressUpdatesOnStderr,
                   )
                 : builder.linkNativeAssetsAOT(
                     recordedUsagesPath: recordedUsagesPath,
+                    entryPoints: entryPoints,
                     buildResult: buildResult!,
                   ));
             if (linkResult == null) {
