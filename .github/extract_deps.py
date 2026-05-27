@@ -19,6 +19,9 @@ import re
 import shutil
 import subprocess
 import sys
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 CHECKOUT_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
@@ -54,25 +57,45 @@ def extract_deps(deps_file):
       'deps_os': {},
   }
   # Read the content.
-  with open(deps_file, 'r') as file:
-    deps_content = file.read()
+  try:
+    with open(deps_file, 'r') as file:
+      deps_content = file.read()
+  except FileNotFoundError:
+      logging.error(f'DEPS file not found at {deps_file}')
+      sys.exit(1)
+  except Exception as e:
+      logging.error(f'Error reading DEPS file {deps_file}: {e}')
+      sys.exit(1)
 
   # Eval the content.
-  exec(deps_content, global_scope, local_scope)
+  try:
+    exec(deps_content, global_scope, local_scope)
+  except Exception as e:
+    logging.error(f'Error executing DEPS file {deps_file}: {e}')
+    sys.exit(1)
 
   if not os.path.exists(DEP_CLONE_DIR):
-    os.mkdir(DEP_CLONE_DIR)  # Clone deps with upstream into temporary dir.
+    try:
+        os.mkdir(DEP_CLONE_DIR)  # Clone deps with upstream into temporary dir.
+    except OSError as e:
+        logging.error(f'Error creating directory {DEP_CLONE_DIR}: {e}')
+        sys.exit(1)
 
   # Extract the deps and filter.
   deps = local_scope.get('deps', {})
   filtered_osv_deps = []
-  for _, dep in deps.items():
+  for dep_name, dep_info in deps.items():
     # We currently do not support packages or cipd which are represented
     # as dictionaries.
-    if not isinstance(dep, str):
+    if not isinstance(dep_info, str):
+      logging.warning(f'Skipping unsupported dependency type for {dep_name}: {type(dep_info)}')
       continue
 
-    dep_split = dep.rsplit('@', 1)
+    dep_split = dep_info.rsplit('@', 1)
+    if len(dep_split) != 2:
+        logging.warning(f'Skipping malformed dependency string for {dep_name}: {dep_info}')
+        continue
+
     filtered_osv_deps.append({
           'package': {'name': dep_split[0], 'commit': dep_split[1]}
       })
@@ -83,10 +106,8 @@ def extract_deps(deps_file):
         DEP_CLONE_DIR
     )  # Use shutil.rmtree since dir could be non-empty.
   except OSError as clone_dir_error:
-    print(
-        'Error cleaning up clone directory: %s : %s' %
-        (DEP_CLONE_DIR, clone_dir_error.strerror)
-    )
+    logging.error(f'Error cleaning up clone directory {DEP_CLONE_DIR}: {clone_dir_error}')
+    # Continue even if cleanup fails, as it's not critical for the output
 
   osv_result = {
       'packageSource': {'path': deps_file, 'type': 'lockfile'},
@@ -122,8 +143,12 @@ def parse_args(args):
 def write_manifest(deps, manifest_file):
   output = {'results': [deps]}
   print(json.dumps(output, indent=2))
-  with open(manifest_file, 'w') as manifest:
-    json.dump(output, manifest, indent=2)
+  try:
+    with open(manifest_file, 'w') as manifest:
+      json.dump(output, manifest, indent=2)
+  except Exception as e:
+    logging.error(f'Error writing manifest file {manifest_file}: {e}')
+    sys.exit(1)
 
 
 def main(argv):
