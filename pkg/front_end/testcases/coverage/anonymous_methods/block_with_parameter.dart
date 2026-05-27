@@ -2,15 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void v = null;
-
-void test() {
-  v.=> 1; // Error
-  v.(p) => 1; // Error
-  v?.=> 1; // Error
-  v?.(p) => 1; // Error
-  v..=> 1; // Error
-  v..(p) => 1; // Error
-  v?..=> 1; // Error
-  v?..(p) => 1; // Error
+void main() {
+  1.(p) {
+    1;
+    return;
+  };
+  1.(p) {
+    p;
+    return;
+  };
+  1.(p) {
+    p.isEven;
+    return;
+  };
+  1.(p) {
+    return 1;
+  };
+  1.(p) {
+    return p;
+  };
+  1.(p) {
+    return p.isEven;
+  };
 }

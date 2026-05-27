@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void v = null;
-
 void test() {
-  v.=> 1; // Error
-  v.(p) => 1; // Error
-  v?.=> 1; // Error
-  v?.(p) => 1; // Error
-  v..=> 1; // Error
-  v..(p) => 1; // Error
-  v?..=> 1; // Error
-  v?..(p) => 1; // Error
+  1.(String p) { // Error
+    p;
+  };
+  1?.(String p) { // Error
+    p;
+  };
+  1..(String p) { // Error
+    p;
+  };
+  1?..(String p) { // Error
+    p;
+  };
 }

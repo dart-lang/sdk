@@ -558,6 +558,51 @@ class AnonymousMethodExpression extends InternalExpression {
   }
 }
 
+/// Internal expression representing an anonymous block method invocation.
+class AnonymousMethodBlock extends InternalExpression {
+  Variable variable;
+  Statement body;
+  final bool isCascade;
+  final bool isImplicitlyTyped;
+  final bool isNullAware;
+  final bool isParameterless;
+  final int typeOffset;
+
+  AnonymousMethodBlock(
+    this.variable,
+    this.body, {
+    required this.isImplicitlyTyped,
+    required this.isNullAware,
+    required this.isCascade,
+    required this.typeOffset,
+  }) : isParameterless = variable.isSynthesized {
+    variable.parent = this;
+    body.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitAnonymousMethodBlock(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "AnonymousMethodBlock(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('let ');
+    printer.writeVariableInitialization(variable);
+    printer.write(' in ');
+    printer.writeStatement(body);
+  }
+}
+
 /// Internal expression representing a deferred check.
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in the replacement.

@@ -1,0 +1,306 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:8:3: Error: This expression has type 'void' and can't be used.
+//   v.{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:12:3: Error: This expression has type 'void' and can't be used.
+//   v.(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:16:3: Error: This expression has type 'void' and can't be used.
+//   v?.{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:20:3: Error: This expression has type 'void' and can't be used.
+//   v?.(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:24:3: Error: This expression has type 'void' and can't be used.
+//   v..{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:28:3: Error: This expression has type 'void' and can't be used.
+//   v..(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:32:3: Error: This expression has type 'void' and can't be used.
+//   v?..{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:36:3: Error: This expression has type 'void' and can't be used.
+//   v?..(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:40:3: Error: This expression has type 'void' and can't be used.
+//   v.{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:43:3: Error: This expression has type 'void' and can't be used.
+//   v.(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:46:3: Error: This expression has type 'void' and can't be used.
+//   v?.{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:49:3: Error: This expression has type 'void' and can't be used.
+//   v?.(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:52:3: Error: This expression has type 'void' and can't be used.
+//   v..{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:55:3: Error: This expression has type 'void' and can't be used.
+//   v..(p) { // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:58:3: Error: This expression has type 'void' and can't be used.
+//   v?..{ // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:61:3: Error: This expression has type 'void' and can't be used.
+//   v?..(p) { // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field void v = null;
+static method test() → void {
+  {
+    final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:8:3: Error: This expression has type 'void' and can't be used.
+  v.{ // Error
+  ^" in self::v;
+    Null #t1;
+    #L1:
+    {
+      1;
+      {
+        #t1 = null;
+        break #L1;
+      }
+    }
+  }
+  {
+    void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:12:3: Error: This expression has type 'void' and can't be used.
+  v.(p) { // Error
+  ^" in self::v;
+    Null #t2;
+    #L2:
+    {
+      1;
+      {
+        #t2 = null;
+        break #L2;
+      }
+    }
+  }
+  let void #t3 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:16:3: Error: This expression has type 'void' and can't be used.
+  v?.{ // Error
+  ^" in self::v in #t3 == null ?{Null} null : block {
+    final synthesized void anonymous#this = #t3 as void;
+    Null #t4;
+    #L3:
+    {
+      1;
+      {
+        #t4 = null;
+        break #L3;
+      }
+    }
+  } =>#t4;
+  let void #t5 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:20:3: Error: This expression has type 'void' and can't be used.
+  v?.(p) { // Error
+  ^" in self::v in #t5 == null ?{Null} null : block {
+    void p = #t5 as void;
+    Null #t6;
+    #L4:
+    {
+      1;
+      {
+        #t6 = null;
+        break #L4;
+      }
+    }
+  } =>#t6;
+  let final void #t7 = self::v in block {
+    {
+      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:24:3: Error: This expression has type 'void' and can't be used.
+  v..{ // Error
+  ^" in #t7;
+      Null #t8;
+      #L5:
+      {
+        1;
+        {
+          #t8 = null;
+          break #L5;
+        }
+      }
+    }
+  } =>#t7;
+  let final void #t9 = self::v in block {
+    {
+      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:28:3: Error: This expression has type 'void' and can't be used.
+  v..(p) { // Error
+  ^" in #t9;
+      Null #t10;
+      #L6:
+      {
+        1;
+        {
+          #t10 = null;
+          break #L6;
+        }
+      }
+    }
+  } =>#t9;
+  let final void #t11 = self::v in #t11 == null ?{void} null : block {
+    {
+      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:32:3: Error: This expression has type 'void' and can't be used.
+  v?..{ // Error
+  ^" in #t11 as void;
+      Null #t12;
+      #L7:
+      {
+        1;
+        {
+          #t12 = null;
+          break #L7;
+        }
+      }
+    }
+  } =>#t11;
+  let final void #t13 = self::v in #t13 == null ?{void} null : block {
+    {
+      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:36:3: Error: This expression has type 'void' and can't be used.
+  v?..(p) { // Error
+  ^" in #t13 as void;
+      Null #t14;
+      #L8:
+      {
+        1;
+        {
+          #t14 = null;
+          break #L8;
+        }
+      }
+    }
+  } =>#t13;
+  {
+    final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:40:3: Error: This expression has type 'void' and can't be used.
+  v.{ // Error
+  ^" in self::v;
+    core::int #t15;
+    #L9:
+    {
+      {
+        #t15 = 1;
+        break #L9;
+      }
+    }
+  }
+  {
+    void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:43:3: Error: This expression has type 'void' and can't be used.
+  v.(p) { // Error
+  ^" in self::v;
+    core::int #t16;
+    #L10:
+    {
+      {
+        #t16 = 1;
+        break #L10;
+      }
+    }
+  }
+  let void #t17 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:46:3: Error: This expression has type 'void' and can't be used.
+  v?.{ // Error
+  ^" in self::v in #t17 == null ?{core::int?} null : block {
+    final synthesized void anonymous#this = #t17 as void;
+    core::int #t18;
+    #L11:
+    {
+      {
+        #t18 = 1;
+        break #L11;
+      }
+    }
+  } =>#t18;
+  let void #t19 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:49:3: Error: This expression has type 'void' and can't be used.
+  v?.(p) { // Error
+  ^" in self::v in #t19 == null ?{core::int?} null : block {
+    void p = #t19 as void;
+    core::int #t20;
+    #L12:
+    {
+      {
+        #t20 = 1;
+        break #L12;
+      }
+    }
+  } =>#t20;
+  let final void #t21 = self::v in block {
+    {
+      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:52:3: Error: This expression has type 'void' and can't be used.
+  v..{ // Error
+  ^" in #t21;
+      core::int #t22;
+      #L13:
+      {
+        {
+          #t22 = 1;
+          break #L13;
+        }
+      }
+    }
+  } =>#t21;
+  let final void #t23 = self::v in block {
+    {
+      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:55:3: Error: This expression has type 'void' and can't be used.
+  v..(p) { // Error
+  ^" in #t23;
+      core::int #t24;
+      #L14:
+      {
+        {
+          #t24 = 1;
+          break #L14;
+        }
+      }
+    }
+  } =>#t23;
+  let final void #t25 = self::v in #t25 == null ?{void} null : block {
+    {
+      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:58:3: Error: This expression has type 'void' and can't be used.
+  v?..{ // Error
+  ^" in #t25 as void;
+      core::int #t26;
+      #L15:
+      {
+        {
+          #t26 = 1;
+          break #L15;
+        }
+      }
+    }
+  } =>#t25;
+  let final void #t27 = self::v in #t27 == null ?{void} null : block {
+    {
+      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:61:3: Error: This expression has type 'void' and can't be used.
+  v?..(p) { // Error
+  ^" in #t27 as void;
+      core::int #t28;
+      #L16:
+      {
+        {
+          #t28 = 1;
+          break #L16;
+        }
+      }
+    }
+  } =>#t27;
+}
