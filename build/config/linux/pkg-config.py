@@ -7,7 +7,11 @@ import os
 import subprocess
 import sys
 import re
+import logging
 from optparse import OptionParser
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 # This script runs pkg-config, optionally filtering out some results, and
 # returns the result.
@@ -77,11 +81,15 @@ def GetPkgConfigPrefixToStrip(args):
     # instead of relative to /path/to/chroot/build/x86-generic (i.e prefix=/usr).
     # To support this correctly, it's necessary to extract the prefix to strip
     # from pkg-config's |prefix| variable.
-    prefix = subprocess.check_output(
-        ["pkg-config", "--variable=prefix"] + args, env=os.environ)
-    if prefix[-4] == '/usr':
-        return prefix[4:]
-    return prefix
+    try:
+        prefix = subprocess.check_output(
+            ["pkg-config", "--variable=prefix"] + args, env=os.environ)
+        if prefix[-4] == '/usr':
+            return prefix[4:]
+        return prefix
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to get pkg-config prefix: {e}")
+        sys.exit(1)
 
 
 def MatchesAnyRegexp(flag, list_of_regexps):
@@ -134,23 +142,27 @@ else:
 if options.atleast_version:
     # When asking for the return value, just run pkg-config and print the return
     # value, no need to do other work.
-    if not subprocess.call(
-        [options.pkg_config, "--atleast-version=" + options.atleast_version] +
-            args,
-            env=os.environ):
-        print("true")
-    else:
-        print("false")
+    try:
+        if not subprocess.call(
+            [options.pkg_config, "--atleast-version=" + options.atleast_version] +
+                args,
+                env=os.environ):
+            print("true")
+        else:
+            print("false")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to execute pkg-config: {e}")
+        sys.exit(1)
     sys.exit(0)
 
 if options.libdir:
     try:
         libdir = subprocess.check_output(
             [options.pkg_config, "--variable=libdir"] + args, env=os.environ)
-    except:
-        print("Error from pkg-config.")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error from pkg-config: {e}")
         sys.exit(1)
-    sys.stdout.write(libdir.strip())
+    sys.stdout.write(libdir.strip().decode('utf-8'))
     sys.exit(0)
 
 try:
@@ -162,8 +174,8 @@ try:
     # pkgconfig returns quoted things with spaces in them, but that doesn't seem
     # to happen in practice.
     all_flags = flag_string.decode('utf-8').strip().split(' ')
-except:
-    print("Could not run pkg-config.")
+except subprocess.CalledProcessError as e:
+    logging.error(f"Could not run pkg-config: {e}")
     sys.exit(1)
 
 sysroot = options.sysroot
