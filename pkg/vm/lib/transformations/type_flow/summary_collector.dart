@@ -2802,8 +2802,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr? visitLegacyVariableStatement(LegacyVariableStatement node) {
+  TypeExpr? visitVariableDeclaration(VariableDeclaration node) {
     defaultVariable(node.variable);
+    return null;
+  }
+
+  @override
+  TypeExpr? visitVariableStatement(VariableStatement node) {
+    visitVariableDeclaration(node.declaration);
     return null;
   }
 

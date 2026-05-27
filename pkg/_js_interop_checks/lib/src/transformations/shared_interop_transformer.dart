@@ -372,7 +372,9 @@ class SharedInteropTransformer extends Transformer {
       isSynthesized: true,
     )..fileOffset = invocation.fileOffset;
     block.add(
-      VariableStatement(dartInstance)..fileOffset = invocation.fileOffset,
+      VariableStatement(
+        VariableDeclaration(dartInstance)..fileOffset = invocation.fileOffset,
+      )..fileOffset = invocation.fileOffset,
     );
 
     var jsExporter = Variable(
@@ -382,7 +384,9 @@ class SharedInteropTransformer extends Transformer {
       isSynthesized: true,
     )..fileOffset = invocation.fileOffset;
     block.add(
-      VariableStatement(jsExporter)..fileOffset = invocation.fileOffset,
+      VariableStatement(
+        VariableDeclaration(jsExporter)..fileOffset = invocation.fileOffset,
+      )..fileOffset = invocation.fileOffset,
     );
 
     for (var MapEntry(key: exportName, value: exports) in exportMap.entries) {
@@ -465,7 +469,9 @@ class SharedInteropTransformer extends Transformer {
           isSynthesized: true,
         )..fileOffset = invocation.fileOffset;
         block.add(
-          VariableStatement(getSetMap)..fileOffset = invocation.fileOffset,
+          VariableStatement(
+            VariableDeclaration(getSetMap)..fileOffset = invocation.fileOffset,
+          )..fileOffset = invocation.fileOffset,
         );
         var (:getter, :setter) = _exportChecker.getGetterSetter(exports);
         if (getter != null) {

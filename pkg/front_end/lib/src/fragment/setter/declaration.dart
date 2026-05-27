@@ -331,7 +331,11 @@ class RegularSetterDeclaration
         // Add them as local variable to put them in scope of the body.
         List<Statement> statements = <Statement>[];
         for (FormalParameterBuilder parameter in declaredFormals) {
-          statements.add(extern.createVariableStatement(parameter.variable));
+          statements.add(
+            extern.createVariableStatement(
+              extern.createVariableDeclaration(parameter.variable),
+            ),
+          );
         }
         statements.add(body);
         body = extern.createBlock(statements, fileOffset: fileOffset);

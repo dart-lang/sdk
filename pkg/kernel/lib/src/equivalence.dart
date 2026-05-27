@@ -836,18 +836,13 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitLegacyVariableStatement(LegacyVariableStatement node, Node other) {
-    return strategy.checkLegacyVariableStatement(this, node, other);
+  bool visitVariableStatement(VariableStatement node, Node other) {
+    return strategy.checkVariableStatement(this, node, other);
   }
 
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node, Node other) {
     return strategy.checkFunctionDeclaration(this, node, other);
-  }
-
-  @override
-  bool visitVariableInitialization(VariableInitialization node, Node other) {
-    return strategy.checkVariableInitialization(this, node, other);
   }
 
   @override
@@ -903,6 +898,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   @override
   bool visitLegacyVariable(LegacyVariable node, Node other) {
     return strategy.checkLegacyVariable(this, node, other);
+  }
+
+  @override
+  bool visitVariableDeclaration(VariableDeclaration node, Node other) {
+    return strategy.checkVariableDeclaration(this, node, other);
   }
 
   @override
@@ -5909,20 +5909,20 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkLegacyVariableStatement(
+  bool checkVariableStatement(
     EquivalenceVisitor visitor,
-    LegacyVariableStatement? node,
+    VariableStatement? node,
     Object? other,
   ) {
     if (identical(node, other)) return true;
-    if (node is! LegacyVariableStatement) return false;
-    if (other is! LegacyVariableStatement) return false;
+    if (node is! VariableStatement) return false;
+    if (other is! VariableStatement) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkLegacyVariableStatement_variable(visitor, node, other)) {
+    if (!checkVariableStatement_declaration(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLegacyVariableStatement_fileOffset(visitor, node, other)) {
+    if (!checkVariableStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -5946,32 +5946,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionDeclaration_fileOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
-  bool checkVariableInitialization(
-    EquivalenceVisitor visitor,
-    VariableInitialization? node,
-    Object? other,
-  ) {
-    if (identical(node, other)) return true;
-    if (node is! VariableInitialization) return false;
-    if (other is! VariableInitialization) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkVariableInitialization_variable(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_capturedContexts(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -6112,7 +6086,7 @@ class EquivalenceStrategy {
     if (!checkLocalVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLocalVariable_variableInitialization(visitor, node, other)) {
+    if (!checkLocalVariable_variableDeclaration(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_annotations(visitor, node, other)) {
@@ -6311,7 +6285,7 @@ class EquivalenceStrategy {
     if (!checkSyntheticVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkSyntheticVariable_variableInitialization(visitor, node, other)) {
+    if (!checkSyntheticVariable_variableDeclaration(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSyntheticVariable_annotations(visitor, node, other)) {
@@ -6374,6 +6348,29 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLegacyVariable_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkVariableDeclaration(
+    EquivalenceVisitor visitor,
+    VariableDeclaration? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! VariableDeclaration) return false;
+    if (other is! VariableDeclaration) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkVariableDeclaration_variable(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkVariableDeclaration_capturedContexts(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkVariableDeclaration_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -13278,18 +13275,22 @@ class EquivalenceStrategy {
     return checkStatement_fileOffset(visitor, node, other);
   }
 
-  bool checkLegacyVariableStatement_variable(
+  bool checkVariableStatement_declaration(
     EquivalenceVisitor visitor,
-    LegacyVariableStatement node,
-    LegacyVariableStatement other,
+    VariableStatement node,
+    VariableStatement other,
   ) {
-    return visitor.checkNodes(node.variable, other.variable, 'variable');
+    return visitor.checkNodes(
+      node.declaration,
+      other.declaration,
+      'declaration',
+    );
   }
 
-  bool checkLegacyVariableStatement_fileOffset(
+  bool checkVariableStatement_fileOffset(
     EquivalenceVisitor visitor,
-    LegacyVariableStatement node,
-    LegacyVariableStatement other,
+    VariableStatement node,
+    VariableStatement other,
   ) {
     return checkStatement_fileOffset(visitor, node, other);
   }
@@ -13314,45 +13315,6 @@ class EquivalenceStrategy {
     EquivalenceVisitor visitor,
     FunctionDeclaration node,
     FunctionDeclaration other,
-  ) {
-    return checkStatement_fileOffset(visitor, node, other);
-  }
-
-  bool checkVariableInitialization_variable(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkNodes(node.variable, other.variable, 'variable');
-  }
-
-  bool checkVariableInitialization_capturedContexts(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkLists(node.capturedContexts, other.capturedContexts, (
-      a,
-      b,
-      _,
-    ) {
-      if (identical(a, b)) return true;
-      return checkVariableContext(visitor, a, b);
-    }, 'capturedContexts');
-  }
-
-  bool checkVariableInitialization_flags(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkVariableInitialization_fileOffset(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
   ) {
     return checkStatement_fileOffset(visitor, node, other);
   }
@@ -13585,15 +13547,15 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkLocalVariable_variableInitialization(
+  bool checkLocalVariable_variableDeclaration(
     EquivalenceVisitor visitor,
     LocalVariable node,
     LocalVariable other,
   ) {
     return visitor.checkNodes(
-      node.variableInitialization,
-      other.variableInitialization,
-      'variableInitialization',
+      node.variableDeclaration,
+      other.variableDeclaration,
+      'variableDeclaration',
     );
   }
 
@@ -14067,15 +14029,15 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkSyntheticVariable_variableInitialization(
+  bool checkSyntheticVariable_variableDeclaration(
     EquivalenceVisitor visitor,
     SyntheticVariable node,
     SyntheticVariable other,
   ) {
     return visitor.checkNodes(
-      node.variableInitialization,
-      other.variableInitialization,
-      'variableInitialization',
+      node.variableDeclaration,
+      other.variableDeclaration,
+      'variableDeclaration',
     );
   }
 
@@ -14230,6 +14192,37 @@ class EquivalenceStrategy {
     EquivalenceVisitor visitor,
     LegacyVariable node,
     LegacyVariable other,
+  ) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkVariableDeclaration_variable(
+    EquivalenceVisitor visitor,
+    VariableDeclaration node,
+    VariableDeclaration other,
+  ) {
+    return visitor.checkNodes(node.variable, other.variable, 'variable');
+  }
+
+  bool checkVariableDeclaration_capturedContexts(
+    EquivalenceVisitor visitor,
+    VariableDeclaration node,
+    VariableDeclaration other,
+  ) {
+    return visitor.checkLists(node.capturedContexts, other.capturedContexts, (
+      a,
+      b,
+      _,
+    ) {
+      if (identical(a, b)) return true;
+      return checkVariableContext(visitor, a, b);
+    }, 'capturedContexts');
+  }
+
+  bool checkVariableDeclaration_fileOffset(
+    EquivalenceVisitor visitor,
+    VariableDeclaration node,
+    VariableDeclaration other,
   ) {
     return checkTreeNode_fileOffset(visitor, node, other);
   }

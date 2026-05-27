@@ -369,7 +369,9 @@ abstract class MetadataRepository<T> {
     return !(node is MapLiteralEntry ||
         node is Catch ||
         (node is Block && node.parent is BlockExpression) ||
-        // TODO(johnniwinther): Support
-        node is LegacyVariableStatement);
+        // TODO(johnniwinther): Support [VariableStatement].
+        node is VariableStatement ||
+        // TODO(johnniwinther): Support [VariableDeclaration].
+        node is VariableDeclaration);
   }
 }

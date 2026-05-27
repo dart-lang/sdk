@@ -1136,29 +1136,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitLegacyVariableStatement(LegacyVariableStatement node) {
-    _verifyVariableStatement(node);
-    super.visitLegacyVariableStatement(node);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    _verifyVariableStatement(node);
-    super.visitVariableInitialization(node);
-  }
-
-  void _verifyVariableStatement(VariableStatement node) {
-    TreeNode? parent = node.parent;
-    if (parent is! Block && !(parent is ForStatement && parent.body != node)) {
-      problem(
-        node,
-        "VariableStatement must be a direct child of a Block or ForStatement, "
-        "not ${parent.runtimeType}.",
-      );
-    }
-  }
-
-  @override
   void defaultVariable(Variable node) {
     return _verifyVariableDeclaration(node);
   }

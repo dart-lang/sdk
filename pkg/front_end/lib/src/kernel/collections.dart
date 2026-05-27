@@ -222,10 +222,7 @@ class ForElement extends ControlFlowElement
     implements ForElementBase {
   // May be empty, but not null.
   @override
-  final List<VariableStatement> variableInitializations;
-
-  @override
-  List<VariableStatement> get variables => variableInitializations;
+  final List<VariableDeclaration> variables;
 
   @override
   Expression? condition; // May be null.
@@ -236,13 +233,8 @@ class ForElement extends ControlFlowElement
   @override
   Expression body;
 
-  ForElement(
-    this.variableInitializations,
-    this.condition,
-    this.updates,
-    this.body,
-  ) {
-    setParents(variableInitializations, this);
+  ForElement(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -278,12 +270,12 @@ class ForElement extends ControlFlowElement
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        variableInitializations[index].variable,
+      printer.writeVariableDeclaration(
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }
@@ -462,9 +454,7 @@ class IfCaseElement extends ControlFlowElementImpl
 }
 
 abstract interface class ForElementBase implements AuxiliaryExpression {
-  List<VariableStatement> get variableInitializations;
-
-  List<VariableStatement> get variables;
+  List<VariableDeclaration> get variables;
 
   abstract Expression? condition;
 
@@ -477,14 +467,11 @@ class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
     implements ForElementBase {
   PatternVariableDeclaration patternVariableDeclaration;
-  List<Variable> intermediateVariables;
+  List<VariableDeclaration> intermediateVariables;
 
   // May be empty, but not null.
   @override
-  final List<VariableStatement> variableInitializations;
-
-  @override
-  List<VariableStatement> get variables => variableInitializations;
+  final List<VariableDeclaration> variables;
 
   @override
   Expression? condition; // May be null.
@@ -498,11 +485,11 @@ class PatternForElement extends ControlFlowElementImpl
   PatternForElement({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableStatement> variables,
+    required this.variables,
     required this.condition,
     required this.updates,
     required this.body,
-  }) : variableInitializations = variables;
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -517,12 +504,12 @@ class PatternForElement extends ControlFlowElementImpl
   void toTextInternal(AstPrinter printer) {
     patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        variableInitializations[index].variable,
+      printer.writeVariableDeclaration(
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }
@@ -689,7 +676,7 @@ class IfMapEntry extends TreeNode
 }
 
 abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
-  List<VariableStatement> get variables;
+  List<VariableDeclaration> get variables;
 
   abstract Expression? condition;
 
@@ -704,7 +691,7 @@ class ForMapEntry extends TreeNode
     implements ForMapEntryBase, ControlFlowMapEntry {
   // May be empty, but not null.
   @override
-  final List<VariableStatement> variables;
+  final List<VariableDeclaration> variables;
 
   @override
   Expression? condition; // May be null.
@@ -735,8 +722,8 @@ class ForMapEntry extends TreeNode
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        variables[index].variable,
+      printer.writeVariableDeclaration(
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }
@@ -755,10 +742,10 @@ class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ForMapEntryBase, ControlFlowMapEntry {
   PatternVariableDeclaration patternVariableDeclaration;
-  List<Variable> intermediateVariables;
+  List<VariableDeclaration> intermediateVariables;
 
   @override
-  final List<VariableStatement> variables;
+  final List<VariableDeclaration> variables;
 
   @override
   Expression? condition;
@@ -787,8 +774,8 @@ class PatternForMapEntry extends TreeNode
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        variables[index].variable,
+      printer.writeVariableDeclaration(
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }

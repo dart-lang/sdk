@@ -224,16 +224,18 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableStatement(new Variable('a')),
-      new VariableStatement(new Variable('b')),
+      new VariableDeclaration(new Variable('a')),
+      new VariableDeclaration(new Variable('b')),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableStatement(new Variable('a', type: const VoidType())),
-      new VariableStatement(new Variable('b', initializer: new NullLiteral())),
+      new VariableDeclaration(new Variable('a', type: const VoidType())),
+      new VariableDeclaration(
+        new Variable('b', initializer: new NullLiteral()),
+      ),
     ], dummyUri),
     '''
 void a, b = null;''',
@@ -368,7 +370,7 @@ void _testInternalForInStatement() {
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableStatement: new LegacyVariableStatement(
+        variableDeclaration: new VariableDeclaration(
           new VariableDeclarationImpl('e', fileOffset: -1),
         ),
         error: null,
@@ -386,7 +388,7 @@ for (var e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableStatement: new LegacyVariableStatement(
+        variableDeclaration: new VariableDeclaration(
           new VariableDeclarationImpl(
             'e',
             type: const VoidType(),
@@ -521,10 +523,10 @@ for (null in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableStatement(
+          new VariableDeclaration(
             new VariableDeclarationImpl('a', fileOffset: -1),
           ),
-          new VariableStatement(
+          new VariableDeclaration(
             new VariableDeclarationImpl('b', fileOffset: -1),
           ),
         ],
@@ -544,14 +546,14 @@ for (var a, b in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableStatement(
+          new VariableDeclaration(
             new VariableDeclarationImpl(
               'a',
               type: const VoidType(),
               fileOffset: -1,
             ),
           ),
-          new VariableStatement(
+          new VariableDeclaration(
             new VariableDeclarationImpl('b', fileOffset: -1),
           ),
         ],

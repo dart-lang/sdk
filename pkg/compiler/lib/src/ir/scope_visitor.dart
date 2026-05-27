@@ -318,10 +318,13 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitLegacyVariableStatement(
-    ir.LegacyVariableStatement node,
-  ) {
+  EvaluationComplexity visitVariableDeclaration(ir.VariableDeclaration node) {
     return defaultVariable(node.variable);
+  }
+
+  @override
+  EvaluationComplexity visitVariableStatement(ir.VariableStatement node) {
+    return visitVariableDeclaration(node.declaration);
   }
 
   @override
@@ -504,7 +507,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
       // Loop variables that have not been captured yet can safely be flagged as
       // non-mutated, because no nested function can observe the mutation.
-      for (ir.VariableStatement variableDeclaration in node.variables) {
+      for (ir.VariableDeclaration variableDeclaration in node.variables) {
         if (!_capturedVariables.contains(variableDeclaration.variable)) {
           _mutatedVariables.remove(variableDeclaration.variable);
         }
@@ -521,7 +524,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
       });
 
       // See if we have declared loop variables that need to be boxed.
-      for (ir.VariableStatement variableDeclaration in node.variables) {
+      for (ir.VariableDeclaration variableDeclaration in node.variables) {
         // Non-mutated variables should not be boxed.  The _mutatedVariables set
         // gets cleared when `enterNewScope` returns, so check it here.
         if (_capturedVariables.contains(variableDeclaration.variable) &&

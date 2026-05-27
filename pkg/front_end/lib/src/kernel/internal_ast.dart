@@ -1125,11 +1125,11 @@ class InternalLocalVariable extends TreeNode
 
   @override
   List<VariableContext>? get capturedContexts =>
-      variableInitialization?.capturedContexts;
+      variableDeclaration?.capturedContexts;
 
   @override
   void set capturedContexts(List<VariableContext>? value) {
-    variableInitialization!.capturedContexts = value;
+    variableDeclaration!.capturedContexts = value;
   }
 
   @override
@@ -1655,12 +1655,12 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
-  VariableInitialization? get variableInitialization =>
-      astVariable.variableInitialization;
+  VariableDeclaration? get variableDeclaration =>
+      astVariable.variableDeclaration;
 
   @override
-  void set variableInitialization(VariableInitialization? value) {
-    astVariable.variableInitialization = value;
+  void set variableDeclaration(VariableDeclaration? value) {
+    astVariable.variableDeclaration = value;
   }
 
   @override
@@ -5709,7 +5709,7 @@ sealed class _BaseForInElement extends InternalForInElement {
       return new SyntheticVariable(type: type)..fileOffset = forOffset;
     }
     return extern.createUninitializedVariable(
-      type,
+      type: type,
       fileOffset: forOffset,
       isFinal: true,
     );
@@ -5747,21 +5747,25 @@ sealed class _BaseForInElement extends InternalForInElement {
   }
 }
 
-/// Base implementation for declared variable for-in elements.
-sealed class _VariableForInElement extends _BaseForInElement {
+/// For-in element for a single declared variable.
+class SingleVariableDeclarationForInElement extends _BaseForInElement {
   /// Error that must be emitted prior to the generated for-in statement.
   ///
   /// This is used for instance for constant loop variables.
   final InvalidExpression? error;
 
-  _VariableForInElement({required this.error});
-
-  Variable get _variableDeclaration;
-
-  /// If the assignment to [variableDeclaration] needs additional steps, like
+  /// If the assignment to [_variable] needs additional steps, like
   /// a type coercion, this holds a synthetic variable declaration used as an
   /// intermediate step.
-  Variable? _variableForSideEffect;
+  VariableDeclaration? _variableForSideEffect;
+
+  /// The declared variable.
+  final VariableDeclaration variableDeclaration;
+
+  SingleVariableDeclarationForInElement({
+    required this.variableDeclaration,
+    required this.error,
+  });
 
   @override
   Variable _computeLoopVariable(
@@ -5773,7 +5777,7 @@ sealed class _VariableForInElement extends _BaseForInElement {
     Variable loopVariable;
     DartType loopVariableType;
     bool checkAssignment = true;
-    if (_variableDeclaration.variable case InternalVariable variable) {
+    if (variableDeclaration.variable case InternalVariable variable) {
       loopVariable = variable.astVariable;
       if (variable.isImplicitlyTyped) {
         loopVariableType = variable.type = type;
@@ -5783,8 +5787,8 @@ sealed class _VariableForInElement extends _BaseForInElement {
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      loopVariable = _variableDeclaration;
-      loopVariableType = _variableDeclaration.type;
+      loopVariable = variableDeclaration.variable;
+      loopVariableType = variableDeclaration.variable.type;
     }
     if (checkAssignment) {
       Variable tempVariable = _createSyntheticVariableDeclaration(
@@ -5817,7 +5821,7 @@ sealed class _VariableForInElement extends _BaseForInElement {
           new SharedTypeView(loopVariableType),
           initialized: true,
         );
-        _variableForSideEffect = loopVariable;
+        _variableForSideEffect = extern.createVariableDeclaration(loopVariable);
         loopVariable = tempVariable;
       }
     }
@@ -5836,78 +5840,27 @@ sealed class _VariableForInElement extends _BaseForInElement {
           : null,
     );
   }
-}
-
-/// For-in element for a single declared variable.
-class VariableInitializationForInElement extends _VariableForInElement {
-  /// The variable declaration.
-  final VariableInitialization variableInitialization;
-
-  VariableInitializationForInElement({
-    required this.variableInitialization,
-    required super.error,
-  });
-
-  @override
-  Variable get _variableDeclaration => variableInitialization.variable;
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableInitialization(
-      variableInitialization.variable,
+      variableDeclaration.variable,
       includeInitializer: false,
       isImplicitlyTyped:
-          (variableInitialization.variable is InternalVariable) &&
-          (variableInitialization.variable as InternalVariable)
-              .isImplicitlyTyped,
+          variableDeclaration.variable is InternalVariable &&
+          (variableDeclaration.variable as InternalVariable).isImplicitlyTyped,
     );
   }
 
   @override
   DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
-    if (variableInitialization.variable case InternalVariable variable) {
+    if (variableDeclaration.variable case InternalVariable variable) {
       if (variable.isImplicitlyTyped) {
         return const UnknownType();
       }
     }
-    return variableInitialization.variable.type;
-  }
-}
-
-/// For-in element for a single declared variable.
-class SingleVariableDeclarationForInElement extends _VariableForInElement {
-  /// The declared variable.
-  final LegacyVariableStatement variableStatement;
-
-  SingleVariableDeclarationForInElement({
-    required this.variableStatement,
-    required super.error,
-  });
-
-  @override
-  Variable get _variableDeclaration => variableStatement.variable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.writeVariableInitialization(
-      variableStatement.variable,
-      includeInitializer: false,
-      isImplicitlyTyped:
-          variableStatement.variable is InternalVariable &&
-          (variableStatement.variable as InternalVariable).isImplicitlyTyped,
-    );
-  }
-
-  @override
-  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
-    if (variableStatement.variable case InternalVariable variable) {
-      if (variable.isImplicitlyTyped) {
-        return const UnknownType();
-      }
-    }
-    return variableStatement.variable.type;
+    return variableDeclaration.variable.type;
   }
 }
 
@@ -5915,7 +5868,7 @@ class SingleVariableDeclarationForInElement extends _VariableForInElement {
 /// `for (var a, b in [])`. This is an error case.
 class MultiVariableDeclarationForInElement extends _BaseForInElement {
   /// The declared variables.
-  final List<VariableStatement> variableDeclarations;
+  final List<VariableDeclaration> variableDeclarations;
 
   /// The error that should be emitted prior to the for-in statement.
   final InvalidExpression error;
@@ -5929,7 +5882,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     for (int i = 0; i < variableDeclarations.length; i++) {
-      VariableStatement variableDeclaration = variableDeclarations[i];
+      VariableDeclaration variableDeclaration = variableDeclarations[i];
       if (i == 0) {
         printer.writeVariableInitialization(
           variableDeclaration.variable,
@@ -5963,7 +5916,8 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
     return new ForInEncoding(
       preLoopError: error,
       bodyPrologue: extern.createBlock([
-        ...variableDeclarations,
+        for (VariableDeclaration variableDeclaration in variableDeclarations)
+          extern.createVariableStatement(variableDeclaration),
       ], fileOffset: TreeNode.noOffset),
     );
   }

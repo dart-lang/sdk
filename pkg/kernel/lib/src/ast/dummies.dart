@@ -16,7 +16,7 @@ final List<NamedExpression> emptyListOfNamedExpression = List.filled(
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Variable> emptyListOfVariableDeclaration = List.filled(
   0,
-  dummyVariableDeclaration,
+  dummyVariable,
   growable: false,
 );
 
@@ -481,15 +481,21 @@ final VariableStatement dummyVariableStatement = new VariableStatement(
   dummyVariableDeclaration,
 );
 
+/// Non-nullable [VariableDeclaration] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final VariableDeclaration dummyVariableDeclaration = new VariableDeclaration(
+  dummyVariable,
+);
+
 /// Non-nullable [Variable] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Variable dummyVariableDeclaration = new Variable(
-  null,
-  isSynthesized: true,
-);
+final Variable dummyVariable = new Variable(null, isSynthesized: true);
 
 /// Non-nullable [CatchVariable] dummy value.
 ///

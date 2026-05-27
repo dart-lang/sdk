@@ -130,7 +130,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariableSet': {'variable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
   'LocalVariable': {
-    'variableInitialization': FieldRule(isDeclaration: false),
+    'variableDeclaration': FieldRule(isDeclaration: false),
     '_context': FieldRule(name: 'context'),
   },
   'CatchVariable': {'_context': FieldRule(name: 'context')},
@@ -156,7 +156,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'SyntheticVariable': {
-    'variableInitialization': FieldRule(isDeclaration: false),
+    'variableDeclaration': FieldRule(isDeclaration: false),
     '_context': FieldRule(name: 'context'),
   },
   'LegacyVariable': {'_name': FieldRule(name: 'name')},
@@ -175,7 +175,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'thisVariable': FieldRule(isDeclaration: false),
   },
   'NominalParameter': {'_variance': FieldRule(name: 'variance')},
-  'VariableInitialization': {'variable': FieldRule(isDeclaration: false)},
 };
 
 /// Data that determines exceptions to how fields are used.

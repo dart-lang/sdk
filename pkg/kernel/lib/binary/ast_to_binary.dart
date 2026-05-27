@@ -1553,7 +1553,7 @@ class BinaryPrinter
   void visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
   }
 
   @override
@@ -1579,8 +1579,8 @@ class BinaryPrinter
     writeNodeList(node.typeParameters);
     writeUInt30(node.positionalParameters.length + node.namedParameters.length);
     writeUInt30(node.requiredParameterCount);
-    writeVariableDeclarationList(node.positionalParameters);
-    writeVariableDeclarationList(node.namedParameters);
+    writeVariableList(node.positionalParameters);
+    writeVariableList(node.namedParameters);
     writeNode(node.returnType);
     writeOptionalNode(node.emittedValueType);
     RedirectingFactoryTarget? redirectingFactoryTarget =
@@ -2214,7 +2214,7 @@ class BinaryPrinter
     VariableIndexer variableIndexer = _variableIndexer ??=
         _newVariableIndexer();
     variableIndexer.pushScope();
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeNode(node.body);
     variableIndexer.popScope();
   }
@@ -2359,7 +2359,7 @@ class BinaryPrinter
     variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeOffset(node.fileOffset);
-    writeVariableStatementList(node.variables);
+    writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
     writeNode(node.body);
@@ -2374,7 +2374,7 @@ class BinaryPrinter
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeOffset(node.fileOffset);
     writeOffset(node.bodyOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
     variableIndexer.popScope();
@@ -2453,8 +2453,8 @@ class BinaryPrinter
     variableIndexer.pushScope();
     writeOffset(node.fileOffset);
     writeNode(node.guard);
-    writeOptionalVariableDeclaration(node.exception);
-    writeOptionalVariableDeclaration(node.stackTrace);
+    writeOptionalVariable(node.exception);
+    writeOptionalVariable(node.stackTrace);
     writeNode(node.body);
     variableIndexer.popScope();
   }
@@ -2478,14 +2478,23 @@ class BinaryPrinter
   @override
   void visitVariable(Variable node) {
     writeByte(Tag.VariableDeclaration);
+    writeVariable(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
     writeVariableDeclaration(node);
   }
 
   void writeVariableStatement(VariableStatement node) {
-    writeVariableDeclaration(node.variable);
+    writeVariableDeclaration(node.declaration);
   }
 
-  void writeVariableDeclaration(Variable node) {
+  void writeVariableDeclaration(VariableDeclaration node) {
+    writeVariable(node.variable);
+  }
+
+  void writeVariable(Variable node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -2502,20 +2511,20 @@ class BinaryPrinter
     (_variableIndexer ??= _newVariableIndexer()).declare(node);
   }
 
-  void writeVariableStatementList(List<VariableStatement> nodes) {
-    writeList(nodes, writeVariableStatement);
-  }
-
-  void writeVariableDeclarationList(List<Variable> nodes) {
+  void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
     writeList(nodes, writeVariableDeclaration);
   }
 
-  void writeOptionalVariableDeclaration(Variable? node) {
+  void writeVariableList(List<Variable> nodes) {
+    writeList(nodes, writeVariable);
+  }
+
+  void writeOptionalVariable(Variable? node) {
     if (node == null) {
       writeByte(Tag.Nothing);
     } else {
       writeByte(Tag.Something);
-      writeVariableDeclaration(node);
+      writeVariable(node);
     }
   }
 
@@ -2523,7 +2532,7 @@ class BinaryPrinter
   void visitFunctionDeclaration(FunctionDeclaration node) {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeUInt30(node.id.toInt());
     writeFunctionNode(node.function);
   }
@@ -2846,7 +2855,7 @@ class BinaryPrinter
     writeByte(Tag.InvalidPattern);
     writeOffset(node.fileOffset);
     writeNode(node.invalidExpression);
-    writeVariableDeclarationList(node.declaredVariables);
+    writeVariableList(node.declaredVariables);
   }
 
   @override
@@ -2967,7 +2976,7 @@ class BinaryPrinter
 
   @override
   void visitPatternSwitchCase(PatternSwitchCase node) {
-    writeVariableDeclarationList(node.jointVariables);
+    writeVariableList(node.jointVariables);
     int length = node.patternGuards.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {
@@ -3051,7 +3060,7 @@ class BinaryPrinter
     writeByte(Tag.VariablePattern);
     writeOffset(node.fileOffset);
     writeOptionalNode(node.type);
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeOptionalNode(node.matchedValueType);
   }
 

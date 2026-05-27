@@ -924,13 +924,13 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   @override
-  void visitLegacyVariableStatement(ast.LegacyVariableStatement node) {
+  void visitVariableDeclaration(ast.VariableDeclaration node) {
     defaultVariable(node.variable);
   }
 
   @override
-  void visitVariableInitialization(ast.VariableInitialization node) {
-    defaultVariable(node.variable);
+  void visitVariableStatement(ast.VariableStatement node) {
+    visitVariableDeclaration(node.declaration);
   }
 
   @override

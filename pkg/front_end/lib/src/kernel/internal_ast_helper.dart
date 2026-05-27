@@ -123,7 +123,9 @@ Block createBlock(
     Statement statement = statements[i];
     if (statement is _VariablesDeclaration) {
       copy ??= new List<Statement>.of(statements.getRange(0, i));
-      copy.addAll(statement.declarations);
+      for (VariableDeclaration declaration in statement.declarations) {
+        copy.add(createVariableStatement(declaration));
+      }
     } else if (copy != null) {
       copy.add(statement);
     }
@@ -302,7 +304,7 @@ Statement createExpressionStatement(
 
 ForElement createForElement(
   int fileOffset,
-  List<VariableStatement> variables,
+  List<VariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
   Expression body,
@@ -363,7 +365,7 @@ ForInStatement createForInStatement(
 
 ForMapEntry createForMapEntry(
   int fileOffset,
-  List<VariableStatement> variables,
+  List<VariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
   MapLiteralEntry body,
@@ -375,7 +377,7 @@ ForMapEntry createForMapEntry(
 /// Return a representation of a for statement.
 Statement createForStatement(
   int fileOffset,
-  List<VariableStatement>? variables,
+  List<VariableDeclaration>? variables,
   Expression? condition,
   List<Expression> updaters,
   Statement body,
@@ -607,6 +609,7 @@ LocalVariable createLocalVariable({
   bool isWildcard = false,
   required int fileOffset,
   Expression? initializer,
+  bool hasDeclaredInitializer = false,
 }) {
   return new LocalVariable(
     cosmeticName: cosmeticName,
@@ -616,6 +619,7 @@ LocalVariable createLocalVariable({
     isLate: isLate,
     isWildcard: isWildcard,
     initializer: initializer,
+    hasDeclaredInitializer: hasDeclaredInitializer,
   )..fileOffset = fileOffset;
 }
 
@@ -811,8 +815,8 @@ PatternAssignment createPatternAssignment(
 PatternForElement createPatternForElement(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
-  required List<Variable> intermediateVariables,
-  required List<VariableStatement> variables,
+  required List<VariableDeclaration> intermediateVariables,
+  required List<VariableDeclaration> variables,
   required Expression? condition,
   required List<Expression> updates,
   required Expression body,
@@ -830,8 +834,8 @@ PatternForElement createPatternForElement(
 PatternForMapEntry createPatternForMapEntry(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
-  required List<Variable> intermediateVariables,
-  required List<VariableStatement> variableInitializations,
+  required List<VariableDeclaration> intermediateVariables,
+  required List<VariableDeclaration> variableInitializations,
   required Expression? condition,
   required List<Expression> updates,
   required MapLiteralEntry body,
@@ -1166,7 +1170,7 @@ UnaryExpression createUnary(
 
 /// Creates [Variable] for a variable named [name] at the given
 /// [functionNestingLevel].
-Variable createVariableDeclaration(
+Variable createVariable(
   int fileOffset,
   String? name, {
   Expression? initializer,
@@ -1195,6 +1199,14 @@ Variable createVariableDeclaration(
   );
 }
 
+VariableDeclaration createVariableDeclaration(
+  Variable variable, {
+  int? fileOffset,
+}) {
+  return new VariableDeclaration(variable)
+    ..fileOffset = fileOffset ?? variable.fileOffset;
+}
+
 VariableDeclarationImpl createVariableDeclarationForValue(
   Expression initializer, {
   DartType type = const DynamicType(),
@@ -1210,17 +1222,6 @@ InternalVariableGet createVariableGet(
 }) {
   return new InternalVariableGet(variable as InternalVariable)
     ..fileOffset = fileOffset;
-}
-
-VariableInitialization createVariableInitialization({
-  required Variable variable,
-  required bool hasDeclaredInitializer,
-  required int fileOffset,
-}) {
-  return new VariableInitialization(
-    variable: variable,
-    hasDeclaredInitializer: hasDeclaredInitializer,
-  )..fileOffset = fileOffset;
 }
 
 VariablePattern createVariablePattern(
@@ -1240,8 +1241,12 @@ InternalVariableSet createVariableSet(
     ..fileOffset = fileOffset;
 }
 
-VariableStatement createVariableStatement(Variable variable) {
-  return new VariableStatement(variable)..fileOffset = variable.fileOffset;
+VariableStatement createVariableStatement(
+  VariableDeclaration declaration, {
+  int? fileOffset,
+}) {
+  return new VariableStatement(declaration)
+    ..fileOffset = fileOffset ?? declaration.fileOffset;
 }
 
 /// Return a representation of a while statement at the given [fileOffset]
@@ -1295,13 +1300,13 @@ bool isThisExpression(Object node) =>
 bool isVariablesDeclaration(Object? node) => node is _VariablesDeclaration;
 
 _VariablesDeclaration variablesDeclaration(
-  List<VariableStatement> declarations,
+  List<VariableDeclaration> declarations,
   Uri uri,
 ) {
   return new _VariablesDeclaration(declarations, uri);
 }
 
-List<VariableStatement> variablesDeclarationExtractDeclarations(
+List<VariableDeclaration> variablesDeclarationExtractDeclarations(
   Object? variablesDeclaration,
 ) {
   return (variablesDeclaration as _VariablesDeclaration).declarations;
@@ -1312,7 +1317,7 @@ Statement wrapVariables(Statement statement) {
     return new Block(
       new List<Statement>.generate(
         statement.declarations.length,
-        (int index) => statement.declarations[index],
+        (int index) => createVariableStatement(statement.declarations[index]),
         growable: true,
       ),
     )..fileOffset = statement.fileOffset;
@@ -1324,7 +1329,7 @@ Statement wrapVariables(Statement statement) {
 }
 
 class _VariablesDeclaration extends AuxiliaryStatement {
-  final List<VariableStatement> declarations;
+  final List<VariableDeclaration> declarations;
   final Uri uri;
 
   _VariablesDeclaration(this.declarations, this.uri) {
@@ -1355,8 +1360,8 @@ class _VariablesDeclaration extends AuxiliaryStatement {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        declarations[index].variable,
+      printer.writeVariableDeclaration(
+        declarations[index],
         includeModifiersAndType: index == 0,
       );
     }

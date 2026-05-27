@@ -509,6 +509,32 @@ class AstPrinter {
     node.toTextInternal(this, includeTypeArguments: includeTypeArguments);
   }
 
+  /// Writes the [VariableDeclaration] [node] to the printer buffer.
+  ///
+  /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
+  /// the modifiers and declared type of the variable. Otherwise only the
+  /// name and the initializer, if present, are included.
+  ///
+  /// If [isLate] and [type] are provided, these values are used instead of
+  /// the corresponding properties on [node].
+  void writeVariableDeclaration(
+    VariableDeclaration node, {
+    bool includeModifiersAndType = true,
+    bool? isLate,
+    DartType? type,
+    bool includeInitializer = true,
+    bool isImplicitlyTyped = false,
+  }) {
+    writeVariableInitialization(
+      node.variable,
+      includeModifiersAndType: includeModifiersAndType,
+      isLate: isLate,
+      type: type,
+      includeInitializer: includeInitializer,
+      isImplicitlyTyped: isImplicitlyTyped,
+    );
+  }
+
   /// Writes the [VariableInitialization] [node] to the printer buffer.
   ///
   /// If [includeModifiersAndType] is `true`, the declaration is prefixed by

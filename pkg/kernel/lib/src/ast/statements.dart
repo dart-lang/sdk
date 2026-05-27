@@ -539,10 +539,10 @@ class DoStatement extends Statement implements LoopStatement {
 
 class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   // May be empty, but not null.
-  final List<VariableStatement> variables;
+  final List<VariableDeclaration> variables;
 
   // TODO(61572): Remove this.
-  List<VariableStatement> get variableInitializations => variables;
+  List<VariableDeclaration> get variableInitializations => variables;
 
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -589,7 +589,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformStatementList(variables, this);
+    v.transformVariableDeclarationList(variables, this);
     if (condition != null) {
       condition = v.transformOrRemoveExpression(condition!);
       condition?.parent = this;
@@ -1276,11 +1276,11 @@ class Catch extends TreeNode implements ScopeProvider {
   void transformOrRemoveChildren(RemovingTransformer v) {
     guard = v.visitDartType(guard, cannotRemoveSentinel);
     if (exception != null) {
-      exception = v.transformOrRemoveVariableDeclaration(exception!);
+      exception = v.transformOrRemoveVariable(exception!);
       exception?.parent = this;
     }
     if (stackTrace != null) {
-      stackTrace = v.transformOrRemoveVariableDeclaration(stackTrace!);
+      stackTrace = v.transformOrRemoveVariable(stackTrace!);
       stackTrace?.parent = this;
     }
     body = v.transform(body);
@@ -1460,43 +1460,34 @@ class YieldStatement extends Statement {
 }
 
 /// Declaration of a local variable.
-abstract class VariableStatement extends Statement {
+class VariableStatement extends Statement {
   /// The declared variable.
-  abstract final Variable variable;
+  VariableDeclaration declaration;
 
-  factory VariableStatement(Variable variable) = LegacyVariableStatement;
-}
-
-/// Declaration of a local variable.
-class LegacyVariableStatement extends Statement implements VariableStatement {
-  /// The declared variable.
-  @override
-  Variable variable;
-
-  LegacyVariableStatement(this.variable) {
-    variable.parent = this;
+  VariableStatement(this.declaration) {
+    declaration.parent = this;
   }
 
   @override
-  R accept<R>(StatementVisitor<R> v) => v.visitLegacyVariableStatement(this);
+  R accept<R>(StatementVisitor<R> v) => v.visitVariableStatement(this);
 
   @override
   R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
-      v.visitLegacyVariableStatement(this, arg);
+      v.visitVariableStatement(this, arg);
 
   @override
   void visitChildren(Visitor v) {
-    variable.accept(v);
+    declaration.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    variable = v.transform(variable)..parent = this;
+    declaration = v.transform(declaration)..parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transformOrRemove(variable, cannotRemoveSentinel)!
+    declaration = v.transformOrRemove(declaration, cannotRemoveSentinel)!
       ..parent = this;
   }
 
@@ -1509,7 +1500,7 @@ class LegacyVariableStatement extends Statement implements VariableStatement {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeVariableInitialization(variable);
+    printer.writeVariableDeclaration(declaration);
     printer.write(';');
   }
 }
@@ -1574,84 +1565,5 @@ class FunctionDeclaration extends Statement implements LocalFunction {
     if (function.body is ReturnStatement) {
       printer.write(';');
     }
-  }
-}
-
-class VariableInitialization extends Statement
-    implements VariableStatement, ContextConsumer {
-  @override
-  Variable variable;
-
-  /// Contexts of the variables captured by the late variable initializer.
-  ///
-  /// If [variable] isn't `late`, [capturedContexts] should be `null`.
-  @override
-  List<VariableContext>? capturedContexts;
-
-  VariableInitialization({
-    required this.variable,
-    bool hasDeclaredInitializer = false,
-  }) {
-    variable.variableInitialization = this;
-    this.hasDeclaredInitializer = hasDeclaredInitializer;
-  }
-
-  static const int FlagHasDeclaredInitializer = 1 << 0;
-  static const int FlagErroneouslyInitialized = 1 << 1;
-
-  int flags = 0;
-
-  bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
-
-  void set hasDeclaredInitializer(bool value) {
-    flags = value
-        ? (flags | FlagHasDeclaredInitializer)
-        : (flags & ~FlagHasDeclaredInitializer);
-  }
-
-  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
-
-  void set isErroneouslyInitialized(bool value) {
-    flags = value
-        ? (flags | FlagErroneouslyInitialized)
-        : (flags & ~FlagErroneouslyInitialized);
-  }
-
-  @override
-  R accept<R>(StatementVisitor<R> v) => v.visitVariableInitialization(this);
-
-  @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
-      v.visitVariableInitialization(this, arg);
-
-  @override
-  void transformChildren(Transformer v) {
-    variable = v.transform(variable)..parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    variable = v.transformOrRemove(variable, cannotRemoveSentinel)!
-      ..parent = this;
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    variable.accept(v);
-  }
-
-  @override
-  String toString() {
-    return "VariableInitialization(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
-    if (variable.initializer case var initializer?) {
-      printer.write(' := ');
-      printer.writeExpression(initializer);
-    }
-    printer.write(';');
   }
 }

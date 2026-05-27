@@ -355,7 +355,7 @@ Expression? getLateFieldInitializer(Member node) {
           // in case `<init>` is the initializer.
           VariableStatement variableStatement =
               block.statements.first as VariableStatement;
-          return variableStatement.variable.initializer;
+          return variableStatement.declaration.variable.initializer;
         }
       }
       return null;

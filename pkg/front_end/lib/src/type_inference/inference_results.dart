@@ -99,6 +99,68 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   int get statementCount => statements.length;
 }
 
+class VariableDeclarationInferenceResult {
+  const VariableDeclarationInferenceResult();
+
+  factory VariableDeclarationInferenceResult.effect([Expression? expression]) =
+      EffectVariableDeclarationInferenceResult;
+
+  factory VariableDeclarationInferenceResult.late(
+    List<VariableDeclaration> variableDeclarations,
+    List<FunctionDeclaration> functionDeclarations, {
+    required int fileOffset,
+  }) = LateVariableDeclarationInferenceResult;
+
+  bool get hasChanged => false;
+
+  StatementInferenceResult toStatementInferenceResult() =>
+      const StatementInferenceResult();
+}
+
+class EffectVariableDeclarationInferenceResult
+    implements VariableDeclarationInferenceResult {
+  final Expression? expression;
+
+  EffectVariableDeclarationInferenceResult([this.expression]);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasChanged => true;
+
+  @override
+  StatementInferenceResult toStatementInferenceResult() =>
+      new StatementInferenceResult.single(
+        expression != null
+            ? createExpressionStatement(expression!)
+            : createEmptyStatement(),
+      );
+}
+
+class LateVariableDeclarationInferenceResult
+    implements VariableDeclarationInferenceResult {
+  final int fileOffset;
+  final List<VariableDeclaration> variableDeclarations;
+  final List<FunctionDeclaration> functionDeclarations;
+
+  LateVariableDeclarationInferenceResult(
+    this.variableDeclarations,
+    this.functionDeclarations, {
+    required this.fileOffset,
+  });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasChanged => true;
+
+  @override
+  StatementInferenceResult toStatementInferenceResult() =>
+      new StatementInferenceResult.multiple(fileOffset, [
+        for (VariableDeclaration variableDeclaration in variableDeclarations)
+          createVariableStatement(variableDeclaration),
+        ...functionDeclarations,
+      ]);
+}
+
 /// Tells the inferred type and how the code should be transformed.
 ///
 /// It is intended for use by generalized inference methods, such as

@@ -4888,13 +4888,13 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   @override
-  void visitLegacyVariableStatement(LegacyVariableStatement node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     _handleVariableInitialization(node.variable);
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
-    _handleVariableInitialization(node.variable);
+  void visitVariableStatement(VariableStatement node) {
+    visitVariableDeclaration(node.declaration);
   }
 
   void _handleVariableInitialization(Variable node) {

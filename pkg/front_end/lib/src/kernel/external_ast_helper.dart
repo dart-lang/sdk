@@ -359,18 +359,16 @@ Field createImmutableField(
 
 /// Creates an initialized (but mutable) [Variable] of the static
 /// [type].
-Variable createInitializedVariable(
-  Expression expression,
-  DartType type, {
+VariableDeclaration createInitializedVariableDeclaration({
+  required Expression expression,
+  required DartType type,
   required int fileOffset,
   String? name,
 }) {
-  return new Variable(
-    name,
-    initializer: expression,
-    type: type,
-    isSynthesized: true,
-  )..fileOffset = fileOffset;
+  return createVariableDeclaration(
+    new Variable(name, initializer: expression, type: type, isSynthesized: true)
+      ..fileOffset = fileOffset,
+  );
 }
 
 InstanceGet createInstanceGet(
@@ -854,13 +852,31 @@ TypeParameter createTypeParameter(String? name, {required int fileOffset}) {
 }
 
 /// Creates an uninitialized [Variable] of the static [type].
-Variable createUninitializedVariable(
-  DartType type, {
+Variable createUninitializedVariable({
+  required DartType type,
+  String? name,
   required int fileOffset,
   bool isFinal = false,
 }) {
-  return new Variable(null, type: type, isSynthesized: true, isFinal: isFinal)
+  return new Variable(name, type: type, isSynthesized: true, isFinal: isFinal)
     ..fileOffset = fileOffset;
+}
+
+/// Creates a declaration of an uninitialized [Variable] of the static [type].
+VariableDeclaration createUninitializedVariableDeclaration({
+  required DartType type,
+  String? name,
+  required int fileOffset,
+  bool isFinal = false,
+}) {
+  return createVariableDeclaration(
+    createUninitializedVariable(
+      type: type,
+      name: name,
+      fileOffset: fileOffset,
+      isFinal: isFinal,
+    ),
+  );
 }
 
 /// Creates a [Variable] for [expression] with the static [type]
@@ -877,6 +893,10 @@ Variable createVariable(Expression expression, DartType type) {
 Variable createVariableCache(Expression expression, DartType type) {
   return new Variable.forValue(expression, type: type)
     ..fileOffset = expression.fileOffset;
+}
+
+VariableDeclaration createVariableDeclaration(Variable variable) {
+  return new VariableDeclaration(variable)..fileOffset = variable.fileOffset;
 }
 
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
@@ -913,6 +933,7 @@ Expression createVariableSet(
   }
 }
 
-VariableStatement createVariableStatement(Variable variable) {
-  return new VariableStatement(variable)..fileOffset = variable.fileOffset;
+VariableStatement createVariableStatement(VariableDeclaration declaration) {
+  return new VariableStatement(declaration)
+    ..fileOffset = declaration.fileOffset;
 }

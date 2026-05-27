@@ -586,10 +586,10 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeVariableDeclaration(Variable node) {
+  void writeVariable(Variable node) {
     bool oldCheckOffset = checkOffset;
     checkOffset = true;
-    super.writeVariableDeclaration(node);
+    super.writeVariable(node);
     checkOffset = oldCheckOffset;
   }
 }

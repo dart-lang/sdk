@@ -296,7 +296,7 @@ class FfiNativeTransformer extends FfiTransformer {
         );
         pointerAddress = BlockExpression(
           Block([
-            VariableStatement(pointerAddressVar),
+            VariableStatement(VariableDeclaration(pointerAddressVar)),
             IfStatement(
               InstanceInvocation(
                 InstanceAccessKind.Instance,
@@ -374,7 +374,9 @@ class FfiNativeTransformer extends FfiTransformer {
       );
       // Note: We also evaluate, and assign temporaries for, non-wrapped
       // arguments as we need to preserve the original evaluation order.
-      temporariesForArguments.add(VariableStatement(temporary));
+      temporariesForArguments.add(
+        VariableStatement(VariableDeclaration(temporary)),
+      );
       callArguments.add(
         _getTemporary(
           temporary,
@@ -419,7 +421,7 @@ class FfiNativeTransformer extends FfiTransformer {
     final resultBlock = BlockExpression(
       Block(<Statement>[
         ...temporariesForArguments,
-        VariableStatement(result),
+        VariableStatement(VariableDeclaration(result)),
         for (final argument in fencedArguments)
           ExpressionStatement(
             StaticInvocation(

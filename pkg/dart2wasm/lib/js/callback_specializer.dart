@@ -151,7 +151,7 @@ class CallbackSpecializer {
       ),
     );
 
-    body.add(VariableStatement(argumentsLength));
+    body.add(VariableStatement(VariableDeclaration(argumentsLength)));
 
     if (castClosureArguments.isNotEmpty) {
       // Call the cast closure, but only if the arity is okay. In the case where

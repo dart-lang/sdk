@@ -79,9 +79,9 @@ mixin FinalizableTransformer on Transformer {
       final alwaysInitialized = entry.value;
       addPossiblyUninitializedTo!.statements.insert(
         addPossiblyUninitializedTo.statements.indexOf(
-          possiblyUninitialized.parent as VariableStatement,
+          possiblyUninitialized.parent?.parent as VariableStatement,
         ),
-        VariableStatement(alwaysInitialized),
+        VariableStatement(VariableDeclaration(alwaysInitialized)),
       );
     }
     assert(_currentScope == scope);
@@ -562,7 +562,7 @@ mixin FinalizableTransformer on Transformer {
     );
     return BlockExpression(
       Block(<Statement>[
-        VariableStatement(resultVariable),
+        VariableStatement(VariableDeclaration(resultVariable)),
         ..._reachabilityFences(declarations),
       ]),
       VariableGet(resultVariable),
@@ -744,7 +744,7 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     Variable possiblyUninitialized,
     Variable nullableValue,
   ) {
-    assert(possiblyUninitialized.parent is VariableStatement);
+    assert(possiblyUninitialized.parent?.parent is VariableStatement);
     _possiblyUninitializedDeclarations[possiblyUninitialized] = nullableValue;
     addDeclaration(possiblyUninitialized);
   }
