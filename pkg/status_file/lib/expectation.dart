@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The possible outcomes from running a test.
-class Expectation {
+class Expectation._(
+  final String _name, {
+  final Expectation? _group,
+  bool isMeta = false,
+}) {
   /// The test completed normally and did what it intended to do.
   static final Expectation pass = Expectation._('Pass');
 
@@ -234,14 +238,8 @@ class Expectation {
     return expectation;
   }
 
-  final String _name;
-  final Expectation? _group;
-
   /// Whether this expectation is a test outcome. If not, it's a "meta marker".
-  final bool isOutcome;
-
-  Expectation._(this._name, {this._group, bool isMeta = false})
-    : isOutcome = !isMeta;
+  final bool isOutcome = !isMeta;
 
   bool canBeOutcomeOf(Expectation expectation) {
     Expectation? outcome = this;

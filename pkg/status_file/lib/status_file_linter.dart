@@ -7,15 +7,9 @@ import 'dart:math' as math;
 import 'package:status_file/canonical_status_file.dart';
 import 'package:status_file/status_file_entries_file_checker.dart';
 
-class LintingError {
-  final int lineNumber;
-  final String message;
-  LintingError(this.lineNumber, this.message);
-
+class LintingError(final int lineNumber, final String message) {
   @override
-  String toString() {
-    return "Error at line $lineNumber: $message";
-  }
+  String toString() => "Error at line $lineNumber: $message";
 }
 
 /// Main function to check a status file for linting errors.
@@ -268,8 +262,4 @@ ListNotEqualWitness<T>? _findNotEqualWitness<T>(List<T> first, List<T> second) {
   return null;
 }
 
-class ListNotEqualWitness<T> {
-  final T? first;
-  final T? second;
-  ListNotEqualWitness(this.first, this.second);
-}
+class ListNotEqualWitness<T>(final T? first, final T? second);

@@ -8,7 +8,7 @@ import 'dart:math' as math;
 import '../environment.dart';
 
 /// A parsed Boolean expression AST.
-abstract class Expression implements Comparable<Expression> {
+abstract class const Expression() implements Comparable<Expression> {
   /// An expression that always evaluates to true.
   ///
   /// Used for the section at the top of a status file with no expression.
@@ -30,8 +30,6 @@ abstract class Expression implements Comparable<Expression> {
   /// environment passed to the evaluator.
   static Expression parse(String expression) =>
       _ExpressionParser(expression).parse();
-
-  const Expression();
 
   /// Validates that this expression does not contain any invalid uses of
   /// variables.
@@ -97,11 +95,7 @@ class _Token {
 }
 
 /// A reference to a variable.
-class Variable {
-  final String name;
-
-  Variable(this.name);
-
+class Variable(final String name) {
   String lookup(Environment environment) {
     var value = environment.lookUp(name);
     if (value == null) {
@@ -125,9 +119,7 @@ class Variable {
 ///
 /// Used for the implicit section at the top of a status file that always
 /// matches.
-class _AlwaysExpression extends Expression {
-  const _AlwaysExpression();
-
+class const _AlwaysExpression() extends Expression {
   @override
   int _compareToMyType(covariant _AlwaysExpression other) => 0;
 
@@ -149,13 +141,11 @@ class _AlwaysExpression extends Expression {
 /// $variable == someValue
 /// ```
 /// Negate the result if [negate] is true.
-class ComparisonExpression extends Expression {
-  final Variable left;
-  final String right;
-  final bool negate;
-
-  ComparisonExpression(this.left, this.right, this.negate);
-
+class ComparisonExpression(
+  final Variable left,
+  final String right,
+  final bool negate,
+) extends Expression {
   @override
   void validate(Environment environment, List<String> errors) {
     environment.validate(left.name, right, errors);
@@ -217,12 +207,8 @@ class ComparisonExpression extends Expression {
 /// ```
 ///     $variable != true
 /// ```
-class VariableExpression extends Expression {
-  final Variable variable;
-  final bool negate;
-
-  VariableExpression(this.variable, {this.negate = false});
-
+class VariableExpression(final Variable variable, {final bool negate = false})
+    extends Expression {
   @override
   void validate(Environment environment, List<String> errors) {
     // It must be a Boolean, so it should allow either Boolean value.
@@ -254,16 +240,13 @@ class VariableExpression extends Expression {
 }
 
 /// A logical `||` or `&&` expression.
-class LogicExpression extends Expression {
+class LogicExpression(
   /// The operator, `||` or `&&`.
-  final String op;
-
-  final List<Expression> operands;
-
-  LogicExpression(this.op, this.operands);
-
-  LogicExpression.and(this.operands) : op = _Token.and;
-  LogicExpression.or(this.operands) : op = _Token.or;
+  final String op,
+  final List<Expression> operands,
+) extends Expression {
+  new and(List<Expression> operands) : this(_Token.and, operands);
+  new or(List<Expression> operands) : this(_Token.or, operands);
 
   bool get isAnd => op == _Token.and;
   bool get isOr => op == _Token.or;
@@ -350,10 +333,8 @@ class LogicExpression extends Expression {
 }
 
 /// Parser for Boolean expressions in a .status file for Dart.
-class _ExpressionParser {
-  final _Scanner _scanner;
-
-  _ExpressionParser(String expression) : _scanner = _Scanner(expression);
+class _ExpressionParser(String expression) {
+  final _Scanner _scanner = _Scanner(expression);
 
   Expression parse() {
     var expression = _parseOr();
@@ -442,7 +423,7 @@ class _ExpressionParser {
 }
 
 /// An iterator that allows peeking at the current token.
-class _Scanner {
+class _Scanner(String expression) {
   /// Tokens are "(", ")", "$", "&&", "||", "!", ==", "!=", and (maximal) \w+.
   static final _testPattern = RegExp(r"^(?:[()$\w\s]|&&|\|\||==|!=?)+$");
   static final _tokenPattern = RegExp(r"[()$]|&&|\|\||==|!=?|\w+");
@@ -454,11 +435,11 @@ class _Scanner {
   static final _identifierPattern = RegExp(r"^\w");
 
   /// The token strings being iterated.
-  final Iterator<String> tokenIterator;
+  final Iterator<String> tokenIterator = tokenize(expression).iterator;
 
   String? current;
 
-  _Scanner(String expression) : tokenIterator = tokenize(expression).iterator {
+  this {
     advance();
   }
 

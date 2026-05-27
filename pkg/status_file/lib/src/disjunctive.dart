@@ -143,11 +143,9 @@ List<Expression>? _satisfiableMinTerms(Expression expression) {
 /// [variables] are assigned a value bases on the [configuration]. This
 /// environment can then be used to evaluate the corresponding expression from
 /// which the [variables] was found.
-class TruthTableEnvironment extends Environment {
-  final List<Expression> variables;
+class TruthTableEnvironment(final List<Expression> variables)
+    extends Environment {
   int configuration = -1;
-
-  TruthTableEnvironment(this.variables);
 
   void setConfiguration(int configuration) {
     this.configuration = configuration;

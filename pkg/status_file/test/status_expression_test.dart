@@ -10,7 +10,7 @@ import "package:status_file/src/expression.dart";
 class TestEnvironment implements Environment {
   final Map<String, String> _values;
 
-  TestEnvironment(this._values);
+  new(this._values);
 
   @override
   void validate(String name, String value, List<String> errors) {
