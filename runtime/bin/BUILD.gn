@@ -780,9 +780,7 @@ bin_to_linkable("platform_dill_linkable") {
 
 bin_to_linkable("icudtl_linkable") {
   deps = []
-  if (exec_script("../tools/exists.py",
-                  [ rebase_path("//third_party/icu/flutter/icudtl.dat") ],
-                  "value")) {
+  if (path_exists("//third_party/icu/flutter/icudtl.dat")) {
     input = "//third_party/icu/flutter/icudtl.dat"
   } else {
     input = "//flutter/third_party/icu/flutter/icudtl.dat"
@@ -1033,10 +1031,7 @@ dart_executable("dartaotruntime_product") {
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   dart_executable("dart") {
     use_product_mode = true
-    extra_configs = [
-      "..:dartdev_config",
-      "..:add_empty_macho_section_config",
-    ]
+    extra_configs = [ "..:dartdev_config" ]
     extra_deps = [
       ":shared_object_loaders_product",
       "..:libdart_aotruntime_product",
