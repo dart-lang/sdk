@@ -1209,6 +1209,8 @@ void Object::Init(IsolateGroup* isolate_group) {
       TypedData::New(kTypedDataUint32ArrayCid,
                      LinkedHashBase::kUninitializedIndexSize, Heap::kOld));
   Roots::uninitialized_data().initRO(Array::New(0, Heap::kOld));
+  Roots::empty_coverage_array().initRO(
+      TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
@@ -1317,6 +1319,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::uninitialized_index().IsTypedData());
   ASSERT(!Roots::uninitialized_data().IsSmi());
   ASSERT(Roots::uninitialized_data().IsArray());
+  ASSERT(!Roots::empty_coverage_array().IsSmi());
+  ASSERT(Roots::empty_coverage_array().IsTypedData());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
@@ -11467,7 +11471,7 @@ int32_t Function::SourceFingerprint() const {
 void Function::SaveICDataMap(
     const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
     const Array& edge_counters_array,
-    const Array& coverage_array) const {
+    const TypedData& coverage_array) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Already installed nothing to do.
   if (ic_data_array() != Array::null()) {
@@ -11546,22 +11550,22 @@ void Function::RestoreICDataMap(
 #endif  // DART_PRECOMPILED_RUNTIME
 }
 
-ArrayPtr Function::GetCoverageArray() const {
+TypedDataPtr Function::GetCoverageArray() const {
 #if defined(DART_DYNAMIC_MODULES)
   if (HasBytecode()) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     const auto& bytecode = Bytecode::Handle(GetBytecode());
     return bytecode.coverage_array();
 #else
-    return Array::null();
+    return TypedData::null();
 #endif
   }
 #endif
   const Array& arr = Array::Handle(ic_data_array());
   if (arr.IsNull()) {
-    return Array::null();
+    return TypedData::null();
   }
-  return Array::RawCast(arr.At(ICDataArrayIndices::kCoverageData));
+  return TypedData::RawCast(arr.At(ICDataArrayIndices::kCoverageData));
 }
 
 void Function::set_ic_data_array(const Array& value) const {
@@ -19090,26 +19094,24 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
 #endif
 }
 
-ArrayPtr Bytecode::EnsureCoverageArray(Thread* thread) const {
+TypedDataPtr Bytecode::EnsureCoverageArray(Thread* thread) const {
 #if defined(DART_DYNAMIC_MODULES)
   // Should only be called for bytecode with RecordCoverage instructions.
   ASSERT(HasRecordedCoverage());
-  if (coverage_array() == Array::null()) {
+  if (coverage_array() == TypedData::null()) {
     Zone* const zone = thread->zone();
     bytecode::BytecodeRecordedCoverageIterator it(zone, *this);
-    const auto& array =
-        Array::Handle(zone, Array::New(2 * it.NumEntries(), Heap::kOld));
-    auto& smi = Smi::Handle(zone);
+    const auto& array = TypedData::Handle(
+        zone, TypedData::New(kTypedDataUint32ArrayCid, 2 * it.NumEntries(),
+                             Heap::kOld));
     // The coverage array has two consecutive entries for each logical
     // index: the encoded coverage position and the hit count.
     for (intptr_t i = 0; it.MoveNext(); i += 2) {
-      smi = Smi::New(it.EncodedCoveragePosition());
-      array.SetAt(i, smi);
-      smi = Smi::New(0);
-      array.SetAt(i + 1, smi);
+      array.SetUint32(i * kInt32Size, it.EncodedCoveragePosition());
+      array.SetUint32((i + 1) * kInt32Size, 0);
     }
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    if (coverage_array() == Array::null()) {
+    if (coverage_array() == TypedData::null()) {
       untag()->set_coverage_array(array.ptr());
     }
   }
@@ -26184,8 +26186,20 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
 }
 
 uint32_t TypedData::CanonicalizeHash() const {
-  NoSafepointScope no_safepoint;
-  return HashBytes(DataAddr(0), LengthInBytes(), kHashBits);
+  uint32_t hash = kEmptyContainerHash;
+  const intptr_t len = LengthInBytes();
+  if (len != 0) {
+    auto* const thread = Thread::Current();
+    hash = thread->heap()->GetCanonicalHash(ptr());
+    if (hash == 0) {
+      {
+        NoSafepointScope no_safepoint;
+        hash = HashBytes(DataAddr(0), len, kHashBits);
+      }
+      thread->heap()->SetCanonicalHash(ptr(), hash);
+    }
+  }
+  return hash;
 }
 
 TypedDataPtr TypedData::New(intptr_t class_id,

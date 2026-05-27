@@ -174,11 +174,11 @@ class BaseFlowGraphBuilder {
             has_saved_args_desc_array()
                 ? Array::ZoneHandle(zone_, function_.saved_args_desc())
                 : Object::null_array()),
-        coverage_array_(
-            Array::ZoneHandle(parsed_function->function().GetCoverageArray())) {
-  }
+        coverage_array_(TypedData::ZoneHandle(
+            zone_,
+            parsed_function->function().GetCoverageArray())) {}
 
-  const Array& coverage_array() const { return coverage_array_; }
+  const TypedData& coverage_array() const { return coverage_array_; }
 
   void FinalizeCoverageArray();
 
@@ -565,7 +565,7 @@ class BaseFlowGraphBuilder {
   // Mapping from token position to the index in the coverage array at which
   // coverage state is stored.
   IntMap<intptr_t> coverage_state_index_for_position_;
-  Array& coverage_array_;
+  TypedData& coverage_array_;
 
   friend class StreamingFlowGraphBuilder;
 

@@ -82,7 +82,8 @@ namespace dart {
   V(Type, void_type)                                                           \
   V(AbstractType, null_abstract_type)                                          \
   V(TypedData, uninitialized_index)                                            \
-  V(Array, uninitialized_data)
+  V(Array, uninitialized_data)                                                 \
+  V(TypedData, empty_coverage_array)
 
 #define API_HANDLE_ROOTS_LIST(V)                                               \
   V(true_api_handle)                                                           \

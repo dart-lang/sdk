@@ -573,7 +573,8 @@ class Object {
   V(Type, void_type)                                                           \
   V(AbstractType, null_abstract_type)                                          \
   V(TypedData, uninitialized_index)                                            \
-  V(Array, uninitialized_data)
+  V(Array, uninitialized_data)                                                 \
+  V(TypedData, empty_coverage_array)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
   static const Type& name() { return Roots::name(); }
@@ -4065,7 +4066,7 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array,
-      const Array& coverage_array) const;
+      const TypedData& coverage_array) const;
   // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
   // ic_data (array and descriptor) if 'clone_ic_data' is true.
   void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
@@ -4087,7 +4088,7 @@ class Function : public Object {
   // Coverage data array is a list of pairs:
   //   element 2 * i + 0 is token position
   //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
-  ArrayPtr GetCoverageArray() const;
+  TypedDataPtr GetCoverageArray() const;
 
   // Outputs this function's service ID to the provided JSON object.
   void AddFunctionServiceId(const JSONObject& obj) const;
@@ -7627,8 +7628,8 @@ class Bytecode : public Object {
     StoreNonPointer(&untag()->recorded_coverage_binary_offset_, value);
   }
 
-  ArrayPtr coverage_array() const { return untag()->coverage_array(); }
-  ArrayPtr EnsureCoverageArray(Thread* thread) const;
+  TypedDataPtr coverage_array() const { return untag()->coverage_array(); }
+  TypedDataPtr EnsureCoverageArray(Thread* thread) const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   bool HasLocalVariablesInfo() const {

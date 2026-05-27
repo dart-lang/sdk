@@ -393,15 +393,15 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   };
 
   // Merge the coverage from coverage_array attached to the function.
-  const Array& coverage_array = Array::Handle(function.GetCoverageArray());
+  const auto& coverage_array = TypedData::Handle(function.GetCoverageArray());
   if (!coverage_array.IsNull()) {
     for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
       bool is_branch_coverage;
       const TokenPosition token_pos = TokenPosition::DecodeCoveragePosition(
-          Smi::Value(Smi::RawCast(coverage_array.At(i))), &is_branch_coverage);
+          coverage_array.GetUint32(i * kInt32Size), &is_branch_coverage);
       if (is_branch_coverage == report_branch_coverage) {
         const bool was_executed =
-            Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
+            coverage_array.GetUint32((i + 1) * kInt32Size) != 0;
         update_coverage(token_pos, was_executed || const_constructor_hit);
       }
     }
