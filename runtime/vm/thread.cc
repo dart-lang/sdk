@@ -490,6 +490,8 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   ASSERT(thread->isolate()->scheduled_mutator_thread_ == thread);
   DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
 
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
+
   auto isolate = thread->isolate();
   auto group = thread->isolate_group();
 
@@ -563,15 +565,30 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 }
 
 void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
-                                        bool bypass_safepoint) {
+                                        bool bypass_safepoint,
+                                        Thread* suspended_thread) {
   Roots::SetCurrent(isolate_group->roots());
   isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
                                       /*is_nested_reenter=*/true,
                                       /*was_stolen=*/false);
   isolate_group->IncrementIsolateGroupMutatorCount();
-  Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
-                                   kMutatorTask, bypass_safepoint);
 
+  auto thread = suspended_thread;
+  if (thread != nullptr) {
+    ResumeThreadInternal(thread);
+    {
+      // Descheduled isolates are reloadable (if nothing else prevents it).
+      RawReloadParticipationScope enable_reload(thread);
+      thread->ExitSafepoint();
+    }
+
+    thread->AssertDartMutatorInvariants();
+    ASSERT(thread->isolate() == nullptr);
+    ASSERT(thread->isolate_group() == isolate_group);
+    return;
+  }
+  thread = AddActiveThread(isolate_group, /*isolate=*/nullptr, kMutatorTask,
+                           bypass_safepoint);
   RELEASE_ASSERT(thread != nullptr);
   // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
   // parallel scavenger threads write to the [Thread]s storebuffer)
@@ -607,15 +624,26 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
 void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   thread->AssertDartMutatorInvariants();
+  auto group = thread->isolate_group();
 
   // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
   // parallel scavenger threads write to the [Thread]s storebuffer)
-  thread->ResetDartMutatorState();
-  thread->ResetMutatorState();
-  thread->ClearStackLimit();
-  SuspendThreadInternal(thread, VMTag::kInvalidTagId);
-  auto group = thread->isolate_group();
-  FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  if (thread->HasActiveState() || thread->OwnsSafepoint()) {
+    // must not free the thread
+    SuspendThreadInternal(thread, VMTag::kLoadWaitTagId);
+    {
+      // Descheduled isolates are reloadable (if nothing else prevents it).
+      RawReloadParticipationScope enable_reload(thread);
+      thread->EnterSafepoint();
+    }
+    thread->set_execution_state(Thread::kThreadInNative);
+  } else {
+    thread->ResetDartMutatorState();
+    thread->ResetMutatorState();
+    thread->ClearStackLimit();
+    SuspendThreadInternal(thread, VMTag::kInvalidTagId);
+    FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  }
   group->DecrementIsolateGroupMutatorCount();
   group->DecreaseMutatorCount(/*is_nested_exit=*/true);
   Roots::ClearCurrent();

@@ -7253,7 +7253,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
 class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  RecordCoverageInstr(const Array& coverage_array,
+  RecordCoverageInstr(const TypedData& coverage_array,
                       intptr_t coverage_index,
                       const InstructionSource& source)
       : TemplateInstruction(source),
@@ -7270,7 +7270,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
 #define FIELD_LIST(F)                                                          \
-  F(const Array&, coverage_array_)                                             \
+  F(const TypedData&, coverage_array_)                                         \
   F(const intptr_t, coverage_index_)                                           \
   F(const TokenPosition, token_pos_)
 

@@ -6,6 +6,8 @@
 //
 // Run 'dart pkg/front_end/tool/generate_ast_equivalence.dart' to update.
 
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'union_find.dart';

@@ -70,6 +70,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_declaration_method_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A();
+  a.m();
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {}
+}
+void f() {
+  final a = A()
+  ..m()
+  ..m();
+}
+''');
+  }
+
   Future<void> test_method_method() async {
     await resolveTestCode('''
 class A {
@@ -112,6 +135,31 @@ class A {
 void f(A a) {
   a..m()
   ..x = 1;
+}
+''');
+  }
+
+  Future<void> test_method_property_method() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  int? x;
+}
+void f(A a) {
+  a.m();
+  a.x = 1;
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {}
+  int? x;
+}
+void f(A a) {
+  a..m()
+  ..x = 1
+  ..m();
 }
 ''');
   }
@@ -167,6 +215,33 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_property_cascadeMethod_cascadeMethod() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  int? x;
+}
+
+void f(A a) {
+  a.x = 1;
+  a..m();
+  a..m();
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {}
+  int? x;
+}
+
+void f(A a) {
+  a..x = 1
+  ..m()
+  ..m();
+}
+''');
+  }
+
   Future<void> test_property_method() async {
     await resolveTestCode('''
 class A {
@@ -209,6 +284,60 @@ class A {
 void f(A a) {
   a..x = 1
   ..x = 2;
+}
+''');
+  }
+
+  Future<void> test_property_property_method_method() async {
+    await resolveTestCode('''
+class A {
+  void m(int _) {}
+  int? x;
+}
+
+void f(A a) {
+  a..x = 1
+  ..x = 2;
+  a.m(1);
+  a.m(2);
+}
+''');
+    await assertHasFix('''
+class A {
+  void m(int _) {}
+  int? x;
+}
+
+void f(A a) {
+  a..x = 1
+  ..x = 2
+  ..m(1)
+  ..m(2);
+}
+''');
+  }
+
+  Future<void> test_property_property_property() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  int? x;
+}
+void f(A a) {
+  a.x = 1;
+  a.x = 2;
+  a.x = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {}
+  int? x;
+}
+void f(A a) {
+  a..x = 1
+  ..x = 2
+  ..x = 3;
 }
 ''');
   }

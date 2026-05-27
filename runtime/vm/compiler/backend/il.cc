@@ -3159,7 +3159,8 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Instruction* RecordCoverageInstr::Canonicalize(FlowGraph* flow_graph) {
   ASSERT(!coverage_array_.IsNull());
-  return coverage_array_.At(coverage_index_) != Smi::New(0) ? nullptr : this;
+  return coverage_array_.GetUint32(coverage_index_ * kInt32Size) != 0 ? nullptr
+                                                                      : this;
 }
 
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -8436,10 +8437,10 @@ void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(array_temp, coverage_array_);
   __ LoadImmediate(value_temp, Smi::RawValue(1));
-  __ StoreFieldToOffset(
-      value_temp, array_temp,
-      compiler::target::Array::element_offset(coverage_index_),
-      compiler::kObjectBytes);
+  __ StoreFieldToOffset(value_temp, array_temp,
+                        compiler::target::TypedData::payload_offset() +
+                            (coverage_index_ * kInt32Size),
+                        compiler::kFourBytes);
 }
 
 #undef Z

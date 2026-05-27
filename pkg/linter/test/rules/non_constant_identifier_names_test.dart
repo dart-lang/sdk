@@ -252,7 +252,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment int Xx = 2;
+  augment abstract int Xx;
 }
 ''');
   }
@@ -378,11 +378,15 @@ part 'test.dart';
 int Xx = 1;
 ''');
 
-    await assertNoDiagnostics(r'''
+    // TODO(augmentations): Should not have notInitializedNonNullableVariable
+    await assertDiagnostics(
+      r'''
 part of 'a.dart';
 
-augment int Xx = 2;
-''');
+augment abstract int Xx;
+''',
+      [error(diag.notInitializedNonNullableVariable, 40, 2)],
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/5048')

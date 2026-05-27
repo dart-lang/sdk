@@ -601,8 +601,8 @@ class FlowGraph : public ZoneObject {
 
   void CreateCommonConstants();
 
-  const Array& coverage_array() const { return *coverage_array_; }
-  void set_coverage_array(const Array& array) { coverage_array_ = &array; }
+  const TypedData& coverage_array() const { return *coverage_array_; }
+  void set_coverage_array(const TypedData& array) { coverage_array_ = &array; }
 
   // Renumbers SSA values and basic blocks to make numbering dense.
   // Preserves order among block ids.
@@ -806,7 +806,7 @@ class FlowGraph : public ZoneObject {
 
   intptr_t max_argument_slot_count_ = -1;
 
-  const Array* coverage_array_ = &Array::empty_array();
+  const TypedData* coverage_array_ = &TypedData::empty_coverage_array();
 };
 
 class LivenessAnalysis : public ValueObject {

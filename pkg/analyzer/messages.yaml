@@ -1904,6 +1904,22 @@ CompileTimeErrorCode:
     problemMessage: "The getter induced by this augmentation has return type '#actualType', but the getter being augmented has return type '#expectedType'."
     correctionMessage: Try changing the augmentation's type to match the getter being augmented.
     hasPublishedDocs: false
+  augmentationInducedGetterAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The getter induced by this augmentation is complete, but the getter being augmented is already complete."
+    correctionMessage: Try removing the augmentation, or making one of the declarations 'abstract'.
+    hasPublishedDocs: false
+  augmentationInducedSetterAlreadyComplete:
+    type: compileTimeError
+    parameters: none
+    sharedName: declarationAlreadyComplete
+    experiment: augmentations
+    problemMessage: "The setter induced by this augmentation is complete, but the setter being augmented is already complete."
+    correctionMessage: Try removing the augmentation, or making one of the declarations 'abstract'.
+    hasPublishedDocs: false
   augmentationReturnTypeMismatch:
     type: compileTimeError
     parameters:

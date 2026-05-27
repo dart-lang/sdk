@@ -44,7 +44,7 @@ class A {
 }
 
 augment class A {
-  augment int foo = 42;
+  augment abstract int foo;
 }
 ''');
   }
@@ -686,8 +686,8 @@ class A {
 }
 
 augment class A {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -832,8 +832,8 @@ class A {
 }
 
 augment class A {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -991,7 +991,7 @@ enum E {
 }
 
 augment enum E {;
-  augment final int foo = 0;
+  augment abstract final int foo;
 }
 ''');
   }
@@ -1428,8 +1428,8 @@ enum E {
 }
 
 augment enum E {;
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -1585,8 +1585,8 @@ enum E {
 }
 
 augment enum E {;
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -1704,8 +1704,8 @@ extension E on int {
 }
 
 augment extension E {
-  augment int foo = 0;
-//            ^^^
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 // [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
@@ -1857,8 +1857,8 @@ extension E on int {
 }
 
 augment extension E {
-  augment int foo = 0;
-//            ^^^
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 // [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
@@ -2006,8 +2006,8 @@ extension E on int {
 }
 
 augment extension E {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -2158,8 +2158,8 @@ extension E on int {
 }
 
 augment extension E {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -2254,8 +2254,8 @@ extension type E(int it) {
 }
 
 augment extension type E {
-  augment int foo = 0;
-//            ^^^
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 // [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
@@ -2377,8 +2377,8 @@ extension type E(int it) {
 }
 
 augment extension type E {
-  augment int foo = 0;
-//            ^^^
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 // [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
@@ -2490,8 +2490,8 @@ extension type E(int it) {
 }
 
 augment extension type E {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -2580,8 +2580,8 @@ extension type E(int it) {
 }
 
 augment extension type E {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -2706,8 +2706,8 @@ mixin M {
 }
 
 augment mixin M {
-  augment int foo = 0;
-//            ^^^
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -2824,8 +2824,8 @@ mixin M {
 }
 
 augment mixin M {
-  augment int foo = 0;
-//            ^^^
+  augment abstract int foo;
+//                     ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -2936,8 +2936,8 @@ mixin M {
 }
 
 augment mixin M {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
 }
 ''');
@@ -3026,8 +3026,8 @@ mixin M {
 }
 
 augment mixin M {
-  augment static int foo = 0;
-//                   ^^^
+  augment static abstract int foo;
+//                            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 }
 ''');
@@ -4356,9 +4356,12 @@ int foo = 42;
   }
 
   test_topLevelVariable_topLevelVariable_augment() async {
+    // TODO(augmentations): Should not have notInitializedNonNullableVariable
     await resolveTestCodeWithDiagnostics(r'''
 int foo = 0;
-augment int foo = 42;
+augment abstract int foo;
+//                   ^^^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'foo' must be initialized.
 ''');
   }
 

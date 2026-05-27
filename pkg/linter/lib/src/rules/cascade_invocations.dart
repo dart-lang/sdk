@@ -362,6 +362,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
+    Statement? previousStatement;
+    Statement? firstStatementInCascade;
+
     for (var statement in statements) {
       var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
       if (statement is VariableDeclarationStatement) {
@@ -374,9 +377,23 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
       }
       if (currentExpressionBox.compatibleWith(previousExpressionBox)) {
-        rule.reportAtNode(statement);
+        firstStatementInCascade ??= statement;
+      } else {
+        if (firstStatementInCascade != null && previousStatement != null) {
+          var offset = firstStatementInCascade.offset;
+          var length = previousStatement.end - offset;
+          rule.reportAtOffset(offset, length);
+          firstStatementInCascade = null;
+        }
       }
       previousExpressionBox = currentExpressionBox;
+      previousStatement = statement;
+    }
+
+    if (firstStatementInCascade != null && previousStatement != null) {
+      var offset = firstStatementInCascade.offset;
+      var length = previousStatement.end - offset;
+      rule.reportAtOffset(offset, length);
     }
   }
 }

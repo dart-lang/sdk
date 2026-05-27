@@ -23,8 +23,8 @@ class A {
 }
 
 augment class A {
-  augment final String? foo = null;
-//                      ^^^
+  augment abstract final String? foo;
+//                               ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 }
 ''');
@@ -37,7 +37,7 @@ class A {
 }
 
 augment class A {
-  augment int? foo;
+  augment abstract int? foo;
 }
 ''');
   }
@@ -49,8 +49,8 @@ class A {
 }
 
 augment class A {
-  augment String? foo;
-//                ^^^
+  augment abstract String? foo;
+//                         ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 }
 ''');
@@ -64,8 +64,8 @@ class A {
 }
 
 augment class A {
-  augment String? foo, bar;
-//                     ^^^
+  augment abstract String? foo, bar;
+//                              ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 }
 ''');
@@ -118,7 +118,7 @@ class A {
 }
 
 augment class A {
-  augment static int? foo;
+  augment static abstract int? foo;
 }
 ''');
   }
@@ -130,8 +130,8 @@ class A {
 }
 
 augment class A {
-  augment static String? foo;
-//                       ^^^
+  augment static abstract String? foo;
+//                                ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 }
 ''');
@@ -305,9 +305,10 @@ augment String get foo;
     await resolveTestCodeWithDiagnostics(r'''
 int? get foo => 0;
 
-augment final String? foo = null;
-//                    ^^^
+augment abstract final String? foo;
+//                             ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
@@ -315,7 +316,7 @@ augment final String? foo = null;
     await resolveTestCodeWithDiagnostics(r'''
 int? foo;
 
-augment int? foo;
+augment abstract int? foo;
 ''');
   }
 
@@ -323,8 +324,8 @@ augment int? foo;
     await resolveTestCodeWithDiagnostics(r'''
 int? foo;
 
-augment String? foo;
-//              ^^^
+augment abstract String? foo;
+//                       ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 ''');
   }
@@ -334,8 +335,8 @@ augment String? foo;
 String? foo;
 int? bar;
 
-augment String? foo, bar;
-//                   ^^^
+augment abstract String? foo, bar;
+//                            ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
 ''');
   }

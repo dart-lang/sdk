@@ -2119,7 +2119,7 @@ class UntaggedBytecode : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ExceptionHandlersPtr, exception_handlers);
   COMPRESSED_POINTER_FIELD(PcDescriptorsPtr, pc_descriptors);
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, coverage_array);
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, coverage_array);
   COMPRESSED_POINTER_FIELD(LocalVarDescriptorsPtr, var_descriptors);
   VISIT_TO(var_descriptors);
 #else
@@ -3401,8 +3401,9 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   }
 
   friend class Api;
-  friend class Instance;
   friend class DeltaEncodedTypedDataDeserializationCluster;
+  friend class Instance;
+  friend class Interpreter;
   friend class NativeEntryData;
   friend class Object;
   friend class ObjectPool;

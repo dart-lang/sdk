@@ -253,11 +253,14 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
+  V(Isolate_create_, 1)                                                        \
   V(Isolate_exit_, 2)                                                          \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_getDebugName, 1)                                                   \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_runSync_, 2)                                                       \
   V(Isolate_sendOOB, 2)                                                        \
+  V(Isolate_shutdownSync_, 1)                                                  \
   V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
   V(GrowableList_allocate, 1)                                                  \

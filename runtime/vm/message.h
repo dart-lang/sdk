@@ -58,7 +58,7 @@ class Message {
   // the VM heap. This is indicated by setting the len_ field to 0.
   Message(Dart_Port dest_port, ObjectPtr raw_obj, Priority priority);
 
-  // A message sent from SendPort.send or SendPort.sendAndExit where sender and
+  // A message sent from SendPort.send or Isolate.exit where sender and
   // receiver are in the same isolate group.
   Message(Dart_Port dest_port, PersistentHandle* handle, Priority priority);
 
@@ -109,7 +109,7 @@ class Message {
   }
   // A message whose object is an immortal object from the vm-isolate's heap.
   bool IsRaw() const { return snapshot_length_ == 0; }
-  // A message sent from SendPort.send or SendPort.sendAndExit where sender and
+  // A message sent from SendPort.send or Isolate.exit where sender and
   // receiver are in the same isolate group.
   bool IsPersistentHandle() const {
     return snapshot_length_ == kPersistentHandleSnapshotLen;

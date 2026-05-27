@@ -50,7 +50,7 @@ linter:
     - sort_pub_dependencies
     - test_types_in_equals
     - throw_in_finally
-    - unawaited_futures # pedantic
+    - unawaited_futures
     - unnecessary_async
     - unnecessary_breaks
     - unnecessary_final
@@ -62,7 +62,6 @@ linter:
     - unnecessary_statements
     - unreachable_from_main
     - use_late_for_private_fields_and_variables
-    - use_null_aware_elements
     - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable

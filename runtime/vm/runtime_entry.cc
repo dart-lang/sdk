@@ -4943,7 +4943,7 @@ DEFINE_RUNTIME_ENTRY(AllocateBytecodeCoverageArray, 1) {
     !defined(DART_PRECOMPILED_RUNTIME)
   const auto& bytecode = Bytecode::CheckedHandle(zone, arguments.ArgAt(0));
   const auto& coverage_array =
-      Array::Handle(zone, bytecode.EnsureCoverageArray(thread));
+      TypedData::Handle(zone, bytecode.EnsureCoverageArray(thread));
   arguments.SetReturn(coverage_array);
 #else
   UNREACHABLE();

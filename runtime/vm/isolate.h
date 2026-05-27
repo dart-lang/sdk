@@ -1294,6 +1294,14 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
+  bool TryAcquireOwnership();
+  void ReleaseOwnership();
+  bool is_permanently_pinned() { return is_permanently_pinned_; }
+  void set_is_permanently_pinned() { is_permanently_pinned_ = true; }
+  void clear_is_permanently_pinned_for_testing_only() {
+    is_permanently_pinned_ = false;
+  }
+
   static void SetCreateGroupCallback(Dart_IsolateGroupCreateCallback cb) {
     create_group_callback_ = cb;
   }
@@ -1700,6 +1708,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
+  bool is_permanently_pinned_ = false;
 
   ErrorPtr sticky_error_;
 

@@ -406,7 +406,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   static void ExitIsolateGroupAsNonMutator();
 
   static void EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
-                                         bool bypass_safepoint);
+                                         bool bypass_safepoint,
+                                         Thread* suspended_thread = nullptr);
   static void ExitIsolateGroupAsMutator(bool bypass_safepoint);
 
   // Empties the store buffer block into the isolate.

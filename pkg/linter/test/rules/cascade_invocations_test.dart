@@ -206,8 +206,8 @@ void f(List<int> list) {
     await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
   list.clear();
-  /*[0*/list.clear();/*0]*/
-  /*[1*/list..clear();/*1]*/
+  [!list.clear();
+  list..clear();!]
 }
 ''');
   }
