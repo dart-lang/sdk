@@ -835,6 +835,7 @@ subcommand
 subdir
 subfolder
 subs
+subtest
 subtool
 subtools
 successes
