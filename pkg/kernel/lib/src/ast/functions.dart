@@ -275,8 +275,8 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformTypeParameterList(typeParameters, this);
-    v.transformVariableDeclarationList(positionalParameters, this);
-    v.transformVariableDeclarationList(namedParameters, this);
+    v.transformVariableList(positionalParameters, this);
+    v.transformVariableList(namedParameters, this);
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
     if (emittedValueType != null) {
       emittedValueType = v.visitDartType(

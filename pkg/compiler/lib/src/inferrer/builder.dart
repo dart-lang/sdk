@@ -936,10 +936,13 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 
   @override
-  TypeInformation? visitLegacyVariableStatement(
-    ir.LegacyVariableStatement node,
-  ) {
+  TypeInformation? visitVariableDeclaration(ir.VariableDeclaration node) {
     return defaultVariable(node.variable);
+  }
+
+  @override
+  TypeInformation? visitVariableStatement(ir.VariableStatement node) {
+    return visitVariableDeclaration(node.declaration);
   }
 
   @override
@@ -2461,7 +2464,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   @override
   Null visitForStatement(ir.ForStatement node) {
-    for (ir.VariableStatement variable in node.variables) {
+    for (ir.VariableDeclaration variable in node.variables) {
       visit(variable);
     }
     return handleLoop(node, _localsMap.getJumpTargetForFor(node), () {

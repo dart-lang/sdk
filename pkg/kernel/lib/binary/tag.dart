@@ -130,7 +130,7 @@ class Tag {
   static const int TryCatch = 75;
   static const int TryFinally = 76;
   static const int YieldStatement = 77;
-  static const int VariableDeclaration = 78;
+  static const int VariableStatement = 78;
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
   static const int AssertBlock = 81;
@@ -210,6 +210,16 @@ class Tag {
   static const int PatternVariableDeclaration = 151;
 
   static const int NullType = 152;
+  // 153 is occupied by [RedirectingFactoryInvocation] (expression).
+  static const int VariableDeclaration = 154;
+  static const int LocalVariable = 155;
+  static const int LateVariable = 156;
+  static const int SyntheticVariable = 157;
+  static const int CatchVariable = 158;
+  static const int PositionalParameter = 159;
+  static const int NamedParameter = 160;
+  static const int ThisVariable = 161;
+  static const int LegacyVariable = 162;
 
   static const int SpecializedTagHighBits = 0xE0; // 0b11100000
   static const int SpecializedTagMask = 0xF8; //    0b11111000
@@ -227,7 +237,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 130;
+  static const int BinaryFormatVersion = 131;
 }
 
 abstract class ConstantTag {

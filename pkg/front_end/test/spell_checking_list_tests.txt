@@ -68,6 +68,7 @@ authority
 autobianchi
 autofocus
 automatic
+availability
 averaged
 averages
 avg
@@ -235,6 +236,7 @@ days
 db
 dbenchmark
 ddart
+ddebug
 dds
 debugger
 declarative
@@ -503,6 +505,7 @@ launch
 launching
 law
 le
+leftovers
 legs
 lengths
 lightly
@@ -816,6 +819,7 @@ ss
 ssls
 sssp
 stacks
+standing
 stashed
 stat
 statistics

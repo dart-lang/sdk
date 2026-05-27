@@ -44,6 +44,7 @@ class ScopeBuilder {
   void VisitListOfNamedExpressions();
   void VisitArguments();
   void VisitVariableDeclaration();
+  void VisitVariable();
   void VisitVariableGet(intptr_t declaration_binary_offset);
   void VisitDartType();
   void VisitInterfaceType(bool simple);
@@ -93,11 +94,10 @@ class ScopeBuilder {
       const ProcedureAttributesMetadata& attrs);
 
   // This assumes that the reader is at a FunctionNode,
-  // about to read a parameter (i.e. VariableDeclaration).
-  void AddVariableDeclarationParameter(
-      intptr_t pos,
-      ParameterTypeCheckMode type_check_mode,
-      const ProcedureAttributesMetadata& attrs);
+  // about to read a parameter (i.e. Variable).
+  void AddParameter(intptr_t pos,
+                    ParameterTypeCheckMode type_check_mode,
+                    const ProcedureAttributesMetadata& attrs);
 
   LocalVariable* MakeVariable(
       TokenPosition declaration_pos,

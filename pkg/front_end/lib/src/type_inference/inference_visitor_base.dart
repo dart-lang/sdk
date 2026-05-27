@@ -4979,10 +4979,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (expression.body.statements.isEmpty) return false;
     Statement first = expression.body.statements.first;
     if (first is! VariableStatement) return false;
-    Expression? initializer = first.variable.initializer;
+    Expression? initializer = first.declaration.variable.initializer;
     if (initializer is! StaticInvocation) return false;
     if (initializer.target != engine.setFactory) return false;
-    return value.variable == first.variable;
+    return value.variable == first.declaration.variable;
   }
 
   /// Determines if the given [expression]'s type is precisely known at compile

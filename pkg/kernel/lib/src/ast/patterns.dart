@@ -1465,7 +1465,7 @@ class InvalidPattern extends Pattern {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     invalidExpression = v.transform(invalidExpression)..parent = this;
-    v.transformVariableDeclarationList(declaredVariables, this);
+    v.transformVariableList(declaredVariables, this);
   }
 
   @override

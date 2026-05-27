@@ -773,7 +773,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     if (!_isExternal) {
       Variable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
-        thisVariable,
+        extern.createVariableDeclaration(thisVariable),
       );
       List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
@@ -863,7 +863,7 @@ class _ExtensionTypeInitializerToStatementConverter
       statements.add(
         extern.createExpressionStatement(
           extern.createVariableSet(
-            thisVariableStatement.variable,
+            thisVariableStatement.declaration.variable,
             extern.createStaticInvocation(
               node.target,
               node.arguments.toArguments(
@@ -881,8 +881,9 @@ class _ExtensionTypeInitializerToStatementConverter
       );
       return;
     } else if (node is ExtensionTypeRepresentationFieldInitializer) {
-      thisVariableStatement.variable
-        ..initializer = (node.value..parent = thisVariableStatement.variable)
+      thisVariableStatement.declaration.variable
+        ..initializer = (node.value
+          ..parent = thisVariableStatement.declaration.variable)
         ..fileOffset = node.fileOffset;
       thisVariableStatement.fileOffset = node.fileOffset;
       return;
@@ -896,8 +897,9 @@ class _ExtensionTypeInitializerToStatementConverter
   @override
   // Coverage-ignore(suite): Not run.
   void visitFieldInitializer(FieldInitializer node) {
-    thisVariableStatement.variable
-      ..initializer = (node.value..parent = thisVariableStatement.variable)
+    thisVariableStatement.declaration.variable
+      ..initializer = (node.value
+        ..parent = thisVariableStatement.declaration.variable)
       ..fileOffset = node.fileOffset;
     thisVariableStatement.fileOffset = node.fileOffset;
   }
@@ -916,7 +918,11 @@ class _ExtensionTypeInitializerToStatementConverter
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    statements.add(extern.createVariableStatement(node.variable));
+    statements.add(
+      extern.createVariableStatement(
+        extern.createVariableDeclaration(node.variable),
+      ),
+    );
   }
 
   @override

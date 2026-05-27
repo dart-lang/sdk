@@ -304,7 +304,7 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
   }
 
   @override
-  void visitLegacyVariableStatement(ast.LegacyVariableStatement node) {
+  void visitVariableStatement(ast.VariableStatement node) {
     node.visitChildren(this);
   }
 

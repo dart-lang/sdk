@@ -11,14 +11,14 @@ class LateVarInitTransformer {
   bool _shouldApplyTransform(Statement s) {
     if (s is VariableStatement) {
       // This transform only applies to late variables.
-      if (!s.variable.isLate) return false;
+      if (!s.declaration.variable.isLate) return false;
 
       // Const variables are ignored.
-      if (s.variable.isConst) return false;
+      if (s.declaration.variable.isConst) return false;
 
       // Variables with no initializer or a trivial initializer are ignored.
-      if (s.variable.initializer == null) return false;
-      final Expression? init = s.variable.initializer;
+      if (s.declaration.variable.initializer == null) return false;
+      final Expression? init = s.declaration.variable.initializer;
       if (init is StringLiteral) return false;
       if (init is BoolLiteral) return false;
       if (init is IntLiteral) return false;
@@ -38,25 +38,25 @@ class LateVarInitTransformer {
     LocalFunctionIdGenerator localFunctionIdGenerator,
   ) {
     final fnNode = FunctionNode(
-      ReturnStatement(node.variable.initializer),
-      returnType: node.variable.type,
+      ReturnStatement(node.declaration.variable.initializer),
+      returnType: node.declaration.variable.type,
     );
     final functionType = fnNode.computeThisFunctionType(
       Nullability.nonNullable,
     );
     final fn = FunctionDeclaration(
       Variable(
-        "#${node.variable.name}#initializer",
+        "#${node.declaration.variable.name}#initializer",
         type: functionType,
         isSynthesized: true,
       ),
       fnNode,
     )..id = localFunctionIdGenerator.allocateId();
-    node.variable.initializer = LocalFunctionInvocation(
+    node.declaration.variable.initializer = LocalFunctionInvocation(
       fn.variable,
       Arguments([]),
       functionType: functionType,
-    )..parent = node.variable;
+    )..parent = node.declaration.variable;
 
     return [fn, node];
   }

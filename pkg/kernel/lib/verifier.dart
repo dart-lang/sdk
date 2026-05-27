@@ -274,8 +274,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   TreeNode? enterParent(TreeNode node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (!_isNewModelVariable(node) && !identical(node.parent, currentParent)) {
+    if (!identical(node.parent, currentParent)) {
       problem(
         node,
         "Incorrect parent pointer on ${node}:"
@@ -390,7 +389,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   void checkVariableInScope(Variable variable, TreeNode where) {
-    if (!variableDeclarationsInScope.contains(variable)) {
+    // TODO(cstefantsova): Support new variable model.
+    if (!_isNewModelVariable(variable) &&
+        !variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
   }
@@ -1136,29 +1137,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitLegacyVariableStatement(LegacyVariableStatement node) {
-    _verifyVariableStatement(node);
-    super.visitLegacyVariableStatement(node);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    _verifyVariableStatement(node);
-    super.visitVariableInitialization(node);
-  }
-
-  void _verifyVariableStatement(VariableStatement node) {
-    TreeNode? parent = node.parent;
-    if (parent is! Block && !(parent is ForStatement && parent.body != node)) {
-      problem(
-        node,
-        "VariableStatement must be a direct child of a Block or ForStatement, "
-        "not ${parent.runtimeType}.",
-      );
-    }
-  }
-
-  @override
   void defaultVariable(Variable node) {
     return _verifyVariableDeclaration(node);
   }
@@ -1185,6 +1163,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitLocalVariable(LocalVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitLateVariable(LateVariable node) {
     _verifyVariable(node);
   }
 
@@ -1227,10 +1210,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableGet(VariableGet node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.variable)) {
-      return;
-    }
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);
@@ -1245,10 +1224,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableSet(VariableSet node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.variable)) {
-      return;
-    }
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);

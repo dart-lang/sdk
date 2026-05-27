@@ -144,8 +144,10 @@ class ForInLowering {
       valueVariable.initializer!.parent = valueVariable;
 
       final whileBody = new Block(<Statement>[
-        new VariableStatement(valueVariable)
-          ..fileOffset = valueVariable.fileOffset,
+        new VariableStatement(
+          VariableDeclaration(valueVariable)
+            ..fileOffset = valueVariable.fileOffset,
+        )..fileOffset = valueVariable.fileOffset,
         stmt.body,
       ]);
       final tryBody = new WhileStatement(whileCondition, whileBody)
@@ -186,10 +188,14 @@ class ForInLowering {
       final tryFinally = new TryFinally(tryBody, tryFinalizer);
 
       final block = new Block(<Statement>[
-        new VariableStatement(streamVariable)
-          ..fileOffset = streamVariable.fileOffset,
-        new VariableStatement(forIteratorVariable)
-          ..fileOffset = forIteratorVariable.fileOffset,
+        new VariableStatement(
+          VariableDeclaration(streamVariable)
+            ..fileOffset = streamVariable.fileOffset,
+        )..fileOffset = streamVariable.fileOffset,
+        new VariableStatement(
+          VariableDeclaration(forIteratorVariable)
+            ..fileOffset = forIteratorVariable.fileOffset,
+        )..fileOffset = forIteratorVariable.fileOffset,
         tryFinally,
       ]);
       return block;
@@ -303,7 +309,9 @@ class ForInLowering {
         type: type,
         initializer: initializer,
       );
-      final initialization = VariableInitialization(variable: variable);
+      final initialization = VariableStatement(
+        VariableDeclaration(variable)..fileOffset = fileOffset,
+      )..fileOffset = fileOffset;
       return (variable, initialization);
     } else {
       final variableAndInitialization = Variable(
@@ -314,7 +322,10 @@ class ForInLowering {
       )..fileOffset = fileOffset;
       return (
         variableAndInitialization,
-        VariableStatement(variableAndInitialization)..fileOffset = fileOffset,
+        VariableStatement(
+          VariableDeclaration(variableAndInitialization)
+            ..fileOffset = fileOffset,
+        )..fileOffset = fileOffset,
       );
     }
   }
@@ -326,10 +337,13 @@ class ForInLowering {
     initializer.parent = variable;
     variable..initializer = initializer;
     if (isClosureContextLoweringEnabled) {
-      return VariableInitialization(variable: variable)
-        ..fileOffset = variable.fileOffset;
+      return VariableStatement(
+        VariableDeclaration(variable)..fileOffset = variable.fileOffset,
+      )..fileOffset = variable.fileOffset;
     } else {
-      return VariableStatement(variable)..fileOffset = variable.fileOffset;
+      return VariableStatement(
+        VariableDeclaration(variable)..fileOffset = variable.fileOffset,
+      )..fileOffset = variable.fileOffset;
     }
   }
 }

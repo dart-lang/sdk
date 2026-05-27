@@ -672,7 +672,19 @@ abstract class AstCodeGenerator
     }
   }
 
-  void translateVariableDeclaration(Variable node) {
+  void translateVariableDeclaration(VariableDeclaration node) {
+    final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
+    try {
+      visitVariable(node.variable);
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    } finally {
+      setSourceMapFileOffset(oldFileOffset);
+    }
+  }
+
+  void translateVariable(Variable node) {
     final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
     try {
       visitVariable(node);
@@ -1277,8 +1289,8 @@ abstract class AstCodeGenerator
   @override
   void visitForStatement(ForStatement node) {
     allocateContext(node);
-    for (VariableStatement variable in node.variables) {
-      translateStatement(variable);
+    for (VariableDeclaration variable in node.variables) {
+      translateVariableDeclaration(variable);
     }
     w.Label block = b.block();
     w.Label loop = b.loop();
@@ -1301,7 +1313,7 @@ abstract class AstCodeGenerator
       w.Local newContext = context.currentLocal;
 
       // Copy the values of captured loop variables to the new context.
-      for (VariableStatement variableDeclaration in node.variables) {
+      for (VariableDeclaration variableDeclaration in node.variables) {
         Capture? capture = closures.captures[variableDeclaration.variable];
         if (capture != null) {
           assert(capture.context == context);
@@ -1570,7 +1582,7 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
-    translateVariableDeclaration(node.variable);
+    translateVariable(node.variable);
     return translateExpression(node.body, expectedType);
   }
 
@@ -4451,7 +4463,7 @@ class ConstructorInitializerCodeGenerator extends ConstructorCodeGeneratorBase {
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    translateVariableDeclaration(node.variable);
+    translateVariable(node.variable);
   }
 
   @override

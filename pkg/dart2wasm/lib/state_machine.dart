@@ -495,11 +495,17 @@ class Finalizer extends _ExceptionHandler {
 
   Finalizer._(this.codeGen, TryFinally node, this.parentFinalizer, super.target)
     : _continuationVar =
-          ((node.parent as Block).statements[0] as VariableStatement).variable,
+          ((node.parent as Block).statements[0] as VariableStatement)
+              .declaration
+              .variable,
       _exceptionVar =
-          ((node.parent as Block).statements[1] as VariableStatement).variable,
+          ((node.parent as Block).statements[1] as VariableStatement)
+              .declaration
+              .variable,
       _stackTraceVar =
-          ((node.parent as Block).statements[2] as VariableStatement).variable;
+          ((node.parent as Block).statements[2] as VariableStatement)
+              .declaration
+              .variable;
 
   @override
   bool get canHandleJSExceptions => true;
@@ -869,8 +875,8 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     StateTarget after = afterTargets[node]!;
 
     allocateContext(node);
-    for (VariableStatement variable in node.variables) {
-      translateStatement(variable);
+    for (VariableDeclaration variable in node.variables) {
+      translateVariableDeclaration(variable);
     }
     emitTargetLabel(inner);
     _jumpToTarget(after, condition: node.condition, negated: true);

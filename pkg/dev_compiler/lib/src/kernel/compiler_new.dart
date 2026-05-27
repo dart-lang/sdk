@@ -5471,10 +5471,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Statement visitForStatement(ForStatement node) {
     return _translateLoop(node, () {
-      js_ast.VariableInitialization emitForInitializer(VariableStatement s) =>
+      js_ast.VariableInitialization emitForInitializer(VariableDeclaration d) =>
           js_ast.VariableInitialization(
-            _emitVariableDef(s.variable),
-            _visitInitializer(s.variable.initializer, s.variable.annotations),
+            _emitVariableDef(d.variable),
+            _visitInitializer(d.variable.initializer, d.variable.annotations),
           );
 
       if (node.variables.any(containsFunctionExpression)) {

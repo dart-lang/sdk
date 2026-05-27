@@ -49,7 +49,7 @@ class MatchingCache {
   bool _isClosed = false;
 
   /// The declarations need for the cached expressions.
-  List<Variable> _declarations = [];
+  List<VariableDeclaration> _declarations = [];
 
   /// Map for the known cached keys and their corresponding expressions.
   Map<CacheKey, Cache> _cacheKeyMap = {};
@@ -98,7 +98,7 @@ class MatchingCache {
         // Coverage-ignore-block(suite): Not run.
         // Error case. This variable is only declared one of the branches and
         // therefore not joint. Include the variable in the declarations.
-        registerDeclaration(variable);
+        registerDeclaration(createVariableDeclaration(variable));
       }
     }
     for (Variable variable in variables2) {
@@ -108,7 +108,7 @@ class MatchingCache {
       } else {
         // Error case. This variable is only declared one of the branches and
         // therefore not joint. Include the variable in the declarations.
-        registerDeclaration(variable);
+        registerDeclaration(createVariableDeclaration(variable));
       }
     }
   }
@@ -166,7 +166,7 @@ class MatchingCache {
 
   /// Registers that the variable or local function [declaration] is need for
   /// the cached expressions.
-  void registerDeclaration(Variable declaration) {
+  void registerDeclaration(VariableDeclaration declaration) {
     assert(!_isClosed);
     _declarations.add(declaration);
   }
@@ -176,7 +176,7 @@ class MatchingCache {
   ///
   /// Once called, the matching cache is closed and no new cacheable expressions
   /// can be created.
-  Iterable<Variable> get declarations {
+  Iterable<VariableDeclaration> get declarations {
     _isClosed = true;
     return _declarations;
   }
@@ -184,12 +184,12 @@ class MatchingCache {
   /// Creates a [Variable] for a temporary variable of the given
   /// [type] and registers it with [registerDeclaration].
   Variable createTemporaryVariable(DartType type, {required int fileOffset}) {
-    Variable variable = createUninitializedVariable(
-      type,
+    VariableDeclaration declaration = createUninitializedVariableDeclaration(
+      type: type,
       fileOffset: fileOffset,
     );
-    registerDeclaration(variable);
-    return variable;
+    registerDeclaration(declaration);
+    return declaration.variable;
   }
 
   /// Creates the cacheable expression for the scrutinee [expression] of the
@@ -1369,7 +1369,9 @@ class Cache {
             // offsets for better step debugging.
             variable.fileOffset = TreeNode.noOffset;
           }
-          _matchingCache.registerDeclaration(variable);
+          _matchingCache.registerDeclaration(
+            createVariableDeclaration(variable),
+          );
         }
         result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
       } else {
@@ -1387,24 +1389,31 @@ class Cache {
               break;
             }
           }
-          variable = _variable =
-              createUninitializedVariable(cacheType!, fileOffset: _fileOffset)
-                ..name = _name
+
+          VariableDeclaration variableDeclaration =
+              createUninitializedVariableDeclaration(
+                type: cacheType!,
+                name: _name,
                 // Avoid step debugging on the declaration of caching variables.
                 // TODO(johnniwinther): Find a more systematic way of omitting
                 // offsets for better step debugging.
-                ..fileOffset = TreeNode.noOffset;
+                fileOffset: TreeNode.noOffset,
+              );
+          variable = _variable = variableDeclaration.variable;
+          _matchingCache.registerDeclaration(variableDeclaration);
 
-          _matchingCache.registerDeclaration(variable);
-          isSetVariable = _isSetVariable = createInitializedVariable(
-            createBoolLiteral(false, fileOffset: _fileOffset),
-            typeEnvironment.coreTypes.boolNonNullableRawType,
-            // Avoid step debugging on the declaration of caching variables.
-            // TODO(johnniwinther): Find a more systematic way of omitting
-            // offsets for better step debugging.
-            fileOffset: TreeNode.noOffset,
-          )..name = '$_name#isSet';
-          _matchingCache.registerDeclaration(isSetVariable);
+          VariableDeclaration isSetVariableDeclaration =
+              createInitializedVariableDeclaration(
+                expression: createBoolLiteral(false, fileOffset: _fileOffset),
+                type: typeEnvironment.coreTypes.boolNonNullableRawType,
+                name: '$_name#isSet',
+                // Avoid step debugging on the declaration of caching variables.
+                // TODO(johnniwinther): Find a more systematic way of omitting
+                // offsets for better step debugging.
+                fileOffset: TreeNode.noOffset,
+              );
+          isSetVariable = _isSetVariable = isSetVariableDeclaration.variable;
+          _matchingCache.registerDeclaration(isSetVariableDeclaration);
         }
         result = createConditionalExpression(
           createVariableGet(isSetVariable!),

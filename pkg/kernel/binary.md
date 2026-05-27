@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 130;
+  UInt32 formatVersion = 131;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -500,7 +500,7 @@ type RedirectingInitializer extends Initializer {
 type LocalInitializer extends Initializer {
   Byte tag = 11;
   FileOffset fileOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
 }
 
 type AssertInitializer extends Initializer {
@@ -527,8 +527,8 @@ type FunctionNode {
   List<TypeParameter> typeParameters;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
-  List<VariableDeclarationPlain> positionalParameters;
-  List<VariableDeclarationPlain> namedParameters;
+  List<Variable> positionalParameters;
+  List<Variable> namedParameters;
   DartType returnType;
   Option<DartType> emittedValueType;
   Option<RedirectingFactoryTarget> redirectingFactoryTarget;
@@ -1181,7 +1181,7 @@ type FunctionExpression extends Expression {
 type Let extends Expression {
   Byte tag = 53;
   FileOffset fileOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
   Expression body;
 }
 
@@ -1396,7 +1396,7 @@ type DoStatement extends Statement {
 type ForStatement extends Statement {
   Byte tag = 69;
   FileOffset fileOffset;
-  List<VariableDeclarationPlain> variables;
+  List<VariableDeclaration> variables;
   Option<Expression> condition;
   List<Expression> updates;
   Statement body;
@@ -1406,7 +1406,7 @@ type ForInStatement extends Statement {
   Byte tag = 70;
   FileOffset fileOffset;
   FileOffset bodyOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
   Expression iterable;
   Statement body;
 }
@@ -1415,7 +1415,7 @@ type AsyncForInStatement extends Statement {
   Byte tag = 80; // Note: tag is out of order.
   FileOffset fileOffset;
   FileOffset bodyOffset;
-  VariableDeclarationPlain variable;
+  Variable variable;
   Expression iterable;
   Statement body;
 }
@@ -1481,8 +1481,8 @@ type TryCatch extends Statement {
 type Catch {
   FileOffset fileOffset;
   DartType guard;
-  Option<VariableDeclarationPlain> exception;
-  Option<VariableDeclarationPlain> stackTrace;
+  Option<Variable> exception;
+  Option<Variable> stackTrace;
   Statement body;
 }
 
@@ -1500,12 +1500,61 @@ type YieldStatement extends Statement {
   Expression expression;
 }
 
-type VariableDeclaration extends Statement {
+type VariableStatement extends Statement {
   Byte tag = 78;
-  VariableDeclarationPlain variable;
+  FileOffset fileOffset;
+  VariableDeclaration declaration;
 }
 
-type VariableDeclarationPlain {
+type VariableDeclaration extends Node {
+  Byte tag = 154;
+  FileOffset fileOffset;
+  Variable variable;
+}
+
+abstract type Variable extends Node {}
+
+type LegacyVariable extends Variable {
+  Byte tag = 162;
+  VariableInternal variable;
+}
+
+type LocalVariable extends Variable {
+  Byte tag = 155;
+  VariableInternal variable;
+}
+
+type LateVariable extends Variable {
+  Byte tag = 156;
+  VariableInternal variable;
+}
+
+type SyntheticVariable extends Variable {
+  Byte tag = 157;
+  VariableInternal variable;
+}
+
+type CatchVariable extends Variable {
+  Byte tag = 158;
+  VariableInternal variable;
+}
+
+type PositionalParameter extends Variable {
+  Byte tag = 159;
+  VariableInternal variable;
+}
+
+type NamedParameter extends Variable {
+  Byte tag = 160;
+  VariableInternal variable;
+}
+
+type ThisVariable extends Variable {
+  Byte tag = 161;
+  VariableInternal variable;
+}
+
+type VariableInternal {
   // The offset for the variable declaration, i.e. the offset of the start of
   // the declaration.
   FileOffset fileOffset;
@@ -1539,7 +1588,7 @@ type FunctionDeclaration extends Statement {
   // within the function for use as a self-reference.
   // Some of the fields in the variable are redundant, but its presence here
   // simplifies the rule for variable indexing.
-  VariableDeclarationPlain variable;
+  Variable variable;
   // Identifier of the local function within an enclosing member.
   UInt id;
   FunctionNode function;
@@ -1718,7 +1767,7 @@ type InvalidPattern extends Pattern {
   Byte tag = 132;
   FileOffset fileOffset;
   Expression invalidExpression;
-  List<VariableDeclarationPlain> declaredVariables;
+  List<Variable> declaredVariables;
 }
 
 type ListPattern extends Pattern {
@@ -1884,7 +1933,7 @@ type VariablePattern extends Pattern {
   Byte tag = 143;
   FileOffset fileOffset;
   Option<DartType> type;
-  VariableDeclaration variable;
+  Variable variable;
   Option<DartType> matchedType;
 }
 
@@ -1952,7 +2001,7 @@ type PatternSwitchStatement extends Statement {
 
 type PatternSwitchCase extends TreeNode {
   // Note: there is no tag on PatternSwitchCase
-  List<VariableDeclaration> jointVariables;
+  List<Variable> jointVariables;
   List<Pair<FileOffset, PatternGuard>> patternGuards;
   Byte flags; // {isDefault, hasLabel}
   Statement body;

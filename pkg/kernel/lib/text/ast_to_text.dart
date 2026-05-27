@@ -984,19 +984,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     int requiredParameterCount,
   ) {
     writeSymbol('(');
-    writeList(
-      positional.take(requiredParameterCount),
-      writeVariableDeclaration,
-    );
+    writeList(positional.take(requiredParameterCount), writeVariable);
     if (requiredParameterCount < positional.length) {
       if (requiredParameterCount > 0) {
         writeComma();
       }
       writeSymbol('[');
-      writeList(
-        positional.skip(requiredParameterCount),
-        writeVariableDeclaration,
-      );
+      writeList(positional.skip(requiredParameterCount), writeVariable);
       writeSymbol(']');
     }
     if (named.isNotEmpty) {
@@ -1004,7 +998,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeComma();
       }
       writeSymbol('{');
-      writeList(named, writeVariableDeclaration);
+      writeList(named, writeVariable);
       writeSymbol('}');
     }
     writeSymbol(')');
@@ -1220,6 +1214,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitLateVariable(LateVariable node) {
+    writeIndentation();
+    writeExpressionVariable(node);
+    endLine(';');
+  }
+
+  @override
   void visitPositionalParameter(PositionalParameter node) {
     writeIndentation();
     writeExpressionVariable(node);
@@ -1257,7 +1258,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void writeExpressionVariable(Variable node) {
     // TODO(cstefantsova): Printer of the new variables is broken.
     if (node is LegacyVariable && node is! FunctionParameter) {
-      writeVariableDeclaration(node);
+      writeVariable(node);
     } else {
       if (showOffsets) writeWord("[${node.fileOffset}]");
       if (showMetadata) writeMetadata(node);
@@ -1265,6 +1266,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       switch (node) {
         case LocalVariable():
           writeWord('local-variable');
+        case LateVariable():
+          writeWord('late-variable');
         case PositionalParameter():
           writeWord('positional-parameter');
         case NamedParameter():
@@ -1277,8 +1280,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           writeWord('variable-declaration');
         case CatchVariable():
           writeWord('catch-variable');
-        case VariableInitialization():
-          writeWord('variable-initialization');
       }
 
       // TODO(cstefantsova): Should [Variable]s have annotations?
@@ -1286,6 +1287,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       if (node.hasIsLowered) {
         writeModifier(node.isLowered, 'lowered');
       }
+      // TODO(johnniwinther): Remove this. This should be equivalent to
+      //  `is LateVariable`.
       if (node.hasIsLate) {
         writeModifier(node.isLate, 'late');
       }
@@ -2197,7 +2200,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitLet(Let node) {
     writeWord('let');
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
     writeSpaced('in');
     writeExpression(node.body);
   }
@@ -2586,7 +2589,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       ensureSpace();
     }
     writeSymbol('(');
-    writeList(node.variables, writeVariableStatement);
+    writeList(node.variables, writeVariableDeclaration);
     writeComma(';');
     Expression? condition = node.condition;
     if (condition != null) {
@@ -2611,7 +2614,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
     writeSymbol('(');
     if (node.variable case LegacyVariable variable) {
-      writeVariableDeclaration(variable, useVarKeyword: true);
+      writeVariable(variable, useVarKeyword: true);
     } else {
       writeExpressionVariable(node.variable);
     }
@@ -2757,17 +2760,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitLegacyVariableStatement(LegacyVariableStatement node) {
+  void visitVariableStatement(VariableStatement node) {
     writeIndentation();
     writeVariableStatement(node);
-    endLine(';');
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    writeIndentation();
-    writeVariableStatement(node);
-    _writeContexts(node);
     endLine(';');
   }
 
@@ -2780,9 +2775,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeFunction(node.function, name: getVariableName(node.variable));
   }
 
-  void writeVariableDeclaration(Variable node, {bool useVarKeyword = false}) {
+  void writeVariable(Variable node, {bool useVarKeyword = false}) {
     switch (node) {
       case LocalVariable():
+      case LateVariable():
       case CatchVariable():
       case ThisVariable():
       case SyntheticVariable():
@@ -2841,12 +2837,17 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeVariableStatement(VariableStatement node) {
+  void writeVariableDeclaration(VariableDeclaration node) {
     Variable variable = node.variable;
-    if (node is VariableInitialization) {
+    if (variable is LegacyVariable) {
+      writeVariable(variable);
+    } else {
       if (showOffsets) writeWord("[${node.fileOffset}]");
       if (showMetadata) writeMetadata(node);
-      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+      writeModifier(
+        variable.isErroneouslyInitialized,
+        'erroneously-initialized',
+      );
       bool hasImplicitInitializer =
           variable.initializer is NullLiteral ||
           (variable.initializer is ConstantExpression &&
@@ -2872,9 +2873,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         writeSpaced(':=');
         writeExpression(initializer);
       }
-    } else {
-      writeVariableDeclaration(variable);
+      _writeContexts(node);
     }
+  }
+
+  void writeVariableStatement(VariableStatement node) {
+    writeVariableDeclaration(node.declaration);
   }
 
   @override
@@ -2935,7 +2939,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    writeVariableDeclaration(node.variable);
+    writeVariable(node.variable);
   }
 
   @override

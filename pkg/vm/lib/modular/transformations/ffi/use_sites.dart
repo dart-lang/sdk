@@ -387,8 +387,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return BlockExpression(
           Block([
-            VariableStatement(arrayVar),
-            VariableStatement(indexVar),
+            VariableStatement(VariableDeclaration(arrayVar)),
+            VariableStatement(VariableDeclaration(indexVar)),
             ExpressionStatement(
               InstanceInvocation(
                 InstanceAccessKind.Instance,
@@ -913,7 +913,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = fileOffset;
 
     final result = BlockExpression(
-      Block([VariableStatement(pointerVar), closure]),
+      Block([VariableStatement(VariableDeclaration(pointerVar)), closure]),
       VariableGet(closure.variable),
     );
 
@@ -1206,7 +1206,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     // expression result: _callback;
     return BlockExpression(
-      Block([VariableStatement(nativeCallable), pointerSetter]),
+      Block([
+        VariableStatement(VariableDeclaration(nativeCallable)),
+        pointerSetter,
+      ]),
       VariableGet(nativeCallable),
     );
   }
@@ -1504,7 +1507,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
-      Block([VariableStatement(sourceVar)]),
+      Block([VariableStatement(VariableDeclaration(sourceVar))]),
       referencedStruct.generateStore(
         sourceVar,
         dartType: node.arguments.types[0],
@@ -1585,8 +1588,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return BlockExpression(
       Block([
-        VariableStatement(arrayVar),
-        VariableStatement(indexVar),
+        VariableStatement(VariableDeclaration(arrayVar)),
+        VariableStatement(VariableDeclaration(indexVar)),
         ExpressionStatement(
           InstanceInvocation(
             InstanceAccessKind.Instance,
@@ -1855,8 +1858,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = node.fileOffset;
 
     final checkIndexAndLocalVars = [
-      VariableStatement(arrayVar),
-      VariableStatement(indexVar),
+      VariableStatement(VariableDeclaration(arrayVar)),
+      VariableStatement(VariableDeclaration(indexVar)),
       ExpressionStatement(
         InstanceInvocation(
           InstanceAccessKind.Instance,
@@ -1867,9 +1870,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           functionType: arrayCheckIndex.getterType as FunctionType,
         ),
       ),
-      VariableStatement(singleElementSizeVar),
-      VariableStatement(elementSizeVar),
-      VariableStatement(offsetVar),
+      VariableStatement(VariableDeclaration(singleElementSizeVar)),
+      VariableStatement(VariableDeclaration(elementSizeVar)),
+      VariableStatement(VariableDeclaration(offsetVar)),
     ];
 
     if (!setter) {
@@ -1927,7 +1930,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     return BlockExpression(
-      Block([...checkIndexAndLocalVars, VariableStatement(valueVar)]),
+      Block([
+        ...checkIndexAndLocalVars,
+        VariableStatement(VariableDeclaration(valueVar)),
+      ]),
       StaticInvocation(
         memCopy,
         Arguments([
@@ -2437,7 +2443,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       isSynthesized: true,
     )..fileOffset = fileOffset;
     final newArgument = BlockExpression(
-      Block([VariableStatement(valueVar)]),
+      Block([VariableStatement(VariableDeclaration(valueVar))]),
       ConstructorInvocation(
         compoundFromTypedDataBase,
         Arguments([

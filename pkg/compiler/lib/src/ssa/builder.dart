@@ -2560,7 +2560,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitForStatement(ir.ForStatement node) {
     assert(_isReachable);
     void buildInitializer() {
-      for (ir.VariableStatement declaration in node.variables) {
+      for (ir.VariableDeclaration declaration in node.variables) {
         declaration.accept(this);
       }
     }
@@ -4747,8 +4747,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   @override
-  void visitLegacyVariableStatement(ir.LegacyVariableStatement node) {
+  void visitVariableDeclaration(ir.VariableDeclaration node) {
     defaultVariable(node.variable);
+  }
+
+  @override
+  void visitVariableStatement(ir.VariableStatement node) {
+    visitVariableDeclaration(node.declaration);
   }
 
   @override

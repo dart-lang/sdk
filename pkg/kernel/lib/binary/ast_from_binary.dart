@@ -2099,8 +2099,7 @@ class BinaryBuilder {
 
   Initializer _readLocalInitializer() {
     int offset = readOffset();
-    return new LocalInitializer(readAndPushVariableDeclaration())
-      ..fileOffset = offset;
+    return new LocalInitializer(readAndPushVariable())..fileOffset = offset;
   }
 
   Initializer _readAssertInitializer() {
@@ -2124,8 +2123,8 @@ class BinaryBuilder {
     readUInt30(); // total parameter count.
     int requiredParameterCount = readUInt30();
     int variableStackHeight = variableStack.length;
-    List<Variable> positional = readAndPushVariableDeclarationList();
-    List<Variable> named = readAndPushVariableDeclarationList();
+    List<Variable> positional = readAndPushVariableList();
+    List<Variable> named = readAndPushVariableList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
     RedirectingFactoryTarget? redirectingFactoryTarget;
@@ -3146,7 +3145,7 @@ class BinaryBuilder {
 
   Expression _readLet() {
     int offset = readOffset();
-    Variable variable = readVariableDeclaration();
+    Variable variable = readVariable();
     int stackHeight = variableStack.length;
     pushVariableDeclaration(variable);
     Expression body = readExpression();
@@ -3284,7 +3283,7 @@ class BinaryBuilder {
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      return emptyListOfVariableDeclaration;
+      return emptyListOfVariable;
     }
     return new List<Variable>.generate(
       length,
@@ -3346,7 +3345,7 @@ class BinaryBuilder {
   InvalidPattern _readInvalidPattern() {
     int fileOffset = readOffset();
     Expression invalidExpression = readExpression();
-    List<Variable> declaredVariables = readAndPushVariableDeclarationList();
+    List<Variable> declaredVariables = readAndPushVariableList();
     return InvalidPattern(
       invalidExpression,
       declaredVariables: declaredVariables,
@@ -3528,7 +3527,7 @@ class BinaryBuilder {
   VariablePattern _readVariablePattern() {
     int fileOffset = readOffset();
     DartType? type = readDartTypeOption();
-    Variable variable = readVariableDeclaration();
+    Variable variable = readVariable();
     DartType? matchedType = readDartTypeOption();
     return new VariablePattern(type, variable)
       ..matchedValueType = matchedType
@@ -3672,7 +3671,7 @@ class BinaryBuilder {
   void _readPatternSwitchCaseInto(PatternSwitchCase caseNode) {
     int variableCount = readUInt30();
     for (int i = 0; i < variableCount; ++i) {
-      caseNode.jointVariables.add(readVariableDeclaration()..parent = caseNode);
+      caseNode.jointVariables.add(readVariable()..parent = caseNode);
     }
     int caseCount = readUInt30();
     for (int i = 0; i < caseCount; ++i) {
@@ -3723,7 +3722,7 @@ class BinaryBuilder {
         return _readBlock();
 
       // 9.62% (6.92% - 12.64%).
-      case Tag.VariableDeclaration:
+      case Tag.VariableStatement:
         return _readVariableStatement();
 
       // 9.28% (6.69% - 11.18%).
@@ -3824,7 +3823,7 @@ class BinaryBuilder {
   Statement _readForStatement() {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
-    List<VariableStatement> variables = readAndPushVariableStatementList();
+    List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
     Expression? condition = readExpressionOption();
     List<Expression> updates = readExpressionList();
     Statement body = readStatement();
@@ -3838,7 +3837,7 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     int bodyOffset = readOffset();
-    Variable variable = readAndPushVariableDeclaration();
+    Variable variable = readAndPushVariable();
     Expression iterable = readExpression();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
@@ -3930,19 +3929,23 @@ class BinaryBuilder {
   }
 
   VariableStatement _readVariableStatement() {
-    Variable variable = _readVariableDeclaration();
-    return new VariableStatement(variable)..fileOffset = variable.fileOffset;
+    int offset = readOffset();
+    VariableDeclaration declaration = readVariableDeclaration();
+    return new VariableStatement(declaration)..fileOffset = offset;
   }
 
-  Variable _readVariableDeclaration() {
-    Variable variable = readVariableDeclaration();
+  VariableDeclaration readVariableDeclaration() {
+    int tag = readByte();
+    assert(tag == Tag.VariableDeclaration);
+    int offset = readOffset();
+    Variable variable = readVariable();
     variableStack.add(variable); // Will be popped by the enclosing scope.
-    return variable;
+    return new VariableDeclaration(variable)..fileOffset = offset;
   }
 
   Statement _readFunctionDeclaration() {
     int offset = readOffset();
-    Variable variable = readVariableDeclaration();
+    Variable variable = readVariable();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     final LocalFunctionId id = LocalFunctionId(readUInt30());
     return new FunctionDeclaration(variable, readFunctionNode())
@@ -3980,8 +3983,8 @@ class BinaryBuilder {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     DartType guard = readDartType();
-    Variable? exception = readAndPushVariableDeclarationOption();
-    Variable? stackTrace = readAndPushVariableDeclarationOption();
+    Variable? exception = readAndPushVariableOption();
+    Variable? stackTrace = readAndPushVariableOption();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
@@ -4430,56 +4433,134 @@ class BinaryBuilder {
     return new NamedExpression(readStringReference(), readExpression());
   }
 
-  List<VariableStatement> readAndPushVariableStatementList() {
-    List<Variable> list = readAndPushVariableDeclarationList();
-    return new List.generate(
-      list.length,
-      (int index) =>
-          new VariableStatement(list[index])
-            ..fileOffset = list[index].fileOffset,
-    );
-  }
-
-  List<Variable> readAndPushVariableDeclarationList() {
+  List<VariableDeclaration> readAndPushVariableDeclarationList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
       return emptyListOfVariableDeclaration;
     }
-    return new List<Variable>.generate(
+    return new List.generate(
       length,
-      (_) => readAndPushVariableDeclaration(),
+      (int index) => readVariableDeclaration(),
       growable: useGrowableLists,
     );
   }
 
-  Variable? readAndPushVariableDeclarationOption() {
-    return readAndCheckOptionTag() ? readAndPushVariableDeclaration() : null;
+  List<Variable> readAndPushVariableList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfVariable;
+    }
+    return new List<Variable>.generate(
+      length,
+      (_) => readAndPushVariable(),
+      growable: useGrowableLists,
+    );
   }
 
-  Variable readAndPushVariableDeclaration() {
-    Variable variable = readVariableDeclaration();
+  Variable? readAndPushVariableOption() {
+    return readAndCheckOptionTag() ? readAndPushVariable() : null;
+  }
+
+  Variable readAndPushVariable() {
+    Variable variable = readVariable();
     variableStack.add(variable);
     return variable;
   }
 
-  Variable readVariableDeclaration() {
+  Variable readVariable() {
+    int tag = readByte();
     int offset = readOffset();
     int fileEqualsOffset = readOffset();
     // The [VariableDeclaration] instance is not created at this point yet,
     // so `null` is temporarily set as the parent of the annotation nodes.
     List<Expression> annotations = readAnnotationList(null);
     int flags = readUInt30();
-    Variable node =
-        new Variable(
-            readStringOrNullIfEmpty(),
-            type: readDartType(),
-            initializer: readExpressionOption(),
-            flags: flags,
-          )
+    String? name = readStringOrNullIfEmpty();
+    DartType type = readDartType();
+    Expression? initializer = readExpressionOption();
+    Variable node;
+    switch (tag) {
+      case Tag.LegacyVariable:
+        node =
+            new LegacyVariable(
+                name,
+                type: type,
+                initializer: initializer,
+                flags: flags,
+              )
+              ..fileOffset = offset
+              ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.LocalVariable:
+        node =
+            new LocalVariable(
+                cosmeticName: name,
+                type: type,
+                initializer: initializer,
+              )
+              ..flags = flags
+              ..fileOffset = offset
+              ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.LateVariable:
+        node =
+            new LateVariable(
+                cosmeticName: name,
+                type: type,
+                initializer: initializer,
+              )
+              ..flags = flags
+              ..fileOffset = offset
+              ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.SyntheticVariable:
+        node =
+            new SyntheticVariable(
+                cosmeticName: name,
+                type: type,
+                initializer: initializer,
+              )
+              ..flags = flags
+              ..fileOffset = offset
+              ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.CatchVariable:
+        assert(initializer == null, "Unexpected initializer on CatchVariable");
+        node = new CatchVariable(name: name!, type: type)
+          ..flags = flags
           ..fileOffset = offset
           ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.PositionalParameter:
+        node =
+            new PositionalParameter(
+                cosmeticName: name,
+                type: type,
+                defaultValue: initializer,
+              )
+              ..flags = flags
+              ..fileOffset = offset
+              ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.NamedParameter:
+        node =
+            new NamedParameter(
+                parameterName: name!,
+                type: type,
+                defaultValue: initializer,
+              )
+              ..flags = flags
+              ..fileOffset = offset
+              ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.ThisVariable:
+        assert(name == null, "Unexpected name on ThisVariable.");
+        assert(initializer == null, "Unexpected initializer on ThisVariable.");
+        node = new ThisVariable(type: type)
+          ..flags = flags
+          ..fileOffset = offset
+          ..fileEqualsOffset = fileEqualsOffset;
+      default:
+        throw new UnsupportedError("Unexpected variable tag $tag");
+    }
+
     if (annotations.isNotEmpty) {
       for (int i = 0; i < annotations.length; ++i) {
         Expression annotation = annotations[i];
@@ -4757,10 +4838,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  Variable readVariableDeclaration() {
+  Variable readVariable() {
     final int nodeOffset = _byteOffset;
     final bool hasMetadata = _hasMetadata(_byteOffset);
-    final Variable result = super.readVariableDeclaration();
+    final Variable result = super.readVariable();
     return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
@@ -4769,6 +4850,14 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     final int nodeOffset = _byteOffset;
     final bool hasMetadata = _hasMetadata(_byteOffset);
     final Statement result = super.readStatement();
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
+  }
+
+  @override
+  VariableDeclaration readVariableDeclaration() {
+    final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
+    final VariableDeclaration result = super.readVariableDeclaration();
     return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 

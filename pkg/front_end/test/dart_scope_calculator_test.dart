@@ -13,6 +13,11 @@ import 'package:kernel/src/printer.dart';
 
 import 'find_sdk_dills.dart';
 
+/// Enable via
+/// out/ReleaseX64/dart-sdk/bin/dart -Ddebug=true \
+///   pkg/front_end/test/dart_scope_calculator_test.dart
+const bool debug = bool.fromEnvironment("debug");
+
 void main() {
   List<File> dills = findSdkDills().where((dill) {
     // Patching is bad on outlines, see
@@ -213,9 +218,12 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   Library? currentLibrary;
   Class? currentClass;
   Member? currentMember;
+  FunctionNode? currentFunctionNode;
   Uri? currentUri;
   Set<int> askedOffsets = {};
   bool checkOffset = false;
+  bool inFunctionNodeParameters = false;
+  bool inInitializers = false;
   Set<Member> skipMembers = {};
 
   int exact = 0;
@@ -310,8 +318,13 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   void visitFunctionNode(FunctionNode node) {
     bool oldCheckOffset = checkOffset;
     checkOffset = true;
+    FunctionNode? oldFunctionNode = currentFunctionNode;
+    currentFunctionNode = node;
+
     super.visitFunctionNode(node);
+
     checkOffset = oldCheckOffset;
+    currentFunctionNode = oldFunctionNode;
   }
 
   @override
@@ -386,6 +399,13 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
           } else if (variable.isWildcard) {
             // A wildcard variable doesn't really exist so we'll ignore it,
             // see https://github.com/dart-lang/sdk/issues/60841.
+          } else if (!inInitializers &&
+              (variable.isInitializingFormal ||
+                  variable.isSuperInitializingFormal)) {
+            // Initializing (super) formals are specially scoped and not
+            // available in the body. Here we say they're available in the
+            // initializer and the availability in the parameters are "handled"
+            // by skipping those checks.
           } else {
             // The scope calculator renames late lowered local names, so we have
             // to expect the same here.
@@ -437,8 +457,8 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         }
         if (!foundMatch) {
           String msg =
-              "Found ${nodesAtPoint.length} scopes, but didn't one matching "
-              "${currentLibrary!.fileUri} $currentUri and $offset";
+              "Found ${nodesAtPoint.length} scopes, but didn't find one "
+              "matching ${currentLibrary!.fileUri} $currentUri and $offset";
           print(msg);
           errors.add(msg);
         }
@@ -458,7 +478,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         } else {
           if (filteredScopes.isEmpty) throw "Now empty :/";
           countMoreThanOneAfterFilter++;
-          {
+          if (debug) {
             String key = filteredScopes
                 .map((e) => e.node.runtimeType.toString())
                 .join("|");
@@ -586,11 +606,43 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeVariableDeclaration(Variable node) {
+  void writeVariableList(List<Variable> nodes) {
+    bool oldInFunctionNodeParameters = inFunctionNodeParameters;
+    if (identical(nodes, currentFunctionNode?.positionalParameters) ||
+        identical(nodes, currentFunctionNode?.namedParameters)) {
+      // We pretend like all parameters are in scope when standing at a
+      // parameter because in practise the VM says it's standing at the last
+      // parameter when it's actually done processing the initialization.
+      inFunctionNodeParameters = true;
+    }
+    super.writeVariableList(nodes);
+    inFunctionNodeParameters = oldInFunctionNodeParameters;
+  }
+
+  @override
+  void writeVariable(Variable node) {
     bool oldCheckOffset = checkOffset;
-    checkOffset = true;
-    super.writeVariableDeclaration(node);
+    if (inFunctionNodeParameters) {
+      checkOffset = false;
+    } else {
+      checkOffset = true;
+    }
+    super.writeVariable(node);
     checkOffset = oldCheckOffset;
+  }
+
+  @override
+  void writeNodeList(List<Node> nodes) {
+    Member? currentMember = this.currentMember;
+    bool setInInInitializers = false;
+    if (currentMember is Constructor &&
+        identical(nodes, currentMember.initializers)) {
+      setInInInitializers = inInitializers = true;
+    }
+    super.writeNodeList(nodes);
+    if (setInInInitializers) {
+      inInitializers = false;
+    }
   }
 }
 

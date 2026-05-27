@@ -82,9 +82,7 @@ class NodeCreator {
     Iterable<VariableKind> variables = VariableKind.values,
     Iterable<NodeKind> nodes = NodeKind.values,
   }) : _pendingExpressions = _createPending<ExpressionKind>(expressions, {}),
-       _pendingStatements = _createPending<StatementKind>(statements, {
-         StatementKind.VariableInitialization,
-       }),
+       _pendingStatements = _createPending<StatementKind>(statements),
        _pendingDartTypes = _createPending<DartTypeKind>(dartTypes, {
          DartTypeKind.FunctionTypeParameterType,
          DartTypeKind.ClassTypeParameterType,
@@ -96,6 +94,7 @@ class NodeCreator {
        _pendingVariables = _createPending<VariableKind>(variables, {
          VariableKind.CatchVariable,
          VariableKind.LocalVariable,
+         VariableKind.LateVariable,
          VariableKind.PositionalParameter,
          VariableKind.NamedParameter,
          VariableKind.SyntheticVariable,
@@ -134,7 +133,7 @@ class NodeCreator {
     _neededLabeledStatements.clear();
     statement = Block([
       for (Variable neededVariable in _neededVariables)
-        VariableStatement(neededVariable),
+        VariableStatement(VariableDeclaration(neededVariable)),
       ..._neededFunctionDeclarations,
       statement,
     ]);
@@ -385,6 +384,7 @@ class NodeCreator {
         case NodeKind.SwitchExpressionCase:
         case NodeKind.TypeVariable:
         case NodeKind.LegacyVariable:
+        case NodeKind.VariableDeclaration:
           throw new UnimplementedError('Expected in body node $kind.');
         case NodeKind.Class:
           _needLibrary().addClass(node as Class);
@@ -1468,15 +1468,15 @@ class NodeCreator {
               ForStatement([], null, [], _createStatement())
                 ..fileOffset = _needFileOffset(),
           () => ForStatement(
-            [VariableStatement(_createVariable())],
+            [VariableDeclaration(_createVariable())],
             _createExpression(),
             [_createExpression()],
             _createStatement(),
           )..fileOffset = _needFileOffset(),
           () => ForStatement(
             [
-              VariableStatement(_createVariable()),
-              VariableStatement(_createVariable()),
+              VariableDeclaration(_createVariable()),
+              VariableDeclaration(_createVariable()),
             ],
             _createExpression(),
             [_createExpression(), _createExpression()],
@@ -1536,18 +1536,23 @@ class NodeCreator {
       case StatementKind.TryFinally:
         return TryFinally(_createStatement(), _createStatement())
           ..fileOffset = _needFileOffset();
-      case StatementKind.LegacyVariableStatement:
+      case StatementKind.VariableStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () =>
-              VariableStatement(Variable('foo')..fileOffset = _needFileOffset())
-                ..fileOffset = _needFileOffset(),
           () => VariableStatement(
-            Variable('foo', initializer: _createExpression())
+            VariableDeclaration(Variable('foo')..fileOffset = _needFileOffset())
               ..fileOffset = _needFileOffset(),
           )..fileOffset = _needFileOffset(),
           () => VariableStatement(
-            Variable('foo', type: _createDartType())
-              ..fileOffset = _needFileOffset(),
+            VariableDeclaration(
+              Variable('foo', initializer: _createExpression())
+                ..fileOffset = _needFileOffset(),
+            )..fileOffset = _needFileOffset(),
+          )..fileOffset = _needFileOffset(),
+          () => VariableStatement(
+            VariableDeclaration(
+              Variable('foo', type: _createDartType())
+                ..fileOffset = _needFileOffset(),
+            )..fileOffset = _needFileOffset(),
           )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.WhileStatement:
@@ -1599,8 +1604,6 @@ class NodeCreator {
             isFinal: true,
           )..fileOffset = _needFileOffset(),
         ]);
-      case StatementKind.VariableInitialization:
-        throw new UnimplementedError("Unimplemented support for ${kind}.");
     }
   }
 
@@ -2128,6 +2131,10 @@ class NodeCreator {
           _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
           _createExpression(),
         )..fileOffset = _needFileOffset();
+      case NodeKind.VariableDeclaration:
+        return new VariableDeclaration(
+          _createNodeFromKind(NodeKind.LegacyVariable) as Variable,
+        );
       case NodeKind.LegacyVariable:
         return _createOneOf(_pendingNodes, kind, index, [
           () => Variable('foo')..fileOffset = _needFileOffset(),

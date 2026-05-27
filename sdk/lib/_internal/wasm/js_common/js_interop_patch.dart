@@ -927,26 +927,22 @@ extension JSAnyOperatorExtension on JSAny? {
   );
 
   @patch
-  JSAny? and(JSAny? any) =>
-      JSValue.box(
-            js_helper.JS<WasmExternRef?>(
-              '(o, a) => o && a',
-              this.toExternRef,
-              any.toExternRef,
-            ),
-          )
-          as JSAny?;
+  JSAny? and(JSAny? any) => JSValue.box(
+    js_helper.JS<WasmExternRef?>(
+      '(o, a) => o && a',
+      this.toExternRef,
+      any.toExternRef,
+    ),
+  ) as JSAny?;
 
   @patch
-  JSAny? or(JSAny? any) =>
-      JSValue.box(
-            js_helper.JS<WasmExternRef?>(
-              '(o, a) => o || a',
-              this.toExternRef,
-              any.toExternRef,
-            ),
-          )
-          as JSAny?;
+  JSAny? or(JSAny? any) => JSValue.box(
+    js_helper.JS<WasmExternRef?>(
+      '(o, a) => o || a',
+      this.toExternRef,
+      any.toExternRef,
+    ),
+  ) as JSAny?;
 
   @patch
   JSBoolean get not => JSBoolean._(
