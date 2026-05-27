@@ -59,7 +59,6 @@ import 'package:analysis_server/src/services/correction/dart/convert_into_is_not
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_related_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
@@ -320,7 +319,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
   diag.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
   diag.awaitOnlyFutures: [RemoveKeyword.awaitKeyword],
-  diag.cascadeInvocations: [ConvertToCascade.new, ConvertRelatedToCascade.new],
+  diag.cascadeInvocations: [ConvertToCascade.new],
   diag.castNullableToNonNullable: [AddNullCheck.withoutAssignabilityCheck],
   diag.combinatorsOrdering: [SortCombinators.new],
   diag.constantIdentifierNames: [RenameToCamelCase.new],
