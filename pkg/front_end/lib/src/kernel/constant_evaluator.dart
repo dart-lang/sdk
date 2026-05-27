@@ -2286,26 +2286,10 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
     final Variable variable = node.variable;
     if (variable.isConst) {
-      // TODO(63414): Obtain the initializer parent uniformly rather than using
-      // the 'switch'.
-      TreeNode? initializerParent = switch (variable) {
-        LegacyVariable() => variable,
-        LocalVariable() => variable.variableDeclaration,
-        // Coverage-ignore(suite): Not run.
-        CatchVariable() => variable.variableDeclaration,
-        // Coverage-ignore(suite): Not run.
-        ThisVariable() => variable.variableDeclaration,
-        // Coverage-ignore(suite): Not run.
-        SyntheticVariable() => variable.variableDeclaration,
-        // Coverage-ignore(suite): Not run.
-        PositionalParameter() => variable.variableDeclaration,
-        // Coverage-ignore(suite): Not run.
-        NamedParameter() => variable.variableDeclaration,
-      };
       variable.initializer = evaluateAndTransformWithContext(
         variable,
         variable.initializer!,
-      )..parent = initializerParent;
+      )..parent = variable;
       if (shouldInline(variable.initializer!)) {
         return evaluateAndTransformWithContext(node, node);
       }

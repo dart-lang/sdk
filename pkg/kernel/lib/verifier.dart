@@ -274,8 +274,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   TreeNode? enterParent(TreeNode node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (!_isNewModelVariable(node) && !identical(node.parent, currentParent)) {
+    if (!identical(node.parent, currentParent)) {
       problem(
         node,
         "Incorrect parent pointer on ${node}:"
@@ -390,7 +389,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   void checkVariableInScope(Variable variable, TreeNode where) {
-    if (!variableDeclarationsInScope.contains(variable)) {
+    // TODO(cstefantsova): Support new variable model.
+    if (!_isNewModelVariable(variable) &&
+        !variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
   }
@@ -1204,10 +1205,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableGet(VariableGet node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.variable)) {
-      return;
-    }
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);
@@ -1222,10 +1219,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableSet(VariableSet node) {
-    // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.variable)) {
-      return;
-    }
     enterTreeNode(node);
     checkVariableInScope(node.variable, node);
     visitChildren(node);
