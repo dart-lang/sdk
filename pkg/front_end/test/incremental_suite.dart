@@ -902,6 +902,7 @@ class NewWorldTest {
         "",
         context,
         actualSerialized,
+        canUpdateExpect: true,
       );
       if (subtestResult != null) return subtestResult;
 
@@ -1525,8 +1526,9 @@ class NewWorldTest {
     int worldNum,
     String extraUriString,
     Context context,
-    String actualSerialized,
-  ) {
+    String actualSerialized, {
+    required bool canUpdateExpect,
+  }) {
     Uri uri = data.loadedFrom.resolve(
       data.loadedFrom.pathSegments.last +
           ".world.$worldNum${extraUriString}.expect",
@@ -1537,7 +1539,7 @@ class NewWorldTest {
       expected = file.readAsStringSync();
     }
     if (expected?.replaceAll("\r\n", "\n") != actualSerialized) {
-      if (context.updateExpectations) {
+      if (canUpdateExpect && context.updateExpectations) {
         file.writeAsStringSync(actualSerialized);
       } else {
         String extra = "";
@@ -1549,7 +1551,7 @@ class NewWorldTest {
           "Fix or update $uri to contain the below:\n\n"
           "$actualSerialized",
           autoFixCommand: "updateExpectations=true",
-          canBeFixWithUpdateExpectations: true,
+          canBeFixWithUpdateExpectations: canUpdateExpect,
         );
       }
     }
@@ -1949,12 +1951,10 @@ class NewWorldTest {
             : null,
       );
       print("*****\n\ncomponent (3):\n$componentLocalString\n\n\n");
-      if (world.compareWithFromScratch) {
-        checkIsEqual(
-          newWorldTestData.newestWholeComponentData!,
-          thisWholeComponent,
-        );
-      }
+      checkIsEqual(
+        newWorldTestData.newestWholeComponentData!,
+        thisWholeComponent,
+      );
       _checkErrorsAndWarnings(
         prevFormattedErrors,
         worldTestData.formattedErrors,
@@ -2058,6 +2058,7 @@ class NewWorldTest {
           ".expression.$expressionCompilationNum",
           context,
           nodeToString(procedure),
+          canUpdateExpect: true,
         );
         if (result != null) return result;
       }
@@ -2467,19 +2468,29 @@ class NewWorldTest {
       print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
       List<int> thisWholeComponent = util.postProcess(componentLocal);
-      String component4String = _componentToStringSdkFiltered(
+      String componentString = _componentToStringSdkFiltered(
         componentLocal,
         printErrors: world.printErrorsInExpect
             ? worldTestData.formattedErrors
             : null,
       );
-      print("*****\n\ncomponent (4):\n$component4String\n\n\n");
-      if (world.compareWithFromScratch) {
-        checkIsEqual(
-          newWorldTestData.newestWholeComponentData!,
-          thisWholeComponent,
-        );
-      }
+      print("*****\n\ncomponent (4):\n$componentString\n\n\n");
+
+      var subtestResult = _checkExpectFile(
+        data,
+        newWorldTestData.worldNum,
+        "",
+        context,
+        componentString,
+        canUpdateExpect: false,
+      );
+      if (subtestResult != null) return subtestResult;
+
+      checkIsEqual(
+        newWorldTestData.newestWholeComponentData!,
+        thisWholeComponent,
+      );
+
       _checkErrorsAndWarnings(
         prevFormattedErrors,
         worldTestData.formattedErrors,
