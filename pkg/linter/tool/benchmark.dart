@@ -218,7 +218,7 @@ class Stat implements Comparable<Stat> {
   final String name;
   final int elapsed;
 
-  Stat(this.name, this.elapsed);
+  new(this.name, this.elapsed);
 
   @override
   int compareTo(Stat other) => other.elapsed - elapsed;
@@ -229,7 +229,7 @@ class _ErrorWatchingSink implements StringSink {
 
   final StringSink delegate;
 
-  _ErrorWatchingSink(this.delegate);
+  new(this.delegate);
 
   @override
   void write(Object? obj) => delegate.write(obj);

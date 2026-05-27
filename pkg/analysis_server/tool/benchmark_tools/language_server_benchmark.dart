@@ -39,7 +39,7 @@ abstract class DartLanguageServerBenchmark {
 
   final bool _lsp;
 
-  DartLanguageServerBenchmark(List<String> args, {required bool useLspProtocol})
+  new(List<String> args, {required bool useLspProtocol})
     : _lsp = useLspProtocol,
       executableToUse = extractDartParamOrDefault(args) {
     _checkCorrectDart();
@@ -501,7 +501,7 @@ class DurationInfo {
   final String name;
   final Duration duration;
 
-  DurationInfo(this.name, this.duration);
+  new(this.name, this.duration);
 }
 
 enum LaunchFrom { source, dart, aot, aotWithPerf }
@@ -510,13 +510,13 @@ class MemoryInfo {
   final String name;
   final int kb;
 
-  MemoryInfo(this.name, this.kb);
+  new(this.name, this.kb);
 }
 
 class OutstandingRequest {
   final Stopwatch stopwatch = Stopwatch();
   final Completer<Map<String, dynamic>> completer = Completer();
-  OutstandingRequest() {
+  new() {
     stopwatch.start();
   }
 }
@@ -524,7 +524,7 @@ class OutstandingRequest {
 class _Uint8ListHelper {
   Uint8List data;
   int length = 0;
-  _Uint8ListHelper() : data = Uint8List(1024);
+  new() : data = Uint8List(1024);
 
   int operator [](int index) {
     if (index < 0 || index >= length) throw 'Out of bounds: $index';

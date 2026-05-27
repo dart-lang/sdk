@@ -27,11 +27,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   final CorrectionUtils utils;
   final ExecutableElement element;
 
-  ConvertMethodToGetterRefactoringImpl(
-    this.workspace,
-    this.resolvedUnit,
-    this.element,
-  ) : sessionHelper = AnalysisSessionHelper(resolvedUnit.session),
+  new(this.workspace, this.resolvedUnit, this.element)
+    : sessionHelper = AnalysisSessionHelper(resolvedUnit.session),
       searchEngine = workspace.searchEngine,
       utils = CorrectionUtils(resolvedUnit);
 

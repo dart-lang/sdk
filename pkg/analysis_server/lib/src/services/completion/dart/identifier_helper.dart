@@ -22,7 +22,7 @@ class IdentifierHelper {
   final bool includePrivateIdentifiers;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  IdentifierHelper({
+  new({
     required this.state,
     required this.collector,
     required this.includePrivateIdentifiers,

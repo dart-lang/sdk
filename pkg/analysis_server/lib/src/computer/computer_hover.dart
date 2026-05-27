@@ -25,7 +25,7 @@ class DartUnitHoverComputer {
   final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  DartUnitHoverComputer(
+  new(
     DartdocDirectiveInfo dartdocInfo,
     this._unit,
     this._offset, {

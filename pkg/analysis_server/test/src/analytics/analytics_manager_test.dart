@@ -581,36 +581,36 @@ class _ExpectedEvent {
   final DashEvent eventName;
   final Map<String, Object?>? eventData;
 
-  _ExpectedEvent(this.eventName, this.eventData);
+  new(this.eventName, this.eventData);
 
-  _ExpectedEvent.analysisStatistics({Map<String, Object?>? eventData})
+  new analysisStatistics({Map<String, Object?>? eventData})
     : this(DashEvent.analysisStatistics, eventData);
 
-  _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
+  new commandExecuted({Map<String, Object?>? eventData})
     : this(DashEvent.commandExecuted, eventData);
 
-  _ExpectedEvent.contextStructure({Map<String, Object?>? eventData})
+  new contextStructure({Map<String, Object?>? eventData})
     : this(DashEvent.contextStructure, eventData);
 
-  _ExpectedEvent.lintUsageCount({Map<String, Object?>? eventData})
+  new lintUsageCount({Map<String, Object?>? eventData})
     : this(DashEvent.lintUsageCount, eventData);
 
-  _ExpectedEvent.notification({Map<String, Object?>? eventData})
+  new notification({Map<String, Object?>? eventData})
     : this(DashEvent.clientNotification, eventData);
 
-  _ExpectedEvent.pluginRequest({Map<String, Object?>? eventData})
+  new pluginRequest({Map<String, Object?>? eventData})
     : this(DashEvent.pluginRequest, eventData);
 
-  _ExpectedEvent.pluginUse({Map<String, Object?>? eventData})
+  new pluginUse({Map<String, Object?>? eventData})
     : this(DashEvent.pluginUse, eventData);
 
-  _ExpectedEvent.request({Map<String, Object?>? eventData})
+  new request({Map<String, Object?>? eventData})
     : this(DashEvent.clientRequest, eventData);
 
-  _ExpectedEvent.session({Map<String, Object?>? eventData})
+  new session({Map<String, Object?>? eventData})
     : this(DashEvent.serverSession, eventData);
 
-  _ExpectedEvent.severityAdjustment({Map<String, Object?>? eventData})
+  new severityAdjustment({Map<String, Object?>? eventData})
     : this(DashEvent.severityAdjustment, eventData);
 
   /// Compare the expected event with the [actual] event, failing if the actual
@@ -666,7 +666,7 @@ class _ExpectedEvent {
 
 /// A matcher for strings containing positive integer values.
 class _IsPercentiles extends Matcher {
-  const _IsPercentiles();
+  const new();
 
   @override
   Description describe(Description description) =>
@@ -694,7 +694,7 @@ class _IsPercentiles extends Matcher {
 
 /// A matcher for strings containing positive integer values.
 class _IsPositiveInt extends Matcher {
-  const _IsPositiveInt();
+  const new();
 
   @override
   Description describe(Description description) =>
@@ -710,7 +710,7 @@ class _IsPositiveInt extends Matcher {
 class _MockAnalytics implements NoOpAnalytics {
   List<Event> events = [];
 
-  _MockAnalytics();
+  new();
 
   @override
   Map<String, ToolInfo> get parsedTools => throw UnimplementedError();

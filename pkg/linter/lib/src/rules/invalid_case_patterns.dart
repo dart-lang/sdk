@@ -19,7 +19,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use case expressions that are valid in Dart 3.0.';
 
 class InvalidCasePatterns extends AnalysisRule {
-  InvalidCasePatterns()
+  new()
     : super(
         name: LintNames.invalid_case_patterns,
         description: _desc,
@@ -48,7 +48,7 @@ class InvalidCasePatterns extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   visitSwitchCase(SwitchCase node) {

@@ -14,12 +14,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 class AnalysisGetHoverHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  AnalysisGetHoverHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

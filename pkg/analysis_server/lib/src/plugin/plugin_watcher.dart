@@ -34,11 +34,8 @@ class PluginWatcher implements DriverWatcher {
   final bool _pluginsAreEnabled;
 
   /// Initialize a newly created plugin watcher.
-  PluginWatcher(
-    this.resourceProvider,
-    this.manager, {
-    required this._pluginsAreEnabled,
-  }) : _locator = PluginLocator(resourceProvider);
+  new(this.resourceProvider, this.manager, {required this._pluginsAreEnabled})
+    : _locator = PluginLocator(resourceProvider);
 
   @override
   void addedDriver(AnalysisDriver driver) {
@@ -205,5 +202,5 @@ class _DriverInfo {
   final List<String> packageRoots;
 
   /// Initialize a newly created information holder.
-  _DriverInfo(this.contextRoot, this.packageRoots);
+  new(this.contextRoot, this.packageRoots);
 }

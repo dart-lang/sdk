@@ -14,7 +14,7 @@ class CompletionResponseForTesting {
   final bool isIncomplete;
   final List<CompletionSuggestion> suggestions;
 
-  CompletionResponseForTesting({
+  new({
     required this.requestOffset,
     required this.requestLocationName,
     required this.opTypeLocationName,

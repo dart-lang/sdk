@@ -244,7 +244,7 @@ class _DoubleEquals extends Matcher {
   final double _value;
   final int fractionDigits = 10;
 
-  const _DoubleEquals(this._value);
+  const new(this._value);
 
   @override
   Description describe(Description description) =>

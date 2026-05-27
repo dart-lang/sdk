@@ -11,7 +11,7 @@ class WhileStatement extends DartSnippetProducer {
   static const prefix = 'while';
   static const label = 'while';
 
-  WhileStatement(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

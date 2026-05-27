@@ -12,18 +12,18 @@ class RemoveComma extends ResolvedCorrectionProducer {
   final String commaKind;
   final String targetDescription;
 
-  RemoveComma.emptyRecordLiteral({required CorrectionProducerContext context})
+  new emptyRecordLiteral({required CorrectionProducerContext context})
     : this._(context: context, targetDescription: 'empty record literals');
-  RemoveComma.emptyRecordType({required CorrectionProducerContext context})
+  new emptyRecordType({required CorrectionProducerContext context})
     : this._(context: context, targetDescription: 'empty record types');
-  RemoveComma.representationField({required CorrectionProducerContext context})
+  new representationField({required CorrectionProducerContext context})
     : this._(
         context: context,
         commaKind: 'trailing ',
         targetDescription: 'representation fields',
       );
 
-  RemoveComma._({
+  new _({
     required super.context,
     this.commaKind = '',
     required this.targetDescription,

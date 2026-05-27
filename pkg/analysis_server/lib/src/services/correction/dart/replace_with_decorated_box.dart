@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
-  ReplaceWithDecoratedBox({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

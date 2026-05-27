@@ -16,7 +16,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 /// A handler that validates arguments for legacy refactors such as
 /// EXTRACT_WIDGET.
 class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
-  ValidateRefactorCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Validate Refactor';

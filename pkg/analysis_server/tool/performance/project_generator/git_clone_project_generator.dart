@@ -22,7 +22,7 @@ class GitCloneProjectGenerator implements ProjectGenerator {
   /// sub-directories of the repo to open in the workspace.
   final Iterable<String>? openSubdirs;
 
-  GitCloneProjectGenerator(this.repo, this.ref, {Iterable<String>? openSubdirs})
+  new(this.repo, this.ref, {Iterable<String>? openSubdirs})
     : // Normalize any path separators to match the current platform.
       openSubdirs = openSubdirs?.map(
         (openSubdir) => openSubdir.replaceAll(RegExp(r'\/'), p.separator),

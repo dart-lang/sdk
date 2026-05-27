@@ -17,7 +17,7 @@ import '../../diagnostic.dart' as diag;
 const _desc = r'Depend on referenced packages.';
 
 class DependOnReferencedPackages extends AnalysisRule {
-  DependOnReferencedPackages()
+  new()
     : super(name: LintNames.depend_on_referenced_packages, description: _desc);
 
   @override
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final DependOnReferencedPackages rule;
   final List<String> availableDeps;
 
-  _Visitor(this.rule, this.availableDeps);
+  new(this.rule, this.availableDeps);
 
   @override
   void visitExportDirective(ExportDirective node) => _checkDirective(node);

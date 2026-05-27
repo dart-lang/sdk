@@ -45,7 +45,7 @@ class PluginException implements Exception {
   final String message;
 
   /// Initialize a newly created exception to have the given [message].
-  PluginException(this.message);
+  new(this.message);
 
   @override
   String toString() => message;
@@ -59,7 +59,7 @@ class PluginFiles {
   /// The plugin package config file.
   final File packageConfig;
 
-  PluginFiles(this.execution, this.packageConfig);
+  new(this.execution, this.packageConfig);
 }
 
 /// An object used to manage the currently running plugins.
@@ -141,7 +141,7 @@ class PluginManager {
   ///
   /// The notifications from the running plugins will be handled by the given
   /// [_notificationManager].
-  PluginManager(
+  new(
     this._resourceProvider,
     this._byteStorePath,
     this._sdkPath,
@@ -1000,5 +1000,5 @@ class _Package {
   final String name;
   final Folder root;
 
-  _Package(this.name, this.root);
+  new(this.name, this.root);
 }

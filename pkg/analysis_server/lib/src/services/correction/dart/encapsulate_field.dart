@@ -30,7 +30,7 @@ typedef _DeclarationInfo = ({
 });
 
 class EncapsulateField extends ResolvedCorrectionProducer {
-  EncapsulateField({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -420,11 +420,7 @@ class _InitializerReferenceUpdater extends RecursiveAstVisitor<void> {
   final FieldFormalParameterElement parameterElement;
   final String newName;
 
-  _InitializerReferenceUpdater(
-    this.builder,
-    this.parameterElement,
-    this.newName,
-  );
+  new(this.builder, this.parameterElement, this.newName);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer is! operator.';
 
 class PreferIsNotOperator extends AnalysisRule {
-  PreferIsNotOperator()
-    : super(name: LintNames.prefer_is_not_operator, description: _desc);
+  new() : super(name: LintNames.prefer_is_not_operator, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferIsNotOperator;
@@ -35,7 +34,7 @@ class PreferIsNotOperator extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitIsExpression(IsExpression node) {

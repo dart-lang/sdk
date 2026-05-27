@@ -16,8 +16,7 @@ const _desc =
     'are assigned or returned.';
 
 class DiscardedFutures extends AnalysisRule {
-  DiscardedFutures()
-    : super(name: LintNames.discarded_futures, description: _desc);
+  new() : super(name: LintNames.discarded_futures, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.discardedFutures;

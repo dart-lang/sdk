@@ -62,7 +62,7 @@ class MockProcess implements Process {
   final _exitCodeCompleter = Completer<int>();
   final String _stdout, _stderr;
 
-  MockProcess(this._pid, FutureOr<int> exitCode, this._stdout, this._stderr) {
+  new(this._pid, FutureOr<int> exitCode, this._stdout, this._stderr) {
     Future.value(exitCode).then(_exitCodeCompleter.complete);
   }
 
@@ -194,7 +194,7 @@ class _IsResponseFailure extends Matcher {
   final String _id;
   final RequestErrorCode? _code;
 
-  _IsResponseFailure(this._id, this._code);
+  new(this._id, this._code);
 
   @override
   Description describe(Description description) {
@@ -245,7 +245,7 @@ class _IsResponseFailure extends Matcher {
 class _IsResponseSuccess extends Matcher {
   final String _id;
 
-  _IsResponseSuccess(this._id);
+  new(this._id);
 
   @override
   Description describe(Description description) {

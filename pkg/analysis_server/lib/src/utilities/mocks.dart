@@ -63,8 +63,7 @@ class MockServerChannel implements ServerCommunicationChannel {
   /// True if we are printing out messages exchanged with the server.
   final bool printMessages;
 
-  MockServerChannel({bool? printMessages})
-    : printMessages = printMessages ?? false;
+  new({bool? printMessages}) : printMessages = printMessages ?? false;
 
   /// Return the broadcast stream of notifications.
   Stream<Notification> get notifications {
@@ -213,7 +212,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 class ServerError implements Exception {
   final String message;
 
-  ServerError(this.message);
+  new(this.message);
 
   @override
   String toString() {

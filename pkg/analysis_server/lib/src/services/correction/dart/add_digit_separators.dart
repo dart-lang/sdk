@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddDigitSeparatorEveryThreeDigits extends _AddDigitSeparators {
-  AddDigitSeparatorEveryThreeDigits({required super.context});
+  new({required super.context});
 
   @override
   int get _digitsPerGroup => 3;
@@ -30,7 +30,7 @@ class AddDigitSeparatorEveryThreeDigits extends _AddDigitSeparators {
 }
 
 class AddDigitSeparatorEveryTwoDigits extends _AddDigitSeparators {
-  AddDigitSeparatorEveryTwoDigits({required super.context});
+  new({required super.context});
 
   @override
   int get _digitsPerGroup => 2;
@@ -46,7 +46,7 @@ class AddDigitSeparatorEveryTwoDigits extends _AddDigitSeparators {
 }
 
 abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
-  _AddDigitSeparators({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

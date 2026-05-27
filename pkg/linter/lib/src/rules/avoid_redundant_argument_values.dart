@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid redundant argument values.';
 
 class AvoidRedundantArgumentValues extends AnalysisRule {
-  AvoidRedundantArgumentValues()
+  new()
     : super(
         name: LintNames.avoid_redundant_argument_values,
         description: _desc,
@@ -43,7 +43,7 @@ class AvoidRedundantArgumentValues extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void check(ArgumentList argumentList) {
     var arguments = argumentList.arguments;

@@ -299,7 +299,7 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   int closeCount = 0;
   List<Request> sentRequests = <Request>[];
 
-  TestServerCommunicationChannel(this.session) {
+  new(this.session) {
     session.channel = this;
   }
 

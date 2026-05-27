@@ -18,11 +18,11 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveAbstract({required super.context})
+  new({required super.context})
     : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  RemoveAbstract.bulkFixable({required super.context})
+  new bulkFixable({required super.context})
     : applicability = CorrectionApplicability.automatically;
 
   @override

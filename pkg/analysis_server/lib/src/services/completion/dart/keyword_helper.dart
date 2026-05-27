@@ -26,7 +26,7 @@ class KeywordHelper {
   final CompletionState state;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  KeywordHelper({
+  new({
     required this.collector,
     required this.featureSet,
     required this.offset,

@@ -16,7 +16,7 @@ typedef StaticOptions =
 
 class FoldingHandler
     extends LspMessageHandler<FoldingRangeParams, List<FoldingRange>> {
-  FoldingHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_foldingRange;
 
@@ -145,7 +145,7 @@ class FoldingHandler
 
 class FoldingRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  FoldingRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

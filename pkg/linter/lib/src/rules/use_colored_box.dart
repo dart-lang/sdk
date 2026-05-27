@@ -17,7 +17,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Use `ColoredBox`.';
 
 class UseColoredBox extends AnalysisRule {
-  UseColoredBox() : super(name: LintNames.use_colored_box, description: _desc);
+  new() : super(name: LintNames.use_colored_box, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useColoredBox;
@@ -36,7 +36,7 @@ class UseColoredBox extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

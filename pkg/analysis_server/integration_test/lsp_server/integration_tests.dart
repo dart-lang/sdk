@@ -185,7 +185,7 @@ class LspServerClient {
   /// these whole line is used for this completer.
   final Completer<String> _devToolsLineCompleter = Completer<String>();
 
-  LspServerClient(this.instrumentationService);
+  new(this.instrumentationService);
 
   /// Completes with the DevTools URI line, maybe never.
   Future<String> get devToolsLine => _devToolsLineCompleter.future;

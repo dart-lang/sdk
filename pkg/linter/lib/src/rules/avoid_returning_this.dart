@@ -20,8 +20,7 @@ const _desc =
 bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 
 class AvoidReturningThis extends AnalysisRule {
-  AvoidReturningThis()
-    : super(name: LintNames.avoid_returning_this, description: _desc);
+  new() : super(name: LintNames.avoid_returning_this, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.avoidReturningThis;
@@ -69,7 +68,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

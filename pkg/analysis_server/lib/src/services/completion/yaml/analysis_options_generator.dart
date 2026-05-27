@@ -56,8 +56,7 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
 
   /// Initialize a newly created suggestion generator for analysis options
   /// files.
-  AnalysisOptionsGenerator(ResourceProvider resourceProvider)
-    : super(resourceProvider, null);
+  new(ResourceProvider resourceProvider) : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => analysisOptionsProducer;
@@ -88,7 +87,7 @@ class _ErrorProducer extends KeyValueProducer {
 class _ExperimentProducer extends Producer {
   /// Initialize a location whose valid values are the names of the known
   /// experimental features.
-  const _ExperimentProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
@@ -102,7 +101,7 @@ class _ExperimentProducer extends Producer {
 class _LintRuleProducer extends Producer {
   /// Initialize a location whose valid values are the names of the registered
   /// lint rules.
-  const _LintRuleProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {

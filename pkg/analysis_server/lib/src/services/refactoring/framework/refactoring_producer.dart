@@ -21,7 +21,7 @@ sealed class ComputeStatus {}
 class ComputeStatusFailure extends ComputeStatus {
   final String? reason;
 
-  ComputeStatusFailure({this.reason});
+  new({this.reason});
 }
 
 /// The result that signals the success.
@@ -30,7 +30,7 @@ class ComputeStatusSuccess extends ComputeStatus {}
 /// A version of [RefactoringProducer] that has parameters, allowing the user
 /// to provide additional values (such as a name or target file) when executed.
 abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
-  ParameterizedRefactoringProducer(super.refactoringContext);
+  new(super.refactoringContext);
 
   /// Return a list of the parameters to send to the client.
   List<CommandParameter> get parameters;
@@ -42,7 +42,7 @@ abstract class RefactoringProducer {
   final RefactoringContext refactoringContext;
 
   /// Initialize a newly created refactoring producer.
-  RefactoringProducer(this.refactoringContext);
+  new(this.refactoringContext);
 
   /// The most deeply nested node whose range completely includes the range of
   /// characters described by [selectionOffset] and [selectionLength].

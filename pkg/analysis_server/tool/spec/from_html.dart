@@ -58,7 +58,7 @@ class ApiReader {
 
   /// Initialize a newly created API reader to read from the file with the given
   /// [filePath].
-  ApiReader(this.filePath);
+  new(this.filePath);
 
   /// Create an [Api] object from an HTML representation such as:
   ///

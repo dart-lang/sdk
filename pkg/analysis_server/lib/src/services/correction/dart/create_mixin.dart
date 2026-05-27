@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMixin extends MultiCorrectionProducer {
-  CreateMixin({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -94,7 +94,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  _CreateMixin.lowercase(
+  new lowercase(
     this._mixinName,
     this._expression,
     this.prefixElement, {
@@ -104,7 +104,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
            ? DartFixKind.createMixinLowercaseWith
            : DartFixKind.createMixinLowercase;
 
-  _CreateMixin.uppercase(
+  new uppercase(
     this._mixinName,
     this._expression,
     this.prefixElement, {

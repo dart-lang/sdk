@@ -276,7 +276,7 @@ class ServiceProtocol {
   int _id = 0;
   final Map<String, Completer<Map<Object?, Object?>>> _completers = {};
 
-  ServiceProtocol._(this.socket) {
+  new _(this.socket) {
     socket.listen(_handleMessage);
   }
 

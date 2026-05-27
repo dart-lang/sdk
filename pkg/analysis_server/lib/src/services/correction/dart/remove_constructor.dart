@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class RemoveConstructor extends ResolvedCorrectionProducer {
-  RemoveConstructor({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -132,12 +132,12 @@ class _Container {
   final Token leftBracket;
   final List<ClassMember> members;
 
-  _Container({required this.leftBracket, required this.members});
+  new({required this.leftBracket, required this.members});
 }
 
 class _PrimaryConstructor {
   final Token leftParen;
   final Token rightParen;
 
-  _PrimaryConstructor({required this.leftParen, required this.rightParen});
+  new({required this.leftParen, required this.rightParen});
 }

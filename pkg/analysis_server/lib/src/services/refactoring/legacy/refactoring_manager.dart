@@ -60,7 +60,7 @@ class RefactoringManager {
   Request? request;
   EditGetRefactoringResult? result;
 
-  RefactoringManager(this.server, this.refactoringWorkspace)
+  new(this.server, this.refactoringWorkspace)
     : searchEngine = refactoringWorkspace.searchEngine {
     _reset();
   }

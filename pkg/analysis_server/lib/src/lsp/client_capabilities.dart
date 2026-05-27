@@ -113,7 +113,7 @@ class LspClientCapabilities {
   /// User-friendly error messages from parsing the experimental capabilities.
   final List<String> experimentalCapabilitiesErrors;
 
-  factory LspClientCapabilities(ClientCapabilities raw) {
+  factory(ClientCapabilities raw) {
     var workspace = raw.workspace;
     var workspaceEdit = workspace?.workspaceEdit;
     var resourceOperations = workspaceEdit?.resourceOperations;
@@ -231,7 +231,7 @@ class LspClientCapabilities {
     );
   }
 
-  LspClientCapabilities._(
+  new _(
     this.raw, {
     required this.documentChanges,
     required this.changeAnnotations,
@@ -294,7 +294,7 @@ class _ExperimentalClientCapabilities {
   final Set<String> commands;
   final bool showMessageRequest;
 
-  _ExperimentalClientCapabilities({
+  new({
     required this.snippetTextEdit,
     required this.commandParameterKinds,
     required this.commands,
@@ -310,7 +310,7 @@ class _ExperimentalClientCapabilities {
   /// carefully and report a warning to the client if something looks wrong.
   ///
   /// Example: https://github.com/dart-lang/sdk/issues/55935
-  factory _ExperimentalClientCapabilities.parse(Object? raw) {
+  factory parse(Object? raw) {
     var errors = <String>[];
 
     /// Helper to ensure [object] is type [T] and otherwise records an error in

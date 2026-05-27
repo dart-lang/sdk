@@ -16,7 +16,7 @@ class CodeFragment extends ValueGenerator {
   final List<Accessor> accessors;
 
   /// Initialize a newly created extractor to extract a code fragment.
-  CodeFragment(this.accessors);
+  new(this.accessors);
 
   @override
   String evaluateIn(TemplateContext context) {
@@ -80,7 +80,7 @@ class ImportedName extends ValueGenerator {
   /// The name to be used.
   final String name;
 
-  ImportedName(this.uris, this.name);
+  new(this.uris, this.name);
 
   @override
   String evaluateIn(TemplateContext context) {

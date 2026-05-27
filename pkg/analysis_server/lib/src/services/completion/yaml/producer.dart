@@ -10,7 +10,7 @@ import 'package:path/path.dart' as path;
 /// An object that represents the location of a Boolean value.
 class BooleanProducer extends Producer {
   /// Initialize a location whose valid values are Booleans.
-  const BooleanProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -25,7 +25,7 @@ class BooleanProducer extends Producer {
 /// placeholders when there are no reasonable suggestions for a given location.
 class EmptyProducer extends Producer {
   /// Initialize a location whose valid values are arbitrary.
-  const EmptyProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -42,7 +42,7 @@ class EnumProducer extends Producer {
   final List<String> values;
 
   /// Initialize a location whose valid values are in the list of [values].
-  const EnumProducer(this.values);
+  const new(this.values);
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -57,7 +57,7 @@ class EnumProducer extends Producer {
 /// An object that represents the location of a possibly relative file path.
 class FilePathProducer extends Producer {
   /// Initialize a producer whose valid values are file paths.
-  const FilePathProducer();
+  const new();
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -120,7 +120,7 @@ class FilePathProducer extends Producer {
 /// An object that represents the location of the keys/values in a map.
 abstract class KeyValueProducer extends Producer {
   /// Initialize a producer representing a key/value pair in a map.
-  const KeyValueProducer();
+  const new();
 
   /// Returns a producer for values of the given [key], or `null` if there is
   /// no registered producer for the [key].
@@ -134,7 +134,7 @@ class ListProducer extends Producer {
 
   /// Initialize a location whose valid values are determined by the [element]
   /// producer.
-  const ListProducer(this.element);
+  const new(this.element);
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -159,7 +159,7 @@ class MapProducer extends KeyValueProducer {
 
   /// Initialize a location whose valid values are the keys of a map as encoded
   /// by the map of [_children].
-  const MapProducer(this._children);
+  const new(this._children);
 
   @override
   Producer? producerForKey(String key) => _children[key];
@@ -183,7 +183,7 @@ class MapProducer extends KeyValueProducer {
 /// that location.
 abstract class Producer {
   /// Initialize a newly created instance of this class.
-  const Producer();
+  const new();
 
   /// A utility method used to create a suggestion for the [identifier].
   CompletionSuggestion identifier(
@@ -234,7 +234,7 @@ class YamlCompletionRequest {
   final String precedingText;
 
   /// Initialize a newly created completion request.
-  YamlCompletionRequest({
+  new({
     required this.filePath,
     required this.precedingText,
     required this.resourceProvider,

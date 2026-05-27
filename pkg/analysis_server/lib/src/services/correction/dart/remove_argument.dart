@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import '../util.dart';
 
 class RemoveArgument extends ResolvedCorrectionProducer {
-  RemoveArgument({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

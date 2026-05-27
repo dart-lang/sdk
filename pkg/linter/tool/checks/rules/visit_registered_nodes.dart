@@ -15,7 +15,7 @@ import 'package:linter/src/diagnostic.dart' as diag;
 class VisitRegisteredNodes extends AnalysisRule {
   static const DiagnosticCode code = diag.visitRegisteredNodes;
 
-  VisitRegisteredNodes()
+  new()
     : super(
         name: 'visit_registered_nodes',
         description: "Declare 'visit' methods for all registered node types.",
@@ -36,7 +36,7 @@ class VisitRegisteredNodes extends AnalysisRule {
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final AnalysisRule rule;
-  _BodyVisitor(this.rule);
+  new(this.rule);
 
   bool implements(ClassElement visitor, String methodName) {
     var member = visitor.lookUpConcreteMethod(methodName, visitor.library);
@@ -71,7 +71,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

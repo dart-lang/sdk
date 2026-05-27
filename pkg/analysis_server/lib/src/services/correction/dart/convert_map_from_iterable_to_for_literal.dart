@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
-  ConvertMapFromIterableToForLiteral({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -208,7 +208,7 @@ class _Closure {
   final Token parameterIdentifier;
   final Expression body;
 
-  _Closure(this.parameter, this.parameterIdentifier, this.body);
+  new(this.parameter, this.parameterIdentifier, this.body);
 }
 
 /// A visitor that can be used to find references to a parameter.
@@ -226,7 +226,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   final Set<String> otherNames = <String>{};
 
   /// Initialize a newly created finder to find references to the [parameter].
-  _ParameterReferenceFinder(this.parameter);
+  new(this.parameter);
 
   /// Return `true` if the parameter is unreferenced in the nodes that have been
   /// visited.

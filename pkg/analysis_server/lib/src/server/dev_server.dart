@@ -27,7 +27,7 @@ class DevAnalysisServer {
   late DevChannel _channel;
 
   /// Initialize a newly created stdio server.
-  DevAnalysisServer(this.socketServer);
+  new(this.socketServer);
 
   void initServer() {
     _channel = DevChannel();

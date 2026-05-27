@@ -49,7 +49,7 @@ class InteractiveForm {
   /// always contains the same number of items as [outstandingFields].
   final List<Object?> outstandingFieldAnswers = [];
 
-  InteractiveForm({
+  new({
     required this.supportedInteractiveFormInputTypes,
     required this._masterFields,
     required this.existingAnswers,
@@ -201,7 +201,7 @@ class ValidatedResponse {
   /// does not need to be re-prompted for this field.
   final bool isValid;
 
-  ValidatedResponse(this.field, this.value, {required this.isValid});
+  new(this.field, this.value, {required this.isValid});
 }
 
 extension FormFieldExtension on FormField {

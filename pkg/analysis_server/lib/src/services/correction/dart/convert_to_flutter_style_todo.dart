@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:linter/src/rules/flutter_style_todos.dart';
 
 class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
-  ConvertToFlutterStyleTodo({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

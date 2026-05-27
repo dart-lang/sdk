@@ -123,7 +123,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
-  ExtractMethodRefactoringImpl(
+  new(
     this._searchEngine,
     this._resolveResult,
     this._selectionOffset,
@@ -1009,7 +1009,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
 /// [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(super.resolveResult, super.selection);
+  new(super.resolveResult, super.selection);
 
   @override
   void handleNextSelectedNode(AstNode node) {
@@ -1212,7 +1212,7 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   final _SourcePattern pattern;
   final List<SourceEdit> replaceEdits;
 
-  _GetSourcePatternVisitor(this.partRange, this.pattern, this.replaceEdits);
+  new(this.partRange, this.pattern, this.replaceEdits);
 
   @override
   void visitNamedArgument(NamedArgument node) {
@@ -1307,11 +1307,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
 
   bool forceStatic = false;
 
-  _InitializeOccurrencesVisitor(
-    this.ref,
-    this.selectionPattern,
-    this.patternToSelectionName,
-  );
+  new(this.ref, this.selectionPattern, this.patternToSelectionName);
 
   @override
   void visitBlock(Block node) {
@@ -1428,7 +1424,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final List<VariableElement> assignedUsedVariables;
 
-  _InitializeParametersVisitor(this.ref, this.assignedUsedVariables);
+  new(this.ref, this.assignedUsedVariables);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -1532,7 +1528,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
   final Element element;
   bool result = false;
 
-  _IsUsedAfterSelectionVisitor(this.ref, this.element);
+  new(this.ref, this.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -1554,7 +1550,7 @@ class _Occurrence {
 
   final Map<String, String> _parameterOldToOccurrenceName = <String, String>{};
 
-  _Occurrence(this.range, this.isSelection);
+  new(this.range, this.isSelection);
 }
 
 /// Generalized version of some source, in which references to the specific

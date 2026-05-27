@@ -16,7 +16,7 @@ import 'package:collection/collection.dart';
 class MessageEquality implements Equality<Message> {
   final _CustomDeepCollectionEquality _recursiveEquality;
 
-  MessageEquality({Set<String> ignoredKeys = const {}})
+  new({Set<String> ignoredKeys = const {}})
     : _recursiveEquality = _CustomDeepCollectionEquality(ignoredKeys);
 
   /// If [skipMatchId] is `true`, then the top level `id` field is ignored
@@ -49,7 +49,7 @@ class _CustomDeepCollectionEquality implements Equality<Object?> {
   late final _orderedListEquality = ListEquality<Object?>(this);
   late final _unorderedListEquality = UnorderedIterableEquality<Object?>(this);
 
-  _CustomDeepCollectionEquality(this._ignoredKeys);
+  new(this._ignoredKeys);
 
   @override
   bool equals(Object? e1, Object? e2, {String? path}) {

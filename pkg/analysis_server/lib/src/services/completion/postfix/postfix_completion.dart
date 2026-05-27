@@ -325,7 +325,7 @@ class PostfixCompletion {
 
   /// Initialize a newly created completion to have the given [kind] and
   /// [change].
-  PostfixCompletion(this.kind, this.change);
+  new(this.kind, this.change);
 }
 
 /// The context for computing a postfix completion.
@@ -334,7 +334,7 @@ class PostfixCompletionContext {
   final int selectionOffset;
   final String key;
 
-  PostfixCompletionContext(this.resolveResult, this.selectionOffset, this.key);
+  new(this.resolveResult, this.selectionOffset, this.key);
 }
 
 /// A description of a template for postfix completion. Instances are intended
@@ -352,12 +352,7 @@ class PostfixCompletionKind {
   )
   computer;
 
-  const PostfixCompletionKind(
-    this.name,
-    this.example,
-    this.selector,
-    this.computer,
-  );
+  const new(this.name, this.example, this.selector, this.computer);
 
   String get key => name == '!' ? name : '.$name';
 
@@ -379,7 +374,7 @@ final class PostfixCompletionProcessor {
   AstNode? _node;
   PostfixCompletion? _completion;
 
-  PostfixCompletionProcessor(this._completionContext)
+  new(this._completionContext)
     : utils = CorrectionUtils(_completionContext.resolveResult);
 
   String get _eol => utils.endOfLine;

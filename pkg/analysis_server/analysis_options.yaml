@@ -21,6 +21,8 @@ analyzer:
 
 linter:
   rules:
+    - unnecessary_type_name_in_constructor
+    - unnecessary_const_in_enum_constructor
     - avoid_bool_literals_in_conditional_expressions
     - avoid_redundant_argument_values
     - deprecated_member_use_from_same_package

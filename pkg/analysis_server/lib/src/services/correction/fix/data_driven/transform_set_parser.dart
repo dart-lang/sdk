@@ -40,7 +40,7 @@ class ErrorContext {
   final YamlNode parentNode;
 
   /// Initialize a newly created error context.
-  ErrorContext({required this.key, required this.parentNode});
+  new({required this.key, required this.parentNode});
 }
 
 /// A parser used to read a transform set from a file.
@@ -180,7 +180,7 @@ class TransformSetParser {
 
   /// Initialize a newly created parser to report diagnostics to the
   /// [_diagnosticReporter].
-  TransformSetParser(this._diagnosticReporter, this.packageName);
+  new(this._diagnosticReporter, this.packageName);
 
   /// Return the result of parsing the file [content] into a transform set, or
   /// `null` if the content does not represent a valid transform set.
@@ -1692,7 +1692,7 @@ class _SingleKeyEntry<T> {
   final String key;
   final T Function(String, YamlNode) translator;
 
-  _SingleKeyEntry({
+  new({
     required this.keyNode,
     required this.valueNode,
     required this.key,

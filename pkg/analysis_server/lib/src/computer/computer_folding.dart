@@ -22,7 +22,7 @@ class DartUnitFoldingComputer {
   /// editors typically only show one folding action button per line.
   final _linesWithRegions = <int>{};
 
-  DartUnitFoldingComputer(this._lineInfo, this._unit);
+  new(this._lineInfo, this._unit);
 
   void addRegionForConditionalBlock(Block block) {
     // For class/function/method blocks, we usually include the whitespace up
@@ -230,7 +230,7 @@ class DartUnitFoldingComputer {
 class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitFoldingComputer _computer;
 
-  _DartUnitFoldingComputerVisitor(this._computer);
+  new(this._computer);
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -571,7 +571,7 @@ class _Directive {
   final Directive directive;
   final Token keyword;
 
-  _Directive(this.directive, this.keyword);
+  new(this.directive, this.keyword);
 }
 
 extension _CommentTokenExtensions on Token {

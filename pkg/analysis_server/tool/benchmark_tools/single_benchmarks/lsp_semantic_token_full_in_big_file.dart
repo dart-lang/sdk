@@ -58,7 +58,7 @@ class FileContentPair {
   final Uri uri;
   final String content;
 
-  FileContentPair(this.uri, this.content);
+  new(this.uri, this.content);
 }
 
 class LspRequestSemanticTokenFull extends DartLanguageServerBenchmark {
@@ -69,12 +69,8 @@ class LspRequestSemanticTokenFull extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspRequestSemanticTokenFull(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: true);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;
@@ -118,5 +114,5 @@ class LspRequestSemanticTokenFull extends DartLanguageServerBenchmark {
 class RunDetails {
   final FileContentPair mainFile;
 
-  RunDetails({required this.mainFile});
+  new({required this.mainFile});
 }

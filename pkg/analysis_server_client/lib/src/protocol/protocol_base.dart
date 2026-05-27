@@ -41,10 +41,10 @@ class Notification {
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
   /// params will be used.
-  Notification(this.event, [this.params]);
+  new(this.event, [this.params]);
 
   /// Initialize a newly created instance based on the given JSON data.
-  factory Notification.fromJson(Map json) {
+  factory fromJson(Map json) {
     return Notification(
       json[Notification.EVENT],
       json[Notification.PARAMS] as Map<String, Object?>,
@@ -97,7 +97,7 @@ class Request {
   /// Initialize a newly created [Request] to have the given [id] and [method]
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
-  Request(
+  new(
     this.id,
     this.method, [
     Map<String, Object?>? params,
@@ -272,7 +272,7 @@ class RequestFailure implements Exception {
   final Response response;
 
   /// Initialize a newly created exception to return the given response.
-  RequestFailure(this.response);
+  new(this.response);
 }
 
 /// An object that can handle requests and produce responses for them.
@@ -320,10 +320,10 @@ class Response {
   /// with the given [id]. If [result] is provided, it will be used as the
   /// result; otherwise an empty result will be used. If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, {this.result, this.error});
+  new(this.id, {this.result, this.error});
 
   /// Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
-  Response.debugPortCouldNotBeOpened(Request request, dynamic error)
+  new debugPortCouldNotBeOpened(Request request, dynamic error)
     : this(
         request.id,
         error: RequestError(
@@ -334,7 +334,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the FILE_NOT_ANALYZED
   /// error condition.
-  Response.fileNotAnalyzed(Request request, String file)
+  new fileNotAnalyzed(Request request, String file)
     : this(
         request.id,
         error: RequestError(
@@ -345,7 +345,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the FORMAT_INVALID_FILE
   /// error condition.
-  Response.formatInvalidFile(Request request)
+  new formatInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -356,7 +356,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the FORMAT_WITH_ERROR
   /// error condition.
-  Response.formatWithErrors(Request request)
+  new formatWithErrors(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -367,7 +367,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_ERRORS_INVALID_FILE error condition.
-  Response.getErrorsInvalidFile(Request request)
+  new getErrorsInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -378,7 +378,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_IMPORTED_ELEMENTS_INVALID_FILE error condition.
-  Response.getImportedElementsInvalidFile(Request request)
+  new getImportedElementsInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -389,7 +389,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_NAVIGATION_INVALID_FILE error condition.
-  Response.getNavigationInvalidFile(Request request)
+  new getNavigationInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -400,7 +400,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_REACHABLE_SOURCES_INVALID_FILE error condition.
-  Response.getReachableSourcesInvalidFile(Request request)
+  new getReachableSourcesInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -411,7 +411,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_SIGNATURE_INVALID_FILE error condition.
-  Response.getSignatureInvalidFile(Request request)
+  new getSignatureInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -422,7 +422,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_SIGNATURE_INVALID_OFFSET error condition.
-  Response.getSignatureInvalidOffset(Request request)
+  new getSignatureInvalidOffset(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -433,7 +433,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// GET_SIGNATURE_UNKNOWN_FUNCTION error condition.
-  Response.getSignatureUnknownFunction(Request request)
+  new getSignatureUnknownFunction(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -444,7 +444,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// IMPORT_ELEMENTS_INVALID_FILE error condition.
-  Response.importElementsInvalidFile(Request request)
+  new importElementsInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -456,7 +456,7 @@ class Response {
   /// Initialize a newly created instance to represent an error condition caused
   /// by an analysis.reanalyze [request] that specifies an analysis root that is
   /// not in the current list of analysis roots.
-  Response.invalidAnalysisRoot(Request request, String rootPath)
+  new invalidAnalysisRoot(Request request, String rootPath)
     : this(
         request.id,
         error: RequestError(
@@ -468,7 +468,7 @@ class Response {
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that specifies an execution context whose context root does
   /// not exist.
-  Response.invalidExecutionContext(Request request, String contextId)
+  new invalidExecutionContext(Request request, String contextId)
     : this(
         request.id,
         error: RequestError(
@@ -479,7 +479,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// INVALID_FILE_PATH_FORMAT error condition.
-  Response.invalidFilePathFormat(Request request, path)
+  new invalidFilePathFormat(Request request, path)
     : this(
         request.id,
         error: RequestError(
@@ -493,7 +493,7 @@ class Response {
   /// invalid parameter, in JavaScript notation (e.g. "foo.bar" means that the
   /// parameter "foo" contained a key "bar" whose value was the wrong type).
   /// [expectation] is a description of the type of data that was expected.
-  Response.invalidParameter(Request request, String path, String expectation)
+  new invalidParameter(Request request, String path, String expectation)
     : this(
         request.id,
         error: RequestError(
@@ -504,7 +504,7 @@ class Response {
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a malformed request.
-  Response.invalidRequestFormat()
+  new invalidRequestFormat()
     : this(
         '',
         error: RequestError(
@@ -515,7 +515,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// ORGANIZE_DIRECTIVES_ERROR error condition.
-  Response.organizeDirectivesError(Request request, String message)
+  new organizeDirectivesError(Request request, String message)
     : this(
         request.id,
         error: RequestError(
@@ -526,7 +526,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// REFACTORING_REQUEST_CANCELLED error condition.
-  Response.refactoringRequestCancelled(Request request)
+  new refactoringRequestCancelled(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -537,7 +537,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the SERVER_ERROR error
   /// condition.
-  factory Response.serverError(Request request, exception, stackTrace) {
+  factory serverError(Request request, exception, stackTrace) {
     var error = RequestError(
       RequestErrorCode.SERVER_ERROR,
       exception.toString(),
@@ -550,7 +550,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// SORT_MEMBERS_INVALID_FILE error condition.
-  Response.sortMembersInvalidFile(Request request)
+  new sortMembersInvalidFile(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -561,7 +561,7 @@ class Response {
 
   /// Initialize a newly created instance to represent the
   /// SORT_MEMBERS_PARSE_ERRORS error condition.
-  Response.sortMembersParseErrors(Request request, int numErrors)
+  new sortMembersParseErrors(Request request, int numErrors)
     : this(
         request.id,
         error: RequestError(
@@ -572,7 +572,7 @@ class Response {
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that cannot be handled by any known handlers.
-  Response.unknownRequest(Request request)
+  new unknownRequest(Request request)
     : this(
         request.id,
         error: RequestError(
@@ -583,7 +583,7 @@ class Response {
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] for a service that is not supported.
-  Response.unsupportedFeature(String requestId, String message)
+  new unsupportedFeature(String requestId, String message)
     : this(
         requestId,
         error: RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message),

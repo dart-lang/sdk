@@ -26,7 +26,7 @@ class ImportElementsComputer {
   final ResolvedUnitResult libraryResult;
 
   /// Initialize a newly created builder.
-  ImportElementsComputer(this.resourceProvider, this.libraryResult);
+  new(this.resourceProvider, this.libraryResult);
 
   /// Creates the edits that will cause the list of [importedElementsList] to be
   /// imported into the library.
@@ -402,7 +402,7 @@ class _ImportUpdate {
 
   /// Initialize a newly created information holder to hold information about
   /// updates to the given [import].
-  _ImportUpdate(this.import);
+  new(this.import);
 
   /// Record that the given [name] needs to be added to show combinators.
   void show(String name) {
@@ -420,7 +420,7 @@ class _InsertionDescription {
   final int offset;
   final int newLinesAfter;
 
-  _InsertionDescription(this.offset, {int before = 0, int after = 0})
+  new(this.offset, {int before = 0, int after = 0})
     : newLinesBefore = before,
       newLinesAfter = after;
 }

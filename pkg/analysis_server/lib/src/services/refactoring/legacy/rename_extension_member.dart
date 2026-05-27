@@ -32,7 +32,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   late _ExtensionMemberValidator _validator;
 
-  RenameExtensionMemberRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,
@@ -135,7 +135,7 @@ class _ExtensionMemberValidator {
   final RefactoringStatus result = RefactoringStatus();
   final List<SearchMatch> references = <SearchMatch>[];
 
-  _ExtensionMemberValidator.forRename(
+  new forRename(
     this.searchEngine,
     this.sessionHelper,
     this.elementExtension,
@@ -240,7 +240,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
   final List<LocalElement> elements = [];
 
-  _LocalElementsCollector(this.name);
+  new(this.name);
 
   @override
   void visitFormalParameter(FormalParameter node) {
@@ -283,5 +283,5 @@ class _MatchShadowedByLocal {
   final SearchMatch match;
   final LocalElement localElement;
 
-  _MatchShadowedByLocal(this.match, this.localElement);
+  new(this.match, this.localElement);
 }

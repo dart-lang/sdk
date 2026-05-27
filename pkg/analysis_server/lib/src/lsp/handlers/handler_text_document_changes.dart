@@ -18,7 +18,7 @@ typedef StaticOptions = Either2<TextDocumentSyncKind, TextDocumentSyncOptions>;
 
 class TextDocumentChangeHandler
     extends LspMessageHandler<DidChangeTextDocumentParams, void> {
-  TextDocumentChangeHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_didChange;
 
@@ -76,7 +76,7 @@ class TextDocumentChangeHandler
 
 class TextDocumentCloseHandler
     extends LspMessageHandler<DidCloseTextDocumentParams, void> {
-  TextDocumentCloseHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_didClose;
@@ -113,7 +113,7 @@ class TextDocumentCloseHandler
 
 class TextDocumentOpenHandler
     extends LspMessageHandler<DidOpenTextDocumentParams, void> {
-  TextDocumentOpenHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_didOpen;
@@ -150,7 +150,7 @@ class TextDocumentOpenHandler
 
 class TextDocumentRegistrations extends FeatureRegistration
     with StaticRegistration<StaticOptions> {
-  TextDocumentRegistrations(super.info);
+  new(super.info);
 
   @override
   List<LspDynamicRegistration> get dynamicRegistrations {

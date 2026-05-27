@@ -54,7 +54,7 @@ class LogPlayer {
   /// mismatches.
   final bool verbose;
 
-  LogPlayer({
+  new({
     required this.log,
     this.timeout = const Duration(seconds: 5),
     this.verbose = false,

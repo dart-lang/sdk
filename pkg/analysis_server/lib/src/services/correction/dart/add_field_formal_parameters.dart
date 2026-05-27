@@ -21,11 +21,11 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  AddFieldFormalParameters({required super.context})
+  new({required super.context})
     : _style = _Style.base,
       fixKind = DartFixKind.addInitializingFormalParameters;
 
-  AddFieldFormalParameters.requiredNamed({required super.context})
+  new requiredNamed({required super.context})
     : _style = _Style.requiredNamed,
       fixKind = DartFixKind.addInitializingFormalNamedParameters;
 

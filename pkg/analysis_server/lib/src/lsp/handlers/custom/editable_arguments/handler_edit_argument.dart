@@ -27,7 +27,7 @@ import 'package:collection/collection.dart';
 
 class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     with EditableArgumentsMixin {
-  EditArgumentHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.dartTextDocumentEditArgument;

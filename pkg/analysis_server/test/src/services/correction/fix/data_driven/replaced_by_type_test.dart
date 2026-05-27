@@ -505,7 +505,7 @@ enum TypeKind {
   // Single character used to represent the type in constructed names.
   final String char;
 
-  const TypeKind(this.name, this.char);
+  new(this.name, this.char);
 
   bool get canBeClassInterface =>
       this == classKind || this == mixinKind || this == typedefKind;

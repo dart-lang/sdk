@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 
 /// An object that represents the location of a package name.
 class PubPackageNameProducer extends KeyValueProducer {
-  const PubPackageNameProducer();
+  const new();
 
   @override
   Producer producerForKey(String key) => PubPackageVersionProducer(key);
@@ -34,7 +34,7 @@ class PubPackageNameProducer extends KeyValueProducer {
 class PubPackageVersionProducer extends Producer {
   final String package;
 
-  const PubPackageVersionProducer(this.package);
+  const new(this.package);
 
   @override
   Iterable<CompletionSuggestion> suggestions(
@@ -154,10 +154,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
   });
 
   /// Initialize a newly created suggestion generator for pubspec files.
-  PubspecGenerator(
-    super.resourceProvider,
-    PubPackageService super.pubPackageService,
-  );
+  new(super.resourceProvider, PubPackageService super.pubPackageService);
 
   @override
   Producer get topLevelProducer => pubspecProducer;

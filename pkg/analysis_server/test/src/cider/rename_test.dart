@@ -1190,5 +1190,5 @@ class _CorrectionContext {
   final int line;
   final int character;
 
-  _CorrectionContext(this.content, this.offset, this.line, this.character);
+  new(this.content, this.offset, this.line, this.character);
 }

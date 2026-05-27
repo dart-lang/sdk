@@ -30,7 +30,7 @@ bool _isPowerOfTwo(int x) {
 class AbstractGetter extends Member {
   final TypeBase type;
 
-  AbstractGetter({
+  new({
     required super.name,
     super.comment,
     super.isProposed,
@@ -41,7 +41,7 @@ class AbstractGetter extends Member {
 class ArrayType extends TypeBase {
   final TypeBase elementType;
 
-  ArrayType(this.elementType);
+  new(this.elementType);
 
   @override
   String get dartType => 'List';
@@ -56,7 +56,7 @@ class ArrayType extends TypeBase {
 class Constant extends Member with LiteralValueMixin {
   TypeBase type;
   String value;
-  Constant({
+  new({
     required super.name,
     super.comment,
     super.isProposed,
@@ -72,7 +72,7 @@ class Field extends Member {
   final TypeBase type;
   final bool allowsNull;
   final bool allowsUndefined;
-  Field({
+  new({
     required super.name,
     super.comment,
     super.isProposed,
@@ -84,7 +84,7 @@ class Field extends Member {
 
 class FixedValueField extends Field {
   final String value;
-  FixedValueField({
+  new({
     required super.name,
     super.comment,
     required this.value,
@@ -101,7 +101,7 @@ class Interface extends LspEntity {
   final bool abstract;
   final bool sealed;
 
-  Interface({
+  new({
     required super.name,
     super.comment,
     super.isProposed,
@@ -114,7 +114,7 @@ class Interface extends LspEntity {
     members.sortBy((member) => member.name.toLowerCase());
   }
 
-  Interface.inline(String name, List<Member> members)
+  new inline(String name, List<Member> members)
     : this(name: name, members: members);
 }
 
@@ -123,7 +123,7 @@ class LiteralType extends TypeBase with LiteralValueMixin {
   final TypeBase type;
   final String _literal;
 
-  LiteralType(this.type, this._literal);
+  new(this.type, this._literal);
 
   @override
   String get dartType => type.dartType;
@@ -145,7 +145,7 @@ class LiteralType extends TypeBase with LiteralValueMixin {
 class LiteralUnionType extends UnionType {
   final List<LiteralType> literalTypes;
 
-  LiteralUnionType(this.literalTypes) : super(literalTypes);
+  new(this.literalTypes) : super(literalTypes);
 
   @override
   String get dartType => types.first.dartType;
@@ -174,11 +174,8 @@ abstract class LspEntity {
   final String? comment;
   final bool isProposed;
   final bool isDeprecated;
-  LspEntity({
-    required this.name,
-    required this.comment,
-    this.isProposed = false,
-  }) : isDeprecated = comment?.contains('@deprecated') ?? false;
+  new({required this.name, required this.comment, this.isProposed = false})
+    : isDeprecated = comment?.contains('@deprecated') ?? false;
 }
 
 /// An enum parsed from the LSP JSON model.
@@ -186,7 +183,7 @@ class LspEnum extends LspEntity {
   final TypeBase typeOfValues;
   final bool flags;
   final List<Constant> constants;
-  LspEnum({
+  new({
     required super.name,
     super.comment,
     super.isProposed,
@@ -235,7 +232,7 @@ class LspMetaModel {
   final List<LspEntity> types;
   final List<Constant> methods;
 
-  LspMetaModel({required this.types, required this.methods});
+  new({required this.types, required this.methods});
 }
 
 /// A [Map] type parsed from the LSP JSON model.
@@ -243,7 +240,7 @@ class MapType extends TypeBase {
   final TypeBase indexType;
   final TypeBase valueType;
 
-  MapType(this.indexType, this.valueType);
+  new(this.indexType, this.valueType);
 
   @override
   String get dartType => 'Map';
@@ -256,13 +253,13 @@ class MapType extends TypeBase {
 /// Base class for members ([Constant] and [Field]s) parsed from the LSP JSON
 /// model.
 abstract class Member extends LspEntity {
-  Member({required super.name, super.comment, super.isProposed});
+  new({required super.name, super.comment, super.isProposed});
 }
 
 class NullableType extends TypeBase {
   final TypeBase baseType;
 
-  NullableType(this.baseType);
+  new(this.baseType);
 
   @override
   String get dartType => baseType.dartType;
@@ -284,7 +281,7 @@ class TypeAlias extends LspEntity {
   /// Whether a typedef should be created for this alias.
   final bool generateTypeDef;
 
-  TypeAlias({
+  new({
     required super.name,
     super.comment,
     super.isProposed,
@@ -322,7 +319,7 @@ class TypeReference extends TypeBase {
   final String name;
   final List<TypeBase> typeArgs;
 
-  TypeReference(this.name, {this.typeArgs = const []}) {
+  new(this.name, {this.typeArgs = const []}) {
     if (name == 'Array' || name.endsWith('[]')) {
       throw 'Type should not be used for arrays, use ArrayType instead';
     }
@@ -378,7 +375,7 @@ class TypeReference extends TypeBase {
 class UnionType extends TypeBase {
   final List<TypeBase> types;
 
-  UnionType(this.types) {
+  new(this.types) {
     // Ensure types are always sorted alphabetically to simplify sharing code
     // because `Either2<A, B>` and `Either2<B, A>` are not the same.
     types.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());

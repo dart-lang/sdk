@@ -6,7 +6,7 @@ import 'package:analysis_server_plugin/src/correction/performance.dart';
 
 /// Overall performance of a request for quick fixes operation.
 class GetFixesPerformance extends ProducerRequestPerformance {
-  GetFixesPerformance({
+  new({
     required super.performance,
     required super.path,
     super.requestLatency,

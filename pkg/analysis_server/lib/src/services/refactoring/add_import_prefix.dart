@@ -24,7 +24,7 @@ class AddImportPrefix extends RefactoringProducer {
 
   final String _defaultPrefix = 'prefix';
 
-  AddImportPrefix(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;

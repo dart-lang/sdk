@@ -16,7 +16,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
   String _oldName = '';
   String _newName = '';
 
-  RenameMethodParameter({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -88,7 +88,7 @@ class _Collector extends RecursiveAstVisitor<void> {
 
   final oldTokens = <Token>[];
 
-  _Collector(this.newName, this.target);
+  new(this.newName, this.target);
 
   @override
   void visitRegularFormalParameter(RegularFormalParameter node) {

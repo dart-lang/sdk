@@ -18,7 +18,7 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
 
   final CorrectionUtils utils;
 
-  RenameLabelRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,

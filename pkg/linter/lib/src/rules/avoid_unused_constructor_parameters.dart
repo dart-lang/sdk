@@ -18,7 +18,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Avoid defining unused parameters in constructors.';
 
 class AvoidUnusedConstructorParameters extends AnalysisRule {
-  AvoidUnusedConstructorParameters()
+  new()
     : super(
         name: LintNames.avoid_unused_constructor_parameters,
         description: _desc,
@@ -42,7 +42,7 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
   final FormalParameterList parameterList;
   final Set<FormalParameter> unusedParameters;
 
-  _ConstructorVisitor(this.parameterList)
+  new(this.parameterList)
     : unusedParameters = parameterList.parameters.where((p) {
         var element = p.declaredFragment?.element;
         return element != null &&
@@ -63,7 +63,7 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

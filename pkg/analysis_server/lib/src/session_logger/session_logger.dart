@@ -23,7 +23,7 @@ class SessionLogger {
   ///
   /// If [filePath] is non-`null`, it also writes log entries to a file at
   /// [filePath].
-  factory SessionLogger({String? filePath}) {
+  factory({String? filePath}) {
     var normalizer = LogNormalizer();
     var sink = SessionLoggerInMemorySink(
       maxBufferLength: 1024,
@@ -33,7 +33,7 @@ class SessionLogger {
     return SessionLogger._(sink: sink, normalizer: normalizer);
   }
 
-  SessionLogger._({required this.sink, required this.normalizer});
+  new _({required this.sink, required this.normalizer});
 
   /// Adds normalization replacements for the package roots.
   ///

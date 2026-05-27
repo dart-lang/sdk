@@ -78,7 +78,7 @@ class PluginIsolate {
   /// subdirectories of the context roots.
   AnalysisSetAnalysisRootsParams? _analysisRoots;
 
-  PluginIsolate(
+  new(
     this._path,
     this.executionPath,
     this.packageConfigPath,
@@ -330,7 +330,7 @@ class PluginSession {
   /// plugin.
   String? _version;
 
-  PluginSession(this._isolate);
+  new(this._isolate);
 
   /// The next request ID, encoded as a string.
   ///
@@ -553,5 +553,5 @@ class _PendingRequest {
   final Completer<Response> completer;
 
   /// Initialize a pending request.
-  _PendingRequest(this.method, this.requestTime, this.completer);
+  new(this.method, this.requestTime, this.completer);
 }

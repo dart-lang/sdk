@@ -23,11 +23,11 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
 
   /// Initializes a newly created instance that can't apply bulk and in-file
   /// fixes.
-  AddTypeAnnotation({required super.context})
+  new({required super.context})
     : applicability = CorrectionApplicability.singleLocation;
 
   /// Initializes a newly created instance that can apply bulk and in-file fixes.
-  AddTypeAnnotation.bulkFixable({required super.context})
+  new bulkFixable({required super.context})
     : applicability = CorrectionApplicability.automatically;
 
   @override
@@ -245,7 +245,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   /// The types that are assigned to the variable.
   final Set<DartType> assignedTypes = {};
 
-  _AssignedTypeCollector(this.typeSystem, this.variable);
+  new(this.typeSystem, this.variable);
 
   DartType? get bestType {
     if (assignedTypes.isEmpty) {

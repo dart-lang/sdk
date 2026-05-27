@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use adjacent strings to concatenate string literals.';
 
 class PreferAdjacentStringConcatenation extends AnalysisRule {
-  PreferAdjacentStringConcatenation()
+  new()
     : super(
         name: LintNames.prefer_adjacent_string_concatenation,
         description: _desc,
@@ -37,7 +37,7 @@ class PreferAdjacentStringConcatenation extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {

@@ -17,7 +17,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   /// The camel-case version of the name.
   String _newName = '';
 
-  RenameToCamelCase({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

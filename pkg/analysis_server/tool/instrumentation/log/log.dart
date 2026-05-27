@@ -50,7 +50,7 @@ class EntryGroup {
   final Predicate<LogEntry> filter;
 
   /// Initialize a newly created entry group with the given state.
-  EntryGroup._(this.id, this.name, this.filter);
+  new _(this.id, this.name, this.filter);
 
   /// Given a list of [entries], return all of the entries in the list that are
   /// members of this group.
@@ -81,24 +81,19 @@ class EntryRange {
 
   /// Initialize a newly created range to represent the entries between the
   /// [firstIndex] and the [lastIndex], inclusive.
-  EntryRange(this.firstIndex, this.lastIndex);
+  new(this.firstIndex, this.lastIndex);
 }
 
 /// A log entry representing an Err entry.
 class ErrorEntry extends GenericEntry {
   /// Initialize a newly created log entry.
-  ErrorEntry(super.index, super.timeStamp, super.entryKind, super.components);
+  new(super.index, super.timeStamp, super.entryKind, super.components);
 }
 
 /// A log entry representing an Ex entry.
 class ExceptionEntry extends GenericEntry {
   /// Initialize a newly created log entry.
-  ExceptionEntry(
-    super.index,
-    super.timeStamp,
-    super.entryKind,
-    super.components,
-  );
+  new(super.index, super.timeStamp, super.entryKind, super.components);
 }
 
 /// A representation of a generic log entry.
@@ -111,7 +106,7 @@ class GenericEntry extends LogEntry {
 
   /// Initialize a newly created generic log entry to have the given
   /// [timeStamp], [entryKind] and list of [components]
-  GenericEntry(super.index, super.timeStamp, this.entryKind, this.components);
+  new(super.index, super.timeStamp, this.entryKind, this.components);
 
   @override
   String get kind => entryKind;
@@ -133,7 +128,7 @@ class GenericPluginEntry extends GenericEntry with PluginEntryMixin {
   final List<String> pluginData;
 
   /// Initialize a newly created log entry.
-  GenericPluginEntry(
+  new(
     super.index,
     super.timeStamp,
     super.entryKind,
@@ -188,7 +183,7 @@ class InstrumentationLog {
   /// lines in the [logContent] into a separate entry. The log contents should
   /// be the contents of the files whose paths are in the given list of
   /// [logFilePaths].
-  InstrumentationLog(this.logFilePaths, List<String> logContent) {
+  new(this.logFilePaths, List<String> logContent) {
     _parseLogContent(logContent);
   }
 
@@ -408,7 +403,7 @@ abstract class JsonBasedEntry extends LogEntry {
 
   /// Initialize a newly created log entry to have the given [timeStamp] and
   /// [data].
-  JsonBasedEntry(super.index, super.timeStamp, this.data);
+  new(super.index, super.timeStamp, this.data);
 
   @override
   void _appendDetails(StringBuffer buffer) {
@@ -493,12 +488,7 @@ abstract class JsonBasedPluginEntry extends JsonBasedEntry
   /// Initialize a newly created entry to have the given [timeStamp] and
   /// [notificationData] and to be associated with the plugin with the given
   /// [pluginData].
-  JsonBasedPluginEntry(
-    super.index,
-    super.timeStamp,
-    super.notificationData,
-    this.pluginData,
-  );
+  new(super.index, super.timeStamp, super.notificationData, this.pluginData);
 }
 
 /// A single entry in an instrumentation log.
@@ -538,7 +528,7 @@ abstract class LogEntry {
   List<String>? _problems;
 
   /// Initialize a newly created log entry with the given [timeStamp].
-  LogEntry(this.index, this.timeStamp);
+  new(this.index, this.timeStamp);
 
   /// Return `true` if any problems were found while processing the log file.
   bool get hasProblems => _problems != null;
@@ -708,7 +698,7 @@ abstract class LogEntry {
 class MalformedLogEntry extends LogEntry {
   final String entry;
 
-  MalformedLogEntry(int index, this.entry) : super(index, -1);
+  new(int index, this.entry) : super(index, -1);
 
   @override
   String get kind => 'Mal';
@@ -726,7 +716,7 @@ class MalformedLogEntry extends LogEntry {
 class NotificationEntry extends JsonBasedEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [notificationData].
-  NotificationEntry(super.index, super.timeStamp, super.notificationData);
+  new(super.index, super.timeStamp, super.notificationData);
 
   /// Return the event field of the request.
   String get event => data['event'] as String;
@@ -778,7 +768,7 @@ mixin PluginEntryMixin {
 /// A log entry representing an PluginErr entry.
 class PluginErrorEntry extends GenericPluginEntry {
   /// Initialize a newly created log entry.
-  PluginErrorEntry(
+  new(
     super.index,
     super.timeStamp,
     super.entryKind,
@@ -790,7 +780,7 @@ class PluginErrorEntry extends GenericPluginEntry {
 /// A log entry representing an PluginEx entry.
 class PluginExceptionEntry extends GenericPluginEntry {
   /// Initialize a newly created log entry.
-  PluginExceptionEntry(
+  new(
     super.index,
     super.timeStamp,
     super.entryKind,
@@ -804,12 +794,7 @@ class PluginExceptionEntry extends GenericPluginEntry {
 class PluginNotificationEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created notification to have the given [timeStamp] and
   /// [notificationData].
-  PluginNotificationEntry(
-    super.index,
-    super.timeStamp,
-    super.notificationData,
-    super.pluginData,
-  );
+  new(super.index, super.timeStamp, super.notificationData, super.pluginData);
 
   /// Return the event field of the notification.
   String get event => data['event'] as String;
@@ -833,12 +818,7 @@ class PluginNotificationEntry extends JsonBasedPluginEntry {
 class PluginRequestEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [requestData].
-  PluginRequestEntry(
-    super.index,
-    super.timeStamp,
-    super.requestData,
-    super.pluginData,
-  );
+  new(super.index, super.timeStamp, super.requestData, super.pluginData);
 
   /// Return the id field of the request.
   String get id => data['id'] as String;
@@ -865,12 +845,7 @@ class PluginRequestEntry extends JsonBasedPluginEntry {
 class PluginResponseEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [responseData].
-  PluginResponseEntry(
-    super.index,
-    super.timeStamp,
-    super.responseData,
-    super.pluginData,
-  );
+  new(super.index, super.timeStamp, super.responseData, super.pluginData);
 
   /// Return the id field of the response.
   String get id => data['id'] as String;
@@ -894,7 +869,7 @@ class PluginResponseEntry extends JsonBasedPluginEntry {
 class RequestEntry extends JsonBasedEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [requestData].
-  RequestEntry(super.index, super.timeStamp, super.requestData);
+  new(super.index, super.timeStamp, super.requestData);
 
   /// Return the clientRequestTime field of the request.
   int get clientRequestTime => data['clientRequestTime'] as int;
@@ -924,7 +899,7 @@ class RequestEntry extends JsonBasedEntry {
 class ResponseEntry extends JsonBasedEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [responseData].
-  ResponseEntry(super.index, super.timeStamp, super.responseData);
+  new(super.index, super.timeStamp, super.responseData);
 
   /// Return the id field of the response.
   String get id => '${data['id']}';
@@ -960,7 +935,7 @@ class TaskEntry extends LogEntry {
   /// Initialize a newly created entry with the given [index] and [timeStamp] to
   /// represent the execution of an analysis task in the given [context] that is
   /// described by the given [description].
-  TaskEntry(super.index, super.timeStamp, this.context, this.description);
+  new(super.index, super.timeStamp, this.context, this.description);
 
   @override
   String get kind => 'Task';

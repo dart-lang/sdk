@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ShadowField extends ResolvedCorrectionProducer {
-  ShadowField({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -135,7 +135,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created reference finder to find references to the
   /// given [setter].
-  _ReferenceFinder(this.setter);
+  new(this.setter);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

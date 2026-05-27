@@ -14,7 +14,7 @@ import 'package:meta/meta.dart';
 /// When the supplied resource provider is unable to store state, prompts will
 /// not be persisted and will default to safe values.
 abstract class UserPromptPreferences {
-  factory UserPromptPreferences(
+  factory(
     ResourceProvider resourceProvider,
     InstrumentationService instrumentationService,
   ) {
@@ -80,10 +80,7 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
   @visibleForTesting
   final File preferencesFile;
 
-  _PersistableUserPromptPreferences(
-    this.preferencesFile,
-    this._instrumentationService,
-  );
+  new(this.preferencesFile, this._instrumentationService);
 
   @override
   bool get canPersist => true;

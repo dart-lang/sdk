@@ -17,7 +17,7 @@ const _desc =
     r'Prefer intValue.isOdd/isEven instead of checking the result of % 2.';
 
 class UseIsEvenRatherThanModulo extends AnalysisRule {
-  UseIsEvenRatherThanModulo()
+  new()
     : super(name: LintNames.use_is_even_rather_than_modulo, description: _desc);
 
   @override
@@ -35,7 +35,7 @@ class UseIsEvenRatherThanModulo extends AnalysisRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {

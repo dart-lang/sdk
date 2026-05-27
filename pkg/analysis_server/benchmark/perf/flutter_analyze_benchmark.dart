@@ -10,7 +10,7 @@ import 'utils.dart';
 class FlutterAnalyzeBenchmark extends Benchmark implements FlutterBenchmark {
   late final String flutterRepositoryPath;
 
-  FlutterAnalyzeBenchmark()
+  new()
     : super(
         'analysis-flutter-analyze',
         'Clone the flutter/flutter repo and run '

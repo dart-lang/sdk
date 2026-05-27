@@ -22,7 +22,7 @@ class SetPropertyValueResult {
   /// The change to apply, or `null` if [errorCode] is not `null`.
   final protocol.SourceChange? change;
 
-  SetPropertyValueResult._({this.errorCode, this.change});
+  new _({this.errorCode, this.change});
 }
 
 class WidgetDescriptions {
@@ -117,7 +117,7 @@ class WidgetDescriptions {
 class _WidgetDescription {
   final List<PropertyDescription> properties;
 
-  _WidgetDescription(this.properties);
+  new(this.properties);
 }
 
 class _WidgetDescriptionComputer {
@@ -138,11 +138,7 @@ class _WidgetDescriptionComputer {
   ClassElement? _classContainer;
   ClassElement? _classEdgeInsets;
 
-  _WidgetDescriptionComputer(
-    this.classRegistry,
-    this.resolvedUnit,
-    this.widgetOffset,
-  );
+  new(this.classRegistry, this.resolvedUnit, this.widgetOffset);
 
   Future<_WidgetDescription?> compute() async {
     var node = resolvedUnit.unit.nodeCovering(offset: widgetOffset);

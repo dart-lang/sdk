@@ -29,7 +29,7 @@ const lspStreamName = 'Lsp';
 class DtdHelper with LspRequestHelpersMixin {
   final DartToolingDaemon connection;
 
-  DtdHelper(this.connection);
+  new(this.connection);
 
   @override
   Future<T> expectSuccessfulResponseTo<T, R>(

@@ -31,7 +31,7 @@ class ElementDescriptor {
   /// accessible via any of the [libraryUris] where the path to the element
   /// within the library is given by the list of [components]. The [kind] of the
   /// element is represented by the key used in the data file.
-  ElementDescriptor({
+  new({
     required this.libraryUris,
     required this.kind,
     required this.isStatic,

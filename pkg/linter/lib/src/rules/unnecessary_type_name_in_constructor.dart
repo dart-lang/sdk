@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = "Don't use an explicit type name in a constructor.";
 
 class UnnecessaryTypeNameInConstructor extends AnalysisRule {
-  UnnecessaryTypeNameInConstructor()
+  new()
     : super(
         name: LintNames.unnecessary_type_name_in_constructor,
         description: _desc,
@@ -43,7 +43,7 @@ class UnnecessaryTypeNameInConstructor extends AnalysisRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

@@ -10,7 +10,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class ReanalyzeHandler extends LspMessageHandler<void, void> {
-  ReanalyzeHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.reanalyze;

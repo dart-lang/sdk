@@ -89,7 +89,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
   /// This set is ignored if the caller provided an explicit filter in [only].
   final Set<CodeActionKind>? supportedKinds;
 
-  CodeActionComputer(
+  new(
     this.server,
     this.textDocument,
     this.range, {
@@ -360,7 +360,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
 class _CodeActionSorter {
   final Range range;
 
-  _CodeActionSorter(this.range);
+  new(this.range);
 
   List<CodeAction> sort(List<CodeActionWithPriority> actions) {
     var dedupedActions = _dedupeActions(actions, range.start);

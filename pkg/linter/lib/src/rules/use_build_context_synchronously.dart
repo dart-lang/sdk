@@ -927,7 +927,7 @@ class ProtectedFunction {
   /// The list of named parameters that are protected.
   final List<String> named;
 
-  const ProtectedFunction(
+  const new(
     this.library,
     this.type,
     this.name, {
@@ -937,7 +937,7 @@ class ProtectedFunction {
 }
 
 class UseBuildContextSynchronously extends MultiAnalysisRule {
-  UseBuildContextSynchronously()
+  new()
     : super(
         name: LintNames.use_build_context_synchronously,
         description: _desc,
@@ -1119,7 +1119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void check(Expression node, Element mountedElement) {
     // Checks each of the statements before `child` for a `mounted` check, and

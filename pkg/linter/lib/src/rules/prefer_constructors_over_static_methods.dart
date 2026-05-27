@@ -21,7 +21,7 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
     _BodyVisitor(returnType).containsInstanceCreation(body);
 
 class PreferConstructorsOverStaticMethods extends AnalysisRule {
-  PreferConstructorsOverStaticMethods()
+  new()
     : super(
         name: LintNames.prefer_constructors_over_static_methods,
         description: _desc,
@@ -44,7 +44,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   bool found = false;
 
   final DartType returnType;
-  _BodyVisitor(this.returnType);
+  new(this.returnType);
 
   bool containsInstanceCreation(FunctionBody body) {
     body.accept(this);
@@ -66,7 +66,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

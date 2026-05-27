@@ -25,7 +25,7 @@ class PluginLocator {
 
   /// Initialize a newly created plugin locator to use the given
   /// [resourceProvider] to access the file system.
-  PluginLocator(this.resourceProvider);
+  new(this.resourceProvider);
 
   /// Given the root directory of a package (the [packageRoot]), returns the
   /// path to the plugin associated with the package, or `null` if there is no

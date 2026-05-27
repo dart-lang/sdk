@@ -11,7 +11,7 @@ class PerformanceLogger {
   /// to be done at this point.
   late final IOSink _sink;
 
-  PerformanceLogger(String filePath) {
+  new(String filePath) {
     _sink = File(filePath).openWrite();
   }
 

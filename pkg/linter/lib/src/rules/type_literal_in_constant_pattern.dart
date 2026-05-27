@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't use constant patterns with type literals.";
 
 class TypeLiteralInConstantPattern extends AnalysisRule {
-  TypeLiteralInConstantPattern()
+  new()
     : super(
         name: LintNames.type_literal_in_constant_pattern,
         description: _desc,
@@ -38,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   visitConstantPattern(ConstantPattern node) {

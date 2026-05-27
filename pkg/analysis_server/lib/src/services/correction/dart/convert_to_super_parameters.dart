@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToSuperParameters extends ResolvedCorrectionProducer {
-  ConvertToSuperParameters({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -488,7 +488,7 @@ class _Parameter {
 
   final int index;
 
-  _Parameter(this.parameter, this.element, this.index);
+  new(this.parameter, this.element, this.index);
 
   bool get isNamed => element.isNamed;
 
@@ -524,7 +524,7 @@ class _ParameterData {
   final int argumentIndex;
 
   /// Initialize a newly create data object.
-  _ParameterData({
+  new({
     required this.finalKeyword,
     required this.typeToDelete,
     required this.name,
@@ -541,7 +541,7 @@ class _PrimaryConstructorData extends _ConstructorData {
 
   final PrimaryConstructorBody? _body;
 
-  _PrimaryConstructorData(this.declaration, this._body);
+  new(this.declaration, this._body);
 
   @override
   FunctionBody? get body => _body?.body;
@@ -569,7 +569,7 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 class _SecondaryConstructorData extends _ConstructorData {
   final ConstructorDeclaration declaration;
 
-  _SecondaryConstructorData(this.declaration);
+  new(this.declaration);
 
   @override
   FunctionBody? get body => declaration.body;
@@ -589,5 +589,5 @@ class _TypeData {
 
   SourceRange? parameterRange;
 
-  _TypeData({required this.primaryRange, this.parameterRange});
+  new({required this.primaryRange, this.parameterRange});
 }

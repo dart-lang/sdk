@@ -14,7 +14,7 @@ class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
     'package:flutter/foundation.dart',
   );
 
-  MakeConditionalOnDebugMode({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

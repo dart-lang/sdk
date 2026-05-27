@@ -24,13 +24,13 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that adds a function body.
-  ConvertIntoBlockBody.missingBody({required super.context})
+  new missingBody({required super.context})
     : _correctionKind = _CorrectionKind.missingBody,
       applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that converts the set literal to
   /// a function body.
-  ConvertIntoBlockBody.setLiteral({required super.context})
+  new setLiteral({required super.context})
     : _correctionKind = _CorrectionKind.setLiteral,
       applicability = CorrectionApplicability.automatically;
 

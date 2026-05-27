@@ -25,12 +25,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  CompletionGetSuggestions2Handler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   /// Computes completion results for [request] and append them to the stream.
   ///

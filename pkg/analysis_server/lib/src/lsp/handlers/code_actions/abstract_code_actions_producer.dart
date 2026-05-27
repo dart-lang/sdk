@@ -78,7 +78,7 @@ abstract class AbstractCodeActionsProducer
   /// directly.
   final bool allowCodeActionLiterals;
 
-  AbstractCodeActionsProducer(
+  new(
     this.server,
     this.file,
     this.lineInfo, {

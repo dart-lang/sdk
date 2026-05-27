@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 class ExceptionPage extends DiagnosticPage {
   final StackTrace trace;
 
-  ExceptionPage(DiagnosticsSite site, String message, this.trace)
+  new(DiagnosticsSite site, String message, this.trace)
     : super(site, '', '500 Oops', description: message);
 
   @override

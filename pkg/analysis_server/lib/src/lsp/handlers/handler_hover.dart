@@ -18,7 +18,7 @@ typedef StaticOptions = Either2<bool, HoverOptions>;
 
 class HoverHandler
     extends SharedMessageHandler<TextDocumentPositionParams, Hover?> {
-  HoverHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_hover;
@@ -146,7 +146,7 @@ class HoverHandler
 
 class HoverRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  HoverRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

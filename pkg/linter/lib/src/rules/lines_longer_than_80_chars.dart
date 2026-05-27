@@ -32,8 +32,7 @@ bool _looksLikeUriOrPath(String value) {
 }
 
 class LinesLongerThan80Chars extends AnalysisRule {
-  LinesLongerThan80Chars()
-    : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
+  new() : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.linesLongerThan80Chars;
@@ -52,7 +51,7 @@ class _AllowedCommentVisitor extends SimpleAstVisitor<void> {
   final LineInfo lineInfo;
 
   final allowedLines = <int>[];
-  _AllowedCommentVisitor(this.lineInfo);
+  new(this.lineInfo);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -104,7 +103,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor<void> {
   final LineInfo lineInfo;
 
   final allowedLines = <int>[];
-  _AllowedLongLineVisitor(this.lineInfo);
+  new(this.lineInfo);
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -151,7 +150,7 @@ class _LineInfo {
   final int index;
   final int offset;
   final int end;
-  _LineInfo({required this.index, required this.offset, required this.end});
+  new({required this.index, required this.offset, required this.end});
   int get length => end - offset;
 }
 
@@ -160,7 +159,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

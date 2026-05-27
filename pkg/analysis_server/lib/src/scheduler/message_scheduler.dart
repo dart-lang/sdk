@@ -61,7 +61,7 @@ final class MessageScheduler {
   /// atomically and it was decided that it was cleaner for the scheduler to
   /// have the nullable reference to the server rather than the other way
   /// around.
-  MessageScheduler({required this.listener});
+  new({required this.listener});
 
   /// Whether the queue is currently paused.
   bool get isPaused => _pauseCount > 0;

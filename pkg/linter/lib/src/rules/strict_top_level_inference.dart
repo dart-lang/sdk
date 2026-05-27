@@ -22,8 +22,7 @@ import '../extensions.dart';
 const _desc = r'Specify type annotations.';
 
 class StrictTopLevelInference extends MultiAnalysisRule {
-  StrictTopLevelInference()
-    : super(name: LintNames.strict_top_level_inference, description: _desc);
+  new() : super(name: LintNames.strict_top_level_inference, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -53,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context)
+  new(this.rule, this.context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );

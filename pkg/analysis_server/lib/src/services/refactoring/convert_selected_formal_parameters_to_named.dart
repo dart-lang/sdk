@@ -19,7 +19,7 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
   static const String constTitle =
       'Convert selected formal parameter(s) to named';
 
-  ConvertSelectedFormalParametersToNamed(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => true;

@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Put a single newline at end of file.';
 
 class EolAtEndOfFile extends AnalysisRule {
-  EolAtEndOfFile()
-    : super(name: LintNames.eol_at_end_of_file, description: _desc);
+  new() : super(name: LintNames.eol_at_end_of_file, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.eolAtEndOfFile;
@@ -35,7 +34,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

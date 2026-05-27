@@ -23,7 +23,7 @@ class ResultCollector<E> {
   final Map<String, Map<String, E>> resultMap = <String, Map<String, E>>{};
 
   /// Initialize a newly created result manager.
-  ResultCollector(this.serverId, {ShouldCollectPredicate? predicate})
+  new(this.serverId, {ShouldCollectPredicate? predicate})
     : _shouldCollect = predicate;
 
   /// Clear any results that have been contributed for the file with the given

@@ -12,6 +12,8 @@ analyzer:
 
 linter:
   rules:
+    - unnecessary_type_name_in_constructor
+    - unnecessary_const_in_enum_constructor
     - always_put_required_named_parameters_first
     - avoid_annotating_with_dynamic
     - avoid_bool_literals_in_conditional_expressions

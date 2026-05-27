@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 abstract class SimpleEditCommandHandler<S extends AnalysisServer>
     extends CommandHandler<ExecuteCommandParams, void, S> {
-  SimpleEditCommandHandler(super.server);
+  new(super.server);
 
   String get commandName;
 

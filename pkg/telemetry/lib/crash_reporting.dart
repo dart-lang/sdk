@@ -52,7 +52,7 @@ class CrashReportSender {
   int _reportsSent = 0;
   int _skippedReports = 0;
 
-  CrashReportSender._(
+  new _(
     this.crashProductId,
     this.shouldSend, {
     http.Client? httpClient,
@@ -65,7 +65,7 @@ class CrashReportSender {
        );
 
   /// Create a new [CrashReportSender] connected to the staging endpoint.
-  CrashReportSender.staging(
+  new staging(
     String crashProductId,
     EnablementCallback shouldSend, {
     http.Client? httpClient,
@@ -77,7 +77,7 @@ class CrashReportSender {
        );
 
   /// Create a new [CrashReportSender] connected to the prod endpoint.
-  CrashReportSender.prod(
+  new prod(
     String crashProductId,
     EnablementCallback shouldSend, {
     http.Client? httpClient,
@@ -203,7 +203,7 @@ class CrashReportAttachment {
   final String _field;
   final String _value;
 
-  CrashReportAttachment.string({required this._field, required this._value});
+  new string({required this._field, required this._value});
 }
 
 /// A typedef to allow crash reporting to query as to whether it should send a

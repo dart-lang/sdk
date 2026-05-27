@@ -27,7 +27,7 @@ class TypeDefinitionHandler
     with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
-  TypeDefinitionHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_typeDefinition;
@@ -234,7 +234,7 @@ class TypeDefinitionHandler
 
 class TypeDefinitionRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  TypeDefinitionRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => TextDocumentRegistrationOptions(

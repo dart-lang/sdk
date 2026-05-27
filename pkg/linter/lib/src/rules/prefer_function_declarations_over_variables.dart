@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use a function declaration to bind a function to a name.';
 
 class PreferFunctionDeclarationsOverVariables extends AnalysisRule {
-  PreferFunctionDeclarationsOverVariables()
+  new()
     : super(
         name: LintNames.prefer_function_declarations_over_variables,
         description: _desc,
@@ -38,7 +38,7 @@ class PreferFunctionDeclarationsOverVariables extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {

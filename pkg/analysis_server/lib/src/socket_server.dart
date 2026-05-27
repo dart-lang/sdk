@@ -66,7 +66,7 @@ class SocketServer implements AbstractSocketServer {
 
   final Map<String, String>? environment;
 
-  SocketServer(
+  new(
     this.analysisServerOptions,
     this.sdkManager,
     this.crashReportingAttachmentsBuilder,

@@ -31,7 +31,7 @@ class ExecuteCommandHandler
   final Map<String, CommandHandler<ExecuteCommandParams, void, AnalysisServer>>
   commandHandlers;
 
-  ExecuteCommandHandler(super.server)
+  new(super.server)
     : commandHandlers = {
         // Commands that can run for any underlying server type.
         Commands.sortMembers: SortMembersCommandHandler(server),
@@ -132,7 +132,7 @@ class ExecuteCommandHandler
 
 class ExecuteCommandRegistrations extends FeatureRegistration
     with StaticRegistration<ExecuteCommandOptions> {
-  ExecuteCommandRegistrations(super.info);
+  new(super.info);
 
   @override
   List<LspDynamicRegistration> get dynamicRegistrations => [];

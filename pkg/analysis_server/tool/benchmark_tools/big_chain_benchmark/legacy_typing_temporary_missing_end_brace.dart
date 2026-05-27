@@ -36,12 +36,8 @@ class LegacyTypingTemporaryMissingEndBraceBenchmark
 
   final RunDetails runDetails;
 
-  LegacyTypingTemporaryMissingEndBraceBenchmark(
-    super.args,
-    this.rootUri,
-    this.cacheFolder,
-    this.runDetails,
-  ) : super(useLspProtocol: false);
+  new(super.args, this.rootUri, this.cacheFolder, this.runDetails)
+    : super(useLspProtocol: false);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.dart;

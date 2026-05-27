@@ -39,7 +39,7 @@ class WebServer {
   final int pageLength;
 
   /// Initialize a newly created server.
-  WebServer(this.log, {required this.pageLength});
+  new(this.log, {required this.pageLength});
 
   Map<String, String> getParameterMap(HttpRequest request) {
     Map<String, String> parameterMap = HashMap<String, String>();

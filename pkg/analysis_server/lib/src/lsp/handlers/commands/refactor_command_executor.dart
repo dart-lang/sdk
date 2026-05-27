@@ -28,7 +28,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
 
   final RefactoringProducerGenerator generator;
 
-  RefactorCommandExecutor(super.server, this.commandName, this.generator);
+  new(super.server, this.commandName, this.generator);
 
   @override
   bool get requiresTrustedCaller => false;

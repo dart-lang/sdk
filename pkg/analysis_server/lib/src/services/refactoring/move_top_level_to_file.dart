@@ -35,7 +35,7 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
 
   /// Initialize a newly created refactoring producer to use the given
   /// [context].
-  MoveTopLevelToFile(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;
@@ -411,7 +411,7 @@ class _Member {
 
   /// Initialize a newly created instance representing the [member] with the
   /// given [name].
-  _Member(this.member, this.name);
+  new(this.member, this.name);
 }
 
 /// Information about a contiguous group of members to be moved.
@@ -421,7 +421,7 @@ class _MemberGroup {
 
   /// Initialize a newly created instance representing a group of contiguous
   /// [members].
-  _MemberGroup(this.members);
+  new(this.members);
 
   /// Return the member representing the [declaration].
   _Member? memberFor(CompilationUnitMember declaration) {
@@ -476,7 +476,7 @@ class _MembersToMove {
   final List<_MemberGroup> groups;
 
   /// Initialize a newly created instance representing [groups].
-  _MembersToMove(this.containingFile, this.groups);
+  new(this.containingFile, this.groups);
 
   /// Return the name that should be used for the file to which the members will
   /// be moved.
@@ -536,7 +536,7 @@ class _SealedSubclassIndex {
   /// may be incomplete.
   bool hasInvalidCandidateSet = false;
 
-  _SealedSubclassIndex(this.unit, {required this.candidateElements}) {
+  new(this.unit, {required this.candidateElements}) {
     var isCandidate = candidateElements.contains;
 
     // Index the declaration against each of its direct superclasses.

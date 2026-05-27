@@ -16,8 +16,7 @@ import '../extensions.dart';
 const _desc = r'Noop primitive operations.';
 
 class NoopPrimitiveOperations extends AnalysisRule {
-  NoopPrimitiveOperations()
-    : super(name: LintNames.noop_primitive_operations, description: _desc);
+  new() : super(name: LintNames.noop_primitive_operations, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.noopPrimitiveOperations;
@@ -38,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

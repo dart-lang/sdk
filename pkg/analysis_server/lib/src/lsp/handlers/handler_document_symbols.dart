@@ -21,7 +21,7 @@ class DocumentSymbolHandler
           DocumentSymbolParams,
           TextDocumentDocumentSymbolResult
         > {
-  DocumentSymbolHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
 
@@ -157,7 +157,7 @@ class DocumentSymbolHandler
 
 class DocumentSymbolsRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  DocumentSymbolsRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

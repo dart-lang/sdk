@@ -23,7 +23,7 @@ class _RegExpList {
   final List<RegExp> _regExps;
   final String substitution;
 
-  _RegExpList(List<String> uncompiledRegexps, this.substitution)
+  new(List<String> uncompiledRegexps, this.substitution)
     : _regExps = uncompiledRegexps.map((s) => RegExp(s)).toList();
 
   String applyTo(String input) => _regExps.fold(

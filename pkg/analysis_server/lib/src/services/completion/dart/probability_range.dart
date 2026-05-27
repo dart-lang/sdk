@@ -12,7 +12,7 @@ class ProbabilityRange {
 
   /// Initialize a newly created probability range to have the given [lower] and
   /// [upper] bounds.
-  const ProbabilityRange({required this.lower, required this.upper});
+  const new({required this.lower, required this.upper});
 
   /// The middle of the range.
   double get middle => (upper + lower) / 2;

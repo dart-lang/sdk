@@ -13,7 +13,7 @@ class DartSelectionRangeComputer {
   final int _offset;
   final _selectionRanges = <SelectionRange>[];
 
-  DartSelectionRangeComputer(this._unit, this._offset);
+  new(this._unit, this._offset);
 
   /// Returns selection ranges for nodes containing [_offset], starting with the
   /// closest working up to the outer-most node.
@@ -98,5 +98,5 @@ class SelectionRange {
   final int offset;
   final int length;
 
-  SelectionRange(this.offset, this.length);
+  new(this.offset, this.length);
 }

@@ -70,12 +70,7 @@ abstract class Benchmark {
   /// One of 'memory', 'cpu', or 'group'.
   final String kind;
 
-  Benchmark(
-    this.id,
-    this.description, {
-    this.enabled = true,
-    required this.kind,
-  });
+  new(this.id, this.description, {this.enabled = true, required this.kind});
 
   int get maxIterations => 0;
 
@@ -108,7 +103,7 @@ class BenchMarkResult {
 
   final int value;
 
-  BenchMarkResult(this.kindName, this.value);
+  new(this.kindName, this.value);
 
   BenchMarkResult combine(BenchMarkResult other) {
     return BenchMarkResult(kindName, math.min(value, other.value));
@@ -125,7 +120,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
 
   Map<String, BenchMarkResult> results = {};
 
-  CompoundBenchMarkResult(this.name) : super('compound', 0);
+  new(this.name) : super('compound', 0);
 
   void add(String name, BenchMarkResult result) {
     results[name] = result;
@@ -171,7 +166,7 @@ abstract class FlutterBenchmark {
 class ListCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
-  ListCommand(this.benchmarks) {
+  new(this.benchmarks) {
     argParser.addFlag(
       'machine',
       negatable: false,
@@ -206,7 +201,7 @@ class ListCommand extends Command<void> {
 class RunCommand extends Command<void> {
   final List<Benchmark> benchmarks;
 
-  RunCommand(this.benchmarks) {
+  new(this.benchmarks) {
     argParser.addOption(
       'dart-sdk',
       help: 'The absolute normalized path of the Dart SDK.',

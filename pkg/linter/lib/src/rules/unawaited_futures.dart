@@ -19,8 +19,7 @@ const _desc =
     '`await`ed or marked `unawaited` using `dart:async`.';
 
 class UnawaitedFutures extends AnalysisRule {
-  UnawaitedFutures()
-    : super(name: LintNames.unawaited_futures, description: _desc);
+  new() : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unawaitedFutures;

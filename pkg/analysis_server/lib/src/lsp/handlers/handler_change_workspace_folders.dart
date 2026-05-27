@@ -14,7 +14,7 @@ class ChangeWorkspaceFoldersHandler
   // Whether to update analysis roots based on the open workspace folders.
   bool updateAnalysisRoots;
 
-  ChangeWorkspaceFoldersHandler(super.server)
+  new(super.server)
     : updateAnalysisRoots = !server.onlyAnalyzeProjectsWithOpenFiles;
 
   @override
@@ -60,7 +60,7 @@ class ChangeWorkspaceFoldersHandler
 
 class ChangeWorkspaceFoldersRegistrations extends FeatureRegistration
     with StaticRegistration<StaticOptions> {
-  ChangeWorkspaceFoldersRegistrations(super.info);
+  new(super.info);
 
   @override
   List<LspDynamicRegistration> get dynamicRegistrations => [];

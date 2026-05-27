@@ -19,7 +19,7 @@ class RemoveImportPrefix extends RefactoringProducer {
 
   static const String constTitle = 'Remove the prefix from the import';
 
-  RemoveImportPrefix(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;

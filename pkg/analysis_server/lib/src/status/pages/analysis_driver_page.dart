@@ -11,7 +11,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 class AnalysisDriverPage extends DiagnosticPageWithNav implements PostablePage {
   static const _resetFormId = 'reset-driver-timers';
 
-  AnalysisDriverPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'analysis-driver',

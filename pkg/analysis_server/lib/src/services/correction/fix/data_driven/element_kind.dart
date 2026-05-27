@@ -22,7 +22,7 @@ enum ElementKind {
 
   /// A human readable name for the kind.
   final String displayName;
-  const ElementKind(this.displayName);
+  new(this.displayName);
 
   /// The element kind corresponding to the given [name].
   static ElementKind? fromName(String name) {

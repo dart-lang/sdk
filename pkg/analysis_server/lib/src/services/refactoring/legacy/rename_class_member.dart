@@ -46,7 +46,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   late _RenameClassMemberValidator _validator;
 
-  RenameClassMemberRefactoringImpl(
+  new(
     RefactoringWorkspace workspace,
     AnalysisSessionHelper sessionHelper,
     this.interfaceElement,
@@ -226,7 +226,7 @@ class _BaseClassMemberValidator {
 
   final RefactoringStatus result = RefactoringStatus();
 
-  _BaseClassMemberValidator(
+  new(
     this.searchEngine,
     this.sessionHelper,
     this.interfaceElement,
@@ -296,7 +296,7 @@ class _BaseClassMemberValidator {
 
 /// Helper to check if the created element will cause any conflicts.
 class _CreateClassMemberValidator extends _BaseClassMemberValidator {
-  _CreateClassMemberValidator(
+  new(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
     InterfaceElement interfaceElement,
@@ -337,7 +337,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
   final List<Element> elements = [];
 
-  _LocalElementsCollector(this.name);
+  new(this.name);
 
   @override
   void visitFormalParameter(FormalParameter node) {
@@ -404,7 +404,7 @@ class _MatchShadowedBy {
   final SearchMatch match;
   final Element element;
 
-  _MatchShadowedBy(this.match, this.element);
+  new(this.match, this.element);
 }
 
 /// Helper to check if the renamed [element] will cause any conflicts.
@@ -415,7 +415,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   List<SearchMatch> references = [];
   List<SearchMatch> unshadowed = [];
 
-  _RenameClassMemberValidator(
+  new(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
     InterfaceElement elementInterface,

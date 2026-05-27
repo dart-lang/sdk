@@ -66,7 +66,7 @@ abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
   late String content;
   late final TestCode code = TestCode.parseNormalized(content);
 
-  AbstractCompletionTest() {
+  new() {
     defaultInitializationOptions = {
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.

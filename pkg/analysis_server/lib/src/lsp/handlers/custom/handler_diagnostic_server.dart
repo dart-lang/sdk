@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class DiagnosticServerHandler
     extends SharedMessageHandler<void, DartDiagnosticServer> {
-  DiagnosticServerHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.diagnosticServer;

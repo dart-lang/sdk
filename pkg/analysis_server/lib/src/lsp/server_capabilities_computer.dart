@@ -52,7 +52,7 @@ class ClientDynamicRegistrations {
   ];
   final ClientCapabilities _capabilities;
 
-  ClientDynamicRegistrations(this._capabilities);
+  new(this._capabilities);
 
   bool get callHierarchy =>
       _capabilities.textDocument?.callHierarchy?.dynamicRegistration ?? false;
@@ -147,7 +147,7 @@ class ServerCapabilitiesComputer {
 
   var _lastRegistrationId = 0;
 
-  ServerCapabilitiesComputer(this._server);
+  new(this._server);
 
   List<TextDocumentFilterScheme> get pluginTypes => _server
       .pluginManager

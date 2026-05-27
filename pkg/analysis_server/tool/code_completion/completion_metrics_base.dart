@@ -36,7 +36,7 @@ abstract class CompletionMetricsComputer {
 
   int overlayModificationStamp = 0;
 
-  CompletionMetricsComputer(this.rootPath, this.options);
+  new(this.rootPath, this.options);
 
   /// Applies an overlay in [filePath] at [expectedCompletion].
   Future<void> applyOverlay(
@@ -213,7 +213,7 @@ class CompletionMetricsOptions {
   /// completion requests that were the slowest to return suggestions.
   final bool printSlowestResults;
 
-  CompletionMetricsOptions(ArgResults results)
+  new(ArgResults results)
     : overlay = OverlayMode.parseFlag(results.option(overlayOption)!),
       prefixLength = int.parse(results.option(prefixLengthOption)!),
       printSlowestResults = results.flag(printSlowestResultsFlag);
@@ -233,7 +233,7 @@ enum OverlayMode {
 
   final String flag;
 
-  const OverlayMode(this.flag);
+  new(this.flag);
 
   static OverlayMode parseFlag(String flag) {
     for (var mode in values) {
@@ -275,7 +275,7 @@ class ProgressBar {
 
   int _tickCount = 0;
 
-  ProgressBar(this._logger, this._totalTickCount) {
+  new(this._logger, this._totalTickCount) {
     if (!stdout.hasTerminal) {
       _shouldDrawProgress = false;
     } else {

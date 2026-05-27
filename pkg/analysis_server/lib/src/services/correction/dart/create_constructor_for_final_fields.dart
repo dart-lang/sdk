@@ -23,10 +23,9 @@ typedef _FieldRecord = ({bool required, String parameter});
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  CreateConstructorForFinalFields.requiredNamed({required super.context})
-    : _style = _Style.requiredNamed;
+  new requiredNamed({required super.context}) : _style = _Style.requiredNamed;
 
-  CreateConstructorForFinalFields.requiredPositional({required super.context})
+  new requiredPositional({required super.context})
     : _style = _Style.requiredPositional;
 
   @override
@@ -464,7 +463,7 @@ class _Field {
   final String namedFormalParameterName;
   final bool hasNonNullableType;
 
-  _Field({
+  new({
     required this.typeAnnotation,
     required this.fieldName,
     required this.namedFormalParameterName,
@@ -498,7 +497,7 @@ class _FixContext {
   final InterfaceType superType;
   final Iterable<VariableDeclarationList> variableLists;
 
-  _FixContext({
+  new({
     required this.builder,
     required this.containerName,
     required this.superType,
@@ -524,7 +523,7 @@ enum _Style {
 
   final FixKind fixKind;
 
-  const _Style({required this.fixKind});
+  new({required this.fixKind});
 }
 
 extension on List<ClassMember> {

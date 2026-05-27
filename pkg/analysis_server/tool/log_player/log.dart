@@ -18,7 +18,7 @@ class Log {
   ///
   /// [denormalizer] will be called on the content to reverse any normalization
   /// that was applied to the log.
-  factory Log.fromFile(File file, String Function(String) denormalizer) {
+  factory fromFile(File file, String Function(String) denormalizer) {
     return Log.fromString(file.readAsStringSync(), denormalizer);
   }
 
@@ -29,7 +29,7 @@ class Log {
   ///
   /// [denormalizer] will be called on the content to reverse any normalization
   /// that was applied to the log.
-  factory Log.fromString(
+  factory fromString(
     String logContent, [
     String Function(String)? denormalizer,
   ]) {
@@ -42,5 +42,5 @@ class Log {
     ]);
   }
 
-  Log._(this.entries);
+  new _(this.entries);
 }

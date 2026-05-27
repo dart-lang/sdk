@@ -7,7 +7,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Overall performance of a request for refactorings operation.
 class GetRefactoringsPerformance extends ProducerRequestPerformance {
-  GetRefactoringsPerformance({
+  new({
     required super.performance,
     required super.path,
     super.requestLatency,
@@ -23,5 +23,5 @@ class RefactoringPerformance {
   Duration? computeTime;
   List<ProducerTiming> producerTimings = [];
 
-  RefactoringPerformance([this.operationPerformance]);
+  new([this.operationPerformance]);
 }

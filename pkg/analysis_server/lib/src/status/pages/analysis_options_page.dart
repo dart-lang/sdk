@@ -10,7 +10,7 @@ import 'package:analyzer/src/generated/engine.dart';
 
 /// The page that displays information about analysis options.
 class AnalysisOptionsPage extends DiagnosticPageWithNav {
-  AnalysisOptionsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'options',

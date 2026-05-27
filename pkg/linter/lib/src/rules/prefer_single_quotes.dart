@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Only use double quotes for strings containing single quotes.';
 
 class PreferSingleQuotes extends AnalysisRule {
-  PreferSingleQuotes()
-    : super(name: LintNames.prefer_single_quotes, description: _desc);
+  new() : super(name: LintNames.prefer_single_quotes, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferSingleQuotes;
@@ -39,7 +38,7 @@ class QuoteVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final bool useSingle;
 
-  QuoteVisitor(this.rule, {required this.useSingle});
+  new(this.rule, {required this.useSingle});
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {

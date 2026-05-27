@@ -317,7 +317,7 @@ class TestDartFixPromptManager extends DartFixPromptManager {
 
   Future<bool> bulkFixesAvailableOverride = Future.value(true);
 
-  TestDartFixPromptManager(super.server, super.preferences);
+  new(super.server, super.preferences);
 
   @override
   Future<bool> bulkFixesAvailable(CancellationToken token) {
@@ -388,7 +388,7 @@ class TestServer implements LspAnalysisServer {
 
   String? respondToPromptWithAction;
 
-  TestServer(this.instrumentationService);
+  new(this.instrumentationService);
 
   ExecuteCommandParams get lastCommandParams =>
       (executeCommandHandler as TestExecuteCommandHandler).lastParams!;

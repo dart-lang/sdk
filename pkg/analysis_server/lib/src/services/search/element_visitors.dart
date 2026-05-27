@@ -25,7 +25,7 @@ typedef BoolElementProcessor = bool Function(Element element);
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   final BoolElementProcessor processor;
 
-  _ElementVisitorAdapter(this.processor);
+  new(this.processor);
 
   @override
   void visitElement(Element element) {
@@ -40,7 +40,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
 class _FragmentByNameOffsetVisitor {
   final int nameOffset;
 
-  _FragmentByNameOffsetVisitor(this.nameOffset);
+  new(this.nameOffset);
 
   Fragment? search(LibraryFragment fragment) => _searchIn(fragment);
 

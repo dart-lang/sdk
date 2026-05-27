@@ -27,7 +27,7 @@ class Scenario {
   /// Handles project setup.
   final ProjectGenerator project;
 
-  Scenario({required this.name, required this.logFile, required this.project});
+  new({required this.name, required this.logFile, required this.project});
 
   Future<void> run(Duration timeout, {bool verbose = false}) async {
     var watch = Stopwatch()..start();

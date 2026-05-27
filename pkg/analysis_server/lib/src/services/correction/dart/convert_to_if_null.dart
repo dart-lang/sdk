@@ -15,10 +15,9 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
   /// Identifies the case to be fixed.
   final _FixCase _fixCase;
 
-  ConvertToIfNull.preferIfNull({required super.context})
-    : _fixCase = _FixCase.preferIfNull;
+  new preferIfNull({required super.context}) : _fixCase = _FixCase.preferIfNull;
 
-  ConvertToIfNull.useToConvertNullsToBools({required super.context})
+  new useToConvertNullsToBools({required super.context})
     : _fixCase = _FixCase.useToConvertNullsToBools;
 
   @override

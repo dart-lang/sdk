@@ -62,7 +62,7 @@ sealed class Availability {}
 sealed class Available extends Availability {
   final AbstractRefactoringContext refactoringContext;
 
-  Available({required this.refactoringContext});
+  new({required this.refactoringContext});
 
   /// Whether there are any positional parameters and, if so, if all of them
   /// can be converted to named parameters.
@@ -126,9 +126,7 @@ final class ChangeStatusFailureSuperFormalParameter
     extends ChangeStatusFailure {
   final ConstructorDeclaration constructorDeclaration;
 
-  ChangeStatusFailureSuperFormalParameter({
-    required this.constructorDeclaration,
-  });
+  new({required this.constructorDeclaration});
 }
 
 /// The result that signals the success.
@@ -136,7 +134,7 @@ final class ChangeStatusSuccess extends ChangeStatus {}
 
 /// The supertype for any failure inside [analyzeSelection].
 sealed class ErrorSelectionState extends SelectionState {
-  const ErrorSelectionState();
+  const new();
 }
 
 /// The description of a formal parameter, returned by [analyzeSelection].
@@ -172,7 +170,7 @@ final class FormalParameterState {
   /// If `true`, the selection covers this formal parameter.
   final bool isSelected;
 
-  FormalParameterState({
+  new({
     required this.id,
     required this.element,
     required this.kind,
@@ -198,11 +196,7 @@ class FormalParameterUpdate {
   /// Whether the formal parameter should be made `super`.
   final bool withSuper;
 
-  FormalParameterUpdate({
-    required this.id,
-    required this.kind,
-    this.withSuper = false,
-  });
+  new({required this.id, required this.kind, this.withSuper = false});
 }
 
 /// The description of a method signature update.
@@ -227,7 +221,7 @@ class MethodSignatureUpdate {
   /// Specifies whether to add the trailing comma after arguments.
   final ArgumentsTrailingComma argumentsTrailingComma;
 
-  MethodSignatureUpdate({
+  new({
     required this.formalParameters,
     this.removedNamedFormalParameters = const {},
     required this.formalParametersTrailingComma,
@@ -248,7 +242,7 @@ final class NotAvailableNoExecutableElement extends NotAvailable {}
 
 /// The supertype for all results of [analyzeSelection].
 sealed class SelectionState {
-  const SelectionState();
+  const new();
 }
 
 /// The strategy for trailing comma after formal parameters.
@@ -269,7 +263,7 @@ enum TrailingComma {
 /// 2. The kind of a formal parameter that we don't understand.
 /// 3. A formal parameter without the type annotation.
 final class UnexpectedSelectionState extends ErrorSelectionState {
-  const UnexpectedSelectionState();
+  const new();
 }
 
 /// The valid result of [analyzeSelection].
@@ -285,7 +279,7 @@ final class ValidSelectionState extends SelectionState {
   /// The current formal parameters.
   final List<FormalParameterState> formalParameters;
 
-  ValidSelectionState({
+  new({
     required this.refactoringContext,
     required this.element,
     required this.formalParameters,
@@ -295,7 +289,7 @@ final class ValidSelectionState extends SelectionState {
 class _AvailabilityAnalyzer {
   final AbstractRefactoringContext refactoringContext;
 
-  _AvailabilityAnalyzer({required this.refactoringContext});
+  new({required this.refactoringContext});
 
   Availability analyze() {
     var declaration = _declaration();
@@ -440,10 +434,7 @@ class _AvailabilityAnalyzer {
 final class _AvailableWithDeclaration extends Available {
   final _Declaration declaration;
 
-  _AvailableWithDeclaration({
-    required super.refactoringContext,
-    required this.declaration,
-  });
+  new({required super.refactoringContext, required this.declaration});
 
   @override
   bool get hasSelectedFormalParametersToConvertToNamed {
@@ -533,10 +524,7 @@ final class _AvailableWithDeclaration extends Available {
 final class _AvailableWithExecutableElement extends Available {
   final ExecutableElement element;
 
-  _AvailableWithExecutableElement({
-    required super.refactoringContext,
-    required this.element,
-  });
+  new({required super.refactoringContext, required this.element});
 
   @override
   List<FormalParameterElement> get _formalParameters =>
@@ -549,11 +537,7 @@ class _Declaration {
   final AstNode node;
   final List<FormalParameter> selected;
 
-  _Declaration({
-    required this.element,
-    required this.node,
-    required this.selected,
-  });
+  new({required this.element, required this.node, required this.selected});
 }
 
 /// Formal parameters of a declaration that match the selection.
@@ -561,14 +545,14 @@ final class _DeclarationFormalParameters {
   final List<FormalParameter> positional;
   final Map<String, FormalParameter> named;
 
-  _DeclarationFormalParameters({required this.positional, required this.named});
+  new({required this.positional, required this.named});
 }
 
 /// The class that implements [analyzeSelection].
 class _SelectionAnalyzer {
   final Available available;
 
-  _SelectionAnalyzer({required this.available});
+  new({required this.available});
 
   AbstractRefactoringContext get refactoringContext {
     return available.refactoringContext;
@@ -662,10 +646,7 @@ class _SignatureUpdater {
   final ValidSelectionState selectionState;
   final MethodSignatureUpdate signatureUpdate;
 
-  _SignatureUpdater({
-    required this.selectionState,
-    required this.signatureUpdate,
-  });
+  new({required this.selectionState, required this.signatureUpdate});
 
   AbstractRefactoringContext get refactoringContext {
     return selectionState.refactoringContext;

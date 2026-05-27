@@ -136,5 +136,5 @@ class SimpleDiff {
   final int length;
   final String replacement;
 
-  SimpleDiff(this.offset, this.length, this.replacement);
+  new(this.offset, this.length, this.replacement);
 }

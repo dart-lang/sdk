@@ -20,7 +20,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Use key in widget constructors.';
 
 class UseKeyInWidgetConstructors extends AnalysisRule {
-  UseKeyInWidgetConstructors()
+  new()
     : super(name: LintNames.use_key_in_widget_constructors, description: _desc);
 
   @override
@@ -41,7 +41,7 @@ class UseKeyInWidgetConstructors extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

@@ -16,7 +16,7 @@ class ElementWriter with TreeWriter {
 
   /// Initialize a newly created element writer to write the HTML representation
   /// of visited elements on the given [buffer].
-  ElementWriter(this.buffer);
+  new(this.buffer);
 
   void write(Element element) {
     _writeElement(element);

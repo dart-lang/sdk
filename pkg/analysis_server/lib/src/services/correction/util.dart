@@ -387,7 +387,7 @@ class ReturnTypeComputer extends RecursiveAstVisitor<void> {
 
   DartType? returnType;
 
-  ReturnTypeComputer(this._typeSystem, {this._isGenerator = false});
+  new(this._typeSystem, {this._isGenerator = false});
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -433,7 +433,7 @@ class _DeclarationCollector extends RecursiveAstVisitor<void> {
   final String name;
   bool isDeclared = false;
 
-  _DeclarationCollector(this.name);
+  new(this.name);
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -447,7 +447,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   final Element element;
   final List<AstNode> references = [];
 
-  _ElementReferenceCollector(this.element);
+  new(this.element);
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {

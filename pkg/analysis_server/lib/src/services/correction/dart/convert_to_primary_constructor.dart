@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
-  ConvertToPrimaryConstructor({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -165,7 +165,7 @@ class _ContainerData {
   /// Whether the container is an enum.
   bool isEnum;
 
-  _ContainerData({
+  new({
     required this.name,
     required this.typeParameters,
     required this.hasPrimaryConstructor,

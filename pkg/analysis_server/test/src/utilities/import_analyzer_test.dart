@@ -1048,7 +1048,7 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
 class _ExpectedElement<T extends Element> {
   final String name;
 
-  _ExpectedElement({required this.name});
+  new({required this.name});
 
   void assertMatches(Element element) {
     expect(element, isA<T>());

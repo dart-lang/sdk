@@ -23,7 +23,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
   @visibleForTesting
   static Future<void>? delayAfterResolveForTests;
 
-  PerformRefactorCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Perform Refactor';

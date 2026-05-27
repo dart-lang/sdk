@@ -40,7 +40,7 @@ class StatsPage extends PageWriter {
 
   /// Initialize a newly created page writer to write information about the
   /// given instrumentation [log].
-  StatsPage(this.log) {
+  new(this.log) {
     _processEntries(log.logEntries);
   }
 

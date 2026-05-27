@@ -28,7 +28,7 @@ abstract class DartSnippetProducer extends SnippetProducer {
   /// repeated searches where they may add imports for the same elements.
   final Map<Element, LibraryElement?> _elementImportCache;
 
-  DartSnippetProducer(super.request, {required this._elementImportCache})
+  new(super.request, {required this._elementImportCache})
     : sessionHelper = AnalysisSessionHelper(request.analysisSession),
       utils = CorrectionUtils.fromUnitAndContent(
         request.compilationUnit,
@@ -55,7 +55,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   /// builder.
   final Set<Element> _requiredElementImports = {};
 
-  FlutterSnippetProducer(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   /// Adds public imports for any elements fetched by [getClass] and [getMixin]
   /// to [builder].
@@ -188,7 +188,7 @@ mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
 abstract class SnippetProducer {
   final DartSnippetRequest request;
 
-  SnippetProducer(this.request);
+  new(this.request);
 
   /// The prefix a user types to use this snippet.
   String get snippetPrefix;

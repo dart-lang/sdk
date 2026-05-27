@@ -21,7 +21,7 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
 class ContextsPage extends DiagnosticPageWithNav {
-  ContextsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'contexts',

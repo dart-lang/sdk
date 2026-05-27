@@ -110,5 +110,5 @@ class _ResultSet {
   final List<SearchResult> results = <SearchResult>[];
   bool done = false;
 
-  _ResultSet(this.id);
+  new(this.id);
 }

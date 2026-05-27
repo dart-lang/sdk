@@ -271,7 +271,7 @@ class ContextManagerImpl implements ContextManager {
   /// rebuild and wait for it to terminate before starting the next.
   final _CancellingTaskQueue _currentContextRebuild = _CancellingTaskQueue();
 
-  ContextManagerImpl(
+  new(
     this.resourceProvider,
     this.sdkManager,
     this.packageConfigFile,
@@ -1027,7 +1027,7 @@ class NoopContextManagerCallbacks implements ContextManagerCallbacks {
 class _BlazeWatchedFiles {
   final String workspace;
   final paths = <String>{};
-  _BlazeWatchedFiles(this.workspace);
+  new(this.workspace);
 }
 
 /// Handles a task queue of tasks that cannot run concurrently.

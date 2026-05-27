@@ -22,7 +22,7 @@ const _desc =
     'unrelated types.';
 
 class CollectionMethodsUnrelatedType extends AnalysisRule {
-  CollectionMethodsUnrelatedType()
+  new()
     : super(
         name: LintNames.collection_methods_unrelated_type,
         description: _desc,
@@ -63,11 +63,7 @@ abstract class _MethodDefinition {
 
   final _ExpectedArgumentKind expectedArgumentKind;
 
-  _MethodDefinition(
-    this.methodName,
-    this.expectedArgumentKind, {
-    this.typeArgumentIndex = 0,
-  });
+  new(this.methodName, this.expectedArgumentKind, {this.typeArgumentIndex = 0});
 
   InterfaceType? collectionTypeFor(InterfaceType targetType);
 }
@@ -76,7 +72,7 @@ class _MethodDefinitionForElement extends _MethodDefinition {
   /// The element on which this method is declared.
   final ClassElement element;
 
-  _MethodDefinitionForElement(
+  new(
     this.element,
     super.methodName,
     super.expectedArgumentKind, {
@@ -93,7 +89,7 @@ class _MethodDefinitionForName extends _MethodDefinition {
 
   final String interfaceName;
 
-  _MethodDefinitionForName(
+  new(
     this.libraryName,
     this.interfaceName,
     super.methodName,
@@ -118,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final TypeSystem typeSystem;
   final TypeProvider typeProvider;
-  _Visitor(this.rule, this.typeSystem, this.typeProvider);
+  new(this.rule, this.typeSystem, this.typeProvider);
 
   List<_MethodDefinition> get indexOperators => [
     // Argument to `Map<K, V>.[]` should be assignable to `K`.

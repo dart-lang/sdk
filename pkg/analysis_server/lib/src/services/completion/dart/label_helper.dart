@@ -17,7 +17,7 @@ class LabelHelper {
   final CompletionState state;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  LabelHelper({required this.collector, required this.state});
+  new({required this.collector, required this.state});
 
   /// Add the labels that are visible at the `break` or `continue` [statement].
   void addLabels(Statement statement) {

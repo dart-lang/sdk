@@ -37,7 +37,7 @@ class CompletionRunner {
   bool deleteBeforeCompletion = false;
 
   /// Initialize a newly created completion runner.
-  CompletionRunner({
+  new({
     StringSink? output,
     bool? printMissing,
     bool? printQuality,

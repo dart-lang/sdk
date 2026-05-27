@@ -38,7 +38,7 @@ class LspChangeVerifier {
   /// The line terminator to use in the output.
   final String endOfLine = testEol;
 
-  LspChangeVerifier(this.editHelpers, this.edit) {
+  new(this.editHelpers, this.edit) {
     _applyEdit();
   }
 
@@ -302,9 +302,9 @@ class TextEditWithIndex {
   final int index;
   final TextEdit edit;
 
-  TextEditWithIndex(this.index, this.edit);
+  new(this.index, this.edit);
 
-  TextEditWithIndex.fromUnion(
+  new fromUnion(
     this.index,
     Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit,
   ) : edit = edit.map((e) => e, (e) => e, (e) => e);
@@ -338,7 +338,7 @@ class _Change {
   final actions = <String>[];
   final annotations = <ChangeAnnotation, List<String>>{};
 
-  _Change(this.content);
+  new(this.content);
 }
 
 extension on Range {
