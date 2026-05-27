@@ -809,6 +809,16 @@ class BinaryMdDillReader {
         throw "Unknown Constant";
       }
     }
+    if (what == "Variable") {
+      if (tagMap[_dillContent[_binaryOffset]] != null) {
+        what = tagMap[_dillContent[_binaryOffset]]!;
+        if (!isA(what, "Variable")) {
+          throw "Expected Variable but found $what";
+        }
+      } else {
+        throw "Unknown Variable";
+      }
+    }
 
     return what;
   }

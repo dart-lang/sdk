@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -305,7 +306,7 @@ String? getNameOfTag(int tag) {
   if (tag == Tag.TryCatch) return "TryCatch";
   if (tag == Tag.TryFinally) return "TryFinally";
   if (tag == Tag.YieldStatement) return "YieldStatement";
-  if (tag == Tag.VariableDeclaration) return "VariableDeclaration";
+  if (tag == Tag.VariableStatement) return "VariableStatement";
   if (tag == Tag.FunctionDeclaration) return "FunctionDeclaration";
   if (tag == Tag.AsyncForInStatement) return "AsyncForInStatement";
   if (tag == Tag.AssertBlock) return "AssertBlock";
@@ -323,6 +324,17 @@ String? getNameOfTag(int tag) {
   if (tag == Tag.IntersectionType) return "IntersectionType";
   if (tag == Tag.RecordType) return "RecordType";
   if (tag == Tag.ExtensionType) return "ExtensionType";
+
+  if (tag == Tag.VariableDeclaration) return "VariableDeclaration";
+
+  if (tag == Tag.LocalVariable) return "LocalVariable";
+  if (tag == Tag.LateVariable) return "LateVariable";
+  if (tag == Tag.SyntheticVariable) return "SyntheticVariable";
+  if (tag == Tag.CatchVariable) return "CatchVariable";
+  if (tag == Tag.PositionalParameter) return "PositionalParameter";
+  if (tag == Tag.NamedParameter) return "NamedParameter";
+  if (tag == Tag.ThisVariable) return "ThisVariable";
+  if (tag == Tag.LegacyVariable) return "LegacyVariable";
 
   return null;
 }

@@ -19,8 +19,6 @@ class BinaryPrinter
     with
         TreeVisitorExperimentExclusionMixin<void>,
         DartTypeVisitorExperimentExclusionMixin<void>,
-        StatementVisitorExperimentExclusionMixin<void>,
-        VariableVisitorExperimentExclusionMixin<void>,
         ExpressionVisitorExperimentExclusionMixin<void>
     implements Visitor<void>, BinarySink {
   final VariableIndexer Function() _newVariableIndexer;
@@ -2476,9 +2474,50 @@ class BinaryPrinter
   }
 
   @override
-  void visitVariable(Variable node) {
-    writeByte(Tag.VariableDeclaration);
+  void visitCatchVariable(CatchVariable node) {
     writeVariable(node);
+  }
+
+  @override
+  void visitLateVariable(LateVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitLegacyVariable(LegacyVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitVariableStatement(VariableStatement node) {
+    writeByte(Tag.VariableStatement);
+    writeOffset(node.fileOffset);
+    writeNode(node.declaration);
   }
 
   @override
@@ -2486,11 +2525,9 @@ class BinaryPrinter
     writeVariableDeclaration(node);
   }
 
-  void writeVariableStatement(VariableStatement node) {
-    writeVariableDeclaration(node.declaration);
-  }
-
   void writeVariableDeclaration(VariableDeclaration node) {
+    writeByte(Tag.VariableDeclaration);
+    writeOffset(node.fileOffset);
     writeVariable(node.variable);
   }
 
@@ -2499,6 +2536,24 @@ class BinaryPrinter
       _writeNodeMetadata(node);
     }
     node.binaryOffsetNoTag = getBufferOffset();
+    switch (node) {
+      case LegacyVariable():
+        writeByte(Tag.LegacyVariable);
+      case LocalVariable():
+        writeByte(Tag.LocalVariable);
+      case LateVariable():
+        writeByte(Tag.LateVariable);
+      case CatchVariable():
+        writeByte(Tag.CatchVariable);
+      case ThisVariable():
+        writeByte(Tag.ThisVariable);
+      case SyntheticVariable():
+        writeByte(Tag.SyntheticVariable);
+      case PositionalParameter():
+        writeByte(Tag.PositionalParameter);
+      case NamedParameter():
+        writeByte(Tag.NamedParameter);
+    }
     writeOffset(node.fileOffset);
     writeOffset(node.fileEqualsOffset);
     writeAnnotationList(node.annotations);

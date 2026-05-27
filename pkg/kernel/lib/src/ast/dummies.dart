@@ -14,7 +14,15 @@ final List<NamedExpression> emptyListOfNamedExpression = List.filled(
 
 /// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Variable> emptyListOfVariableDeclaration = List.filled(
+final List<VariableDeclaration> emptyListOfVariableDeclaration = List.filled(
+  0,
+  dummyVariableDeclaration,
+  growable: false,
+);
+
+/// Almost const <Variable>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Variable> emptyListOfVariable = List.filled(
   0,
   dummyVariable,
   growable: false,

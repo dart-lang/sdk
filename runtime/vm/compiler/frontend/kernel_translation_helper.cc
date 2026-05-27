@@ -956,11 +956,11 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPositionalParameters:
-      helper_->SkipListOfVariableDeclarations();  // read positionals.
+      helper_->SkipListOfVariables();  // read positionals.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNamedParameters:
-      helper_->SkipListOfVariableDeclarations();  // read named.
+      helper_->SkipListOfVariables();  // read named.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kReturnType:
@@ -1030,11 +1030,15 @@ void TypeParameterHelper::ReadUntilExcluding(Field field) {
   }
 }
 
-void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
+void VariableHelper::ReadUntilExcluding(Field field) {
   if (field <= next_read_) return;
 
   // Ordered with fall-through.
   switch (next_read_) {
+    case kTag:
+      helper_->ReadTag();  // read tag.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
@@ -2325,7 +2329,7 @@ void KernelReaderHelper::ReadUntilFunctionNode() {
     case kFunctionDeclaration:
       ReadTag();
       ReadPosition();
-      SkipVariableDeclaration();
+      SkipVariable();
       ReadUInt();
       break;
     case kFunctionExpression:
@@ -2496,6 +2500,13 @@ void KernelReaderHelper::SkipListOfVariableDeclarations() {
   }
 }
 
+void KernelReaderHelper::SkipListOfVariables() {
+  intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipVariable();  // read ith variable.
+  }
+}
+
 void KernelReaderHelper::SkipListOfCanonicalNameReferences() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -2537,8 +2548,8 @@ void KernelReaderHelper::SkipInitializer() {
       SkipArguments();               // read arguments.
       return;
     case kLocalInitializer:
-      ReadPosition();             // read position.
-      SkipVariableDeclaration();  // read variable.
+      ReadPosition();  // read position.
+      SkipVariable();  // read variable.
       return;
     case kAssertInitializer:
       ReadPosition();  // read position.
@@ -2816,9 +2827,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipFunctionNode();  // read function node.
       return;
     case kLet:
-      ReadPosition();             // read position.
-      SkipVariableDeclaration();  // read variable declaration.
-      SkipExpression();           // read expression.
+      ReadPosition();    // read position.
+      SkipVariable();    // read variable declaration.
+      SkipExpression();  // read expression.
       return;
     case kBlockExpression:
       ReadPosition();  // read position.
@@ -3011,11 +3022,11 @@ void KernelReaderHelper::SkipStatement() {
         SkipDartType();   // read guard.
         tag = ReadTag();  // read first part of exception.
         if (tag == kSomething) {
-          SkipVariableDeclaration();  // read exception.
+          SkipVariable();  // read exception.
         }
         tag = ReadTag();  // read first part of stack trace.
         if (tag == kSomething) {
-          SkipVariableDeclaration();  // read stack trace.
+          SkipVariable();  // read stack trace.
         }
         SkipStatement();  // read body.
       }
@@ -3032,14 +3043,15 @@ void KernelReaderHelper::SkipStatement() {
       SkipExpression();  // read expression.
       return;
     }
-    case kVariableDeclaration:
+    case kVariableStatement:
+      ReadPosition();             // read position.
       SkipVariableDeclaration();  // read variable declaration.
       return;
     case kFunctionDeclaration:
-      ReadPosition();             // read position.
-      SkipVariableDeclaration();  // read variable.
-      ReadUInt();                 // read id.
-      SkipFunctionNode();         // read function node.
+      ReadPosition();      // read position.
+      SkipVariable();      // read variable.
+      ReadUInt();          // read id.
+      SkipFunctionNode();  // read function node.
       return;
     case kForInStatement:
     case kAsyncForInStatement:
@@ -3075,8 +3087,14 @@ void KernelReaderHelper::SkipArguments() {
 }
 
 void KernelReaderHelper::SkipVariableDeclaration() {
-  VariableDeclarationHelper helper(this);
-  helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+  ReadTag();       // read tag.
+  ReadPosition();  // read position.
+  SkipVariable();  // read variable.
+}
+
+void KernelReaderHelper::SkipVariable() {
+  VariableHelper helper(this);
+  helper.ReadUntilExcluding(VariableHelper::kEnd);
 }
 
 void KernelReaderHelper::SkipLibraryCombinator() {
@@ -3969,8 +3987,8 @@ void TypeTranslator::SetupFunctionParameters(
   const Library& lib = Library::Handle(Z, active_class_->klass->library());
   for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
     // Read ith variable declaration.
-    VariableDeclarationHelper helper(helper_);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    VariableHelper helper(helper_);
+    helper.ReadUntilExcluding(VariableHelper::kType);
     // The required flag should only be set on named parameters.
     ASSERT(!helper.IsRequired());
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
@@ -3988,8 +4006,8 @@ void TypeTranslator::SetupFunctionParameters(
   ASSERT(named_parameter_count_check == named_parameter_count);
   for (intptr_t i = 0; i < named_parameter_count; ++i, ++pos) {
     // Read ith variable declaration.
-    VariableDeclarationHelper helper(helper_);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    VariableHelper helper(helper_);
+    helper.ReadUntilExcluding(VariableHelper::kType);
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
     Tag tag = helper_->ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {

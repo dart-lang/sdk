@@ -2245,16 +2245,16 @@ FunctionPtr KernelLoader::LoadClosureFunction(const Function& parent_function,
   const String* name;
   if (is_declaration) {
     // Read variable declaration.
-    VariableDeclarationHelper variable_helper(&helper_);
+    VariableHelper variable_helper(&helper_);
 
-    variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+    variable_helper.ReadUntilExcluding(VariableHelper::kAnnotations);
     const intptr_t annotation_count = helper_.ReadListLength();
     const auto& library =
         Library::Handle(Z, Class::Handle(Z, parent_function.Owner()).library());
     ReadVMAnnotations(library, annotation_count, &pragma_bits);
-    variable_helper.SetJustRead(VariableDeclarationHelper::kAnnotations);
+    variable_helper.SetJustRead(VariableHelper::kAnnotations);
 
-    variable_helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+    variable_helper.ReadUntilExcluding(VariableHelper::kEnd);
     name = &H.DartSymbolObfuscate(variable_helper.name_index_);
   } else {
     name = &Symbols::AnonymousClosure();
