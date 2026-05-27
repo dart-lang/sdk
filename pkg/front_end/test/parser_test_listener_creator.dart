@@ -37,10 +37,21 @@ String generateTestListener(Uri repoDir) {
   );
   Token firstToken = scanner.tokenize();
 
-  out.write(r"""
+  out.write("""
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+""");
+  // This code generator generates Dart 3.12-style constructor declarations, so
+  // ignore the `unnecessary_type_name_in_constructor` lint.
+  // TODO(paulberry): switch the code generator to Dart 3.13-style constructor
+  // declarations, and remove this ignore comment.
+  out.write("""
+
+// ignore_for_file: unnecessary_type_name_in_constructor
+""");
+
+  out.write(r"""
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
