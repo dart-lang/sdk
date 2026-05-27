@@ -16,7 +16,7 @@ load(
     "jammy",
     "mac",
     "no_reclient",
-    "noble",
+    "resolute",
     "slow_shards",
     "windows",
 )
@@ -438,25 +438,25 @@ _vm_builder(
 _nightly_builder(
     "vm-gcc-linux-x64",
     category = "vm|misc|toolchain|g",
-    dimensions = noble,
+    dimensions = resolute,
     rbe = False,
 )
 _nightly_builder(
     "vm-gcc-linux-arm",
     category = "vm|misc|toolchain|g",
-    dimensions = noble,
+    dimensions = resolute,
     rbe = False,
 )
 _nightly_builder(
     "vm-gcc-linux-arm64",
     category = "vm|misc|toolchain|g",
-    dimensions = noble,
+    dimensions = resolute,
     rbe = False,
 )
 _nightly_builder(
     "vm-gcc-linux-riscv64",
     category = "vm|misc|toolchain|g",
-    dimensions = noble,
+    dimensions = resolute,
     rbe = False,
 )
 
@@ -535,12 +535,12 @@ _vm_builder(
 _vm_builder(
     "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
-    dimensions = jammy,  # Pre-Jammy ARM QEMU has flaky crashes
+    dimensions = resolute,
 )
 _vm_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
-    dimensions = jammy,  # The bit-manipulation extensions are only available starting with Noble, but Noble is suspected to have a bug that leads to flaky crashes
+    dimensions = resolute,
 )
 _vm_builder(
     "vm-ffi-mac-debug-simarm64_arm64",

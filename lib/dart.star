@@ -13,6 +13,7 @@ load(
     "linux",
     "mac",
     "noble",
+    "resolute",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -206,7 +207,7 @@ def _builder(
             fail("builder %s should be a %s builder but was %s" % (name, expected_os, os))
 
     expect_os("-win", windows["os"])
-    expect_os("-linux", [linux["os"], jammy["os"], noble["os"]])
+    expect_os("-linux", [linux["os"], jammy["os"], noble["os"], resolute["os"]])
     expect_os("-mac", mac["os"])
 
     cq_branches = ["main"] + [branch for branch in channels if branch != "try"]
