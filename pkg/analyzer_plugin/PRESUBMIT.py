@@ -44,7 +44,6 @@ def CheckSorted(input_api, output_api):
     result = subprocess.run([
         dart,
         'run',
-        '-r',
         os.path.join(local_root, 'pkg', 'analysis_server', 'test',
                      'verify_sorted_test.dart'),
     ] + sourceArgs,
