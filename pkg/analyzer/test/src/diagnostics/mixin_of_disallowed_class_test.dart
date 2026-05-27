@@ -79,18 +79,10 @@ class A extends Object with int {}
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_int_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 augment class A with int {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
   }
 
   test_class_Null() async {
@@ -212,17 +204,9 @@ enum E with int {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_int_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 enum A {v}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 augment enum A with int {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
   }
 }

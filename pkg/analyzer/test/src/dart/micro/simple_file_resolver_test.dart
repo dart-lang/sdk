@@ -881,15 +881,13 @@ analyzer:
     implicit-casts: true
 ''');
 
-    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-    await assertErrorsInFile(
-      aPath,
-      r'''
+    var a = getFile('/workspace/third_party/dart/aaa/lib/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_file_inThirdPartyDartLang() async {
@@ -905,15 +903,13 @@ analyzer:
     implicit-casts: true
 ''');
 
-    var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
-    await assertErrorsInFile(
-      aPath,
-      r'''
+    var a = getFile('/workspace/third_party/dart_lang/aaa/lib/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 num a = 0;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'num' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_analysisOptions_lints() async {
@@ -2512,11 +2508,11 @@ void func() {
     newFile('/workspace/dart/aaa/BUILD', '');
     newFile('/workspace/dart/bbb/BUILD', '');
 
-    var aPath = '/workspace/dart/aaa/lib/a.dart';
-    var aResult = await assertErrorsInFile(aPath, '', []);
+    var a = getFile('/workspace/dart/aaa/lib/a.dart');
+    var aResult = await resolveFileWithDiagnostics(a, '');
 
-    var bPath = '/workspace/dart/bbb/lib/a.dart';
-    var bResult = await assertErrorsInFile(bPath, '', []);
+    var b = getFile('/workspace/dart/bbb/lib/a.dart');
+    var bResult = await resolveFileWithDiagnostics(b, '');
 
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.

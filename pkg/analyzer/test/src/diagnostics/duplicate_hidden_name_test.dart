@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DuplicateHiddenNameTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -28,17 +29,19 @@ export 'lib1.dart' hide A, B, A;
   }
 
   test_part_hidden() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 export 'dart:math' hide pi, Random, pi;
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.duplicateHiddenName, 54, 2)]);
+//                                  ^^
+// [diag.duplicateHiddenName] Duplicate hidden name.
+''',
+    });
   }
 }

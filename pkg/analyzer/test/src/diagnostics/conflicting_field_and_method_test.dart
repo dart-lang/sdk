@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConflictingFieldAndMethodTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -43,36 +44,22 @@ class B extends A {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inSuper_getter_withAugmentation_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 
 class B extends A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 
 augment class B {
   int get foo => 0;
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [
-      error(diag.conflictingFieldAndMethod, 47, 3),
-    ]);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inSuper_getter_withAugmentation_inDeclaration() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -80,19 +67,9 @@ class A {
 class B {
   int get foo => 0;
 }
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 
 augment class B extends A {}
 ''');
-
-    await assertErrorsInFile2(a, [
-      error(diag.conflictingFieldAndMethod, 65, 3),
-    ]);
-
-    await assertErrorsInFile2(b, []);
   }
 
   test_class_inSuper_setter() async {
@@ -140,36 +117,22 @@ enum E with M {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_inMixin_getter_withAugmentation_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
 
 enum E with M {v}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 
 augment enum E {;
   int get foo => 0;
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [
-      error(diag.conflictingFieldAndMethod, 47, 3),
-    ]);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_inMixin_getter_withAugmentation_inDeclaration() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {}
 }
@@ -178,19 +141,9 @@ enum E {
   v;
   int get foo => 0;
 }
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 
 augment enum E with M {}
 ''');
-
-    await assertErrorsInFile2(a, [
-      error(diag.conflictingFieldAndMethod, 69, 3),
-    ]);
-
-    await assertErrorsInFile2(b, []);
   }
 
   test_enum_inMixin_setter() async {
@@ -234,36 +187,22 @@ extension type B(int it) implements A {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_inSuper_getter_withAugmentation_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 
 mixin B on A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 
 augment mixin B {
   int get foo => 0;
 }
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [
-      error(diag.conflictingFieldAndMethod, 47, 3),
-    ]);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_inSuper_getter_withAugmentation_inDeclaration() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -271,18 +210,8 @@ class A {
 mixin B {
   int get foo => 0;
 }
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 
 augment mixin B on A {}
 ''');
-
-    await assertErrorsInFile2(a, [
-      error(diag.conflictingFieldAndMethod, 65, 3),
-    ]);
-
-    await assertErrorsInFile2(b, []);
   }
 }

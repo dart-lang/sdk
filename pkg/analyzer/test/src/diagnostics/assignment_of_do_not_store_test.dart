@@ -222,9 +222,9 @@ abstract class A {
   test_noHintsInTestDir() async {
     // Code that is in a test dir should not trigger the hint.
     // (See:https://github.com/dart-lang/sdk/issues/45594)
-    var result = await resolveFileCode(
-      '$testPackageRootPath/test/test.dart',
-      r'''
+    var file = getFile('$testPackageRootPath/test/test.dart');
+
+    await resolveFileWithDiagnostics(file, r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -235,9 +235,7 @@ class A {
 class B {
   String f = A().v;
 }
-''',
-    );
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   test_tearOff() async {

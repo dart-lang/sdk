@@ -193,6 +193,16 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'ResolutionTest',
+      methodName: 'resolveFileWithDiagnostics',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'ResolutionTest',
+      methodName: 'resolveFilesWithDiagnostics',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'ResolutionTest',
       methodName: 'resolveTestCodeWithDiagnostics',
       argument: _ArgumentIndex(0),
     ),
@@ -239,18 +249,20 @@ class NodeTextExpectationsCollector {
 
   static final Map<String, _File> _files = {};
 
-  static void add(String actual) {
+  static void add(String actual, {String? intraInvocationId}) {
     if (!updatingIsEnabled) {
       return;
     }
+
+    // TODO(scheglov): Use a single mechanism for intra-invocation ids.
+    intraInvocationId ??= NodeTextExpectationsCollector.intraInvocationId;
 
     var traceLines = '${StackTrace.current}'.split('\n');
     for (var assertMethod in assertMethods) {
       // Disambiguate multi-expectation arguments.
       if (assertMethod.argument case _ArgumentNamed namedArgument) {
         if (namedArgument.shouldCheckIntraInvocationId) {
-          var id = NodeTextExpectationsCollector.intraInvocationId;
-          if (namedArgument.name != id) {
+          if (namedArgument.name != intraInvocationId) {
             continue;
           }
         }
@@ -294,7 +306,10 @@ class NodeTextExpectationsCollector {
         }
 
         var argumentList = invocation.argumentList;
-        var argument = assertMethod.argument.get(argumentList);
+        var argument = assertMethod.argument.get(
+          argumentList,
+          intraInvocationId: intraInvocationId,
+        );
         if (argument is! SimpleStringLiteral) {
           fail('Not a literal: ${argument.runtimeType}');
         }
@@ -329,7 +344,7 @@ class UpdateNodeTextExpectations {
 }
 
 sealed class _Argument {
-  Expression get(ArgumentList argumentList);
+  Expression get(ArgumentList argumentList, {String? intraInvocationId});
 }
 
 final class _ArgumentIndex extends _Argument {
@@ -338,11 +353,45 @@ final class _ArgumentIndex extends _Argument {
   _ArgumentIndex(this.index);
 
   @override
-  Expression get(ArgumentList argumentList) {
+  Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
     return argumentList.arguments
         .whereNotType<NamedArgument>()
         .elementAt(index)
         .argumentExpression;
+  }
+}
+
+final class _ArgumentMapEntryValue extends _Argument {
+  final _Argument mapArgument;
+
+  _ArgumentMapEntryValue({required this.mapArgument});
+
+  @override
+  Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
+    if (intraInvocationId == null) {
+      fail('Expected an intra-invocation id for a map entry value.');
+    }
+
+    var index = int.tryParse(intraInvocationId);
+    if (index == null) {
+      fail('Expected a map entry index, got: $intraInvocationId');
+    }
+
+    var mapExpression = mapArgument.get(argumentList);
+    if (mapExpression is! SetOrMapLiteral) {
+      fail('Not a map literal: ${mapExpression.runtimeType}');
+    }
+
+    var elements = mapExpression.elements;
+    if (elements.any((element) => element is! MapLiteralEntry)) {
+      fail('Only plain map literal entries are supported.');
+    }
+
+    if (index < 0 || index >= elements.length) {
+      fail('Map entry index $index is out of range: ${elements.length}');
+    }
+
+    return (elements[index] as MapLiteralEntry).value;
   }
 }
 
@@ -353,7 +402,7 @@ final class _ArgumentNamed extends _Argument {
   _ArgumentNamed(this.name, {this.shouldCheckIntraInvocationId = false});
 
   @override
-  Expression get(ArgumentList argumentList) {
+  Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
     return argumentList.arguments
         .whereType<NamedArgument>()
         .where((argument) => argument.name.lexeme == name)

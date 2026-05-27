@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -200,21 +199,22 @@ extension E on int {
 }
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      b: r'''
 import 'a.dart';
 part 'c.dart';
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+''',
+      c: r'''
 part of 'b.dart';
 
 void f() {
   0.foo();
 }
-''');
-
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
+''',
+    });
   }
 
   test_library_extension_instance_operator_binary() async {
@@ -590,20 +590,21 @@ extension E on int {
 }
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 import 'x.dart';
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 void f() {
   0.foo();
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_part_extension_usedPartImport() async {
@@ -613,20 +614,21 @@ extension E on int {
 }
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'x.dart';
 void f() {
   0.foo();
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_part_extension_usedPartImport_inNestedPart() async {
@@ -636,124 +638,131 @@ extension E on int {
 }
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'x.dart';
 part 'c.dart';
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+''',
+      c: r'''
 part of 'b.dart';
 void f() {
   0.foo();
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
+''',
+    });
   }
 
   test_part_notUsedPartImport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'dart:math';
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.unusedImport, 25, 11)]);
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+''',
+    });
   }
 
   test_part_usedLibraryImport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 import 'dart:math';
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 void f(Random _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_part_usedLibraryImport_usedPartImport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 import 'dart:math';
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 import 'dart:async';
 void f(Random _, Future<int> _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_part_usedPartImport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'dart:math';
 void f(Random _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_part_usedPartImport_inNestedPart() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'dart:math';
 part 'c.dart';
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+''',
+      c: r'''
 part of 'b.dart';
 void f(Random _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
+''',
+    });
   }
 
   test_part_usedPartImport_notUsedLibraryImport() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:math';
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+import 'dart:math';
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'dart:math';
 void f(Random _) {}
-''');
-
-    await assertErrorsInFile2(a, [error(diag.unusedImport, 7, 11)]);
-
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 }

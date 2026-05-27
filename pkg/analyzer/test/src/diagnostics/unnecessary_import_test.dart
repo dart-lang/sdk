@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -188,15 +187,19 @@ f(A a1, p.A a2, B b) {}
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61877')
   test_library_export_and_export() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFileWithDiagnostics(a, r'''
 class C {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 export 'a.dart';
 ''');
 
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+    await resolveFileWithDiagnostics(c, r'''
 export 'a.dart';
 ''');
 
@@ -206,9 +209,6 @@ import 'c.dart';
 
 method() => C();
 ''');
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
     // Import of 'c.dart' is not marked as unused even though it could be
     // removed.
     var result = await resolveFile(d);
@@ -386,11 +386,14 @@ f(A a, B b) {}
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61877')
   test_library_import_and_export() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFileWithDiagnostics(a, r'''
 class C {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFileWithDiagnostics(b, r'''
 export 'a.dart';
 ''');
 
@@ -400,8 +403,6 @@ import 'b.dart';
 
 method() => C();
 ''');
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
     // Import of 'b.dart' is not marked as unused even though it could be
     // removed.
     var result = await resolveFile(c);
@@ -492,20 +493,22 @@ class A {}
 class B {}
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'x.dart' hide B;
+//     ^^^^^^^^
+// [diag.unnecessaryImport] The import of 'x.dart' is unnecessary because all of the used elements are also provided by the import of 'x.dart'.
 import 'x.dart';
 void f(A _, B _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.unnecessaryImport, 25, 8)]);
+''',
+    });
   }
 
   test_part_inside_unnecessary_prefixed() async {
@@ -514,19 +517,21 @@ class A {}
 class B {}
 ''');
 
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
 part of 'a.dart';
 import 'x.dart' as prefix hide B;
+//     ^^^^^^^^
+// [diag.unnecessaryImport] The import of 'x.dart' is unnecessary because all of the used elements are also provided by the import of 'x.dart'.
 import 'x.dart' as prefix;
 void f(prefix.A _, prefix.B _) {}
-''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.unnecessaryImport, 25, 8)]);
+''',
+    });
   }
 }
