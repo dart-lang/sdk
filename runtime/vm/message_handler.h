@@ -137,6 +137,8 @@ class MessageHandler : public PortHandler {
   void PostMessage(std::unique_ptr<Message> message,
                    bool before_events = false) override;
 
+  bool is_scheduled() { return pool_ != nullptr; }
+
  private:
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);

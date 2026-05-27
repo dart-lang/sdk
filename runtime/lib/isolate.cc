@@ -496,6 +496,220 @@ class MessageValidator : private WorkSet {
   ClassTable* class_table_;
 };
 
+DEFINE_NATIVE_ENTRY(Isolate_create_, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(0));
+  const char* debug_name_cstr =
+      !debug_name.IsNull() ? debug_name.ToCString() : nullptr;
+
+  if (thread->isolate() != nullptr) {
+    const auto& error =
+        String::Handle(String::New("Should be invoked outside of an isolate"));
+    Exceptions::ThrowStateError(error);
+    UNREACHABLE();
+  }
+
+  char* error = nullptr;
+  auto group = IsolateGroup::Current();
+
+  auto& created = Array::Handle(zone, Array::New(2));
+  const auto& capabilities = Array::Handle(zone, Array::New(2));
+  auto& capability = Capability::Handle(zone);
+  auto& send_port = SendPort::Handle(zone);
+
+  Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+  Isolate* created_isolate =
+      CreateWithinExistingIsolateGroup(group, debug_name_cstr, &error);
+  RELEASE_ASSERT(created_isolate != nullptr);
+
+  Dart_ExitIsolate();
+  Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false, thread);
+
+  auto current_thread = Thread::Current();
+  StackZone stack_zone(current_thread);
+
+  capability = Capability::New(created_isolate->pause_capability());
+  capabilities.SetAt(0, capability);
+  capability = Capability::New(created_isolate->terminate_capability());
+  capabilities.SetAt(1, capability);
+  send_port = SendPort::New(created_isolate->main_port(), group->id());
+  created.SetAt(0, send_port);
+  created.SetAt(1, capabilities);
+  return created.ptr();
+}
+
+namespace {
+
+// Scope that gives user an ability to acquire an isolate if it is available,
+// gain temporary ownership, which is released at the end of the scope.
+class IsolateAcquireScope : public ValueObject {
+ public:
+  IsolateAcquireScope(Thread* thread, Dart_Port receiver) : isolate_(nullptr) {
+    Isolate* target_isolate = nullptr;
+    acquire_result_ =
+        PortMap::AcquireIsolateByControlPort(receiver, &target_isolate);
+    if (target_isolate == nullptr) {
+      // Isolate might have exited already.
+      return;
+    }
+    Thread::EnterIsolate(target_isolate);
+    isolate_ = target_isolate;
+  }
+
+  ~IsolateAcquireScope() {
+    if (isolate_ == nullptr) {
+      return;
+    }
+    ASSERT(Thread::Current()->isolate() == isolate_);
+    Thread::ExitIsolate();
+    if (!isolate_->is_permanently_pinned()) {
+      isolate_->ReleaseOwnership();
+    }
+  }
+
+  void Reset() { isolate_ = nullptr; }
+  Isolate* isolate() { return isolate_; }
+  IsolateAcquireResult acquire_result() { return acquire_result_; }
+
+ private:
+  Isolate* isolate_;
+  IsolateAcquireResult acquire_result_;
+
+  DISALLOW_COPY_AND_ASSIGN(IsolateAcquireScope);
+};
+
+}  // namespace
+
+DEFINE_NATIVE_ENTRY(Isolate_shutdownSync_, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, isolate_control_port,
+                               arguments->NativeArgAt(0));
+  if (thread->isolate() != nullptr) {
+    const auto& error =
+        String::Handle(String::New("Should be invoked outside of an isolate"));
+    Exceptions::ThrowStateError(error);
+    UNREACHABLE();
+  }
+  auto group = thread->isolate_group();
+
+  auto control_port_id = isolate_control_port.Id();
+
+  Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+  {
+    IsolateAcquireScope acquire_scope(thread, control_port_id);
+    Isolate* target_isolate = acquire_scope.isolate();
+    if (target_isolate != nullptr) {
+      Dart::ShutdownIsolate(Thread::Current());
+      acquire_scope.Reset();
+    }
+  }
+  Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false, thread);
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_runSync_, 1, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, isolate_control_port,
+                               arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(1));
+  auto group = thread->isolate_group();
+
+  if (isolate_control_port.origin_id() != group->id()) {
+    const auto& error = String::Handle(String::New(
+        "Target isolate should be part of the same isolate group."));
+    Exceptions::ThrowStateError(error);
+    UNREACHABLE();
+  }
+
+  Dart_Port control_port_id = isolate_control_port.Id();
+
+  closure.EnsureDeeplyImmutable(zone);
+
+  Array& args_desc = Array::Handle(zone, ArgumentsDescriptor::NewBoxed(0, 1));
+  Array& args = Array::Handle(zone, Array::New(1));
+  args.SetAt(0, closure);
+  Object& result = Object::Handle(zone);
+
+  if (isolate != nullptr && (isolate->main_port() == control_port_id)) {
+    // Fast-path for when we are already running on the desired isolate.
+    result = DartEntry::InvokeClosure(thread, args, args_desc);
+
+    if (result.IsUnwindError()) {
+      Exceptions::PropagateError(Error::Cast(result));
+      UNREACHABLE();
+    }
+  } else {
+    if (PortMap::HasEventLoopRunning(control_port_id)) {
+      const auto& error =
+          String::Handle(String::New("Isolate has a message loop running."));
+      Exceptions::ThrowStateError(error);
+      UNREACHABLE();
+    }
+
+    if (isolate != nullptr) {
+      ASSERT(Thread::Current()->isolate() == isolate);
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    } else {
+      Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+    }
+
+    {
+      IsolateAcquireScope acquire_scope(thread, control_port_id);
+      Isolate* target_isolate = acquire_scope.isolate();
+      if (target_isolate == nullptr) {
+        // Re-enter the group or isolate so we can report an error.
+        if (isolate != nullptr) {
+          Thread::EnterIsolate(isolate);
+        } else {
+          Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false,
+                                             thread);
+        }
+        const char* message;
+        switch (acquire_scope.acquire_result()) {
+          case IsolateAcquireResult::ISOLATE_NOT_AVAILABLE:
+            message = "Unable to enter the isolate as it's unavailable";
+            break;
+          case IsolateAcquireResult::PINNED_TO_ANOTHER_THREAD:
+            message = "Isolate is pinned to a different thread already";
+            break;
+          case IsolateAcquireResult::BUSY:
+            message = "Isolate is busy, running on a different thread";
+            break;
+          default:
+            UNREACHABLE();
+        }
+        Exceptions::ThrowStateError(String::Handle(String::New(message)));
+        UNREACHABLE();
+      }
+
+      auto current_thread = Thread::Current();
+      {
+        StackZone stack_zone(current_thread);
+        result = DartEntry::InvokeClosure(current_thread, args, args_desc);
+      }
+    }
+
+    if (isolate != nullptr) {
+      Thread::EnterIsolate(isolate);
+    } else {
+      Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false,
+                                         thread);
+    }
+
+    if (result.IsUnwindError()) {
+      const auto& error =
+          String::Handle(String::New("Isolate was forced to exit."));
+      Exceptions::ThrowStateError(error);
+      UNREACHABLE();
+    }
+  }
+  if (result.IsUnhandledException()) {
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+
+  result.EnsureDeeplyImmutable(zone);
+
+  return result.ptr();
+}
+
 // TODO(http://dartbug.com/47777): Add support for Finalizers.
 DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   if (isolate == nullptr) {
@@ -992,8 +1206,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     capabilities.SetAt(0, capability);
     capability = Capability::New(isolate->terminate_capability());
     capabilities.SetAt(1, capability);
-    const auto& send_port =
-        SendPort::Handle(zone, SendPort::New(isolate->main_port()));
+    const auto& send_port = SendPort::Handle(
+        zone, SendPort::New(isolate->main_port(), isolate->group()->id()));
     const auto& message = Array::Handle(zone, Array::New(2));
     message.SetAt(0, send_port);
     message.SetAt(1, capabilities);
@@ -1234,7 +1448,8 @@ DEFINE_NATIVE_ENTRY(Isolate_getDebugName, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {
   const Array& result = Array::Handle(Array::New(3));
-  result.SetAt(0, SendPort::Handle(SendPort::New(isolate->main_port())));
+  result.SetAt(0, SendPort::Handle(SendPort::New(isolate->main_port(),
+                                                 isolate->group()->id())));
   result.SetAt(
       1, Capability::Handle(Capability::New(isolate->pause_capability())));
   result.SetAt(

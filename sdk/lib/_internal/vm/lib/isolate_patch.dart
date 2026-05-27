@@ -731,6 +731,62 @@ final class Isolate {
     }
     _exit(finalMessagePort, message);
   }
+
+  @patch
+  static Isolate create({String? debugName}) {
+    final List created = _create(debugName);
+    final SendPort controlPort = created[0];
+    final List capabilities = created[1];
+    return Isolate(
+      controlPort,
+      pauseCapability: capabilities[0],
+      terminateCapability: capabilities[1],
+    );
+  }
+
+  @pragma("vm:external-name", "Isolate_create_")
+  external static List _create(String? debugName);
+
+  @patch
+  void shutdownSync() {
+    _shutdownSync(controlPort);
+  }
+
+  @pragma("vm:external-name", "Isolate_shutdownSync_")
+  external static void _shutdownSync(SendPort controlPort);
+
+  @patch
+  R runSync<R>(R Function() f) {
+    return _runSync(controlPort, f);
+  }
+
+  @pragma("vm:external-name", "Isolate_runSync_")
+  external static R _runSync<R>(SendPort controlPort, R Function() f);
+
+  @patch
+  void runEventLoopSync() {
+    throw UnsupportedError("Isolate.runEventLoopSync");
+  }
+
+  @patch
+  static bool pinToCurrentThread() {
+    throw UnsupportedError("Isolate.pintToCurrentThread");
+  }
+
+  @patch
+  bool get isPinnedToCurrentThread {
+    throw UnsupportedError("Isolate.isPinnedToCurrentThread");
+  }
+
+  @patch
+  void set onEvent(void Function(Isolate) callback) {
+    throw UnsupportedError("Isolate.onEvent");
+  }
+
+  @patch
+  void handleEvent() {
+    throw UnsupportedError("Isolate.handleEvent");
+  }
 }
 
 @patch

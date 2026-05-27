@@ -1164,8 +1164,6 @@ class IsolateMessageHandler : public MessageHandler {
   }
 
  private:
-  // A result of false indicates that the isolate should terminate the
-  // processing of further events.
   ErrorPtr HandleLibMessage(const Array& message);
 
   MessageStatus ProcessUnhandledException(const Error& result);
@@ -3776,6 +3774,20 @@ void Isolate::WaitForOutstandingSpawns() {
   while (spawn_count_ > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
+}
+
+bool Isolate::TryAcquireOwnership() {
+  ThreadId current_thread_id = OSThread::GetCurrentThreadId();
+  if (SetOwnerThread(OSThread::kInvalidThreadId, current_thread_id)) {
+    return true;
+  }
+  return owner_thread_ == current_thread_id;
+}
+
+void Isolate::ReleaseOwnership() {
+  bool result = SetOwnerThread(OSThread::GetCurrentThreadId(),
+                               OSThread::kInvalidThreadId);
+  ASSERT(result);
 }
 
 FfiCallbackMetadata::Trampoline Isolate::CreateAsyncFfiCallback(

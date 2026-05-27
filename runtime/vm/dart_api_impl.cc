@@ -2166,9 +2166,23 @@ DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate() {
   CHECK_ISOLATE(isolate);
   if (!isolate->SetOwnerThread(OSThread::kInvalidThreadId,
                                OSThread::GetCurrentThreadId())) {
-    FATAL("Tried to claim ownership of isolate %s, but it is already owned\n",
+    // We might be running this method while running dart code
+    // on this target isolate.
+    // So first confirm that the isolate is not pinned yet.
+    if (isolate->is_permanently_pinned()) {
+      FATAL("Tried to claim ownership of isolate %s, but it is already owned\n",
+            isolate->name());
+    }
+    // Allow pinning only if current owner is the current thread.
+    if (isolate->GetOwnerThread(/*locker=*/nullptr) !=
+        OSThread::GetCurrentThreadId()) {
+      FATAL(
+          "Tried to claim ownership of isolate %s, but it is running on"
+          "some other thread\n",
           isolate->name());
+    }
   }
+  isolate->set_is_permanently_pinned();
 }
 
 DART_EXPORT void Dart_ClearCurrentThreadOwnsIsolate_ForTesting() {
@@ -2179,6 +2193,7 @@ DART_EXPORT void Dart_ClearCurrentThreadOwnsIsolate_ForTesting() {
     FATAL("Tried to clear ownership of isolate %s, but we don't own it\n",
           isolate->name());
   }
+  isolate->clear_is_permanently_pinned_for_testing_only();
 }
 
 DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port) {
