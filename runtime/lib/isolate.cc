@@ -569,6 +569,18 @@ class IsolateAcquireScope : public ValueObject {
   void Reset() { isolate_ = nullptr; }
   Isolate* isolate() { return isolate_; }
   IsolateAcquireResult acquire_result() { return acquire_result_; }
+  const char* error_message() {
+    switch (acquire_result_) {
+      case IsolateAcquireResult::ISOLATE_NOT_AVAILABLE:
+        return "Unable to enter the isolate as it's unavailable";
+      case IsolateAcquireResult::PINNED_TO_ANOTHER_THREAD:
+        return "Isolate is pinned to a different thread already";
+      case IsolateAcquireResult::BUSY:
+        return "Isolate is busy, running on a different thread";
+      default:
+        UNREACHABLE();
+    }
+  }
 
  private:
   Isolate* isolate_;
@@ -602,6 +614,72 @@ DEFINE_NATIVE_ENTRY(Isolate_shutdownSync_, 0, 1) {
     }
   }
   Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false, thread);
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_runEventLoopSync_, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, isolate_control_port,
+                               arguments->NativeArgAt(0));
+  if (thread->isolate() != nullptr) {
+    const auto& error =
+        String::Handle(String::New("Should be invoked outside of an isolate"));
+    Exceptions::ThrowStateError(error);
+    UNREACHABLE();
+  }
+
+  auto group = thread->isolate_group();
+
+  if (isolate_control_port.origin_id() != group->id()) {
+    const auto& error = String::Handle(String::New(
+        "Target isolate should be part of the same isolate group."));
+    Exceptions::ThrowStateError(error);
+    UNREACHABLE();
+  }
+
+  Dart_Port control_port_id = isolate_control_port.Id();
+
+  if (PortMap::HasEventLoopRunning(control_port_id)) {
+    const auto& error =
+        String::Handle(String::New("Isolate has a message loop running."));
+    Exceptions::ThrowStateError(error);
+    UNREACHABLE();
+  }
+
+  Error& result_error = Error::Handle();
+  Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+  {
+    // Take over isolate's event loop - block it's original message_handler.
+    IsolateAcquireScope acquire_scope(thread, control_port_id);
+    Isolate* target_isolate = acquire_scope.isolate();
+    if (target_isolate == nullptr) {
+      // Reenter the group so we can report an error.
+      Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false,
+                                         thread);
+      const auto& message =
+          String::Handle(String::New(acquire_scope.error_message()));
+      Exceptions::ThrowStateError(message);
+      UNREACHABLE();
+    }
+    auto current_thread = Thread::Current();
+
+    {
+      TransitionVMToNative transition(current_thread);
+
+      Dart_EnterScope();
+      Dart_ExitIsolate();
+      target_isolate->message_handler()->RunSync();
+      Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(target_isolate));
+      if (target_isolate->sticky_error() != Object::null()) {
+        result_error = target_isolate->StealStickyError();
+      }
+      Dart_ExitScope();
+    }
+  }
+  Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false, thread);
+  if (!result_error.IsNull()) {
+    Exceptions::PropagateError(result_error);
+    UNREACHABLE();
+  }
   return Object::null();
 }
 
@@ -661,20 +739,7 @@ DEFINE_NATIVE_ENTRY(Isolate_runSync_, 1, 2) {
           Thread::EnterIsolateGroupAsMutator(group, /*bypass_safepoint=*/false,
                                              thread);
         }
-        const char* message;
-        switch (acquire_scope.acquire_result()) {
-          case IsolateAcquireResult::ISOLATE_NOT_AVAILABLE:
-            message = "Unable to enter the isolate as it's unavailable";
-            break;
-          case IsolateAcquireResult::PINNED_TO_ANOTHER_THREAD:
-            message = "Isolate is pinned to a different thread already";
-            break;
-          case IsolateAcquireResult::BUSY:
-            message = "Isolate is busy, running on a different thread";
-            break;
-          default:
-            UNREACHABLE();
-        }
+        const char* message = acquire_scope.error_message();
         Exceptions::ThrowStateError(String::Handle(String::New(message)));
         UNREACHABLE();
       }
