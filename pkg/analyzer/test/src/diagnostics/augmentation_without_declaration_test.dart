@@ -1225,8 +1225,6 @@ augment abstract int? foo;
 int? get foo => 0;
 
 augment abstract final int? foo;
-//                          ^^^
-// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
@@ -1239,7 +1237,6 @@ set foo(int? _) {}
 augment abstract final int? foo;
 //                          ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
-// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
@@ -1248,8 +1245,6 @@ augment abstract final int? foo;
 final int? foo = 0;
 
 augment abstract final int? foo;
-//                          ^^^
-// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 

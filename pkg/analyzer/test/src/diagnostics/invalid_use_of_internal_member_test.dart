@@ -41,14 +41,13 @@ import 'package:meta/meta.dart';
 @internal
 class A {}
 ''');
-    var a = newFile('$fooPackageRootPath/lib/a.dart', '''
+
+    var a = getFile('$fooPackageRootPath/lib/a.dart');
+    await resolveFileWithDiagnostics(a, '''
 import 'src/a.dart';
 
 A a = A();
 ''');
-    var result = await resolveFile2(a);
-
-    assertNoErrorsInTestResult(result);
   }
 
   test_insidePackage_extensionType() async {
@@ -57,14 +56,13 @@ import 'package:meta/meta.dart';
 @internal
 extension type E(int i) {}
 ''');
-    var a = newFile('$fooPackageRootPath/lib/a.dart', '''
+
+    var a = getFile('$fooPackageRootPath/lib/a.dart');
+    await resolveFileWithDiagnostics(a, '''
 import 'src/a.dart';
 
 E e = E(1);
 ''');
-    var result = await resolveFile2(a);
-
-    assertNoErrorsInTestResult(result);
   }
 
   test_outsidePackage_class() async {

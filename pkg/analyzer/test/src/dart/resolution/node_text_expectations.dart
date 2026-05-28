@@ -197,9 +197,24 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'WithStrictCastsMixin',
+      methodName: 'assertTestCodeWithStrictCastsDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'resolveFilesWithDiagnostics',
       argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'IndexTest',
+      methodName: '_indexTestCode',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'IndexTest',
+      methodName: '_indexFileWithDiagnostics',
+      argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
       className: 'ResolutionTest',

@@ -5074,6 +5074,38 @@ CompileTimeErrorCode:
     problemMessage: "The function or member '#name' must have a body after all augmentations are applied."
     correctionMessage: "Try adding a body to the introductory declaration, or providing an augmentation with a body."
     hasPublishedDocs: false
+  inducedGetterWithoutBody:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the getter
+    experiment: augmentations
+    problemMessage: "The getter induced by '#name' must have a body."
+    correctionMessage: "Try removing 'abstract' and adding an initializer."
+    hasPublishedDocs: false
+  inducedSetterWithoutBody:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the setter
+    experiment: augmentations
+    problemMessage: "The setter induced by '#name' must have a body."
+    correctionMessage: "Try removing 'abstract' and adding an initializer."
+    hasPublishedDocs: false
+  inducedGetterNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the getter
+    experiment: augmentations
+    problemMessage: "The getter induced by '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding an initializer or providing an augmentation with a getter body."
+    hasPublishedDocs: false
+  inducedSetterNotCompleteAfterAugmentations:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable inducing the setter
+    experiment: augmentations
+    problemMessage: "The setter induced by '#name' must have a body after all augmentations are applied."
+    correctionMessage: "Try adding an initializer or providing an augmentation with a setter body."
+    hasPublishedDocs: false
   factoryNotCompleteAfterAugmentations:
     type: compileTimeError
     parameters:

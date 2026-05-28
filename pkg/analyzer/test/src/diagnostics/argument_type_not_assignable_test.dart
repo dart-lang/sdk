@@ -770,37 +770,34 @@ class ArgumentTypeNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_extensionTypePrimaryConstructor() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 extension type E(int i) {}
 
 dynamic a;
 var e = E(a);
-''',
-      [error(diag.argumentTypeNotAssignable, 49, 1)],
-    );
+//        ^
+// [diag.argumentTypeNotAssignable] The argument type 'dynamic' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_functionCall() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(int i) {}
 void foo(dynamic a) {
   f(a);
+//  ^
+// [diag.argumentTypeNotAssignable] The argument type 'dynamic' can't be assigned to the parameter type 'int'.
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 43, 1)],
-    );
+''');
   }
 
   test_operator() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void foo(int i, dynamic a) {
   i + a;
+//    ^
+// [diag.argumentTypeNotAssignable] The argument type 'dynamic' can't be assigned to the parameter type 'num'.
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 35, 1)],
-    );
+''');
   }
 }

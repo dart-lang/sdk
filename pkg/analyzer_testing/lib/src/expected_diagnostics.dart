@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -323,7 +325,9 @@ final class _ExpectedDiagnosticsUpdater {
 
   static String _messageText(DiagnosticMessage message) {
     var text = message.messageText(includeUrl: false);
-    return _toPosixPaths(text).trim();
+    text = _toPosixPaths(text).trim();
+    text = LineSplitter.split(text).join(r'\n');
+    return text;
   }
 
   static String _toPosixPaths(String message) {

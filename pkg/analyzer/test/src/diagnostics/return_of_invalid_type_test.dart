@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -556,22 +555,20 @@ Map<int, int> f() => {...[1, 2, 3, 4]};
 class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_return() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 int f(dynamic a) => a;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 20, 1)],
-    );
+//                  ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'dynamic' can't be returned from the function 'f' because it has a return type of 'int'.
+''');
   }
 
   test_return_async() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 Future<int> f(dynamic a) async {
   return a;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'dynamic' can't be returned from the function 'f' because it has a return type of 'Future<int>'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 42, 1)],
-    );
+''');
   }
 }

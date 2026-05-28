@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -465,24 +464,22 @@ Iterable<String> g() => throw 0;
 class YieldOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_yieldEach_asyncStar() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 f(dynamic a) async* {
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'dynamic' implied by the 'yield*' expression must be assignable to 'Stream<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 31, 1)],
-    );
+''');
   }
 
   test_yieldEach_syncStar() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 f(dynamic a) sync* {
   yield* a;
+//       ^
+// [diag.yieldEachOfInvalidType] The type 'dynamic' implied by the 'yield*' expression must be assignable to 'Iterable<dynamic>'.
 }
-''',
-      [error(diag.yieldEachOfInvalidType, 30, 1)],
-    );
+''');
   }
 }

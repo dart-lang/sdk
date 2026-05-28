@@ -641,6 +641,90 @@ class A {
 ''');
   }
 
+  test_class_staticField_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract int foo;
+//                    ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+// [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_class_staticField_abstract_completeAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract int foo;
+  augment static int get foo => 0;
+  augment static set foo(int _) {}
+}
+''');
+  }
+
+  test_class_staticField_abstract_incompleteGetterAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract int foo;
+//                    ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment static set foo(int _) {}
+}
+''');
+  }
+
+  test_class_staticField_abstract_incompleteSetterAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract int foo;
+//                    ^^^
+// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
+  augment static int get foo => 0;
+}
+''');
+  }
+
+  test_class_staticField_abstract_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {
+  static abstract int foo;
+//       ^^^^^^^^
+// [diag.abstractStaticField] Static fields can't be declared 'abstract'.
+}
+''');
+  }
+
+  test_class_staticField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract final int foo;
+//                          ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_class_staticField_abstractFinal_completeAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract final int foo;
+  augment static int get foo => 0;
+}
+''');
+  }
+
+  test_class_staticField_abstractFinal_incompleteGetterAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static abstract final int foo;
+//                          ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment static abstract final int foo;
+}
+''');
+  }
+
   test_class_staticGetter_hasBody_augmentation_staticField() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -2319,8 +2403,6 @@ augment int foo = 1;
     await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 augment abstract final int foo;
-//                         ^^^
-// [diag.finalNotInitialized] The final variable 'foo' must be initialized.
 ''');
   }
 
@@ -2362,8 +2444,6 @@ augment int foo = 1;
 int get foo => 0;
 set foo(int _) {}
 augment abstract int foo;
-//                   ^^^
-// [diag.notInitializedNonNullableVariable] The non-nullable variable 'foo' must be initialized.
 ''');
   }
 
@@ -2478,6 +2558,73 @@ set foo(int _);
 set foo(int _);
 //            ^
 // [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevel_variable_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract int foo;
+//           ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+// [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+''');
+  }
+
+  test_topLevel_variable_abstract_completeAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract int foo;
+augment int get foo => 0;
+augment set foo(int _) {}
+''');
+  }
+
+  test_topLevel_variable_abstract_incompleteGetterAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract int foo;
+//           ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+augment set foo(int _) {}
+''');
+  }
+
+  test_topLevel_variable_abstract_incompleteSetterAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract int foo;
+//           ^^^
+// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
+augment int get foo => 0;
+''');
+  }
+
+  test_topLevel_variable_abstract_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+abstract int foo;
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
+''');
+  }
+
+  test_topLevel_variable_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract final int foo;
+//                 ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+''');
+  }
+
+  test_topLevel_variable_abstractFinal_completeAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract final int foo;
+augment int get foo => 0;
+''');
+  }
+
+  test_topLevel_variable_abstractFinal_incompleteGetterAfterAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract final int foo;
+//                 ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+augment abstract final int foo;
 ''');
   }
 }

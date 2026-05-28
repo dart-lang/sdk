@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -292,24 +291,22 @@ f(Object o) {
 class NonBoolConditionWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_map_ifElement_condition() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic c) {
   <int, int>{if (c) 0: 0};
+//               ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 37, 1)],
-    );
+''');
   }
 
   test_set_ifElement_condition() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic c) {
   <int>{if (c) 0};
+//          ^
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolCondition, 32, 1)],
-    );
+''');
   }
 }

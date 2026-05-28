@@ -7525,6 +7525,74 @@ inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// Parameters:
+/// String name: the name of the variable inducing the getter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+inducedGetterNotCompleteAfterAugmentations = DiagnosticWithArguments(
+  name: 'induced_getter_not_complete_after_augmentations',
+  problemMessage:
+      "The getter induced by '{0}' must have a body after all augmentations are "
+      "applied.",
+  correctionMessage:
+      "Try adding an initializer or providing an augmentation with a getter "
+      "body.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'induced_getter_not_complete_after_augmentations',
+  withArguments: _withArgumentsInducedGetterNotCompleteAfterAugmentations,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable inducing the getter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+inducedGetterWithoutBody = DiagnosticWithArguments(
+  name: 'induced_getter_without_body',
+  problemMessage: "The getter induced by '{0}' must have a body.",
+  correctionMessage: "Try removing 'abstract' and adding an initializer.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'induced_getter_without_body',
+  withArguments: _withArgumentsInducedGetterWithoutBody,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable inducing the setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+inducedSetterNotCompleteAfterAugmentations = DiagnosticWithArguments(
+  name: 'induced_setter_not_complete_after_augmentations',
+  problemMessage:
+      "The setter induced by '{0}' must have a body after all augmentations are "
+      "applied.",
+  correctionMessage:
+      "Try adding an initializer or providing an augmentation with a setter "
+      "body.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'induced_setter_not_complete_after_augmentations',
+  withArguments: _withArgumentsInducedSetterNotCompleteAfterAugmentations,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable inducing the setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+inducedSetterWithoutBody = DiagnosticWithArguments(
+  name: 'induced_setter_without_body',
+  problemMessage: "The setter induced by '{0}' must have a body.",
+  correctionMessage: "Try removing 'abstract' and adding an initializer.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'induced_setter_without_body',
+  withArguments: _withArgumentsInducedSetterWithoutBody,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// When "strict-inference" is enabled, collection literal types must be
 /// inferred via the context type, or have type arguments.
 ///
@@ -19897,6 +19965,36 @@ LocatableDiagnostic _withArgumentsInconsistentPatternVariableLogicalOr({
   return LocatableDiagnosticImpl(diag.inconsistentPatternVariableLogicalOr, [
     name,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsInducedGetterNotCompleteAfterAugmentations({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.inducedGetterNotCompleteAfterAugmentations,
+    [name],
+  );
+}
+
+LocatableDiagnostic _withArgumentsInducedGetterWithoutBody({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.inducedGetterWithoutBody, [name]);
+}
+
+LocatableDiagnostic _withArgumentsInducedSetterNotCompleteAfterAugmentations({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.inducedSetterNotCompleteAfterAugmentations,
+    [name],
+  );
+}
+
+LocatableDiagnostic _withArgumentsInducedSetterWithoutBody({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.inducedSetterWithoutBody, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInferenceFailureOnCollectionLiteral({

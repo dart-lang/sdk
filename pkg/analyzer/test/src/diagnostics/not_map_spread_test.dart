@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -103,13 +102,12 @@ void f<T extends num>(T a) {
 class NotMapSpreadWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_map() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   <int, String>{...a};
+//                 ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
 }
-''',
-      [error(diag.notMapSpread, 39, 1)],
-    );
+''');
   }
 }

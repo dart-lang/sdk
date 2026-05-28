@@ -131,7 +131,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     var result = await resolveTestFile();
 
     // No errors for a file that doesn't exist.
-    assertErrorsInTestResult(result, []);
+    expect(result.diagnostics, isEmpty);
   }
 
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {

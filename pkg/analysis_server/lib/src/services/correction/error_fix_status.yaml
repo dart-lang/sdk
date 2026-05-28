@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  78 "needsEvaluation"
+# -  82 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -914,6 +914,14 @@ implicit_this_reference_in_initializer:
   status: hasFix
 implicit_super_initializer_missing_arguments:
   status: hasFix
+induced_getter_not_complete_after_augmentations:
+  status: needsEvaluation
+induced_getter_without_body:
+  status: needsEvaluation
+induced_setter_not_complete_after_augmentations:
+  status: needsEvaluation
+induced_setter_without_body:
+  status: needsEvaluation
 import_internal_library:
   status: hasFix
 import_of_non_library:

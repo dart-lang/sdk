@@ -282,18 +282,10 @@ enum E with M {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_noSuperclassConstraint_augmented() async {
-    newFile(testFile.path, r'''
-part 'a.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 enum E {v}
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment enum E with M {}
 ''');
-
-    var result = await resolveFile2(a);
-    assertNoErrorsInTestResult(result);
   }
 }

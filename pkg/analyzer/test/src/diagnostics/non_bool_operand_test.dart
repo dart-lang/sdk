@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -115,13 +114,12 @@ bool f(bool left, double right) {
 class NonBoolOperandWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_and() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   if(a && true) {}
+//   ^
+// [diag.nonBoolOperand] The operands of the operator '&&' must be assignable to 'bool'.
 }
-''',
-      [error(diag.nonBoolOperand, 25, 1)],
-    );
+''');
   }
 }

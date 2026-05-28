@@ -1383,20 +1383,21 @@ extension E on int {
 }
 ''');
 
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 import 'x.dart';
 void f() {
   0.foo();
 }
-''');
-
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, []);
+''',
+    });
+    var result = results[b]!;
 
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''

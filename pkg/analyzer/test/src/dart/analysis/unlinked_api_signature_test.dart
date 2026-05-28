@@ -2132,6 +2132,28 @@ int foo() {
     );
   }
 
+  test_topLevelVariable_abstract_add() {
+    _assertNotSameSignature(
+      r'''
+int foo;
+''',
+      r'''
+abstract int foo;
+''',
+    );
+  }
+
+  test_topLevelVariable_abstract_remove() {
+    _assertNotSameSignature(
+      r'''
+abstract int foo;
+''',
+      r'''
+int foo;
+''',
+    );
+  }
+
   test_topLevelVariable_augment_add() {
     _assertNotSameSignature(
       r'''

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,16 +46,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageBlazeBinPath/lib/bar.dart',
-      r'''
+    var file = getFile('$testPackageBlazeBinPath/lib/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'src/foo.dart';
-''',
-    );
-
-    assertErrorsInTestResult(result, [
-      error(diag.invalidExportOfInternalElement, 0, 22),
-    ]);
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_exporterIsInBlazeBinLibSrc() async {
@@ -65,14 +59,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageBlazeBinPath/lib/src/bar.dart',
-      r'''
+    var file = getFile('$testPackageBlazeBinPath/lib/src/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'foo.dart';
-''',
-    );
-
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   void test_exporterIsInGenfilesLib() async {
@@ -81,16 +71,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageGenfilesPath/lib/bar.dart',
-      r'''
+    var file = getFile('$testPackageGenfilesPath/lib/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'src/foo.dart';
-''',
-    );
-
-    assertErrorsInTestResult(result, [
-      error(diag.invalidExportOfInternalElement, 0, 22),
-    ]);
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   void test_exporterIsInGenfilesLibSrc() async {
@@ -99,14 +84,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageGenfilesPath/lib/src/bar.dart',
-      r'''
+    var file = getFile('$testPackageGenfilesPath/lib/src/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'foo.dart';
-''',
-    );
-
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   void test_exporterIsInLib() async {
@@ -115,13 +96,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageLibPath/bar.dart', r'''
+    var file = getFile('$testPackageLibPath/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'src/foo.dart';
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
 ''');
-
-    assertErrorsInTestResult(result, [
-      error(diag.invalidExportOfInternalElement, 0, 22),
-    ]);
   }
 
   void test_exporterIsInLibSrc() async {
@@ -130,11 +109,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
+    var file = getFile('$testPackageLibPath/src/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'foo.dart';
 ''');
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInTest() async {
@@ -143,14 +121,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$myPackageRootPath/test/foo_test.dart',
-      r'''
+    var file = getFile('$myPackageRootPath/test/foo_test.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'package:dart.my/src/foo.dart';
-''',
-    );
-
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   void test_internalIsInBlazeBin() async {
@@ -208,16 +182,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageDartToolPath/lib/bar.dart',
-      r'''
+    var file = getFile('$testPackageDartToolPath/lib/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'package:test/src/foo.dart';
-''',
-    );
-
-    assertErrorsInTestResult(result, [
-      error(diag.invalidExportOfInternalElement, 0, 35),
-    ]);
+// [diag.invalidExportOfInternalElement][column 1][length 35] The member 'One' can't be exported as a part of a package's public API.
+''');
   }
 
   @FailingTest(
@@ -232,14 +201,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageDartToolPath/lib/src/bar.dart',
-      r'''
+    var file = getFile('$testPackageDartToolPath/lib/src/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'package:test/src/foo.dart';
-''',
-    );
-
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   void test_exporterInLib() async {
@@ -248,13 +213,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageRootPath/lib/bar.dart', r'''
+    var file = getFile('$testPackageRootPath/lib/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'package:test/src/foo.dart';
+// [diag.invalidExportOfInternalElement][column 1][length 35] The member 'One' can't be exported as a part of a package's public API.
 ''');
-
-    assertErrorsInTestResult(result, [
-      error(diag.invalidExportOfInternalElement, 0, 35),
-    ]);
   }
 
   void test_exporterInLibSrc() async {
@@ -263,14 +226,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageRootPath/lib/src/bar.dart',
-      r'''
+    var file = getFile('$testPackageRootPath/lib/src/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'package:test/src/foo.dart';
-''',
-    );
-
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   void test_internalIsInGeneratedLibSrc() async {
@@ -319,13 +278,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageLibPath/bar.dart', r'''
+    var file = getFile('$testPackageLibPath/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'src/foo.dart';
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
 ''');
-
-    assertErrorsInTestResult(result, [
-      error(diag.invalidExportOfInternalElement, 0, 22),
-    ]);
   }
 
   void test_exporterIsInLibSrc() async {
@@ -334,11 +291,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
+    var file = getFile('$testPackageLibPath/src/bar.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'foo.dart';
 ''');
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInTest() async {
@@ -347,14 +303,10 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageRootPath/test/foo_test.dart',
-      r'''
+    var file = getFile('$testPackageRootPath/test/foo_test.dart');
+    await resolveFileWithDiagnostics(file, r'''
 export 'package:test/src/foo.dart';
-''',
-    );
-
-    assertNoErrorsInTestResult(result);
+''');
   }
 
   void test_internalIsLibSrc() async {

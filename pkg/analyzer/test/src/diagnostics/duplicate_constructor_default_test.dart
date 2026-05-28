@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,54 +16,30 @@ main() {
 class DuplicateConstructorDefaultTest extends PubPackageResolutionTest {
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augments() async {
-    newFile(testFile.path, r'''
-part 'a.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 
 augment class A {
   augment A();
 }
 ''');
-
-    var result = await resolveFile2(testFile);
-    assertNoErrorsInTestResult(result);
-
-    result = await resolveFile2(a);
-    assertNoErrorsInTestResult(result);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_declares() async {
-    newFile(testFile.path, r'''
-part 'a.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 
 augment class A {
   A();
+//^
+// [diag.duplicateConstructorDefault] The unnamed constructor is already defined.
 }
 ''');
-
-    var result = await resolveFile2(testFile);
-    assertNoErrorsInTestResult(result);
-
-    result = await resolveFile2(a);
-    assertErrorsInTestResult(result, [
-      error(diag.duplicateConstructorDefault, 42, 1),
-    ]);
   }
 
   test_class_primary_unnamed_typeName_new() async {

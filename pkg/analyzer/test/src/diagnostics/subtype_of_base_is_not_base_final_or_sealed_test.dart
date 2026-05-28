@@ -51,14 +51,12 @@ class B extends A {}
   }
 
   test_class_extends_outside_viaLanguage219AndCore() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 // @dart=2.19
 import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
-
-    var result = await resolveFile2(a);
-    assertNoErrorsInTestResult(result);
 
     await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
@@ -93,14 +91,12 @@ class B implements A {}
   }
 
   test_class_implements_outside_viaLanguage219AndCore() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 // @dart=2.19
 import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
-
-    var result = await resolveFile2(a);
-    assertNoErrorsInTestResult(result);
 
     await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';

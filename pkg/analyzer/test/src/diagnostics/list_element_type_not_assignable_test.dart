@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -233,35 +232,32 @@ class ListElementTypeNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_ifElement_falseBranch() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(bool c, dynamic a) {
   <int>[if (c) 0 else a];
+//                    ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic' can't be assigned to the list type 'int'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 50, 1)],
-    );
+''');
   }
 
   test_ifElement_trueBranch() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(bool c, dynamic a) {
   <int>[if (c) a];
+//             ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic' can't be assigned to the list type 'int'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 43, 1)],
-    );
+''');
   }
 
   test_spread() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(Iterable<dynamic> a) {
   <int>[...a];
+//         ^
+// [diag.listElementTypeNotAssignable] The element type 'dynamic' can't be assigned to the list type 'int'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 41, 1)],
-    );
+''');
   }
 }
