@@ -245,10 +245,8 @@ class SelectorInfo {
       // This happens if the selector doesn't have any targets. Any call site of
       // such a selector is unreachable. Though such call sites still have to
       // evaluate receiver and arguments. Doing so requires the signature. So we
-      // create a dummy signature with top types. Receivers specifically should
-      // be non-nullable since we must be invoking a selector on some object.
-      assert(!isReceiver);
-      return isReceiver ? translator.topTypeNonNullable : translator.topType;
+      // create a dummy signature with top types.
+      return translator.topType;
     }
     if (!ensureBoxed && types.length == 1 && types.single.isPrimitive) {
       // Unboxed primitive.
