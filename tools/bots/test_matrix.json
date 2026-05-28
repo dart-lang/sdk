@@ -2819,9 +2819,7 @@
             "language",
             "lib",
             "web"
-          ],
-          "shards": 8,
-          "fileset": "dart2wasm_hostasserts"
+          ]
         }
       ]
     },

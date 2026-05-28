@@ -250,7 +250,10 @@ import 'a.dart';
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 import 'test.dart';
 
 class A {
@@ -261,20 +264,18 @@ class A {
 
   const A({this.f1 = false}) : this.f2 = f1 && true;
 }
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
+''',
+      testFile: r'''
 import 'a.dart';
 
 class B extends A {
   const B() : super();
 }
-''');
+''',
+    });
+    var aResult = results[a]!;
 
-    var result = await resolveFile2(a);
-    assertErrorsInResolvedUnit(result.analysisResult, []);
-
-    var bElement = result.findElement.field('b') as FieldElementImpl;
+    var bElement = aResult.findElement.field('b') as FieldElementImpl;
     var bValue = bElement.evaluationResult as DartObjectImpl;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);

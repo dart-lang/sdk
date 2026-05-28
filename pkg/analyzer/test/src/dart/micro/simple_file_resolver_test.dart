@@ -422,13 +422,14 @@ byteStore
 class A {}
 ''');
 
-    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = getFile('/workspace/dart/test/lib/b.dart');
+
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 void f(A a, B b) {}
+//          ^
+// [diag.undefinedClass] Undefined class 'B'.
 ''');
-
-    var result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [error(diag.undefinedClass, 29, 1)]);
 
     newFile(a.path, r'''
 class A {}
@@ -436,8 +437,10 @@ class B {}
 ''');
     fileResolver.changeFiles([a.path]);
 
-    result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, []);
+    await resolveFileWithDiagnostics(b, r'''
+import 'a.dart';
+void f(A a, B b) {}
+''');
   }
 
   test_changeFile_resolution_flushInheritanceManager() async {
@@ -447,16 +450,17 @@ class A {
 }
 ''');
 
-    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
+    var b = getFile('/workspace/dart/test/lib/b.dart');
+
+    await resolveFileWithDiagnostics(b, r'''
 import 'a.dart';
 
 void f(A a) {
   a.foo = 1;
+//  ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
-
-    var result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [error(diag.assignmentToFinal, 36, 3)]);
 
     newFile(a.path, r'''
 class A {
@@ -465,23 +469,31 @@ class A {
 ''');
     fileResolver.changeFiles([a.path]);
 
-    result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, []);
+    await resolveFileWithDiagnostics(b, r'''
+import 'a.dart';
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
   }
 
   test_changeFile_resolution_missingChangeFileForPart() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = getFile('/workspace/dart/test/lib/a.dart');
+    var b = getFile('/workspace/dart/test/lib/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 var b = B(0);
-''');
-
-    var b = newFile('/workspace/dart/test/lib/b.dart', r'''
+//      ^
+// [diag.undefinedFunction] The function 'B' isn't defined.
+''',
+      b: r'''
 part of 'a.dart';
-''');
-
-    var result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, [error(diag.undefinedFunction, 24, 1)]);
+''',
+    });
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
@@ -511,8 +523,20 @@ class B {
 
     // Notify the resolver about b.dart, it is OK now.
     fileResolver.changeFiles([b.path]);
-    result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, []);
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+var b = B(1);
+''',
+      b: r'''
+part of 'a.dart';
+
+class B {
+  B(int _);
+}
+''',
+    });
   }
 
   test_changePartFile_refreshedFiles() async {
@@ -1504,11 +1528,10 @@ part of 'b.dart';
   }
 
   test_hint_in_third_party() async {
-    var a = newFile('/workspace/third_party/dart/aaa/lib/a.dart', r'''
+    var a = getFile('/workspace/third_party/dart/aaa/lib/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 import 'dart:math';
 ''');
-    var result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, const []);
   }
 
   test_linkLibraries() async {

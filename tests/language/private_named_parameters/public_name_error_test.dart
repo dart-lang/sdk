@@ -5,8 +5,6 @@
 /// A private named parameter must have a corresponding public name that is a
 /// valid non-private Dart identifier.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 /// Public name can't be empty.
 class Empty {
   Empty({required this._});
@@ -42,7 +40,6 @@ class Private {
     //            ^^
     // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
     // [cfe] A private named parameter must have a corresponding public name.
-
     required this.__tooPrivate,
     //            ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME
@@ -52,7 +49,6 @@ class Private {
   String? __;
   String? __tooPrivate;
 }
-
 
 /// Public name can't be a reserved word.
 class Reserved {

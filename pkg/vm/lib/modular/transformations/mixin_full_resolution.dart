@@ -157,14 +157,16 @@ class MixinFullResolution {
         Reference? getterReference = indexedClass?.lookupGetterReference(
           field.name,
         );
-        Reference? setterReference = indexedClass?.lookupSetterReference(
-          field.name,
-        );
+        // We only use any given setter reference if it belongs to the field.
+        Reference? setterReference = field.hasSetter
+            ? indexedClass?.lookupSetterReference(field.name)
+            : null;
+
         if (getterReference == null) {
           getterReference = nonSetters[field.name]?.reference;
           getterReference?.canonicalName?.unbind();
         }
-        if (setterReference == null) {
+        if (setterReference == null && field.hasSetter) {
           setterReference = setters[field.name]?.reference;
           setterReference?.canonicalName?.unbind();
         }
@@ -174,12 +176,15 @@ class MixinFullResolution {
           getterReference,
           setterReference,
         );
-        Procedure? setter = setters[field.name];
-        if (setter != null) {
-          setters.remove(field.name);
-          Variable parameter = setter.function.positionalParameters.first;
-          clone.isCovariantByDeclaration = parameter.isCovariantByDeclaration;
-          clone.isCovariantByClass = parameter.isCovariantByClass;
+        if (field.hasSetter) {
+          // Only remove a setter with this name if it belongs to the field.
+          Procedure? setter = setters[field.name];
+          if (setter != null) {
+            setters.remove(field.name);
+            Variable parameter = setter.function.positionalParameters.first;
+            clone.isCovariantByDeclaration = parameter.isCovariantByDeclaration;
+            clone.isCovariantByClass = parameter.isCovariantByClass;
+          }
         }
         nonSetters.remove(field.name);
         class_.addField(clone);

@@ -5,8 +5,6 @@
 // We allow using dot shorthands on constructors with the same name as an
 // instance method or field.
 
-// SharedOptions=--enable-experiment=dot-shorthands
-
 import 'package:expect/expect.dart';
 
 class Getter {

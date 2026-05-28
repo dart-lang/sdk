@@ -5,8 +5,6 @@
 /// It's an error if a private named parameter collides with another parameter
 /// with the same public or private name.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 class C {
   String? foo;
   final String? _foo;
