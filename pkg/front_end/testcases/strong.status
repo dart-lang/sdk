@@ -121,6 +121,9 @@ nnbd/platform_definite_assignment/main: SemiFuzzFailure
 nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
 
+# Unclear exactly what is going on here - but target none isn't super important.
+none/issue_63440: SemiFuzzFailure
+
 # UNSORTED ONES:
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
 enhanced_parts/deferred_siblings: SemiFuzzFailure

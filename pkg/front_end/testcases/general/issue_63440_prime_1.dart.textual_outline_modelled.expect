@@ -1,0 +1,8 @@
+class MA = Object with M;
+
+mixin M {
+  late final int c;
+  void set c(int _) {}
+}
+
+void hello() {}

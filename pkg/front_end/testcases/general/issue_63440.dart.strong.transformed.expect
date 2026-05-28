@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  final field core::int c = 1;
+  set c(wildcard core::int _#wc0#formal) → void {}
+}
+class MA extends core::Object implements self::M /*isEliminatedMixin*/  {
+  final field core::int c = 1;
+  synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  set c(core::int _#wc0#formal) → void {}
+}
+static method hello() → void {
+  new self::MA::•().{self::MA::c} = 42;
+}
