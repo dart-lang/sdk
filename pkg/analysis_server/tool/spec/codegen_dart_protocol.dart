@@ -107,7 +107,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /// notifications, etc.
   final Map<String, ImpliedType> impliedTypes;
 
-  CodegenProtocolVisitor(
+  new(
     this.packageName,
     this.responseRequiresRequestTime,
     this.clientUriConverterKind,
@@ -1345,7 +1345,7 @@ class FromJsonFunction extends FromJsonCode {
 
   final String? castType;
 
-  FromJsonFunction(this.asClosure, {this.castType});
+  new(this.asClosure, {this.castType});
 
   @override
   bool get isIdentity => false;
@@ -1358,7 +1358,7 @@ class FromJsonFunction extends FromJsonCode {
 
 /// Representation of FromJsonCode for the identity transformation.
 class FromJsonIdentity extends FromJsonSnippet {
-  FromJsonIdentity() : super((String jsonPath, String json) => json);
+  new() : super((String jsonPath, String json) => json);
 
   @override
   bool get isIdentity => true;
@@ -1370,7 +1370,7 @@ class FromJsonSnippet extends FromJsonCode {
   /// of the [jsonPath] and [json] variables are known.
   final FromJsonSnippetCallback callback;
 
-  FromJsonSnippet(this.callback);
+  new(this.callback);
 
   @override
   String get asClosure =>
@@ -1402,7 +1402,7 @@ class ToJsonFunction extends ToJsonCode {
   @override
   final String asClosure;
 
-  ToJsonFunction(this.asClosure);
+  new(this.asClosure);
 
   @override
   bool get isIdentity => false;
@@ -1413,7 +1413,7 @@ class ToJsonFunction extends ToJsonCode {
 
 /// Representation of FromJsonCode for the identity transformation.
 class ToJsonIdentity extends ToJsonSnippet {
-  ToJsonIdentity(String type) : super(type, (String value) => value);
+  new(String type) : super(type, (String value) => value);
 
   @override
   bool get isIdentity => true;
@@ -1428,7 +1428,7 @@ class ToJsonSnippet extends ToJsonCode {
   /// Dart type of the [value] variable.
   final String type;
 
-  ToJsonSnippet(this.type, this.callback);
+  new(this.type, this.callback);
 
   @override
   String get asClosure => '($type value) => ${callback('value')}';

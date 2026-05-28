@@ -103,7 +103,7 @@ class PubspecEdit {
   /// The full new SDK constraint text after the edit is applied.
   final String newConstraint;
 
-  PubspecEdit({
+  new({
     required this.offset,
     required this.length,
     required this.replacement,

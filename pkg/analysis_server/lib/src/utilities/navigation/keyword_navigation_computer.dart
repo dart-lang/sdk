@@ -14,7 +14,7 @@ class KeywordNavigationComputer {
   final NavigationCollector collector;
   final LibraryFragment libraryFrament;
 
-  KeywordNavigationComputer(this.collector, this.libraryFrament);
+  new(this.collector, this.libraryFrament);
 
   void compute(AstNode? node) {
     if (node is! Statement) return;

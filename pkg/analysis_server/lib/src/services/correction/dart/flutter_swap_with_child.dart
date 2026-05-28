@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
-  FlutterParentAndChild({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -154,7 +154,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
 }
 
 class FlutterSwapWithChild extends FlutterParentAndChild {
-  FlutterSwapWithChild({required super.context});
+  new({required super.context});
 
   @override
   AssistKind get assistKind => DartAssistKind.flutterSwapWithChild;

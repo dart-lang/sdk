@@ -11,7 +11,7 @@ import '../benchmarks.dart';
 import 'utils.dart';
 
 abstract class AbstractCmdLineBenchmark extends Benchmark {
-  AbstractCmdLineBenchmark(super.id, super.description, {required super.kind});
+  new(super.id, super.description, {required super.kind});
 
   @override
   int get maxIterations => 3;
@@ -112,7 +112,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
 }
 
 class CmdLineOneProjectBenchmark extends AbstractCmdLineBenchmark {
-  CmdLineOneProjectBenchmark()
+  new()
     : super(
         'dart-analyze-one-project',
         'Run dart analyze on one project with and without a cache',
@@ -128,7 +128,7 @@ class CmdLineOneProjectBenchmark extends AbstractCmdLineBenchmark {
 }
 
 class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {
-  CmdLineSeveralProjectsBenchmark()
+  new()
     : super(
         'dart-analyze-several-projects',
         'Run dart analyze on several projects with and without a cache',
@@ -155,7 +155,7 @@ class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {
 class CmdLineSmallFileBenchmark extends AbstractCmdLineBenchmark {
   Directory? _tempDir;
 
-  CmdLineSmallFileBenchmark()
+  new()
     : super(
         'dart-analyze-small-file',
         'Run dart analyze on a small file with and without a cache',

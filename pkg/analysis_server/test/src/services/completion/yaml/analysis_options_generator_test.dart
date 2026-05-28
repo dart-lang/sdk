@@ -356,7 +356,7 @@ class InternalRule extends AnalysisRule {
     uniqueName: 'LintCode.internal_rule',
   );
 
-  InternalRule()
+  new()
     : super(
         name: 'internal_lint',
         state: RuleState.internal(),

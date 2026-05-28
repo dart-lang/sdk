@@ -17,8 +17,7 @@ const _desc =
     r'Avoid defining a one-member abstract class when a simple function will do.';
 
 class OneMemberAbstracts extends AnalysisRule {
-  OneMemberAbstracts()
-    : super(name: LintNames.one_member_abstracts, description: _desc);
+  new() : super(name: LintNames.one_member_abstracts, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.oneMemberAbstracts;
@@ -36,7 +35,7 @@ class OneMemberAbstracts extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 
 class ExceptionsPage extends DiagnosticPageWithNav {
-  ExceptionsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'exceptions',

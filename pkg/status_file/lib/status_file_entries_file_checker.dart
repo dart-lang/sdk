@@ -25,7 +25,7 @@ bool isNonExistingEntry(Uri statusFileUri, StatusEntry entry) {
   for (var regexp in [
     _underscoreTestEnd,
     _underscoreTestDotDart,
-    _underscoreTestSlash
+    _underscoreTestSlash,
   ]) {
     var matches = regexp.allMatches(entry.path);
     if (matches.length == 1) {

@@ -13,19 +13,18 @@ class AddAwait extends ResolvedCorrectionProducer {
   /// The kind of correction to be made.
   final _CorrectionKind _correctionKind;
 
-  AddAwait.argumentType({required super.context})
-    : _correctionKind = .argumentType;
+  new argumentType({required super.context}) : _correctionKind = .argumentType;
 
-  AddAwait.assignment({required super.context})
+  new assignment({required super.context})
     : _correctionKind = .invalidAssignment;
 
-  AddAwait.forIn({required super.context}) : _correctionKind = .forIn;
+  new forIn({required super.context}) : _correctionKind = .forIn;
 
-  AddAwait.nonBool({required super.context}) : _correctionKind = .nonBool;
+  new nonBool({required super.context}) : _correctionKind = .nonBool;
 
-  AddAwait.return_({required super.context}) : _correctionKind = .return_;
+  new return_({required super.context}) : _correctionKind = .return_;
 
-  AddAwait.unawaited({required super.context}) : _correctionKind = .unawaited;
+  new unawaited({required super.context}) : _correctionKind = .unawaited;
 
   @override
   CorrectionApplicability get applicability =>

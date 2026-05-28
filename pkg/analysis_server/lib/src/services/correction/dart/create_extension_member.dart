@@ -23,7 +23,7 @@ import 'package:collection/collection.dart';
 class CreateExtensionGetter extends _CreateExtensionMember {
   String _getterName = '';
 
-  CreateExtensionGetter({required super.context});
+  new({required super.context});
 
   @override
   List<String> get fixArguments => [_getterName];
@@ -151,7 +151,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
 class CreateExtensionMethod extends _CreateExtensionMember {
   String _methodName = '';
 
-  CreateExtensionMethod({required super.context});
+  new({required super.context});
 
   @override
   List<String> get fixArguments => [_methodName];
@@ -336,7 +336,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 class CreateExtensionOperator extends _CreateExtensionMember {
   String _operator = '';
 
-  CreateExtensionOperator({required super.context});
+  new({required super.context});
 
   @override
   List<String>? get fixArguments => [_operator];
@@ -496,7 +496,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
 class CreateExtensionSetter extends _CreateExtensionMember {
   String _setterName = '';
 
-  CreateExtensionSetter({required super.context});
+  new({required super.context});
 
   @override
   List<String> get fixArguments => [_setterName];
@@ -615,7 +615,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
 }
 
 abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
-  _CreateExtensionMember({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability {

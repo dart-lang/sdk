@@ -37,7 +37,7 @@ class LspClientCodeLensConfiguration {
   final bool? _boolean;
   final Map<String, Object?>? _map;
 
-  LspClientCodeLensConfiguration(Object? userPreference)
+  new(Object? userPreference)
     : _boolean = userPreference is bool ? userPreference : null,
       _map = userPreference is Map<String, Object?> ? userPreference : null;
 
@@ -92,7 +92,7 @@ class LspClientConfiguration {
   /// client (in WorkspaceFolder URIs) for consistent comparisons.
   final _trailingSlashPattern = RegExp(r'[\/]+$');
 
-  LspClientConfiguration(this.pathContext);
+  new(this.pathContext);
 
   /// Returns the global configuration for the whole workspace.
   LspGlobalClientConfiguration get global => _globalSettings;
@@ -200,7 +200,7 @@ class LspClientInlayHintsConfiguration {
   late bool _typeArguments;
   late bool _variableTypes;
 
-  LspClientInlayHintsConfiguration(Object? userPreference) {
+  new(Object? userPreference) {
     var map = userPreference is Map<String, Object?> ? userPreference : null;
     var boolean = userPreference is bool ? userPreference : null;
 
@@ -275,8 +275,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
     _settings['inlayHints'],
   );
 
-  LspGlobalClientConfiguration(Map<String, Object?> settings)
-    : super(settings, null);
+  new(Map<String, Object?> settings) : super(settings, null);
 
   List<String> get analysisExcludedFolders {
     // This setting is documented as a string array, but because editors are
@@ -374,7 +373,7 @@ class LspResourceClientConfiguration {
   final Map<String, Object?> _settings;
   final LspResourceClientConfiguration? _fallback;
 
-  LspResourceClientConfiguration(this._settings, this._fallback);
+  new(this._settings, this._fallback);
 
   /// Whether to enable the SDK formatter.
   ///

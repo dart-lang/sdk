@@ -23,7 +23,7 @@ final class DtdMessage extends ScheduledMessage {
   /// The object used to gather performance data.
   final OperationPerformanceImpl performance;
 
-  DtdMessage({
+  new({
     required this.message,
     required this.responseCompleter,
     required this.performance,
@@ -42,7 +42,7 @@ final class LegacyMessage extends ScheduledMessage {
   /// request.
   CancelableToken? cancellationToken;
 
-  LegacyMessage({required this.request, this.cancellationToken});
+  new({required this.request, this.cancellationToken});
 
   @override
   String get id => 'legacy:${request.method}';
@@ -57,7 +57,7 @@ final class LspMessage extends ScheduledMessage {
   /// request.
   CancelableToken? cancellationToken;
 
-  LspMessage({required this.message, this.cancellationToken});
+  new({required this.message, this.cancellationToken});
 
   @override
   String get id {
@@ -93,7 +93,7 @@ final class WatcherMessage extends ScheduledMessage {
   /// The event that was received.
   final WatchEvent event;
 
-  WatcherMessage(this.event);
+  new(this.event);
 
   @override
   String get id => 'watch:${event.type} ${event.path}';

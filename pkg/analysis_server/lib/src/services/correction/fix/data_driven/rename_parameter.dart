@@ -20,7 +20,7 @@ class RenameParameter extends Change<_Data> {
 
   /// Initialize a newly created transform to describe a renaming of a parameter
   /// from the [oldName] to the [newName].
-  RenameParameter({required this.newName, required this.oldName});
+  new({required this.newName, required this.oldName});
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -101,12 +101,12 @@ class RenameParameter extends Change<_Data> {
 
 /// The data returned from `validate`.
 abstract class _Data {
-  const _Data();
+  const new();
 }
 
 /// The data returned when the change doesn't apply.
 class _IgnoredData extends _Data {
-  const _IgnoredData();
+  const new();
 }
 
 /// The data returned when updating an invocation site.
@@ -115,7 +115,7 @@ class _InvocationData extends _Data {
   final Token nameToken;
 
   /// Initialize newly created data about an invocation site.
-  _InvocationData(this.nameToken);
+  new(this.nameToken);
 }
 
 /// The data returned when updating an override site.
@@ -124,7 +124,7 @@ class _OverrideData extends _Data {
   final MethodDeclaration methodDeclaration;
 
   /// Initialize newly created data about an override site.
-  _OverrideData(this.methodDeclaration);
+  new(this.methodDeclaration);
 }
 
 extension on MethodDeclaration {

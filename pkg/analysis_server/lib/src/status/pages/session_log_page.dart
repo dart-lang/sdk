@@ -12,7 +12,7 @@ import 'package:analysis_server/src/status/pages.dart';
 class SessionLogPage extends DiagnosticPageWithNav implements PostablePage {
   static const _captureFormId = 'capture-entries';
 
-  SessionLogPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'session-log',

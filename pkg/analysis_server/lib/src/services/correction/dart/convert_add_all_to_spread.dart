@@ -22,7 +22,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
   final MethodInvocation? _invocation;
 
-  factory ConvertAddAllToSpread({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ConvertAddAllToSpread._(
         context: context,
@@ -61,7 +61,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     );
   }
 
-  ConvertAddAllToSpread._({
+  new _({
     required super.context,
     required this._invocation,
     required this._isInlineInvocation,

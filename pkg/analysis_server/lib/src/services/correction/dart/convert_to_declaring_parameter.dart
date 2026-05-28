@@ -21,7 +21,7 @@ typedef _RefactorData = ({
 });
 
 class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
-  ConvertToDeclaringParameter({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -447,7 +447,7 @@ class _UsageFinder extends RecursiveAstVisitor<void> {
   final ConstructorFieldInitializer initializer;
   bool hasUsage = false;
 
-  _UsageFinder(this.element, this.initializer);
+  new(this.element, this.initializer);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

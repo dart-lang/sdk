@@ -19,7 +19,7 @@ class DartUnitSignatureComputer {
   final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  DartUnitSignatureComputer(
+  new(
     DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
     this._offset, {
@@ -162,7 +162,7 @@ class SignatureInformation {
   /// name will not be returned.
   final int? activeParameterIndex;
 
-  SignatureInformation({
+  new({
     required this.name,
     required this.parameters,
     required this.argumentList,

@@ -17,8 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
 class PreferRelativeImports extends AnalysisRule {
-  PreferRelativeImports()
-    : super(name: LintNames.prefer_relative_imports, description: _desc);
+  new() : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferRelativeImports;
@@ -48,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final Uri sourceUri;
   final RuleContext context;
 
-  _Visitor(this.rule, this.sourceUri, this.context);
+  new(this.rule, this.sourceUri, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
     if (node.libraryImport?.uri case DirectiveUriWithSource importedLibrary) {

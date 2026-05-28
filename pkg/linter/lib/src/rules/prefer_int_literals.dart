@@ -16,8 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = 'Prefer int literals over double literals.';
 
 class PreferIntLiterals extends AnalysisRule {
-  PreferIntLiterals()
-    : super(name: LintNames.prefer_int_literals, description: _desc);
+  new() : super(name: LintNames.prefer_int_literals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferIntLiterals;
@@ -34,7 +33,7 @@ class PreferIntLiterals extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   /// Determine if the given literal can be replaced by an int literal.
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {

@@ -21,7 +21,7 @@ class ConditionalChangesSelector implements ChangesSelector {
 
   /// Initialize a newly created conditional changes selector with the changes
   /// in the [changeMap].
-  ConditionalChangesSelector(this.changeMap);
+  new(this.changeMap);
 
   @override
   List<Change<Object>>? getChanges(TemplateContext context) {
@@ -42,7 +42,7 @@ class UnconditionalChangesSelector implements ChangesSelector {
 
   /// Initialize a newly created changes selector to return the given list of
   /// [changes].
-  UnconditionalChangesSelector(this.changes);
+  new(this.changes);
 
   @override
   List<Change<Object>> getChanges(TemplateContext context) {

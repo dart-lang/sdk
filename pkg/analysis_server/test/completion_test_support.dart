@@ -133,7 +133,7 @@ class LocationSpec {
   List<String> negativeResults = <String>[];
   late String source;
 
-  LocationSpec(this.id);
+  new(this.id);
 
   /// Parse a set of tests from the given `originalSource`. Return a list of the
   /// specifications that were parsed.

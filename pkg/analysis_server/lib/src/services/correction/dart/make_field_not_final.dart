@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class MakeFieldNotFinal extends ResolvedCorrectionProducer {
   String _fieldName = '';
 
-  MakeFieldNotFinal({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

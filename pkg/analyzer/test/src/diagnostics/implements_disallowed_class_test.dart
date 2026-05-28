@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementsDisallowedClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -134,20 +135,10 @@ class A implements String {}
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_String_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 augment class A implements String {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.implementsDisallowedClass, 45, 6),
-    ]);
   }
 
   test_class_String_num() async {

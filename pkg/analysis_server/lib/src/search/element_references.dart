@@ -13,7 +13,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 class ElementReferencesComputer {
   final SearchEngine searchEngine;
 
-  ElementReferencesComputer(this.searchEngine);
+  new(this.searchEngine);
 
   /// Computes [SearchMatch]es for [element] references.
   Future<List<SearchMatch>> compute(

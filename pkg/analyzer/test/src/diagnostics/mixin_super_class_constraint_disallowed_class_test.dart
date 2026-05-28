@@ -45,18 +45,10 @@ MixinOnClause
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_in_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
 augment mixin A on int {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
   }
 
   test_int() async {

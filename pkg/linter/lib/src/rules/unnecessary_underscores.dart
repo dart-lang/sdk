@@ -20,8 +20,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Unnecessary underscores can be removed.';
 
 class UnnecessaryUnderscores extends AnalysisRule {
-  UnnecessaryUnderscores()
-    : super(name: LintNames.unnecessary_underscores, description: _desc);
+  new() : super(name: LintNames.unnecessary_underscores, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryUnderscores;
@@ -41,7 +40,7 @@ class UnnecessaryUnderscores extends AnalysisRule {
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final Set<Element> referencedElements = <Element>{};
 
-  _BodyVisitor();
+  new();
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -52,7 +51,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFormalParameterList(FormalParameterList node) {

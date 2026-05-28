@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
-  FlutterConvertToStatelessWidget({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -325,11 +325,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
 
   List<SourceEdit> edits = [];
 
-  _ReplacementEditBuilder(
-    this.widgetClassElement,
-    this.elementsToMove,
-    this.linesRange,
-  );
+  new(this.widgetClassElement, this.elementsToMove, this.linesRange);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -411,7 +407,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   ClassElement widgetClassElement;
   ClassElement stateClassElement;
 
-  _StateUsageVisitor(this.widgetClassElement, this.stateClassElement);
+  new(this.widgetClassElement, this.stateClassElement);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

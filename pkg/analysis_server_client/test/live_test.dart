@@ -37,7 +37,7 @@ class TestHandler with NotificationHandler, ConnectionHandler {
   @override
   final Server server;
 
-  TestHandler(this.server);
+  new(this.server);
 }
 
 class TestListener with ServerListener {

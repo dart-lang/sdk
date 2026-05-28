@@ -992,7 +992,7 @@ class _NodesCollector extends UnifyingAstVisitor<void> {
   final bool Function(AstNode) filter;
   final List<AstNode> _nodes = [];
 
-  _NodesCollector(this.filter);
+  new(this.filter);
 
   @override
   void visitNode(AstNode node) {

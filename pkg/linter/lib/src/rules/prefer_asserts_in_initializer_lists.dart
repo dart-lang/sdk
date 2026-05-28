@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer putting asserts in initializer lists.';
 
 class PreferAssertsInInitializerLists extends AnalysisRule {
-  PreferAssertsInInitializerLists()
+  new()
     : super(
         name: LintNames.prefer_asserts_in_initializer_lists,
         description: _desc,
@@ -44,7 +44,7 @@ class _AssertVisitor extends RecursiveAstVisitor<void> {
 
   bool needInstance = false;
 
-  _AssertVisitor(this.constructorElement, this.classAndSuperClasses);
+  new(this.constructorElement, this.classAndSuperClasses);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -104,7 +104,7 @@ class _ClassAndSuperClasses {
   final ClassElement? element;
   final Set<InterfaceElement> _classes = {};
 
-  _ClassAndSuperClasses(this.element);
+  new(this.element);
 
   /// The [element] and its super classes, including mixins.
   Set<InterfaceElement> get classes {
@@ -130,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _ClassAndSuperClasses? _classAndSuperClasses;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

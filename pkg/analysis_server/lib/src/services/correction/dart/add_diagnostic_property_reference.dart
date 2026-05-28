@@ -19,7 +19,7 @@ import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/lint_names.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
-  AddDiagnosticPropertyReference({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -454,7 +454,7 @@ class _PropertyInfo {
   final String constructorName;
   final TypeAnnotation? declType;
 
-  _PropertyInfo(
+  new(
     this.name,
     this.type,
     this.constructorId,

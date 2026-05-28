@@ -23,7 +23,7 @@ abstract class YamlCompletionGenerator {
 
   /// Initialize a newly created generator to use the [resourceProvider] to
   /// access the content of the file in which completion was requested.
-  YamlCompletionGenerator(this.resourceProvider, this.pubPackageService);
+  new(this.resourceProvider, this.pubPackageService);
 
   /// Return the producer used to produce suggestions at the top-level of the
   /// file.
@@ -220,14 +220,14 @@ class YamlCompletionResults {
   final int replacementOffset;
   final int replacementLength;
 
-  const YamlCompletionResults(
+  const new(
     this.suggestions,
     this.targetPrefix,
     this.replacementOffset,
     this.replacementLength,
   );
 
-  const YamlCompletionResults.empty()
+  const new empty()
     : suggestions = const [],
       targetPrefix = '',
       replacementOffset = 0,

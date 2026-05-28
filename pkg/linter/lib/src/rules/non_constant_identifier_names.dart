@@ -19,7 +19,7 @@ import '../utils.dart';
 const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
 class NonConstantIdentifierNames extends AnalysisRule {
-  NonConstantIdentifierNames()
+  new()
     : super(name: LintNames.non_constant_identifier_names, description: _desc);
 
   @override
@@ -51,7 +51,7 @@ class NonConstantIdentifierNames extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void checkIdentifier(Token? id, {bool underscoresOk = false}) {
     if (id == null) {

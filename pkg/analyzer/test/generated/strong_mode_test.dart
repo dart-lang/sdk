@@ -6,6 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -68,37 +71,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   late final AsserterBuilder<Element, DartType> _hasElement;
 
   @override
-  Future<TestResolvedUnitResult> resolveTestFile() async {
-    var result = await super.resolveTestFile();
-
-    var assertions = _assertions;
-    if (assertions == null) {
-      var typeProvider = result.typeProvider;
-      assertions = _assertions = TypeAssertions(typeProvider);
-      _isType = assertions.isType;
-      _hasElement = assertions.hasElement;
-      _isInstantiationOf = assertions.isInstantiationOf;
-      _isInt = assertions.isInt;
-      _isNever = assertions.isNever;
-      _isNull = assertions.isNull;
-      _isNum = assertions.isNum;
-      _isObject = assertions.isObject;
-      _isString = assertions.isString;
-      _isDynamic = assertions.isDynamic;
-      _isInvalidType = assertions.isInvalidType;
-      _isListOf = assertions.isListOf;
-      _isMapOf = assertions.isMapOf;
-      _isFunction2Of = assertions.isFunction2Of;
-      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
-      _isFutureOrOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureOrElement),
-      );
-      _isFutureOfDynamic = _isFutureOf([_isDynamic]);
-      _isFutureOfInt = _isFutureOf([_isInt]);
-      _isFutureOfNull = _isFutureOf([_isNull]);
-      _isFutureOrOfInt = _isFutureOrOf([_isInt]);
-    }
-
+  Future<ResolvedUnitResultImpl> resolveFile(File file) async {
+    var result = await super.resolveFile(file);
+    _initAssertions(result.typeProvider);
     return result;
   }
 
@@ -3595,6 +3570,35 @@ class B<T2, U2> {
       errorMessage, // Print the literal error message for easy copy+paste:
       reason: 'Actual error did not match expected error:\n$actual',
     );
+  }
+
+  void _initAssertions(TypeProvider typeProvider) {
+    var assertions = _assertions;
+    if (assertions == null) {
+      assertions = _assertions = TypeAssertions(typeProvider);
+      _isType = assertions.isType;
+      _hasElement = assertions.hasElement;
+      _isInstantiationOf = assertions.isInstantiationOf;
+      _isInt = assertions.isInt;
+      _isNever = assertions.isNever;
+      _isNull = assertions.isNull;
+      _isNum = assertions.isNum;
+      _isObject = assertions.isObject;
+      _isString = assertions.isString;
+      _isDynamic = assertions.isDynamic;
+      _isInvalidType = assertions.isInvalidType;
+      _isListOf = assertions.isListOf;
+      _isMapOf = assertions.isMapOf;
+      _isFunction2Of = assertions.isFunction2Of;
+      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
+      _isFutureOrOf = _isInstantiationOf(
+        _hasElement(typeProvider.futureOrElement),
+      );
+      _isFutureOfDynamic = _isFutureOf([_isDynamic]);
+      _isFutureOfInt = _isFutureOf([_isInt]);
+      _isFutureOfNull = _isFutureOf([_isNull]);
+      _isFutureOrOfInt = _isFutureOrOf([_isInt]);
+    }
   }
 
   /// Helper method for testing `FutureOr<T>`.

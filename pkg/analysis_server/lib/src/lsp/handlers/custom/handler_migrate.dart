@@ -17,7 +17,7 @@ import 'package:yaml/yaml.dart';
 
 class MigrateHandler
     extends SharedMessageHandler<DartMigrateParams, DartMigrateResult> {
-  MigrateHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.migrate;
@@ -198,6 +198,6 @@ class _PubspecTarget {
   /// name in `pubspec.yaml`, or the parent directory name as a fallback.
   final String displayName;
 
-  _PubspecTarget({required this.file, required YamlMap pubspec})
+  new({required this.file, required YamlMap pubspec})
     : displayName = (pubspec['name'] as String?) ?? file.parent.shortName;
 }

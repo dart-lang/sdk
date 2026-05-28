@@ -20,7 +20,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'DO reference all public properties in debug methods.';
 
 class DiagnosticDescribeAllProperties extends AnalysisRule {
-  DiagnosticDescribeAllProperties()
+  new()
     : super(
         name: LintNames.diagnostic_describe_all_properties,
         description: _desc,
@@ -41,7 +41,7 @@ class DiagnosticDescribeAllProperties extends AnalysisRule {
 
 class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   final List<Token> properties;
-  _IdentifierVisitor(this.properties);
+  new(this.properties);
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
@@ -70,7 +70,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void removeReferences(MethodDeclaration? method, List<Token> properties) {
     method?.body.accept(_IdentifierVisitor(properties));

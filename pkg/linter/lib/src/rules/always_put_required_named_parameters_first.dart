@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Put required named parameters first.';
 
 class AlwaysPutRequiredNamedParametersFirst extends AnalysisRule {
-  AlwaysPutRequiredNamedParametersFirst()
+  new()
     : super(
         name: LintNames.always_put_required_named_parameters_first,
         description: _desc,
@@ -38,7 +38,7 @@ class AlwaysPutRequiredNamedParametersFirst extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFormalParameterList(FormalParameterList node) {

@@ -29,7 +29,7 @@ void main() {
 class _VerifyTests {
   final String testDirPath;
 
-  _VerifyTests(this.testDirPath);
+  new(this.testDirPath);
 
   String get testAllFileName => 'all.dart';
 

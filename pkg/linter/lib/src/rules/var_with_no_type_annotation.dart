@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid declaring parameters with `var` and no type annotation.';
 
 class VarWithNoTypeAnnotation extends AnalysisRule {
-  VarWithNoTypeAnnotation()
+  new()
     : super(name: LintNames.var_with_no_type_annotation, description: _desc);
 
   @override
@@ -36,7 +36,7 @@ class VarWithNoTypeAnnotation extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFormalParameterList(FormalParameterList node) {

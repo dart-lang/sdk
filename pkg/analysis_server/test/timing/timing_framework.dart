@@ -21,7 +21,7 @@ class TimingResult {
   List<int> times;
 
   /// Initialize a newly created timing result.
-  TimingResult(this.times);
+  new(this.times);
 
   /// The average amount of time spent executing a single iteration, in
   /// milliseconds.

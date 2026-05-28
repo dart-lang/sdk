@@ -17,9 +17,9 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
   String _memberName = '';
   final _Type _type;
 
-  ConvertIntoGetter({required super.context}) : _type = _Type.base;
+  new({required super.context}) : _type = _Type.base;
 
-  ConvertIntoGetter.this_({required super.context}) : _type = _Type.this_;
+  new this_({required super.context}) : _type = _Type.this_;
 
   @override
   CorrectionApplicability get applicability =>

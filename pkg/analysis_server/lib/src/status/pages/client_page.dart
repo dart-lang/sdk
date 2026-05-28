@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/status/diagnostics.dart';
 
 class ClientPage extends DiagnosticPageWithNav {
-  ClientPage(super.site, [super.id = 'client', super.title = 'Client'])
+  new(super.site, [super.id = 'client', super.title = 'Client'])
     : super(description: 'Information about the client.');
 
   @override

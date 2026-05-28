@@ -29,11 +29,11 @@ class ErrorMap {
       HashMap<String, List<AnalysisError>>();
 
   /// Initialize a newly created error map.
-  ErrorMap();
+  new();
 
   /// Initialize a newly created error map to contain the same mapping as the
   /// given [errorMap].
-  ErrorMap.from(ErrorMap errorMap) {
+  new from(ErrorMap errorMap) {
     pathMap.addAll(errorMap.pathMap);
   }
 
@@ -67,7 +67,7 @@ class RequestData {
   Completer<Response>? _responseCompleter;
 
   /// Initialize a newly created set of request data.
-  RequestData(this.id, this.method, this.params, this.requestTime);
+  new(this.id, this.method, this.params, this.requestTime);
 
   /// Return the number of milliseconds that elapsed between the request and the
   /// response. This getter assumes that the response was received.
@@ -160,7 +160,7 @@ class Server {
   ///
   /// If a [logger] is provided, the communications between the client (this
   /// test) and the server will be written to it.
-  Server({this.logger});
+  new({this.logger});
 
   /// Return a future that will complete when a 'server.status' notification is
   /// received from the server with 'analyzing' set to false.

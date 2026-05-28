@@ -27,11 +27,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   final CorrectionUtils utils;
   final GetterElement element;
 
-  ConvertGetterToMethodRefactoringImpl(
-    this.workspace,
-    this.resolvedUnit,
-    this.element,
-  ) : searchEngine = workspace.searchEngine,
+  new(this.workspace, this.resolvedUnit, this.element)
+    : searchEngine = workspace.searchEngine,
       utils = CorrectionUtils(resolvedUnit);
 
   @override

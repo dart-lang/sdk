@@ -18,10 +18,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   final _Kind _kind;
 
-  RemoveTypeAnnotation.fixVarAndType({required super.context})
-    : _kind = _Kind.fixVarAndType;
+  new fixVarAndType({required super.context}) : _kind = _Kind.fixVarAndType;
 
-  RemoveTypeAnnotation.other({required super.context}) : _kind = _Kind.other;
+  new other({required super.context}) : _kind = _Kind.other;
 
   @override
   CorrectionApplicability get applicability =>

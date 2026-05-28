@@ -26,7 +26,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   @override
   Stream<Notification> notificationStream;
 
-  factory ByteStreamClientChannel(Stream<List<int>> input, IOSink output) {
+  factory(Stream<List<int>> input, IOSink output) {
     var jsonStream = input
         .transform(const Utf8Decoder())
         .transform(LineSplitter())
@@ -51,11 +51,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
     );
   }
 
-  ByteStreamClientChannel._(
-    this.output,
-    this.responseStream,
-    this.notificationStream,
-  );
+  new _(this.output, this.responseStream, this.notificationStream);
 
   @override
   Future<void> close() {
@@ -102,7 +98,7 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     ),
   );
 
-  ByteStreamServerChannel(
+  new(
     this._instrumentationService,
     this._sessionLogger, {
     this._requestStatistics,
@@ -258,7 +254,7 @@ class InputOutputByteStreamServerChannel extends ByteStreamServerChannel {
       .transform(const Utf8Decoder())
       .transform(const LineSplitter());
 
-  InputOutputByteStreamServerChannel(
+  new(
     this._input,
     this._output,
     super._instrumentationService,
@@ -281,7 +277,7 @@ class StdinStdoutLineStreamServerChannel extends ByteStreamServerChannel {
   @override
   late final Stream<String> _lines = _linesFromIsolate.cast();
 
-  StdinStdoutLineStreamServerChannel(
+  new(
     super._instrumentationService,
     super._sessionLogger, {
     super.requestStatistics,

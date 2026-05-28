@@ -29,7 +29,7 @@ Set<FormalParameterElement> _referencedParameters(FunctionBody? body) {
 }
 
 class UseSuperParameters extends MultiAnalysisRule {
-  UseSuperParameters()
+  new()
     : super(
         name: LintNames.use_super_parameters,
         description: _desc,
@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final RuleContext context;
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   void check(
     SourceRange errorRange,

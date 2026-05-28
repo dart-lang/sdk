@@ -1253,6 +1253,152 @@ enum AnalysisService {
   String toJson({ClientUriConverter? clientUriConverter}) => name;
 }
 
+/// analysis.setAnalysisRoots params
+///
+///     {
+///       "included": List<FilePath>
+///       "excluded": List<FilePath>
+///     }
+///
+/// Clients may not extend, implement or mix-in this class.
+class AnalysisSetAnalysisRootsParams implements RequestParams {
+  /// A list of the files and directories that should be analyzed.
+  List<String> included;
+
+  /// A list of the files and directories within the included directories that
+  /// should not be analyzed.
+  List<String> excluded;
+
+  AnalysisSetAnalysisRootsParams(this.included, this.excluded);
+
+  factory AnalysisSetAnalysisRootsParams.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is! Map) {
+      throw jsonDecoder.mismatch(
+        jsonPath,
+        "'analysis.setAnalysisRoots params'",
+        json,
+      );
+    }
+    List<String> included;
+    if (json case {'included': var encodedIncluded}) {
+      included = jsonDecoder.decodeList(
+        '$jsonPath.included',
+        encodedIncluded,
+        (String jsonPath, Object? json) =>
+            clientUriConverter?.fromClientFilePath(
+              jsonDecoder.decodeString(jsonPath, json),
+            ) ??
+            jsonDecoder.decodeString(jsonPath, json),
+      );
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'included'", json);
+    }
+    List<String> excluded;
+    if (json case {'excluded': var encodedExcluded}) {
+      excluded = jsonDecoder.decodeList(
+        '$jsonPath.excluded',
+        encodedExcluded,
+        (String jsonPath, Object? json) =>
+            clientUriConverter?.fromClientFilePath(
+              jsonDecoder.decodeString(jsonPath, json),
+            ) ??
+            jsonDecoder.decodeString(jsonPath, json),
+      );
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'excluded'", json);
+    }
+    return AnalysisSetAnalysisRootsParams(included, excluded);
+  }
+
+  factory AnalysisSetAnalysisRootsParams.fromRequest(
+    Request request, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    return AnalysisSetAnalysisRootsParams.fromJson(
+      RequestDecoder(request),
+      'params',
+      request.params,
+      clientUriConverter: clientUriConverter,
+    );
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['included'] = included
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
+    result['excluded'] = excluded
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
+    return result;
+  }
+
+  @override
+  Request toRequest(String id, {ClientUriConverter? clientUriConverter}) {
+    return Request(
+      id,
+      'analysis.setAnalysisRoots',
+      toJson(clientUriConverter: clientUriConverter),
+    );
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisSetAnalysisRootsParams) {
+      return listEqual(
+            included,
+            other.included,
+            (String a, String b) => a == b,
+          ) &&
+          listEqual(excluded, other.excluded, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(Object.hashAll(included), Object.hashAll(excluded));
+}
+
+/// analysis.setAnalysisRoots result
+///
+/// Clients may not extend, implement or mix-in this class.
+class AnalysisSetAnalysisRootsResult implements ResponseResult {
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) => {};
+
+  @override
+  Response toResponse(
+    String id,
+    int requestTime, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    return Response(id, requestTime);
+  }
+
+  @override
+  bool operator ==(other) => other is AnalysisSetAnalysisRootsResult;
+
+  @override
+  int get hashCode => 866004753;
+}
+
 /// analysis.setContextRoots params
 ///
 ///     {

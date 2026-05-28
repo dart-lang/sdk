@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingParameter extends MultiCorrectionProducer {
-  AddMissingParameter({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -66,10 +66,7 @@ class AddMissingParameter extends MultiCorrectionProducer {
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
-  _AddMissingOptionalPositionalParameter(
-    super.executableParameters, {
-    required super.context,
-  });
+  new(super.executableParameters, {required super.context});
 
   @override
   FixKind get fixKind => DartFixKind.addMissingParameterPositional;
@@ -99,7 +96,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
 abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
   final ExecutableParameters _executableParameters;
 
-  _AddMissingParameter(this._executableParameters, {required super.context});
+  new(this._executableParameters, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -175,10 +172,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
-  _AddMissingRequiredPositionalParameter(
-    super._executableParameters, {
-    required super.context,
-  });
+  new(super._executableParameters, {required super.context});
 
   @override
   FixKind get fixKind => DartFixKind.addMissingParameterRequired;

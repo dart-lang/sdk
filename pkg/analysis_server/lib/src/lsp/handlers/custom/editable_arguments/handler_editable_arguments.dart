@@ -23,7 +23,7 @@ typedef _Values = ({DartObject? parameterValue, DartObject? argumentValue});
 class EditableArgumentsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, EditableArguments?>
     with EditableArgumentsMixin {
-  EditableArgumentsHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.dartTextDocumentEditableArguments;

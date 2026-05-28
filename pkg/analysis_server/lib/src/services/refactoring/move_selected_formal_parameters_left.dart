@@ -17,7 +17,7 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
 
   static const String constTitle = 'Move selected formal parameter(s) left';
 
-  MoveSelectedFormalParametersLeft(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => true;

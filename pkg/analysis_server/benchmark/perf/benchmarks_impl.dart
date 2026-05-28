@@ -18,7 +18,7 @@ import 'memory_tests.dart';
 class AnalysisBenchmark extends Benchmark {
   final AbstractBenchmarkTest Function() testConstructor;
 
-  AnalysisBenchmark(ServerBenchmark benchmarkTest)
+  new(ServerBenchmark benchmarkTest)
     : testConstructor = benchmarkTest.testConstructor,
       super(
         benchmarkTest.id,
@@ -162,7 +162,7 @@ class AnalysisBenchmark extends Benchmark {
 class ColdAnalysisBenchmark extends Benchmark {
   final AbstractBenchmarkTest Function() testConstructor;
 
-  ColdAnalysisBenchmark(ServerBenchmark benchmarkTest)
+  new(ServerBenchmark benchmarkTest)
     : testConstructor = benchmarkTest.testConstructor,
       super(
         '${benchmarkTest.id}-cold',
@@ -222,5 +222,5 @@ class ServerBenchmark {
   final String name;
   final AbstractBenchmarkTest Function() testConstructor;
 
-  ServerBenchmark(this.id, this.name, this.testConstructor);
+  new(this.id, this.name, this.testConstructor);
 }

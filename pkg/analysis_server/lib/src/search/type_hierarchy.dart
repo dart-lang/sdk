@@ -21,7 +21,7 @@ class TypeHierarchyComputer {
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine, Element pivotElement)
+  new(this._searchEngine, Element pivotElement)
     : helper = TypeHierarchyComputerHelper.fromElement(pivotElement);
 
   /// Returns the computed type hierarchy, maybe `null`.
@@ -154,7 +154,7 @@ class TypeHierarchyComputerHelper {
   final bool pivotFieldFinal;
   final InterfaceElement? pivotClass;
 
-  TypeHierarchyComputerHelper(
+  new(
     this.pivotElement,
     this.pivotLibrary,
     this.pivotKind,
@@ -163,7 +163,7 @@ class TypeHierarchyComputerHelper {
     this.pivotClass,
   );
 
-  factory TypeHierarchyComputerHelper.fromElement(Element pivotElement) {
+  factory fromElement(Element pivotElement) {
     // try to find enclosing ClassElement
     Element? element = pivotElement;
     bool pivotFieldFinal = false;

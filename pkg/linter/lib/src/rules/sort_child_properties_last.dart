@@ -16,8 +16,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Sort child properties last in widget instance creations.';
 
 class SortChildPropertiesLast extends AnalysisRule {
-  SortChildPropertiesLast()
-    : super(name: LintNames.sort_child_properties_last, description: _desc);
+  new() : super(name: LintNames.sort_child_properties_last, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.sortChildPropertiesLast;
@@ -35,7 +34,7 @@ class SortChildPropertiesLast extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

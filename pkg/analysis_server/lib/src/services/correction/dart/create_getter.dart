@@ -20,7 +20,7 @@ import 'package:meta/meta.dart';
 /// Shared implementation that identifies what getter should be added,
 /// but delegates to the subtypes to produce the fix code.
 abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
-  CreateFieldOrGetter({required super.context});
+  new({required super.context});
 
   /// Adds the declaration that makes a [fieldName] available.
   Future<void> addForObjectPattern({
@@ -94,7 +94,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 class CreateGetter extends CreateFieldOrGetter {
   String _getterName = '';
 
-  CreateGetter({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
-  ConvertToPrimaryConstructor({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -68,13 +68,16 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
       if (constructor.constKeyword != null && !containerData.isEnum) {
         builder.addSimpleInsertion(containerData.name.offset, 'const ');
       }
-      builder.addInsertion(containerData.name.end, (builder) {
-        if (constructor.name case var name?) {
-          builder.write('.');
-          builder.write(name.lexeme);
-        }
-        builder.write(_parameterText(constructor.parameters));
-      });
+      builder.addInsertion(
+        containerData.typeParameters?.end ?? containerData.name.end,
+        (builder) {
+          if (constructor.name case var name?) {
+            builder.write('.');
+            builder.write(name.lexeme);
+          }
+          builder.write(_parameterText(constructor.parameters));
+        },
+      );
 
       // Remove the constructor that was converted.
       //
@@ -104,39 +107,24 @@ class ConvertToPrimaryConstructor extends ResolvedCorrectionProducer {
   /// Returns information about the declaration in which the [constructor] is
   /// declared.
   _ContainerData? _getContainerData(ConstructorDeclaration constructor) {
-    Token name;
-    bool hasPrimaryConstructor;
-    int nonRedirectingGenerativeConstructorCount;
-    bool isEnum = false;
-    var parent = constructor.parent;
-    switch (parent) {
-      case BlockClassBody body:
-        parent = body.parent;
-      case BlockEnumBody body:
-        parent = body.parent;
-    }
-    switch (parent) {
-      case ClassDeclaration(:var namePart):
-        name = namePart.typeName;
-        hasPrimaryConstructor = namePart is PrimaryConstructorDeclaration;
-        nonRedirectingGenerativeConstructorCount =
-            _nonRedirectingGenerativeConstructorCount(parent.classMembers);
-      case EnumDeclaration(:var namePart):
-        name = namePart.typeName;
-        hasPrimaryConstructor = namePart is PrimaryConstructorDeclaration;
-        nonRedirectingGenerativeConstructorCount =
-            _nonRedirectingGenerativeConstructorCount(parent.classMembers);
-        isEnum = true;
-      default:
-        return null;
-    }
-    return _ContainerData(
-      name: name,
-      hasPrimaryConstructor: hasPrimaryConstructor,
-      hasMultipleNonRedirectingGenerativeConstructors:
-          nonRedirectingGenerativeConstructorCount > 1,
-      isEnum: isEnum,
-    );
+    var parent = switch (constructor.parent) {
+      BlockClassBody body => body.parent,
+      BlockEnumBody body => body.parent,
+      var parent => parent,
+    };
+
+    return switch (parent) {
+      ClassDeclaration(:var namePart) ||
+      EnumDeclaration(:var namePart) => _ContainerData(
+        name: namePart.typeName,
+        typeParameters: namePart.typeParameters,
+        hasPrimaryConstructor: namePart is PrimaryConstructorDeclaration,
+        hasMultipleNonRedirectingGenerativeConstructors:
+            _nonRedirectingGenerativeConstructorCount(parent.classMembers) > 1,
+        isEnum: parent is EnumDeclaration,
+      ),
+      _ => null,
+    };
   }
 
   /// Returns the number of non-redirecting generative constructors in the list
@@ -163,6 +151,10 @@ class _ContainerData {
   /// The name of the class or enum.
   Token name;
 
+  /// The type parameters on the class or enum or `null` if the type isn't
+  /// generic.
+  TypeParameterList? typeParameters;
+
   /// Whether the class or enum already has a primary constructor.
   bool hasPrimaryConstructor;
 
@@ -173,8 +165,9 @@ class _ContainerData {
   /// Whether the container is an enum.
   bool isEnum;
 
-  _ContainerData({
+  new({
     required this.name,
+    required this.typeParameters,
     required this.hasPrimaryConstructor,
     required this.hasMultipleNonRedirectingGenerativeConstructors,
     required this.isEnum,

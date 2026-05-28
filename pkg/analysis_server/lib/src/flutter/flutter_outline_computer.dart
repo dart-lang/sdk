@@ -18,7 +18,7 @@ class FlutterOutlineComputer {
 
   final List<protocol.FlutterOutline> _depthFirstOrder = [];
 
-  FlutterOutlineComputer(this.resolvedUnit);
+  new(this.resolvedUnit);
 
   protocol.FlutterOutline compute() {
     var dartOutline = DartUnitOutlineComputer(resolvedUnit).compute();
@@ -282,7 +282,7 @@ class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
   final FlutterOutlineComputer computer;
   final List<protocol.FlutterOutline> outlines = [];
 
-  _FlutterOutlineBuilder(this.computer);
+  new(this.computer);
 
   @override
   void visitExpression(Expression node) {

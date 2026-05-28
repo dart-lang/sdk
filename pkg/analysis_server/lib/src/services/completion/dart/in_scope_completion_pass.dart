@@ -87,7 +87,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ///
   /// The flag [skipImports] is a temporary measure that will be removed after
   /// all of the suggestions are being produced by the various passes.
-  InScopeCompletionPass({
+  new({
     required this.state,
     required this.collector,
     required this.skipImports,

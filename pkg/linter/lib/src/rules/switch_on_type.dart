@@ -21,7 +21,7 @@ const _desc = "Avoid switch statements on a 'Type'.";
 const _objectToStringName = 'toString';
 
 class SwitchOnType extends AnalysisRule {
-  SwitchOnType() : super(name: LintNames.switch_on_type, description: _desc);
+  new() : super(name: LintNames.switch_on_type, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.switchOnType;
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// The node where the lint will be reported.
   late AstNode node;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   /// A reference to the [Type] type.
   ///

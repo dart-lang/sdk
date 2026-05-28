@@ -13,7 +13,7 @@ class ConvertToOnType extends ResolvedCorrectionProducer {
   @override
   final List<String> fixArguments = [];
 
-  ConvertToOnType({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

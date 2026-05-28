@@ -169,7 +169,7 @@ class FeatureComputer {
   final TypeProvider typeProvider;
 
   /// Initialize a newly created feature computer.
-  FeatureComputer(this.typeSystem, this.typeProvider);
+  new(this.typeSystem, this.typeProvider);
 
   /// Return the type imposed when completing at the given [offset], where the
   /// offset is within the given [node], or `null` if the context does not
@@ -506,7 +506,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   int offset;
 
-  _ContextTypeVisitor(this.typeProvider, this.offset);
+  new(this.typeProvider, this.offset);
 
   @override
   DartType? visitAdjacentStrings(AdjacentStrings node) {

@@ -30,7 +30,7 @@ class PackageDetailsCache {
   final Map<String, PubPackage> packages;
   DateTime lastUpdatedUtc;
 
-  PackageDetailsCache._(this.packages, DateTime lastUpdated)
+  new _(this.packages, DateTime lastUpdated)
     : lastUpdatedUtc = lastUpdated.toUtc();
 
   Duration get cacheTimeRemaining {
@@ -112,18 +112,17 @@ class PubPackage {
   String? description;
   String? latestVersion;
 
-  PubPackage.fromDetails(PubApiPackageDetails package)
+  new fromDetails(PubApiPackageDetails package)
     : packageName = package.packageName,
       description = package.description,
       latestVersion = package.latestVersion;
 
-  PubPackage.fromJson(Map<String, Object?> json)
+  new fromJson(Map<String, Object?> json)
     : packageName = json['packageName'] as String,
       description = json['description'] as String?,
       latestVersion = json['latestVersion'] as String?;
 
-  PubPackage.fromName(PubApiPackage package)
-    : packageName = package.packageName;
+  new fromName(PubApiPackage package) : packageName = package.packageName;
 
   Map<String, Object> toJson() {
     return {
@@ -169,7 +168,7 @@ class PubPackageService {
   final _pubspecPackageVersions =
       <String, Map<String, PubOutdatedPackageDetails>>{};
 
-  PubPackageService(
+  new(
     this._instrumentationService,
     this.resourceProvider,
     this._api,

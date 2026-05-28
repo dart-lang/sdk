@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/utilities/stream_string_stink.dart';
 
 class AnalysisPerformanceLogPage extends WebSocketLoggingPage {
-  AnalysisPerformanceLogPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'analysis-performance-log',

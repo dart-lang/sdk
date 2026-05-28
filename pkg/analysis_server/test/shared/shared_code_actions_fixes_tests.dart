@@ -895,7 +895,7 @@ class _DeprecatedCamelCaseTypes extends AnalysisRule {
     uniqueName: 'LintCode.camel_case_types',
   );
 
-  _DeprecatedCamelCaseTypes()
+  new()
     : super(
         name: 'camel_case_types',
         state: RuleState.deprecated(),

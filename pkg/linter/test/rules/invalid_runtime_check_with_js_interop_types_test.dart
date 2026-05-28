@@ -1447,13 +1447,13 @@ export 'dart:_js_annotations' show JS, staticInterop;
 
 /// Represents an `as` cast from a value of type [valueType] to [type].
 final class _AsCast extends _TypeTest {
-  _AsCast(super.valueType, super.type, {super.lint, super.unnecessary});
+  new(super.valueType, super.type, {super.lint, super.unnecessary});
 }
 
 /// Represents an `is` check against [type] where the value is of type
 /// [valueType].
 final class _IsCheck extends _TypeTest {
-  _IsCheck(super.valueType, super.type, {super.lint, super.unnecessary});
+  new(super.valueType, super.type, {super.lint, super.unnecessary});
 }
 
 /// Represents a type test using a runtime check.
@@ -1468,10 +1468,5 @@ abstract class _TypeTest {
   /// test should ignore the related warning.
   bool unnecessary;
 
-  _TypeTest(
-    this.valueType,
-    this.type, {
-    this.lint = true,
-    this.unnecessary = false,
-  });
+  new(this.valueType, this.type, {this.lint = true, this.unnecessary = false});
 }

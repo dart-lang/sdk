@@ -23,7 +23,7 @@ class CodeTemplate {
 
   /// Initialize a newly generated code template with the given [kind] and
   /// [components].
-  CodeTemplate(this.kind, this.components, this.requiredIfCondition);
+  new(this.kind, this.components, this.requiredIfCondition);
 
   /// Use the [context] to validate that this template will be able to generate
   /// a value.
@@ -71,11 +71,11 @@ class TemplateContext {
   final CorrectionUtils utils;
 
   /// Initialize a newly created template context with the [node] and [utils].
-  TemplateContext(this.node, this.utils);
+  new(this.node, this.utils);
 
   /// Initialize a newly created template context that uses the invocation
   /// containing the [node] and the [utils].
-  factory TemplateContext.forInvocation(AstNode node, CorrectionUtils utils) =>
+  factory forInvocation(AstNode node, CorrectionUtils utils) =>
       TemplateContext(_getInvocation(node), utils);
 
   /// Return the invocation containing the given [node]. The invocation will be
@@ -144,7 +144,7 @@ class TemplateText extends TemplateComponent {
   final String text;
 
   /// Initialize a newly create template text with the given [text].
-  TemplateText(this.text);
+  new(this.text);
 
   @override
   bool validate(TemplateContext context) {
@@ -163,7 +163,7 @@ class TemplateVariable extends TemplateComponent {
   final ValueGenerator generator;
 
   /// Initialize a newly created template variable with the given [generator].
-  TemplateVariable(this.generator);
+  new(this.generator);
 
   @override
   bool validate(TemplateContext context) {

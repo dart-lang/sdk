@@ -2,21 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InconsistentInheritanceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class InconsistentInheritanceTest extends PubPackageResolutionTest {
   test_class_augmentWithInterface_augmentWithMixin() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 part 'c.dart';
 
@@ -29,27 +35,33 @@ abstract class B {
 }
 
 abstract class C extends Object {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
+''',
+      b: r'''
 part of 'a.dart';
 
 augment abstract class C implements B {}
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+//                     ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
+''',
+      c: r'''
 part of 'a.dart';
 
 augment abstract class C with A {}
-''');
-
-    await assertErrorsInFile2(a, [error(diag.inconsistentInheritance, 122, 1)]);
-    await assertErrorsInFile2(b, [error(diag.inconsistentInheritance, 42, 1)]);
-    await assertErrorsInFile2(c, [error(diag.inconsistentInheritance, 42, 1)]);
+//                     ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
+''',
+    });
   }
 
   test_class_augmentWithMixin_augmentWithInterface() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 part 'c.dart';
 
@@ -62,23 +74,24 @@ abstract class B {
 }
 
 abstract class C extends Object {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+//             ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
+''',
+      b: r'''
 part of 'a.dart';
 
 augment abstract class C with A {}
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+//                     ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
+''',
+      c: r'''
 part of 'a.dart';
 
 augment abstract class C implements B {}
-''');
-
-    await assertErrorsInFile2(a, [error(diag.inconsistentInheritance, 122, 1)]);
-    await assertErrorsInFile2(b, [error(diag.inconsistentInheritance, 42, 1)]);
-    await assertErrorsInFile2(c, [error(diag.inconsistentInheritance, 42, 1)]);
+//                     ^
+// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
+''',
+    });
   }
 
   test_class_augmentWithMixin_sameFile() async {

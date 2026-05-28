@@ -31,7 +31,7 @@ class LibraryElementSuggestionBuilder
   /// The set of libraries that have been, or are currently being, visited.
   final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
-  factory LibraryElementSuggestionBuilder(
+  factory(
     DartCompletionRequest request,
     SuggestionBuilder builder, [
     String? prefix,
@@ -49,13 +49,7 @@ class LibraryElementSuggestionBuilder
     );
   }
 
-  LibraryElementSuggestionBuilder._(
-    this.request,
-    this.builder,
-    this.opType,
-    this.kind,
-    this.prefix,
-  );
+  new _(this.request, this.builder, this.opType, this.kind, this.prefix);
 
   @override
   void visitClassElement(ClassElement element) {

@@ -195,7 +195,7 @@ class SemanticTokenInfo {
   final SemanticTokenTypes type;
   final Set<SemanticTokenModifiers>? modifiers;
 
-  SemanticTokenInfo(this.offset, this.length, this.type, this.modifiers);
+  new(this.offset, this.length, this.type, this.modifiers);
 
   /// Sorter for semantic tokens that ensures tokens are sorted in offset order
   /// then longest first, then by priority, and finally by name. This ensures

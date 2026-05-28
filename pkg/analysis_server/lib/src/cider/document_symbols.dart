@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 class CiderDocumentSymbolsComputer {
   final FileResolver _fileResolver;
 
-  CiderDocumentSymbolsComputer(this._fileResolver);
+  new(this._fileResolver);
 
   Future<List<DocumentSymbol>> compute2(String filePath) async {
     var result = <DocumentSymbol>[];

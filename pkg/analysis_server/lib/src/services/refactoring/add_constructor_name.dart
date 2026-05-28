@@ -18,7 +18,7 @@ class AddConstructorName extends RefactoringProducer {
 
   static const String constTitle = 'Add a name to the constructor';
 
-  AddConstructorName(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;

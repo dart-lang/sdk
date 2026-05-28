@@ -14,7 +14,7 @@ class ReplaceReturnTypeIterable extends ResolvedCorrectionProducer {
   /// The text for the type argument to 'Iterable'.
   String _typeArgument = '';
 
-  ReplaceReturnTypeIterable({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

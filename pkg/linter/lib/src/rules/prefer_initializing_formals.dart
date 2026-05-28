@@ -18,7 +18,7 @@ import '../extensions.dart';
 const _desc = r'Use initializing formals when possible.';
 
 class PreferInitializingFormals extends AnalysisRule {
-  PreferInitializingFormals()
+  new()
     : super(name: LintNames.prefer_initializing_formals, description: _desc);
 
   @override
@@ -64,7 +64,7 @@ class _ConstructorChecker {
   /// surrounding library.
   final bool _privateNamedParametersEnabled;
 
-  _ConstructorChecker(
+  new(
     this._rule,
     this._constructorFragment,
     this._parameterList,
@@ -208,7 +208,7 @@ class _ReferenceCounter extends RecursiveAstVisitor<void> {
 
   int count = 0;
 
-  _ReferenceCounter(this.parameterElement);
+  new(this.parameterElement);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -222,7 +222,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule _rule;
   final RuleContext _context;
 
-  _Visitor(this._rule, this._context);
+  new(this._rule, this._context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't cast a nullable value to a non nullable type.";
 
 class CastNullableToNonNullable extends AnalysisRule {
-  CastNullableToNonNullable()
+  new()
     : super(name: LintNames.cast_nullable_to_non_nullable, description: _desc);
 
   @override
@@ -36,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitAsExpression(AsExpression node) {

@@ -11,7 +11,7 @@ class SwitchExpression extends DartSnippetProducer {
   static const prefix = 'switch';
   static const label = 'switch expression';
 
-  SwitchExpression(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

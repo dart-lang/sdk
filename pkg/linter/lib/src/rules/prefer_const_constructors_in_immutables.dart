@@ -18,7 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
 class PreferConstConstructorsInImmutables extends AnalysisRule {
-  PreferConstConstructorsInImmutables()
+  new()
     : super(
         name: LintNames.prefer_const_constructors_in_immutables,
         description: _desc,
@@ -41,7 +41,7 @@ class PreferConstConstructorsInImmutables extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

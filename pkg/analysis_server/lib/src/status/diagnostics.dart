@@ -102,7 +102,7 @@ String formatOption(String name, Object value) {
 }
 
 class AnalyticsPage extends DiagnosticPageWithNav {
-  AnalyticsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'analytics',
@@ -155,7 +155,7 @@ class CollectedOptionsData {
 abstract class DiagnosticPage extends Page {
   final DiagnosticsSite site;
 
-  DiagnosticPage(this.site, String id, String title, {super.description})
+  new(this.site, String id, String title, {super.description})
     : super(id, title);
 
   bool get isNavPage => false;
@@ -244,7 +244,7 @@ abstract class DiagnosticPage extends Page {
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
   final bool indentInNav;
 
-  DiagnosticPageWithNav(
+  new(
     super.site,
     super.id,
     super.title, {
@@ -509,8 +509,7 @@ td.pre {
   /// The last few lines printed.
   final List<String> lastPrintedLines;
 
-  DiagnosticsSite(this.socketServer, this.lastPrintedLines)
-    : super('Analysis Server') {
+  new(this.socketServer, this.lastPrintedLines) : super('Analysis Server') {
     pages.add(CommunicationsPage(this));
     pages.add(ContextsPage(this));
     pages.add(EnvironmentVariablesPage(this));
@@ -588,7 +587,7 @@ td.pre {
 /// A base class for pages that provide real-time logging over a WebSocket.
 abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
     implements WebSocketPage {
-  WebSocketLoggingPage(super.site, super.id, super.title, {super.description});
+  new(super.site, super.id, super.title, {super.description});
 
   void button(String text, {String? id, String classes = '', String? onClick}) {
     var attributes = {

@@ -21,7 +21,7 @@ class DartTypeArgumentsSignatureComputer {
   final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  DartTypeArgumentsSignatureComputer(
+  new(
     DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
     int offset,

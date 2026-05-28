@@ -18,7 +18,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 class SearchEngineImpl implements SearchEngine {
   final Iterable<AnalysisDriver> _drivers;
 
-  SearchEngineImpl(this._drivers);
+  new(this._drivers);
 
   @override
   Future<void> appendAllSubtypes(
@@ -236,7 +236,7 @@ class SearchMatchImpl implements SearchMatch {
   @override
   final SourceRange sourceRange;
 
-  SearchMatchImpl(
+  new(
     this.file,
     this.librarySource,
     this.unitSource,

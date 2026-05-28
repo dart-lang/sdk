@@ -31,7 +31,7 @@ class CodeFragmentParser {
   int currentIndex = 0;
 
   /// Initialize a newly created parser to report errors to the [diagnosticReporter].
-  CodeFragmentParser(this.diagnosticReporter, {VariableScope? scope})
+  new(this.diagnosticReporter, {VariableScope? scope})
     : variableScope = scope ?? VariableScope(null, {});
 
   /// Return the current token, or `null` if the end of the tokens has been
@@ -381,7 +381,7 @@ class _CodeFragmentScanner {
   final DiagnosticReporter _diagnosticReporter;
 
   /// Initialize a newly created scanner to scan the given [content].
-  _CodeFragmentScanner(this.content, this.delta, this._diagnosticReporter)
+  new(this.content, this.delta, this._diagnosticReporter)
     : length = content.length;
 
   /// Return the tokens in the content, or `null` if there is an error in the
@@ -507,7 +507,7 @@ class _Token {
   final String lexeme;
 
   /// Initialize a newly created token.
-  _Token(this.offset, this.kind, this.lexeme);
+  new(this.offset, this.kind, this.lexeme);
 
   /// Return the length of this token.
   int get length => lexeme.length;

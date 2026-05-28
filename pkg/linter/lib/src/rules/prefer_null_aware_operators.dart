@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer using `null`-aware operators.';
 
 class PreferNullAwareOperators extends AnalysisRule {
-  PreferNullAwareOperators()
+  new()
     : super(name: LintNames.prefer_null_aware_operators, description: _desc);
 
   @override
@@ -35,7 +35,7 @@ class PreferNullAwareOperators extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {

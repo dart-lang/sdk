@@ -18,7 +18,7 @@ class RemoveConstructorName extends RefactoringProducer {
 
   static const String constTitle = 'Remove the name from the constructor';
 
-  RemoveConstructorName(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;

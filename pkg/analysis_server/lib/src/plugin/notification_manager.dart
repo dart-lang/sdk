@@ -84,7 +84,7 @@ abstract class AbstractNotificationManager {
       StreamController.broadcast();
 
   /// Initialize a newly created notification manager.
-  AbstractNotificationManager(this._pathContext)
+  new(this._pathContext)
     : folding = ResultCollector<List<FoldingRegion>>(serverId),
       highlights = ResultCollector<List<HighlightRegion>>(serverId),
       _navigation = ResultCollector<server.AnalysisNavigationParams>(serverId),
@@ -406,7 +406,7 @@ class NotificationManager extends AbstractNotificationManager {
   final ServerCommunicationChannel _channel;
 
   /// Initialize a newly created notification manager.
-  NotificationManager(this._channel, super.pathContext);
+  new(this._channel, super.pathContext);
 
   /// Sends errors for a file to the client.
   @override

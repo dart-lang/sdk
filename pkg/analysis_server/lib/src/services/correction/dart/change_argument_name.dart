@@ -17,7 +17,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   /// replacement before the replacement is deemed to not be worth offering.
   static const _maxDistance = 4;
 
-  ChangeArgumentName({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -95,7 +95,7 @@ class _ChangeName extends ResolvedCorrectionProducer {
   /// The name to which the argument name will be changed.
   final String _proposedName;
 
-  _ChangeName(this._argumentName, this._proposedName, {required super.context});
+  new(this._argumentName, this._proposedName, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -120,5 +120,5 @@ class _NamedArgumentContext {
   final Token nameToken;
   final List<String> names;
 
-  _NamedArgumentContext(this.nameToken, this.names);
+  new(this.nameToken, this.names);
 }

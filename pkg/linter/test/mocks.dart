@@ -63,7 +63,7 @@ class MockIOSink implements IOSink {
 }
 
 class TestDiagnosticCode extends DiagnosticCodeImpl {
-  TestDiagnosticCode(
+  new(
     String name,
     String message, {
     super.type = DiagnosticType.COMPILE_TIME_ERROR,

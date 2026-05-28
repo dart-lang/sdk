@@ -20,7 +20,7 @@ void main() {
 }
 
 class _VerifyTests extends VerifyTests {
-  _VerifyTests(super.testDirPath, {super.excludedPaths});
+  new(super.testDirPath, {super.excludedPaths});
 
   @override
   bool isExpensive(Resource resource) {

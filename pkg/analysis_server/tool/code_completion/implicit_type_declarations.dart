@@ -97,7 +97,7 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
-  ImpliedTypeCollector(this.data);
+  new(this.data);
 
   void handleVariableDeclaration(VariableDeclaration node, DartType? dartType) {
     // If some untyped variable declaration
@@ -129,7 +129,7 @@ class ImpliedTypeComputer {
 
   /// Initialize a newly created metrics computer that can compute the metrics
   /// in one or more files and directories.
-  ImpliedTypeComputer();
+  new();
 
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating

@@ -77,5 +77,5 @@ class CorrectionDetails {
   bool canBeBulkApplied;
   bool hasComment;
 
-  CorrectionDetails({required this.canBeBulkApplied, required this.hasComment});
+  new({required this.canBeBulkApplied, required this.hasComment});
 }

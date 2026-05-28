@@ -16,8 +16,7 @@ import '../rules/control_flow_in_finally.dart';
 const _desc = r'Avoid `throw` in `finally` block.';
 
 class ThrowInFinally extends AnalysisRule {
-  ThrowInFinally()
-    : super(name: LintNames.throw_in_finally, description: _desc);
+  new() : super(name: LintNames.throw_in_finally, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.throwInFinally;
@@ -37,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void>
   @override
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitThrowExpression(ThrowExpression node) {

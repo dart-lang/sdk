@@ -20,7 +20,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   /// The number of the parameters missing.
   late int _missingParameters;
 
-  AddMissingRequiredArgument({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

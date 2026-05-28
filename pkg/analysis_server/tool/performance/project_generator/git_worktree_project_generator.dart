@@ -27,7 +27,7 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// sub-directories of the repo to open in the workspace.
   final Iterable<String>? openSubdirs;
 
-  GitWorktreeProjectGenerator(
+  new(
     this.originalRepo,
     this.ref, {
     this.isSdkRepo = false,

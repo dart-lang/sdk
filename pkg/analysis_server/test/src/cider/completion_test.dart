@@ -880,5 +880,5 @@ class _CompletionContext {
   final int line;
   final int character;
 
-  _CompletionContext(this.content, this.offset, this.line, this.character);
+  new(this.content, this.offset, this.line, this.character);
 }

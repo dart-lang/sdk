@@ -68,7 +68,7 @@ typedef _RequestHandlerGenerator<T extends AnalysisServer> =
 /// example, inconsistent document state between server/client) occurs and will
 /// reject all messages.
 class FailureStateMessageHandler extends ServerStateMessageHandler {
-  FailureStateMessageHandler(super.server);
+  new(super.server);
 
   @override
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
@@ -105,7 +105,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         InlayHintHandler.new,
       ];
 
-  InitializedLspStateMessageHandler(LspAnalysisServer server) : super(server) {
+  new(LspAnalysisServer server) : super(server) {
     for (var generator in lspHandlerGenerators) {
       registerHandler(generator(server));
     }
@@ -160,7 +160,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         WorkspaceSymbolHandler.new,
       ];
 
-  InitializedStateMessageHandler(AnalysisServer server) : super(server) {
+  new(AnalysisServer server) : super(server) {
     reject(
       Method.initialize,
       ServerErrorCodes.serverAlreadyInitialized,
@@ -179,10 +179,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializingStateMessageHandler extends ServerStateMessageHandler {
-  InitializingStateMessageHandler(
-    LspAnalysisServer server,
-    List<String> openWorkspacePaths,
-  ) : super(server) {
+  new(LspAnalysisServer server, List<String> openWorkspacePaths)
+    : super(server) {
     reject(
       Method.initialize,
       ServerErrorCodes.serverAlreadyInitialized,
@@ -211,7 +209,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
-  ShuttingDownStateMessageHandler(LspAnalysisServer server) : super(server) {
+  new(LspAnalysisServer server) : super(server) {
     registerHandler(ExitMessageHandler(server, clientDidCallShutdown: true));
   }
 
@@ -232,7 +230,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class UninitializedStateMessageHandler extends ServerStateMessageHandler {
-  UninitializedStateMessageHandler(LspAnalysisServer server) : super(server) {
+  new(LspAnalysisServer server) : super(server) {
     registerHandler(ShutdownMessageHandler(server));
     registerHandler(ExitMessageHandler(server));
     registerHandler(InitializeMessageHandler(server));

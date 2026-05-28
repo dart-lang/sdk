@@ -11,7 +11,7 @@ class FunctionDeclaration extends DartSnippetProducer {
   static const prefix = 'fun';
   static const label = 'fun';
 
-  FunctionDeclaration(super.request, {required super.elementImportCache});
+  new(super.request, {required super.elementImportCache});
 
   @override
   String get snippetPrefix => prefix;

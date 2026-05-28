@@ -33,8 +33,8 @@ enum ProcessId {
   final String name;
 
   /// Creates a new process with the given [name].
-  const ProcessId(this.name);
+  new(this.name);
 
   /// Returns the process with the given [name].
-  factory ProcessId.forName(String name) => _nameMap[name]!;
+  factory forName(String name) => _nameMap[name]!;
 }

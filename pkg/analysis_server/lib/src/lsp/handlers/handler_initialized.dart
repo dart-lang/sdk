@@ -10,7 +10,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 class InitializedMessageHandler
     extends LspMessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
-  InitializedMessageHandler(super.server, this.openWorkspacePaths);
+  new(super.server, this.openWorkspacePaths);
   @override
   Method get handlesMessage => Method.initialized;
 

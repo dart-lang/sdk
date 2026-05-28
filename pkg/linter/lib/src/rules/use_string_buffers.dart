@@ -27,8 +27,7 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
 class UseStringBuffers extends AnalysisRule {
-  UseStringBuffers()
-    : super(name: LintNames.use_string_buffers, description: _desc);
+  new() : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useStringBuffers;
@@ -49,7 +48,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   SimpleIdentifier identifier;
 
-  _IdentifierIsPrefixVisitor(this.rule, this.identifier);
+  new(this.rule, this.identifier);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -88,7 +87,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final localElements = <Element?>{};
 
-  _UseStringBufferVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -139,7 +138,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDoStatement(DoStatement node) {

@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid `bool` literals in conditional expressions.';
 
 class AvoidBoolLiteralsInConditionalExpressions extends AnalysisRule {
-  AvoidBoolLiteralsInConditionalExpressions()
+  new()
     : super(
         name: LintNames.avoid_bool_literals_in_conditional_expressions,
         description: _desc,
@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {

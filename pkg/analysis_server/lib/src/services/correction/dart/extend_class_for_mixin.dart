@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class ExtendClassForMixin extends ResolvedCorrectionProducer {
   String _typeName = '';
 
-  ExtendClassForMixin({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

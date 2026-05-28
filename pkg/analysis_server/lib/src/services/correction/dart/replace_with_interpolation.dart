@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithInterpolation extends ResolvedCorrectionProducer {
-  ReplaceWithInterpolation({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -186,7 +186,7 @@ class _StringStyle {
 
   final int state;
 
-  factory _StringStyle({
+  factory({
     required bool multiline,
     required bool raw,
     required bool singleQuoted,
@@ -198,7 +198,7 @@ class _StringStyle {
     );
   }
 
-  _StringStyle._(this.state);
+  new _(this.state);
 
   @override
   int get hashCode => state;

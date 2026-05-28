@@ -17,7 +17,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 /// args and when the client calls the server to execute that command, the server
 /// will call the client to execute workspace/applyEdit.
 class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
-  SendWorkspaceEditCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Send Workspace Edit';

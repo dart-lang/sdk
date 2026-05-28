@@ -3375,7 +3375,7 @@ class _Token {
   final SemanticTokenTypes type;
   final List<SemanticTokenModifiers> modifiers;
 
-  _Token(this.content, this.type, [this.modifiers = const []]);
+  new(this.content, this.type, [this.modifiers = const []]);
 
   @override
   int get hashCode => content.hashCode;

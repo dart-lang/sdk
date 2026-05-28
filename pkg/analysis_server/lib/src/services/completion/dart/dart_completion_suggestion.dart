@@ -11,7 +11,7 @@ class DartCompletionSuggestion extends CompletionSuggestion {
   final List<Uri> requiredImports;
   final String? colorHex;
 
-  DartCompletionSuggestion(
+  new(
     super.kind,
     super.relevance,
     super.completion,

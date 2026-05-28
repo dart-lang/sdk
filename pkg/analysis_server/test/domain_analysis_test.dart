@@ -2681,7 +2681,7 @@ class _NotificationPrinter {
   final ResourceProvider resourceProvider;
   final TreeStringSink sink;
 
-  _NotificationPrinter({
+  new({
     required this.configuration,
     required this.resourceProvider,
     required this.sink,

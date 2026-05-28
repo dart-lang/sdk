@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementsRepeatedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -41,22 +42,11 @@ ImplementsClause
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B implements A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
 augment class B implements A {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 46, 1)]);
   }
 
   test_class_implements_2times_viaTypeAlias() async {
@@ -126,22 +116,11 @@ ImplementsClause
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 enum E implements A {v}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
 augment enum E implements A {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 45, 1)]);
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
@@ -212,21 +191,10 @@ ImplementsClause
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
 augment extension type A implements int {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 63, 3)]);
   }
 
   test_extensionType_implements_2times_viaTypeAlias() async {
@@ -277,22 +245,11 @@ mixin M implements A, A {}
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_implements_2times_augmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M implements A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-
 augment mixin M implements A {}
 ''');
-
-    await assertErrorsInFile2(a, []);
-
-    await assertErrorsInFile2(b, [error(diag.implementsRepeated, 46, 1)]);
   }
 
   test_mixin_implements_4times() async {

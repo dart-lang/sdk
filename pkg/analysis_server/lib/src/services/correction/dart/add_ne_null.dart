@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddNeNull extends CorrectionProducerWithDiagnostic {
-  AddNeNull({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

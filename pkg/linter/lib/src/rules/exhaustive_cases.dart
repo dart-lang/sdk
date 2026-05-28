@@ -18,8 +18,7 @@ import '../extensions.dart';
 const _desc = r'Define case clauses for all constants in enum-like classes.';
 
 class ExhaustiveCases extends AnalysisRule {
-  ExhaustiveCases()
-    : super(name: LintNames.exhaustive_cases, description: _desc);
+  new() : super(name: LintNames.exhaustive_cases, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.exhaustiveCases;
@@ -37,7 +36,7 @@ class ExhaustiveCases extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitSwitchStatement(SwitchStatement statement) {

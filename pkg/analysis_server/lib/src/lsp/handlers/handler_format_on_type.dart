@@ -18,7 +18,7 @@ typedef StaticOptions = DocumentOnTypeFormattingOptions?;
 class FormatOnTypeHandler
     extends
         SharedMessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>?> {
-  FormatOnTypeHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_onTypeFormatting;
@@ -160,7 +160,7 @@ class FormatOnTypeHandler
 
 class FormatOnTypeRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  FormatOnTypeRegistrations(super.info);
+  new(super.info);
 
   bool get enableFormatter => clientConfiguration.global.enableSdkFormatter;
 

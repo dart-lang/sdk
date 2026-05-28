@@ -19,7 +19,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Avoid leading underscores for local identifiers.';
 
 class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
-  NoLeadingUnderscoresForLocalIdentifiers()
+  new()
     : super(
         name: LintNames.no_leading_underscores_for_local_identifiers,
         description: _desc,
@@ -48,7 +48,7 @@ class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void checkIdentifier(Token? id) {
     if (id == null) return;

@@ -29,12 +29,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final Map<Element, SourceRange> visibleRangeMap;
   final Set<Element> conflictingLocals = <Element>{};
 
-  ConflictValidatorVisitor(
-    this.result,
-    this.newName,
-    this.target,
-    this.visibleRangeMap,
-  );
+  new(this.result, this.newName, this.target, this.visibleRangeMap);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -124,7 +119,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   final CorrectionUtils utils;
 
-  RenameLocalRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,

@@ -16,7 +16,7 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
 
   final CorrectionUtils utils;
 
-  RenameTypeParameterRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,

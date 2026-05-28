@@ -51,7 +51,7 @@ class DartSnippetRequest {
   /// replaced if the snippet is selected.
   late final SourceRange replacementRange;
 
-  DartSnippetRequest({required ResolvedUnitResult unit, required this.offset})
+  new({required ResolvedUnitResult unit, required this.offset})
     : analysisSession = unit.session,
       typeProvider = unit.typeProvider,
       file = unit.file,
@@ -71,7 +71,7 @@ class DartSnippetRequest {
     );
   }
 
-  DartSnippetRequest.fromCompletionResult({
+  new fromCompletionResult({
     required ResolvedForCompletionResultImpl unit,
     required this.offset,
     required this.file,

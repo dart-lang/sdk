@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterRemoveWidget extends ResolvedCorrectionProducer {
-  FlutterRemoveWidget({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -171,7 +171,7 @@ class _UsageFinder extends RecursiveAstVisitor<void> {
   final Element element;
   bool used = false;
 
-  _UsageFinder(this.element);
+  new(this.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

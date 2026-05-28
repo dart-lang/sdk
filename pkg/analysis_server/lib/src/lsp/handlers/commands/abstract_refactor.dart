@@ -25,7 +25,7 @@ final _manager = LspRefactorManager._();
 abstract class AbstractRefactorCommandHandler
     extends SimpleEditCommandHandler<AnalysisServer>
     with PositionalArgCommandHandler {
-  AbstractRefactorCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Perform Refactor';
@@ -253,7 +253,7 @@ class LspRefactorManager {
   /// The cancellation token for the current in-progress refactor (or null).
   CancelableToken? _currentRefactoringCancellationToken;
 
-  LspRefactorManager._();
+  new _();
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {

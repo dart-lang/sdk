@@ -16,7 +16,7 @@ class DartUnitClosingLabelsComputer {
   final Set<ClosingLabel> hasNestingSet = {};
   final Set<ClosingLabel> isSingleLineSet = {};
 
-  DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
+  new(this._lineInfo, this._unit);
 
   /// Returns a list of closing labels, not `null`.
   List<ClosingLabel> compute() {
@@ -45,7 +45,7 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
   int interpolatedStringsEntered = 0;
   List<ClosingLabel> labelStack = [];
 
-  _DartUnitClosingLabelsComputerVisitor(this.computer);
+  new(this.computer);
 
   ClosingLabel? get _currentLabel =>
       labelStack.isEmpty ? null : labelStack.last;

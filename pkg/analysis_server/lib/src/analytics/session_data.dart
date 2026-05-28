@@ -71,7 +71,7 @@ class AnalyticsAnalysisWorkingStatistics {
   final Map<RequirementFailureKindId, int>
   libraryDiagnosticsBundleRequirementsFailures = {};
 
-  AnalyticsAnalysisWorkingStatistics({required this.withFineDependencies});
+  new({required this.withFineDependencies});
 
   void append(AnalysisStatusWorkingStatistics statistics) {
     uniqueChangedFiles.addAll(statistics.changedFiles);
@@ -134,7 +134,7 @@ class SessionData {
   final String clientVersion;
 
   /// Initialize a newly created data holder.
-  SessionData({
+  new({
     required this.startTime,
     required this.commandLineArguments,
     required this.clientId,

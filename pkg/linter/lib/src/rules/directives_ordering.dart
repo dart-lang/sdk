@@ -69,8 +69,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
     diag.directivesOrderingPackageBeforeRelative,
   ];
 
-  DirectivesOrdering()
-    : super(name: LintNames.directives_ordering, description: _desc);
+  new() : super(name: LintNames.directives_ordering, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => allCodes;
@@ -117,7 +116,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final DirectivesOrdering rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

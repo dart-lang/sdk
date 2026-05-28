@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
 class WorkspaceDidChangeConfigurationMessageHandler
     extends LspMessageHandler<DidChangeConfigurationParams, void> {
-  WorkspaceDidChangeConfigurationMessageHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.workspace_didChangeConfiguration;
@@ -36,7 +36,7 @@ class WorkspaceDidChangeConfigurationMessageHandler
 
 class WorkspaceDidChangeConfigurationRegistrations extends FeatureRegistration
     with SingleDynamicRegistration {
-  WorkspaceDidChangeConfigurationRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => null;

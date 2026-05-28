@@ -102,7 +102,7 @@ class AnalyticsManager {
 
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
-  AnalyticsManager(this.analytics) {
+  new(this.analytics) {
     if (analytics is! NoOpAnalytics) {
       periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
         _sendPeriodicData();

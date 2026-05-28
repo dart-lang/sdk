@@ -33,7 +33,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   /// True if [close] has been called.
   bool _closeRequested = false;
 
-  LspByteStreamServerChannel(
+  new(
     this._input,
     this._output,
     this._instrumentationService, {

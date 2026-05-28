@@ -20,7 +20,7 @@ final class SessionLoggerFileSink extends SessionLoggerSink {
 
   /// Initializes a newly created sink to write to the file at the given
   /// [filePath].
-  SessionLoggerFileSink(String filePath, {required this._normalizer}) {
+  new(String filePath, {required this._normalizer}) {
     _sink = io.File(filePath).openWrite();
   }
 
@@ -73,7 +73,7 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
   final LogNormalizer _normalizer;
 
   /// Initialize a newly created sink to store up to [maxBufferLength] entries.
-  SessionLoggerInMemorySink({
+  new({
     required this.maxBufferLength,
     required LogNormalizer normalizer,
     String? sessionLogFilePath,

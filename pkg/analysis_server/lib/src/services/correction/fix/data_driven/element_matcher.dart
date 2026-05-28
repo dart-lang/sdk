@@ -41,7 +41,7 @@ class ElementMatcher {
   /// Initialize a newly created matcher representing a reference to an element
   /// whose name matches the given [components] and element [kinds] in a library
   /// that imports the [importedUris].
-  ElementMatcher({
+  new({
     required this.importedUris,
     required this.components,
     required List<ElementKind> kinds,
@@ -198,7 +198,7 @@ class _MatcherBuilder {
 
   final LibraryElement libraryElement;
 
-  _MatcherBuilder(this.importedUris, this.libraryElement);
+  new(this.importedUris, this.libraryElement);
 
   void buildMatchersForNode(AstNode? node, Token? nameToken) {
     if (node is ArgumentList) {

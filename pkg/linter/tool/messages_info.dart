@@ -51,11 +51,7 @@ class CodeInfo {
   final List<TemplatePart> problemMessage;
   final List<TemplatePart>? correctionMessage;
 
-  CodeInfo(
-    this.uniqueName, {
-    required this.problemMessage,
-    this.correctionMessage,
-  });
+  new(this.uniqueName, {required this.problemMessage, this.correctionMessage});
 }
 
 class RuleInfo {
@@ -68,7 +64,7 @@ class RuleInfo {
   final String deprecatedDetails;
   final bool removed;
 
-  RuleInfo({
+  new({
     required this.name,
     required this.codes,
     required this.categories,
@@ -98,7 +94,7 @@ class _RuleBuilder {
   String? _documentation;
   String? _deprecatedDetails;
 
-  _RuleBuilder(this.sharedName);
+  new(this.sharedName);
 
   bool get _wasRemoved =>
       _states?.keys.any((key) => key == LintStateName.removed) ?? false;

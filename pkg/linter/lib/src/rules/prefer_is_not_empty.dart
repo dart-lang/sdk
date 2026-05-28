@@ -18,8 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
 class PreferIsNotEmpty extends AnalysisRule {
-  PreferIsNotEmpty()
-    : super(name: LintNames.prefer_is_not_empty, description: _desc);
+  new() : super(name: LintNames.prefer_is_not_empty, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferIsNotEmpty;
@@ -37,7 +36,7 @@ class PreferIsNotEmpty extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitPrefixExpression(PrefixExpression node) {

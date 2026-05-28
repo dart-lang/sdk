@@ -16,7 +16,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
 
   static const String constTitle = 'Convert all formal parameters to named';
 
-  ConvertAllFormalParametersToNamed(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => true;

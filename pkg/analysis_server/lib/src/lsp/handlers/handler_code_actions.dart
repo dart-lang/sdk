@@ -16,7 +16,7 @@ typedef StaticOptions = Either2<bool, CodeActionOptions>;
 class CodeActionHandler
     extends
         SharedMessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
-  CodeActionHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_codeAction;
@@ -68,7 +68,7 @@ class CodeActionHandler
 
 class CodeActionRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  CodeActionRegistrations(super.info);
+  new(super.info);
 
   bool get codeActionLiteralSupport => clientCapabilities.literalCodeActions;
 

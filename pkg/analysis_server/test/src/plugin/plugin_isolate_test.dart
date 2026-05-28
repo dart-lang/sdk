@@ -56,18 +56,22 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
 
   void test_addContextRoot() {
     var optionsFile = getFile('/pkg1/analysis_options.yaml');
-    var contextRoot1 = _newContextRoot('/pkg1', optionsFile: optionsFile);
+    var contextRoot = _newContextRoot('/pkg1', optionsFile: optionsFile);
     var session = PluginSession(pluginIsolate);
     var channel = TestServerCommunicationChannel(session);
     pluginIsolate.currentSession = session;
-    pluginIsolate.addContextRoot(contextRoot1);
-    expect(pluginIsolate.contextRoots, [contextRoot1]);
-    pluginIsolate.addContextRoot(contextRoot1);
-    expect(pluginIsolate.contextRoots, [contextRoot1]);
+    pluginIsolate.addContextRoot(contextRoot);
+    expect(pluginIsolate.contextRoots, [contextRoot]);
+    pluginIsolate.addContextRoot(contextRoot);
+    expect(pluginIsolate.contextRoots, [contextRoot]);
     var sentRequests = channel.sentRequests;
-    expect(sentRequests, hasLength(1));
-    var roots = sentRequests[0].params['roots'] as List<Map>;
-    expect(roots[0]['optionsFile'], optionsFile.path);
+    expect(sentRequests, hasLength(2));
+    expect(sentRequests[0].method, 'analysis.setContextRoots');
+    var roots1 = sentRequests[0].params['roots'] as List<Map>;
+    expect(roots1[0]['optionsFile'], optionsFile.path);
+    expect(sentRequests[1].method, 'analysis.setAnalysisRoots');
+    var roots2 = sentRequests[1].params['included'] as List<String>;
+    expect(roots2, ['/pkg1']);
   }
 
   void test_creation() {
@@ -295,7 +299,7 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   int closeCount = 0;
   List<Request> sentRequests = <Request>[];
 
-  TestServerCommunicationChannel(this.session) {
+  new(this.session) {
     session.channel = this;
   }
 

@@ -26,10 +26,15 @@ void normalizeCheck() {
   for (var file in files) {
     print("------- ${file.path} -------");
     var statusFile = StatusFile.read(file.path);
-    var statusFileOther = normalizeStatusFile(StatusFile.read(file.path),
-        deleteNonExisting: false);
-    checkSemanticallyEqual(statusFile, statusFileOther,
-        warnOnDuplicateHeader: true);
+    var statusFileOther = normalizeStatusFile(
+      StatusFile.read(file.path),
+      deleteNonExisting: false,
+    );
+    checkSemanticallyEqual(
+      statusFile,
+      statusFileOther,
+      warnOnDuplicateHeader: true,
+    );
     checkFileHeaderIntact(statusFile, statusFileOther);
     print("------- ${file.path} -------");
   }
@@ -41,8 +46,11 @@ void sanityCheck() {
     print("------- ${file.path} -------");
     var statusFile = StatusFile.read(file.path);
     var statusFileOther = StatusFile.read(file.path);
-    checkSemanticallyEqual(statusFile, statusFileOther,
-        warnOnDuplicateHeader: true);
+    checkSemanticallyEqual(
+      statusFile,
+      statusFileOther,
+      warnOnDuplicateHeader: true,
+    );
     checkFileHeaderIntact(statusFile, statusFileOther);
     print("------- ${file.path} -------");
   }
@@ -50,29 +58,40 @@ void sanityCheck() {
 
 List<FileSystemEntity> getStatusFiles() {
   var statusFiles = <FileSystemEntity>[];
-  for (var entry
-      in Directory.fromUri(statusFilePath).listSync(recursive: true)) {
+  for (var entry in Directory.fromUri(
+    statusFilePath,
+  ).listSync(recursive: true)) {
     statusFiles.add(entry);
   }
   return statusFiles;
 }
 
-void checkSemanticallyEqual(StatusFile original, StatusFile normalized,
-    {bool warnOnDuplicateHeader = false}) {
+void checkSemanticallyEqual(
+  StatusFile original,
+  StatusFile normalized, {
+  bool warnOnDuplicateHeader = false,
+}) {
   var entriesInOriginal = countEntries(original);
   var entriesInNormalized = countEntries(normalized);
   if (entriesInOriginal != entriesInNormalized) {
     print(original);
     print("==================");
     print(normalized);
-    throw Exception("The count of entries in original is "
-        "$entriesInOriginal and the count of entries in normalized is "
-        "$entriesInNormalized. Those two numbers are not the same.");
+    throw Exception(
+      "The count of entries in original is "
+      "$entriesInOriginal and the count of entries in normalized is "
+      "$entriesInNormalized. Those two numbers are not the same.",
+    );
   }
   for (var section in original.sections) {
-    section.entries.whereType<StatusEntry>().forEach((entry) =>
-        findInStatusFile(normalized, entry, section.condition.normalize(),
-            warnOnDuplicateHeader: warnOnDuplicateHeader));
+    section.entries.whereType<StatusEntry>().forEach(
+      (entry) => findInStatusFile(
+        normalized,
+        entry,
+        section.condition.normalize(),
+        warnOnDuplicateHeader: warnOnDuplicateHeader,
+      ),
+    );
   }
 }
 
@@ -83,21 +102,27 @@ int countEntries(StatusFile statusFile) {
 }
 
 void findInStatusFile(
-    StatusFile statusFile, StatusEntry entryToFind, Expression condition,
-    {bool warnOnDuplicateHeader = false}) {
+  StatusFile statusFile,
+  StatusEntry entryToFind,
+  Expression condition, {
+  bool warnOnDuplicateHeader = false,
+}) {
   int foundEntryPosition = -1;
   for (var section in statusFile.sections) {
     if (section.condition.normalize().compareTo(condition) != 0) {
       continue;
     }
     var matchingEntries = section.entries
-        .where((entry) =>
-            entry is StatusEntry &&
-            entry.path.compareTo(entryToFind.path) == 0 &&
-            listEqual(entry.expectations, entryToFind.expectations))
+        .where(
+          (entry) =>
+              entry is StatusEntry &&
+              entry.path.compareTo(entryToFind.path) == 0 &&
+              listEqual(entry.expectations, entryToFind.expectations),
+        )
         .toList();
     if (matchingEntries.isEmpty) {
-      var message = "Could not find the entry even though the section "
+      var message =
+          "Could not find the entry even though the section "
           "header matched on line number ${section.lineNumber}. Sections "
           "should be unique.";
       if (warnOnDuplicateHeader) {
@@ -106,30 +131,37 @@ void findInStatusFile(
         throw Exception(message);
       }
     } else if (matchingEntries.length == 1 && foundEntryPosition >= 0) {
-      throw Exception("The entry '$entryToFind' on line "
-          "${entryToFind.lineNumber} in section ${section.condition} was "
-          "already found in a previous section on line $foundEntryPosition.");
+      throw Exception(
+        "The entry '$entryToFind' on line "
+        "${entryToFind.lineNumber} in section ${section.condition} was "
+        "already found in a previous section on line $foundEntryPosition.",
+      );
     } else if (matchingEntries.length == 1) {
       foundEntryPosition = matchingEntries[0].lineNumber;
     } else {
-      throw Exception("The entry '$entryToFind' on line "
-          "${entryToFind.lineNumber} in section ${section.condition} on line "
-          "${section.lineNumber} had multiple matches in section.");
+      throw Exception(
+        "The entry '$entryToFind' on line "
+        "${entryToFind.lineNumber} in section ${section.condition} on line "
+        "${section.lineNumber} had multiple matches in section.",
+      );
     }
   }
   if (foundEntryPosition < 0) {
-    throw Exception("Could not find entry '$entryToFind' under the "
-        "condition $condition in the status file.");
+    throw Exception(
+      "Could not find entry '$entryToFind' under the "
+      "condition $condition in the status file.",
+    );
   }
 }
 
 void checkFileHeaderIntact(StatusFile original, StatusFile normalized) {
   var originalHeader = original.sections.first.sectionHeaderComments.toString();
-  var normalizedHeader =
-      normalized.sections.first.sectionHeaderComments.toString();
+  var normalizedHeader = normalized.sections.first.sectionHeaderComments
+      .toString();
   if (originalHeader != normalizedHeader) {
     throw Exception(
-        "File headers changed.\nExpected:\n$originalHeader\n\nActual:\n$normalizedHeader");
+      "File headers changed.\nExpected:\n$originalHeader\n\nActual:\n$normalizedHeader",
+    );
   }
 }
 

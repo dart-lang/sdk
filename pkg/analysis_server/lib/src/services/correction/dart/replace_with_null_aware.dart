@@ -17,10 +17,10 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   String _operator = '.';
   String _operatorPrefix = '?';
 
-  ReplaceWithNullAware.inChain({required super.context})
+  new inChain({required super.context})
     : _correctionKind = _CorrectionKind.inChain;
 
-  ReplaceWithNullAware.single({required super.context})
+  new single({required super.context})
     : _correctionKind = _CorrectionKind.single;
 
   @override

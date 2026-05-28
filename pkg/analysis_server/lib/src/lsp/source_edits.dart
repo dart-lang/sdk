@@ -221,7 +221,7 @@ class FileEditInformation {
   final int? selectionOffsetRelative;
   final int? selectionLength;
 
-  FileEditInformation(
+  new(
     this.doc,
     this.lineInfo,
     this.edits, {
@@ -282,7 +282,7 @@ class _MinimalEditComputer {
   /// The edits being built.
   final _edits = <TextEdit>[];
 
-  _MinimalEditComputer({
+  new({
     required ParsedUnitResult result,
     required this._lineInfo,
     required String unformatted,

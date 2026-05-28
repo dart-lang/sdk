@@ -18,8 +18,7 @@ const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
 
 class PreferVoidToNull extends AnalysisRule {
-  PreferVoidToNull()
-    : super(name: LintNames.prefer_void_to_null, description: _desc);
+  new() : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferVoidToNull;
@@ -37,7 +36,7 @@ class PreferVoidToNull extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   bool isFutureOrVoid(DartType type) {
     if (!type.isDartAsyncFutureOr) return false;

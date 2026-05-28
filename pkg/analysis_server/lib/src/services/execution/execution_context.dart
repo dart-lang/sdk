@@ -10,5 +10,5 @@ class ExecutionContext {
   final Map<String, String> contextMap = {};
 
   /// Initialize a newly created execution context.
-  ExecutionContext();
+  new();
 }

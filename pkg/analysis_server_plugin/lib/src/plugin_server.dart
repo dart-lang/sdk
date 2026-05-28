@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/dart/analysis/driver.dart';
+library;
+
 import 'dart:async';
 
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
@@ -97,6 +100,11 @@ class PluginServer {
 
   /// The map of registered features for each plugin, for namespacing purposes.
   static final registries = <String, PluginRegistryImpl>{};
+
+  /// The current subscription of [_contextCollection]'s
+  /// [AnalysisDriverScheduler.events] Stream. This must be cancelled when
+  /// [_contextCollection] is disposed.
+  StreamSubscription<Object>? _eventsSubscription;
 
   PluginServer({
     required ResourceProvider resourceProvider,
@@ -618,10 +626,15 @@ class PluginServer {
         result = await _handleAnalysisWatchEvents(params);
 
       case protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
-        var params = protocol.AnalysisSetContextRootsParams.fromRequest(
+        // This request is for legacy plugins. New plugins use
+        // `protocol.ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS`.
+        result = null;
+
+      case protocol.ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS:
+        var params = protocol.AnalysisSetAnalysisRootsParams.fromRequest(
           request,
         );
-        result = await _handleAnalysisSetContextRoots(params);
+        result = await _handleAnalysisSetAnalysisRoots(params);
 
       case protocol.ANALYSIS_REQUEST_SET_PRIORITY_FILES:
         var params = protocol.AnalysisSetPriorityFilesParams.fromRequest(
@@ -693,20 +706,24 @@ class PluginServer {
     return result.toResponse(request.id, requestTime);
   }
 
-  /// Handles an 'analysis.setContextRoots' request.
-  Future<protocol.AnalysisSetContextRootsResult> _handleAnalysisSetContextRoots(
-    protocol.AnalysisSetContextRootsParams parameters,
+  /// Handles an 'analysis.setAnalysisRoots' request.
+  Future<protocol.AnalysisSetAnalysisRootsResult>
+  _handleAnalysisSetAnalysisRoots(
+    protocol.AnalysisSetAnalysisRootsParams parameters,
   ) async {
-    var currentContextCollection = _contextCollection;
-    if (currentContextCollection != null) {
+    if (_contextCollection case var contextCollection?) {
       _contextCollection = null;
-      await currentContextCollection.dispose();
+      await contextCollection.dispose();
+    }
+    if (_eventsSubscription case var eventsSubscription?) {
+      _eventsSubscription = null;
+      await eventsSubscription.cancel();
     }
 
-    var includedPaths = parameters.roots.map((e) => e.root).toList();
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
-      includedPaths: includedPaths,
+      includedPaths: parameters.included,
+      excludedPaths: parameters.excluded,
       byteStore: _byteStore,
       sdkPath: _sdkPath,
       fileContentCache: FileContentCache(_resourceProvider),
@@ -722,7 +739,7 @@ class PluginServer {
     );
     _contextCollection = contextCollection;
     _updatePriorityFiles();
-    contextCollection.scheduler.events.listen((event) {
+    _eventsSubscription = contextCollection.scheduler.events.listen((event) {
       if (event is ResolvedUnitResult) {
         _handleResolvedUnit(event);
       } else if (event is AnalysisStatus) {
@@ -734,7 +751,8 @@ class PluginServer {
     await _analyzeAllFilesInContextCollection(
       contextCollection: contextCollection,
     );
-    return protocol.AnalysisSetContextRootsResult();
+
+    return protocol.AnalysisSetAnalysisRootsResult();
   }
 
   void _handleAnalysisStatus(AnalysisStatus status) {
@@ -843,11 +861,6 @@ class PluginServer {
     if (_contextCollection case var contextCollection?) {
       _filesBeingAnalyzed.clear();
       _filesBeingResolved.clear();
-      _channel.sendNotification(
-        protocol.PluginStatusParams(
-          analysis: protocol.AnalysisStatus(true),
-        ).toNotification(),
-      );
       await _forAnalysisContexts(contextCollection, (analysisContext) async {
         final driver = analysisContext.driver;
         for (var path in modifiedPaths) {
@@ -865,11 +878,6 @@ class PluginServer {
           protocol.AnalysisErrorsParams(path, []).toNotification(),
         );
       }
-      _channel.sendNotification(
-        protocol.PluginStatusParams(
-          analysis: protocol.AnalysisStatus(false),
-        ).toNotification(),
-      );
     }
   }
 

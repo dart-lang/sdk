@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -273,27 +272,31 @@ int y = (0 as int);
   }
 
   test_undefinedFunctionWithinFlutterCanBeIgnored() async {
-    await assertErrorsInFile('$workspaceRootPath/flutterlib/flutter.dart', '''
+    var file = getFile('$workspaceRootPath/flutter/lib/flutter.dart');
+
+    await resolveFileWithDiagnostics(file, '''
 // ignore: undefined_function
 f() => g();
-''', []);
+''');
   }
 
   test_undefinedFunctionWithinFlutterWithoutIgnore() async {
-    await assertErrorsInFile(
-      '$workspaceRootPath/flutterlib/flutter.dart',
-      '''
+    var file = getFile('$workspaceRootPath/flutter/lib/flutter.dart');
+
+    await resolveFileWithDiagnostics(file, '''
 f() => g();
-''',
-      [error(diag.undefinedFunction, 7, 1)],
-    );
+//     ^
+// [diag.undefinedFunction] The function 'g' isn't defined.
+''');
   }
 
   test_undefinedPrefixedNameWithinFlutterCanBeIgnored() async {
-    await assertErrorsInFile('$workspaceRootPath/flutterlib/flutter.dart', '''
+    var file = getFile('$workspaceRootPath/flutter/lib/flutter.dart');
+
+    await resolveFileWithDiagnostics(file, '''
 import 'dart:collection' as c;
 // ignore: undefined_prefixed_name
 f() => c.g;
-''', []);
+''');
   }
 }

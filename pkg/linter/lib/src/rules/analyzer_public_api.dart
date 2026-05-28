@@ -21,7 +21,7 @@ const _desc =
 class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
 
-  AnalyzerPublicApi()
+  new()
     : super(
         name: ruleName,
         description: _desc,
@@ -63,7 +63,7 @@ enum _ProblematicTypeUseKind {
 class _PublicImport {
   final Element? Function(String name) lookup;
 
-  _PublicImport({required this.lookup});
+  new({required this.lookup});
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Cache for [_isPubliclyImported].
   Map<Element, bool> _isImportedMemo = Map.identity();
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

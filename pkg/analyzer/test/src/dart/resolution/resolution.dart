@@ -130,26 +130,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return result;
   }
 
-  Future<ResolvedUnitResult> assertErrorsInFile(
-    String path,
-    String content,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var file = newFile(path, content);
-    var result = await resolveFile(file);
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-
-    return result;
-  }
-
-  Future<void> assertErrorsInFile2(
-    File file,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var result = await resolveFile(file);
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-  }
-
   void assertErrorsInList(
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -414,6 +394,65 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return resolveFile2(file);
   }
 
+  /// Writes all [filesToCode], resolves each file, and checks that each file's
+  /// inline diagnostic markers match its diagnostics.
+  ///
+  /// All files are written before any file is resolved. This supports tests
+  /// where resolving one file cleanly requires related files to already exist,
+  /// such as a library with its parts.
+  Future<Map<File, TestResolvedUnitResult>> resolveFilesWithDiagnostics(
+    Map<File, String> filesToCode,
+  ) async {
+    var files = <({File file, String code, String cleanCode})>[];
+
+    for (var entry in filesToCode.entries) {
+      var cleanCode = removeDiagnosticExpectations(entry.value);
+      modifyFile2(entry.key, cleanCode);
+      files.add((file: entry.key, code: entry.value, cleanCode: cleanCode));
+    }
+
+    var results = <File, TestResolvedUnitResult>{};
+    var diagnosticsByFile = <File, List<Diagnostic>>{};
+
+    for (var file in files) {
+      var result = await resolveFile2(file.file);
+      results[file.file] = result;
+      diagnosticsByFile[file.file] = result.diagnostics;
+    }
+
+    var actualCodeByFile = updateExpectedDiagnosticsForFiles(
+      contentByFile: {for (var file in files) file.file: file.cleanCode},
+      actualDiagnosticsByFile: diagnosticsByFile,
+    );
+
+    var hasMismatch = false;
+    for (var index = 0; index < files.length; index++) {
+      var file = files[index];
+      var actual = actualCodeByFile[file.file]!;
+      if (actual != file.code) {
+        NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
+        print('-------- ${file.file.path} --------');
+        printPrettyDiff(file.code, actual);
+        hasMismatch = true;
+      }
+    }
+
+    if (hasMismatch) {
+      fail('See the difference above.');
+    }
+
+    return results;
+  }
+
+  /// Writes [code] to [file], resolves it, and checks that its inline
+  /// diagnostic markers match its diagnostics.
+  Future<TestResolvedUnitResult> resolveFileWithDiagnostics(
+    File file,
+    String code,
+  ) async {
+    return await _resolveFileWithDiagnostics(file, code);
+  }
+
   /// Put the [code] into the test file, and resolve it.
   Future<TestResolvedUnitResult> resolveTestCode(String code) {
     addTestFile(code);
@@ -425,21 +464,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<TestResolvedUnitResult> resolveTestCodeWithDiagnostics(
     String code,
   ) async {
-    var cleanCode = removeDiagnosticExpectations(code);
-    addTestFile(cleanCode);
-    var result = await resolveTestFile();
-
-    var actual = updateExpectedDiagnostics(
-      content: cleanCode,
-      actualDiagnostics: result.diagnostics,
-    );
-    if (actual != code) {
-      NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(code, actual);
-      fail('See the difference above.');
-    }
-
-    return result;
+    return await _resolveFileWithDiagnostics(testFile, code);
   }
 
   Future<TestResolvedUnitResult> resolveTestFile() {
@@ -479,6 +504,27 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
 
     return buffer.toString();
+  }
+
+  Future<TestResolvedUnitResult> _resolveFileWithDiagnostics(
+    File file,
+    String code,
+  ) async {
+    var cleanCode = removeDiagnosticExpectations(code);
+    modifyFile2(file, cleanCode);
+    var result = await resolveFile2(file);
+
+    var actual = updateExpectedDiagnostics(
+      content: cleanCode,
+      actualDiagnostics: result.diagnostics,
+    );
+    if (actual != code) {
+      NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(code, actual);
+      fail('See the difference above.');
+    }
+
+    return result;
   }
 }
 

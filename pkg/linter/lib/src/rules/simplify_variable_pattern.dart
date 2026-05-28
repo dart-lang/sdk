@@ -19,8 +19,7 @@ import '../diagnostic.dart' as diag;
 const _desc = 'Avoid unnecessary member names in variable patterns.';
 
 class SimplifyVariablePattern extends AnalysisRule {
-  SimplifyVariablePattern()
-    : super(name: LintNames.simplify_variable_pattern, description: _desc);
+  new() : super(name: LintNames.simplify_variable_pattern, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.simplifyVariablePattern;
@@ -41,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitPatternField(PatternField node) {

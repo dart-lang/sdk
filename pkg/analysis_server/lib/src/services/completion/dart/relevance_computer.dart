@@ -50,7 +50,7 @@ class RelevanceComputer {
   /// requested.
   String? completionLocation;
 
-  RelevanceComputer(this.request, this.listener, {required this.targetPrefix})
+  new(this.request, this.listener, {required this.targetPrefix})
     : featureComputer = request.featureComputer;
 
   /// Return the name of the member containing the completion location, or

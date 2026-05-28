@@ -382,7 +382,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
-  LegacyAnalysisServer(
+  new(
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
@@ -1228,7 +1228,7 @@ class ServerContextManagerCallbacks
   @override
   final LegacyAnalysisServer analysisServer;
 
-  ServerContextManagerCallbacks(this.analysisServer, super.resourceProvider);
+  new(this.analysisServer, super.resourceProvider);
 
   AbstractNotificationManager get _notificationManager =>
       analysisServer.notificationManager;
@@ -1401,7 +1401,7 @@ class ServerException {
   final StackTrace stackTrace;
   final bool fatal;
 
-  ServerException(this.message, this.exception, this.stackTrace, this.fatal);
+  new(this.message, this.exception, this.stackTrace, this.fatal);
 
   @override
   String toString() => message;

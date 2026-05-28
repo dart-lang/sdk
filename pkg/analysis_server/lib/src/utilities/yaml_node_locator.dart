@@ -19,7 +19,7 @@ class YamlNodeLocator {
   ///
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
-  YamlNodeLocator({required int start, int? end})
+  new({required int start, int? end})
     : _startOffset = start,
       _endOffset = end ?? start;
 

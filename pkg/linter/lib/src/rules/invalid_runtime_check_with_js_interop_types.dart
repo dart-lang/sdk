@@ -205,7 +205,7 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
   bool _hasInteropType = false;
   final _visitedTypes = <DartType>{};
 
-  InteropTypeChecker() : super(includeTypeAliasArguments: false);
+  new() : super(includeTypeAliasArguments: false);
 
   bool hasInteropType(DartType type) {
     _hasInteropType = false;
@@ -229,7 +229,7 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
 }
 
 class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
-  InvalidRuntimeCheckWithJSInteropTypes()
+  new()
     : super(
         name: LintNames.invalid_runtime_check_with_js_interop_types,
         description: _desc,
@@ -276,7 +276,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       EraseNonJSInteropTypes();
   final InteropTypeChecker interopTypeChecker = InteropTypeChecker();
 
-  _Visitor(this.rule, TypeSystem typeSystem)
+  new(this.rule, TypeSystem typeSystem)
     : typeSystem = typeSystem as TypeSystemImpl;
 
   /// Determines if a type test from [leftType] to [rightType] is a valid test

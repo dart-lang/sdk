@@ -21,8 +21,7 @@ const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
 
 class PreferFinalLocals extends AnalysisRule {
-  PreferFinalLocals()
-    : super(name: LintNames.prefer_final_locals, description: _desc);
+  new() : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferFinalLocals;
@@ -61,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final String currentFilePath;
 
-  _Visitor(this.rule, {required this.currentFilePath});
+  new(this.rule, {required this.currentFilePath});
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {

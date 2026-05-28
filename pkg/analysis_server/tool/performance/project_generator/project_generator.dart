@@ -119,7 +119,7 @@ class ContextRoot {
   /// The package config for this context root.
   final PackageConfig packageConfig;
 
-  ContextRoot(this.dir, this.packageConfig);
+  new(this.dir, this.packageConfig);
 }
 
 /// A [ProjectGenerator] represents a reproducible way to create a pristine
@@ -161,7 +161,7 @@ class Workspace {
   /// These correspond directly to the `workspaceFolder` entries in LSP.
   final Iterable<Directory> workspaceDirectories;
 
-  Workspace({
+  new({
     required this.contextRoots,
     required this.workspaceDirectories,
     Iterable<Directory>? rootDirectories,

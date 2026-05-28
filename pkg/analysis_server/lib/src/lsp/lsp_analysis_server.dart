@@ -132,7 +132,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
-  LspAnalysisServer(
+  new(
     this.channel,
     ResourceProvider baseResourceProvider,
     AnalysisServerOptions options,
@@ -1249,12 +1249,11 @@ class LspInitializationOptions {
   /// Dart-Code, this flag can also be removed here for future SDKs.
   final bool useInEditorDartFixPrompt;
 
-  factory LspInitializationOptions(Object? options) =>
-      LspInitializationOptions._(
-        options is Map<String, Object?> ? options : const {},
-      );
+  factory(Object? options) => LspInitializationOptions._(
+    options is Map<String, Object?> ? options : const {},
+  );
 
-  LspInitializationOptions._(Map<String, Object?> options)
+  new _(Map<String, Object?> options)
     : raw = options,
       appHost = options['appHost'] as String?,
       remoteName = options['remoteName'] as String?,
@@ -1279,7 +1278,7 @@ class LspServerContextManagerCallbacks
   @override
   final LspAnalysisServer analysisServer;
 
-  LspServerContextManagerCallbacks(this.analysisServer, super.resourceProvider);
+  new(this.analysisServer, super.resourceProvider);
 
   @override
   void afterContextsCreated() {

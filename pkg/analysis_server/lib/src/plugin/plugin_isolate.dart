@@ -60,7 +60,7 @@ class PluginIsolate {
 
   /// The context roots that are currently using the results produced by the
   /// plugin.
-  Set<analyzer.ContextRoot> contextRoots = HashSet<analyzer.ContextRoot>();
+  final Set<analyzer.ContextRoot> contextRoots = {};
 
   /// A mapping of each plugin's name to the list of [print] messages which have
   /// been sent by the plugin.
@@ -74,7 +74,11 @@ class PluginIsolate {
 
   bool isLegacy;
 
-  PluginIsolate(
+  /// The analysis roots which have been specified by the client. These may be
+  /// subdirectories of the context roots.
+  AnalysisSetAnalysisRootsParams? _analysisRoots;
+
+  new(
     this._path,
     this.executionPath,
     this.packageConfigPath,
@@ -207,6 +211,12 @@ class PluginIsolate {
     currentSession?.sendRequest(params);
   }
 
+  /// Sets the analysis roots, which may be subdirectories of the context roots.
+  void setAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
+    _analysisRoots = params;
+    _updatePluginRoots();
+  }
+
   /// Starts a new isolate that is running the plugin.
   ///
   /// Returns the [PluginSession] used to interact with the plugin, or `null` if
@@ -253,7 +263,7 @@ class PluginIsolate {
       AnalysisSetContextRootsParams(
         contextRoots
             .map(
-              (analyzer.ContextRoot contextRoot) => ContextRoot(
+              (contextRoot) => ContextRoot(
                 contextRoot.root.path,
                 contextRoot.excludedPaths.toList(),
                 optionsFile: contextRoot.optionsFile?.path,
@@ -262,6 +272,18 @@ class PluginIsolate {
             .toList(),
       ),
     );
+
+    // If analysis roots have been set by the client, send an
+    // `analysis.setAnalysisRoots` request to the plugin. But if not, go ahead
+    // and send this request using the context roots. New plugins only respect
+    // the `analysis.setAnalysisRoots` request, and not the
+    // `analysis.setContextRoots` request.
+    var analysisRoots =
+        _analysisRoots ??
+        AnalysisSetAnalysisRootsParams([
+          for (var contextRoot in contextRoots) contextRoot.root.path,
+        ], []);
+    sendRequest(analysisRoots);
   }
 }
 
@@ -308,7 +330,7 @@ class PluginSession {
   /// plugin.
   String? _version;
 
-  PluginSession(this._isolate);
+  new(this._isolate);
 
   /// The next request ID, encoded as a string.
   ///
@@ -531,5 +553,5 @@ class _PendingRequest {
   final Completer<Response> completer;
 
   /// Initialize a pending request.
-  _PendingRequest(this.method, this.requestTime, this.completer);
+  new(this.method, this.requestTime, this.completer);
 }

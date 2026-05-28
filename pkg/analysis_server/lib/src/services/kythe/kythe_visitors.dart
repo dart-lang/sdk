@@ -114,7 +114,7 @@ class CiderKytheHelper {
   final String corpus;
   final ResourceProvider resourceProvider;
 
-  CiderKytheHelper(this.resourceProvider, this.corpus, this.sdkRootPath);
+  new(this.resourceProvider, this.corpus, this.sdkRootPath);
 
   /// Returns a URI that can be used to query Kythe.
   String toKytheUri(Element e) {
@@ -149,7 +149,7 @@ class _KytheVName {
   final String path;
   final String signature;
 
-  _KytheVName({required this.path, required this.signature});
+  new({required this.path, required this.signature});
 }
 
 /// An objects that builds up a string signature for an element.

@@ -147,7 +147,7 @@ String _toTitleCase(String str) {
 class ApiMappings extends HierarchicalApiVisitor {
   Map<dom.Element, Domain> domains = <dom.Element, Domain>{};
 
-  ApiMappings(super.api);
+  new(super.api);
 
   @override
   void visitDomain(Domain domain) {
@@ -221,7 +221,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /// Mappings from HTML elements to API nodes.
   ApiMappings apiMappings;
 
-  ToHtmlVisitor(super.api) : apiMappings = ApiMappings(api) {
+  new(super.api) : apiMappings = ApiMappings(api) {
     apiMappings.visitApi();
   }
 
@@ -739,7 +739,7 @@ class TypeVisitor extends HierarchicalApiVisitor
   /// objects are shown as simply "object", and enums are shown as "String".
   final bool short;
 
-  TypeVisitor(super.api, {this.fieldsToBold = const {}, this.short = false});
+  new(super.api, {this.fieldsToBold = const {}, this.short = false});
 
   @override
   void visitTypeEnum(TypeEnum typeEnum) {

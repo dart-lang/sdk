@@ -72,12 +72,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// and [_method] parameters.
   final List<_Parameter> _parameters = [];
 
-  ExtractWidgetRefactoringImpl(
-    this.searchEngine,
-    this.resolveResult,
-    this.offset,
-    this.length,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session),
+  new(this.searchEngine, this.resolveResult, this.offset, this.length)
+    : sessionHelper = AnalysisSessionHelper(resolveResult.session),
       utils = CorrectionUtils(resolveResult);
 
   @override
@@ -608,7 +604,7 @@ class _MethodInvocationsCollector extends RecursiveAstVisitor<void> {
   final ExecutableElement methodElement;
   final List<MethodInvocation> invocations = [];
 
-  _MethodInvocationsCollector(this.methodElement);
+  new(this.methodElement);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -637,7 +633,7 @@ class _Parameter {
   /// constructor. If the [name] is already public, then the [name].
   late String constructorName;
 
-  _Parameter(
+  new(
     this.name,
     this.type, {
     this.isMethodParameter = false,
@@ -655,7 +651,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   List<InterfaceElement>? enclosingClasses;
 
-  _ParametersCollector(this.enclosingClass, this.expressionRange);
+  new(this.enclosingClass, this.expressionRange);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

@@ -10,7 +10,7 @@ import 'dart:io';
 class ProcessRunner {
   final Map<String, String>? environment;
 
-  const ProcessRunner({this.environment});
+  const new({this.environment});
 
   ProcessResult runSync(
     String executable,

@@ -34,12 +34,8 @@ class ImportOrganizer {
 
   bool hasUnresolvedIdentifierError = false;
 
-  ImportOrganizer(
-    this.initialCode,
-    this.unit,
-    this.diagnostics, {
-    this.removeUnused = true,
-  }) : code = initialCode {
+  new(this.initialCode, this.unit, this.diagnostics, {this.removeUnused = true})
+    : code = initialCode {
     endOfLine = getEOL(code);
     hasUnresolvedIdentifierError = diagnostics.any(
       (d) => d.diagnosticCode.isUnresolvedIdentifier,
@@ -380,7 +376,7 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// The text excluding comments, documentation and annotations.
   final String text;
 
-  _DirectiveInfo(
+  new(
     this.directive,
     this.priority,
     this.uri,

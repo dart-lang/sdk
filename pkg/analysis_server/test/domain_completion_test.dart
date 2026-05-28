@@ -2296,7 +2296,7 @@ class RequestWithFutureResponse {
   final Request request;
   final Future<Response> futureResponse;
 
-  RequestWithFutureResponse(this.offset, this.request, this.futureResponse);
+  new(this.offset, this.request, this.futureResponse);
 
   Future<CompletionResponseForTesting> toResponse() async {
     var response = await futureResponse;
@@ -2325,7 +2325,7 @@ class _SuggestionDetailsPrinter {
 
   String _indent = '';
 
-  _SuggestionDetailsPrinter({
+  new({
     required this.buffer,
     required this.result,
     required this.resourceProvider,

@@ -75,7 +75,7 @@ class PropertyDescription {
   /// Otherwise `null`.
   _EdgeInsetsProperty? _edgeInsetsProperty;
 
-  PropertyDescription({
+  new({
     this.parent,
     required this.resolvedUnit,
     this.classDescription,
@@ -402,7 +402,7 @@ class VirtualContainerProperty {
   /// the new `Container` creation during its materialization.
   NamedArgument? _parentArgumentToMove;
 
-  VirtualContainerProperty(this.containerElement, this.widgetCreation);
+  new(this.containerElement, this.widgetCreation);
 
   void setParentCreation(
     InstanceCreationExpression parentCreation,
@@ -435,7 +435,7 @@ class _EdgeInsetsProperty {
   PropertyDescription? rightProperty;
   PropertyDescription? bottomProperty;
 
-  _EdgeInsetsProperty(this.classEdgeInsets, this.property);
+  new(this.classEdgeInsets, this.property);
 
   void addNested() {
     Expression? leftExpression;

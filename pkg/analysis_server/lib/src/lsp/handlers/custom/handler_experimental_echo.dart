@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 /// This handler is used by the servers automated tests but can also be used for
 /// client testing (if they opt-in to experimental handlers).
 class ExperimentalEchoHandler extends SharedMessageHandler<Object?, Object?> {
-  ExperimentalEchoHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.experimentalEcho;

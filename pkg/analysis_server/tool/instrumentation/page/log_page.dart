@@ -36,7 +36,7 @@ class LogPage extends PageWriter {
 
   /// Initialize a newly created writer to write the content of the given
   /// [instrumentationLog].
-  LogPage(this.log);
+  new(this.log);
 
   /// Return the encoding for the given [pluginId] that is used to build
   /// anchors.

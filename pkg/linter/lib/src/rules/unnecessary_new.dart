@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Unnecessary new keyword.';
 
 class UnnecessaryNew extends AnalysisRule {
-  UnnecessaryNew() : super(name: LintNames.unnecessary_new, description: _desc);
+  new() : super(name: LintNames.unnecessary_new, description: _desc);
 
   @override
   bool get canUseParsedResult => true;
@@ -36,7 +36,7 @@ class UnnecessaryNew extends AnalysisRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

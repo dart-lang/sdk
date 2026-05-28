@@ -3900,24 +3900,22 @@ set f(int value) {}
   }
 
   test_topLevel_setter_setter_inPart() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-set f(int value) {}
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    await resolveFilesWithDiagnostics({
+      testFile: r'''
 part 'a.dart';
 set f(int value) {}
-''');
-
-    await assertErrorsInFile2(a, [
-      error(
-        diag.duplicateDefinition,
-        25,
-        1,
-        contextMessages: [message(testFile, 19, 1)],
-      ),
-    ]);
+//  ^
+// [context 1] The first definition of this name.
+''',
+      a: r'''
+part of 'test.dart';
+set f(int value) {}
+//  ^
+// [diag.duplicateDefinition][context 1] The name 'f=' is already defined.
+''',
+    });
   }
 
   test_typeParameters_class() async {

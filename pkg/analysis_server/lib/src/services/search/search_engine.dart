@@ -67,7 +67,7 @@ enum MatchKind {
 
   final bool isReference;
 
-  const MatchKind({this.isReference = false});
+  new({this.isReference = false});
 
   @override
   String toString() => name;

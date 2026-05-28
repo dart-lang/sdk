@@ -191,7 +191,7 @@ class _AnalysisServerClient {
 
   final Map<String, _RequestMetadata> _requestMetadata = {};
 
-  _AnalysisServerClient(this.sdkPath, this.analysisRoots);
+  new(this.sdkPath, this.analysisRoots);
 
   /// Completes when we next receive an analysis finished event (unless there's
   /// no current analysis and we've already received a complete event, in which
@@ -484,7 +484,7 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
 
   final metrics = CompletionMetrics();
 
-  _CompletionClientMetricsComputer(super.rootPath, super.options, this.client);
+  new(super.rootPath, super.options, this.client);
 
   @override
   Future<void> applyOverlay(
@@ -582,7 +582,7 @@ class _RequestError {
 
   final String message;
   final String stackTrace;
-  _RequestError(this.code, this.message, {required this.stackTrace});
+  new(this.code, this.message, {required this.stackTrace});
 
   @override
   String toString() => '[RequestError code: $code, message: $message]';
@@ -611,7 +611,7 @@ class _RequestMetadata {
   /// The duration of deserializing a response, in milliseconds.
   late final int deserializeDuration;
 
-  _RequestMetadata(this.startMilliseconds);
+  new(this.startMilliseconds);
 
   /// The duration of time between sending a completion request and receiving a
   /// completion response, not including the time to decode the response.
@@ -627,9 +627,9 @@ class _Sdk {
   /// Path to SDK directory.
   final String sdkPath;
 
-  factory _Sdk() => _instance;
+  factory() => _instance;
 
-  _Sdk._(this.sdkPath);
+  new _(this.sdkPath);
 
   String get analysisServerSnapshot => path.absolute(
     sdkPath,
@@ -682,5 +682,5 @@ class _SuggestionsData {
   final CompletionGetSuggestions2Result result;
   final _RequestMetadata metadata;
 
-  _SuggestionsData(this.result, this.metadata);
+  new(this.result, this.metadata);
 }

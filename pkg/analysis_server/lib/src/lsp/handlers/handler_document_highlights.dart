@@ -17,7 +17,7 @@ class DocumentHighlightsHandler
           TextDocumentPositionParams,
           List<DocumentHighlight>
         > {
-  DocumentHighlightsHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentHighlight;
 
@@ -69,7 +69,7 @@ class DocumentHighlightsHandler
 
 class DocumentHighlightsRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  DocumentHighlightsRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>

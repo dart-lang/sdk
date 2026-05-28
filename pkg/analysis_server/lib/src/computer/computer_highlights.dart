@@ -46,7 +46,7 @@ class DartUnitHighlightsComputer {
   ///
   /// If [range] is supplied, tokens outside of this range will not be included
   /// in results.
-  DartUnitHighlightsComputer(this._unit, {this.range});
+  new(this._unit, {this.range});
 
   /// Returns the computed highlight regions, not `null`.
   List<HighlightRegion> compute() {
@@ -736,7 +736,7 @@ class DartUnitHighlightsComputer {
 class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitHighlightsComputer computer;
 
-  _DartUnitHighlightsComputerVisitor(this.computer);
+  new(this.computer);
 
   @override
   void visitAnnotation(Annotation node) {
