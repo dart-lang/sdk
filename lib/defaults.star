@@ -37,6 +37,7 @@ _JAMMY = {"os": "Ubuntu-22"}
 _NOBLE = {"os": "Ubuntu-24"}
 _RESOLUTE = {"os": "Ubuntu-26"}
 _WINDOWS = {"os": "Windows"}
+_SAFARI_17_6 = {"safari": "Safari-17.6"}
 
 _FLUTTER_POOL = {"pool": "luci.flutter.prod"}
 _EXPERIMENTAL = {"host_class": "experimental"}
@@ -58,6 +59,7 @@ mac = _MAC
 noble = _NOBLE
 resolute = _RESOLUTE
 windows = _WINDOWS
+safari_17_6 = _SAFARI_17_6
 
 # Properties
 

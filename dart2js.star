@@ -12,6 +12,7 @@ load(
     "chrome",
     "firefox",
     "mac",
+    "safari_17_6",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -79,5 +80,5 @@ dart.ci_sandbox_builder(
 dart.ci_sandbox_builder(
     "dart2js-mac-safari",
     category = "dart2js|safari|m",
-    dimensions = [arm64, mac],
+    dimensions = [arm64, mac, safari_17_6],
 )
