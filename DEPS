@@ -134,7 +134,6 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "9c96bfe5f091c9451eff5b59c9bffeb2e806b875",
   "core_rev": "be0b1531c445a185d3e93887b8d0355fc766c314",
   "dartdoc_rev": "77a52b6125ce8cc8a88a8a399d80701254e43838",
   "ecosystem_rev": "319ff812d463fc194999a0d4b682097450279332",
@@ -338,8 +337,6 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
-  Var("dart_root") + "/third_party/pkg/ai":
-      Var("dart_git") + "ai.git" + "@" + Var("ai_rev"),
   Var("dart_root") + "/third_party/pkg/core":
       Var("dart_git") + "core.git" + "@" + Var("core_rev"),
   Var("dart_root") + "/third_party/pkg/dart_style":
