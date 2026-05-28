@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -64,13 +63,12 @@ class NonBoolNegationExpressionWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_negation() async {
-    await assertErrorsWithStrictCasts(
-      r'''
+    await assertTestCodeWithStrictCastsDiagnostics(r'''
 void f(dynamic a) {
   !a;
+// ^
+// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
 }
-''',
-      [error(diag.nonBoolNegationExpression, 23, 1)],
-    );
+''');
   }
 }

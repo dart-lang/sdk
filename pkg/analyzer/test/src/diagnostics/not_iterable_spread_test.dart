@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -121,24 +120,22 @@ List<int> f() => [...{1: 2, 3: 4}];
 class NotIterableSpreadWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_list() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   [...a];
+//    ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [error(diag.notIterableSpread, 26, 1)],
-    );
+''');
   }
 
   test_set() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   <int>{...a};
+//         ^
+// [diag.notIterableSpread] Spread elements in list or set literals must implement 'Iterable'.
 }
-''',
-      [error(diag.notIterableSpread, 31, 1)],
-    );
+''');
   }
 }

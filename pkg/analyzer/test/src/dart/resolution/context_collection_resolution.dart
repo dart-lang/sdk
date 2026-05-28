@@ -25,7 +25,7 @@ import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
@@ -460,14 +460,11 @@ mixin WithoutPrivateNamedParametersMixin on PubPackageResolutionTest {
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {
   /// Asserts that no errors are reported in [code] when implicit casts are
-  /// allowed, and that [expectedErrors] are reported for the same [code] when
-  /// implicit casts are not allowed.
-  Future<void> assertErrorsWithStrictCasts(
-    String code,
-    List<ExpectedError> expectedErrors,
-  ) async {
-    var result = await resolveTestCode(code);
-    assertErrorsInTestResult(result, const []);
+  /// allowed, and that the inline diagnostic expectations are reported for the
+  /// same [code] when implicit casts are not allowed.
+  Future<void> assertTestCodeWithStrictCastsDiagnostics(String code) async {
+    var cleanCode = removeDiagnosticExpectations(code);
+    await resolveTestCodeWithDiagnostics(cleanCode);
 
     await disposeAnalysisContextCollection();
 
@@ -475,12 +472,6 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
       analysisOptionsContent(experiments: experiments, strictCasts: true),
     );
 
-    result = await resolveTestFile();
-    assertErrorsInTestResult(result, expectedErrors);
+    await resolveTestCodeWithDiagnostics(code);
   }
-
-  /// Asserts that no errors are reported in [code], both when implicit casts
-  /// are allowed and when implicit casts are not allowed.
-  Future<void> assertNoErrorsWithStrictCasts(String code) async =>
-      assertErrorsWithStrictCasts(code, []);
 }

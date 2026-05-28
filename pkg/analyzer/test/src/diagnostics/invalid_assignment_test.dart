@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -1075,32 +1074,29 @@ main() {
 class InvalidAssignmentWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_functionType() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 dynamic a;
 void Function(int i) f = a;
-''',
-      [error(diag.invalidAssignment, 36, 1)],
-    );
+//                       ^
+// [diag.invalidAssignment] A value of type 'dynamic' can't be assigned to a variable of type 'void Function(int)'.
+''');
   }
 
   test_interfaceType() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 dynamic a;
 int b = a;
-''',
-      [error(diag.invalidAssignment, 19, 1)],
-    );
+//      ^
+// [diag.invalidAssignment] A value of type 'dynamic' can't be assigned to a variable of type 'int'.
+''');
   }
 
   test_recordType() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 dynamic a;
 (int i, ) r = a;
-''',
-      [error(diag.invalidAssignment, 25, 1)],
-    );
+//            ^
+// [diag.invalidAssignment] A value of type 'dynamic' can't be assigned to a variable of type '(int,)'.
+''');
   }
 }

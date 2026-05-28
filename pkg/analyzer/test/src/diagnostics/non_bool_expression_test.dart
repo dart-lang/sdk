@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -55,13 +54,12 @@ f() {
 class NonBoolExpressionWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_assert() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   assert(a);
+//       ^
+// [diag.nonBoolExpression] The expression in an assert must be of type 'bool'.
 }
-''',
-      [error(diag.nonBoolExpression, 29, 1)],
-    );
+''');
   }
 }

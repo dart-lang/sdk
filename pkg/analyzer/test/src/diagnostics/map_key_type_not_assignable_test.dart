@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -238,35 +237,32 @@ class MapKeyTypeNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_ifElement_falseBranch() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(bool c, dynamic a) {
   <int, int>{if (c) 0: 0 else a: 0};
+//                            ^
+// [diag.mapKeyTypeNotAssignable] The element type 'dynamic' can't be assigned to the map key type 'int'.
 }
-''',
-      [error(diag.mapKeyTypeNotAssignable, 58, 1)],
-    );
+''');
   }
 
   test_ifElement_trueBranch() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(bool c, dynamic a) {
   <int, int>{if (c) a: 0 };
+//                  ^
+// [diag.mapKeyTypeNotAssignable] The element type 'dynamic' can't be assigned to the map key type 'int'.
 }
-''',
-      [error(diag.mapKeyTypeNotAssignable, 48, 1)],
-    );
+''');
   }
 
   test_spread() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(Map<dynamic, int> a) {
   <int, int>{...a};
+//              ^
+// [diag.mapKeyTypeNotAssignable] The element type 'dynamic' can't be assigned to the map key type 'int'.
 }
-''',
-      [error(diag.mapKeyTypeNotAssignable, 46, 1)],
-    );
+''');
   }
 }

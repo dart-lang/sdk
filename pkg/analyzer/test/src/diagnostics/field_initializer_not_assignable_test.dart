@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -57,26 +56,24 @@ class FieldInitializerNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_constructorInitializer() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 class A {
   int i;
   A(dynamic a) : i = a;
+//                   ^
+// [diag.fieldInitializerNotAssignable] The initializer type 'dynamic' can't be assigned to the field type 'int'.
 }
-''',
-      [error(diag.fieldInitializerNotAssignable, 40, 1)],
-    );
+''');
   }
 
   test_constructorInitializer_primaryConstructor() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 class A(dynamic a) {
   int i;
   this : i = a;
+//           ^
+// [diag.fieldInitializerNotAssignable] The initializer type 'dynamic' can't be assigned to the field type 'int'.
 }
-''',
-      [error(diag.fieldInitializerNotAssignable, 43, 1)],
-    );
+''');
   }
 }
