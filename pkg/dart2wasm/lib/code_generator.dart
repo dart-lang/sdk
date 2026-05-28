@@ -2047,13 +2047,8 @@ abstract class AstCodeGenerator
         " at ${node.location}",
       );
       pushArguments(signature, selector.paramInfo);
-      for (int i = 0; i < signature.inputs.length; ++i) {
-        b.drop();
-      }
-      b.block(const [], signature.outputs);
       b.unreachable();
-      b.end();
-      return translator.outputOrVoid(signature.outputs);
+      return voidMarker;
     }
     if (directCall) {
       final target = translator.getFunctionEntry(
