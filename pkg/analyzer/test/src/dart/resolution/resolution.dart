@@ -140,20 +140,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
-  void assertErrorsInResolvedUnit(
-    ResolvedUnitResult result,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    assertErrorsInList(result.diagnostics, expectedDiagnostics);
-  }
-
-  void assertErrorsInResult(
-    ResolvedUnitResult result,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    assertErrorsInResolvedUnit(result, expectedDiagnostics);
-  }
-
   void assertErrorsInTestResult(
     TestResolvedUnitResult result,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -171,10 +157,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var result = await resolveTestCode(code);
     expect(result.diagnostics, isNotEmpty);
     return result;
-  }
-
-  void assertNoErrorsInResult(ResolvedUnitResult result) {
-    assertErrorsInResult(result, const []);
   }
 
   void assertNoErrorsInTestResult(TestResolvedUnitResult result) {

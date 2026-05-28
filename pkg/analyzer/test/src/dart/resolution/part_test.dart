@@ -283,12 +283,10 @@ PartDirective
 part of 'foo.dart';
 ''');
 
-    var foo = newFile('$testPackageRootPath/lib/foo.dart', '''
+    var foo = getFile('$testPackageRootPath/lib/foo.dart');
+    var result = await resolveFileWithDiagnostics(foo, '''
 part 'foo.g.dart';
 ''');
-
-    var result = await resolveFile2(foo);
-    assertErrorsInResolvedUnit(result.analysisResult, const []);
 
     var node = result.findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''

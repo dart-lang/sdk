@@ -630,36 +630,42 @@ class C {}
   }
 
   test_libraryFragment_notFirst_named() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
+    var library = getFile('$testPackageLibPath/lib.dart');
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      library: r'''
 library L;
 
 part 'part.dart';
-''');
-    newFile('$testPackageLibPath/part.dart', r'''
+''',
+      part: r'''
 // Comment to ensure that the "part of" declaration isn't at offset 0
 part of 'lib.dart';
 
 class C {}
-''');
-    var result = await resolveFile2(getFile('$testPackageLibPath/part.dart'));
-    assertErrorsInResolvedUnit(result.analysisResult, const []);
+''',
+    });
+    var result = results[part]!;
 
     var unit = result.findNode.unit;
     checkOffset<LibraryFragment>(unit, unit.declaredFragment!, 0);
   }
 
   test_libraryFragment_notFirst_unnamed() async {
-    newFile('$testPackageLibPath/lib.dart', r'''
+    var library = getFile('$testPackageLibPath/lib.dart');
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      library: r'''
 part 'part.dart';
-''');
-    newFile('$testPackageLibPath/part.dart', r'''
+''',
+      part: r'''
 // Comment to ensure that the "part of" declaration isn't at offset 0
 part of 'lib.dart';
 
 class C {}
-''');
-    var result = await resolveFile2(getFile('$testPackageLibPath/part.dart'));
-    assertErrorsInResolvedUnit(result.analysisResult, const []);
+''',
+    });
+    var result = results[part]!;
 
     var unit = result.findNode.unit;
     checkOffset<LibraryFragment>(unit, unit.declaredFragment!, 0);
