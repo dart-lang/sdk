@@ -1056,6 +1056,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
+    if (node.isStatic && node.abstractKeyword != null) {
+      for (var variable in node.fields.variables) {
+        var declaredFragment = variable.declaredFragment! as FieldFragmentImpl;
+        _checkForIncompleteInducedAccessors(
+          nameToken: variable.name,
+          fragment: declaredFragment,
+        );
+      }
+    }
+
     if (!node.isStatic) {
       if (node.fields.isConst) {
         diagnosticReporter.report(
@@ -2043,7 +2053,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           );
         }
       }
-    } else if (node.externalKeyword == null && !variableList.isLate) {
+    } else if (node.abstractKeyword == null &&
+        node.externalKeyword == null &&
+        !variableList.isLate) {
       for (var variable in variableList.variables) {
         if (variable.initializer == null) {
           if (variableList.isFinal) {
@@ -2069,6 +2081,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var variable in node.variables.variables) {
       var fragment = variable.declaredFragment;
       fragment as TopLevelVariableFragmentImpl;
+      if (node.abstractKeyword != null) {
+        _checkForIncompleteInducedAccessors(
+          nameToken: variable.name,
+          fragment: fragment,
+        );
+      }
       _checkForMainFunction1(variable.name, fragment);
     }
 
@@ -4906,6 +4924,47 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           .withArguments(uri: directive.uri.stringValue!)
           .at(directive.uri),
     );
+  }
+
+  void _checkForIncompleteInducedAccessors({
+    required Token nameToken,
+    required PropertyInducingFragmentImpl fragment,
+  }) {
+    if (!_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
+    if (fragment.isAugmentation) {
+      return;
+    }
+
+    var getter = fragment.inducedGetter;
+    var setter = fragment.inducedSetter;
+    var hasAugmentations =
+        (getter?.element.fragments.length ?? 0) > 1 ||
+        (setter?.element.fragments.length ?? 0) > 1;
+
+    if (getter != null) {
+      if (getter.element.fragments.none((f) => f.isCompleteDeclaration)) {
+        var diagnostic = hasAugmentations
+            ? diag.inducedGetterNotCompleteAfterAugmentations
+            : diag.inducedGetterWithoutBody;
+        diagnosticReporter.report(
+          diagnostic.withArguments(name: nameToken.lexeme).at(nameToken),
+        );
+      }
+    }
+
+    if (setter != null) {
+      if (setter.element.fragments.none((f) => f.isCompleteDeclaration)) {
+        var diagnostic = hasAugmentations
+            ? diag.inducedSetterNotCompleteAfterAugmentations
+            : diag.inducedSetterWithoutBody;
+        diagnosticReporter.report(
+          diagnostic.withArguments(name: nameToken.lexeme).at(nameToken),
+        );
+      }
+    }
   }
 
   /// Check that the given [typeReference] is not a type reference and that then

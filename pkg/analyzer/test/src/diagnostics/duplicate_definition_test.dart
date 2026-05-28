@@ -4354,12 +4354,9 @@ int foo = 42;
   }
 
   test_topLevelVariable_topLevelVariable_augment() async {
-    // TODO(augmentations): Should not have notInitializedNonNullableVariable
     await resolveTestCodeWithDiagnostics(r'''
 int foo = 0;
 augment abstract int foo;
-//                   ^^^
-// [diag.notInitializedNonNullableVariable] The non-nullable variable 'foo' must be initialized.
 ''');
   }
 
