@@ -140,13 +140,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
-  void assertErrorsInTestResult(
-    TestResolvedUnitResult result,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    assertErrorsInList(result.diagnostics, expectedDiagnostics);
-  }
-
   void assertHasTestErrors(TestResolvedUnitResult result) {
     expect(result.diagnostics, isNotEmpty);
   }

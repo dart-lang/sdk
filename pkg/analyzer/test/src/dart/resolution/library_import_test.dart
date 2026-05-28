@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -716,22 +715,23 @@ ImportDirective
   }
 
   test_inPart_library() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-import 'c.dart';
-''');
-
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
     newFile('$testPackageLibPath/c.dart', '');
 
-    var result = await resolveFile2(b);
-    // TODO(scheglov): update the hint.
-    // assertErrorsInTestResult(result, [
-    //   error(WarningCode.UNUSED_IMPORT, 33, 8),
-    // ]);
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'c.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'c.dart'.
+''',
+    });
+
+    var result = results[b]!;
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -747,17 +747,20 @@ ImportDirective
   }
 
   test_inPart_library_fileDoesNotExist() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 import 'c.dart';
-''');
-
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 25, 8)]);
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'c.dart'.
+''',
+    });
+    var result = results[b]!;
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -773,17 +776,20 @@ ImportDirective
   }
 
   test_inPart_noRelativeUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 import ':net';
-''');
-
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, [error(diag.invalidUri, 25, 6)]);
+//     ^^^^^^
+// [diag.invalidUri] Invalid URI syntax: ':net'.
+''',
+    });
+    var result = results[b]!;
 
     var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -799,19 +805,20 @@ ImportDirective
   }
 
   test_inPart_noRelativeUriStr() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 import '${'foo'}.dart';
-''');
-
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, [
-      error(diag.uriWithInterpolation, 25, 15),
-    ]);
+//     ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''',
+    });
+    var result = results[b]!;
 
     var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -837,17 +844,20 @@ ImportDirective
   }
 
   test_inPart_noSource() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 import 'foo:bar';
-''');
-
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 25, 9)]);
+//     ^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'foo:bar'.
+''',
+    });
+    var result = results[b]!;
 
     var node = result.findNode.import('import');
     assertResolvedNodeText(node, r'''
@@ -863,21 +873,25 @@ ImportDirective
   }
 
   test_inPart_notLibrary_partOfName() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-import 'c.dart';
-''');
-
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
     newFile('$testPackageLibPath/c.dart', r'''
 part of my.lib;
 ''');
 
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, [error(diag.importOfNonLibrary, 25, 8)]);
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'c.dart';
+//     ^^^^^^^^
+// [diag.importOfNonLibrary] The imported library 'c.dart' can't have a part-of directive.
+''',
+    });
+
+    var result = results[b]!;
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''
@@ -893,21 +907,25 @@ ImportDirective
   }
 
   test_inPart_notLibrary_partOfUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-part of 'a.dart';
-import 'c.dart';
-''');
-
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
     newFile('$testPackageLibPath/c.dart', r'''
 part of 'b.dart';
 ''');
 
-    var result = await resolveFile2(b);
-    assertErrorsInTestResult(result, [error(diag.importOfNonLibrary, 25, 8)]);
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'c.dart';
+//     ^^^^^^^^
+// [diag.importOfNonLibrary] The imported library 'c.dart' can't have a part-of directive.
+''',
+    });
+
+    var result = results[b]!;
 
     var node = result.findNode.import('c.dart');
     assertResolvedNodeText(node, r'''

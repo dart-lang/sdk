@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,11 +31,12 @@ import 'dart:_internal';
 
   test_wasm_fromJs() async {
     var packageRootPath = _newPackage('js');
-    var file = newFile('$packageRootPath/lib/js.dart', '''
+    var file = getFile('$packageRootPath/lib/js.dart');
+    await resolveFileWithDiagnostics(file, '''
 import 'dart:_wasm';
+//     ^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:_wasm'.
 ''');
-    var result = await resolveFile2(file);
-    assertErrorsInTestResult(result, [error(diag.unusedImport, 7, 12)]);
   }
 
   test_wasm_fromTest() async {
@@ -50,11 +50,12 @@ import 'dart:_wasm';
 
   test_wasm_fromUi() async {
     var packageRootPath = _newPackage('ui');
-    var file = newFile('$packageRootPath/lib/ui.dart', '''
+    var file = getFile('$packageRootPath/lib/ui.dart');
+    await resolveFileWithDiagnostics(file, '''
 import 'dart:_wasm';
+//     ^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:_wasm'.
 ''');
-    var result = await resolveFile2(file);
-    assertErrorsInTestResult(result, [error(diag.unusedImport, 7, 12)]);
   }
 
   String _newPackage(String packageName) {

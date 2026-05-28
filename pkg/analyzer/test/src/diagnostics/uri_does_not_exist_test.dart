@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -85,8 +84,11 @@ import 'target.dart';
     analysisDriver.removeFile(filePath);
     await analysisDriver.applyPendingFileChanges();
 
-    var result = await resolveTestFile();
-    assertErrorsInTestResult(result, [error(diag.uriDoesNotExist, 7, 13)]);
+    await resolveFileWithDiagnostics(testFile, '''
+import 'target.dart';
+//     ^^^^^^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'target.dart'.
+''');
   }
 
   test_libraryImport_cannotResolve() async {
@@ -116,7 +118,6 @@ main() {
 ''');
   }
 
-  @failingTest
   test_libraryImport_disappears_when_fixed() async {
     await resolveTestCodeWithDiagnostics('''
 import 'target.dart';
@@ -124,13 +125,17 @@ import 'target.dart';
 // [diag.uriDoesNotExist] Target of URI doesn't exist: 'target.dart'.
 ''');
 
-    newFile('$testPackageLibPath/target.dart', '');
+    var targetFile = newFile('$testPackageLibPath/target.dart', '');
 
-    // Make sure the error goes away.
-    // TODO(brianwilkerson): The error does not go away, possibly because the
-    //  file is not being reanalyzed.
-    var result = await resolveTestFile();
-    assertErrorsInTestResult(result, [error(diag.unusedImport, 0, 0)]);
+    var analysisDriver = driverFor(testFile);
+    analysisDriver.changeFile2(targetFile);
+    await analysisDriver.applyPendingFileChanges();
+
+    await resolveFileWithDiagnostics(testFile, '''
+import 'target.dart';
+//     ^^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'target.dart'.
+''');
   }
 
   test_part() async {

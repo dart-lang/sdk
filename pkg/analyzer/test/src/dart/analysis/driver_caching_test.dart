@@ -312,7 +312,7 @@ void f() {
 
     // We don't have any lints configured, so no errors.
     var result = await resolveTestFile();
-    assertErrorsInTestResult(result, []);
+    expect(result.diagnostics, isEmpty);
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);

@@ -344,18 +344,18 @@ const foo = 42;
   }
 
   test_location_partOfDirective() async {
-    newFile('$testPackageLibPath/test.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
 part 'a.dart';
 const foo = 42;
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+''',
+      a: r'''
 @foo
 part of 'test.dart';
-''');
-
-    var result = await resolveFile2(a);
-    assertErrorsInTestResult(result, const []);
+''',
+    });
+    var result = results[a]!;
 
     _assertAtFoo42(result);
   }
