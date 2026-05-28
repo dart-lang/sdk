@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CouldNotInferTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,10 +19,7 @@ main() {
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructors_inferenceFBounded() async {
-    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
-    // error messages for couldNotInfer which are not supported well by the tool.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {}
 
 class P<T extends C<T>, U extends C<U>> {
@@ -29,32 +27,25 @@ class P<T extends C<T>, U extends C<U>> {
   U u;
   P(this.t, this.u);
   P._();
+//^^^
+// [diag.notInitializedNonNullableInstanceFieldConstructor] Non-nullable instance field 't' must be initialized.
+// [diag.notInitializedNonNullableInstanceFieldConstructor] Non-nullable instance field 'u' must be initialized.
   P<U, T> get reversed => new P(u, t);
 }
 
 main() {
   P._();
+//^
+// [context 1] The raw type was instantiated as 'P<C<Object?>, C<Object?>>', and is not regular-bounded.
+// [context 2] The raw type was instantiated as 'P<C<Object?>, C<Object?>>', and is not regular-bounded.
+//^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T'.\n\nTried to infer 'C<Object?>' for 'T' which doesn't work:\n  Type parameter 'T' is declared to extend 'C<T>' producing 'C<C<Object?>>'.\n\nConsider passing explicit type argument(s) to the generic.
+// [diag.couldNotInfer] Couldn't infer type parameter 'U'.\n\nTried to infer 'C<Object?>' for 'U' which doesn't work:\n  Type parameter 'U' is declared to extend 'C<U>' producing 'C<C<Object?>>'.\n\nConsider passing explicit type argument(s) to the generic.
+//^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'C<Object?>' doesn't conform to the bound 'C<C<Object?>>' of the type parameter 'T'.
+// [diag.typeArgumentNotMatchingBounds][context 2] 'C<Object?>' doesn't conform to the bound 'C<C<Object?>>' of the type parameter 'U'.
 }
-''',
-      [
-        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 3),
-        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 3),
-        error(diag.couldNotInfer, 154, 3),
-        error(diag.couldNotInfer, 154, 3),
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          154,
-          1,
-          contextMessages: [message(testFile, 154, 1)],
-        ),
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          154,
-          1,
-          contextMessages: [message(testFile, 154, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_constructors_inferFromArguments_argumentNotAssignable() async {
@@ -156,38 +147,32 @@ void main() {
   }
 
   test_functionType_instantiatedToBounds() async {
-    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
-    // error messages for couldNotInfer which are not supported well by the tool.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<X extends A<X>> {}
 
 void foo<X extends Y, Y extends A<X>>() {}
 
 void f() {
   foo();
+//^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'Y'.\n'A<Object?>' doesn't conform to the bound 'A<A<Object?>>', instantiated from 'A<X>' using type arguments [A<Object?>, A<Object?>].
 }
-''',
-      [error(diag.couldNotInfer, 85, 3)],
-    );
+''');
   }
 
   test_functionType_optOutOfGenericMetadata() async {
     newFile('$testPackageLibPath/a.dart', '''
 void f<X>() {}
 ''');
-    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
-    // error messages for couldNotInfer which are not supported well by the tool.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart=2.12
 import 'a.dart';
 main() {
   [f];
+//^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'E'. Inferred candidate type void Function<X>() has type parameters [X], but a function with type parameters cannot be used as a type argument.
 }
-''',
-      [error(diag.couldNotInfer, 42, 3)],
-    );
+''');
   }
 
   test_functionType_parameterIsBound_returnIsBound() async {
@@ -286,21 +271,16 @@ void main() {
   }
 
   test_functionType_parametersAreSubtypes_returnIsOne() async {
-    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
-    // error messages for couldNotInfer which are not supported well by the tool.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 external T f<T extends num>(T a, T b);
 void g(int cb(int a, double b)) {}
 void main() {
   g(f);
+//  ^
+// [diag.couldNotInfer] Couldn't infer type parameter 'T'.\n\nTried to infer 'num' for 'T' which doesn't work:\n  Function type declared as 'T Function<T extends num>(T, T)'\n                used where  'int Function(int, double)' is required.\n\nConsider passing explicit type argument(s) to the generic.
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(int, double)'.
 }
-''',
-      [
-        error(diag.couldNotInfer, 92, 1),
-        error(diag.argumentTypeNotAssignable, 92, 1),
-      ],
-    );
+''');
   }
 
   test_genericMethods_correctlyRecognizeGenericUpperBound() async {
@@ -318,10 +298,7 @@ main() {
   }
 
   test_instanceCreation_viaTypeAlias_notWellBounded() async {
-    // Skipped migration to resolveTestCodeWithDiagnostics due to multi-line
-    // error messages for couldNotInfer which are not supported well by the tool.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<X> {
   C();
   factory C.foo() => C();
@@ -332,16 +309,16 @@ typedef A<X extends G<C<X>>> = C<X>;
 
 void f() {
   A(); // Error.
+//^
+// [diag.couldNotInfer] Couldn't infer type parameter 'X'.\n\nTried to infer 'C<Object?> Function(C<Never>)' for 'X' which doesn't work:\n  Type parameter 'X' is declared to extend 'C<X> Function(C<X>)' producing 'C<C<Object?> Function(C<Never>)> Function(C<C<Object?> Function(C<Never>)>)'.\n\nConsider passing explicit type argument(s) to the generic.
   A.foo(); // Error.
+//^^^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'X'.\n\nTried to infer 'C<Object?> Function(C<Never>)' for 'X' which doesn't work:\n  Type parameter 'X' is declared to extend 'C<X> Function(C<X>)' producing 'C<C<Object?> Function(C<Never>)> Function(C<C<Object?> Function(C<Never>)>)'.\n\nConsider passing explicit type argument(s) to the generic.
   A.bar(); // Error.
+//^^^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'X'.\n\nTried to infer 'C<Object?> Function(C<Never>)' for 'X' which doesn't work:\n  Type parameter 'X' is declared to extend 'C<X> Function(C<X>)' producing 'C<C<Object?> Function(C<Never>)> Function(C<C<Object?> Function(C<Never>)>)'.\n\nConsider passing explicit type argument(s) to the generic.
 }
-''',
-      [
-        error(diag.couldNotInfer, 152, 1),
-        error(diag.couldNotInfer, 169, 5),
-        error(diag.couldNotInfer, 190, 5),
-      ],
-    );
+''');
   }
 
   test_method() async {
