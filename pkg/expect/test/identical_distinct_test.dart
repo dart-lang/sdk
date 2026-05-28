@@ -87,7 +87,7 @@ void main() {
 
 class C {
   final Object x;
-  const C(this.x);
+  const new(this.x);
   @override
   int get hashCode => x.hashCode;
   @override
