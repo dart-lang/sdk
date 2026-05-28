@@ -7,9 +7,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -41,7 +44,7 @@ class ExpectedLocation {
 @reflectiveTest
 class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   void assertElementIndexText(
-    TestResolvedUnitResult result,
+    _IndexResult result,
     Element element,
     String expected,
   ) {
@@ -54,7 +57,7 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   }
 
   void assertLibraryFragmentIndexText(
-    TestResolvedUnitResult result,
+    _IndexResult result,
     LibraryFragmentImpl fragment,
     String expected,
   ) {
@@ -799,21 +802,20 @@ void useConstructor() {
   test_ConstructorElement_class_unnamed_otherFile() async {
     var otherFile = getFile('$testPackageLibPath/other.dart');
 
-    var result = await resolveTestCodeWithDiagnostics('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
   A() {}
 }
 ''');
-    var element = result.findElement.unnamedConstructor('A');
+    var element = unitResult.findElement.unnamedConstructor('A');
 
-    result = await resolveFileWithDiagnostics(otherFile, '''
+    var result = await _indexFileWithDiagnostics(otherFile, '''
 import 'test.dart';
 
 void f() {
   A();
 }
 ''');
-    _indexResult(result);
 
     assertElementIndexText(result, element, r'''
 35 4:4 || IS_INVOKED_BY qualified
@@ -1517,10 +1519,10 @@ void useConstructor() {
   }
 
   test_DynamicElement() async {
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 dynamic f() {}
 ''');
-    expect(index.usedElementOffsets, isEmpty);
+    expect(result.index.usedElementOffsets, isEmpty);
   }
 
   test_EnumElement_emptyBody() async {
@@ -4116,12 +4118,12 @@ A v = null;
   }
 
   test_NeverElement() async {
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 Never f() {}
 //    ^
 // [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'Never', is a potentially non-nullable type.
 ''');
-    expect(index.usedElementOffsets, isEmpty);
+    expect(result.index.usedElementOffsets, isEmpty);
   }
 
   test_SetterElement_ofClass_instance() async {
@@ -4225,23 +4227,27 @@ class Z implements E, D {
 }
 ''');
 
-    expect(index.supertypes, hasLength(6));
-    expect(index.subtypes, hasLength(6));
+    expect(result.index.supertypes, hasLength(6));
+    expect(result.index.subtypes, hasLength(6));
 
-    _assertSubtype(0, '$libP;A', 'X', [
+    _assertSubtype(result, 0, '$libP;A', 'X', [
       'field1',
       'field2',
       'getter1',
       'method1',
       'setter1',
     ]);
-    _assertSubtype(1, '$libP;B', 'Y', ['methodY']);
-    _assertSubtype(2, '$libP;C', 'Y', ['methodY']);
-    _assertSubtype(3, '$libP;D', 'Z', ['methodZ']);
-    _assertSubtype(4, '$libP;E', 'Z', ['methodZ']);
-    _assertSubtype(5, _interfaceId(result.typeProvider.objectElement)!, 'Y', [
-      'methodY',
-    ]);
+    _assertSubtype(result, 1, '$libP;B', 'Y', ['methodY']);
+    _assertSubtype(result, 2, '$libP;C', 'Y', ['methodY']);
+    _assertSubtype(result, 3, '$libP;D', 'Z', ['methodZ']);
+    _assertSubtype(result, 4, '$libP;E', 'Z', ['methodZ']);
+    _assertSubtype(
+      result,
+      5,
+      _interfaceId(result.typeProvider.objectElement)!,
+      'Y',
+      ['methodY'],
+    );
   }
 
   test_subtypes_classTypeAlias() async {
@@ -4252,7 +4258,7 @@ class C {}
 class D {}
 ''');
     String libP = '${libFile.path};${libFile.path}';
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 import 'lib.dart';
 
 class X = A with B, C;
@@ -4265,20 +4271,20 @@ class Y = A with B implements C, D;
 // [diag.classUsedAsMixin] The class 'B' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
 
-    expect(index.supertypes, hasLength(7));
-    expect(index.subtypes, hasLength(7));
+    expect(result.index.supertypes, hasLength(7));
+    expect(result.index.subtypes, hasLength(7));
 
-    _assertSubtype(0, '$libP;A', 'X', []);
-    _assertSubtype(1, '$libP;A', 'Y', []);
-    _assertSubtype(2, '$libP;B', 'X', []);
-    _assertSubtype(3, '$libP;B', 'Y', []);
-    _assertSubtype(4, '$libP;C', 'X', []);
-    _assertSubtype(5, '$libP;C', 'Y', []);
-    _assertSubtype(6, '$libP;D', 'Y', []);
+    _assertSubtype(result, 0, '$libP;A', 'X', []);
+    _assertSubtype(result, 1, '$libP;A', 'Y', []);
+    _assertSubtype(result, 2, '$libP;B', 'X', []);
+    _assertSubtype(result, 3, '$libP;B', 'Y', []);
+    _assertSubtype(result, 4, '$libP;C', 'X', []);
+    _assertSubtype(result, 5, '$libP;C', 'Y', []);
+    _assertSubtype(result, 6, '$libP;D', 'Y', []);
   }
 
   test_subtypes_dynamic() async {
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 class X extends dynamic {
 //              ^^^^^^^
 // [diag.extendsNonClass] Classes can only extend other classes.
@@ -4286,13 +4292,13 @@ class X extends dynamic {
 }
 ''');
 
-    expect(index.supertypes, isEmpty);
-    expect(index.subtypes, isEmpty);
+    expect(result.index.supertypes, isEmpty);
+    expect(result.index.subtypes, isEmpty);
   }
 
   test_subtypes_enum_implements() async {
     String libP = '${testFile.path};${testFile.path}';
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 class A {}
 
 enum E implements A {
@@ -4301,13 +4307,13 @@ enum E implements A {
 }
 ''');
 
-    expect(index.subtypes, hasLength(1));
-    _assertSubtype(0, '$libP;A', 'E', ['foo']);
+    expect(result.index.subtypes, hasLength(1));
+    _assertSubtype(result, 0, '$libP;A', 'E', ['foo']);
   }
 
   test_subtypes_enum_with() async {
     String libP = '${testFile.path};${testFile.path}';
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 mixin M {}
 
 enum E with M {
@@ -4316,8 +4322,8 @@ enum E with M {
 }
 ''');
 
-    expect(index.subtypes, hasLength(1));
-    _assertSubtype(0, '$libP;M', 'E', ['foo']);
+    expect(result.index.subtypes, hasLength(1));
+    _assertSubtype(result, 0, '$libP;M', 'E', ['foo']);
   }
 
   test_subtypes_extensionType_class() async {
@@ -4328,7 +4334,7 @@ class A {
 }
 ''');
     String libP = '${libFile.path};${libFile.path}';
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 import 'lib.dart';
 
 extension type X(A it) implements A {
@@ -4337,10 +4343,10 @@ extension type X(A it) implements A {
 }
 ''');
 
-    expect(index.supertypes, hasLength(1));
-    expect(index.subtypes, hasLength(1));
+    expect(result.index.supertypes, hasLength(1));
+    expect(result.index.subtypes, hasLength(1));
 
-    _assertSubtype(0, '$libP;A', 'X', ['method1', 'method3']);
+    _assertSubtype(result, 0, '$libP;A', 'X', ['method1', 'method3']);
   }
 
   test_subtypes_extensionType_extensionType() async {
@@ -4351,7 +4357,7 @@ extension type A(int it) {
 }
 ''');
     String libP = '${libFile.path};${libFile.path}';
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 import 'lib.dart';
 
 extension type X(int it) implements A {
@@ -4360,10 +4366,10 @@ extension type X(int it) implements A {
 }
 ''');
 
-    expect(index.supertypes, hasLength(1));
-    expect(index.subtypes, hasLength(1));
+    expect(result.index.supertypes, hasLength(1));
+    expect(result.index.subtypes, hasLength(1));
 
-    _assertSubtype(0, '$libP;A', 'X', ['method1', 'method3']);
+    _assertSubtype(result, 0, '$libP;A', 'X', ['method1', 'method3']);
   }
 
   test_subtypes_mixinDeclaration() async {
@@ -4375,22 +4381,22 @@ class D {}
 class E {}
 ''');
     String libP = '${libFile.path};${libFile.path}';
-    await _indexTestCode('''
+    var result = await _indexTestCode('''
 import 'lib.dart';
 
 mixin X on A implements B, C {}
 mixin Y on A, B implements C;
 ''');
 
-    expect(index.supertypes, hasLength(6));
-    expect(index.subtypes, hasLength(6));
+    expect(result.index.supertypes, hasLength(6));
+    expect(result.index.subtypes, hasLength(6));
 
-    _assertSubtype(0, '$libP;A', 'X', []);
-    _assertSubtype(1, '$libP;A', 'Y', []);
-    _assertSubtype(2, '$libP;B', 'X', []);
-    _assertSubtype(3, '$libP;B', 'Y', []);
-    _assertSubtype(4, '$libP;C', 'X', []);
-    _assertSubtype(5, '$libP;C', 'Y', []);
+    _assertSubtype(result, 0, '$libP;A', 'X', []);
+    _assertSubtype(result, 1, '$libP;A', 'Y', []);
+    _assertSubtype(result, 2, '$libP;B', 'X', []);
+    _assertSubtype(result, 3, '$libP;B', 'Y', []);
+    _assertSubtype(result, 4, '$libP;C', 'X', []);
+    _assertSubtype(result, 5, '$libP;C', 'Y', []);
   }
 
   test_SuperFormalParameterElement_ofConstructor_optionalNamed() async {
@@ -4824,9 +4830,10 @@ void f() {
   }
 
   String _getLibraryFragmentReferenceText(
-    TestResolvedUnitResult result,
+    _IndexResult result,
     LibraryFragmentImpl target,
   ) {
+    var index = result.index;
     var lineInfo = result.unit.lineInfo;
     var targetId = index.getLibraryFragmentId(target);
 
@@ -4860,9 +4867,10 @@ void f() {
     return buffer.toString();
   }
 
-  String _getRelationsText(TestResolvedUnitResult result, Element element) {
+  String _getRelationsText(_IndexResult result, Element element) {
+    var index = result.index;
     var lineInfo = result.unit.lineInfo;
-    var elementId = _findElementId(element);
+    var elementId = _findElementId(result, element);
     if (elementId == null) {
       return '';
     }
@@ -4943,30 +4951,32 @@ void f() {
 }
 
 mixin _IndexMixin on PubPackageResolutionTest {
-  late AnalysisDriverUnitIndex index;
-
-  _NameIndexAssert assertThatName(TestResolvedUnitResult result, String name) {
+  _NameIndexAssert assertThatName(_IndexResult result, String name) {
     return _NameIndexAssert(this, result, name);
   }
 
   void _assertSubtype(
+    _IndexResult result,
     int i,
     String superEncoded,
     String subName,
     List<String> members,
   ) {
+    var index = result.index;
     expect(index.strings[index.supertypes[i]], superEncoded);
     var subtype = index.subtypes[i];
     expect(index.strings[subtype.name], subName);
-    expect(_decodeStringList(subtype.members), members);
+    expect(_decodeStringList(index, subtype.members), members);
   }
 
   void _assertUsedName(
+    _IndexResult result,
     String name,
     IndexRelationKind kind,
     ExpectedLocation expectedLocation,
     bool isNot,
   ) {
+    var index = result.index;
     int nameId = index.getStringId(name);
     for (int i = 0; i < index.usedNames.length; i++) {
       if (index.usedNames[i] == nameId &&
@@ -4974,7 +4984,10 @@ mixin _IndexMixin on PubPackageResolutionTest {
           index.usedNameOffsets[i] == expectedLocation.offset &&
           index.usedNameIsQualifiedFlags[i] == expectedLocation.isQualified) {
         if (isNot) {
-          _failWithIndexDump('Unexpected $name $kind at $expectedLocation');
+          _failWithIndexDump(
+            index,
+            'Unexpected $name $kind at $expectedLocation',
+          );
         }
         return;
       }
@@ -4982,15 +4995,18 @@ mixin _IndexMixin on PubPackageResolutionTest {
     if (isNot) {
       return;
     }
-    _failWithIndexDump('Not found $name $kind at $expectedLocation');
+    _failWithIndexDump(index, 'Not found $name $kind at $expectedLocation');
   }
 
-  List<String> _decodeStringList(List<int> stringIds) {
+  List<String> _decodeStringList(
+    AnalysisDriverUnitIndex index,
+    List<int> stringIds,
+  ) {
     return stringIds.map((i) => index.strings[i]).toList();
   }
 
   ExpectedLocation _expectedLocation(
-    TestResolvedUnitResult result,
+    _IndexResult result,
     String search,
     bool isQualified, {
     int? length,
@@ -5000,7 +5016,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return ExpectedLocation(offset, expectedLength, isQualified);
   }
 
-  void _failWithIndexDump(String msg) {
+  void _failWithIndexDump(AnalysisDriverUnitIndex index, String msg) {
     var buffer = StringBuffer();
     for (int i = 0; i < index.usedElementOffsets.length; i++) {
       buffer.write('  id = ');
@@ -5017,9 +5033,10 @@ mixin _IndexMixin on PubPackageResolutionTest {
     fail('$msg in\n${buffer.toString()}');
   }
 
-  /// Return the [element] identifier in [index], or `null`.
-  int? _findElementId(Element element) {
-    var unitId = _getUnitId(element);
+  /// Return the [element] identifier in the result index, or `null`.
+  int? _findElementId(_IndexResult result, Element element) {
+    var index = result.index;
+    var unitId = _getUnitId(index, element);
 
     // Prepare the element that was put into the index.
     IndexElementInfo info = IndexElementInfo(element);
@@ -5049,21 +5066,21 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return null;
   }
 
-  int _getUnitId(Element element) {
+  int _getUnitId(AnalysisDriverUnitIndex index, Element element) {
     var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
   }
 
-  void _indexResult(TestResolvedUnitResult result) {
-    var indexBuilder = indexUnit(result.unit);
+  Future<_IndexResult> _indexFileWithDiagnostics(File file, String code) async {
+    var unitResult = await resolveFileWithDiagnostics(file, code);
+    var indexBuilder = indexUnit(unitResult.unit);
     var indexBytes = indexBuilder.toBuffer();
-    index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    var index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    return _IndexResult(unitResult, index);
   }
 
-  Future<TestResolvedUnitResult> _indexTestCode(String code) async {
-    var result = await resolveTestCodeWithDiagnostics(code);
-    _indexResult(result);
-    return result;
+  Future<_IndexResult> _indexTestCode(String code) {
+    return _indexFileWithDiagnostics(testFile, code);
   }
 
   String? _interfaceId(InterfaceElement element) {
@@ -5077,15 +5094,33 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 }
 
+final class _IndexResult {
+  final TestResolvedUnitResult unitResult;
+  final AnalysisDriverUnitIndex index;
+
+  _IndexResult(this.unitResult, this.index);
+
+  String get content => unitResult.content;
+
+  FindElement2 get findElement => unitResult.findElement;
+
+  FindNode get findNode => unitResult.findNode;
+
+  TypeProviderImpl get typeProvider => unitResult.typeProvider;
+
+  CompilationUnitImpl get unit => unitResult.unit;
+}
+
 class _NameIndexAssert {
   final _IndexMixin test;
-  final TestResolvedUnitResult result;
+  final _IndexResult result;
   final String name;
 
   _NameIndexAssert(this.test, this.result, this.name);
 
   void isNotUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
+      result,
       name,
       kind,
       test._expectedLocation(result, search, false, length: name.length),
@@ -5095,6 +5130,7 @@ class _NameIndexAssert {
 
   void isNotUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
+      result,
       name,
       kind,
       test._expectedLocation(result, search, true, length: name.length),
@@ -5104,6 +5140,7 @@ class _NameIndexAssert {
 
   void isUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
+      result,
       name,
       kind,
       test._expectedLocation(result, search, false, length: name.length),
@@ -5113,6 +5150,7 @@ class _NameIndexAssert {
 
   void isUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
+      result,
       name,
       kind,
       test._expectedLocation(result, search, true, length: name.length),
