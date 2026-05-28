@@ -51,57 +51,47 @@ mixin Bar on Foo {}
   }
 
   test_withinPackageLibDirectory_OK() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    await resolveFileWithDiagnostics(lib1, r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    var lib2 = newFile('$testPackageLibPath/src/lib2.dart', r'''
+    var lib2 = getFile('$testPackageLibPath/src/lib2.dart');
+    await resolveFileWithDiagnostics(lib2, r'''
 import '../lib1.dart';
 mixin Bar on Foo {}
 ''');
-
-    var result = await resolveFile2(lib1);
-    assertNoErrorsInTestResult(result);
-
-    result = await resolveFile2(lib2);
-    assertNoErrorsInTestResult(result);
   }
 
   test_withinPackageTestDirectory_OK() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    await resolveFileWithDiagnostics(lib1, r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    var lib2 = newFile('$testPackageRootPath/test/lib2.dart', r'''
+    var lib2 = getFile('$testPackageRootPath/test/lib2.dart');
+    await resolveFileWithDiagnostics(lib2, r'''
 import 'package:test/lib1.dart';
 mixin Bar on Foo {}
 ''');
-
-    var result = await resolveFile2(lib1);
-    assertNoErrorsInTestResult(result);
-
-    result = await resolveFile2(lib2);
-    assertNoErrorsInTestResult(result);
   }
 
   test_withinPart_OK() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/part1.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib1: r'''
 import 'package:meta/meta.dart';
 part 'part1.dart';
 @sealed class Foo {}
-''');
-
-    var lib2 = newFile('$testPackageLibPath/part1.dart', r'''
+''',
+      lib2: r'''
 part of 'lib1.dart';
 mixin Bar on Foo {}
-''');
-
-    var result = await resolveFile2(lib1);
-    assertNoErrorsInTestResult(result);
-
-    result = await resolveFile2(lib2);
-    assertNoErrorsInTestResult(result);
+''',
+    });
   }
 }

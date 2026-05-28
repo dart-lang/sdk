@@ -51,24 +51,20 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInLibSrc() async {
-    var result = await resolveFileCode(testPackageLibSrcFilePath, r'''
+    await resolveFileWithDiagnostics(getFile(testPackageLibSrcFilePath), r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_annotationInLibSrcSubdirectory() async {
-    var result = await resolveFileCode(
-      '$testPackageLibPath/src/foo/foo.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageLibPath/src/foo/foo.dart'),
       r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_annotationInLibSubdirectory() async {
@@ -83,27 +79,23 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInTest() async {
-    var result = await resolveFileCode(
-      '$testPackageRootPath/test/foo_test.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageRootPath/test/foo_test.dart'),
       r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_annotationInTest_extensionType() async {
-    var result = await resolveFileCode(
-      '$testPackageRootPath/test/foo_test.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageRootPath/test/foo_test.dart'),
       r'''
 import 'package:meta/meta.dart';
 @internal extension type E(int i) {}
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_privateClass() async {

@@ -159,10 +159,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return result;
   }
 
-  void assertNoErrorsInTestResult(TestResolvedUnitResult result) {
-    assertErrorsInTestResult(result, const []);
-  }
-
   void assertParsedNodeText(AstNode node, String expected) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');

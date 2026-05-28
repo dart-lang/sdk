@@ -65,14 +65,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageBlazeBinPath/lib/src/bar.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageBlazeBinPath/lib/src/bar.dart'),
       r'''
 export 'foo.dart';
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInGenfilesLib() async {
@@ -99,14 +97,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageGenfilesPath/lib/src/bar.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageGenfilesPath/lib/src/bar.dart'),
       r'''
 export 'foo.dart';
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterIsInLib() async {
@@ -130,11 +126,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageLibPath/src/bar.dart'),
+      r'''
 export 'foo.dart';
-''');
-
-    assertNoErrorsInTestResult(result);
+''',
+    );
   }
 
   void test_exporterIsInTest() async {
@@ -143,14 +140,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$myPackageRootPath/test/foo_test.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$myPackageRootPath/test/foo_test.dart'),
       r'''
 export 'package:dart.my/src/foo.dart';
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_internalIsInBlazeBin() async {
@@ -232,14 +227,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageDartToolPath/lib/src/bar.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageDartToolPath/lib/src/bar.dart'),
       r'''
 export 'package:test/src/foo.dart';
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_exporterInLib() async {
@@ -263,14 +256,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageRootPath/lib/src/bar.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageRootPath/lib/src/bar.dart'),
       r'''
 export 'package:test/src/foo.dart';
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_internalIsInGeneratedLibSrc() async {
@@ -334,11 +325,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageLibPath/src/bar.dart'),
+      r'''
 export 'foo.dart';
-''');
-
-    assertNoErrorsInTestResult(result);
+''',
+    );
   }
 
   void test_exporterIsInTest() async {
@@ -347,14 +339,12 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    var result = await resolveFileCode(
-      '$testPackageRootPath/test/foo_test.dart',
+    await resolveFileWithDiagnostics(
+      getFile('$testPackageRootPath/test/foo_test.dart'),
       r'''
 export 'package:test/src/foo.dart';
 ''',
     );
-
-    assertNoErrorsInTestResult(result);
   }
 
   void test_internalIsLibSrc() async {
