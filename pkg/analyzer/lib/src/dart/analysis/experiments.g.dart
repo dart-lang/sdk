@@ -1006,7 +1006,7 @@ class IsExpired {
   static const bool primary_constructors = false;
 
   /// Expiration status of the experiment "private-named-parameters"
-  static const bool private_named_parameters = false;
+  static const bool private_named_parameters = true;
 
   /// Expiration status of the experiment "record-use"
   static const bool record_use = false;

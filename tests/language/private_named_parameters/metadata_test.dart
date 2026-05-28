@@ -4,8 +4,6 @@
 
 /// Can call constructors with private names as metadata annotations.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 import 'package:expect/expect.dart';
 
 class C {
@@ -13,8 +11,8 @@ class C {
   final String _bar;
 
   const C({required this._foo, required this._bar})
-      : assert(_foo == 'foo'),
-        assert(_bar == 'bar');
+    : assert(_foo == 'foo'),
+      assert(_bar == 'bar');
 }
 
 @C(foo: 'foo', bar: 'bar')

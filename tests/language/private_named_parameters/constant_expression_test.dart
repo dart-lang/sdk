@@ -4,8 +4,6 @@
 
 /// Can call constructors with private names during const evaluation.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 import 'package:expect/expect.dart';
 
 class C {
