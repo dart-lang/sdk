@@ -207,12 +207,12 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
     ),
     _AssertMethod(
-      className: '_IndexMixin',
+      className: 'IndexTest',
       methodName: '_indexTestCode',
       argument: _ArgumentIndex(0),
     ),
     _AssertMethod(
-      className: '_IndexMixin',
+      className: 'IndexTest',
       methodName: '_indexFileWithDiagnostics',
       argument: _ArgumentIndex(1),
     ),

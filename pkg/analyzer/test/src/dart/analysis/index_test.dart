@@ -7,12 +7,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,7 +39,7 @@ class ExpectedLocation {
 }
 
 @reflectiveTest
-class IndexTest extends PubPackageResolutionTest with _IndexMixin {
+class IndexTest extends PubPackageResolutionTest {
   void assertElementIndexText(
     _IndexResult result,
     Element element,
@@ -67,6 +64,10 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
+  }
+
+  _NameIndexAssert assertThatName(_IndexResult result, String name) {
+    return _NameIndexAssert(this, result, name);
   }
 
   test_analyzer_diagnosticCode() async {
@@ -128,7 +129,7 @@ Prefixes: (unprefixed),p
     var result = await _indexTestCode('''
 class A {}
 ''');
-    var element = result.typeProvider.objectType.element;
+    var element = result.resolvedUnit.typeProvider.objectElement;
     assertElementIndexText(result, element, r'''
 6 1:7 || IS_EXTENDED_BY qualified
 ''');
@@ -400,7 +401,7 @@ void f(A p) {
 // [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
 ''');
-    var element = result.findNode.namedType('A p').element!;
+    var element = result.resolvedUnit.findNode.namedType('A p').element!;
     assertElementIndexText(result, element, r'''
 27 3:8 |A| IS_REFERENCED_BY
 36 4:3 |A| IS_REFERENCED_BY
@@ -2023,7 +2024,9 @@ void f() {
 }
 ''');
 
-    var index = result.typeProvider.enumElement!.getGetter('index')!;
+    var index = result.resolvedUnit.typeProvider.enumElement!.getGetter(
+      'index',
+    )!;
     assertElementIndexText(result, index, r'''
 69 6:13 |index| IS_REFERENCED_BY qualified
 ''');
@@ -3393,14 +3396,18 @@ void useFoo() {
 }
 ''');
 
-    var intMethod = result.findNode.methodDeclaration('foo() {} // int');
+    var intMethod = result.resolvedUnit.findNode.methodDeclaration(
+      'foo() {} // int',
+    );
     assertElementIndexText(result, intMethod.declaredFragment!.element, r'''
 5 1:6 |foo| IS_REFERENCED_BY
 167 12:5 |foo| IS_INVOKED_BY qualified
 178 13:5 |foo| IS_REFERENCED_BY qualified
 ''');
 
-    var doubleMethod = result.findNode.methodDeclaration('foo() {} // double');
+    var doubleMethod = result.resolvedUnit.findNode.methodDeclaration(
+      'foo() {} // double',
+    );
     assertElementIndexText(result, doubleMethod.declaredFragment!.element, r'''
 74 6:6 |foo| IS_REFERENCED_BY
 191 14:9 |foo| IS_INVOKED_BY qualified
@@ -4244,7 +4251,7 @@ class Z implements E, D {
     _assertSubtype(
       result,
       5,
-      _interfaceId(result.typeProvider.objectElement)!,
+      _interfaceId(result.resolvedUnit.typeProvider.objectElement)!,
       'Y',
       ['methodY'],
     );
@@ -4829,132 +4836,6 @@ void f() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  String _getLibraryFragmentReferenceText(
-    _IndexResult result,
-    LibraryFragmentImpl target,
-  ) {
-    var index = result.index;
-    var lineInfo = result.unit.lineInfo;
-    var targetId = index.getLibraryFragmentId(target);
-
-    expect(
-      index.libFragmentRefTargets.length,
-      index.libFragmentRefUriOffsets.length,
-    );
-
-    expect(
-      index.libFragmentRefTargets.length,
-      index.libFragmentRefUriLengths.length,
-    );
-
-    var buffer = StringBuffer();
-    for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
-      if (index.libFragmentRefTargets[i] == targetId) {
-        var offset = index.libFragmentRefUriOffsets[i];
-        var length = index.libFragmentRefUriLengths[i];
-        var location = lineInfo.getLocation(offset);
-        var snippet = result.content.substring(offset, offset + length);
-        buffer.write(offset);
-        buffer.write(' ');
-        buffer.write(location.lineNumber);
-        buffer.write(':');
-        buffer.write(location.columnNumber);
-        buffer.write(' ');
-        buffer.write('|$snippet|');
-        buffer.writeln();
-      }
-    }
-    return buffer.toString();
-  }
-
-  String _getRelationsText(_IndexResult result, Element element) {
-    var index = result.index;
-    var lineInfo = result.unit.lineInfo;
-    var elementId = _findElementId(result, element);
-    if (elementId == null) {
-      return '';
-    }
-
-    var relations = <_Relation>[];
-    for (var i = 0; i < index.usedElementOffsets.length; i++) {
-      if (index.usedElements[i] == elementId) {
-        relations.add(
-          _Relation(
-            kind: index.usedElementKinds[i],
-            offset: index.usedElementOffsets[i],
-            length: index.usedElementLengths[i],
-            isQualified: index.usedElementIsQualifiedFlags[i],
-          ),
-        );
-      }
-    }
-
-    var sortedRelations = relations.sorted((a, b) {
-      var byOffset = a.offset - b.offset;
-      if (byOffset != 0) {
-        return byOffset;
-      }
-      return a.kind.name.compareTo(b.kind.name);
-    });
-
-    // Verify that there are no duplicate relations.
-    var lastOffset = -1;
-    var lastLength = -1;
-    IndexRelationKind? lastKind;
-    for (var relation in sortedRelations) {
-      if (relation.offset == lastOffset &&
-          relation.length == lastLength &&
-          relation.kind == lastKind) {
-        fail('Duplicate relation: $relation');
-      }
-      lastOffset = relation.offset;
-      lastLength = relation.length;
-      lastKind = relation.kind;
-    }
-
-    var buffer = StringBuffer();
-    for (var relation in sortedRelations) {
-      var offset = relation.offset;
-      var length = relation.length;
-      var location = lineInfo.getLocation(offset);
-      var snippet = result.content.substring(offset, offset + length);
-      buffer.write(offset);
-      buffer.write(' ');
-      buffer.write(location.lineNumber);
-      buffer.write(':');
-      buffer.write(location.columnNumber);
-      buffer.write(' ');
-      buffer.write('|$snippet|');
-      buffer.write(' ');
-      buffer.write(relation.kind.name);
-      if (relation.isQualified) {
-        buffer.write(' qualified');
-      }
-      buffer.writeln();
-    }
-
-    var prefixString = index.elementImportPrefixes[elementId];
-    // If the only access is unprefixed, omit the line
-    if (prefixString.isNotEmpty) {
-      // Otherwise, use some marker text for unprefixed so it's clearer in the
-      // output than an empty string.
-      var prefixes = prefixString
-          .split(',')
-          .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
-          .join(',');
-
-      buffer.writeln('Prefixes: $prefixes');
-    }
-
-    return buffer.toString();
-  }
-}
-
-mixin _IndexMixin on PubPackageResolutionTest {
-  _NameIndexAssert assertThatName(_IndexResult result, String name) {
-    return _NameIndexAssert(this, result, name);
-  }
-
   void _assertSubtype(
     _IndexResult result,
     int i,
@@ -5011,8 +4892,9 @@ mixin _IndexMixin on PubPackageResolutionTest {
     bool isQualified, {
     int? length,
   }) {
-    int offset = result.findNode.offset(search);
-    var expectedLength = length ?? result.findNode.simple(search).length;
+    int offset = result.resolvedUnit.findNode.offset(search);
+    var expectedLength =
+        length ?? result.resolvedUnit.findNode.simple(search).length;
     return ExpectedLocation(offset, expectedLength, isQualified);
   }
 
@@ -5066,6 +4948,132 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return null;
   }
 
+  String _getLibraryFragmentReferenceText(
+    _IndexResult result,
+    LibraryFragmentImpl target,
+  ) {
+    var index = result.index;
+    var lineInfo = result.resolvedUnit.unit.lineInfo;
+    var targetId = index.getLibraryFragmentId(target);
+
+    expect(
+      index.libFragmentRefTargets.length,
+      index.libFragmentRefUriOffsets.length,
+    );
+
+    expect(
+      index.libFragmentRefTargets.length,
+      index.libFragmentRefUriLengths.length,
+    );
+
+    var buffer = StringBuffer();
+    for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
+      if (index.libFragmentRefTargets[i] == targetId) {
+        var offset = index.libFragmentRefUriOffsets[i];
+        var length = index.libFragmentRefUriLengths[i];
+        var location = lineInfo.getLocation(offset);
+        var snippet = result.resolvedUnit.content.substring(
+          offset,
+          offset + length,
+        );
+        buffer.write(offset);
+        buffer.write(' ');
+        buffer.write(location.lineNumber);
+        buffer.write(':');
+        buffer.write(location.columnNumber);
+        buffer.write(' ');
+        buffer.write('|$snippet|');
+        buffer.writeln();
+      }
+    }
+    return buffer.toString();
+  }
+
+  String _getRelationsText(_IndexResult result, Element element) {
+    var index = result.index;
+    var lineInfo = result.resolvedUnit.unit.lineInfo;
+    var elementId = _findElementId(result, element);
+    if (elementId == null) {
+      return '';
+    }
+
+    var relations = <_Relation>[];
+    for (var i = 0; i < index.usedElementOffsets.length; i++) {
+      if (index.usedElements[i] == elementId) {
+        relations.add(
+          _Relation(
+            kind: index.usedElementKinds[i],
+            offset: index.usedElementOffsets[i],
+            length: index.usedElementLengths[i],
+            isQualified: index.usedElementIsQualifiedFlags[i],
+          ),
+        );
+      }
+    }
+
+    var sortedRelations = relations.sorted((a, b) {
+      var byOffset = a.offset - b.offset;
+      if (byOffset != 0) {
+        return byOffset;
+      }
+      return a.kind.name.compareTo(b.kind.name);
+    });
+
+    // Verify that there are no duplicate relations.
+    var lastOffset = -1;
+    var lastLength = -1;
+    IndexRelationKind? lastKind;
+    for (var relation in sortedRelations) {
+      if (relation.offset == lastOffset &&
+          relation.length == lastLength &&
+          relation.kind == lastKind) {
+        fail('Duplicate relation: $relation');
+      }
+      lastOffset = relation.offset;
+      lastLength = relation.length;
+      lastKind = relation.kind;
+    }
+
+    var buffer = StringBuffer();
+    for (var relation in sortedRelations) {
+      var offset = relation.offset;
+      var length = relation.length;
+      var location = lineInfo.getLocation(offset);
+      var snippet = result.resolvedUnit.content.substring(
+        offset,
+        offset + length,
+      );
+      buffer.write(offset);
+      buffer.write(' ');
+      buffer.write(location.lineNumber);
+      buffer.write(':');
+      buffer.write(location.columnNumber);
+      buffer.write(' ');
+      buffer.write('|$snippet|');
+      buffer.write(' ');
+      buffer.write(relation.kind.name);
+      if (relation.isQualified) {
+        buffer.write(' qualified');
+      }
+      buffer.writeln();
+    }
+
+    var prefixString = index.elementImportPrefixes[elementId];
+    // If the only access is unprefixed, omit the line
+    if (prefixString.isNotEmpty) {
+      // Otherwise, use some marker text for unprefixed so it's clearer in the
+      // output than an empty string.
+      var prefixes = prefixString
+          .split(',')
+          .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
+          .join(',');
+
+      buffer.writeln('Prefixes: $prefixes');
+    }
+
+    return buffer.toString();
+  }
+
   int _getUnitId(AnalysisDriverUnitIndex index, Element element) {
     var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
@@ -5095,24 +5103,16 @@ mixin _IndexMixin on PubPackageResolutionTest {
 }
 
 final class _IndexResult {
-  final TestResolvedUnitResult unitResult;
+  final TestResolvedUnitResult resolvedUnit;
   final AnalysisDriverUnitIndex index;
 
-  _IndexResult(this.unitResult, this.index);
+  _IndexResult(this.resolvedUnit, this.index);
 
-  String get content => unitResult.content;
-
-  FindElement2 get findElement => unitResult.findElement;
-
-  FindNode get findNode => unitResult.findNode;
-
-  TypeProviderImpl get typeProvider => unitResult.typeProvider;
-
-  CompilationUnitImpl get unit => unitResult.unit;
+  FindElement2 get findElement => resolvedUnit.findElement;
 }
 
 class _NameIndexAssert {
-  final _IndexMixin test;
+  final IndexTest test;
   final _IndexResult result;
   final String name;
 
