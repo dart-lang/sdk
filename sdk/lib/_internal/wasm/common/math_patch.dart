@@ -3,55 +3,44 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_error_utils";
-import "dart:_internal" show mix64, patch;
+import "dart:_internal" show mix64, patch, unsafeCast;
 import "dart:_wasm";
 
 /// There are no parts of this patch library.
 
 @patch
+@pragma('wasm:prefer-inline')
 T min<T extends num>(T a, T b) {
+  if (a is int && b is int) return unsafeCast<T>((a as int).minS(b));
+  if (a is double && b is double) return unsafeCast<T>((a as double).min(b));
+  return _minSlow<T>(a, b);
+}
+
+@patch
+@pragma('wasm:prefer-inline')
+T max<T extends num>(T a, T b) {
+  if (a is int && b is int) return unsafeCast<T>((a as int).maxS(b));
+  if (a is double && b is double) return unsafeCast<T>((a as double).max(b));
+  return _maxSlow<T>(a, b);
+}
+
+T _minSlow<T extends num>(T a, T b) {
   if (a > b) return b;
   if (a < b) return a;
   if (b is double) {
-    // Special case for NaN and -0.0. If one argument is NaN return NaN.
-    // [min] must also distinguish between -0.0 and 0.0.
-    if (a is double) {
-      if (a == 0.0) {
-        // a is either 0.0 or -0.0. b is either 0.0, -0.0 or NaN.
-        // The following returns -0.0 if either a or b is -0.0, and it
-        // returns NaN if b is NaN.
-        num n = (a + b) * a * b;
-        return n as T;
-      }
-    }
-    // Check for NaN and b == -0.0.
     if (a == 0 && b.isNegative || b.isNaN) return b;
     return a;
   }
   return a;
 }
 
-@patch
-T max<T extends num>(T a, T b) {
+T _maxSlow<T extends num>(T a, T b) {
   if (a > b) return a;
   if (a < b) return b;
   if (b is double) {
-    // Special case for NaN and -0.0. If one argument is NaN return NaN.
-    // [max] must also distinguish between -0.0 and 0.0.
-    if (a is double) {
-      if (a == 0.0) {
-        // a is either 0.0 or -0.0. b is either 0.0, -0.0, or NaN.
-        // The following returns 0.0 if either a or b is 0.0, and it
-        // returns NaN if b is NaN.
-        num n = a + b;
-        return n as T;
-      }
-    }
-    // Check for NaN.
     if (b.isNaN) return b;
     return a;
   }
-  // max(-0.0, 0) must return 0.
   if (b == 0 && a.isNegative) return b;
   return a;
 }

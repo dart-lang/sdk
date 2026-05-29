@@ -821,6 +821,26 @@ class Intrinsifier {
               );
               b.i64_div_s();
               return w.NumType.i64;
+            case "minS":
+            case "maxS":
+              w.Local localA = b.addLocal(w.NumType.i64);
+              w.Local localB = b.addLocal(w.NumType.i64);
+              codeGen.translateExpression(receiver, w.NumType.i64);
+              b.local_tee(localA);
+              codeGen.translateExpression(
+                node.arguments.positional[0],
+                w.NumType.i64,
+              );
+              b.local_tee(localB);
+              b.local_get(localA);
+              b.local_get(localB);
+              if (name == "minS") {
+                b.i64_le_s();
+              } else {
+                b.i64_ge_s();
+              }
+              b.select(w.NumType.i64);
+              return w.NumType.i64;
             default:
               throw 'Unknown WasmI64 member $name';
           }
@@ -853,6 +873,22 @@ class Intrinsifier {
                 w.NumType.f64,
               );
               b.f64_copysign();
+              return w.NumType.f64;
+            case "min":
+              codeGen.translateExpression(receiver, w.NumType.f64);
+              codeGen.translateExpression(
+                node.arguments.positional[0],
+                w.NumType.f64,
+              );
+              b.f64_min();
+              return w.NumType.f64;
+            case "max":
+              codeGen.translateExpression(receiver, w.NumType.f64);
+              codeGen.translateExpression(
+                node.arguments.positional[0],
+                w.NumType.f64,
+              );
+              b.f64_max();
               return w.NumType.f64;
             default:
               throw 'Unknown WasmF64 member $name';

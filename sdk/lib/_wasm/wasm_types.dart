@@ -238,6 +238,12 @@ class WasmI64 extends _WasmBase {
 
   /// Wasm `i64.div_s` instruction.
   external WasmI64 divS(WasmI64 divisor);
+
+  /// Signed minimum via `i64.le_s` and `select`.
+  external WasmI64 minS(WasmI64 other);
+
+  /// Signed maximum via `i64.ge_s` and `select`.
+  external WasmI64 maxS(WasmI64 other);
 }
 
 /// The Wasm `f32` type.
@@ -279,6 +285,12 @@ class WasmF64 extends _WasmBase {
 
   /// Wasm `f64.copysign` instruction.
   external WasmF64 copysign(WasmF64 other);
+
+  /// Wasm `f64.min` instruction.
+  external WasmF64 min(WasmF64 other);
+
+  /// Wasm `f64.max` instruction.
+  external WasmF64 max(WasmF64 other);
 }
 
 /// The Wasm `v128` type.
@@ -766,6 +778,14 @@ extension IntWasmInstructions on int {
   /// Wasm `i64.div_s` instruction.
   @pragma("wasm:prefer-inline")
   int divS(int divisor) => this.toWasmI64().divS(divisor.toWasmI64()).toInt();
+
+  /// Signed minimum via `i64.le_s` and `select`.
+  @pragma("wasm:prefer-inline")
+  int minS(int other) => this.toWasmI64().minS(other.toWasmI64()).toInt();
+
+  /// Signed maximum via `i64.ge_s` and `select`.
+  @pragma("wasm:prefer-inline")
+  int maxS(int other) => this.toWasmI64().maxS(other.toWasmI64()).toInt();
 }
 
 extension DoubleWasmInstructions on double {
@@ -787,6 +807,16 @@ extension DoubleWasmInstructions on double {
   /// Wasm `f64.sqrt` instruction.
   @pragma("wasm:prefer-inline")
   double sqrt() => this.toWasmF64().sqrt().toDouble();
+
+  /// Wasm `f64.min` instruction.
+  @pragma("wasm:prefer-inline")
+  double min(double other) =>
+      this.toWasmF64().min(other.toWasmF64()).toDouble();
+
+  /// Wasm `f64.max` instruction.
+  @pragma("wasm:prefer-inline")
+  double max(double other) =>
+      this.toWasmF64().max(other.toWasmF64()).toDouble();
 }
 
 // Tests whether the given object's class is a subclass of T.

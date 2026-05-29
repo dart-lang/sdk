@@ -4,14 +4,11 @@
 
 import 'dart:async';
 
-import 'package:args/args.dart';
-import 'package:dart_mcp_server/arg_parser.dart' as dart_mcp_server;
-import 'package:dartdev/src/utils.dart';
+import 'package:dartdev/src/commands/run.dart';
 
 import '../core.dart';
-import '../sdk.dart';
-import '../vm_interop_handler.dart';
 
+/// This command is now just an alias for `dart run dart_mcp_server@`.
 class DartMCPServerCommand extends DartdevCommand {
   static const String cmdName = 'mcp-server';
 
@@ -19,12 +16,6 @@ class DartMCPServerCommand extends DartdevCommand {
 A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter development.''';
 
   static const _experimentFlag = 'experimental-mcp-server';
-
-  @override
-  ArgParser createArgParser() => dart_mcp_server.createArgParser(
-    usageLineLength: dartdevUsageLineLength,
-    includeHelp: false,
-  );
 
   DartMCPServerCommand({bool verbose = false})
     : super(cmdName, cmdDescription, verbose, hidden: true) {
@@ -46,26 +37,33 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
 
   @override
   Future<int> run() async {
-    final parsedArgs = argResults!;
+    // We want the global arguments as we will be delegating back to the
+    // command runner to run the new command.
+    final forwardedArgs = globalResults!.arguments.toList();
 
     // Strip out the experiment flag before forwarding on the args, this flag
-    // isn't supported by the actual binary.
-    final forwardedArgs = argResults!.arguments.toList();
-    if (parsedArgs.wasParsed(_experimentFlag)) {
+    // isn't supported by the actual package.
+    //
+    // Have to check the local arg results here, as this flag only exists on the
+    // command arg parser and not the global one.
+    if (argResults!.wasParsed(_experimentFlag)) {
       forwardedArgs.removeWhere((arg) => arg.endsWith(_experimentFlag));
     }
-    try {
-      VmInteropHandler.run(sdk.dartMCPServerAotSnapshot, [
-        ...forwardedArgs,
-      ], useExecProcess: false);
-      return 0;
-    } catch (e, st) {
-      log.stderr('Error: launching Dart MCP server failed');
-      log.stderr(e.toString());
-      if (verbose) {
-        log.stderr(st.toString());
-      }
-      return 255;
+
+    // Find the index of the original command argument and replace it with
+    // `run dart_mcp_server@`.
+    final commandIndex = forwardedArgs.indexOf(cmdName);
+    if (commandIndex == -1) {
+      throw StateError(
+        'Reached mcp-server command without `mcp-server` in arguments.',
+      );
     }
+    forwardedArgs.replaceRange(commandIndex, commandIndex + 1, [
+      RunCommand.cmdName,
+      'dart_mcp_server@',
+    ]);
+
+    // Finally, run the new command.
+    return await runner!.run(forwardedArgs) ?? 0;
   }
 }

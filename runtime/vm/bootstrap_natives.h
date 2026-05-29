@@ -259,6 +259,7 @@ namespace dart {
   V(Isolate_getDebugName, 1)                                                   \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
   V(Isolate_runSync_, 2)                                                       \
+  V(Isolate_runEventLoopSync_, 1)                                              \
   V(Isolate_sendOOB, 2)                                                        \
   V(Isolate_shutdownSync_, 1)                                                  \
   V(Isolate_spawnFunction, 10)                                                 \

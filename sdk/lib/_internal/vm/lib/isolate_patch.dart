@@ -765,7 +765,7 @@ final class Isolate {
 
   @patch
   void runEventLoopSync() {
-    throw UnsupportedError("Isolate.runEventLoopSync");
+    _runEventLoopSync(controlPort);
   }
 
   @patch
@@ -777,6 +777,9 @@ final class Isolate {
   bool get isPinnedToCurrentThread {
     throw UnsupportedError("Isolate.isPinnedToCurrentThread");
   }
+
+  @pragma("vm:external-name", "Isolate_runEventLoopSync_")
+  external static void _runEventLoopSync(SendPort controlPort);
 
   @patch
   void set onEvent(void Function(Isolate) callback) {

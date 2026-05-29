@@ -43,9 +43,18 @@ class MessageHandler : public PortHandler {
   // HandleMessage() indicates that an error has occurred during
   // message processing.
 
-  // Returns false if the handler terminated abnormally, otherwise it
-  // returns true.
+  // Returns false if the handler failed to launch on the thread pool(due to
+  // thread pool shutting down for example), otherwise it returns true.
   bool Run(ThreadPool* pool, EndCallback end_callback, CallbackData data);
+
+  // Runs this message handler on current thread.
+  //
+  // A message handler will run until it terminates either normally or
+  // abnormally.  Normal termination occurs when the message handler
+  // no longer has any live ports.  Abnormal termination occurs when
+  // HandleMessage() indicates that an error has occurred during
+  // message processing.
+  void RunSync();
 
   // Handles the next message for this message handler.  Should only
   // be used when not running the handler on the thread pool (via Run
