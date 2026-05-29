@@ -198,6 +198,14 @@ class C({int p = 0}) {
 ''');
   }
 
+  test_usedInFieldInitializer_primary() async {
+    await assertNoDiagnostics(r'''
+class C(int p) {
+  final int f = p; 
+}
+''');
+  }
+
   test_usedInRedirectingInitializer() async {
     await assertNoDiagnostics(r'''
 class C {

@@ -9,6 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -75,15 +77,22 @@ class _Visitor extends SimpleAstVisitor<void> {
       parameterList: node.parameters,
       initializers: node.initializers,
       body: node.body,
+      fields: null,
     );
   }
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var fields = node.parent.classMembers
+        .whereType<FieldDeclaration>()
+        .expand((declaration) => declaration.fields.variables)
+        .where((field) => field.initializer != null)
+        .toList();
     _checkConstructorParameters(
       parameterList: node.formalParameters,
       initializers: node.body?.initializers,
       body: node.body?.body,
+      fields: fields,
     );
   }
 
@@ -91,12 +100,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     required FormalParameterList parameterList,
     required List<ConstructorInitializer>? initializers,
     required FunctionBody? body,
+    required List<VariableDeclaration>? fields,
   }) {
     var constructorVisitor = _ConstructorVisitor(parameterList);
     body?.visitChildren(constructorVisitor);
     if (initializers != null) {
       for (var i in initializers) {
         i.visitChildren(constructorVisitor);
+      }
+    }
+
+    if (fields != null) {
+      for (var field in fields) {
+        field.initializer?.accept(constructorVisitor);
       }
     }
 
