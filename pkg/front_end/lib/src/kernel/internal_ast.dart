@@ -1880,7 +1880,7 @@ mixin DelegatingVariableMixin on InternalVariableMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  VariableContext? get context => astVariable.context;
+  VariableContext get context => astVariable.context;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -2452,24 +2452,10 @@ class TypeVariable extends VariableBase {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   TypeVariable({this.cosmeticName, required this.parameter});
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
-  }
 
   @override
   void addAnnotation(Expression annotation) {
