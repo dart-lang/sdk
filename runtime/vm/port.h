@@ -55,7 +55,8 @@ class PortMap : public AllStatic {
 
   // Returns whether the isolate that owns the port is owned by the current
   // thread.
-  static bool IsOwnedByCurrentThread(Dart_Port id);
+  static bool IsOwnedByCurrentThread(Dart_Port id,
+                                     bool require_permanent_pin = false);
 
   // Returns true if the port is owned by somebody.
   static bool IsOwned(Dart_Port id);

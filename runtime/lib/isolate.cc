@@ -775,6 +775,37 @@ DEFINE_NATIVE_ENTRY(Isolate_runSync_, 1, 2) {
   return result.ptr();
 }
 
+DEFINE_NATIVE_ENTRY(Isolate_isPinnedToCurrentThread, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, isolate_control_port,
+                               arguments->NativeArgAt(0));
+  auto control_port_id = isolate_control_port.Id();
+  return Bool::Get(Dart_GetCurrentThreadOwnsIsolate(control_port_id)).ptr();
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_pinToCurrentThread, 0, 0) {
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
+  CHECK_ISOLATE(isolate);
+  if (!isolate->SetOwnerThread(OSThread::kInvalidThreadId,
+                               OSThread::GetCurrentThreadId())) {
+    // We might be running this method while running dart code
+    // on this target isolate.
+    // So first confirm that the isolate is not yet pinned yet.
+    if (isolate->is_permanently_pinned()) {
+      return Bool::False().ptr();
+    }
+    // Allow pinning only if current owner is the current thread.
+    if (isolate->GetOwnerThread(/*locker=*/nullptr) !=
+        OSThread::GetCurrentThreadId()) {
+      return Bool::False().ptr();
+    }
+  }
+  isolate->set_is_permanently_pinned();
+  return Bool::True().ptr();
+}
+
 // TODO(http://dartbug.com/47777): Add support for Finalizers.
 DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
   if (isolate == nullptr) {
