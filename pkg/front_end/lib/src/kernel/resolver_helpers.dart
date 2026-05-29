@@ -215,29 +215,27 @@ class _InitializerBuilder {
        this._needsImplicitSuperInitializer = bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
-  ScopeProviderInfo? _inferInitializer(
-    Initializer initializer, {
+  ScopeProviderInfo? _inferInitializers(
+    List<Initializer> initializers, {
     required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
+    required bool isConstructorWithoutBody,
   }) {
-    InferredConstructorInitializer result = _bodyBuilderContext
-        .inferInitializer(
-          typeInferrer: _typeInferrer,
-          fileUri: _fileUri,
-          initializer: initializer,
-          parameters: parameters,
-          internalThisVariable: internalThisVariable,
-          scopeProviderInfo: scopeProviderInfo,
-          contextAllocationStrategy: contextAllocationStrategy,
-          isFirstInitializer: isFirstInitializer,
-          isLastInitializerWithoutBody: isLastInitializerWithoutBody,
-        );
+    InferredConstructorInitializers result = _typeInferrer.inferInitializers(
+      fileUri: _fileUri,
+      constructorContext: _bodyBuilderContext.constructorContext!,
+      initializers: initializers,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
+      contextAllocationStrategy: contextAllocationStrategy,
+      isConstructorWithoutBody: isConstructorWithoutBody,
+    );
     if (!_bodyBuilderContext.isExternalConstructor) {
-      _addInferredInitializer(result.initializerInferenceResult);
+      for (InitializerInferenceResult initializerInferenceResult
+          in result.initializersInferenceResult) {
+        _addInferredInitializer(initializerInferenceResult);
+      }
     }
     return result.scopeProviderInfo;
   }
@@ -276,46 +274,17 @@ class _InitializerBuilder {
     }
 
     ScopeProviderInfo? scopeProviderInfo;
-    for (
-      int initializerIndex = 0;
-      initializerIndex < initializers.length;
-      initializerIndex++
-    ) {
-      Initializer initializer = initializers[initializerIndex];
-      bool isFirstInitializer = initializerIndex == 0;
-      bool isLastExplicitInitializer =
-          initializerIndex == initializers.length - 1;
+    List<Initializer> initializersToBeInferred = [];
+    for (Initializer initializer in initializers) {
       switch (initializer) {
         case AuxiliaryInitializer():
           if (initializer is InternalInitializer) {
             switch (initializer) {
               case ExtensionTypeRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
-                scopeProviderInfo = _inferInitializer(
-                  initializer,
-                  parameters: parameters,
-                  internalThisVariable: internalThisVariable,
-                  scopeProviderInfo: scopeProviderInfo,
-                  contextAllocationStrategy: contextAllocationStrategy,
-                  isFirstInitializer: isFirstInitializer,
-                  isLastInitializerWithoutBody:
-                      isLastExplicitInitializer &&
-                      !_needsImplicitSuperInitializer &&
-                      isConstructorWithoutBody,
-                );
+                initializersToBeInferred.add(initializer);
               case ExtensionTypeRepresentationFieldInitializer():
-                scopeProviderInfo = _inferInitializer(
-                  initializer,
-                  parameters: parameters,
-                  internalThisVariable: internalThisVariable,
-                  scopeProviderInfo: scopeProviderInfo,
-                  contextAllocationStrategy: contextAllocationStrategy,
-                  isFirstInitializer: isFirstInitializer,
-                  isLastInitializerWithoutBody:
-                      isLastExplicitInitializer &&
-                      !_needsImplicitSuperInitializer &&
-                      isConstructorWithoutBody,
-                );
+                initializersToBeInferred.add(initializer);
               case InternalRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
@@ -337,18 +306,7 @@ class _InitializerBuilder {
                     new PositionalArgument(enumSyntheticArguments[1]),
                   ], positionalCount: 2);
                 }
-                scopeProviderInfo = _inferInitializer(
-                  initializer,
-                  parameters: parameters,
-                  internalThisVariable: internalThisVariable,
-                  scopeProviderInfo: scopeProviderInfo,
-                  contextAllocationStrategy: contextAllocationStrategy,
-                  isFirstInitializer: isFirstInitializer,
-                  isLastInitializerWithoutBody:
-                      isLastExplicitInitializer &&
-                      !_needsImplicitSuperInitializer &&
-                      isConstructorWithoutBody,
-                );
+                initializersToBeInferred.add(initializer);
               case InternalSuperInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
@@ -399,49 +357,16 @@ class _InitializerBuilder {
                     );
                   }
                 }
-                scopeProviderInfo = _inferInitializer(
-                  initializer,
-                  parameters: parameters,
-                  internalThisVariable: internalThisVariable,
-                  scopeProviderInfo: scopeProviderInfo,
-                  contextAllocationStrategy: contextAllocationStrategy,
-                  isFirstInitializer: isFirstInitializer,
-                  isLastInitializerWithoutBody:
-                      isLastExplicitInitializer &&
-                      !_needsImplicitSuperInitializer &&
-                      isConstructorWithoutBody,
-                );
+                initializersToBeInferred.add(initializer);
             }
           }
         case InvalidInitializer():
           _needsImplicitSuperInitializer = false;
-          scopeProviderInfo = _inferInitializer(
-            initializer,
-            parameters: parameters,
-            internalThisVariable: internalThisVariable,
-            scopeProviderInfo: scopeProviderInfo,
-            contextAllocationStrategy: contextAllocationStrategy,
-            isFirstInitializer: isFirstInitializer,
-            isLastInitializerWithoutBody:
-                isLastExplicitInitializer &&
-                !_needsImplicitSuperInitializer &&
-                isConstructorWithoutBody,
-          );
+          initializersToBeInferred.add(initializer);
         case FieldInitializer():
         case LocalInitializer():
         case AssertInitializer():
-          scopeProviderInfo = _inferInitializer(
-            initializer,
-            parameters: parameters,
-            internalThisVariable: internalThisVariable,
-            scopeProviderInfo: scopeProviderInfo,
-            contextAllocationStrategy: contextAllocationStrategy,
-            isFirstInitializer: isFirstInitializer,
-            isLastInitializerWithoutBody:
-                isLastExplicitInitializer &&
-                !_needsImplicitSuperInitializer &&
-                isConstructorWithoutBody,
-          );
+          initializersToBeInferred.add(initializer);
         // Coverage-ignore(suite): Not run.
         case SuperInitializer():
         case RedirectingInitializer():
@@ -453,28 +378,21 @@ class _InitializerBuilder {
     }
 
     if (asyncModifier.kind != AsyncMarker.Sync) {
-      scopeProviderInfo = _inferInitializer(
-        extern.createInvalidInitializer(
-          _problemReporting.buildProblem(
-            compilerContext: _compilerContext,
-            message: diag.constructorNotSync,
-            fileUri: _fileUri,
-            fileOffset: asyncModifier.fileOffset,
-            length: noLength,
-          ),
+      InvalidInitializer invalidInitializer = extern.createInvalidInitializer(
+        _problemReporting.buildProblem(
+          compilerContext: _compilerContext,
+          message: diag.constructorNotSync,
+          fileUri: _fileUri,
+          fileOffset: asyncModifier.fileOffset,
+          length: noLength,
         ),
-        parameters: parameters,
-        internalThisVariable: internalThisVariable,
-        scopeProviderInfo: scopeProviderInfo,
-        contextAllocationStrategy: contextAllocationStrategy,
-        isFirstInitializer: initializers.isEmpty,
-        isLastInitializerWithoutBody: isConstructorWithoutBody,
       );
+      initializersToBeInferred.add(invalidInitializer);
       _needsImplicitSuperInitializer = false;
     }
 
     if (_needsImplicitSuperInitializer) {
-      scopeProviderInfo = _addImplicitSuperInitializer(
+      Initializer initializer = _createImplicitSuperInitializer(
         libraryBuilder: libraryBuilder,
         typeInferrer: _typeInferrer,
         superParameterArguments: superParameterArguments,
@@ -485,7 +403,15 @@ class _InitializerBuilder {
         isFirstInitializer: initializers.isEmpty,
         isLastInitializerWithoutBody: isConstructorWithoutBody,
       );
+      initializersToBeInferred.add(initializer);
     }
+    scopeProviderInfo = _inferInitializers(
+      initializersToBeInferred,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
+      contextAllocationStrategy: contextAllocationStrategy,
+      isConstructorWithoutBody: isConstructorWithoutBody,
+    );
     _bodyBuilderContext.registerInitializers([
       ..._regularInitializers,
       ?_redirectingInitializer,
@@ -672,7 +598,7 @@ class _InitializerBuilder {
     }
   }
 
-  ScopeProviderInfo? _addImplicitSuperInitializer({
+  Initializer _createImplicitSuperInitializer({
     required SourceLibraryBuilder libraryBuilder,
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
@@ -876,15 +802,7 @@ class _InitializerBuilder {
         )..fileOffset = _bodyBuilderContext.memberNameOffset;
       }
     }
-    return _inferInitializer(
-      initializer,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
-      scopeProviderInfo: scopeProviderInfo,
-      contextAllocationStrategy: contextAllocationStrategy,
-      isFirstInitializer: isFirstInitializer,
-      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
-    );
+    return initializer;
   }
 }
 

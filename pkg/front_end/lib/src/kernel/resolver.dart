@@ -49,7 +49,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show
         TypeInferrer,
-        InferredConstructorInitializer,
+        InferredConstructorInitializers,
         InferredFieldInitializer,
         InferredFunctionBody;
 import '../type_inference/type_schema.dart';

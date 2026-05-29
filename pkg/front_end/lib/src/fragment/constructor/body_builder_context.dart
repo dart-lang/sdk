@@ -11,7 +11,6 @@ import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
-import '../../kernel/internal_ast.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
@@ -104,31 +103,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   @override
   void markAsErroneous() {
     _builder.markAsErroneous();
-  }
-
-  @override
-  InferredConstructorInitializer inferInitializer({
-    required TypeInferrer typeInferrer,
-    required Uri fileUri,
-    required Initializer initializer,
-    required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
-    required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
-  }) {
-    return typeInferrer.inferInitializer(
-      fileUri: fileUri,
-      constructorContext: constructorContext,
-      initializer: initializer,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
-      scopeProviderInfo: scopeProviderInfo,
-      contextAllocationStrategy: contextAllocationStrategy,
-      isFirstInitializer: isFirstInitializer,
-      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
-    );
   }
 
   @override

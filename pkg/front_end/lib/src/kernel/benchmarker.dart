@@ -278,7 +278,7 @@ enum BenchmarkSubdivides {
   inferImplicitFieldType,
   inferFieldInitializer,
   inferFunctionBody,
-  inferInitializer,
+  inferInitializers,
   inferMetadata,
   inferParameterInitializer,
   inferRedirectingFactoryTypeArguments,
