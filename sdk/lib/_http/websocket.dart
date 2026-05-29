@@ -433,6 +433,15 @@ abstract class WebSocket
   /// be either a `String`, or a `List<int>` holding bytes.
   void add(/*String|List<int>*/ data);
 
+  /// Reports an error on this WebSocket.
+  ///
+  /// This does not send an error event to the remote peer.
+  /// WebSocket connections only transmit text and binary data frames.
+  ///
+  /// If unhandled, the error may be reported as an uncaught
+  /// asynchronous error.
+  void addError(Object error, [StackTrace? stackTrace]);
+
   /// Sends data from a stream on WebSocket connection. Each data event from
   /// [stream] will be send as a single WebSocket frame. The data from [stream]
   /// must be either `String`s, or `List<int>`s holding bytes.

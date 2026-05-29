@@ -435,7 +435,9 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(fragment.element, baseName);
-        if (instance != null && baseName != 'values') {
+        if (instance != null &&
+            !instance.baseElement.isAugmentationWithoutAugmentedDeclaration &&
+            baseName != 'values') {
           _diagnosticReporter.report(
             diag.conflictingStaticAndInstance
                 .withArguments(
@@ -458,7 +460,8 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = method.displayName;
       if (method.isStatic) {
         var instance = _getInterfaceMember(fragment.element, baseName);
-        if (instance != null) {
+        if (instance != null &&
+            !instance.baseElement.isAugmentationWithoutAugmentedDeclaration) {
           _diagnosticReporter.report(
             diag.conflictingStaticAndInstance
                 .withArguments(

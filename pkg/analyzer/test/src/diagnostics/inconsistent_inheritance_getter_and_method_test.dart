@@ -17,6 +17,134 @@ main() {
 @reflectiveTest
 class InconsistentInheritanceGetterAndMethodTest
     extends PubPackageResolutionTest {
+  test_class_augmentationChain_declaresFieldInAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(String _) {}
+}
+
+abstract interface class I {
+  int get foo => 1;
+}
+
+class C extends A implements I {}
+
+augment class C {
+  int foo = 2;
+//    ^^^
+// [diag.inconsistentInheritanceGetterAndMethod] 'foo' is inherited as a getter (from 'I') and also a method (from 'A').
+}
+''');
+  }
+
+  test_class_augmentationChain_declaresGetterInAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(String _) {}
+}
+
+abstract interface class I {
+  int get foo => 1;
+}
+
+class C extends A implements I {}
+
+augment class C {
+  int get foo => 2;
+//        ^^^
+// [diag.inconsistentInheritanceGetterAndMethod] 'foo' is inherited as a getter (from 'I') and also a method (from 'A').
+}
+''');
+  }
+
+  test_class_augmentationChain_declaresGetterInAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {
+  void foo(String _) {}
+}
+
+abstract interface class I {
+  int get foo => 1;
+}
+
+class C extends A implements I {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class C {
+  int get foo => 2;
+//        ^^^
+// [diag.inconsistentInheritanceGetterAndMethod] 'foo' is inherited as a getter (from 'I') and also a method (from 'A').
+}
+''',
+    });
+  }
+
+  test_class_augmentationChain_declaresGetterInIntroduction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(String _) {}
+}
+
+abstract interface class I {
+  int get foo => 1;
+}
+
+class C extends A implements I {
+  int get foo => 2;
+//        ^^^
+// [diag.inconsistentInheritanceGetterAndMethod] 'foo' is inherited as a getter (from 'I') and also a method (from 'A').
+}
+
+augment class C {}
+''');
+  }
+
+  test_class_augmentationChain_declaresMethodInAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(String _) {}
+}
+
+abstract interface class I {
+  int get foo => 1;
+}
+
+class C extends A implements I {}
+
+augment class C {
+  void foo(String _) {}
+//     ^^^
+// [diag.inconsistentInheritanceGetterAndMethod] 'foo' is inherited as a getter (from 'I') and also a method (from 'A').
+}
+''');
+  }
+
+  test_class_augmentationChain_declaresNoMember() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(String _) {}
+}
+
+abstract interface class I {
+  int get foo => 1;
+}
+
+abstract class C extends A implements I {}
+//             ^
+// [diag.inconsistentInheritanceGetterAndMethod] 'foo' is inherited as a getter (from 'I') and also a method (from 'A').
+
+augment abstract class C {}
+''');
+  }
+
   test_class_implements_getter_implements_method_declaresField() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {

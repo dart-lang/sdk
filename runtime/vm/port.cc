@@ -218,14 +218,15 @@ bool PortMap::IsOwned(Dart_Port id) {
   return isolate->GetOwnerThread(&ml) != OSThread::kInvalidThreadId;
 }
 
-bool PortMap::IsOwnedByCurrentThread(Dart_Port id) {
+bool PortMap::IsOwnedByCurrentThread(Dart_Port id, bool require_permanent_pin) {
   Locker ml;
   Isolate* isolate = GetIsolateLocked(ml, id);
   if (isolate == nullptr) {
     // Either the port is invalid, or the isolate has already shut down.
     return false;
   }
-  return isolate->GetOwnerThread(&ml) == OSThread::GetCurrentThreadId();
+  return isolate->GetOwnerThread(&ml) == OSThread::GetCurrentThreadId() &&
+         (!require_permanent_pin || isolate->is_permanently_pinned());
 }
 
 IsolateAcquireResult PortMap::AcquireIsolateByControlPort(Dart_Port target_port,

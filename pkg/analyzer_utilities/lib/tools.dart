@@ -59,6 +59,10 @@ mixin CodeGenerator {
   /// Measure the width of the current indentation level.
   int get indentWidth => _state.nextIndent.length;
 
+  /// Name of the script that should be included in the header to instruct
+  /// developers how to re-run code generation.
+  String get regenScript => 'pkg/analysis_server/tool/spec/generate_files';
+
   /// Execute [callback], collecting any code that is output using [write]
   /// or [writeln], and return the result as a string.
   String collectCode(
@@ -169,7 +173,7 @@ mixin CodeGenerator {
  * BSD-style license that can be found in the LICENSE file.
  *
  * This file has been automatically generated. Please do not edit it manually.
- * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
+ * To regenerate the file, use the script "$regenScript".
  */''';
     } else if (codeGeneratorSettings.languageName == 'python') {
       header =
@@ -180,7 +184,7 @@ mixin CodeGenerator {
 #
 # This file has been automatically generated. Please do not edit it manually.
 # To regenerate the file, use the script
-# "pkg/analysis_server/tool/spec/generate_files".
+# "$regenScript".
 ''';
     } else {
       header =
@@ -191,7 +195,7 @@ mixin CodeGenerator {
 //
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/tool/spec/generate_files".
+// "$regenScript".
 ''';
       // During the transition period to Dart language version 3.13, some
       // generated files will be using language version 3.13, and will have the

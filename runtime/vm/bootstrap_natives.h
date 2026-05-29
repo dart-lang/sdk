@@ -65,6 +65,8 @@ namespace dart {
   V(SendPort_sendInternal_, 2)                                                 \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
+  V(Integer_trailingZeroBitCount, 1)                                           \
+  V(Integer_oneBitCount, 1)                                                    \
   V(SuspendState_instantiateClosureWithFutureTypeArgument, 2)                  \
   V(Mint_bitNegate, 1)                                                         \
   V(Mint_bitLength, 1)                                                         \
@@ -255,6 +257,8 @@ namespace dart {
   V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_getDebugName, 1)                                                   \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_isPinnedToCurrentThread, 1)                                        \
+  V(Isolate_pinToCurrentThread, 0)                                             \
   V(Isolate_runSync_, 2)                                                       \
   V(Isolate_runEventLoopSync_, 1)                                              \
   V(Isolate_sendOOB, 2)                                                        \

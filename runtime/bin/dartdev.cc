@@ -732,13 +732,22 @@ class DartDev {
   }
 
   static void SetEnvironmentVariableCallback(Dart_CObject* message) {
-    ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
-    const char* name = GetArrayItem(message, 1)->value.as_string;
+    ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kSendPort);
+    Dart_Port reply_port = GetArrayItem(message, 1)->value.as_send_port.id;
+
+    ASSERT(GetArrayItem(message, 2)->type == Dart_CObject_kString);
+    const char* name = GetArrayItem(message, 2)->value.as_string;
+
     const char* value = nullptr;
-    if (GetArrayItem(message, 2)->type == Dart_CObject_kString) {
-      value = GetArrayItem(message, 2)->value.as_string;
+    if (GetArrayItem(message, 3)->type == Dart_CObject_kString) {
+      value = GetArrayItem(message, 3)->value.as_string;
     }
+
     Platform::SetEnvironmentVariable(name, value);
+
+    Dart_CObject reply;
+    reply.type = Dart_CObject_kNull;
+    Dart_PostCObject(reply_port, &reply);
   }
 
   // Callback that processes the result from execution of dartdev

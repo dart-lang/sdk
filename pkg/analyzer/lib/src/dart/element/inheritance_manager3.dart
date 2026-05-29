@@ -59,8 +59,8 @@ class ExtensionTypeConflictingStaticAndInstanceConflict extends Conflict {
 
 /// Failure because of a getter and a method from direct superinterfaces.
 class GetterMethodConflict extends Conflict {
-  final InternalExecutableElement getter;
-  final InternalExecutableElement method;
+  final InternalGetterElement getter;
+  final InternalMethodElement method;
 
   GetterMethodConflict({
     required super.name,
@@ -381,15 +381,14 @@ class InheritanceManager3 {
   ) {
     assert(candidates.length > 1);
 
-    InternalExecutableElement? getter;
-    InternalExecutableElement? method;
+    InternalGetterElement? getter;
+    InternalMethodElement? method;
     for (var candidate in candidates) {
-      var kind = candidate.kind;
-      if (kind == ElementKind.GETTER) {
-        getter ??= candidate;
-      }
-      if (kind == ElementKind.METHOD) {
-        method ??= candidate;
+      switch (candidate) {
+        case InternalGetterElement():
+          getter ??= candidate;
+        case InternalMethodElement():
+          method ??= candidate;
       }
     }
 
@@ -618,12 +617,16 @@ class InheritanceManager3 {
         if (candidate.enclosingElement == mixinElement) {
           namedCandidates[name] = [candidate];
           if (current.kind != candidate.kind) {
-            var currentIsGetter = current.kind == ElementKind.GETTER;
+            var currentIsGetter = current is InternalGetterElement;
             mixinConflicts.add(
               GetterMethodConflict(
                 name: name,
-                getter: currentIsGetter ? current : candidate,
-                method: currentIsGetter ? candidate : current,
+                getter: currentIsGetter
+                    ? current
+                    : candidate as InternalGetterElement,
+                method: currentIsGetter
+                    ? candidate as InternalMethodElement
+                    : current as InternalMethodElement,
               ),
             );
           }

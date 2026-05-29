@@ -2197,7 +2197,7 @@ DART_EXPORT void Dart_ClearCurrentThreadOwnsIsolate_ForTesting() {
 }
 
 DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port) {
-  return PortMap::IsOwnedByCurrentThread(port);
+  return PortMap::IsOwnedByCurrentThread(port, /*require_permanent_pin=*/true);
 }
 
 // --- Scopes ----

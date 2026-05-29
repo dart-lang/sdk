@@ -6302,12 +6302,6 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE:
       __ neg(out, left);
       break;
-    case Token::kPOPCNT:
-      __ cpop(out, left);
-      break;
-    case Token::kCTZ:
-      __ ctz(out, left);
-      break;
     default:
       UNREACHABLE();
   }

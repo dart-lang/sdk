@@ -48,7 +48,7 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   try {
     VmInteropHandler.initialize(port);
     // Set the DART_ROOT environment variable to the SDK path.
-    VmInteropHandler.setEnvironmentVariable('DART_ROOT', sdk.sdkPath);
+    await VmInteropHandler.setEnvironmentVariable('DART_ROOT', sdk.sdkPath);
     // Call the runner to execute the command; see DartdevRunner.
     final runner = DartdevRunner(args, vmArgs: io.Platform.executableArguments);
     exitCode = await runner.run(args);
@@ -220,18 +220,18 @@ class DartdevRunner extends CommandRunner<int> {
     // Since VmInteropHandler.setEnvironmentVariable is non-overwriting by design
     // in C++, we unset the variable first to ensure the explicitly resolved
     // value takes precedence.
-    VmInteropHandler.setEnvironmentVariable(
+    await VmInteropHandler.setEnvironmentVariable(
       DashEnvVar.suppressAnalytics.name,
       null,
     );
 
-    VmInteropHandler.setEnvironmentVariable(
+    await VmInteropHandler.setEnvironmentVariable(
       DashEnvVar.suppressAnalytics.name,
       suppressAnalytics.toString(),
     );
     final envTool = io.Platform.environment[DashEnvVar.tool.name];
     if (envTool == null) {
-      VmInteropHandler.setEnvironmentVariable(
+      await VmInteropHandler.setEnvironmentVariable(
         DashEnvVar.tool.name,
         DashTool.dartTool.label,
       );
