@@ -19,17 +19,62 @@ class RecursiveInterfaceInheritanceOnTest extends PubPackageResolutionTest {
   test_1() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin A on A {}
-//    ^
+//         ^
 // [diag.recursiveInterfaceInheritanceOn] 'A' can't use itself as a superclass constraint.
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_1_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 augment mixin A on A {}
+//                 ^
+// [diag.recursiveInterfaceInheritanceOn] 'A' can't use itself as a superclass constraint.
 ''');
+  }
+
+  test_1_inAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+mixin A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment mixin A on A {}
+//                 ^
+// [diag.recursiveInterfaceInheritanceOn] 'A' can't use itself as a superclass constraint.
+''',
+    });
+  }
+
+  test_1_inAugmentation_part_indirect() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+mixin A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
+
+mixin B on A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''',
+      b: r'''
+part of 'a.dart';
+
+augment mixin A on B {}
+''',
+    });
   }
 
   test_2() async {
