@@ -86,7 +86,7 @@ template("compile_dart2wasm") {
       "../dart2wasm:dart2wasm_snapshot",
     ]
     if (product_mode) {
-      deps += [ "//third_party/binaryen:wasm-opt" ]
+      deps += [ "../../third_party/binaryen:wasm-opt" ]
     }
     if (defined(invoker.deps)) {
       deps += invoker.deps
