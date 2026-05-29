@@ -9383,6 +9383,8 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kStringBaseCodeUnitAt:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kInteger_trailingZeroBitCount:
+    case MethodRecognizer::kInteger_oneBitCount:
     case MethodRecognizer::kTypedList_GetInt8:
     case MethodRecognizer::kTypedList_SetInt8:
     case MethodRecognizer::kTypedList_GetUint8:
