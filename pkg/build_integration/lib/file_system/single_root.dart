@@ -31,8 +31,7 @@ class SingleRootFileSystem implements FileSystem {
   final Uri root;
   final FileSystem original;
 
-  SingleRootFileSystem(this.markerScheme, Uri root, this.original)
-    : root = _normalize(root);
+  new(this.markerScheme, Uri root, this.original) : root = _normalize(root);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -65,7 +64,7 @@ class SingleRootFileSystemEntity implements FileSystemEntity {
   final Uri uri;
   final FileSystemEntity delegate;
 
-  SingleRootFileSystemEntity(this.uri, this.delegate);
+  new(this.uri, this.delegate);
 
   @override
   Future<bool> exists() async => delegate.exists();

@@ -36,7 +36,7 @@ class MultiRootFileSystem implements FileSystem {
   final List<Uri> roots;
   final FileSystem original;
 
-  MultiRootFileSystem(this.markerScheme, List<Uri> roots, this.original)
+  new(this.markerScheme, List<Uri> roots, this.original)
     : roots = roots.map(_normalize).toList();
 
   @override
@@ -74,7 +74,7 @@ class MultiRootFileSystemEntity implements FileSystemEntity {
     return multiRootFileSystem.original.entityForUri(uri);
   }
 
-  MultiRootFileSystemEntity(this.multiRootFileSystem, this.uri);
+  new(this.multiRootFileSystem, this.uri);
 
   @override
   Future<bool> exists() async => (await delegate).exists();
@@ -98,7 +98,7 @@ class MissingFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  MissingFileSystemEntity(this.uri);
+  new(this.uri);
 
   @override
   Future<bool> exists() => Future.value(false);
