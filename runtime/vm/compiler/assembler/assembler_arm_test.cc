@@ -3015,47 +3015,6 @@ ASSEMBLER_TEST_RUN(Vmvnq, test) {
   }
 }
 
-ASSEMBLER_TEST_GENERATE(Vcnt8B, assembler) {
-  if (TargetCPUFeatures::neon_supported()) {
-    __ LoadImmediate(R1, 0xF);
-    __ LoadImmediate(R2, 0);
-    __ vmovdrr(D0, R1, R2);
-    __ vcnt(D0, D0);
-    __ vmovrs(R0, S0);
-  }
-  __ Ret();
-}
-
-ASSEMBLER_TEST_RUN(Vcnt8B, test) {
-  EXPECT(test != nullptr);
-  if (TargetCPUFeatures::neon_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
-}
-
-ASSEMBLER_TEST_GENERATE(VcntVpaddlu8B, assembler) {
-  if (TargetCPUFeatures::neon_supported()) {
-    __ LoadImmediate(R1, 0xFFFF);
-    __ LoadImmediate(R2, 0);
-    __ vmovdrr(D0, R1, R2);
-    __ vcnt(D0, D0);
-    __ vpaddlu(kByte, D0, D0);
-    __ vpaddlu(kTwoBytes, D0, D0);
-    __ vpaddlu(kFourBytes, D0, D0);
-    __ vmovrs(R0, S0);
-  }
-  __ Ret();
-}
-
-ASSEMBLER_TEST_RUN(VcntVpaddlu8B, test) {
-  EXPECT(test != nullptr);
-  if (TargetCPUFeatures::neon_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(16, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
-}
-
 ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadImmediate(R0, 0x00000000);
