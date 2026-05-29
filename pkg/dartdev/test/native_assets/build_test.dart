@@ -448,6 +448,128 @@ void main(List<String> args) {
       });
     }, skip: !Platform.isLinux);
   }
+
+  test('dart build cli with positional target is rejected',
+      timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          'bin/dart_app.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.stderr, contains('Unexpected arguments'));
+      expect(result.exitCode, isNot(0));
+    });
+  });
+
+  test('dart build cli with custom entrypoint and custom package config',
+      timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+      // 1. Create a custom entry point outside bin/
+      final customDir = Directory.fromUri(dartAppUri.resolve('custom_dir/'));
+      await customDir.create();
+      final customEntryPoint = customDir.uri.resolve('my_custom_main.dart');
+
+      final originalCode = await File.fromUri(
+        dartAppUri.resolve('bin/dart_app.dart'),
+      ).readAsString();
+      await File.fromUri(customEntryPoint).writeAsString(originalCode);
+
+      // 2. Relocate the package config and package graph to a custom directory matching same depth
+      final customToolDir =
+          Directory.fromUri(dartAppUri.resolve('.custom_tool/'));
+      await customToolDir.create();
+
+      final originalConfig = File.fromUri(
+        dartAppUri.resolve('.dart_tool/package_config.json'),
+      );
+      final customConfig = File.fromUri(
+        customToolDir.uri.resolve('my_custom_packages.json'),
+      );
+      await originalConfig.copy(customConfig.path);
+
+      final originalGraph = File.fromUri(
+        dartAppUri.resolve('.dart_tool/package_graph.json'),
+      );
+      final customGraph = File.fromUri(
+        customToolDir.uri.resolve('package_graph.json'),
+      );
+      await originalGraph.copy(customGraph.path);
+
+      // 3. Invoke build using the custom arguments
+      final result = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--packages=${customConfig.path}',
+          '--target=${customEntryPoint.toFilePath()}',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      expect(result.stdout, contains('Running build hooks'));
+      expect(result.stdout, contains('Running link hooks'));
+
+      // 4. Verify the executable runs correctly and prints expected output
+      final relativeExeUri = relativeBundleUri
+          .resolve('bin/')
+          .resolve(OS.current.executableFileName('my_custom_main'));
+      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+      expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+      final processResult = await runProcess(
+        executable: absoluteExeUri,
+        logger: logger,
+        throwOnUnexpectedExitCode: true,
+      );
+      expectDartAppStdout(processResult.stdout);
+    });
+  });
+
+  test('dart build cli unmapped entrypoint aborts', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+      // Create an entry point outside the project structure (isolated temp dir)
+      await _withTempDir((tempUri) async {
+        final isolatedEntryPoint = tempUri.resolve('isolated.dart');
+        await File.fromUri(isolatedEntryPoint).writeAsString('''
+void main() {
+  print('Hello isolated');
+}
+''');
+
+        // Invoke build pointing to the isolated file
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--packages=${dartAppUri.resolve('.dart_tool/package_config.json').toFilePath()}',
+            '--target=${isolatedEntryPoint.toFilePath()}',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+
+        expect(
+          result.stderr,
+          contains(
+              'does not reside in any package defined in the package config'),
+        );
+        expect(result.exitCode, 255);
+      });
+    });
+  });
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
