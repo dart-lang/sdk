@@ -35,6 +35,7 @@ class DartRuntimeServiceVMBackend
     required Stream<VmRunningIsolate> runningIsolatesStream,
     required this.residentCompilerInfoFile,
     required this._ddsManager,
+    this.serviceInfoFilename,
   }) : isolateManager = VmIsolateManager(
          runningIsolatesStream: runningIsolatesStream,
        );
@@ -88,6 +89,9 @@ class DartRuntimeServiceVMBackend
   /// Adds support for launching and accepting connections from the
   /// Dart Development Service.
   final DartDevelopmentServiceManager _ddsManager;
+
+  /// The path to the file where VM service connection info should be written.
+  final String? serviceInfoFilename;
 
   @override
   UnmodifiableListView<ServiceRpcHandler> get rpcs => UnmodifiableListView([
@@ -181,6 +185,22 @@ class DartRuntimeServiceVMBackend
       );
     }
     _nativeBindings.onServerAddressChange(httpUri.toString());
+
+    final serviceInfoFilenameLocal = serviceInfoFilename;
+    if (serviceInfoFilenameLocal != null &&
+        serviceInfoFilenameLocal.isNotEmpty) {
+      await _dumpServiceInfoToFile(serviceInfoFilenameLocal, httpUri);
+    }
+  }
+
+  Future<void> _dumpServiceInfoToFile(String filename, Uri httpUri) async {
+    final serviceInfo = <String, String>{'uri': httpUri.toString()};
+    const kFileScheme = 'file://';
+    final uri = filename.startsWith(kFileScheme)
+        ? Uri.parse(filename)
+        : Uri.file(filename);
+    final file = File.fromUri(uri);
+    await file.writeAsString(json.encode(serviceInfo));
   }
 
   @override
