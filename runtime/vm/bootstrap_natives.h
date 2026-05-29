@@ -46,7 +46,6 @@ namespace dart {
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
   V(Integer_fromEnvironment, 2)                                                \
-  V(Integer_parse, 1)                                                          \
   V(Integer_shlFromInteger, 2)                                                 \
   V(Integer_shrFromInteger, 2)                                                 \
   V(Integer_ushrFromInteger, 2)                                                \

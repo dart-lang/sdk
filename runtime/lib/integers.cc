@@ -160,7 +160,7 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 0, 2) {
 }
 
 static IntegerPtr ParseInteger(const String& value) {
-  // Used by both Integer_parse and Integer_fromEnvironment.
+  // Used by Integer_fromEnvironment.
   if (value.IsOneByteString()) {
     // Quick conversion for unpadded integers in strings.
     const intptr_t len = value.Length();
@@ -178,11 +178,6 @@ static IntegerPtr ParseInteger(const String& value) {
   }
 
   return Integer::New(value);
-}
-
-DEFINE_NATIVE_ENTRY(Integer_parse, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
-  return ParseInteger(value);
 }
 
 DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 0, 2) {
