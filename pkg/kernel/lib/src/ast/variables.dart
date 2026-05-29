@@ -6,9 +6,7 @@ part of '../../ast.dart';
 
 /// Generalized notion of a variable.
 sealed class VariableBase extends TreeNode implements Annotatable {
-  VariableContext? get context;
-
-  void set context(VariableContext value);
+  abstract VariableContext context;
 
   /// The cosmetic name of the variable from the source code, if exists.
   String? get cosmeticName;
@@ -638,13 +636,13 @@ class LegacyVariable extends TreeNode implements Variable, Annotatable {
 
   @override
   // TODO(62620): Conforming to [Variable] interface. Remove this.
-  VariableContext? get context {
+  VariableContext get context {
     throw new UnsupportedError("${this.runtimeType}.context");
   }
 
   @override
   // TODO(62620): Conforming to [Variable] interface. Remove this.
-  void set context(VariableContext? value) {
+  void set context(VariableContext value) {
     throw new UnsupportedError("${this.runtimeType}.context=");
   }
 
@@ -719,7 +717,8 @@ class LocalVariable extends Variable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   @override
   // TODO(johnniwinther): Remove this.
@@ -740,21 +739,6 @@ class LocalVariable extends Variable {
     this.isWildcard = isWildcard;
     this.hasDeclaredInitializer = hasDeclaredInitializer;
     this.initializer?.parent = this;
-  }
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
   }
 
   @override
@@ -1045,7 +1029,8 @@ class LateVariable extends Variable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   @override
   // TODO(johnniwinther): Rename to [initialValue].
@@ -1067,21 +1052,6 @@ class LateVariable extends Variable {
     this.isWildcard = isWildcard;
     this.hasDeclaredInitializer = hasDeclaredInitializer;
     this.initializer?.parent = this;
-  }
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
   }
 
   @override
@@ -1378,7 +1348,8 @@ class CatchVariable extends Variable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   CatchVariable({
     required String name,
@@ -1388,21 +1359,6 @@ class CatchVariable extends Variable {
        type = type ?? const DynamicType(),
        super.empty() {
     this.isWildcard = isWildcard;
-  }
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
   }
 
   @override
@@ -1899,7 +1855,8 @@ class PositionalParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   PositionalParameter({
     this.cosmeticName,
@@ -1915,21 +1872,6 @@ class PositionalParameter extends FunctionParameter {
     super.isSynthesized = false,
     super.isWildcard = false,
   });
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
-  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -2066,7 +2008,8 @@ class NamedParameter extends FunctionParameter {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   NamedParameter({
     required this.parameterName,
@@ -2082,21 +2025,6 @@ class NamedParameter extends FunctionParameter {
     super.isSynthesized = false,
     super.isWildcard = false,
   });
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
-  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -2236,24 +2164,10 @@ class ThisVariable extends Variable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   ThisVariable({required this.type}) : super.empty();
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
-  }
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
@@ -2534,7 +2448,8 @@ class SyntheticVariable extends Variable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  VariableContext? _context;
+  @override
+  late VariableContext context;
 
   @override
   // TODO(johnniwinther): Remove this.
@@ -2543,21 +2458,6 @@ class SyntheticVariable extends Variable {
   SyntheticVariable({this.cosmeticName, required this.type, this.initializer})
     : super.empty() {
     this.initializer?.parent = this;
-  }
-
-  @override
-  VariableContext? get context {
-    assert(
-      _context != null,
-      "The context of a '${runtimeType}' variable with cosmetic name "
-      "'${cosmeticName}' is accessed, but hasn't been set yet.",
-    );
-    return _context;
-  }
-
-  @override
-  void set context(VariableContext value) {
-    _context = value;
   }
 
   // TODO(cstefantsova): Consider a throwing implementation instead.

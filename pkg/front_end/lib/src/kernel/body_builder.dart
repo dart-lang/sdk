@@ -7787,7 +7787,7 @@ class BodyBuilderImpl extends StackListenerImpl
       identifierName = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    Variable variable = new VariableDeclarationImpl(
+    InternalVariable variable = new VariableDeclarationImpl(
       identifierName,
       forSyntheticToken: nameToken.isSynthetic,
       isFinal: true,
@@ -7796,11 +7796,10 @@ class BodyBuilderImpl extends StackListenerImpl
       fileOffset: name.nameOffset,
     );
     push(
-      new FunctionDeclarationImpl(
-        variable,
-        // The real function node is created later.
-        dummyFunctionNode,
-      )..fileOffset = beginToken.charOffset,
+      intern.createFunctionDeclaration(
+        variable: variable,
+        fileOffset: beginToken.charOffset,
+      ),
     );
     if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
       // The local scope stack contains a type parameter scope for the local
@@ -7815,7 +7814,7 @@ class BodyBuilderImpl extends StackListenerImpl
       LocalScope scope = isFunctionExpression
           ? _localScope
           : _localScopes.previous;
-      declareVariable(variable, scope);
+      declareVariable(variable.astVariable, scope);
     }
   }
 
@@ -7890,26 +7889,25 @@ class BodyBuilderImpl extends StackListenerImpl
     if (!isFunctionExpression) {
       annotations = pop() as List<Expression>?; // Metadata.
     }
-    FunctionNode function = formals.buildFunctionNode(
-      libraryBuilder,
-      returnType,
-      typeParameters,
-      asyncModifier,
-      body,
-      token.charOffset,
+    InternalFunctionNode function = formals.buildFunctionNode(
+      libraryBuilder: libraryBuilder,
+      returnTypeBuilder: returnType,
+      typeParameterBuilders: typeParameters,
+      asyncModifier: asyncModifier,
+      body: body,
+      // TODO(johnniwinther): Shouldn't we provide the start offset here?
+      fileOffset: TreeNode.noOffset,
+      fileEndOffset: token.charOffset,
     );
 
-    if (declaration is FunctionDeclaration) {
-      Variable variable = declaration.variable;
+    if (declaration is InternalFunctionDeclaration) {
+      InternalVariable variable = declaration.variable;
       if (annotations != null) {
         for (Expression annotation in annotations) {
           variable.addAnnotation(annotation);
         }
       }
-      FunctionDeclarationImpl.setHasImplicitReturnType(
-        declaration as FunctionDeclarationImpl,
-        hasImplicitReturnType,
-      );
+      declaration.hasImplicitReturnType = hasImplicitReturnType;
       if (!hasImplicitReturnType) {
         problemReporting.checkAsyncReturnType(
           libraryBuilder: libraryBuilder,
@@ -7921,10 +7919,9 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
 
-      variable.type = function.computeFunctionType(Nullability.nonNullable);
+      variable.type = function.computeFunctionType();
 
       declaration.function = function;
-      function.parent = declaration;
       Statement statement;
       if (variable.initializer != null) {
         // This must have been a compile-time error.
@@ -8021,15 +8018,16 @@ class BodyBuilderImpl extends StackListenerImpl
     exitFunction();
     List<NominalParameterBuilder>? typeParameters =
         pop() as List<NominalParameterBuilder>?;
-    FunctionNode function = formals.buildFunctionNode(
-      libraryBuilder,
-      null,
-      typeParameters,
-      asyncModifier,
-      body,
+    InternalFunctionNode function = formals.buildFunctionNode(
+      libraryBuilder: libraryBuilder,
+      returnTypeBuilder: null,
+      typeParameterBuilders: typeParameters,
+      asyncModifier: asyncModifier,
+      body: body,
+      fileOffset: beginToken.charOffset,
       // TODO(jensj): Is this the offset we want?
-      endToken.next!.charOffset,
-    )..fileOffset = beginToken.charOffset;
+      fileEndOffset: endToken.next!.charOffset,
+    );
 
     Expression result;
     if (constantContext != ConstantContext.none) {
@@ -8041,7 +8039,7 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     } else {
       result = intern.createFunctionExpression(
-        function,
+        function: function,
         fileOffset: offsetForToken(beginToken),
       );
     }

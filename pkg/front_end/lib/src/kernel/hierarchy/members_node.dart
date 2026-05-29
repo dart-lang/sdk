@@ -1645,7 +1645,6 @@ class _Tuple {
         !tupleMixedInSetter.isStatic &&
         !tupleMixedInSetter.isDuplicate &&
         !tupleMixedInSetter.isSynthesized) {
-      // Coverage-ignore-block(suite): Not run.
       /// We treat
       ///
       ///   class Mixin {
@@ -1691,6 +1690,7 @@ class _Tuple {
       } else if (!definingSetable.isDuplicate) {
         if (definingSetable.isStatic ||
             definingSetable.isProperty != tupleMixedInSetter.isProperty) {
+          // Coverage-ignore-block(suite): Not run.
           builder.reportInheritanceConflict(
             definingSetable,
             tupleMixedInSetter,

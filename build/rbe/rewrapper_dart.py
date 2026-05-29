@@ -375,8 +375,23 @@ trace to find the place to insert the appropriate support.
                     self.rebase(
                         os.path.join(self.dart_subdir, 'vm_platform.dill')))
                 return self.parse_kernel_service_snapshot()
+            elif arg == '../../pkg/dartpad_worker/tool/build_dart_sdk_tar.dart':
+                self.entry_points.add(self.rebase(arg))
+                # This step is cheap, just bundle a few files into a tar
+                self.no_remote = True
+                return self.parse_build_dart_sdk_tar()
             else:
                 self.unsupported('dart', arg)
+
+    def parse_build_dart_sdk_tar(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['--output']):
+                self.outputs.append(self.rebase(self.optarg))
+            elif self.get_option(['--sdk-root']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            else:
+                self.unsupported('build_dart_sdk_tar', arg)
 
     def parse_dartaotruntime(self):
         while self.has_next_arg:
@@ -387,8 +402,41 @@ trace to find the place to insert the appropriate support.
                         os.path.join(self.dart_subdir,
                                      'snapshots/dart2js_aot.dart.snapshot')))
                 return self.parse_dart2js()
+            elif arg == 'dart2wasm.snapshot' or arg.endswith(
+                    '/dart2wasm.snapshot'):
+                self.extra_paths.add(self.rebase(arg))
+                return self.parse_dart2wasm()
             else:
                 self.unsupported('dartaotruntime', arg)
+
+    def parse_dart2wasm(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['--packages', '--platform', '--wasm-opt']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option(['--depfile']):
+                self.depfiles = [self.rebase(self.optarg)]
+            elif self.get_option(['--phases']):
+                pass
+            elif arg in [
+                    '-O0',
+                    '-O1',
+                    '-O2',
+                    '-O3',
+                    '-O4',
+                    '--minify',
+                    '--no-source-maps',
+            ]:
+                pass
+            else:
+                if arg.endswith('.dart'):
+                    self.entry_points.add(self.rebase(arg))
+                elif arg.endswith('.wasm'):
+                    output = self.rebase(arg)
+                    self.outputs.append(output)
+                    self.outputs.append(output.replace('.wasm', '.mjs'))
+                    self.outputs.append(output.replace('.wasm', '.support.js'))
+                    self.outputs.append(output + '.map')
 
     def parse_compile(self):
         while self.has_next_arg:

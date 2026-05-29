@@ -147,6 +147,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   final List<Variable> variableStack = <Variable>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
+  final List<Scope> scopeStack = [];
 
   Map<Reference, ExtensionMemberDescriptor>? _extensionsMembers;
   Map<Reference, ExtensionTypeMemberDescriptor>? _extensionTypeMembers;
@@ -222,6 +223,110 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   /// If true, constant local variables are expected to have been removed.
   bool get constantLocalsShouldBeRemoved => !target.constantsBackend.keepLocals;
+
+  bool checkVariableInScopeStack(VariableBase node) {
+    int occurrenceCount = 0;
+    for (Scope scope in scopeStack) {
+      for (VariableContext context in scope.contexts) {
+        for (VariableBase currentVariable in context.variables) {
+          if (identical(currentVariable, node)) {
+            occurrenceCount++;
+          }
+        }
+      }
+    }
+
+    switch (occurrenceCount) {
+      case 1:
+        return true;
+      case 0:
+        problem(
+          node,
+          "Variable '${node.cosmeticName}' of the kind "
+          "'${node.runtimeType}' wasn't found in the enclosing scopes.",
+        );
+        return false;
+      default:
+        problem(
+          node,
+          "Variable '${node.cosmeticName}' of the kind "
+          "'${node.runtimeType}' occurs multiple times "
+          "(x${occurrenceCount}) in the enclosing contexts.",
+        );
+        return false;
+    }
+  }
+
+  bool checkVariableIsInOwnContext(VariableBase node) {
+    VariableContext variableContext;
+    try {
+      variableContext = node.context;
+    } on Error {
+      _reportMissingVariableContext(node);
+      return false;
+    }
+
+    for (VariableBase variable in variableContext.variables) {
+      if (identical(node, variable)) {
+        return true;
+      }
+    }
+    problem(
+      node,
+      "Variable '${node.cosmeticName}' of the kind '${node.runtimeType}' "
+      "can't be found in its own context.",
+    );
+    return false;
+  }
+
+  void _reportMissingVariableContext(VariableBase node) {
+    problem(
+      node,
+      "A '${node.runtimeType}' variable with cosmetic name "
+      "'${node.cosmeticName}' doesn't have its context set.",
+    );
+  }
+
+  void enterScopeProvider(ScopeProvider node) {
+    if (node.scope case var scope?) {
+      scopeStack.add(scope);
+
+      for (VariableContext context in scope.contexts) {
+        for (VariableBase variable in context.variables) {
+          VariableContext variableContext;
+          try {
+            variableContext = variable.context;
+          } on Error {
+            _reportMissingVariableContext(variable);
+            continue;
+          }
+
+          if (!identical(context, variableContext)) {
+            problem(
+              node,
+              "Variable '${variable.cosmeticName}' appears in a context "
+              "that's not its own.",
+            );
+          }
+        }
+      }
+    }
+  }
+
+  void exitScopeProvider(ScopeProvider node) {
+    if (node.scope case var scope?) {
+      Scope removedScope = scopeStack.removeLast();
+      if (!identical(removedScope, scope)) {
+        // TODO(cstefantsova): This looks like an internal error. Should we
+        // report it differently?
+        problem(
+          node,
+          "Top scope on the stack doesn't match the scope of the exited "
+          "ScopeProvider object ('${node.runtimeType}').",
+        );
+      }
+    }
+  }
 
   @override
   void defaultTreeNode(TreeNode node) {
@@ -723,6 +828,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitField(Field node) {
     enterTreeNode(node);
+    enterScopeProvider(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
     currentMember = node;
     TreeNode? oldParent = enterParent(node);
@@ -779,6 +885,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     _visitAnnotations(node.annotations);
     exitParent(oldParent);
     currentMember = null;
+    exitScopeProvider(node);
     exitTreeNode(node);
   }
 
@@ -901,6 +1008,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitConstructor(Constructor node) {
     enterTreeNode(node);
+    enterScopeProvider(node.function);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
     currentMember = node;
     classTypeParametersAreInScope = true;
@@ -938,6 +1046,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }*/
     classTypeParametersAreInScope = false;
     currentMember = null;
+    exitScopeProvider(node.function);
     exitTreeNode(node);
   }
 
@@ -964,6 +1073,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitFunctionNode(FunctionNode node) {
     enterTreeNode(node);
+    enterScopeProvider(node);
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
     AsyncMarker savedAsyncMarker = currentAsyncMarker;
@@ -1022,6 +1132,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     inCatchBlock = savedInCatchBlock;
     currentAsyncMarker = savedAsyncMarker;
     undeclareTypeParameters(node.typeParameters);
+    exitScopeProvider(node);
     exitTreeNode(node);
   }
 
@@ -1044,12 +1155,30 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitBlock(Block node) {
+    enterScopeProvider(node);
     visitWithLocalScope(node);
+    exitScopeProvider(node);
   }
 
   @override
   void visitForStatement(ForStatement node) {
+    enterScopeProvider(node);
     visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
   }
 
   @override
@@ -1066,6 +1195,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitBlockExpression(BlockExpression node) {
     enterTreeNode(node);
+    enterScopeProvider(node);
     int stackHeight = enterLocalScope();
     // Do not visit the block directly because the value expression needs to
     // be in its scope.
@@ -1078,15 +1208,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     node.value.accept(this);
     exitParent(oldParent);
     exitLocalScope(stackHeight);
+    exitScopeProvider(node);
     exitTreeNode(node);
   }
 
   @override
   void visitCatch(Catch node) {
+    enterScopeProvider(node);
     bool savedInCatchBlock = inCatchBlock;
     inCatchBlock = true;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+    exitScopeProvider(node);
   }
 
   @override
@@ -1199,12 +1332,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareVariable(node);
     exitTreeNode(node);
 
-    if (!isOutline && node.context == null) {
-      problem(
-        node,
-        "A '${node.runtimeType}' variable with cosmetic name "
-        "'${node.cosmeticName}' doesn't have its context set.",
-      );
+    if (!isOutline) {
+      checkVariableInScopeStack(node);
+      checkVariableIsInOwnContext(node);
     }
   }
 
@@ -2007,16 +2137,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    enterScopeProvider(node.function);
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOff(node);
+    exitScopeProvider(node.function);
   }
 
   @override
   void visitRedirectingFactoryTearOffConstant(
     RedirectingFactoryTearOffConstant node,
   ) {
+    enterScopeProvider(node.function);
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOffConstant(node);
+    exitScopeProvider(node.function);
   }
 
   @override

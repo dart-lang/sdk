@@ -32,6 +32,7 @@ import '../builder/member_builder.dart';
 import '../kernel/assigned_variables_impl.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/external_ast_helper.dart';
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -59,26 +60,27 @@ import 'type_schema_environment.dart'
         AllTypeParameterEliminator,
         TypeSchemaEnvironment;
 
-/// Given a [FunctionExpression], computes a set whose elements consist of (a)
-/// an integer corresponding to the zero-based index of each positional
+/// Given an [InternalFunctionExpression], computes a set whose elements consist
+/// of (a) an integer corresponding to the zero-based index of each positional
 /// parameter of the function expression that has an explicit type annotation,
 /// and (b) a string corresponding to the name of each named parameter of the
 /// function expression that has an explicit type annotation.
 Set<Object> _computeExplicitlyTypedParameterSet(
-  FunctionExpression functionExpression,
+  InternalFunctionExpression functionExpression,
 ) {
   Set<Object> result = {};
   int unnamedParameterIndex = 0;
-  for (Variable positionalParameter
+  for (InternalVariable positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
-    if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
+    if (!positionalParameter.isImplicitlyTyped) {
       result.add(key);
     }
   }
-  for (Variable namedParameter in functionExpression.function.namedParameters) {
-    String key = namedParameter.name!;
-    if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
+  for (InternalVariable namedParameter
+      in functionExpression.function.namedParameters) {
+    String key = namedParameter.cosmeticName!;
+    if (!namedParameter.isImplicitlyTyped) {
       result.add(key);
     }
   }
@@ -1919,7 +1921,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         unparenthesizedExpression = unparenthesizedExpression.expression;
       }
       if (isInferenceUpdate1Enabled &&
-          unparenthesizedExpression is FunctionExpression) {
+          unparenthesizedExpression is InternalFunctionExpression) {
         _DeferredArgumentInfo argumentInfo = new _DeferredArgumentInfo(
           argument: argument,
           formalType: formalType,
@@ -2232,18 +2234,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
   }
 
-  FunctionType inferLocalFunction(
+  LocalFunctionResult inferLocalFunction(
     InferenceVisitor visitor,
-    FunctionNode function,
-    DartType? typeContext,
-    int fileOffset,
-    DartType? returnContext,
-  ) {
-    bool hasImplicitReturnType = false;
-    if (returnContext == null) {
-      hasImplicitReturnType = true;
-      returnContext = const UnknownType();
-    }
+    InternalFunctionNode function, {
+    required DartType? typeContext,
+    required DartType? returnType,
+    required int implicitReturnOffset,
+  }) {
+    DartType? returnContext = returnType ?? const UnknownType();
 
     // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
     // `n`=0 if there are no type parameters).
@@ -2252,7 +2250,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
     // (including required, positional optional, and named optional parameters).
     // If any type `Pi` is missing, denote it as `_`.
-    List<Variable> formals = [
+    List<InternalVariable> formals = [
       ...function.positionalParameters,
       ...function.namedParameters,
     ];
@@ -2282,7 +2280,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         } else {
           formalTypesFromContext[i] = getNamedParameterType(
             typeContext,
-            formals[i].name!,
+            formals[i].cosmeticName!,
           );
         }
       }
@@ -2311,7 +2309,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      InternalVariable formal = formals[i] as InternalVariable;
+      InternalVariable formal = formals[i];
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
@@ -2360,16 +2358,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    List<Variable> positionalParameters = function.positionalParameters;
-    for (int i = 0; i < positionalParameters.length; i++) {
-      Variable parameter = positionalParameters[i];
-      // TODO(62401): Remove the cast when the flow analysis uses
-      // [InternalExpressionVariable]s.
-      Variable parameterAstVariable =
-          (parameter as InternalVariable).astVariable;
+    for (InternalVariable parameter in function.positionalParameters) {
       flowAnalysis.declare(
-        parameterAstVariable,
-        new SharedTypeView(parameterAstVariable.type),
+        parameter.astVariable,
+        new SharedTypeView(parameter.type),
         initialized: true,
       );
       inferMetadata(visitor, parameter);
@@ -2382,14 +2374,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..parent = parameter;
       }
     }
-    for (Variable parameter in function.namedParameters) {
-      // TODO(62401): Remove the cast when the flow analysis uses
-      // [InternalExpressionVariable]s.
-      Variable parameterAstVariable =
-          (parameter as InternalVariable).astVariable;
+    for (InternalVariable parameter in function.namedParameters) {
       flowAnalysis.declare(
-        parameterAstVariable,
-        new SharedTypeView(parameterAstVariable.type),
+        parameter.astVariable,
+        new SharedTypeView(parameter.type),
         initialized: true,
       );
       inferMetadata(visitor, parameter);
@@ -2403,8 +2391,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    for (Variable parameter in function.namedParameters) {
-      InternalVariable formal = parameter as InternalVariable;
+    for (InternalVariable formal in function.namedParameters) {
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
@@ -2427,12 +2414,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
-    bool needToSetReturnType = hasImplicitReturnType;
     BodyInferenceContext bodyContext = new BodyInferenceContext(
       this,
       function.asyncMarker,
       returnContext,
-      needToInferReturnType: needToSetReturnType,
+      needToInferReturnType: returnType == null,
       isRoot: false,
     );
     StatementInferenceResult bodyResult = visitor.inferStatement(
@@ -2445,7 +2431,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // `void` if `B’` contains no `yield` expressions.  Otherwise, let `M` be
     // the least upper bound of the types of the `return` expressions in `B’`,
     // or `void` if `B’` contains no `return` expressions.
-    if (needToSetReturnType) {
+    if (returnType == null) {
       DartType inferredReturnType = bodyContext.inferReturnType(
         this,
         hasImplicitReturn: flowAnalysis.isReachable,
@@ -2454,20 +2440,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B`
       // with type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and
       // `xi` denoted as optional or named parameters, if appropriate).
-      function.returnType = inferredReturnType;
+      returnType = inferredReturnType;
     }
     bodyResult = bodyContext.handleImplicitReturn(
       this,
       function.body!,
       bodyResult,
-      fileOffset,
+      implicitReturnOffset,
     );
-    function.emittedValueType = bodyContext.emittedValueType;
-
-    if (bodyResult.hasChanged) {
-      function.body = bodyResult.statement..parent = function;
-    }
-    return function.computeFunctionType(Nullability.nonNullable);
+    List<Variable> positionalParameters = [
+      for (InternalVariable parameter in function.positionalParameters)
+        parameter.astVariable,
+    ];
+    List<Variable> namedParameters = [
+      for (InternalVariable parameter in function.namedParameters)
+        parameter.astVariable,
+    ];
+    return new LocalFunctionResult(
+      returnType: returnType,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      body: bodyResult.hasChanged ? bodyResult.statement : function.body,
+      emittedValueType: bodyContext.emittedValueType,
+    );
   }
 
   /// Infers the [annotations].
@@ -6009,7 +6004,7 @@ class ImplicitInstantiation {
 /// feature is enabled.
 class _DeferredArgumentInfo extends _ArgumentInfo {
   /// The unparenthesized argument expression.
-  final FunctionExpression unparenthesizedExpression;
+  final InternalFunctionExpression unparenthesizedExpression;
 
   _DeferredArgumentInfo({
     required super.argument,
@@ -6413,4 +6408,52 @@ class PatternForInData {
     required this.iterable,
     required this.computePatternVariableDeclaration,
   });
+}
+
+class LocalFunctionResult {
+  final DartType returnType;
+  final List<Variable> positionalParameters;
+  final List<Variable> namedParameters;
+  final Statement? body;
+  final DartType? emittedValueType;
+
+  LocalFunctionResult({
+    required this.returnType,
+    required this.positionalParameters,
+    required this.namedParameters,
+    required this.body,
+    required this.emittedValueType,
+  });
+
+  FunctionType computeInferredType(InternalFunctionNode function) {
+    return FunctionNode.computeFunctionTypeFromData(
+      returnType: returnType,
+      typeParameters: function.typeParameters,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      nullability: Nullability.nonNullable,
+      requiredParameterCount: function.requiredParameterCount,
+    );
+  }
+
+  FunctionNode computeFunctionNode({
+    required InternalFunctionNode function,
+    required Scope? scope,
+    required List<VariableContext>? capturedContexts,
+  }) {
+    return extern.createFunctionNode(
+      body,
+      returnType: returnType,
+      typeParameters: function.typeParameters,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      requiredParameterCount: function.requiredParameterCount,
+      fileOffset: function.fileOffset,
+      fileEndOffset: function.fileEndOffset,
+      asyncMarker: function.asyncMarker,
+      emittedValueType: emittedValueType,
+      scope: scope,
+      capturedContexts: capturedContexts,
+    );
+  }
 }

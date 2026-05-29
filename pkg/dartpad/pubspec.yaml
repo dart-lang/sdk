@@ -1,0 +1,16 @@
+name: dartpad
+environment:
+  sdk: ^3.12.0-0
+resolution: workspace
+
+dependencies:
+  json_rpc_2: ^4.0.0
+  stream_channel: ^2.1.4
+  web: ^2.0.0-0
+
+# We get dev_dependencies from inside the Dart SDK repository, thus, no need
+# to specify versions
+dev_dependencies:
+  checks: any
+  test: any
+  yaml: any

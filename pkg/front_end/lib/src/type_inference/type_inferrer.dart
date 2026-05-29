@@ -433,6 +433,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (scopeProviderInfo != null) {
       visitor.endClosureContextAllocation(scopeProviderInfo);
+      redirectingFactoryFunction.scope = scopeProviderInfo.scope;
     }
 
     DartType resultType = result.inferredType;

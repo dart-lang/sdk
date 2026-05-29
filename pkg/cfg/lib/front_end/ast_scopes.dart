@@ -56,7 +56,7 @@ final class AstScopes implements Scopes {
 
   @override
   Context getVariableContext(Variable variable) =>
-      _mapping.mapContext(variable.context!);
+      _mapping.mapContext(variable.context);
 
   @override
   List<Context> getCapturedContexts(

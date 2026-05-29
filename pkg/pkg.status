@@ -47,6 +47,7 @@ dart2wasm/*: Slow, Pass # Tests run subprocesses.
 dartdev/test/commands/analyze_test: Slow, Pass
 dartdev/test/commands/help_test: Slow, Pass
 dartdev/test/smoke/*: Slow, Pass
+dartpad_worker/test/ci_test: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
@@ -225,6 +226,7 @@ compiler/test/deferred/load_graph_segmentation_test: Slow, Pass
 compiler/test/deferred/load_mapping_test: Slow, Pass
 compiler/test/end_to_end/dart2js_batch_test: Slow, Pass
 compiler/test/end_to_end/exit_code_test: Slow, Pass
+dartpad_worker/test/ci_test: SkipSlow
 vm/test/kernel_front_end_test: SkipSlow
 vm_snapshot_analysis/test/precompiler_trace_test: SkipSlow
 
@@ -259,6 +261,9 @@ linter/tool/*: SkipByDesign # Only meant to run on vm
 native_stack_traces/test/*: SkipByDesign # Only meant to run on vm
 vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
+
+[ $system == macos ]
+dartpad_worker/test/ci_test: Skip # Chrome will hang asking for keychain access.
 
 [ $system == windows ]
 front_end/test/bootstrap_test: Skip # Issue 31902
@@ -309,6 +314,7 @@ analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
 [ $arch != x64 && ($system == linux || $system == windows) ]
 dart_runtime_service/test/sse_client_test: Skip # Chrome not available
+dartpad_worker/test/ci_test: Skip # Chrome not available
 dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
 dds/test/devtools_server/remote_control_test: Skip # Chrome not available
 dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available

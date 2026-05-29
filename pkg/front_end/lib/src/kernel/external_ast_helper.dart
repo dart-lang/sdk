@@ -283,6 +283,14 @@ FileUriExpression createFileUriExpression({
   return new FileUriExpression(expression, fileUri)..fileOffset = fileOffset;
 }
 
+FunctionDeclaration createFunctionDeclaration({
+  required Variable variable,
+  required FunctionNode function,
+  required int fileOffset,
+}) {
+  return new FunctionDeclaration(variable, function)..fileOffset = fileOffset;
+}
+
 FunctionExpression createFunctionExpression(
   FunctionNode function, {
   required int fileOffset,
@@ -301,6 +309,9 @@ FunctionNode createFunctionNode(
   int? fileEndOffset,
   AsyncMarker asyncMarker = AsyncMarker.Sync,
   AsyncMarker? dartAsyncMarker,
+  DartType? emittedValueType,
+  Scope? scope,
+  List<VariableContext>? capturedContexts,
 }) {
   return new FunctionNode(
       body,
@@ -312,6 +323,9 @@ FunctionNode createFunctionNode(
       asyncMarker: asyncMarker,
       dartAsyncMarker: dartAsyncMarker,
     )
+    ..emittedValueType = emittedValueType
+    ..scope = scope
+    ..capturedContexts = capturedContexts
     ..fileOffset = fileOffset
     ..fileEndOffset = fileEndOffset ?? fileOffset;
 }

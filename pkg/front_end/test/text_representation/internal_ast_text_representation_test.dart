@@ -1202,10 +1202,24 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 
 void _testFunctionDeclarationImpl() {
   testStatement(
-    new FunctionDeclarationImpl(
-      new VariableDeclarationImpl('foo', fileOffset: TreeNode.noOffset),
-      new FunctionNode(new Block([])),
-    ),
+    new InternalFunctionDeclaration(
+        variable: new VariableDeclarationImpl(
+          'foo',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      )
+      ..function = new InternalFunctionNode(
+        returnType: const DynamicType(),
+        typeParameters: [],
+        positionalParameters: [],
+        namedParameters: [],
+        requiredParameterCount: 0,
+        asyncMarker: AsyncMarker.Sync,
+        body: new Block([]),
+        fileOffset: TreeNode.noOffset,
+        fileEndOffset: TreeNode.noOffset,
+      ),
     '''
 dynamic foo() {}''',
   );
