@@ -16,14 +16,37 @@ main() {
 
 @reflectiveTest
 class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_extends_augmentation_implements() async {
     await resolveTestCodeWithDiagnostics('''
 class I<T> {}
 class A implements I<int> {}
 class B extends A {}
+//    ^
+// [diag.conflictingGenericInterfaces] The class 'B' can't implement both 'I<int>' and 'I<String>' because the type arguments are different.
 augment class B implements I<String> {}
 ''');
+  }
+
+  test_class_extends_augmentation_implements_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class I<T> {}
+class A implements I<int> {}
+class B extends A {}
+//    ^
+// [diag.conflictingGenericInterfaces] The class 'B' can't implement both 'I<int>' and 'I<String>' because the type arguments are different.
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class B implements I<String> {}
+''',
+    });
   }
 
   test_class_extends_implements() async {

@@ -40,13 +40,35 @@ ImplementsClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implements_2times_augmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B implements A {}
 augment class B implements A {}
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
+  }
+
+  test_class_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+class B implements A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class B implements A {}
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''',
+    });
   }
 
   test_class_implements_2times_viaTypeAlias() async {
@@ -114,13 +136,35 @@ ImplementsClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_implements_2times_augmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 enum E implements A {v}
 augment enum E implements A {}
+//                        ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
+  }
+
+  test_enum_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+enum E implements A {v}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment enum E implements A {}
+//                        ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''',
+    });
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
@@ -189,12 +233,33 @@ ImplementsClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_implements_2times_augmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int {}
 augment extension type A implements int {}
+//                                  ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
 ''');
+  }
+
+  test_extensionType_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+extension type A(int it) implements int {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment extension type A implements int {}
+//                                  ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''',
+    });
   }
 
   test_extensionType_implements_2times_viaTypeAlias() async {
@@ -243,13 +308,35 @@ mixin M implements A, A {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_implements_2times_augmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M implements A {}
 augment mixin M implements A {}
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
+  }
+
+  test_mixin_implements_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+mixin M implements A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment mixin M implements A {}
+//                         ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''',
+    });
   }
 
   test_mixin_implements_4times() async {
