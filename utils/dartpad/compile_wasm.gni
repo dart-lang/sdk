@@ -82,11 +82,11 @@ template("compile_dart2wasm") {
     }
 
     deps = [
-      "//utils/dart2wasm:compile_dart2wasm_platform",
-      "//utils/dart2wasm:dart2wasm_snapshot",
+      "../dart2wasm:compile_dart2wasm_platform",
+      "../dart2wasm:dart2wasm_snapshot",
     ]
     if (product_mode) {
-      deps += [ "//third_party/binaryen:wasm-opt" ]
+      deps += [ "../../third_party/binaryen:wasm-opt" ]
     }
     if (defined(invoker.deps)) {
       deps += invoker.deps

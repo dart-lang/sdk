@@ -65,7 +65,7 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -74,16 +74,14 @@ abstract class TypeInferrer {
   });
 
   /// Performs type inference on the given constructor initializer.
-  InferredConstructorInitializer inferInitializer({
+  InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required Initializer initializer,
-    required List<Variable> parameters,
+    required List<Initializer> initializers,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
+    required bool isConstructorWithoutBody,
   });
 
   /// Performs type inference on the given metadata [annotations].
@@ -262,7 +260,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -378,7 +376,7 @@ class TypeInferrerImpl implements TypeInferrer {
         );
       } else {
         variableGet = intern.createVariableGet(
-          parameter,
+          parameter as InternalVariable,
           fileOffset: parameter.fileOffset,
         );
       }
@@ -407,7 +405,10 @@ class TypeInferrerImpl implements TypeInferrer {
       } else {
         namedExpression = new NamedExpression(
           parameter.name!,
-          intern.createVariableGet(parameter, fileOffset: parameter.fileOffset),
+          intern.createVariableGet(
+            parameter as InternalVariable,
+            fileOffset: parameter.fileOffset,
+          ),
         );
       }
       arguments.add(new NamedArgument(namedExpression));
@@ -445,16 +446,14 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InferredConstructorInitializer inferInitializer({
+  InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required Initializer initializer,
-    required List<Variable> parameters,
+    required List<Initializer> initializers,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
+    required bool isConstructorWithoutBody,
   }) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
@@ -466,23 +465,23 @@ class TypeInferrerImpl implements TypeInferrer {
       constructorContext: constructorContext,
       contextAllocationStrategy: contextAllocationStrategy,
     );
-    if (isClosureContextLoweringEnabled && isFirstInitializer) {
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = visitor.beginClosureContextAllocation(
         parameters,
         internalThisVariable: internalThisVariable,
         scopeProviderInfo: scopeProviderInfo,
       );
     }
-    InitializerInferenceResult initializerInferenceResult = visitor
-        .inferInitializer(initializer);
-    if (scopeProviderInfo != null && isLastInitializerWithoutBody) {
+    List<InitializerInferenceResult> results = [];
+    for (Initializer initializer in initializers) {
+      results.add(visitor.inferInitializer(initializer));
+    }
+    if (scopeProviderInfo != null && isConstructorWithoutBody) {
       visitor.endClosureContextAllocation(scopeProviderInfo);
     }
     visitor.checkCleanState();
-    return new InferredConstructorInitializer(
-      initializerInferenceResult,
-      scopeProviderInfo,
-    );
+    return new InferredConstructorInitializers(results, scopeProviderInfo);
   }
 
   @override
@@ -588,7 +587,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -614,28 +613,25 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  InferredConstructorInitializer inferInitializer({
+  InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required Initializer initializer,
-    required List<Variable> parameters,
+    required List<Initializer> initializers,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
-    required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
+    required ContextAllocationStrategy<ScopeProviderInfo>
+    contextAllocationStrategy,
+    required bool isConstructorWithoutBody,
   }) {
-    benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
-    InferredConstructorInitializer result = impl.inferInitializer(
+    benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializers);
+    InferredConstructorInitializers result = impl.inferInitializers(
       fileUri: fileUri,
       constructorContext: constructorContext,
-      initializer: initializer,
+      initializers: initializers,
       parameters: parameters,
       internalThisVariable: internalThisVariable,
-      scopeProviderInfo: scopeProviderInfo,
       contextAllocationStrategy: contextAllocationStrategy,
-      isFirstInitializer: isFirstInitializer,
-      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
+      isConstructorWithoutBody: isConstructorWithoutBody,
     );
     benchmarker.endSubdivide();
     return result;
@@ -721,12 +717,12 @@ class InferredFieldInitializer {
   );
 }
 
-class InferredConstructorInitializer {
-  final InitializerInferenceResult initializerInferenceResult;
+class InferredConstructorInitializers {
+  final List<InitializerInferenceResult> initializersInferenceResult;
   final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredConstructorInitializer(
-    this.initializerInferenceResult,
+  InferredConstructorInitializers(
+    this.initializersInferenceResult,
     this.scopeProviderInfo,
   );
 }

@@ -1492,6 +1492,16 @@ void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
+  // CNT Vd.8B, Vn.8B (Q=0, U=0, size=00, opcode=00101).
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x0E205800) {
+    Format(instr, "vcnt 'vd, 'vn");
+    return;
+  }
+  // UADDLV Hd, Vn.8B (Q=0, U=1, size=00, across-lanes ADDLV form).
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x2E303800) {
+    Format(instr, "vuaddlv 'vd, 'vn");
+    return;
+  }
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {

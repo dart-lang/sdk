@@ -122,7 +122,7 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  Variable? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   @override
   ExtensionScope get extensionScope =>

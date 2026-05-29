@@ -115,19 +115,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         );
       }
     }
-
-    for (var parameter in node.parameters.parameters) {
-      if (parameter is SuperFormalParameter) {
-        var element = parameter.declaredFragment?.element;
-        if (element is SuperFormalParameterElement) {
-          var superConstructorParameter = element.superConstructorParameter;
-          if (superConstructorParameter != null) {
-            usedElements.addElement(superConstructorParameter);
-          }
-        }
-      }
-    }
-
     super.visitConstructorDeclaration(node);
   }
 
@@ -366,6 +353,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _addParametersForArguments(node.argumentList);
     super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredFragment?.element;
+    if (element is SuperFormalParameterElement) {
+      var superConstructorParameter = element.superConstructorParameter;
+      if (superConstructorParameter != null) {
+        usedElements.addElement(superConstructorParameter);
+      }
+    }
+    super.visitSuperFormalParameter(node);
   }
 
   @override

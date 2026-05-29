@@ -56,7 +56,11 @@ static method test4(positional-parameter directCaptured) → dynamic/* scope=[
     value := let final core::int #t5 = directCaptured in let final void #t6 = directCaptured = #t5.{core::num::-}(1){(core::num) → core::int} in #t5 /* #ctx7 */;
     return value;
   }
-  else {
+  else/* scope=[
+    #ctx9: not-captured VariableContext([
+      local-variable final assertIsZero;
+    ]),
+  ] */ {
     function assertIsZero() /* #ctx7 */ → Null {
       assert(directCaptured =={core::num::==}{(core::Object) → core::bool} 0);
     }

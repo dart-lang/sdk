@@ -148,7 +148,7 @@ sealed class SetterEncoding {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   Procedure get writeTarget;
 
@@ -227,7 +227,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  Variable? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   @override
   Procedure get writeTarget => _procedure!;
@@ -333,7 +333,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      Variable parameter = new VariableDeclarationImpl(
+      Variable parameter = extern.createParameterVariable(
         "#synthetic",
         fileOffset: TreeNode.noOffset,
       );
@@ -531,7 +531,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  Variable? get thisVariable => _thisFormal.variable;
+  InternalVariable? get thisVariable => _thisFormal.variable;
 
   @override
   Procedure get writeTarget => _procedure!;
@@ -635,7 +635,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     FunctionNode function = extern.createFunctionNode(
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
-      positionalParameters: [_thisFormal.build(libraryBuilder)],
+      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
       fileEndOffset: _fragment.endOffset,
@@ -660,7 +660,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       Variable thisParameter = function.positionalParameters[0];
-      Variable parameter = new VariableDeclarationImpl(
+      Variable parameter = extern.createParameterVariable(
         "#synthetic",
         fileOffset: TreeNode.noOffset,
       );

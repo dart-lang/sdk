@@ -136,11 +136,37 @@ BreakStatement createBreakStatement(
 CatchVariable createCatchVariable({
   required String name,
   required DartType? type,
-  bool isWildcard = false,
+  required bool isFinal,
+  required bool isWildcard,
   required int fileOffset,
 }) {
-  return new CatchVariable(name: name, type: type, isWildcard: isWildcard)
-    ..fileOffset = fileOffset;
+  return new CatchVariable(
+    name: name,
+    type: type,
+    isWildcard: isWildcard,
+    isFinal: isFinal,
+  )..fileOffset = fileOffset;
+}
+
+LateVariable createLateVariable({
+  required String? cosmeticName,
+  required DartType? type,
+  bool isFinal = false,
+  bool isConst = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  Expression? initializer,
+  bool hasDeclaredInitializer = false,
+}) {
+  return new LateVariable(
+    cosmeticName: cosmeticName,
+    type: type,
+    isFinal: isFinal,
+    isConst: isConst,
+    isWildcard: isWildcard,
+    initializer: initializer,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a conditional expression of the [condition] and the [then] and
@@ -603,7 +629,7 @@ NamedParameter createNamedParameter({
     isInitializingFormal: isInitializingFormal,
     isSuperInitializingFormal: isSuperInitializingFormal,
     isFinal: isFinal,
-    hasDeclaredDefaultType: hasDeclaredDefaultType,
+    hasDeclaredDefaultValue: hasDeclaredDefaultType,
     isLowered: isLowered,
     isSynthesized: isSynthesized,
     isWildcard: isWildcard,
@@ -688,7 +714,7 @@ PositionalParameter createPositionalParameter({
     isInitializingFormal: isInitializingFormal,
     isSuperInitializingFormal: isSuperInitializingFormal,
     isFinal: isFinal,
-    hasDeclaredDefaultType: hasDeclaredDefaultType,
+    hasDeclaredDefaultValue: hasDeclaredDefaultType,
     isLowered: isLowered,
     isSynthesized: isSynthesized,
     isWildcard: isWildcard,

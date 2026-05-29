@@ -755,7 +755,7 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  Variable? get thisVariable => _encoding.thisVariable;
+  InternalVariable? get thisVariable => _encoding.thisVariable;
 
   @override
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
@@ -1476,7 +1476,7 @@ abstract class ConstructorFragmentDeclaration {
 
   void registerNoBodyConstructor();
 
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 

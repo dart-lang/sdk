@@ -177,7 +177,11 @@ Future<void> main() async {
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
     );
-    Variable variable = new Variable(null, isSynthesized: true);
+    InternalVariable variable = new VariableDeclarationImpl(
+      null,
+      isSynthesized: true,
+      fileOffset: -1,
+    );
 
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl();
     engine.prepareTopLevel(coreTypes, hierarchy);
@@ -242,7 +246,7 @@ Future<void> main() async {
       new DelayedPostfixIncrement(helper, token, generator, binaryOperator),
     );
     check(
-      "VariableUseGenerator(offset: 4, variable: dynamic #0;)",
+      "VariableUseGenerator(offset: 4, variable: dynamic #0)",
       new VariableUseGenerator(helper, token, variable),
     );
     check(

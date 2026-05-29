@@ -976,7 +976,7 @@ class NewWorldTest {
           UnexpectedAdvancedInvalidation,
           "Expected advancedInvalidation: "
           "${world.advancedInvalidation}, "
-          "advancedInvalidation: "
+          "but got: "
           "${actualAdvancedInvalidation}.",
         );
       }
@@ -1009,18 +1009,21 @@ class NewWorldTest {
               worldTestData.invalidated,
             );
         if (world.invalidate != null) {
-          Expect.equals(
-            world.invalidate!.length,
-            filteredInvalidated?.length ?? 0,
-            "Unexpected invalidated files: ${filteredInvalidated}, "
-            "actual: ${world.invalidate}.",
-          );
           if (world.expectedInvalidatedUri != null) {
             Expect.setEquals(
               world.expectedInvalidatedUri!.map(
                 (s) => newWorldTestData.base.resolve(s),
               ),
               filteredInvalidated!,
+            );
+          } else {
+            List<String> worldInvalidatedFiltered = world.invalidate!.toList()
+              ..removeWhere((s) => s.endsWith("package_config.json"));
+            Expect.equals(
+              worldInvalidatedFiltered.length,
+              filteredInvalidated?.length ?? 0,
+              "Unexpected invalidated files: ${filteredInvalidated}, "
+              "actual: $worldInvalidatedFiltered.",
             );
           }
         } else {
@@ -2701,7 +2704,8 @@ class NewWorldTest {
         world,
       );
     }
-    if (worldTestData.packagesUri != null) {
+    if (worldTestData.packagesUri != null &&
+        worldTestData.packagesUri != newWorldTestData.options.packagesFileUri) {
       newWorldTestData.options.packagesFileUri = worldTestData.packagesUri;
     }
     newWorldTestData.options.onDiagnostic = _getDiagnosticsHandler(

@@ -106,31 +106,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  InferredConstructorInitializer inferInitializer({
-    required TypeInferrer typeInferrer,
-    required Uri fileUri,
-    required Initializer initializer,
-    required List<Variable> parameters,
-    required ThisVariable? internalThisVariable,
-    required ScopeProviderInfo? scopeProviderInfo,
-    required ContextAllocationStrategy contextAllocationStrategy,
-    required bool isFirstInitializer,
-    required bool isLastInitializerWithoutBody,
-  }) {
-    return typeInferrer.inferInitializer(
-      fileUri: fileUri,
-      constructorContext: constructorContext,
-      initializer: initializer,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
-      scopeProviderInfo: scopeProviderInfo,
-      contextAllocationStrategy: contextAllocationStrategy,
-      isFirstInitializer: isFirstInitializer,
-      isLastInitializerWithoutBody: isLastInitializerWithoutBody,
-    );
-  }
-
-  @override
   DartType get returnTypeContext {
     return const DynamicType();
   }

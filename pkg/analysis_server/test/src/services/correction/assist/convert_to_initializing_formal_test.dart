@@ -295,7 +295,11 @@ class C(this.test) {
     await resolveTestCode('''
 class C(var int ^test(String));
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class C(this.test) {
+  int Function(String) test;
+}
+''');
   }
 
   Future<void> test_parameterDeclaration_primary_declaring_var() async {

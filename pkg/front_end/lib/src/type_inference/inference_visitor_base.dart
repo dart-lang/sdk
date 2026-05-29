@@ -5705,7 +5705,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// [parameters] are those of the function being inferred.
   ScopeProviderInfo beginClosureContextAllocation(
-    List<Variable> parameters, {
+    List<InternalVariable> parameters, {
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
   });

@@ -3266,6 +3266,30 @@ f() => A()._m(0);
 ''');
   }
 
+  test_parameter_isUsed_superParameter_inPrimaryConstructor_optionalNamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _BaseNamedOptional({final int? value});
+
+class SubNamedOptional({super.value}) extends _BaseNamedOptional;
+
+void main() {
+  print(SubNamedOptional(value: 42));
+}
+''');
+  }
+
+  test_parameter_isUsed_superParameter_inPrimaryConstructor_optionalPositional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _BaseOptional([final int? value]);
+
+class SubOptional(super.value) extends _BaseOptional;
+
+void main() {
+  print(SubOptional(42));
+}
+''');
+  }
+
   test_parameter_isUsed_topLevel() async {
     await resolveTestCodeWithDiagnostics(r'''
 void _m([int? a]) {}

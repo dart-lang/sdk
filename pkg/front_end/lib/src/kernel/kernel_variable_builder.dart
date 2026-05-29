@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Variable;
-
 import '../base/lookup_result.dart';
 import '../builder/builder.dart';
 import '../builder/variable_builder.dart';
+import 'internal_ast.dart';
 
 class VariableBuilderImpl extends NamedBuilderImpl
     with LookupResultMixin
@@ -18,7 +17,7 @@ class VariableBuilderImpl extends NamedBuilderImpl
   final Uri fileUri;
 
   @override
-  final Variable variable;
+  final InternalVariable variable;
 
   VariableBuilderImpl(this.name, this.variable, this.fileUri);
 

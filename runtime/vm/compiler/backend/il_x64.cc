@@ -5976,11 +5976,14 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = (op_kind() == Token::kCTZ) ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::SameAsFirstInput());
+  if (op_kind() == Token::kCTZ) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
@@ -5995,6 +5998,28 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE:
       __ negq(left);
       break;
+    case Token::kPOPCNT:
+      __ popcntq(out, left);
+      break;
+    case Token::kCTZ: {
+      // Intel Software Development Manual documents BSF behavior with zero
+      // input as undefined. However in reality all modern CPUs instead leave
+      // out unmodified - and compilers like LLVM rely on this behavior, so
+      // it makes sense for us to rely on it as well. This has an additional
+      // benefit of breaking false-data dependency on output register which
+      // can cause performance issues on some microarchitectures.
+      //
+      // |out| aliases |left| (SameAsFirstInput), so we stage through |tmp|
+      // to keep |left| readable as the BSF source.
+      const Register tmp = locs()->temp(0).reg();
+      __ LoadImmediate(tmp, compiler::Immediate(64));
+      // On CPUs supporting BMI2 extensions `rep bsf` will be interpreted as
+      // tzcnt, which is a faster instruction. On older CPUs rep-prefix will
+      // be ignored.
+      __ rep_bsfq(tmp, left);
+      __ movq(out, tmp);
+      break;
+    }
     default:
       UNREACHABLE();
   }

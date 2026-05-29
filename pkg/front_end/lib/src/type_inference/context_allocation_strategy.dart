@@ -7,7 +7,8 @@ import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
-) implements LocalStack<Info> {
+)
+    implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
   ) {
@@ -154,7 +155,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
     required CaptureKind captureKind,
   });
 
-  List<VariableContext> computeVariablesCapturedByNode(
+  List<VariableContext> computeCapturedVariableContexts(
     List<VariableBase> variables,
   ) {
     if (variables.isEmpty) {

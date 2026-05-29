@@ -1091,7 +1091,7 @@ class KernelTarget {
             type: const UnknownType(),
             isFinal: formal.isFinal,
             isRequired: formal.isRequired,
-            hasDeclaredDefaultType: formal.hasDeclaredInitializer,
+            hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
           );
         } else {
           copy = new NamedParameter(
@@ -1099,7 +1099,7 @@ class KernelTarget {
             type: const UnknownType(),
             isFinal: formal.isFinal,
             isRequired: formal.isRequired,
-            hasDeclaredDefaultType: formal.hasDeclaredInitializer,
+            hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
           );
         }
       } else {

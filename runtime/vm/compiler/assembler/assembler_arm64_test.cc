@@ -2250,6 +2250,49 @@ ASSEMBLER_TEST_RUN(Rbit, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vcnt8B, assembler) {
+  // 0x0F has popcount 4 in the low byte; all other bytes are zero.
+  __ LoadImmediate(R1, 0xF);
+  __ fmovdr(V0, R1);
+  __ vcnt(V0, V0);
+  __ vmovrd(R0, V0, 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vcnt8B, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xf\n"
+      "fmovdr v0, r1\n"
+      "vcnt v0, v0\n"
+      "vmovrd r0, v0[0]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VcntUaddlv8B, assembler) {
+  // Low 16 bits set: bytes {0xFF, 0xFF, 0, 0, 0, 0, 0, 0}.
+  // vcnt -> {8, 8, 0, ...}; vuaddlv -> 16 in H[0].
+  __ LoadImmediate(R1, 0xFFFF);
+  __ fmovdr(V0, R1);
+  __ vcnt(V0, V0);
+  __ vuaddlv(V0, V0);
+  __ fmovrs(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VcntUaddlv8B, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(16, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffff\n"
+      "fmovdr v0, r1\n"
+      "vcnt v0, v0\n"
+      "vuaddlv v0, v0\n"
+      "fmovrsw r0, v0\n"
+      "ret\n");
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;
