@@ -37,6 +37,8 @@ workspace:
   - pkg/dart2native
   - pkg/dart2wasm
   - pkg/dartdev
+  - pkg/dartpad
+  - pkg/dartpad_worker
   - pkg/dart_data_home
   - pkg/dart_internal
   - pkg/dart_runtime_service

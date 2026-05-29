@@ -1,0 +1,36 @@
+name: dartpad_worker
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+resolution: workspace
+
+dependencies:
+  analysis_server: any
+  analyzer: any
+  args: any
+  async: any
+  dartpad: any
+  dev_compiler: any
+  file: any
+  front_end: any
+  http: any
+  json_rpc_2: any
+  kernel: any
+  path: any
+  pub: any
+  stream_channel: any
+  tar: any
+  unified_analytics: any
+  web: any
+dev_dependencies:
+  checks: any
+  collection: any
+  pub_semver: any
+  shelf: any
+  shelf_static: any
+  test: any
+  yaml: any

@@ -3144,7 +3144,8 @@
           "arguments": [
             "create_sdk",
             "dartanalyzer",
-            "ddc_stable_test"
+            "ddc_stable_test",
+            "dartpad"
           ]
         },
         {
@@ -3272,7 +3273,8 @@
           "arguments": [
             "create_sdk",
             "dartanalyzer",
-            "ddc_stable_test"
+            "ddc_stable_test",
+            "dartpad"
           ]
         },
         {

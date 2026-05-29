@@ -1,0 +1,76 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../build/dart/dart_action.gni")
+import("compile_wasm.gni")
+
+compile_dart2wasm("worker") {
+  main_dart = "../../pkg/dartpad_worker/bin/worker.dart"
+  output = "$root_out_dir/dartpad/worker.wasm"
+}
+
+# Action to build the sdk.tar file
+prebuilt_dart_action("build_sdk_tar") {
+  script = "../../pkg/dartpad_worker/tool/build_dart_sdk_tar.dart"
+
+  output = "$root_out_dir/dartpad/dart/sdk.tar"
+  outputs = [ output ]
+
+  # This script reads most of the SDK lib directory.
+  # We don't list every file in 'inputs' to avoid GN churn,
+  # but we depend on the full SDK being created.
+  deps = [ "../../sdk:create_sdk" ]
+
+  args = [
+    "--output=" + rebase_path(output, root_build_dir),
+    "--sdk-root=" + rebase_path("$root_out_dir/dart-sdk", root_build_dir),
+  ]
+}
+
+# Copy sandbox.js to the dartpad layout
+copy("copy_sandbox_js") {
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/sandbox.js" ]
+  outputs = [ "$root_out_dir/dartpad/sandbox.js" ]
+}
+
+copy("copy_worker_loader") {
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/worker.loader.js" ]
+  outputs = [ "$root_out_dir/dartpad/worker.loader.js" ]
+}
+
+copy("copy_dart_sdk_js") {
+  deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
+  sources = [ "$root_gen_dir/utils/ddc/canary/sdk/ddc/dart_sdk.js" ]
+
+  # Inside the SDK folder for dart/, we are going to put a single
+  # sdk.js file, this is what the sandbox should load to get all the precompiled
+  # DDC modules. For SDKs like flutter we can either concatenate dart_sdk.js
+  # and flutter_web.js into a single sdk.js, or if we want source maps to work
+  # we can make a single sdk.js that imports dart_sdk.js and flutter_web.js.
+  # Using esbuild to minify and concatenate with sourcemaps might be attractive.
+  outputs = [ "$root_out_dir/dartpad/dart/sdk.js" ]
+}
+
+copy("copy_dart_sdk_js_map") {
+  deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
+  sources = [ "$root_gen_dir/utils/ddc/canary/sdk/ddc/dart_sdk.js.map" ]
+  outputs = [ "$root_out_dir/dartpad/dart/dart_sdk.js.map" ]
+}
+
+copy("copy_ddc_module_loader") {
+  sources = [ "../../pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js" ]
+  outputs = [ "$root_out_dir/dartpad/ddc_module_loader.js" ]
+}
+
+group("dartpad") {
+  deps = [
+    ":build_sdk_tar",
+    ":copy_dart_sdk_js",
+    ":copy_dart_sdk_js_map",
+    ":copy_ddc_module_loader",
+    ":copy_sandbox_js",
+    ":copy_worker_loader",
+    ":worker",
+  ]
+}

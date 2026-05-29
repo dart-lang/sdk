@@ -1,0 +1,117 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../build/dart/dart_action.gni")
+import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
+
+_dart_root = get_path_info("../..", "abspath")
+
+# Compiles a Dart program to WebAssembly using the dart2wasm compiler.
+#
+# Parameters:
+#   main_dart (required):
+#     The path to the main Dart file.
+#
+#   output (optional):
+#     The directory where the resulting .wasm, .mjs, .support.js, and .map
+#     files should be placed.
+#
+#   force_product_mode (optional):
+#     If true, forces the compilation to use production optimizations (-O4 and
+#     minification) regardless of the build mode.
+template("compile_dart2wasm") {
+  assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  dartaotruntime_action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "testonly",
+                             "visibility",
+                           ])
+
+    product_mode = !dart_debug || (defined(invoker.force_product_mode) &&
+                                   invoker.force_product_mode)
+
+    main_dart = invoker.main_dart
+
+    # The snapshot created by the dart2wasm_snapshot target
+    script = "$root_out_dir/dart2wasm.snapshot"
+
+    if (defined(invoker.package_config)) {
+      package_config = invoker.package_config
+    } else {
+      package_config = rebase_path("$_dart_root/.dart_tool/package_config.json")
+    }
+    if (defined(invoker.output)) {
+      output = invoker.output
+    } else {
+      output = "$root_out_dir/$target_name.wasm"
+    }
+    output_no_ext =
+        get_path_info(output, "dir") + "/" + get_path_info(output, "name")
+    platform_dill = "$root_out_dir/dart2wasm_platform.dill"
+    depfile = "$target_gen_dir/$target_name.d"
+
+    # The wasm-opt binary provided by //third_party/binaryen:wasm-opt target
+    if (product_mode) {
+      wasm_opt_binary = "$root_out_dir/wasm-opt$executable_suffix"
+    }
+
+    inputs = [
+      main_dart,
+      package_config,
+      platform_dill,
+    ]
+    if (product_mode) {
+      inputs += [ wasm_opt_binary ]
+    }
+    if (defined(invoker.inputs)) {
+      inputs += invoker.inputs
+    }
+
+    # dart2wasm produces .wasm, .mjs, .support.js and .wasm.map
+    outputs = [
+      output,
+      "${output}.map",
+      "${output_no_ext}.mjs",
+      "${output_no_ext}.support.js",
+    ]
+    if (defined(invoker.outputs)) {
+      outputs += invoker.outputs
+    }
+
+    deps = [
+      "//utils/dart2wasm:compile_dart2wasm_platform",
+      "//utils/dart2wasm:dart2wasm_snapshot",
+    ]
+    if (product_mode) {
+      deps += [ "//third_party/binaryen:wasm-opt" ]
+    }
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    args = [
+      "--packages=" + rebase_path(package_config, root_build_dir),
+      "--platform=" + rebase_path(platform_dill, root_build_dir),
+      "--depfile=" + rebase_path(depfile, root_build_dir),
+    ]
+
+    if (product_mode) {
+      args += [
+        "--wasm-opt=" + rebase_path(wasm_opt_binary, root_build_dir),
+        "--phases=cfe,tfa,codegen,opt",
+        "--minify",
+        "-O4",
+      ]
+    } else {
+      args += [ "-O2" ]
+    }
+
+    args += [
+      rebase_path(main_dart, root_build_dir),
+      rebase_path(output, root_build_dir),
+    ]
+  }
+}

@@ -208,6 +208,10 @@ group("ddc") {
   }
 }
 
+group("dartpad") {
+  deps = [ "utils/dartpad" ]
+}
+
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }
@@ -235,7 +239,8 @@ if (is_fuchsia) {
   import("utils/aot_snapshot.gni")
   import("utils/application_snapshot.gni")
 
-  # TODO(b/399714829): Test packages should be created at test-time, not build-time.
+  # TODO(b/399714829): Test packages should be created at test-time, not
+  # build-time.
 
   # tests/ffi/**_test.dart except those with compile-time errors
   test_sources = [

@@ -1,0 +1,147 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Definition of JSON-RPC 2.0 error codes used by DartPad Worker and
+# sandboxed iframe.
+#
+# For each error code we generate an Exception, so that the client library can
+# catch errors and throw them as custom Exception instances. The generated
+# execeptions are written to exceptions.dart next to this file.
+# See: tool/generate_execeptions.dart for further details.
+#
+# After updating entries here, do run:
+#   pkg/dartpad/tool/generate_exceptions.dart
+groups:
+# Session errors (2xxx)
+- name: Session
+  description: Common base class for exceptions related to your DartPad session.
+  codes:
+    2001:
+      name: WorkspaceNotFound
+      description: The provided `workspaceId` does not exist.
+
+# File system errors (4xxx)
+- name: FileSystem
+  description: |-
+    Common base class for exceptions related to file-system operations.
+  codes:
+    4001:
+      name: FileNotFound
+      description: The requested file or directory does not exist.
+    4002:
+      name: FileWriteConflict
+      description: Could not write file (e.g. parent is a file).
+    4003:
+      name: FileDeletionFailed
+      description: Could not delete the requested entity.
+
+# Language server errors (5xxx)
+- name: LanguageServer
+  description: Common base class for language server related exceptions.
+  codes:
+    5001:
+      name: LanguageServerNotFound
+      description: The `languageServerId` does not exist in this workspace.
+
+# Compilation errors (6xxx)
+- name: Compilation
+  description: Common base class for exceptions related to compilation.
+  codes:
+    6001:
+      name: CompilationFailed
+      description: |-
+        Failed to compile code, usually due to an issue in the code being
+        compiled.
+    6020:
+      name: PackageConfigNotFound
+      description: |-
+        Unable to find `.dart_tool/package_config.json` in any parent directory.
+    6100:
+      name: HotReloadCompilerNotFound
+      description: The `hotReloadCompilerId` does not exist in this workspace.
+    6101:
+      name: HotReloadRejected
+      description: The hot reload request was rejected by the compiler.
+
+# Pub errors (7xxx)
+- name: Pub
+  description: Common base class for pub related exceptions.
+  codes:
+    7001:
+      name: PubCommandFailed
+      description: The pub command failed to execute successfully.
+    7064:
+      name: PubUsage
+      description: The command was used incorrectly.
+    7065:
+      name: PubData
+      description: The input data was incorrect.
+    7066:
+      name: PubNoInput
+      description: An input file did not exist or was unreadable.
+    7067:
+      name: PubNoUser
+      description: The user specified did not exist.
+    7068:
+      name: PubNoHost
+      description: The host specified did not exist.
+    7069:
+      name: PubUnavailable
+      description: A service is unavailable.
+    7070:
+      name: PubSoftware
+      description: An internal software error has been detected.
+    7071:
+      name: PubOs
+      description: An operating system error has been detected.
+    7072:
+      name: PubOsFile
+      description: Some system file did not exist or was unreadable.
+    7073:
+      name: PubCantCreate
+      description: A user-specified output file cannot be created.
+    7074:
+      name: PubIo
+      description: An error occurred while doing I/O on some file.
+    7075:
+      name: PubTempFail
+      description: |-
+        Temporary failure, indicating something that is not really an error.
+    7076:
+      name: PubProtocol
+      description: |-
+        The remote system returned something invalid during a protocol exchange.
+    7077:
+      name: PubNoPerm
+      description: The user did not have sufficient permissions.
+    7078:
+      name: PubConfig
+      description: Something was unconfigured or mis-configured.
+
+# Sandbox errors (8xxx)
+# Keep in sync: pkg/dartpad_worker/lib/src/asset/sandbox.js
+- name: Sandbox
+  description: |-
+    Common base class for exceptions related to executing of user code in the
+    iframe sandbox.
+  codes:
+    8001:
+      name: ModuleLoaderNotAvailable
+      description: |-
+        The DDC module loader is has not been loaded into the sandbox.
+    8002:
+      name: FlutterLoaderNotAvailable
+      description: The flutter loader has not been loaded into the sandbox.
+    8100:
+      name: ModuleLoadingFailed
+      description: Failed to load module into the sandbox.
+    8200:
+      name: ExecutionFailed
+      description: Error happened when running `main()` from user-code.
+    8300:
+      name: HotRestartFailed
+      description: Hot-restart failed.
+    8400:
+      name: HotReloadFailed
+      description: Hot-reload failed.

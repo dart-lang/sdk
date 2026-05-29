@@ -1,0 +1,38 @@
+# Here we configure `dart test` to run `test_*.dart` files instead of the usual
+# `*_test.dart` files. This is because CI for the Dart SDK repository will run
+# `dart *_test.dart`, but it will just invoke these naked, hence, CI not use
+# the `package:test` harness to run tests in the browser. Instead, we'd have to
+# write a `*_test.dart` file that launches the browser, compiles our tests to
+# wasm or dart2js and run test the tests.
+#
+# We don't really want to invent our own test harness here, and we more or less
+# need all the harness that `package:test` provides. Thus, we are making a hack
+# here, where `dart test` will run `test_*.dart` files, and then we have a
+# single `test/ci_test.dart` which will only be invoked by CI tests, this file
+# will then run `dart test` as a subprocess.
+#
+# This way we can use `dart test` when developing locally, and we get the benefit
+# of the `package:test` harness when running both locally and in CI.
+# The only downside is that:
+#  - Test files have to be named `test_*.dart`, and,
+#  - SDK CI will report a single test case for `pkg/dartpad_worker/`.
+#
+# It's possible we should fine a better solution, or tweak CI such that folders
+# in `pkg/` can opt-into using `dart test` for driving testing.
+#
+# Benefits from using `dart test` are pretty significant, we get to run the same
+# test cases on both VM and chrome. We can leverage `spawnHybridUri` to launch
+# a HTTP server for hosting assets on localhost, and we can communicated with
+# the server from inside the test environment.
+
+platforms:
+  - chrome
+  - vm
+
+compilers:
+ - dart2wasm
+ - kernel
+
+concurrency: 1
+reporter: expanded
+filename: test_*.dart

@@ -69,10 +69,14 @@ abstract class TestSuite {
           'DART_CRASHPAD_HANDLER': Uri.base
               .resolve('${configuration.buildDirectory}/crashpad_handler.exe')
               .toFilePath(),
-        if (configuration.chromePath != null)
+        if (configuration.chromePath != null) ...{
           'CHROME_PATH': Uri.base
               .resolve(configuration.chromePath!)
               .toFilePath(),
+          'CHROME_EXECUTABLE': Uri.base
+              .resolve(configuration.chromePath!)
+              .toFilePath(),
+        },
         if (configuration.firefoxPath != null)
           'FIREFOX_PATH': Uri.base
               .resolve(configuration.firefoxPath!)
