@@ -285,10 +285,14 @@ extension CheckHelper on ProblemReporting {
     required SourceLibraryBuilder libraryBuilder,
     required TypeEnvironment typeEnvironment,
     required AsyncModifier asyncModifier,
-    required DartType returnType,
+    required DartType? returnType,
     required TypeBuilder returnTypeBuilder,
     required Uri fileUri,
   }) {
+    if (returnType == null) {
+      return;
+    }
+
     // For async, async*, and sync* functions with declared return types, we
     // need to determine whether those types are valid.
     // We use the same trick in each case below. For example to decide whether

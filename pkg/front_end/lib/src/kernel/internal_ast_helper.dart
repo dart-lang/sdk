@@ -391,11 +391,48 @@ Statement createForStatement(
   )..fileOffset = fileOffset;
 }
 
-FunctionExpression createFunctionExpression(
-  FunctionNode function, {
+InternalFunctionNode createFunctionNode({
+  required Statement? body,
+  required List<TypeParameter>? typeParameters,
+  required List<InternalVariable> positionalParameters,
+  required List<InternalVariable> namedParameters,
+  required int? requiredParameterCount,
+  required DartType? returnType,
+  required int fileOffset,
+  required int? fileEndOffset,
+  required AsyncMarker asyncMarker,
+}) {
+  return new InternalFunctionNode(
+    returnType: returnType,
+    typeParameters: typeParameters ?? [],
+    positionalParameters: positionalParameters,
+    namedParameters: namedParameters,
+    requiredParameterCount: requiredParameterCount ?? 0,
+    asyncMarker: asyncMarker,
+    body: body,
+    fileOffset: fileOffset,
+    fileEndOffset: fileEndOffset ?? TreeNode.noOffset,
+  );
+}
+
+Statement createFunctionDeclaration({
+  required InternalVariable variable,
   required int fileOffset,
 }) {
-  return new FunctionExpression(function)..fileOffset = fileOffset;
+  return new InternalFunctionDeclaration(
+    variable: variable,
+    fileOffset: fileOffset,
+  );
+}
+
+Expression createFunctionExpression({
+  required InternalFunctionNode function,
+  required int fileOffset,
+}) {
+  return new InternalFunctionExpression(
+    function: function,
+    fileOffset: fileOffset,
+  );
 }
 
 Expression createIfCaseElement(

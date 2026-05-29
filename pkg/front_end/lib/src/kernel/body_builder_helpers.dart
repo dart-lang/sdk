@@ -280,32 +280,34 @@ class FormalParameters extends Parameters {
     }
   }
 
-  FunctionNode buildFunctionNode(
-    SourceLibraryBuilder library,
-    TypeBuilder? returnTypeBuilder,
-    List<NominalParameterBuilder>? typeParameterBuilders,
-    AsyncModifier asyncModifier,
-    Statement body,
-    int fileEndOffset,
-  ) {
-    DartType returnType =
-        returnTypeBuilder?.build(library, TypeUse.returnType) ??
-        const DynamicType();
+  InternalFunctionNode buildFunctionNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required TypeBuilder? returnTypeBuilder,
+    required List<NominalParameterBuilder>? typeParameterBuilders,
+    required AsyncModifier asyncModifier,
+    required Statement body,
+    required int fileOffset,
+    required int fileEndOffset,
+  }) {
+    DartType? returnType = returnTypeBuilder?.build(
+      libraryBuilder,
+      TypeUse.returnType,
+    );
     int requiredParameterCount = 0;
-    List<Variable> positionalParameters = <Variable>[];
-    List<Variable> namedParameters = <Variable>[];
+    List<InternalVariable> positionalParameters = [];
+    List<InternalVariable> namedParameters = [];
     if (parameters != null) {
       for (FormalParameterBuilder formal in parameters!) {
-        Variable parameter = formal.build(library);
+        Variable parameter = formal.build(libraryBuilder);
         if (formal.isPositional) {
-          positionalParameters.add(parameter);
+          positionalParameters.add(parameter as InternalVariable);
           if (formal.isRequiredPositional) requiredParameterCount++;
         } else if (formal.isNamed) {
-          namedParameters.add(parameter);
+          namedParameters.add(parameter as InternalVariable);
         }
       }
-      namedParameters.sort((Variable a, Variable b) {
-        return a.name!.compareTo(b.name!);
+      namedParameters.sort((InternalVariable a, InternalVariable b) {
+        return a.cosmeticName!.compareTo(b.cosmeticName!);
       });
     }
 
@@ -315,11 +317,11 @@ class FormalParameters extends Parameters {
       for (NominalParameterBuilder t in typeParameterBuilders) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library, TypeUse.typeParameterBound);
+        t.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
       }
     }
-    return extern.createFunctionNode(
-      body,
+    return intern.createFunctionNode(
+      body: body,
       typeParameters: typeParameters,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
