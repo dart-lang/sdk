@@ -42,15 +42,11 @@ abstract class C extends Object {}
 part of 'a.dart';
 
 augment abstract class C implements B {}
-//                     ^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
 ''',
       c: r'''
 part of 'a.dart';
 
 augment abstract class C with A {}
-//                     ^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
 ''',
     });
   }
@@ -81,15 +77,11 @@ abstract class C extends Object {}
 part of 'a.dart';
 
 augment abstract class C with A {}
-//                     ^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
 ''',
       c: r'''
 part of 'a.dart';
 
 augment abstract class C implements B {}
-//                     ^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (void Function(int)), B.foo (void Function(String)).
 ''',
     });
   }
@@ -109,8 +101,6 @@ class A implements I {}
 // [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': M.foo (int Function()), I.foo (String Function()).
 
 augment class A with M {}
-//            ^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': M.foo (int Function()), I.foo (String Function()).
 ''');
   }
 
@@ -309,8 +299,6 @@ enum E implements A {v}
 // [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (int Function()), B.foo (String Function()).
 
 augment enum E implements B {
-//           ^
-// [diag.inconsistentInheritance] Superinterfaces don't have a valid override for 'foo': A.foo (int Function()), B.foo (String Function()).
   augment v;
 }
 ''');
