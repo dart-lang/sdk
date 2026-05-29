@@ -2395,13 +2395,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         String path = importUri.path;
         int firstSlash = path.indexOf('/');
         String packageName = path.substring(0, firstSlash);
+        Package? previousPackage = _previousPackagesMap?[packageName];
+        Package? currentPackage = _currentPackagesMap![packageName];
         if (_previousPackagesMap == null ||
-            !_packagesEqual(
-              _previousPackagesMap![packageName],
-              _currentPackagesMap![packageName],
-            )) {
+            !_packagesEqual(previousPackage, currentPackage)) {
+          // TODO(jensj): If the package has changed do we need to check the
+          // uri/language version before bailing? If for instance we don't care
+          // about the "extraData" field, we should probably just not check that
+          // in "_packagesEqual".
           Uri? newFileUri = uriTranslator.translate(importUri, false);
-          if (newFileUri != fileUri) {
+          if (newFileUri != fileUri ||
+              previousPackage?.languageVersion !=
+                  currentPackage?.languageVersion) {
             invalidatedBecauseOfPackageUpdate = true;
             return true;
           }

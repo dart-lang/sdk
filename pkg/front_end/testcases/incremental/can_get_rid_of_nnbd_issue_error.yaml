@@ -75,7 +75,7 @@ worlds:
     expectInitializeFromDill: false
     errors: true
     invalidate:
-      # .dart_tool/package_config.json is invalidated implicitly.
+      - .dart_tool/package_config.json
       - foo/lib/foo.dart
     sources:
       .dart_tool/package_config.json: |
@@ -112,7 +112,7 @@ worlds:
     expectInitializeFromDill: false
     errors: false
     invalidate:
-      # .dart_tool/package_config.json is invalidated implicitly.
+      - .dart_tool/package_config.json
       - bar/lib/bar.dart
     sources:
       .dart_tool/package_config.json: |
