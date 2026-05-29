@@ -18,6 +18,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/internal_ast.dart';
+import '../../kernel/internal_ast_helper.dart' as intern;
 import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -47,7 +48,7 @@ abstract class ConstructorEncoding {
 
   Variable? getTearOffParameter(int index);
 
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
@@ -195,7 +196,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  Variable? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   @override
   List<TypeParameter>? get thisTypeParameters => null;
@@ -504,7 +505,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
-  Variable? _thisVariable;
+  InternalVariable? _thisVariable;
 
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisTypeParameters] holds the type parameters copied
@@ -634,22 +635,17 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         typeArguments = [];
       }
 
-      _thisVariable = libraryBuilder.loader.isClosureContextLoweringEnabled
-          ?
-            // Coverage-ignore(suite): Not run.
-            (new PositionalParameter(
-              cosmeticName: syntheticThisName,
-              type: _computeThisType(declarationBuilder, typeArguments),
-
-              isFinal: true,
-              isLowered: true,
-            )..fileOffset = fileOffset)
-          : (new VariableDeclarationImpl(
-              syntheticThisName,
-              isFinal: true,
-              type: _computeThisType(declarationBuilder, typeArguments),
-              fileOffset: fileOffset,
-            )..isLowered = true);
+      _thisVariable = intern.createPositionalParameter(
+        isClosureContextLoweringEnabled:
+            libraryBuilder.loader.isClosureContextLoweringEnabled,
+        cosmeticName: syntheticThisName,
+        type: _computeThisType(declarationBuilder, typeArguments),
+        isFinal: true,
+        isLowered: true,
+        forSyntheticToken: false,
+        isImplicitlyTyped: false,
+        fileOffset: fileOffset,
+      );
 
       List<DartType> typeParameterTypes = <DartType>[];
       for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
@@ -703,7 +699,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  Variable? get thisVariable {
+  InternalVariable? get thisVariable {
     assert(
       _thisVariable != null,
       "ProcedureBuilder.thisVariable has not been set.",
@@ -771,9 +767,9 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       return;
     }
     if (!_isExternal) {
-      Variable thisVariable = this.thisVariable!;
+      InternalVariable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
-        extern.createVariableDeclaration(thisVariable),
+        extern.createVariableDeclaration(thisVariable.astVariable),
       );
       List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
@@ -791,7 +787,9 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         statements.add(body);
       }
       statements.add(
-        extern.createReturnStatement(extern.createVariableGet(thisVariable)),
+        extern.createReturnStatement(
+          extern.createVariableGet(thisVariable.astVariable),
+        ),
       );
       // TODO(cstefantsova): Provide a scope here.
       registerFunctionBody(
@@ -814,7 +812,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       constructorBuilder,
       constructorDeclaration,
       _constructor,
-      new _ExtensionTypeConstructorContext(constructorBuilder, thisVariable!),
+      new _ExtensionTypeConstructorContext(
+        constructorBuilder,
+        thisVariable!.astVariable,
+      ),
     );
   }
 

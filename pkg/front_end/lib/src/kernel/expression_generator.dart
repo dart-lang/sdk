@@ -434,7 +434,7 @@ abstract class Generator {
 /// If the variable is final or read-only (like a parameter in a catch clause) a
 /// [ReadOnlyAccessGenerator] is created instead.
 class VariableUseGenerator extends Generator {
-  final Variable variable;
+  final InternalVariable variable;
 
   VariableUseGenerator(
     ExpressionGeneratorHelper helper,
@@ -535,7 +535,7 @@ class VariableUseGenerator extends Generator {
     _helper.registerVariableRead(variable);
     _helper.registerVariableAssignment(variable);
     return new LocalIncDec(
-      variable: variable as InternalVariable,
+      variable: variable,
       forEffect: forEffect,
       isPost: isPost,
       isInc: binaryOperator == plusName,
@@ -641,7 +641,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   ForInLateFinalVariableUseGenerator(
     ExpressionGeneratorHelper helper,
     Token token,
-    Variable variable,
+    InternalVariable variable,
   ) : super(helper, token, variable);
 
   @override
@@ -959,7 +959,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   /// The synthetic variable used for 'this' in instance extension members
   /// and instance extension type members/constructor bodies.
-  Variable? thisVariable;
+  InternalVariable? thisVariable;
 
   ThisPropertyAccessGenerator(
     ExpressionGeneratorHelper helper,
@@ -2560,7 +2560,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   /// instance method.
   // TODO(johnniwinther): Handle static access to extension instance members,
   // in which case the access is erroneous and [extensionThis] is `null`.
-  final Variable extensionThis;
+  final InternalVariable extensionThis;
 
   /// The type parameters synthetically added to  the current extension
   /// instance method.
@@ -2584,7 +2584,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Token token,
     Extension extension,
     Name targetName,
-    Variable extensionThis,
+    InternalVariable extensionThis,
     List<TypeParameter>? extensionTypeParameters,
     MemberBuilder? getterBuilder,
     MemberBuilder? setterBuilder,

@@ -39,7 +39,7 @@ typedef Expression_Generator_Initializer = dynamic;
 typedef Expression_Initializer = dynamic;
 
 abstract class ExpressionGeneratorHelper {
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   Uri get uri;
 
@@ -84,7 +84,7 @@ abstract class ExpressionGeneratorHelper {
 
   LibraryFeatures get libraryFeatures;
 
-  bool isDeclaredInEnclosingCase(Variable variable);
+  bool isDeclaredInEnclosingCase(InternalVariable variable);
 
   Generator processLookupResult({
     required LookupResult? lookupResult,
@@ -221,23 +221,21 @@ abstract class ExpressionGeneratorHelper {
   );
 
   /// Creates a synthetic variable declaration for the value of [expression].
-  VariableDeclarationImpl createVariableDeclarationForValue(
-    Expression expression,
-  );
+  InternalVariable createVariableDeclarationForValue(Expression expression);
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(Variable variable, int charOffset);
+  Expression createVariableGet(InternalVariable variable, int charOffset);
 
   /// Registers that [variable] is read from.
   ///
   /// This is needed for type promotion.
-  void registerVariableRead(Variable variable);
+  void registerVariableRead(InternalVariable variable);
 
   /// Registers that [variable] is assigned to.
   ///
   /// This is needed for type promotion.
-  void registerVariableAssignment(Variable variable);
+  void registerVariableAssignment(InternalVariable variable);
 
   TypeEnvironment get typeEnvironment;
 

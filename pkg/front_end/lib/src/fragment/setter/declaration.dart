@@ -21,6 +21,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
+import '../../kernel/internal_ast.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
@@ -153,7 +154,7 @@ class RegularSetterDeclaration
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  Variable? get thisVariable => _encoding.thisVariable;
+  InternalVariable? get thisVariable => _encoding.thisVariable;
 
   @override
   Procedure get writeTarget => _encoding.writeTarget;
@@ -333,7 +334,7 @@ class RegularSetterDeclaration
         for (FormalParameterBuilder parameter in declaredFormals) {
           statements.add(
             extern.createVariableStatement(
-              extern.createVariableDeclaration(parameter.variable),
+              extern.createVariableDeclaration(parameter.variable.astVariable),
             ),
           );
         }
@@ -399,7 +400,7 @@ abstract class SetterFragmentDeclaration {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 

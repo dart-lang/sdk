@@ -153,7 +153,7 @@ class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
       _fragment.declaration.thisTypeParameters;
 
   @override
-  Variable? get thisVariable => _fragment.declaration.thisVariable;
+  InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   ExtensionScope get extensionScope {

@@ -93,11 +93,8 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/dart_scope_calculator.dart' show DartScope, DartScopeBuilder2;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart'
-    show
-        VariableDeclarationImpl,
-        InternalVariableGet,
-        InternalVariableSet,
-        InternalVariable;
+    show InternalVariableGet, InternalVariableSet, InternalVariable;
+import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
 import '../source/source_compilation_unit.dart' show SourceCompilationUnitImpl;
@@ -1877,7 +1874,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         return null;
       }
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
-      List<VariableDeclarationImpl> extraKnownVariables = [];
+      List<InternalVariable> extraKnownVariables = [];
       String? usedMethodName = methodName;
       Substitution? substitution;
       if (scriptUri != null && offset != TreeNode.noOffset) {
@@ -1942,8 +1939,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   def.value.isConst &&
                   def.value.initializer is ConstantExpression) {
                 extraKnownVariables.add(
-                  new VariableDeclarationImpl(
-                    def.key,
+                  intern.createLocalVariable(
+                    isClosureContextLoweringEnabled: lastGoodKernelTarget
+                        .loader
+                        .isClosureContextLoweringEnabled,
+                    name: def.key,
                     type: substitution.substituteType(def.value.type),
                     isConst: true,
                     hasDeclaredInitializer: true,
@@ -1962,8 +1962,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 // captured? Either way there's something shadowing any fields
                 // etc.
                 extraKnownVariables.add(
-                  new VariableDeclarationImpl(
-                    def.key,
+                  intern.createLocalVariable(
+                    isClosureContextLoweringEnabled: lastGoodKernelTarget
+                        .loader
+                        .isClosureContextLoweringEnabled,
+                    name: def.key,
                     type: substitution.substituteType(def.value.type),
                     isConst: false,
                     fileOffset: def.value.fileOffset,
@@ -2225,7 +2228,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
-      Variable? extensionThis;
+      InternalVariable? extensionThis;
 
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
@@ -2236,8 +2239,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         positionalParameters: usedDefinitions.entries.map<Variable>((
           MapEntry<String, DartType> def,
         ) {
-          VariableDeclarationImpl variable = new VariableDeclarationImpl(
-            def.key,
+          InternalVariable variable = intern.createPositionalParameter(
+            isClosureContextLoweringEnabled:
+                lastGoodKernelTarget.loader.isClosureContextLoweringEnabled,
+            cosmeticName: def.key,
             type: def.value,
             fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
           );
@@ -2248,7 +2253,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // The `#this` variable is special.
             extensionThis = variable..isLowered = true;
           }
-          return variable;
+          return variable.astVariable;
         }).toList(),
       );
 
@@ -2555,10 +2560,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final ClassHierarchy hierarchy;
 
   ExpressionEvaluationHelperImpl(
-    List<VariableDeclarationImpl> extraKnown,
+    List<InternalVariable> extraKnown,
     this.hierarchy,
   ) {
-    for (VariableDeclarationImpl variable in extraKnown) {
+    for (InternalVariable variable in extraKnown) {
       if (variable.isConst) {
         // We allow const variables - these are inlined (we check
         // `alwaysInlineConstants` in `compileExpression`).

@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Variable;
-
 import '../base/lookup_result.dart';
 import '../builder/builder.dart';
+import '../kernel/internal_ast.dart';
 
 abstract class VariableBuilder implements Builder, LookupResult {
-  Variable get variable;
+  InternalVariable get variable;
 
   bool get isConst;
 

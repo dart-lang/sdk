@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/base/uri_offset.dart';
-import 'package:front_end/src/source/stack_listener_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -13,6 +11,7 @@ import '../../api_prototype/experimental_flags.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -20,6 +19,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/external_ast_helper.dart' as extern;
+import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
@@ -31,6 +31,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart';
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
@@ -133,7 +134,7 @@ sealed class GetterEncoding implements InferredTypeListener {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -231,7 +232,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  Variable? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -517,7 +518,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  Variable? get thisVariable => _thisFormal.variable;
+  InternalVariable? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -617,7 +618,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     FunctionNode function = extern.createFunctionNode(
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
-      positionalParameters: [_thisFormal.build(libraryBuilder)],
+      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
       fileEndOffset: _fragment.endOffset,

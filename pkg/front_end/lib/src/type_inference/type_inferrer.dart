@@ -65,7 +65,7 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -78,7 +78,7 @@ abstract class TypeInferrer {
     required Uri fileUri,
     required ConstructorContext constructorContext,
     required Initializer initializer,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -262,7 +262,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -378,7 +378,7 @@ class TypeInferrerImpl implements TypeInferrer {
         );
       } else {
         variableGet = intern.createVariableGet(
-          parameter,
+          parameter as InternalVariable,
           fileOffset: parameter.fileOffset,
         );
       }
@@ -407,7 +407,10 @@ class TypeInferrerImpl implements TypeInferrer {
       } else {
         namedExpression = new NamedExpression(
           parameter.name!,
-          intern.createVariableGet(parameter, fileOffset: parameter.fileOffset),
+          intern.createVariableGet(
+            parameter as InternalVariable,
+            fileOffset: parameter.fileOffset,
+          ),
         );
       }
       arguments.add(new NamedArgument(namedExpression));
@@ -449,7 +452,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required Uri fileUri,
     required ConstructorContext constructorContext,
     required Initializer initializer,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -588,7 +591,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncModifier asyncModifier,
     required Statement body,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -618,7 +621,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required Uri fileUri,
     required ConstructorContext constructorContext,
     required Initializer initializer,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,

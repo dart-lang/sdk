@@ -411,14 +411,8 @@ for (void e in null) {}''',
     new InternalForInStatement(
       new PatternForInElement(
         pattern: new RecordPattern([
-          new VariablePattern(
-            const VoidType(),
-            new VariableDeclarationImpl('a', fileOffset: -1),
-          ),
-          new VariablePattern(
-            null,
-            new VariableDeclarationImpl('b', fileOffset: -1),
-          ),
+          new VariablePattern(const VoidType(), new LegacyVariable('a')),
+          new VariablePattern(null, new LegacyVariable('b')),
         ]),
         inOffset: -1,
       ),
@@ -822,7 +816,11 @@ continue label0;''',
 }
 
 void _testCascade() {
-  Variable variable = new Variable.forValue(new IntLiteral(0));
+  // TODO(johnniwinther): Add better text representation support for internal
+  //  synthetic variables.
+  InternalVariable variable = new VariableDeclarationImpl.forValue(
+    new IntLiteral(0),
+  )..name = '#0';
   Cascade cascade = new Cascade(variable, isNullAware: false);
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
@@ -830,7 +828,7 @@ let final dynamic #0 = 0 in cascade {} => #0''');
   cascade.addCascadeExpression(
     new DynamicSet(
       DynamicAccessKind.Dynamic,
-      new VariableGet(variable),
+      new InternalVariableGet(variable),
       new Name('foo'),
       new IntLiteral(1),
     ),
@@ -839,16 +837,16 @@ let final dynamic #0 = 0 in cascade {} => #0''');
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  #0.foo = 1;
+  (#0).foo = 1;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
+let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
   );
 
   cascade.addCascadeExpression(
     new DynamicSet(
       DynamicAccessKind.Dynamic,
-      new VariableGet(variable),
+      new InternalVariableGet(variable),
       new Name('bar'),
       new IntLiteral(2),
     ),
@@ -857,11 +855,11 @@ let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  #0.foo = 1;
-  #0.bar = 2;
+  (#0).foo = 1;
+  (#0).bar = 2;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''',
+let final dynamic #0 = 0 in cascade { (#0).foo = 1; (#0).bar = 2; } => #0''',
   );
 }
 
@@ -871,7 +869,9 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  Variable check = new Variable.forValue(new CheckLibraryIsLoaded(dependency));
+  InternalVariable check = new VariableDeclarationImpl.forValue(
+    new CheckLibraryIsLoaded(dependency),
+  );
   testExpression(
     new DeferredCheck(check, new IntLiteral(0), fileOffset: TreeNode.noOffset),
     '''

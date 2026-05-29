@@ -298,12 +298,12 @@ class FormalParameters extends Parameters {
     List<InternalVariable> namedParameters = [];
     if (parameters != null) {
       for (FormalParameterBuilder formal in parameters!) {
-        Variable parameter = formal.build(libraryBuilder);
+        InternalVariable parameter = formal.build(libraryBuilder);
         if (formal.isPositional) {
-          positionalParameters.add(parameter as InternalVariable);
+          positionalParameters.add(parameter);
           if (formal.isRequiredPositional) requiredParameterCount++;
         } else if (formal.isNamed) {
-          namedParameters.add(parameter as InternalVariable);
+          namedParameters.add(parameter);
         }
       }
       namedParameters.sort((InternalVariable a, InternalVariable b) {

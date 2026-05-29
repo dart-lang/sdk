@@ -20,6 +20,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/external_ast_helper.dart' as extern;
+import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
@@ -49,7 +50,7 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  Variable? get thisVariable;
+  InternalVariable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -161,7 +162,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  Variable? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -490,7 +491,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Procedure? get readTarget => _extensionTearOff;
 
   @override
-  Variable? get thisVariable => _thisFormal.variable;
+  InternalVariable? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -589,7 +590,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     FunctionNode function = extern.createFunctionNode(
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
-      positionalParameters: [_thisFormal.build(libraryBuilder)],
+      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
       fileEndOffset: _fragment.endOffset,
@@ -783,7 +784,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Variable? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
-        .variable];
+        .variable
+        .astVariable];
   }
 
   @override

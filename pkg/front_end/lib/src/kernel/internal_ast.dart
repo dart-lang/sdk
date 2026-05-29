@@ -457,7 +457,7 @@ class ActualArguments extends TreeNode with InternalTreeNode {
 class Cascade extends InternalExpression {
   /// The temporary variable holding the cascade receiver expression in its
   /// initializer;
-  Variable variable;
+  InternalVariable variable;
 
   /// `true` if the access is null-aware, i.e. of the form `a?..b()`.
   final bool isNullAware;
@@ -496,7 +496,7 @@ class Cascade extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable);
+    printer.writeVariableInitialization(variable.asVariableDeclaration);
     printer.write(' in cascade {');
     printer.incIndentation();
     for (Expression expression in expressions) {
@@ -509,13 +509,13 @@ class Cascade extends InternalExpression {
       printer.newLine();
     }
     printer.write('} => ');
-    printer.write(printer.getVariableName(variable));
+    printer.write(printer.getVariableName(variable.asVariableDeclaration));
   }
 }
 
 /// Internal expression representing an anonymous method invocation.
 class AnonymousMethodExpression extends InternalExpression {
-  Variable variable;
+  InternalVariable variable;
   Expression body;
   final bool isCascade;
   final bool isImplicitlyTyped;
@@ -552,7 +552,7 @@ class AnonymousMethodExpression extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable);
+    printer.writeVariableInitialization(variable.asVariableDeclaration);
     printer.write(' in ');
     printer.writeExpression(body);
   }
@@ -560,7 +560,7 @@ class AnonymousMethodExpression extends InternalExpression {
 
 /// Internal expression representing an anonymous block method invocation.
 class AnonymousMethodBlock extends InternalExpression {
-  Variable variable;
+  InternalVariable variable;
   Statement body;
   final bool isCascade;
   final bool isImplicitlyTyped;
@@ -597,7 +597,7 @@ class AnonymousMethodBlock extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable);
+    printer.writeVariableInitialization(variable.asVariableDeclaration);
     printer.write(' in ');
     printer.writeStatement(body);
   }
@@ -607,7 +607,7 @@ class AnonymousMethodBlock extends InternalExpression {
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in the replacement.
 class DeferredCheck extends InternalExpression {
-  Variable variable;
+  InternalVariable variable;
   Expression expression;
 
   DeferredCheck(this.variable, this.expression, {required int fileOffset}) {
@@ -633,7 +633,7 @@ class DeferredCheck extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
-    printer.writeVariableInitialization(variable);
+    printer.writeVariableInitialization(variable.asVariableDeclaration);
     printer.write(' in ');
     printer.writeExpression(expression);
   }
@@ -1054,6 +1054,7 @@ class VariableDeclarationImpl extends LegacyVariable
     this.fileEqualsOffset = fileEqualsOffset;
   }
 
+  // Coverage-ignore(suite): Not run.
   VariableDeclarationImpl.forEffect(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = false,
@@ -1062,6 +1063,7 @@ class VariableDeclarationImpl extends LegacyVariable
     isStaticLate = false;
   }
 
+  // Coverage-ignore(suite): Not run.
   VariableDeclarationImpl.forValue(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = true,
@@ -1112,9 +1114,19 @@ class InternalLocalVariable extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
+    bool isStaticLate = false,
     required int fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
   }) {
     this.fileOffset = fileOffset;
+    this.isStaticLate = isStaticLate;
+    this.fileEqualsOffset = fileEqualsOffset;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    return super.isAssignable;
   }
 
   @override
@@ -1198,9 +1210,19 @@ class InternalLateVariable extends TreeNode
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
+    bool isStaticLate = false,
     required int fileOffset,
+    int fileEqualsOffset = TreeNode.noOffset,
   }) {
     this.fileOffset = fileOffset;
+    this.isStaticLate = isStaticLate;
+    this.fileEqualsOffset = fileEqualsOffset;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    return super.isAssignable;
   }
 
   @override
@@ -1339,12 +1361,12 @@ class InternalPositionalParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get hasDeclaredDefaultType => astVariable.hasDeclaredDefaultType;
+  bool get hasDeclaredDefaultValue => astVariable.hasDeclaredDefaultValue;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void set hasDeclaredDefaultType(bool value) {
-    astVariable.hasDeclaredDefaultType = value;
+  void set hasDeclaredDefaultValue(bool value) {
+    astVariable.hasDeclaredDefaultValue = value;
   }
 
   @override
@@ -1446,12 +1468,12 @@ class InternalNamedParameter extends TreeNode
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get hasDeclaredDefaultType => astVariable.hasDeclaredDefaultType;
+  bool get hasDeclaredDefaultValue => astVariable.hasDeclaredDefaultValue;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void set hasDeclaredDefaultType(bool value) {
-    astVariable.hasDeclaredDefaultType = value;
+  void set hasDeclaredDefaultValue(bool value) {
+    astVariable.hasDeclaredDefaultValue = value;
   }
 
   @override
@@ -1461,6 +1483,7 @@ class InternalNamedParameter extends TreeNode
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<Expression> get annotations => astVariable.annotations;
 
   @override
@@ -1604,6 +1627,7 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<Expression> get annotations => astVariable.annotations;
 
   @override
@@ -1727,6 +1751,7 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isRequired => astVariable.isRequired;
 
   @override
@@ -6212,7 +6237,7 @@ class InvalidForInElement extends _BaseForInElement {
 /// an already defined local variable.
 class ExistingVariableForInElement extends _BaseForInElement {
   /// The variable used as the for-in element.
-  final Variable variable;
+  final InternalVariable variable;
 
   /// The file offset of the variable name.
   final int nameOffset;
@@ -6234,13 +6259,13 @@ class ExistingVariableForInElement extends _BaseForInElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.write(variable.name!);
+    printer.write(variable.cosmeticName!);
   }
 
   @override
   DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
     DartType? promotedType = visitor.flowAnalysis
-        .promotedType(variable)
+        .promotedType(variable.astVariable)
         ?.unwrapTypeView();
     return promotedType ?? variable.type;
   }
@@ -6251,7 +6276,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
     required Variable loopVariable,
   }) {
     ExpressionInferenceResult result = visitor.inferVariableSet(
-      variable: variable as InternalVariable,
+      variable: variable,
       variableType: variable.type,
       rhsResult: new ExpressionInferenceResult(
         loopVariable.type,

@@ -1355,10 +1355,12 @@ class CatchVariable extends Variable {
     required String name,
     required DartType? type,
     bool isWildcard = false,
+    bool isFinal = false,
   }) : catchVariableName = name,
        type = type ?? const DynamicType(),
        super.empty() {
     this.isWildcard = isWildcard;
+    this.isFinal = isFinal;
   }
 
   @override
@@ -1388,13 +1390,14 @@ class CatchVariable extends Variable {
   }
 
   static const int FlagWildcard = 1 << 0;
+  static const int FlagFinal = 1 << 1;
 
   @override
-  bool get isFinal => true;
+  bool get isFinal => flags & FlagFinal != 0;
 
   @override
   void set isFinal(bool value) {
-    throw new UnsupportedError("${this.runtimeType}.isFinal=");
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
 
   @override
@@ -1655,7 +1658,7 @@ sealed class FunctionParameter extends Variable {
     required bool isInitializingFormal,
     required bool isSuperInitializingFormal,
     required bool isFinal,
-    required bool hasDeclaredDefaultType,
+    required bool hasDeclaredDefaultValue,
     required bool isLowered,
     required bool isSynthesized,
     required bool isWildcard,
@@ -1665,7 +1668,7 @@ sealed class FunctionParameter extends Variable {
     this.isInitializingFormal = isInitializingFormal;
     this.isSuperInitializingFormal = isSuperInitializingFormal;
     this.isFinal = isFinal;
-    this.hasDeclaredDefaultType = hasDeclaredDefaultType;
+    this.hasDeclaredDefaultValue = hasDeclaredDefaultValue;
     this.isLowered = isLowered;
     this.isSynthesized = isSynthesized;
     this.isWildcard = isWildcard;
@@ -1776,20 +1779,20 @@ sealed class FunctionParameter extends Variable {
     flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
   }
 
-  bool get hasDeclaredDefaultType => flags & FlagHasDeclaredDefaultType != 0;
+  bool get hasDeclaredDefaultValue => flags & FlagHasDeclaredDefaultType != 0;
 
-  void set hasDeclaredDefaultType(bool value) {
+  void set hasDeclaredDefaultValue(bool value) {
     flags = value
         ? (flags | FlagHasDeclaredDefaultType)
         : (flags & ~FlagHasDeclaredDefaultType);
   }
 
   @override
-  bool get hasDeclaredInitializer => hasDeclaredDefaultType;
+  bool get hasDeclaredInitializer => hasDeclaredDefaultValue;
 
   @override
   void set hasDeclaredInitializer(bool value) {
-    hasDeclaredDefaultType = value;
+    hasDeclaredDefaultValue = value;
   }
 
   @override
@@ -1867,7 +1870,7 @@ class PositionalParameter extends FunctionParameter {
     super.isInitializingFormal = false,
     super.isSuperInitializingFormal = false,
     super.isFinal = false,
-    super.hasDeclaredDefaultType = false,
+    super.hasDeclaredDefaultValue = false,
     super.isLowered = false,
     super.isSynthesized = false,
     super.isWildcard = false,
@@ -2020,7 +2023,7 @@ class NamedParameter extends FunctionParameter {
     super.isInitializingFormal = false,
     super.isSuperInitializingFormal = false,
     super.isFinal = false,
-    super.hasDeclaredDefaultType = false,
+    super.hasDeclaredDefaultValue = false,
     super.isLowered = false,
     super.isSynthesized = false,
     super.isWildcard = false,
@@ -2455,9 +2458,14 @@ class SyntheticVariable extends Variable {
   // TODO(johnniwinther): Remove this.
   Expression? initializer;
 
-  SyntheticVariable({this.cosmeticName, required this.type, this.initializer})
-    : super.empty() {
+  SyntheticVariable({
+    this.cosmeticName,
+    required this.type,
+    this.initializer,
+    bool isFinal = false,
+  }) : super.empty() {
     this.initializer?.parent = this;
+    this.isFinal = isFinal;
   }
 
   // TODO(cstefantsova): Consider a throwing implementation instead.

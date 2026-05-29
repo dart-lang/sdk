@@ -22,6 +22,7 @@ import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/assigned_variables_impl.dart';
 import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/body_builder_context.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/kernel/resolver.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
@@ -292,7 +293,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
     LocalScope? formalParameterScope,
     required ClassHierarchy hierarchy,
     required CoreTypes coreTypes,
-    Variable? thisVariable,
+    InternalVariable? thisVariable,
     List<TypeParameter>? thisTypeParameters,
     required Uri uri,
     required AssignedVariablesImpl assignedVariables,

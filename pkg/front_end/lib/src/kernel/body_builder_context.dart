@@ -381,7 +381,7 @@ abstract class BodyBuilderContext {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
-    required List<Variable> parameters,
+    required List<InternalVariable> parameters,
     required ThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
