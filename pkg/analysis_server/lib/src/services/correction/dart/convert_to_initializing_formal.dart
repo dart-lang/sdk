@@ -346,20 +346,24 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       if (parameterName == null) return;
       var container = node.thisOrAncestorOfType<CompilationUnitMember>();
       if (container == null) return;
-      if (parameter.functionTypedSuffix != null) return;
+
       await builder.addDartFileEdit(file, (builder) {
-        var type = parameter.type;
         // Remove the `var` or `final` keyword, and add `this.`.
         builder.addSimpleReplacement(
           range.startStart(keyword, parameterName),
           'this.',
         );
+        // Remove the function parameters, if there are any.
+        var suffix = parameter.functionTypedSuffix;
+        if (suffix != null) {
+          builder.addDeletion(range.node(suffix));
+        }
         // Add the field.
         builder.insertField(container, (builder) {
           builder.writeFieldDeclaration(
             parameterName.lexeme,
             isFinal: keyword.keyword == Keyword.FINAL,
-            type: type?.type,
+            type: parameter.declaredFragment?.element.type,
           );
         });
       });
