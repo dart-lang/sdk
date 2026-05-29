@@ -172,6 +172,19 @@ augment class A {
 ''');
   }
 
+  test_class_instanceField_augments_staticField_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static int foo = 0;
+}
+augment class A {
+  augment abstract int foo;
+//                     ^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
   test_class_instanceField_augments_staticGetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -303,6 +316,19 @@ augment class A {
 ''');
   }
 
+  test_class_instanceGetter_augments_staticGetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static int get foo => 0;
+}
+augment class A {
+  augment int get foo;
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
   test_class_instanceGetter_augments_staticMethod() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -406,6 +432,19 @@ augment class A {
 ''');
   }
 
+  test_class_instanceMethod_augments_staticMethod_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo() {}
+}
+augment class A {
+  augment void foo();
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
   test_class_instanceMethod_augments_staticSetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -491,6 +530,19 @@ class A {
 }
 augment class A {
   augment set foo(int _) {}
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
+  test_class_instanceSetter_augments_staticSetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) {}
+}
+augment class A {
+  augment set foo(int _);
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 }
@@ -920,6 +972,23 @@ augment enum A {;
 ''');
   }
 
+  test_enum_instanceField_augments_staticField_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v;
+  const A();
+  static int foo = 0;
+}
+
+augment enum A {;
+  augment abstract int foo;
+//                     ^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
+}
+''');
+  }
+
   test_enum_instanceGetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum A {
@@ -929,6 +998,22 @@ enum A {
 
 augment enum A {;
   augment int get foo => 0;
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
+  test_enum_instanceGetter_augments_staticGetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v;
+  const A();
+  static int get foo => 0;
+}
+
+augment enum A {;
+  augment int get foo;
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 }
@@ -950,6 +1035,22 @@ augment enum A {;
 ''');
   }
 
+  test_enum_instanceMethod_augments_staticMethod_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v;
+  const A();
+  static void foo() {}
+}
+
+augment enum A {;
+  augment void foo();
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
   test_enum_instanceSetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum A {
@@ -959,6 +1060,22 @@ enum A {
 
 augment enum A {;
   augment set foo(int _) {}
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+}
+''');
+  }
+
+  test_enum_instanceSetter_augments_staticSetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum A {
+  v;
+  const A();
+  static set foo(int _) {}
+}
+
+augment enum A {;
+  augment set foo(int _);
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 }

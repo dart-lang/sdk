@@ -337,6 +337,11 @@ class _ClassVerifier {
 
         // No concrete implementation of the name.
         if (concreteElement == null) {
+          if (interfaceElement
+              .baseElement
+              .isAugmentationWithoutAugmentedDeclaration) {
+            continue;
+          }
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }

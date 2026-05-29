@@ -2143,6 +2143,14 @@ abstract class ElementImpl implements Element {
     setFlag(_ElementStorageFlag.element_hasSinceSdkVersionValue, value);
   }
 
+  /// Whether this element was created for an `augment` declaration that did
+  /// not have a same-kind declaration to augment.
+  @trackedIncludedInId
+  bool get isAugmentationWithoutAugmentedDeclaration {
+    return _firstFragment.isAugmentation &&
+        _firstFragment.previousFragment == null;
+  }
+
   @override
   @trackedIndirectly
   bool get isPrivate {
