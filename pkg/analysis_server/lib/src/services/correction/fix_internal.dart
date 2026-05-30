@@ -738,7 +738,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertIntoBlockBody.missingBody,
   ],
   diag.recordLiteralOnePositionalNoTrailingCommaByType: [AddTrailingComma.new],
-  diag.representationFieldModifier: [RemoveKeyword.varKeyword],
+  diag.representationFieldModifier: [
+    AddTypeAnnotation.forRepresentationField,
+    RemoveKeyword.varKeyword,
+  ],
   diag.returnOfInvalidTypeFromClosure: [AddAsync.wrongReturnType],
   diag.returnOfInvalidTypeFromFunction: [
     AddAsync.wrongReturnType,

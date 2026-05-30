@@ -1949,6 +1949,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.writeln(header);
       });
     }
+    super.finalize();
   }
 
   @override
