@@ -247,6 +247,7 @@ Future<CompileExpressionResult> invokeCompileExpression({
   required int offset,
   required String? scriptUri,
   required bool isStatic,
+  String? rootLibraryUri,
   required File serverInfoFile,
 }) async {
   final Map<String, Object?> response = await sendAndReceiveResponse(
@@ -264,6 +265,7 @@ Future<CompileExpressionResult> invokeCompileExpression({
       'offset': offset,
       if (scriptUri != null) 'scriptUri': scriptUri,
       'isStatic': isStatic,
+      if (rootLibraryUri != null) 'rootLibraryUri': rootLibraryUri,
       'useCachedCompilerOptionsAsBase': true,
     }),
     serverInfoFile,

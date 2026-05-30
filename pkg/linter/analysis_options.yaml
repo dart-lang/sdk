@@ -12,8 +12,6 @@ analyzer:
 
 linter:
   rules:
-    - unnecessary_type_name_in_constructor
-    - unnecessary_const_in_enum_constructor
     - always_put_required_named_parameters_first
     - avoid_annotating_with_dynamic
     - avoid_bool_literals_in_conditional_expressions
@@ -37,8 +35,8 @@ linter:
     - join_return_with_assignment
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
-    - noop_primitive_operations
     - no_literal_bool_comparisons
+    - noop_primitive_operations
     - only_throw_errors
     - parameter_assignments
     - prefer_asserts_in_initializer_lists
@@ -55,6 +53,7 @@ linter:
     - unawaited_futures
     - unnecessary_async
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_final
     - unnecessary_ignore
     - unnecessary_lambdas
@@ -62,6 +61,7 @@ linter:
     - unnecessary_null_checks
     - unnecessary_parenthesis
     - unnecessary_statements
+    - unnecessary_type_name_in_constructor
     - unreachable_from_main
     - use_late_for_private_fields_and_variables
     - use_setters_to_change_properties

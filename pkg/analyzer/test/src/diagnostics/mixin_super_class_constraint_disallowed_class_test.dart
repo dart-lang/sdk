@@ -43,11 +43,12 @@ MixinOnClause
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_in_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 augment mixin A on int {}
+//                 ^^^
+// [diag.mixinSuperClassConstraintDisallowedClass] 'int' can't be used as a superclass constraint.
 ''');
   }
 

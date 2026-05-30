@@ -23,6 +23,68 @@ class B extends A implements A {}
 ''');
   }
 
+  test_class_extendsThenAugmentsImplements() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+class B extends A {}
+augment class B implements A {}
+//                         ^
+// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+''');
+  }
+
+  test_class_extendsThenAugmentsImplements_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+class B extends A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class B implements A {}
+//                         ^
+// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+''',
+    });
+  }
+
+  test_class_implementsThenAugmentsExtends() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+class B implements A {}
+//                 ^
+// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+augment class B extends A {}
+''');
+  }
+
+  test_class_implementsThenAugmentsExtends_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+class B implements A {}
+//                 ^
+// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class B extends A {}
+''',
+    });
+  }
+
   test_class_Object() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A implements Object {}

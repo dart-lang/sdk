@@ -7,14 +7,16 @@
 class M {}
 
 class M0 extends Object with M0 {}
-//    ^^
+//                           ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
+//    ^^
 // [cfe] 'M0' is a supertype of itself.
 // [cfe] 'Object with M0' is a supertype of itself.
 
 class M1 = Object with M1;
-//    ^^
+//                     ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
+//    ^^
 // [cfe] 'M1' is a supertype of itself.
 
 class M2 = Object with M3;

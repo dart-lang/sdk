@@ -25,13 +25,35 @@ mixin M on A, A {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_2times_augmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M on A {}
 augment mixin M on A {}
+//                 ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
 ''');
+  }
+
+  test_2times_augmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+mixin M on A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment mixin M on A {}
+//                 ^
+// [diag.onRepeated] The type 'A' can be included in the superclass constraints only once.
+''',
+    });
   }
 
   test_2times_viaTypeAlias() async {

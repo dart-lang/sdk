@@ -6,6 +6,6 @@ analyzer:
 
 linter:
   rules:
-    - unnecessary_type_name_in_constructor
-    - unnecessary_const_in_enum_constructor
     - unawaited_futures
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

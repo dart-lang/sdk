@@ -12,7 +12,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -79,6 +78,7 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else if (declaration is ClassTypeAliasImpl) {
         var fragment = declaration.declaredFragment!;
@@ -99,6 +99,7 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else if (declaration is EnumDeclarationImpl) {
         var fragment = declaration.declaredFragment!;
@@ -119,6 +120,7 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else if (declaration is MixinDeclarationImpl) {
         var fragment = declaration.declaredFragment!;
@@ -139,6 +141,7 @@ class InheritanceOverrideVerifier {
           onClause: declaration.onClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else {
         continue;
@@ -265,9 +268,10 @@ class _ClassVerifier {
   final MixinOnClause? onClause;
   final NamedType? superclass;
   final WithClause? withClause;
-  final _InterfaceElementState? interfaceElementState;
+  final _InterfaceElementState interfaceElementState;
   final void Function(InterfaceElementImpl element, Interface interface)
   reportInterfaceConflicts;
+  final _DiagnosticTarget? Function(Element element) targetForElement;
 
   final List<InterfaceType> directSuperInterfaces = [];
 
@@ -295,8 +299,9 @@ class _ClassVerifier {
     this.onClause,
     this.superclass,
     this.withClause,
-    this.interfaceElementState,
+    required this.interfaceElementState,
     required this.reportInterfaceConflicts,
+    required this.targetForElement,
   }) : libraryUri = library.uri;
 
   /// Verify inheritance overrides, and return `true` if an error was
@@ -349,7 +354,7 @@ class _ClassVerifier {
       // So, here we skip corresponding nodes to keep the index in sync.
       if (mixinType is InterfaceTypeImpl &&
           isInterfaceTypeInterface(mixinType)) {
-        var index = interfaceElementState!.mixinIndex++;
+        var index = interfaceElementState.mixinIndex++;
         _checkDeclaredMembers(node, mixinType, mixinIndex: index);
         directSuperInterfaces.add(mixinType);
       }
@@ -672,6 +677,10 @@ class _ClassVerifier {
   /// [diag.recursiveInterfaceInheritanceOn],
   /// [diag.recursiveInterfaceInheritanceWith].
   bool _checkForRecursiveInterfaceInheritance(InterfaceElementImpl element) {
+    if (interfaceElementState.hasReportedRecursiveInterfaceInheritance) {
+      return true;
+    }
+
     var cycle = element.interfaceCycle;
     if (cycle == null) {
       return false;
@@ -682,8 +691,9 @@ class _ClassVerifier {
         reporter.report(
           diag.recursiveInterfaceInheritanceExtends
               .withArguments(className: element.displayName)
-              .atSourceRange(element.diagnosticRange(diagnosticSource)),
+              .at(superclass),
         );
+        interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
         return true;
       }
     }
@@ -694,8 +704,9 @@ class _ClassVerifier {
           reporter.report(
             diag.recursiveInterfaceInheritanceOn
                 .withArguments(mixinName: element.displayName)
-                .atSourceRange(element.diagnosticRange(diagnosticSource)),
+                .at(typeAnnotation),
           );
+          interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
           return true;
         }
       }
@@ -707,8 +718,9 @@ class _ClassVerifier {
           reporter.report(
             diag.recursiveInterfaceInheritanceWith
                 .withArguments(className: element.displayName)
-                .atSourceRange(element.diagnosticRange(diagnosticSource)),
+                .at(typeAnnotation),
           );
+          interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
           return true;
         }
       }
@@ -720,21 +732,27 @@ class _ClassVerifier {
           reporter.report(
             diag.recursiveInterfaceInheritanceImplements
                 .withArguments(className: element.displayName)
-                .atSourceRange(element.diagnosticRange(diagnosticSource)),
+                .at(typeAnnotation),
           );
+          interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
           return true;
         }
       }
     }
 
-    reporter.report(
-      diag.recursiveInterfaceInheritance
-          .withArguments(
-            className: element.displayName,
-            loop: cycle.map((e) => e.displayName).join(', '),
-          )
-          .atSourceRange(classElement.diagnosticRange(diagnosticSource)),
+    // Earlier fragments can see cycles from clauses in later augmentations.
+    // Wait for those clauses before reporting the generic cycle.
+    if (classFragment.nextFragment != null) {
+      return true;
+    }
+
+    targetForElement(element)?.report(
+      diag.recursiveInterfaceInheritance.withArguments(
+        className: element.displayName,
+        loop: cycle.map((e) => e.displayName).join(', '),
+      ),
     );
+    interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
     return true;
   }
 
@@ -1129,6 +1147,8 @@ class _DiagnosticTarget {
 
 /// Maintains an [InterfaceElementImpl]'s mixin index across multiple fragments.
 class _InterfaceElementState {
+  bool hasReportedRecursiveInterfaceInheritance = false;
+
   int mixinIndex = 0;
 
   _InterfaceElementState();

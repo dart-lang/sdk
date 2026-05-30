@@ -20,7 +20,7 @@ class RecursiveInterfaceInheritanceExtendsTest
   test_class() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A extends A {}
-//    ^
+//              ^
 // [diag.recursiveInterfaceInheritanceExtends] 'A' can't extend itself.
 ''');
   }
@@ -28,7 +28,7 @@ class A extends A {}
   test_class_abstract() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C extends C {
-//    ^
+//              ^
 // [diag.recursiveInterfaceInheritanceExtends] 'C' can't extend itself.
   var foo = 0;
   bar();
@@ -36,11 +36,56 @@ class C extends C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 augment class A extends A {}
+//                      ^
+// [diag.recursiveInterfaceInheritanceExtends] 'A' can't extend itself.
 ''');
+  }
+
+  test_class_inAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class A extends A {}
+//                      ^
+// [diag.recursiveInterfaceInheritanceExtends] 'A' can't extend itself.
+''',
+    });
+  }
+
+  test_class_inAugmentation_part_indirect() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
+
+class B extends A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class A extends B {}
+''',
+    });
   }
 }

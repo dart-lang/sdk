@@ -13,8 +13,6 @@ analyzer:
 
 linter:
   rules:
-    - unnecessary_type_name_in_constructor
-    - unnecessary_const_in_enum_constructor
     - always_use_package_imports
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
@@ -23,7 +21,9 @@ linter:
     - prefer_single_quotes
     - unawaited_futures
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_library_directive
     - unnecessary_parenthesis
+    - unnecessary_type_name_in_constructor
     - unreachable_from_main
 

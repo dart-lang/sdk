@@ -31,24 +31,28 @@ class SingleRootFileSystem implements FileSystem {
   final Uri root;
   final FileSystem original;
 
-  SingleRootFileSystem(this.markerScheme, Uri root, this.original)
-      : root = _normalize(root);
+  new(this.markerScheme, Uri root, this.original) : root = _normalize(root);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
     if (!uri.isScheme(markerScheme)) {
       throw FileSystemException(
-          uri,
-          "This SingleRootFileSystem only handles URIs with the '$markerScheme'"
-          " scheme and cannot handle URIs with scheme '${uri.scheme}': $uri");
+        uri,
+        "This SingleRootFileSystem only handles URIs with the '$markerScheme'"
+        " scheme and cannot handle URIs with scheme '${uri.scheme}': $uri",
+      );
     }
     if (!uri.path.startsWith('/')) {
       throw FileSystemException(
-          uri, "This SingleRootFileSystem only handles absolutes URIs: $uri");
+        uri,
+        "This SingleRootFileSystem only handles absolutes URIs: $uri",
+      );
     }
     var path = uri.path.substring(1);
     return SingleRootFileSystemEntity(
-        uri, original.entityForUri(root.resolve(path)));
+      uri,
+      original.entityForUri(root.resolve(path)),
+    );
   }
 }
 
@@ -60,7 +64,7 @@ class SingleRootFileSystemEntity implements FileSystemEntity {
   final Uri uri;
   final FileSystemEntity delegate;
 
-  SingleRootFileSystemEntity(this.uri, this.delegate);
+  new(this.uri, this.delegate);
 
   @override
   Future<bool> exists() async => delegate.exists();

@@ -12,11 +12,11 @@ analyzer:
 
 linter:
   rules:
-    - unnecessary_type_name_in_constructor
-    - unnecessary_const_in_enum_constructor
     - always_declare_return_types
     - avoid_bool_literals_in_conditional_expressions
     - no_literal_bool_comparisons
     - omit_local_variable_types
     - prefer_single_quotes
     - unawaited_futures
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

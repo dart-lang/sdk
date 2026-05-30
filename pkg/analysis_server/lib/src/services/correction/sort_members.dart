@@ -272,7 +272,7 @@ class MemberSorter {
       _PriorityItem(true, _MemberKind.classAccessor, false),
       _PriorityItem(true, _MemberKind.classAccessor, true),
       _PriorityItem(false, _MemberKind.classField, false),
-      if (codeStyle.sortConstructorsFirst)
+      if (!codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.primaryConstructorBody, false),
       if (!codeStyle.sortConstructorsFirst)
         _PriorityItem(false, _MemberKind.classConstructor, false),

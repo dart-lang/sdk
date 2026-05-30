@@ -63,14 +63,37 @@ class C extends Object with M {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_noMatchingInterface_fromAugmentation() async {
     await resolveTestCodeWithDiagnostics('''
 class B with M {}
+//           ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Object' because 'Object' doesn't implement 'A'.
 mixin M {}
 class A {}
 augment mixin M on A {}
 ''');
+  }
+
+  test_class_noMatchingInterface_fromAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class B with M {}
+//           ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Object' because 'Object' doesn't implement 'A'.
+mixin M {}
+class A {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment mixin M on A {}
+''',
+    });
   }
 
   test_class_noMatchingInterface_withTypeArguments() async {
@@ -280,7 +303,6 @@ enum E with M {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_noSuperclassConstraint_augmented() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
