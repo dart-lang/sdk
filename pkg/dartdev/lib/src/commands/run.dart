@@ -348,7 +348,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         'print-dtd',
         hide: !verbose,
         help:
-            'Prints connection details for the Dart Tooling Daemon (DTD).'
+            'Prints connection details for the Dart Tooling Daemon (DTD). '
             'Useful for Dart DevTools extension authors working with DTD in the '
             'extension development environment.',
       )
