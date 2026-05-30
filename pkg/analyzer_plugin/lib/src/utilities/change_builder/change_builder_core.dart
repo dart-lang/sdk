@@ -460,22 +460,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     required int offset,
     required int delta,
   }) {
-    void updatePosition(Position position) {
-      if (position.file == filePath &&
-          position.offset >= offset &&
-          !_lockedPositions.contains(position)) {
-        position.offset = position.offset + delta;
-      }
-    }
-
-    for (var group in _linkedEditGroups.values) {
-      for (var position in group.positions) {
-        updatePosition(position);
-      }
-    }
     var selection = _selection;
     if (selection != null) {
-      updatePosition(selection);
+      if (selection.file == filePath &&
+          selection.offset >= offset &&
+          !_lockedPositions.contains(selection)) {
+        selection.offset = selection.offset + delta;
+      }
     }
     // TODO(brianwilkerson): If the selection range is not in the file at the
     //  [filePath], it will be updated when it shouldn't be. This appears to not
@@ -560,7 +551,13 @@ class EditBuilderImpl implements EditBuilder {
       if (length != 0) {
         var position = Position(
           fileEditBuilder.fileEdit.file,
-          start + fileEditBuilder._deltaToOffset(start),
+          start);
+        fileEditBuilder._pendingPositions.add(
+          _PendingPosition(
+            position: position,
+            editBuilder: this,
+            offset: start - offset,
+          ),
         );
         fileEditBuilder.changeBuilder._lockedPositions.add(position);
         var group = fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
@@ -652,6 +649,13 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   final _FileEditBuilderRevertData _revertData = _FileEditBuilderRevertData();
 
+  /// The list of pending linked positions for this file whose final offsets
+  /// have not yet been computed.
+  final List<_PendingPosition> _pendingPositions = [];
+
+  /// A map from edit builders to the actual source edits they created.
+  final Map<EditBuilderImpl, SourceEdit> _builderToEdit = {};
+
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given absolute [path] and [timeStamp].
@@ -692,13 +696,16 @@ class FileEditBuilderImpl implements FileEditBuilder {
     var group = changeBuilder.getLinkedEditGroup(groupName);
     var position = Position(
       fileEdit.file,
-      range.offset + _deltaToOffset(range.offset),
+      range.offset,
     );
     group.addPosition(position, range.length);
     var revertData = changeBuilder._revertData;
     revertData._addedLinkedEditGroupPositions
         .putIfAbsent(group, () => [])
         .add(position);
+    _pendingPositions.add(
+      _PendingPosition(position: position, offset: range.offset),
+    );
   }
 
   @override
@@ -752,7 +759,19 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   /// Finalize the source file edit that is being built.
   void finalize() {
-    // Nothing to do.
+    for (var pending in _pendingPositions) {
+      var builder = pending.editBuilder;
+      if (builder != null) {
+        var edit = _builderToEdit[builder];
+        if (edit != null) {
+          pending.position.offset =
+              edit.offset + _deltaToEdit(edit) + pending.offset;
+        }
+      } else {
+        pending.position.offset =
+            pending.offset + _deltaToOffset(pending.offset);
+      }
+    }
   }
 
   /// Replace edits in the [range] with the given [edit].
@@ -814,6 +833,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     bool insertBeforeExisting = false,
   }) {
     var edit = builder.sourceEdit;
+    _builderToEdit[builder] = edit;
     _addEdit(edit, insertBeforeExisting: insertBeforeExisting);
     _captureSelection(builder, edit);
   }
@@ -835,11 +855,12 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// edit before the applied edits will be at `offset + _deltaToOffset(offset)`
   /// after the edits.
   int _deltaToEdit(SourceEdit targetEdit) {
+    var targetIndex = fileEdit.edits.indexOf(targetEdit);
+    assert(targetIndex != -1);
+
     var delta = 0;
-    for (var edit in fileEdit.edits) {
-      if (edit.offset < targetEdit.offset) {
-        delta += _editDelta(edit);
-      }
+    for (var i = targetIndex + 1; i < fileEdit.edits.length; i++) {
+      delta += _editDelta(fileEdit.edits[i]);
     }
     return delta;
   }
@@ -961,6 +982,27 @@ class _FileEditBuilderRevertData {
   // The other option would be to make this a list, but doing so would decrease
   // the performance of `revert`.
   final Set<SourceEdit> _addedEdits = HashSet.identity();
+}
+
+/// A representation of a linked position whose final offset has not yet been
+/// computed.
+class _PendingPosition {
+  /// The position object whose offset will be updated.
+  final Position position;
+
+  /// The edit builder inside which this position was created, or `null` if it
+  /// is a standalone linked position.
+  final EditBuilderImpl? editBuilder;
+
+  /// The original offset of the position in the file, or the offset of the
+  /// position within the replacement text of the [editBuilder].
+  final int offset;
+
+  _PendingPosition({
+    required this.position,
+    this.editBuilder,
+    required this.offset,
+  });
 }
 
 /// Workspace that wraps a single [AnalysisSession].
