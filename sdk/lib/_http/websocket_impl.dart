@@ -163,12 +163,16 @@ class _WebSocketProtocolTransformer
 
           _opcode = (byte & OPCODE);
 
-          if (_opcode != _WebSocketOpcode.CONTINUATION) {
-            if ((byte & RSV1) != 0) {
-              _compressed = true;
-            } else {
-              _compressed = false;
-            }
+          bool reserved1 = (byte & RSV1) != 0;
+          if (reserved1 &&
+              (_deflate == null ||
+                  _opcode == _WebSocketOpcode.CONTINUATION ||
+                  _isControlFrame())) {
+            throw WebSocketException("Protocol error");
+          }
+
+          if (_opcode != _WebSocketOpcode.CONTINUATION && !_isControlFrame()) {
+            _compressed = reserved1;
           }
 
           if (_opcode <= _WebSocketOpcode.BINARY) {
@@ -449,8 +453,9 @@ class _WebSocketPong {
   _WebSocketPong([this.payload]);
 }
 
-typedef /*String|Future<String>*/ _ProtocolSelector =
-    Function(List<String> protocols);
+typedef /*String|Future<String>*/ _ProtocolSelector = Function(
+  List<String> protocols,
+);
 
 class _WebSocketTransformerImpl
     extends StreamTransformerBase<HttpRequest, WebSocket>
