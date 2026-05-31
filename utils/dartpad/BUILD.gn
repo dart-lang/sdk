@@ -41,7 +41,7 @@ copy("copy_worker_loader") {
 
 copy("copy_dart_sdk_js") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
-  sources = [ "$root_gen_dir/utils/ddc/canary/sdk/ddc/dart_sdk.js" ]
+  sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js" ]
 
   # Inside the SDK folder for dart/, we are going to put a single
   # sdk.js file, this is what the sandbox should load to get all the precompiled
@@ -54,7 +54,7 @@ copy("copy_dart_sdk_js") {
 
 copy("copy_dart_sdk_js_map") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
-  sources = [ "$root_gen_dir/utils/ddc/canary/sdk/ddc/dart_sdk.js.map" ]
+  sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js.map" ]
   outputs = [ "$root_out_dir/dartpad/dart/dart_sdk.js.map" ]
 }
 
