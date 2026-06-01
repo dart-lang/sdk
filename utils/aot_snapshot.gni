@@ -44,8 +44,8 @@ template("aot_snapshot") {
     output = invoker.output
   }
 
-  dill = "$target_gen_dir/$name.dart.dill"
-  unsigned_snapshot = "$target_gen_dir/$name.dart.snapshot.unsigned"
+  dill = "$target_out_dir/$name.dart.dill"
+  unsigned_snapshot = "$target_out_dir/$name.dart.snapshot.unsigned"
   signed_snapshot = output
 
   # Build the kernel file using the prebuilt VM to speed up the debug and

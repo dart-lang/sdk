@@ -301,19 +301,19 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/compiler/lib/src/dart2js.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_dart2js()
-            elif arg == 'gen/utils/compiler/dart2js.dart.dill':
+            elif arg == 'obj/utils/compiler/dart2js.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dart2js()
             elif arg == '../../pkg/dev_compiler/bin/dartdevc.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_dartdevc()
-            elif arg == 'gen/utils/ddc/dartdevc.dart.dill':
+            elif arg == 'obj/utils/ddc/dartdevc.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dartdevc()
-            elif arg == 'gen/utils/dartanalyzer/dartanalyzer.dart.dill':
+            elif arg == 'obj/utils/dartanalyzer/dartanalyzer.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dartanalyzer()
-            elif arg == 'gen/utils/analysis_server/analysis_server.dart.dill':
+            elif arg == 'obj/utils/analysis_server/analysis_server.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_analysis_server()
             elif arg == '../../pkg/front_end/tool/compile_platform.dart':
@@ -331,28 +331,28 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/vm/bin/gen_kernel.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_gen_kernel()
-            elif arg == 'gen/utils/kernel-service/frontend_server.dart.dill':
+            elif arg == 'obj/utils/kernel-service/frontend_server.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_frontend_server()
-            elif arg == 'gen/utils/dtd/generate_dtd_snapshot.dart.dill':
+            elif arg == 'obj/utils/dtd/generate_dtd_snapshot.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dtd_snapshot()
-            elif arg == 'gen/utils/dds/generate_dds_snapshot.dart.dill':
+            elif arg == 'obj/utils/dds/generate_dds_snapshot.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dds_snapshot()
-            elif arg == 'gen/utils/bazel/kernel_worker.dart.dill':
+            elif arg == 'obj/utils/bazel/kernel_worker.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_kernel_worker()
-            elif arg == 'gen/utils/dart_runtime_service_vm/generate_dart_runtime_service_vm_snapshot.dart.dill':
+            elif arg == 'obj/utils/dart_runtime_service_vm/generate_dart_runtime_service_vm_snapshot.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dart_runtime_service_vm_snapshot()
-            elif arg == 'gen/utils/dartdev/generate_dartdev_snapshot.dart.dill':
+            elif arg == 'obj/utils/dartdev/generate_dartdev_snapshot.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dartdev_snapshot()
             elif arg == 'gen/utils/gen_kernel/bootstrap_gen_kernel.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_bootstrap_gen_kernel()
-            elif arg == 'gen/utils/kernel-service/kernel-service_snapshot.dart.dill':
+            elif arg == 'obj/utils/kernel-service/kernel-service_snapshot.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 self.extra_paths.add(
                     self.rebase(

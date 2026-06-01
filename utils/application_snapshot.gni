@@ -140,7 +140,7 @@ template("application_snapshot") {
                main_dart,
                package_config,
              ]
-    output = "$target_gen_dir/$name.dart.dill"
+    output = "$target_out_dir/$name.dart.dill"
     outputs = [ output ]
 
     depfile = "$output.d"
@@ -182,7 +182,7 @@ template("application_snapshot") {
   if (dart_snapshot_kind == "kernel") {
     copy(target_name) {
       deps = extra_deps + [ ":${target_name}_dill" ]
-      sources = [ "$target_gen_dir/$name.dart.dill" ]
+      sources = [ "$target_out_dir/$name.dart.dill" ]
       outputs = [ output ]
 
       assert(snapshot_vm_args != "", "Ignoring unused argument")
@@ -199,7 +199,7 @@ template("application_snapshot") {
       deps = extra_deps + [ ":${target_name}_dill" ] + training_deps
       depfile = "$output.d"
 
-      script = "$target_gen_dir/$name.dart.dill"
+      script = "$target_out_dir/$name.dart.dill"
 
       inputs = extra_inputs + training_inputs
 
