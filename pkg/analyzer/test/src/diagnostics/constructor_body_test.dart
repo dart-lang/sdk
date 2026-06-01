@@ -111,15 +111,14 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   const factory C();
 //^^^^^
 // [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
-//                 ^
-// [diag.missingFunctionBody] A function body must be provided.
+//              ^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
 }
 ''');
   }
@@ -627,7 +626,6 @@ class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_secondaryConstructor_generative_unnamed_superFormalParameter_augmentation_hasBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -640,6 +638,8 @@ class B extends A {
   augment B(int x) {}
 //^^^^^^^
 // [diag.constructorAlreadyComplete][context 1] The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete.
+//        ^
+// [diag.implicitSuperInitializerMissingArguments] The implicitly invoked unnamed constructor from 'A' has required parameters.
 }
 ''');
   }
@@ -756,7 +756,6 @@ enum E {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -765,8 +764,8 @@ enum E {
   const factory E.named();
 //^^^^^
 // [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
-//                       ^
-// [diag.missingFunctionBody] A function body must be provided.
+//              ^^^^^^^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
 }
 ''');
   }
@@ -1106,15 +1105,14 @@ extension type const E(int it) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_secondaryConstructor_constFactory_emptyBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type const E(int it) {
   const factory E.named();
 //^^^^^
 // [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
-//                       ^
-// [diag.missingFunctionBody] A function body must be provided.
+//              ^^^^^^^
+// [diag.factoryWithoutBody] A non-redirecting 'factory' constructor must have a body.
 }
 ''');
   }
