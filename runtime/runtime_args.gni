@@ -45,10 +45,6 @@ declare_args() {
   # Whether to enable code coverage for the standalone VM.
   dart_vm_code_coverage = false
 
-  # Whether to fall back to built-in root certificates when they cannot be
-  # verified at the operating system level.
-  dart_use_fallback_root_certificates = false
-
   # Whether to disable support for secure sockets in the Dart IO library.
   dart_disable_secure_socket = false
 
