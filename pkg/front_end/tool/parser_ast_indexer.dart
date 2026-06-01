@@ -227,12 +227,12 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
 
   @override
   void visitConstructorEnd(ConstructorEnd node) {
-    containerMethod(node, node.getIdentifiers().last.token.lexeme);
+    containerMethod(node, _constructorName(node.getIdentifiers()));
   }
 
   @override
   void visitFactoryEnd(FactoryEnd node) {
-    containerMethod(node, node.getIdentifiers().last.token.lexeme);
+    containerMethod(node, _constructorName(node.getIdentifiers()));
   }
 
   @override
@@ -244,4 +244,7 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   void visitMethodEnd(MethodEnd node) {
     containerMethod(node, node.getNameIdentifier());
   }
+
+  String _constructorName(List<IdentifierHandle> identifiers) =>
+      identifiers.lastOrNull?.token.lexeme ?? currentContainerName!;
 }
