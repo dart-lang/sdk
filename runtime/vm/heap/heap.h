@@ -73,7 +73,6 @@ class Heap {
   PageSpace* old_space() { return &old_space_; }
 
   uword Allocate(Thread* thread, intptr_t size, Space space) {
-    ASSERT(!read_only_);
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
@@ -129,7 +128,6 @@ class Heap {
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
-  void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
@@ -372,9 +370,6 @@ class Heap {
   GCStats stats_;
 
   RelaxedAtomic<Dart_PerformanceMode> mode_ = {Dart_PerformanceMode_Default};
-
-  // This heap is in read-only mode: No allocation is allowed.
-  bool read_only_;
 
   bool assume_scavenge_will_fail_;
 

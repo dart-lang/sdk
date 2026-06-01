@@ -54,7 +54,6 @@ Heap::Heap(IsolateGroup* isolate_group,
     : isolate_group_(isolate_group),
       new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
-      read_only_(false),
       assume_scavenge_will_fail_(false),
       gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
@@ -681,12 +680,6 @@ void Heap::UpdateGlobalMaxUsed() {
   isolate_group_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
-}
-
-void Heap::WriteProtect(bool read_only) {
-  read_only_ = read_only;
-  new_space_.WriteProtect(read_only);
-  old_space_.WriteProtect(read_only);
 }
 
 void Heap::Init(IsolateGroup* isolate_group,
