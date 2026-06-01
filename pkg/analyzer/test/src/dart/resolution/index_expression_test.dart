@@ -967,59 +967,6 @@ AssignmentExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_write_ofExtension_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment extension E {
-  operator[]=(int index, num value) {}
-}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics(r'''
-part 'a.dart';
-
-extension E on int {}
-
-void f() {
-  0[1] = 2.3;
-}
-''');
-
-    var node = result.findNode.singleAssignmentExpression;
-    assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide: IndexExpression
-    target: IntegerLiteral
-      literal: 0
-      staticType: int
-    leftBracket: [
-    index: IntegerLiteral
-      literal: 1
-      parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::index
-      staticType: int
-    rightBracket: ]
-    staticElement: <null>
-    element: <null>
-    staticType: null
-  operator: =
-  rightHandSide: DoubleLiteral
-    literal: 2.3
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
-    staticType: double
-  readElement: <null>
-  readElement2: <null>
-  readType: null
-  writeElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=
-  writeElement2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]=#element
-  writeType: num
-  staticElement: <null>
-  element: <null>
-  staticType: double
-''');
-  }
-
   test_write_switchExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
