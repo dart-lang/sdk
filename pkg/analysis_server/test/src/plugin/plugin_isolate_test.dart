@@ -71,7 +71,7 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
     expect(roots1[0]['optionsFile'], optionsFile.path);
     expect(sentRequests[1].method, 'analysis.setAnalysisRoots');
     var roots2 = sentRequests[1].params['included'] as List<String>;
-    expect(roots2, ['/pkg1']);
+    expect(roots2, [contextRoot.root.path]);
   }
 
   void test_creation() {

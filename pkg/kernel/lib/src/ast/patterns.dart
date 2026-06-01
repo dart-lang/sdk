@@ -1485,6 +1485,17 @@ class InvalidPattern extends Pattern {
   }
 }
 
+/// Abstract subclass of [Pattern] that can be used to add [Pattern]
+/// subclasses from outside `package:kernel`.
+abstract class AuxiliaryPattern extends Pattern {
+  @override
+  R accept<R>(PatternVisitor<R> v) => v.visitAuxiliaryPattern(this);
+
+  @override
+  R accept1<R, A>(PatternVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryPattern(this, arg);
+}
+
 class MapPatternEntry extends TreeNode {
   Expression key;
   Pattern value;

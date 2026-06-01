@@ -67,18 +67,33 @@ main() async {
     ]);
 
     await run(noneGenSnapshot, [
-      "--snapshot-kind=app-aot-elf",
-      "--elf=$noneElf",
+      if (Platform.isMacOS) ...[
+        "--snapshot-kind=app-aot-macho-dylib",
+        "--macho=$noneElf",
+      ] else ...[
+        "--snapshot-kind=app-aot-elf",
+        "--elf=$noneElf",
+      ],
       aotDill,
     ]);
     await run(sanitizerGenSnapshot, [
-      "--snapshot-kind=app-aot-elf",
-      "--elf=$sanitizerElf",
+      if (Platform.isMacOS) ...[
+        "--snapshot-kind=app-aot-macho-dylib",
+        "--macho=$sanitizerElf",
+      ] else ...[
+        "--snapshot-kind=app-aot-elf",
+        "--elf=$sanitizerElf",
+      ],
       aotDill,
     ]);
     await run(noneGenSnapshot, [
-      "--snapshot-kind=app-aot-elf",
-      "--elf=$sanitizerElf2",
+      if (Platform.isMacOS) ...[
+        "--snapshot-kind=app-aot-macho-dylib",
+        "--macho=$sanitizerElf2",
+      ] else ...[
+        "--snapshot-kind=app-aot-elf",
+        "--elf=$sanitizerElf2",
+      ],
       targetFlag,
       aotDill,
     ]);

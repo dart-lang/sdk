@@ -86,7 +86,7 @@ class AotTestRunner extends TestRunner {
   AotTestRunner(this.buildDir, this.arguments, this.aotArguments);
 
   Future runTest(List<PotentialCrash> crashes) async {
-    await withTempDir((String dir) async {
+    await withTempDir("iso-stress", (String dir) async {
       final elfFile = path.join(dir, 'app.elf');
 
       if (await run('$buildDir/gen_snapshot', [

@@ -938,4 +938,14 @@ class MatchingExpressionVisitor
       return new BooleanExpression(true, fileOffset: node.fileOffset);
     }
   }
+
+  @override
+  DelayedExpression visitAuxiliaryPattern(
+    AuxiliaryPattern node,
+    CacheableExpression matchedExpression,
+  ) {
+    throw new UnsupportedError(
+      "Unexpected pattern $node (${node.runtimeType}).",
+    );
+  }
 }

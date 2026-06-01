@@ -722,6 +722,9 @@ static void CreateAndWritePrecompiledSnapshot() {
       // Not currently implemented.
       next_callback = nullptr;
       create_multiple_callback = nullptr;
+      if (loading_unit_manifest_filename != nullptr) {
+        PrintErrAndExit("error: deferred loading not implemented for Mach-O");
+      }
       break;
     default:
       UNREACHABLE();

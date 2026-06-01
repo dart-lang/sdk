@@ -700,6 +700,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitAuxiliaryPattern(AuxiliaryPattern node, Node other) {
+    return strategy.checkAuxiliaryPattern(this, node, other);
+  }
+
+  @override
   bool visitMapPatternEntry(MapPatternEntry node, Node other) {
     return strategy.checkMapPatternEntry(this, node, other);
   }
@@ -5208,6 +5213,23 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkInvalidPattern_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkAuxiliaryPattern(
+    EquivalenceVisitor visitor,
+    AuxiliaryPattern? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryPattern) return false;
+    if (other is! AuxiliaryPattern) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkAuxiliaryPattern_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -12376,6 +12398,14 @@ class EquivalenceStrategy {
     EquivalenceVisitor visitor,
     InvalidPattern node,
     InvalidPattern other,
+  ) {
+    return checkPattern_fileOffset(visitor, node, other);
+  }
+
+  bool checkAuxiliaryPattern_fileOffset(
+    EquivalenceVisitor visitor,
+    AuxiliaryPattern node,
+    AuxiliaryPattern other,
   ) {
     return checkPattern_fileOffset(visitor, node, other);
   }

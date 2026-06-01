@@ -321,6 +321,9 @@
 
     try {
       await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);
+      if (self.dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
+        await self.dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
+      }
       return { generation: self.dartDevEmbedder.hotReloadGeneration };
     } catch (e) {
       throw new RpcError(e.message || String(e), errorCode.HOT_RELOAD_FAILED);

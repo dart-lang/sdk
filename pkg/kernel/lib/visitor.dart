@@ -262,6 +262,7 @@ abstract class PatternVisitor<R> {
   R visitRestPattern(RestPattern node);
   R visitVariablePattern(VariablePattern node);
   R visitWildcardPattern(WildcardPattern node);
+  R visitAuxiliaryPattern(AuxiliaryPattern node);
 }
 
 /// Helper mixin for [PatternVisitor] that implements visit methods by
@@ -304,198 +305,8 @@ mixin PatternVisitorDefaultMixin<R> implements PatternVisitor<R> {
   R visitVariablePattern(VariablePattern node) => defaultPattern(node);
   @override
   R visitWildcardPattern(WildcardPattern node) => defaultPattern(node);
-}
-
-/// [PatternVisitorInternalNodeMixin] is intended to reduce the effects of
-/// CFE internal nodes on the backends.
-///
-/// The mixin provides implementations of the visit methods for the internal
-/// nodes that are not expected to be part of AST delivered to backends. The
-/// methods throw an exception signaling that the internal nodes aren't
-/// supported.
-mixin PatternVisitorInternalNodeMixin<R> implements PatternVisitor<R> {
   @override
-  R visitAndPattern(AndPattern node) {
-    throw StateError("${runtimeType}.visitAndPattern isn't supported.");
-  }
-
-  @override
-  R visitAssignedVariablePattern(AssignedVariablePattern node) {
-    throw StateError(
-      "${runtimeType}.visitAssignedVariablePattern isn't supported.",
-    );
-  }
-
-  @override
-  R visitCastPattern(CastPattern node) {
-    throw StateError("${runtimeType}.visitCastPattern isn't supported.");
-  }
-
-  @override
-  R visitConstantPattern(ConstantPattern node) {
-    throw StateError("${runtimeType}.visitConstantPattern isn't supported.");
-  }
-
-  @override
-  R visitInvalidPattern(InvalidPattern node) {
-    throw StateError("${runtimeType}.visitInvalidPattern isn't supported.");
-  }
-
-  @override
-  R visitListPattern(ListPattern node) {
-    throw StateError("${runtimeType}.visitListPattern isn't supported.");
-  }
-
-  @override
-  R visitMapPattern(MapPattern node) {
-    throw StateError("${runtimeType}.visitMapPattern isn't supported.");
-  }
-
-  @override
-  R visitNamedPattern(NamedPattern node) {
-    throw StateError("${runtimeType}.visitNamedPattern isn't supported.");
-  }
-
-  @override
-  R visitNullAssertPattern(NullAssertPattern node) {
-    throw StateError("${runtimeType}.visitNullAssertPattern isn't supported.");
-  }
-
-  @override
-  R visitNullCheckPattern(NullCheckPattern node) {
-    throw StateError("${runtimeType}.visitNullCheckPattern isn't supported.");
-  }
-
-  @override
-  R visitObjectPattern(ObjectPattern node) {
-    throw StateError("${runtimeType}.visitObjectPattern isn't supported.");
-  }
-
-  @override
-  R visitOrPattern(OrPattern node) {
-    throw StateError("${runtimeType}.visitOrPattern isn't supported.");
-  }
-
-  @override
-  R visitRecordPattern(RecordPattern node) {
-    throw StateError("${runtimeType}.visitRecordPattern isn't supported.");
-  }
-
-  @override
-  R visitRelationalPattern(RelationalPattern node) {
-    throw StateError("${runtimeType}.visitRelationalPattern isn't supported.");
-  }
-
-  @override
-  R visitRestPattern(RestPattern node) {
-    throw StateError("${runtimeType}.visitRestPattern isn't supported.");
-  }
-
-  @override
-  R visitVariablePattern(VariablePattern node) {
-    throw StateError("${runtimeType}.visitVariablePattern isn't supported.");
-  }
-
-  @override
-  R visitWildcardPattern(WildcardPattern node) {
-    throw StateError("${runtimeType}.visitWildcardPattern isn't supported.");
-  }
-}
-
-/// [PatternVisitor1InternalNodeMixin] is intended to reduce the effects of
-/// CFE internal nodes on the backends.
-///
-/// The mixin provides implementations of the visit methods for the internal
-/// nodes that are not expected to be part of AST delivered to backends. The
-/// methods throw an exception signaling that the internal nodes aren't
-/// supported.
-mixin PatternVisitor1InternalNodeMixin<R, A> implements PatternVisitor1<R, A> {
-  @override
-  R visitAndPattern(AndPattern node, A arg) {
-    throw StateError("${runtimeType}.visitAndPattern isn't supported.");
-  }
-
-  @override
-  R visitAssignedVariablePattern(AssignedVariablePattern node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitAssignedVariablePattern isn't supported.",
-    );
-  }
-
-  @override
-  R visitCastPattern(CastPattern node, A arg) {
-    throw StateError("${runtimeType}.visitCastPattern isn't supported.");
-  }
-
-  @override
-  R visitConstantPattern(ConstantPattern node, A arg) {
-    throw StateError("${runtimeType}.visitConstantPattern isn't supported.");
-  }
-
-  @override
-  R visitInvalidPattern(InvalidPattern node, A arg) {
-    throw StateError("${runtimeType}.visitInvalidPattern isn't supported.");
-  }
-
-  @override
-  R visitListPattern(ListPattern node, A arg) {
-    throw StateError("${runtimeType}.visitListPattern isn't supported.");
-  }
-
-  @override
-  R visitMapPattern(MapPattern node, A arg) {
-    throw StateError("${runtimeType}.visitMapPattern isn't supported.");
-  }
-
-  @override
-  R visitNamedPattern(NamedPattern node, A arg) {
-    throw StateError("${runtimeType}.visitNamedPattern isn't supported.");
-  }
-
-  @override
-  R visitNullAssertPattern(NullAssertPattern node, A arg) {
-    throw StateError("${runtimeType}.visitNullAssertPattern isn't supported.");
-  }
-
-  @override
-  R visitNullCheckPattern(NullCheckPattern node, A arg) {
-    throw StateError("${runtimeType}.visitNullCheckPattern isn't supported.");
-  }
-
-  @override
-  R visitObjectPattern(ObjectPattern node, A arg) {
-    throw StateError("${runtimeType}.visitObjectPattern isn't supported.");
-  }
-
-  @override
-  R visitOrPattern(OrPattern node, A arg) {
-    throw StateError("${runtimeType}.visitOrPattern isn't supported.");
-  }
-
-  @override
-  R visitRecordPattern(RecordPattern node, A arg) {
-    throw StateError("${runtimeType}.visitRecordPattern isn't supported.");
-  }
-
-  @override
-  R visitRelationalPattern(RelationalPattern node, A arg) {
-    throw StateError("${runtimeType}.visitRelationalPattern isn't supported.");
-  }
-
-  @override
-  R visitRestPattern(RestPattern node, A arg) {
-    throw StateError("${runtimeType}.visitRestPattern isn't supported.");
-  }
-
-  @override
-  R visitVariablePattern(VariablePattern node, A arg) {
-    throw StateError("${runtimeType}.visitVariablePattern isn't supported.");
-  }
-
-  @override
-  R visitWildcardPattern(WildcardPattern node, A arg) {
-    throw StateError("${runtimeType}.visitWildcardPattern isn't supported.");
-  }
+  R visitAuxiliaryPattern(AuxiliaryPattern node) => defaultPattern(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -2811,6 +2622,7 @@ abstract class PatternVisitor1<R, A> {
   R visitRestPattern(RestPattern node, A arg);
   R visitVariablePattern(VariablePattern node, A arg);
   R visitWildcardPattern(WildcardPattern node, A arg);
+  R visitAuxiliaryPattern(AuxiliaryPattern node, A arg);
 }
 
 /// Helper mixin for [PatternVisitor1] that implements visit methods by
@@ -2858,6 +2670,9 @@ mixin PatternVisitor1DefaultMixin<R, A> implements PatternVisitor1<R, A> {
       defaultPattern(node, arg);
   @override
   R visitWildcardPattern(WildcardPattern node, A arg) =>
+      defaultPattern(node, arg);
+  @override
+  R visitAuxiliaryPattern(AuxiliaryPattern node, A arg) =>
       defaultPattern(node, arg);
 }
 

@@ -45,14 +45,24 @@ main(List<String> args) async {
     await Future.wait(<Future>[
       run(genSnapshot, <String>[
         '--code-comments',
-        '--snapshot-kind=app-aot-elf',
-        '--elf=$scriptCommentedSnapshot',
+        if (Platform.isMacOS) ...[
+          '--snapshot-kind=app-aot-macho-dylib',
+          '--macho=$scriptCommentedSnapshot',
+        ] else ...[
+          '--snapshot-kind=app-aot-elf',
+          '--elf=$scriptCommentedSnapshot',
+        ],
         scriptDill,
       ]),
       run(genSnapshot, <String>[
         '--no-code-comments',
-        '--snapshot-kind=app-aot-elf',
-        '--elf=$scriptUncommentedSnapshot',
+        if (Platform.isMacOS) ...[
+          '--snapshot-kind=app-aot-macho-dylib',
+          '--macho=$scriptUncommentedSnapshot',
+        ] else ...[
+          '--snapshot-kind=app-aot-elf',
+          '--elf=$scriptUncommentedSnapshot',
+        ],
         scriptDill,
       ]),
     ]);

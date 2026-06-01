@@ -793,6 +793,13 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitAuxiliaryPattern(AuxiliaryPattern node) {
+    throw new UnsupportedError(
+      "Unsupported auxiliary node $node (${node.runtimeType}).",
+    );
+  }
+
+  @override
   void visitMapPatternEntry(MapPatternEntry node) {
     visited.add(NodeKind.MapPatternEntry);
     node.visitChildren(this);

@@ -50,8 +50,13 @@ void main() async {
     ]);
     Expect.equals(result.exitCode, 0);
     result = Process.runSync(genSnapshot, <String>[
-      '--snapshot_kind=app-aot-elf',
-      '--elf=$aotOutput',
+      if (Platform.isMacOS) ...[
+        '--snapshot_kind=app-aot-macho-dylib',
+        '--macho=$aotOutput',
+      ] else ...[
+        '--snapshot_kind=app-aot-elf',
+        '--elf=$aotOutput',
+      ],
       kernelOutput,
     ]);
     Expect.equals(result.exitCode, 0);

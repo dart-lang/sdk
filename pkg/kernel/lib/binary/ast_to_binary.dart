@@ -3189,6 +3189,13 @@ class BinaryPrinter
   }
 
   @override
+  void visitAuxiliaryPattern(AuxiliaryPattern node) {
+    throw new UnsupportedError(
+      'serialization of auxiliary Pattern: ${node} (${node.runtimeType})',
+    );
+  }
+
+  @override
   void visitBoolConstant(BoolConstant node) {
     throw new UnsupportedError('serialization of BoolConstants');
   }

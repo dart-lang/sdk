@@ -81,6 +81,9 @@ vmspecific_pointer_load_il_test: SkipByDesign # Not bloating the Fuchsia test pa
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 
+[ $system != windows ]
+ffi_induce_a_crash_test: SkipByDesign
+
 [ $qemu ]
 function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.

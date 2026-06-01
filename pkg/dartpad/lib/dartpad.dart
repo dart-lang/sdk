@@ -19,7 +19,8 @@ import 'src/worker_client.dart';
 export 'src/dartpad_config.dart' show DartPadConfig;
 export 'src/exceptions.dart' hide rethrowAsDartPadException;
 export 'src/sandbox.dart' show Sandbox;
-export 'src/worker_client.dart' show LanguageServer, Workspace;
+export 'src/worker_client.dart'
+    show HotReloadCompiler, LanguageServer, Workspace;
 
 /// A client for interacting with a DartPad Web Worker.
 final class DartPad extends WorkerClient {

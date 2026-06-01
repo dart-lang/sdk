@@ -926,6 +926,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
+  // Coverage-ignore(suite): Not run.
+  Never _unhandledPattern(Pattern node) {
+    problems.unhandled(
+      "${node.runtimeType}",
+      "InferenceVisitor",
+      node.fileOffset,
+      node.location!.file,
+    );
+  }
+
   @override
   InitializerInferenceResult visitInvalidInitializer(InvalidInitializer node) {
     return new SuccessfulInitializerInferenceResult(node);
@@ -16484,6 +16494,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return node.acceptInference(this);
     }
     return _unhandledInitializer(node);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  PatternResult visitAuxiliaryPattern(
+    AuxiliaryPattern node,
+    SharedMatchContext context,
+  ) {
+    return _unhandledPattern(node);
   }
 
   @override
