@@ -138,17 +138,8 @@ ${processResult.stderr}''');
   return result;
 }
 
-withTempDir(Future fun(String dir)) async {
-  final Directory tempDir = Directory.systemTemp.createTempSync();
-  try {
-    return await fun(tempDir.path);
-  } finally {
-    tempDir.deleteSync(recursive: true);
-  }
-}
-
 checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
-  await withTempDir((String temp) async {
+  await withTempDir('snapshot', (String temp) async {
     final snapshot1Path = p.join(temp, 'snapshot1');
     final snapshot2Path = p.join(temp, 'snapshot2');
 
@@ -202,7 +193,7 @@ runAppJitTest(
   runSnapshot ??= (snapshotPath) =>
       runDart('RUN FROM SNAPSHOT', [snapshotPath]);
 
-  await withTempDir((String temp) async {
+  await withTempDir('snapshot', (String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
     final testPath = testScriptUri.toFilePath();
 

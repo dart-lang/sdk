@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
     'sdk_hash_test.dart',
   );
 
-  await withTempDir((String tmp) async {
+  await withTempDir("sdk-hash-test", (String tmp) async {
     final String dillPath = path.join(tmp, 'test.dill');
 
     {

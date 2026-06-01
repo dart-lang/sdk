@@ -72,8 +72,13 @@ main(List<String> args) async {
       final scriptAot = path.join(dir, '$basename.dart.dill.so');
       await run(genSnapshot, <String>[
         if (checked) '--enable-asserts',
-        '--snapshot-kind=app-aot-elf',
-        '--elf=$scriptAot',
+        if (!Platform.isMacOS) ...[
+          '--snapshot-kind=app-aot-elf',
+          '--elf=$scriptAot',
+        ] else ...[
+          '--snapshot-kind=app-aot-macho-dylib',
+          '--macho=$scriptAot',
+        ],
         scriptDill,
       ]);
     }

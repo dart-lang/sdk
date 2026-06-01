@@ -40,10 +40,15 @@ main(List<String> args) async {
     final elfFile = path.join(tempDir, 'aot.snapshot');
     await Future.wait(<Future>[
       run(genSnapshot, <String>[
-        '--snapshot-kind=app-aot-elf',
+        if (Platform.isMacOS) ...[
+          '--snapshot-kind=app-aot-macho-dylib',
+          '--macho=$elfFile',
+        ] else ...[
+          '--snapshot-kind=app-aot-elf',
+          '--elf=$elfFile',
+        ],
         '--print-instructions-sizes-to=$appSizesJson',
         '--write-v8-snapshot-profile-to=$appHeapsnapshot',
-        '--elf=$elfFile',
         scriptDill,
       ]),
     ]);

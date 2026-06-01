@@ -3142,6 +3142,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "create_sdk",
             "dartanalyzer",
             "ddc_stable_test",

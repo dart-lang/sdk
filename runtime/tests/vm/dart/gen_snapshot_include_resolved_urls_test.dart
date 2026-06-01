@@ -65,8 +65,13 @@ main(List<String> args) async {
 
     final elfFile = path.join(tempDir.path, 'aot.snapshot');
     await run(genSnapshot, <String>[
-      '--snapshot-kind=app-aot-elf',
-      '--elf=$elfFile',
+      if (Platform.isMacOS) ...[
+        '--snapshot-kind=app-aot-macho-dylib',
+        '--macho=$elfFile',
+      ] else ...[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$elfFile',
+      ],
       scriptDill,
     ]);
 

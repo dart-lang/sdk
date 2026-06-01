@@ -82,8 +82,13 @@ main(List<String> args) async {
 
     // Compile kernel to ELF.
     await run(genSnapshot, <String>[
-      "--snapshot-kind=app-aot-elf",
-      "--elf=$snapshot1",
+      if (Platform.isMacOS) ...[
+        "--snapshot-kind=app-aot-macho-dylib",
+        "--macho=$snapshot1",
+      ] else ...[
+        "--snapshot-kind=app-aot-elf",
+        "--elf=$snapshot1",
+      ],
       "--loading-unit-manifest=$manifest1",
       dill1,
     ]);
@@ -98,8 +103,13 @@ main(List<String> args) async {
     Expect.isTrue(await new File(deferredSnapshot1).exists());
 
     await run(genSnapshot, <String>[
-      "--snapshot-kind=app-aot-elf",
-      "--elf=$snapshot2",
+      if (Platform.isMacOS) ...[
+        "--snapshot-kind=app-aot-macho-dylib",
+        "--macho=$snapshot2",
+      ] else ...[
+        "--snapshot-kind=app-aot-elf",
+        "--elf=$snapshot2",
+      ],
       "--loading-unit-manifest=$manifest2",
       dill2,
     ]);
