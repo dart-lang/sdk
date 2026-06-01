@@ -2865,9 +2865,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     int position = TreeNode.noOffset;
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions) {
-      position = (node is ast.FunctionDeclaration)
-          ? node.fileOffset
-          : function.fileOffset;
+      position = node.fileOffset;
       endPosition = function.fileEndOffset;
       if (position != TreeNode.noOffset) {
         flags |= ClosureDeclaration.hasSourcePositionsFlag;
