@@ -3512,6 +3512,8 @@ class BytecodeGenerator extends RecursiveVisitor {
         throw 'Unexpected specialized bytecode $opcode';
     }
 
+    // Record coverage like with other instance calls.
+    _recordCoverage(node);
     asm.emitSpecializedBytecode(opcode);
   }
 
