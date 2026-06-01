@@ -87,7 +87,6 @@ _vm_builder(
 _nightly_builder(
     "vm-linux-debug-ia32",
     category = "vm|jit|d3",
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-linux-release-ia32",
@@ -119,7 +118,6 @@ _vm_builder(
     "vm-mac-debug-x64",
     category = "vm|jit|md",
     dimensions = mac,
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-mac-release-x64",
@@ -130,7 +128,6 @@ _vm_builder(
     "vm-mac-debug-arm64",
     category = "vm|jit|mda",
     dimensions = [mac, arm64],
-    properties = [slow_shards],
     on_cq = True,
 )
 _vm_builder(
@@ -141,7 +138,6 @@ _vm_builder(
 _vm_builder(
     "vm-win-debug-x64",
     category = "vm|jit|wd",
-    properties = slow_shards,
     dimensions = windows,
 )
 _vm_builder(
@@ -167,7 +163,6 @@ _vm_builder(
 _nightly_builder(
     "vm-appjit-linux-debug-x64",
     category = "vm|appjit|d",
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-appjit-linux-release-x64",
@@ -182,7 +177,6 @@ _nightly_builder(
 _nightly_builder(
     "vm-aot-linux-debug-x64",
     category = "vm|aot|d",
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-aot-linux-release-x64",
@@ -192,7 +186,6 @@ _vm_builder(
 _vm_builder(
     "vm-aot-linux-debug-simarm_x64",
     category = "vm|aot|da",
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-aot-linux-release-simarm_x64",
@@ -201,12 +194,10 @@ _vm_builder(
 _nightly_builder(
     "vm-aot-linux-debug-simriscv32",
     category = "vm|aot|rv",
-    properties = [slow_shards],
 )
 _nightly_builder(
     "vm-aot-linux-debug-simriscv64",
     category = "vm|aot|rv",
-    properties = [slow_shards],
 )
 _nightly_builder(
     "vm-aot-linux-debug-arm64",
@@ -242,7 +233,6 @@ _nightly_builder(
     "vm-aot-win-debug-x64",
     category = "vm|aot|wd",
     dimensions = windows,
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-aot-win-release-x64",
@@ -358,6 +348,7 @@ _nightly_builder(
     "vm-tsan-linux-release-arm64",
     category = "vm|misc|sanitizer|t",
     dimensions = [arm64],
+    properties = [slow_shards],
 )
 _nightly_builder(
     "vm-ubsan-linux-release-arm64",
@@ -373,6 +364,7 @@ _nightly_builder(
     "vm-tsan-mac-release-arm64",
     category = "vm|misc|sanitizer|t",
     dimensions = [mac, arm64],
+    properties = [slow_shards],
 )
 _nightly_builder(
     "vm-ubsan-mac-release-arm64",
@@ -405,7 +397,6 @@ _nightly_builder(
 _nightly_builder(
     "vm-aot-linux-debug-x64c",
     category = "vm|misc|compressed|al",
-    properties = slow_shards,
 )
 _nightly_builder(
     "vm-win-debug-x64c",
@@ -416,7 +407,6 @@ _nightly_builder(
     "vm-aot-win-debug-x64c",
     category = "vm|misc|compressed|aw",
     dimensions = windows,
-    properties = slow_shards,
 )
 _vm_builder(
     "vm-fuchsia-release-arm64",
@@ -497,7 +487,6 @@ _nightly_builder(
     category = "vm|misc|dyn|ja",
     channels = ["try"],
     dimensions = [mac, arm64],
-    properties = [slow_shards],
     location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
 
