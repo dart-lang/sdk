@@ -721,9 +721,8 @@ class Resolver {
           internalThisVariable: internalThisVariable,
           forPrimaryConstructor: true,
         );
-
-        context.performBacklog(result.annotations);
       }
+      context.performBacklog(result.annotations);
     }
     // Coverage-ignore(suite): Not run.
     on DebugAbort {
