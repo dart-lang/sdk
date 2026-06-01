@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -34,6 +35,11 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
 
   /// Return a list of the parameters to send to the client.
   List<CommandParameter> get parameters;
+
+  /// A convenience wrapper around [RefactoringProcessor.buildCommandArguments].
+  List<Object?> buildCommandArguments(List<Object?> args) {
+    return RefactoringProcessor.buildCommandArguments(refactoringContext, args);
+  }
 }
 
 /// An object that can compute a refactoring in a Dart file.

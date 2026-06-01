@@ -301,8 +301,9 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  void expect(Object? actual, Matcher matcher, {String? reason}) =>
-      test.expect(actual, matcher, reason: reason);
+  void expect(Object? actual, Object? matcher, {String? reason}) {
+    test.expect(actual, matcher, reason: reason);
+  }
 
   Future<T> expectSuccessfulResponseTo<T, R>(
     RequestMessage request,

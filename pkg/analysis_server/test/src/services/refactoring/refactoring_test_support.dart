@@ -115,16 +115,12 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
 
   /// Unwraps the 'arguments' field from the arguments object (which is the
   /// single argument for the command).
-  List<Object?> getRefactorCommandArguments(CodeAction action) {
-    var command = action.command!;
-    var commandArguments = command.arguments as List<Object?>;
+  List<Object?> getRefactorCommandArguments(List<Object?>? commandArguments) {
+    // Our refactor commands use a single object in their arguments so we can
+    // have named fields instead of positional arguments.
+    var argsObject = commandArguments!.single as Map<String, Object?>;
 
-    // Our refactor command uses a single object in its arguments so we can have
-    // named fields instead of having the client have to know which index
-    // corresponds to the parameters.
-    var argsObject = commandArguments.single as Map<String, Object?>;
-
-    // Within that object, the 'arguments' field is the List<Object?> that
+    // Within the object, the 'arguments' field is the List<Object?> that
     // contains the values for the parameters.
     var arguments = argsObject['arguments'] as List<Object?>;
 
@@ -136,8 +132,14 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
   /// Enables all required client capabilities for new refactors unless the
   /// corresponding flags are set to `false`.
   @override
-  Future<void> initializeServer({bool experimentalOptInFlag = true}) async {
-    var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
+  Future<void> initializeServer({
+    bool experimentalOptInFlag = true,
+    bool experimentalInteractiveForms = false,
+  }) async {
+    var config = {
+      if (experimentalOptInFlag) 'experimentalRefactors': true,
+      if (experimentalInteractiveForms) 'experimentalInteractiveForms': true,
+    };
 
     await provideConfig(super.initializeServer, config);
   }

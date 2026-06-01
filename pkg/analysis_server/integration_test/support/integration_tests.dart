@@ -56,11 +56,15 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 /// Assert that [actual] matches [matcher].
 void outOfTestExpect(
   Object? actual,
-  Matcher matcher, {
+  Object? matcherOrValue, {
   String? reason,
   skip,
   bool verbose = false,
 }) {
+  var matcher = matcherOrValue is Matcher
+      ? matcherOrValue
+      : equals(matcherOrValue);
+
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -95,12 +99,15 @@ String _defaultFailFormatter(
 typedef MatcherCreator = Matcher Function();
 
 /// Type of closures used by MatchesJsonObject to record field mismatches.
-typedef MismatchDescriber =
-    Description Function(Description mismatchDescription);
+typedef MismatchDescriber = Description Function(
+  Description mismatchDescription,
+);
 
 /// Type of callbacks used to process notifications.
-typedef NotificationProcessor =
-    void Function(String event, Map<Object?, Object?> params);
+typedef NotificationProcessor = void Function(
+  String event,
+  Map<Object?, Object?> params,
+);
 
 /// Type of callbacks used to process reverse-requests.
 typedef ReverseRequestProcessor = void Function(Request request);

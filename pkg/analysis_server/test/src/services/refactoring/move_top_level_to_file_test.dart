@@ -32,7 +32,7 @@ class ^A {}
 
   /// Replaces the "Save URI" argument in [action].
   void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
-    var arguments = getRefactorCommandArguments(action);
+    var arguments = getRefactorCommandArguments(action.command?.arguments);
     // The filename is the first item we prompt for so is first in the
     // arguments.
     arguments[0] = newFileUri.toString();

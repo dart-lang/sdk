@@ -7,6 +7,8 @@ import 'package:analysis_server/src/services/interactive_forms/interactive_forms
 import 'package:matcher/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../support/interactive_forms.dart';
+
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InteractiveFormsTest);
@@ -15,6 +17,49 @@ void main() {
 
 @reflectiveTest
 class InteractiveFormsTest {
+  /// Default values are not treated the same as user answers. A form will not
+  /// be considered complete even if unanswered fields have defaults (as long
+  /// as they are supported).
+  test_defaults_doNotCompleteForm_answered() {
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
+    var fieldB = _stringField('b', defaultValue: 'bDefault');
+    var fields = [fieldA, fieldB];
+
+    var form = InteractiveForm(
+      supportedInteractiveFormInputTypes: {'string'},
+      fields: fields,
+    );
+
+    // Process empty answers. This makes no difference to the unanswered case
+    // above.
+    form.processResponse([]);
+
+    // Because we never provided answers, we still have fields to complete.
+    expect(form.clientFields, [fieldA, fieldB]);
+    expect(form.clientAnswers, isEmpty);
+    expect(form.answers, ['aDefault', 'bDefault']);
+  }
+
+  /// Default values are not treated the same as user answers. A form will not
+  /// be considered complete even if unanswered fields have defaults (as long
+  /// as they are supported).
+  test_defaults_doNotCompleteForm_unanswered() {
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
+    var fieldB = _stringField('b', defaultValue: 'bDefault');
+    var fields = [fieldA, fieldB];
+
+    var form = InteractiveForm(
+      supportedInteractiveFormInputTypes: {'string'},
+      fields: fields,
+    );
+
+    // Because we have never responded to the form, we still have fields to
+    // complete.
+    expect(form.clientFields, [fieldA, fieldB]);
+    expect(form.clientAnswers, isEmpty);
+    expect(form.answers, ['aDefault', 'bDefault']);
+  }
+
   test_initialState() {
     var fieldA = _stringField('a', defaultValue: 'aDefault');
     var fieldB = _stringField('b');
@@ -390,12 +435,5 @@ class InteractiveFormsTest {
       required: required,
       defaultValue: defaultValue,
     );
-  }
-}
-
-extension on FormField {
-  /// Returns a [FormAnswer] for this field with the answer [value].
-  FormAnswer answer(Object? value) {
-    return FormAnswer(id: id, value: value);
   }
 }
