@@ -7166,6 +7166,7 @@ class Parser {
     Token next = token.next!;
     TokenType type = next.type;
     int tokenLevel = _computePrecedence(next, forPattern: false);
+
     if (constantPatternContext != ConstantPatternContext.none) {
       // For error recovery we allow too much when parsing constant patterns,
       // so for the cases that shouldn't be parsed as expressions in this
@@ -7184,32 +7185,14 @@ class Parser {
         return token;
       }
     }
-    if (constantPatternContext != ConstantPatternContext.none &&
-        precedence <= tokenLevel &&
-        tokenLevel < SELECTOR_PRECEDENCE) {
-      // If we are parsing a constant pattern, only [SELECTOR_PRECEDENCE] is
-      // supported but we allow for parsing [EQUALITY_PRECEDENCE] and higher for
-      // better error recovery.
-      if (constantPatternContext == ConstantPatternContext.explicit) {
-        reportRecoverableError(token, diag.invalidConstantPatternConstPrefix);
-      } else if (tokenLevel <= MULTIPLICATIVE_PRECEDENCE) {
-        reportRecoverableError(
-          next,
-          diag.invalidConstantPatternBinary.withArguments(
-            operatorName: type.lexeme,
-          ),
-        );
-      } else {
-        // These are prefix or postfix ++/-- and will not be constant
-        // expressions, anyway.
-        assert(
-          tokenLevel == POSTFIX_PRECEDENCE || tokenLevel == PREFIX_PRECEDENCE,
-          "Unexpected precedence level for $type: $tokenLevel",
-        );
-      }
-      // Avoid additional constant pattern errors.
-      constantPatternContext = ConstantPatternContext.none;
-    }
+    constantPatternContext = _reportInvalidConstantPatternOperator(
+      constantPatternContext,
+      precedence,
+      token,
+      next,
+      type,
+      tokenLevel,
+    );
     if (tokenLevel < precedence) {
       if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
         // Attempt recovery
@@ -7436,6 +7419,15 @@ class Parser {
         }
       }
 
+      constantPatternContext = _reportInvalidConstantPatternOperator(
+        constantPatternContext,
+        precedence,
+        token,
+        next,
+        type,
+        tokenLevel,
+      );
+
       if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
         // Attempt recovery
         if (_attemptPrecedenceLevelRecovery(
@@ -7463,6 +7455,43 @@ class Parser {
     }
 
     return token;
+  }
+
+  ConstantPatternContext _reportInvalidConstantPatternOperator(
+    ConstantPatternContext constantPatternContext,
+    int precedence,
+    Token token,
+    Token next,
+    TokenType type,
+    int tokenLevel,
+  ) {
+    if (constantPatternContext != ConstantPatternContext.none &&
+        precedence <= tokenLevel &&
+        tokenLevel < SELECTOR_PRECEDENCE) {
+      // If we are parsing a constant pattern, only [SELECTOR_PRECEDENCE] is
+      // supported but we allow for parsing [EQUALITY_PRECEDENCE] and higher
+      // for better error recovery.
+      if (constantPatternContext == ConstantPatternContext.explicit) {
+        reportRecoverableError(token, diag.invalidConstantPatternConstPrefix);
+      } else if (tokenLevel <= MULTIPLICATIVE_PRECEDENCE) {
+        reportRecoverableError(
+          next,
+          diag.invalidConstantPatternBinary.withArguments(
+            operatorName: type.lexeme,
+          ),
+        );
+      } else {
+        // These are prefix or postfix ++/-- and will not be constant
+        // expressions, anyway.
+        assert(
+          tokenLevel == POSTFIX_PRECEDENCE || tokenLevel == PREFIX_PRECEDENCE,
+          "Unexpected precedence level for $type: $tokenLevel",
+        );
+      }
+      // Avoid additional constant pattern errors.
+      return ConstantPatternContext.none;
+    }
+    return constantPatternContext;
   }
 
   /// Can the next input be an anonymous method?
