@@ -821,44 +821,6 @@ class SubtypeTest extends AbstractTypeSystemTest {
     });
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_interfaceType_class_augmented_interfaces() {
-    // var A = class_2(name: 'A');
-    // var I = class_2(name: 'I');
-    //
-    // var A1 = class_(
-    //   name: 'A',
-    //   isAugmentation: true,
-    //   interfaces: [parseInterfaceType('I')],
-    // );
-    // A.addAugmentations([A1]);
-    //
-    // var A_none = parseInterfaceType('A');
-    // var I_none = parseInterfaceType('I');
-    //
-    // isSubtype(A_none, I_none);
-    // isNotSubtype(I_none, A_none);
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_interfaceType_class_augmented_mixins() {
-    // var A = class_2(name: 'A');
-    // var M = mixin_2(name: 'M');
-    //
-    // var A1 = class_(
-    //   name: 'A',
-    //   isAugmentation: true,
-    //   mixins: [parseInterfaceType('M')],
-    // );
-    // A.addAugmentations([A1]);
-    //
-    // var A_none = parseInterfaceType('A');
-    // var M_none = parseInterfaceType('M');
-    //
-    // isSubtype(A_none, M_none);
-    // isNotSubtype(M_none, A_none);
-  }
-
   test_interfaceType_contravariant() {
     buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
 
@@ -881,44 +843,6 @@ class SubtypeTest extends AbstractTypeSystemTest {
     isSubtype(parseType('A<num>'), parseType('A<num>'));
     isNotSubtype(parseType('A<int>'), parseType('A<num>'));
     isNotSubtype(parseType('A<num>'), parseType('A<int>'));
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_interfaceType_mixin_augmented_interfaces() {
-    // var M = mixin_2(name: 'M');
-    // var I = class_2(name: 'I');
-    //
-    // var M1 = mixin_(
-    //   name: 'M1',
-    //   isAugmentation: true,
-    //   interfaces: [parseInterfaceType('I')],
-    // );
-    // M.addAugmentations([M1]);
-    //
-    // var M_none = parseInterfaceType('M');
-    // var I_none = parseInterfaceType('I');
-    //
-    // isSubtype(M_none, I_none);
-    // isNotSubtype(I_none, M_none);
-  }
-
-  @SkippedTest() // TODO(scheglov): implement augmentation
-  test_interfaceType_mixin_augmented_superclassConstraints() {
-    // var M = mixin_2(name: 'M');
-    // var C = class_2(name: 'C');
-    //
-    // var M1 = mixin_(
-    //   name: 'M1',
-    //   isAugmentation: true,
-    //   constraints: [parseInterfaceType('C')],
-    // );
-    // M.addAugmentations([M1]);
-    //
-    // var M_none = parseInterfaceType('M');
-    // var C_none = parseInterfaceType('C');
-    //
-    // isSubtype(M_none, C_none);
-    // isNotSubtype(C_none, M_none);
   }
 
   test_invalidType() {

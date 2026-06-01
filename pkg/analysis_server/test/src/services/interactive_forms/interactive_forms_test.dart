@@ -16,147 +16,201 @@ void main() {
 @reflectiveTest
 class InteractiveFormsTest {
   test_initialState() {
-    var fieldA = _stringField('a', 'aDefault');
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
     var fieldB = _stringField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'string'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
-    expect(form.outstandingFields, [fieldA, fieldB]);
-    expect(form.outstandingFieldAnswers, [null, null]); // No client answers
-    expect(form.existingAnswers, ['aDefault', null]); // But defaults here
+    expect(form.clientFields, [fieldA, fieldB]);
+    expect(form.clientAnswers, isEmpty); // No client answers
+    expect(form.answers, ['aDefault', null]); // But defaults here
   }
 
   test_initialState_defaultsForUnsupportedFields() {
-    var fieldA = _stringField('a', 'aDefault');
-    var fieldB = _stringField('b', 'bDefault');
-    var masterFields = [fieldA, fieldB];
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
+    var fieldB = _stringField('b', defaultValue: 'bDefault');
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'int'}, // We don't support strings!
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // No outstanding fields, because we don't support strings and used the
     // defaults instead.
-    expect(form.outstandingFields, isEmpty);
-    expect(form.outstandingFieldAnswers, isEmpty);
-    expect(form.existingAnswers, ['aDefault', 'bDefault']);
+    expect(form.clientFields, isEmpty);
+    expect(form.clientAnswers, isEmpty);
+    expect(form.answers, ['aDefault', 'bDefault']);
   }
 
   test_processResponse_invalidAnswers() {
-    var fieldA = _stringField('a', 'aDefault');
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
     var fieldB = _stringField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'string'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process a response with invalid answers.
-    form.processResponse(masterFields, [1, 2]);
+    var clientAnswers = [fieldA.answer(1), fieldB.answer(2)];
+    form.processResponse(clientAnswers);
 
     // Expect error messages on the fields.
-    expect(form.outstandingFields, [
+    expect(form.clientFields, [
       fieldA.withError('Must be a valid string'),
       fieldB.withError('Must be a valid string'),
     ]);
-    expect(form.outstandingFieldAnswers, [1, 2]); // Previous user input
-    expect(form.existingAnswers, ['aDefault', null]); // Still defaults here
+    expect(form.clientAnswers, clientAnswers); // Previous user input
+    expect(form.answers, ['aDefault', null]); // Still defaults here
   }
 
   test_processResponse_mixedValidInvalidAnswers() {
-    var fieldA = _stringField('a', 'aDefault');
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
     var fieldB = _stringField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'string'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process a response with some valid and some invalid answers.
-    form.processResponse(masterFields, ['valid', 2]);
+    var clientAnswers = [fieldA.answer('valid'), fieldB.answer(2)];
+    form.processResponse(clientAnswers);
 
-    // Expect only the invalid field as outstanding.
-    expect(form.outstandingFields, [
+    // Expect only the invalid field to have a validation error.
+    expect(form.clientFields, [
+      fieldA,
       fieldB.withError('Must be a valid string'),
     ]);
-    expect(form.outstandingFieldAnswers, [2]); // Previous user input
-    expect(form.existingAnswers, ['valid', null]); // Updated with valid answer
+    expect(form.clientAnswers, clientAnswers); // Previous user input
+    expect(form.answers, ['valid', null]); // Updated with valid answer
   }
 
   test_processResponse_multipleRounds() {
-    var fieldA = _stringField('a', 'aDefault');
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
     var fieldB = _stringField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'string'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process response with one valid answer.
-    form.processResponse(masterFields, ['valid', 2]);
+    form.processResponse([fieldA.answer('valid'), fieldB.answer(2)]);
 
-    // One remaining oustanding field.
-    expect(form.outstandingFields, [
+    // Expect the invalid field to have a validation error.
+    expect(form.clientFields, [
+      fieldA,
       fieldB.withError('Must be a valid string'),
     ]);
 
-    // Process that one field.
-    form.processResponse([fieldB], ['alsoValid']);
+    // Process with both valid answers.
+    form.processResponse([fieldA.answer('valid'), fieldB.answer('alsoValid')]);
 
     // Now we have no outstanding fields, but both answers populated.
-    expect(form.outstandingFields, isEmpty);
-    expect(form.existingAnswers, ['valid', 'alsoValid']);
+    expect(form.clientFields, isEmpty);
+    expect(form.clientAnswers, hasLength(2));
+    expect(form.answers, ['valid', 'alsoValid']);
   }
 
   test_processResponse_noAnswers() {
-    var fieldA = _stringField('a', 'aDefault');
+    var fieldA = _stringField('a', defaultValue: 'aDefault');
     var fieldB = _stringField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'string'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
-    // This should not change anything, because the client didn't provide any
-    // answers.
-    form.processResponse(masterFields, List.filled(masterFields.length, null));
+    // Provide no answers.
+    form.processResponse([]);
 
-    expect(form.outstandingFields, [fieldA, fieldB]);
-    expect(form.outstandingFieldAnswers, [null, null]); // No client answers
-    expect(form.existingAnswers, ['aDefault', null]); // But defaults here
+    // Fields now show validation messages.
+    expect(form.clientFields, [
+      fieldA,
+      fieldB.withError('Must be a valid string'),
+    ]);
+    expect(form.clientAnswers, isEmpty); // No client answers
+    expect(form.answers, ['aDefault', null]); // But defaults here
+  }
+
+  test_throws_duplicateAnswerIDs() {
+    var fieldA = _fileField('a');
+
+    var form = InteractiveForm(
+      supportedInteractiveFormInputTypes: {'file'},
+      fields: [fieldA],
+    );
+
+    expect(
+      () => form.processResponse([fieldA.answer(1), fieldA.answer(2)]),
+      throwsArgumentError,
+    );
+  }
+
+  test_throws_duplicateFieldIDs() {
+    var fieldA = _fileField('a');
+
+    expect(
+      () => InteractiveForm(
+        supportedInteractiveFormInputTypes: {'file'},
+        fields: [fieldA, fieldA],
+      ),
+      throwsArgumentError,
+    );
+  }
+
+  test_throws_invalidAnswerId() {
+    var fieldA = _fileField('a');
+
+    var form = InteractiveForm(
+      supportedInteractiveFormInputTypes: {'file'},
+      fields: [fieldA],
+    );
+
+    expect(
+      () => form.processResponse([FormAnswer(id: 'fake')]),
+      throwsArgumentError,
+    );
+  }
+
+  test_throws_unsupportedWithNoDefault() {
+    var fieldA = _fileField('a');
+
+    expect(
+      () => InteractiveForm(
+        supportedInteractiveFormInputTypes: {'string'}, // no 'file'
+        fields: [fieldA],
+      ),
+      throwsArgumentError,
+    );
   }
 
   test_validation_bool() {
     var fieldA = _boolField('a');
     var fieldB = _boolField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'bool'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process a response with some valid and some invalid answers.
-    form.processResponse(masterFields, [true, 'invalid']);
+    form.processResponse([fieldA.answer(true), fieldB.answer('invalid')]);
 
-    // Expect only the invalid field as outstanding.
-    expect(form.outstandingFields, [
+    // Expect all fields, with a validation message on the invalid one.
+    expect(form.clientFields, [
+      fieldA,
       fieldB.withError('Must be a valid boolean'),
     ]);
   }
@@ -164,19 +218,22 @@ class InteractiveFormsTest {
   test_validation_file() {
     var fieldA = _fileField('a');
     var fieldB = _fileField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'file'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process a response with some valid and some invalid answers.
-    form.processResponse(masterFields, ['file:///a/b', 'invalid']);
+    form.processResponse([
+      fieldA.answer('file:///a/b'),
+      fieldB.answer('invalid'),
+    ]);
 
-    // Expect only the invalid field as outstanding.
-    expect(form.outstandingFields, [
+    // Expect all fields, with a validation message on the invalid one.
+    expect(form.clientFields, [
+      fieldA,
       fieldB.withError('Must be a valid file:// URI'),
     ]);
   }
@@ -184,72 +241,161 @@ class InteractiveFormsTest {
   test_validation_number() {
     var fieldA = _numberField('a');
     var fieldB = _numberField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'number'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process a response with some valid and some invalid answers.
-    form.processResponse(masterFields, [1, 'invalid']);
+    form.processResponse([fieldA.answer(1), fieldB.answer('invalid')]);
 
-    // Expect only the invalid field as outstanding.
-    expect(form.outstandingFields, [
+    // Expect all fields, with a validation message on the invalid one.
+    expect(form.clientFields, [
+      fieldA,
       fieldB.withError('Must be a valid number'),
+    ]);
+  }
+
+  test_validation_optional() {
+    var fieldA = _boolField('a', required: false);
+    var fieldB = _boolField('b');
+    var fields = [fieldA, fieldB];
+
+    var form = InteractiveForm(
+      supportedInteractiveFormInputTypes: {'bool'},
+      fields: fields,
+    );
+
+    // No answers.
+    form.processResponse([]);
+
+    expect(form.clientFields, [
+      fieldA, // Valid because optional.
+      fieldB.withError('Must be a valid boolean'),
+    ]);
+  }
+
+  test_validation_optionalButWrongType() {
+    var fieldA = _boolField('a', required: false);
+    var fieldB = _boolField('b');
+    var fields = [fieldA, fieldB];
+
+    var form = InteractiveForm(
+      supportedInteractiveFormInputTypes: {'bool'},
+      fields: fields,
+    );
+
+    // No answers.
+    form.processResponse([fieldA.answer('invalid')]);
+
+    expect(form.clientFields, [
+      fieldA.withError('Must be a valid boolean'), // Invalid type
+      fieldB.withError('Must be a valid boolean'), // Not answered
     ]);
   }
 
   test_validation_string() {
     var fieldA = _stringField('a');
     var fieldB = _stringField('b');
-    var masterFields = [fieldA, fieldB];
+    var fields = [fieldA, fieldB];
 
     var form = InteractiveForm(
       supportedInteractiveFormInputTypes: {'string'},
-      masterFields: masterFields,
-      existingAnswers: masterFields.defaults,
+      fields: fields,
     );
 
     // Process a response with some valid and some invalid answers.
-    form.processResponse(masterFields, ['valid', 2]);
+    form.processResponse([fieldA.answer('valid'), fieldB.answer(2)]);
 
-    // Expect only the invalid field as outstanding.
-    expect(form.outstandingFields, [
+    // Expect all fields, with a validation message on the invalid one.
+    expect(form.clientFields, [
+      fieldA,
       fieldB.withError('Must be a valid string'),
     ]);
   }
 
-  FormField _boolField(String description, [String? defaultValue]) {
-    return _field(FormFieldTypeBool(), description, defaultValue);
-  }
-
-  FormField _field(
-    FormFieldType type,
-    String description, [
+  FormField _boolField(
+    String id, {
+    bool? required,
+    String? description,
     String? defaultValue,
-  ]) {
-    return FormField(
+  }) {
+    return _field(
+      FormFieldTypeBool(),
+      id,
       description: description,
-      type: type,
+      required: required,
       defaultValue: defaultValue,
     );
   }
 
-  FormField _fileField(String description, [String? defaultValue]) {
-    return _field(
-      FormFieldTypeFile(existence: FileExistence.New, type: FileType.Regular),
-      description,
-      defaultValue,
+  FormField _field(
+    FormFieldType type,
+    String id, {
+    String? description,
+    bool? required,
+    String? defaultValue,
+  }) {
+    return FormField(
+      id: id,
+      description: description ?? 'Field for $id',
+      type: type,
+      required: required ?? true,
+      defaultValue: defaultValue,
     );
   }
 
-  FormField _numberField(String description, [String? defaultValue]) {
-    return _field(FormFieldTypeNumber(), description, defaultValue);
+  FormField _fileField(
+    String id, {
+    bool? required,
+    String? description,
+    String? defaultValue,
+  }) {
+    return _field(
+      FormFieldTypeFile(existence: FileExistence.New, type: FileType.Regular),
+      id,
+      description: description,
+      required: required,
+      defaultValue: defaultValue,
+    );
   }
 
-  FormField _stringField(String description, [String? defaultValue]) {
-    return _field(FormFieldTypeString(), description, defaultValue);
+  FormField _numberField(
+    String id, {
+    bool? required,
+    String? description,
+    String? defaultValue,
+  }) {
+    return _field(
+      FormFieldTypeNumber(),
+      id,
+      description: description,
+      required: required,
+      defaultValue: defaultValue,
+    );
+  }
+
+  FormField _stringField(
+    String id, {
+    bool? required,
+    String? description,
+    String? defaultValue,
+  }) {
+    return _field(
+      FormFieldTypeString(),
+      id,
+      description: description,
+      required: required,
+      defaultValue: defaultValue,
+    );
+  }
+}
+
+extension on FormField {
+  /// Returns a [FormAnswer] for this field with the answer [value].
+  FormAnswer answer(Object? value) {
+    return FormAnswer(id: id, value: value);
   }
 }

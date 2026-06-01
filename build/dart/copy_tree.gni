@@ -53,37 +53,11 @@ template("copy_tree") {
       ]
     }
 
-    outputs = [ stampfile ]
+    outputs = [
+      stampfile,
+      dest,
+    ]
     script = "$_dart_root/tools/copy_tree.py"
     args = common_args
-  }
-}
-
-# DEPRECATED: This can be removed after the uses in the flutter/engine tree
-# are migrated to use copy_tree().
-template("copy_trees") {
-  assert(defined(invoker.sources), "$target_name must define 'source'")
-  sources = invoker.sources
-  copy_tree_source_paths = []
-  foreach(copy_tree_spec, sources) {
-    copy_tree_source_paths += [
-      rebase_path(copy_tree_spec.source),
-      copy_tree_spec.ignore_patterns,
-    ]
-  }
-
-  # A list of lists of input source files for copy_tree.
-  foreach(copy_tree_spec, sources) {
-    copy_tree(copy_tree_spec.target) {
-      visibility = copy_tree_spec.visibility
-      source = copy_tree_spec.source
-      dest = copy_tree_spec.dest
-      if (defined(copy_tree_spec.deps)) {
-        deps = copy_tree_spec.deps
-      }
-      if (copy_tree_spec.ignore_patterns != "{}") {
-        exclude = copy_tree_spec.ignore_patterns
-      }
-    }
   }
 }

@@ -210,7 +210,7 @@ FieldDeclaration
   }
 
   test_session_getterSetter() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = 0;
 }
@@ -223,7 +223,7 @@ class A {
   }
 
   test_type_inferred_int() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = 0;
 }
@@ -232,7 +232,7 @@ class A {
   }
 
   test_type_inferred_Never() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = throw 42;
 }
@@ -241,7 +241,7 @@ class A {
   }
 
   test_type_inferred_noInitializer() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f;
 }
@@ -250,7 +250,7 @@ class A {
   }
 
   test_type_inferred_null() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   var f = null;
 }

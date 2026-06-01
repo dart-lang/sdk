@@ -106,7 +106,7 @@ const int x = 'foo';
   }
 
   test_dotShorthand_enum_simple() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E { v1, v2 }
 const E x1 = .v1;
 const E x2 = .v2;
@@ -303,7 +303,7 @@ E
   }
 
   test_enum_enhanced_named() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E<T> {
   v1<double>.named(10),
   v2.named(20);
@@ -343,7 +343,7 @@ E<int>
   }
 
   test_enum_enhanced_unnamed() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E<T> {
   v1<int>(10),
   v2(20),
@@ -398,7 +398,7 @@ E<String>
   }
 
   test_enum_simple() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum E { v1, v2 }
 const x1 = E.v1;
 const x2 = E.v2;
@@ -3897,7 +3897,7 @@ const v2 = -v1;
 @reflectiveTest
 mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
   test_listLiteral_ifElement_false_withElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3909,7 +3909,7 @@ const c = [1, if (1 < 0) 2 else 3, 4];
   }
 
   test_listLiteral_ifElement_false_withoutElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 < 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3921,7 +3921,7 @@ const c = [1, if (1 < 0) 2, 3];
   }
 
   test_listLiteral_ifElement_true_withElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3933,7 +3933,7 @@ const c = [1, if (1 > 0) 2 else 3, 4];
   }
 
   test_listLiteral_ifElement_true_withoutElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3945,7 +3945,7 @@ const c = [1, if (1 > 0) 2, 3];
   }
 
   test_listLiteral_nested() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3959,7 +3959,7 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
   }
 
   test_listLiteral_spreadElement() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, ...[2, 3], 4];
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3971,7 +3971,7 @@ const c = [1, ...[2, 3], 4];
   }
 
   test_mapLiteral_ifElement_false_withElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -3991,7 +3991,7 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
   }
 
   test_mapLiteral_ifElement_false_withoutElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4011,7 +4011,7 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
   }
 
   test_mapLiteral_ifElement_true_withElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4031,7 +4031,7 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
   }
 
   test_mapLiteral_ifElement_true_withoutElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4050,17 +4050,15 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
   }
 
-  @failingTest
   test_mapLiteral_nested() async {
-    // Fails because we're not yet parsing nested elements.
-    var unitResult = await resolveTestCode('''
-const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const c = {'a' : 1, if (1 > 0) if (2 > 1) ...{'b' : 2}, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(
       result.type,
       unitResult.typeProvider.mapType(
-        unitResult.typeProvider.intType,
+        unitResult.typeProvider.stringType,
         unitResult.typeProvider.intType,
       ),
     );
@@ -4073,7 +4071,7 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
   }
 
   test_mapLiteral_spreadElement() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4096,7 +4094,7 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
   }
 
   test_setLiteral_ifElement_false_withElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4108,7 +4106,7 @@ const c = {1, if (1 < 0) 2 else 3, 4};
   }
 
   test_setLiteral_ifElement_false_withoutElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 < 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4120,7 +4118,7 @@ const c = {1, if (1 < 0) 2, 3};
   }
 
   test_setLiteral_ifElement_true_withElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4132,7 +4130,7 @@ const c = {1, if (1 > 0) 2 else 3, 4};
   }
 
   test_setLiteral_ifElement_true_withoutElse() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4144,7 +4142,7 @@ const c = {1, if (1 > 0) 2, 3};
   }
 
   test_setLiteral_nested() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4156,7 +4154,7 @@ const c = {1, if (1 > 0) if (2 > 1) 2, 3};
   }
 
   test_setLiteral_spreadElement() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, ...{2, 3}, 4};
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4179,9 +4177,11 @@ String abcdef
   }
 
   test_visitAsExpression_instanceOfSameClass() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = const A();
 const b = a as A;
+//        ^^^^^^
+// [diag.unnecessaryCast] Unnecessary cast.
 class A {
   const A();
 }
@@ -4192,7 +4192,7 @@ class A {
   }
 
   test_visitAsExpression_instanceOfSubclass() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const a = const B();
 const b = a as A;
 class A {
@@ -4343,7 +4343,7 @@ const c = a && true;
   }
 
   test_visitBinaryExpression_and_bool_known_known() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false & true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4351,7 +4351,7 @@ const c = false & true;
   }
 
   test_visitBinaryExpression_and_bool_known_unknown() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const b = bool.fromEnvironment('y');
 const c = false & b;
 ''');
@@ -4369,7 +4369,7 @@ const c = true && a;
   }
 
   test_visitBinaryExpression_and_bool_unknown_known() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('x');
 const c = a & true;
 ''');
@@ -4378,7 +4378,7 @@ const c = a & true;
   }
 
   test_visitBinaryExpression_and_bool_unknown_unknown() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a & b;
@@ -4583,7 +4583,7 @@ const c = a || true;
   }
 
   test_visitBinaryExpression_or_bool_known_known() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false | true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4591,7 +4591,7 @@ const c = false | true;
   }
 
   test_visitBinaryExpression_or_bool_known_unknown() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const b = bool.fromEnvironment('y');
 const c = false | b;
 ''');
@@ -4611,7 +4611,7 @@ const c = true || a;
   }
 
   test_visitBinaryExpression_or_bool_unknown_known() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('x');
 const c = a | true;
 ''');
@@ -4620,7 +4620,7 @@ const c = a | true;
   }
 
   test_visitBinaryExpression_or_bool_unknown_unknown() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a | b;
@@ -4630,7 +4630,7 @@ const c = a | b;
   }
 
   test_visitBinaryExpression_or_int() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 | 5;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4661,8 +4661,12 @@ const c = 3 | false;
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 'a' ?? 'b';
+//            ^^^^^^
+// [diag.deadCode] Dead code.
+//               ^^^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
     expect(result.type, unitResult.typeProvider.stringType);
@@ -4679,7 +4683,7 @@ class C {}
   }
 
   test_visitBinaryExpression_questionQuestion_null_notNull() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = null ?? 'b';
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4688,7 +4692,7 @@ const c = null ?? 'b';
   }
 
   test_visitBinaryExpression_questionQuestion_null_null() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = null ?? null;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4696,7 +4700,7 @@ const c = null ?? null;
   }
 
   test_visitBinaryExpression_xor_bool_known_known() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false ^ true;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4704,7 +4708,7 @@ const c = false ^ true;
   }
 
   test_visitBinaryExpression_xor_bool_known_unknown() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const b = bool.fromEnvironment('y');
 const c = false ^ b;
 ''');
@@ -4713,7 +4717,7 @@ const c = false ^ b;
   }
 
   test_visitBinaryExpression_xor_bool_unknown_known() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('x');
 const c = a ^ true;
 ''');
@@ -4722,7 +4726,7 @@ const c = a ^ true;
   }
 
   test_visitBinaryExpression_xor_bool_unknown_unknown() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a ^ b;
@@ -4732,7 +4736,7 @@ const c = a ^ b;
   }
 
   test_visitBinaryExpression_xor_int() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 ^ 5;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'c');
@@ -4928,7 +4932,7 @@ double 3.45
   }
 
   test_visitIntegerLiteral_doubleType() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const double d = 3;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'd');
@@ -5181,7 +5185,7 @@ const y = B(x);
   }
 
   test_visitSimpleIdentifier_dynamic() async {
-    var unitResult = await resolveTestCode('''
+    var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = dynamic;
 ''');
     DartObjectImpl result = _evaluateConstant(unitResult, 'a');

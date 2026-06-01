@@ -375,7 +375,7 @@ ExportDirective
 get f => null;
 set f(_) {}
 ''');
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart';
 ''');
     var exportNamespace = result.libraryElement.exportNamespace;

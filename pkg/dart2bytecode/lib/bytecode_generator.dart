@@ -2865,9 +2865,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     int position = TreeNode.noOffset;
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions) {
-      position = (node is ast.FunctionDeclaration)
-          ? node.fileOffset
-          : function.fileOffset;
+      position = node.fileOffset;
       endPosition = function.fileEndOffset;
       if (position != TreeNode.noOffset) {
         flags |= ClosureDeclaration.hasSourcePositionsFlag;
@@ -3512,6 +3510,8 @@ class BytecodeGenerator extends RecursiveVisitor {
         throw 'Unexpected specialized bytecode $opcode';
     }
 
+    // Record coverage like with other instance calls.
+    _recordCoverage(node);
     asm.emitSpecializedBytecode(opcode);
   }
 
@@ -3535,6 +3535,8 @@ class BytecodeGenerator extends RecursiveVisitor {
         invocationKind != InvocationKind.getter &&
         _isUncheckedCall(node, interfaceTarget, receiver);
 
+    _recordCoverage(node);
+
     bool generated = false;
     if (invocationKind != InvocationKind.getter && !isDynamic && !isUnchecked) {
       final staticReceiverType = getStaticType(receiver, staticTypeContext);
@@ -3557,7 +3559,6 @@ class BytecodeGenerator extends RecursiveVisitor {
         targetName,
         argDesc,
       );
-      _recordCoverage(node);
       if (isDynamic) {
         assert(!isUnchecked);
         asm.emitDynamicCall(callCpIndex, totalArgCount);

@@ -1696,7 +1696,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime"
+            "fuchsia_test_package"
           ]
         },
         {
@@ -1730,7 +1730,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime"
+            "fuchsia_test_package"
           ]
         },
         {

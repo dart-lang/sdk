@@ -7,9 +7,8 @@ import '../utils.dart';
 
 /// Classes that support for the new (Go-specified) interactive-refactors.
 final interactiveFormClasses = <LspEntity>[
-  // TODO(dantup): Try to generate this from the form.ts file once it has a
-  //  stable location.
-  //  https://github.com/golang/vscode-go/blob/fecc31339bc33de4b1db2a2242ba46ea552d0f39/extension/src/language/form.ts
+  // TODO(dantup): Generate this from a JSON metadata file if one is made in the
+  //  same format as the LSP metaModel file.
   interface('InteractiveParams', [
     field(
       'formFields',
@@ -17,7 +16,7 @@ final interactiveFormClasses = <LspEntity>[
       type: 'FormField',
       canBeUndefined: true,
       comment:
-          'FormFields defines the questions and validation errors in previous '
+          'The questions and validation errors in previous '
           'answers to the same questions.\n\n'
           'This is a server-to-client field. The language server defines '
           'these, and the client uses them to render the form.\n\n'
@@ -26,23 +25,32 @@ final interactiveFormClasses = <LspEntity>[
     ),
     field(
       'formAnswers',
+      type: 'FormAnswer',
       array: true,
-      type: 'LSPAny',
       canBeUndefined: true,
       comment:
-          'FormAnswers contains the values for the form questions.\n\n'
-          'When sent by the language server, this field is optional but '
-          'recommended to support editing previous values.\n\n'
-          'When sent by the language client as part of the ResolveXXX request, '
-          'this field is required. The slice must have the same length as '
-          'FormFields (one answer per question), where the answer at index i '
-          'corresponds to the field at index i.',
+          'The answers for the form questions.\n\n'
+          'When sent by the language server, this field is optional and '
+          'contains the current or default answers to the questions to support '
+          'editing previous values.\n\n'
+          "When sent by the language client, this field contains the user's "
+          'answers.\n\n'
+          "Answers are linked to their respective questions using the field's "
+          'unique `id` rather than their array index. The list must not '
+          "contain duplicate IDs, and each answer's ID must correspond to a "
+          'field ID defined in `formFields`.\n\n'
+          'The client must include answers for all required fields (where '
+          '`required` is true). Answers for optional fields (where `required` '
+          'is false) may be omitted if no answer was provided, or included if '
+          'an answer is available.',
     ),
     field(
       'data',
       type: 'LSPAny',
       canBeUndefined: true,
-      comment: 'Context preserved for the server.',
+      comment:
+          'Additional data that the client preserves for the server. This '
+          'data is for server use only and the client should not inspect it.',
     ),
   ]),
   interface(
@@ -70,6 +78,14 @@ final interactiveFormClasses = <LspEntity>[
 
   interface('FormField', [
     field(
+      'id',
+      type: 'String',
+      comment:
+          'A unique identifier for this field. This key is used as the '
+          "property name in FormAnswers to map the user's input back to this "
+          'specific field.',
+    ),
+    field(
       'description',
       type: 'String',
       comment:
@@ -80,6 +96,11 @@ final interactiveFormClasses = <LspEntity>[
       'type',
       type: 'FormFieldType',
       comment: 'The data type and validation constraints for the answer.',
+    ),
+    field(
+      'required',
+      type: 'boolean',
+      comment: 'Whether an answer is absolutely required for this field.',
     ),
     field(
       'default',
@@ -99,6 +120,14 @@ final interactiveFormClasses = <LspEntity>[
           'null, the current answer is considered valid.',
     ),
   ], comment: 'A single question in a form and its validation state.'),
+  interface('FormAnswer', [
+    field(
+      'id',
+      type: 'String',
+      comment: 'The ID of the FormField being answered.',
+    ),
+    field('value', type: 'LSPAny', comment: "The user's answer value."),
+  ], comment: 'A single answer to a FormField, identified by its unique ID.'),
 
   // Field kinds
   interface('FormFieldType', sealed: true, [field('kind', type: 'String')]),
@@ -113,15 +142,28 @@ final interactiveFormClasses = <LspEntity>[
       field(
         'existence',
         type: 'FileExistence',
+        canBeUndefined: true,
         comment: 'Existence constraint.',
       ),
       field(
         'type',
         type: 'FileType',
+        canBeUndefined: true,
         comment:
             'Type specifies the set of allowed file types (regular file, '
             'directory, etc).\n\n'
             'Only applicable against existing file.',
+      ),
+      field(
+        'filters',
+        type: 'string',
+        array: true,
+        canBeUndefined: true,
+        comment:
+            'Filters specifies the allowed file extensions without the leading '
+            'dot. A file is valid if it matches any of the extensions '
+            '(OR logic). e.g. ["png", "jpg"].\n\n'
+            'If omitted or empty, no extension filter is applied.',
       ),
     ],
     comment:

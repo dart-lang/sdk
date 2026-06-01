@@ -37,9 +37,19 @@ sealed class CFunction {
       (member.isInstanceMember || member is ast.Constructor) &&
       member.enclosingClass!.typeParameters.isNotEmpty;
 
+  /// Number of function type parameters declared by this function.
+  int get numberOfFunctionTypeParameters =>
+      functionNode?.typeParameters.length ?? 0;
+
   /// Whether this function has function type parameters.
-  bool get hasFunctionTypeParameters =>
-      functionNode?.typeParameters.isNotEmpty ?? false;
+  bool get hasFunctionTypeParameters => numberOfFunctionTypeParameters > 0;
+
+  /// Number of function type parameters declared by the enclosing functions.
+  int get numberOfEnclosingFunctionTypeParameters => 0;
+
+  /// Whether enclosing functions have function type parameters.
+  bool get hasEnclosingFunctionTypeParameters =>
+      numberOfEnclosingFunctionTypeParameters > 0;
 
   /// Number of implicit parameters of this function:
   /// - function type parameters (represented with a single parameter),
@@ -229,7 +239,11 @@ sealed class ClosureFunction extends CFunction {
 /// Anonymous closure or a local function.
 final class LocalFunction extends ClosureFunction {
   final ast.LocalFunction localFunction;
-  LocalFunction._(super.member, this.localFunction) : super._();
+  final CFunction enclosingFunction;
+
+  LocalFunction._(super.member, this.enclosingFunction, this.localFunction)
+    : assert(enclosingFunction.member == member),
+      super._();
 
   @override
   ast.FunctionNode? get functionNode => localFunction.function;
@@ -243,18 +257,10 @@ final class LocalFunction extends ClosureFunction {
   @override
   SourcePosition get sourcePosition => SourcePosition(localFunction.fileOffset);
 
-  bool hasGenericEnclosingFunction() {
-    ast.TreeNode node = localFunction;
-    for (;;) {
-      node = node.parent!;
-      if (node is ast.Member) {
-        return false;
-      }
-      if (node is ast.FunctionNode && node.typeParameters.isNotEmpty) {
-        return true;
-      }
-    }
-  }
+  @override
+  late final int numberOfEnclosingFunctionTypeParameters =
+      enclosingFunction.numberOfEnclosingFunctionTypeParameters +
+      enclosingFunction.numberOfFunctionTypeParameters;
 }
 
 /// Tear-off (result of function closurization).
@@ -330,8 +336,10 @@ class FunctionRegistry {
   final Map<ast.Member, CFunction> _other = {};
   final List<ArgumentsShape> _positionalArgShapes = [];
 
-  /// Returns [CFunction] corresponding to [member] with
-  /// given properties.
+  /// Returns [CFunction] corresponding to a [member] or [localFunction] with given properties.
+  ///
+  /// [enclosingFunction] should be specified for the local function
+  /// when querying a function for the first time.
   CFunction getFunction(
     ast.Member member, {
     bool isGetter = false,
@@ -339,6 +347,7 @@ class FunctionRegistry {
     bool isInitializer = false,
     bool isTearOff = false,
     bool isMethodExtractor = false,
+    CFunction? enclosingFunction,
     ast.LocalFunction? localFunction,
   }) {
     if (localFunction != null) {
@@ -351,6 +360,7 @@ class FunctionRegistry {
       );
       return _closures[localFunction] ??= LocalFunction._(
         member,
+        enclosingFunction!,
         localFunction,
       );
     }

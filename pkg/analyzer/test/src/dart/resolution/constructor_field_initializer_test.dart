@@ -70,7 +70,7 @@ ConstructorFieldInitializer
   }
 
   test_functionExpressionInvocation_blockBody() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final x;
   A(int a) : x = (() {return a + 1;})();
@@ -129,7 +129,7 @@ ConstructorFieldInitializer
   }
 
   test_functionExpressionInvocation_expressionBody() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x;
   A(int a) : x = (() => a + 1)();

@@ -168,7 +168,7 @@ template("gen_vm_platform") {
           invoker.add_implicit_vm_platform_dependency
     }
     single_root_scheme = "org-dartlang-sdk"
-    single_root_base = rebase_path("../../")
+    single_root_base = rebase_path("../../", root_build_dir)
     libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
     outputs = [
       "$root_out_dir/vm_platform" + output_postfix + ".dill",

@@ -78,7 +78,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_async_method_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A {
         Future f0() => new Future.value(3);
         Future f1() async => new Future.value(3);
@@ -96,8 +96,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         Future<int> g4() async { return new Future.value(3); }
         Future<int> g5() async { return await new Future.value(3); }
       }
-   ''';
-    var result = await resolveTestCode(code);
+   ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
       MethodDeclaration test = AstFinder.getMethodInClass(
@@ -139,7 +138,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_async_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       Future f0() => new Future.value(3);
       Future f1() async => new Future.value(3);
       Future f2() async => await new Future.value(3);
@@ -155,8 +154,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       Future<int> g3() { return new Future.value(3); }
       Future<int> g4() async { return new Future.value(3); }
       Future<int> g5() async { return await new Future.value(3); }
-   ''';
-    var result = await resolveTestCode(code);
+   ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
       FunctionDeclaration test = AstFinder.getTopLevelFunction(
@@ -197,16 +195,17 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_cascadeExpression() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A<T> {
         List<T> map(T a, List<T> mapper(T x)) => mapper(a);
       }
 
       void main () {
         A<int> a = new A()..map(0, (x) => [x]);
-     }
-   ''';
-    var result = await resolveTestCode(code);
+//             ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+      }
+   ''');
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
       result.unit,
       "main",
@@ -5743,7 +5742,7 @@ class C extends Override implements Base {}
   }
 
   test_localVariableInference_bottom_disabled() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = null;
   v; // marker
@@ -5753,7 +5752,7 @@ main() {
   }
 
   test_localVariableInference_constant() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = 3;
   v; // marker
@@ -5763,7 +5762,7 @@ main() {
   }
 
   test_localVariableInference_declaredType_disabled() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   dynamic v = 3;
   v; // marker
@@ -5773,7 +5772,7 @@ main() {
   }
 
   test_localVariableInference_noInitializer_disabled() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v;
   v = 3;
@@ -5802,7 +5801,7 @@ AssignmentExpression
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final x = 3;
   f() {
@@ -5818,7 +5817,7 @@ main() {
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   f() {
     var v = x;
@@ -5834,7 +5833,7 @@ main() {
   }
 
   test_localVariableInference_transitive_field_lexical() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 3;
   f() {
@@ -5850,7 +5849,7 @@ main() {
   }
 
   test_localVariableInference_transitive_field_reversed() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   f() {
     var v = x;
@@ -5866,7 +5865,7 @@ main() {
   }
 
   test_localVariableInference_transitive_list_local() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var x = <int>[3];
   var v = x[0];
@@ -5877,7 +5876,7 @@ main() {
   }
 
   test_localVariableInference_transitive_local() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var x = 3;
   var v = x;
@@ -5888,7 +5887,7 @@ main() {
   }
 
   test_localVariableInference_transitive_topLevel_inferred_lexical() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = 3;
 main() {
   var v = x;
@@ -5900,7 +5899,7 @@ main() {
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = x;
   v; // marker
@@ -5912,7 +5911,7 @@ final x = 3;
   }
 
   test_localVariableInference_transitive_topLevel_lexical() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int x = 3;
 main() {
   var v = x;
@@ -5924,7 +5923,7 @@ main() {
   }
 
   test_localVariableInference_transitive_topLevel_reversed() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = x;
   v; // marker

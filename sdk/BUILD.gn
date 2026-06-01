@@ -296,25 +296,27 @@ copy_tree("copy_dartdoc_resources") {
   exclude = "{}"
 }
 
-# This rule copies the pre-built DevTools application to
-# bin/resources/devtools/
-copy_tree("copy_prebuilt_devtools") {
-  visibility = [ ":create_common_sdk" ]
-  source = "../third_party/devtools/web"
-  dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
-  exclude = "{}"
-}
-
-# This action compiles the devtools app from sources.
-action("build_devtools") {
-  visibility = [ ":create_common_sdk" ]
-  output = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
-  outputs = [ output ]
-  script = "../tools/build_devtools.py"
-  args = [
-    "--output",
-    rebase_path(output, root_build_dir),
-  ]
+if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+  # This action compiles the devtools app from sources.
+  action("build_devtools") {
+    visibility = [ ":create_common_sdk" ]
+    output = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
+    outputs = [ output ]
+    script = "../tools/build_devtools.py"
+    args = [
+      "--output",
+      rebase_path(output, root_build_dir),
+    ]
+  }
+} else {
+  # This rule copies the pre-built DevTools application to
+  # bin/resources/devtools/
+  copy_tree("copy_prebuilt_devtools") {
+    visibility = [ ":create_common_sdk" ]
+    source = "../third_party/devtools/web"
+    dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
+    exclude = "{}"
+  }
 }
 
 # This loop generates rules to copy libraries to lib/

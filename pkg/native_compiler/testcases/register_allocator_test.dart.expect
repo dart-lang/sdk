@@ -540,12 +540,14 @@ B11 = TargetBlock() idom:B0
 
 --- closure FunctionExpression(void (dynamic k, dynamic v) {}) at SplayTreeMap.from
 B0 = EntryBlock()
-  v4 = Constant(null)
-  Parameter(#closure)   # RA: param[0] <- ()
+  v7 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
   Parameter(k)   # RA: param[1] <- ()
   Parameter(v)   # RA: param[2] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
   ParallelMove input(NullConstant(null) -> R0)
-  Return(v4)   # RA: (R0)
+  Return(v7)   # RA: (R0)
 
 --- SplayTreeMap.of
 B0 = EntryBlock()

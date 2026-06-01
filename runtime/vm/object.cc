@@ -11555,10 +11555,11 @@ TypedDataPtr Function::GetCoverageArray() const {
   if (HasBytecode()) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     const auto& bytecode = Bytecode::Handle(GetBytecode());
-    return bytecode.coverage_array();
-#else
-    return TypedData::null();
+    if (bytecode.HasRecordedCoverage()) {
+      return bytecode.EnsureCoverageArray(Thread::Current());
+    }
 #endif
+    return TypedData::null();
   }
 #endif
   const Array& arr = Array::Handle(ic_data_array());

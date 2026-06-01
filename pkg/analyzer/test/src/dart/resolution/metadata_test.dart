@@ -206,13 +206,17 @@ void f(List<int> list) {
   }
 
   test_location_forEachPartsWithDeclaration() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 42;
 void f() {
-  for (var @foo x = 0;;) {}
+  for (@foo var x = 0;;) {
+    x;
+    break;
+  }
 }
 ''');
-    // This is invalid code.
-    // No checks, as long as it does not crash.
+
+    _assertAtFoo42(result);
   }
 
   test_location_libraryDirective() async {
@@ -295,13 +299,16 @@ A
   }
 
   test_location_localVariableDeclaration() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 42;
 void f() {
-  var @foo x;
+  @foo
+  var x;
+  x;
 }
 ''');
-    // This is invalid code.
-    // No checks, as long as it does not crash.
+
+    _assertAtFoo42(result);
   }
 
   test_location_methodDeclaration() async {
@@ -552,14 +559,18 @@ A
   }
 
   test_value_class_namedConstructor_unresolved_hasFormalParameter() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 
 void f(int named) {
   @A.named(42)
+//^^^^^^^^^^^^
+// [diag.invalidAnnotation] Annotation must be either a const variable reference or const constructor invocation.
   int x = 0;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
 
@@ -1007,12 +1018,15 @@ A<int>
   }
 
   test_value_genericClass_instanceGetter() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   T get foo {}
+//      ^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'T', is a potentially non-nullable type.
 }
 
 @A.foo
+// [diag.invalidAnnotation][column 1][length 6] Annotation must be either a const variable reference or const constructor invocation.
 void f() {}
 ''');
 
@@ -1094,12 +1108,15 @@ A<dynamic>
   }
 
   test_value_genericClass_staticGetter() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static T get foo {}
+//       ^
+// [diag.typeParameterReferencedByStatic] Static members can't reference type parameters of the class.
 }
 
 @A.foo
+// [diag.invalidAnnotation][column 1][length 6] Annotation must be either a const variable reference or const constructor invocation.
 void f() {}
 ''');
 

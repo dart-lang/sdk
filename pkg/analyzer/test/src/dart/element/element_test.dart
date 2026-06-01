@@ -35,7 +35,7 @@ class A {
 }
 void f(@A('x') int p) {}
 ''');
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 main() {
   f(3);
@@ -54,7 +54,7 @@ main() {
 @reflectiveTest
 class FieldElementImplTest extends PubPackageResolutionTest {
   test_isEnumConstant() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum B {B1, B2, B3}
 ''');
     var B = result.findElement.enum_('B');

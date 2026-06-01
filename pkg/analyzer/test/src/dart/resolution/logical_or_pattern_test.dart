@@ -77,9 +77,21 @@ LogicalOrPattern
 
   test_switchCase_topLevel3() async {
     // https://github.com/dart-lang/sdk/issues/60168
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var _ = switch (0) {
+//  ^
+// [diag.unusedElement] The declaration '_' isn't referenced.
   var a || var a || var a => 0,
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//      ^^^^^^^^
+// [diag.deadCode] Dead code.
+//             ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//               ^^^^^^^^
+// [diag.deadCode] Dead code.
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 };
 ''');
 

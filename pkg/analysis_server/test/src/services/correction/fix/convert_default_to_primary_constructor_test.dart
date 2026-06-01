@@ -31,6 +31,15 @@ class C();
 ''');
   }
 
+  Future<void> test_class_withDefaultConstructor() async {
+    await resolveTestCode('''
+class C<T> {}
+''');
+    await assertHasFix('''
+class C<T>() {}
+''');
+  }
+
   Future<void> test_enum() async {
     await resolveTestCode('''
 enum E^ {

@@ -204,8 +204,10 @@ class C {
   static const int f = 42;
 }
 ''');
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
 ''');
 
     var import_ = result.findElement.importFind('package:test/a.dart');
@@ -221,8 +223,10 @@ extension E on int {
   static const int f = 42;
 }
 ''');
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
 ''');
 
     var import_ = result.findElement.importFind('package:test/a.dart');
@@ -240,8 +244,10 @@ mixin M on C {
   static const int f = 42;
 }
 ''');
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
 ''');
 
     var import_ = result.findElement.importFind('package:test/a.dart');

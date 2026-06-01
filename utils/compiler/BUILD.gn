@@ -108,7 +108,7 @@ aot_snapshot("dart2js_sdk_aot_product") {
 
 compile_platform("compile_dart2js_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("$sdk_root/")
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [
@@ -124,7 +124,7 @@ compile_platform("compile_dart2js_platform") {
 }
 compile_platform("compile_dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("$sdk_root/")
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   outputs = [

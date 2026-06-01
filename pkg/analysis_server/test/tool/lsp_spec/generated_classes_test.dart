@@ -138,14 +138,18 @@ class GeneratedClassesTest {
 
   void test_interactiveForms_deserialize_formFieldsIntoSubclasses() {
     var stringField = FormField.fromJson({
+      'id': 'a',
       'type': {'kind': 'string'},
       'description': '',
+      'required': true,
     });
     expect(stringField.type, isA<FormFieldTypeString>());
 
     var boolField = FormField.fromJson({
+      'id': 'b',
       'type': {'kind': 'bool'},
       'description': '',
+      'required': false,
     });
     expect(boolField.type, isA<FormFieldTypeBool>());
   }
