@@ -3522,10 +3522,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=x64,x64c",
-            "runtime",
-            "dartaotruntime",
-            "dart2js_platform.dill",
-            "dart2wasm_platform.dill"
+            "dartfuzz"
           ]
         },
         {
@@ -3534,8 +3531,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=simarm64,simarm64c",
-            "runtime",
-            "dartaotruntime"
+            "dartfuzz"
           ]
         },
         {
@@ -3544,8 +3540,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=simriscv32,simriscv64",
-            "runtime",
-            "dartaotruntime"
+            "dartfuzz"
           ]
         },
         {
@@ -3554,12 +3549,12 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=simarm",
-            "runtime"
+            "dartfuzz"
           ]
         },
         {
           "name": "dartfuzz - generated programs",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tools/dartfuzz/dartfuzz_test.dart",
             "--isolates",
@@ -3573,7 +3568,7 @@
         },
         {
           "name": "dartfuzz - dart2js",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart"
           ],
@@ -3582,7 +3577,7 @@
         },
         {
           "name": "dartfuzz - dart2wasm",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart"
           ],

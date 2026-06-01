@@ -233,6 +233,16 @@ group("dart2js_bot") {
   ]
 }
 
+group("dartfuzz") {
+  deps = [
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "utils/compiler:compile_dart2js_platform",
+    "utils/dart2wasm:compile_dart2wasm_platform",
+    "utils/kernel-service",
+  ]
+}
+
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")
