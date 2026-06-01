@@ -443,7 +443,6 @@ if (is_fuchsia) {
   test_binaries = [
     "dartvm",
     "dartaotruntime",
-    "run_vm_tests",
   ]
 
   foreach(binary, test_binaries) {
@@ -460,10 +459,7 @@ if (is_fuchsia) {
         "libffi_test_dynamic_library.so",
         "libffi_test_functions.so",
       ]
-      resource_files = [
-        ".dart_tool/package_config.json",
-        "tools/addlatexhash.dart",
-      ]
+      resource_files = [ ".dart_tool/package_config.json" ]
       resources = []
       foreach(file, library_files) {
         resources += [
@@ -495,13 +491,7 @@ if (is_fuchsia) {
 
   fuchsia_package("fuchsia_test_package") {
     testonly = true
-    if (is_debug) {
-      package_name = "dart_test_debug"
-    } else if (is_release) {
-      package_name = "dart_test_release"
-    } else if (is_product) {
-      package_name = "dart_test_product"
-    }
+    package_name = "dart_test"
     deps = []
     foreach(binary, test_binaries) {
       deps += [ ":${binary}_test_component" ]

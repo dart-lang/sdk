@@ -24,9 +24,9 @@ class FuchsiaEmulator {
     assert(publisher == null);
     var args = <String>[
       "./build/fuchsia/test_env.py",
-      "--out-dir=${_outDir(buildDir, mode)}",
+      "--out-dir=$buildDir/gen/dart_test",
       "--device-spec=$arch-emu-large",
-      "--packages=dart_test_$mode.far",
+      "--packages=dart_test.far",
       "--logs-dir=${daemonIsolateDir!.path}",
     ];
     if (arch == "arm64") {
@@ -64,12 +64,12 @@ class FuchsiaEmulator {
     environmentOverrides.addAll(envs);
     return VMCommand(withEnv, [
       "./third_party/fuchsia/test_scripts/test/run_executable_test.py",
-      "--test-name=fuchsia-pkg://fuchsia.com/dart_test_$mode#meta/$component",
+      "--test-name=fuchsia-pkg://fuchsia.com/dart_test#meta/$component",
       // VmexResource not available in default hermetic realm
       // TODO(38752): Setup a Dart test realm.
       "--test-realm=/core/testing/system-tests",
-      "--out-dir=${_outDir(buildDir, mode)}",
-      "--package-deps=dart_test_$mode.far",
+      "--out-dir=$buildDir/gen/dart_test",
+      "--package-deps=dart_test.far",
       ...arguments,
     ], environmentOverrides);
   }
@@ -101,10 +101,6 @@ class FuchsiaEmulator {
     } on TimeoutException {
       return true;
     }
-  }
-
-  String _outDir(String buildDir, String mode) {
-    return "$buildDir/gen/dart_test_$mode";
   }
 
   static final FuchsiaEmulator _instance = _create();
