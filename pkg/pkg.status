@@ -247,6 +247,8 @@ analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
 dartdev/test/*: Slow, Pass
 dds/test/dap/integration/*: Slow, Pass
+dds/test/devtools_server/server_connection_api_test: Slow, Pass
+dds/test/devtools_server/server_connection_vm_service_test: Slow, Pass
 test_runner/test/update_error_cmdline_test: Slow, Pass
 
 [ $runtime != vm ]
