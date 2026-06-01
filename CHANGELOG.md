@@ -210,7 +210,7 @@ These changes are [language versioned][] and only affect code at 3.13 or higher:
 
 ## 3.12.0
 
-**Released on:** Unreleased
+**Released on:** 2026-05-18
 
 ### Language
 
