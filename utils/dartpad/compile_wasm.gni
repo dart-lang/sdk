@@ -103,13 +103,11 @@ template("compile_dart2wasm") {
         "--wasm-opt=" + rebase_path(wasm_opt_binary, root_build_dir),
         "--phases=cfe,tfa,codegen,opt",
         "--minify",
-        "-O4",
       ]
-    } else {
-      args += [ "-O2" ]
     }
 
     args += [
+      "-O2",
       rebase_path(main_dart, root_build_dir),
       rebase_path(output, root_build_dir),
     ]
