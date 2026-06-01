@@ -82,7 +82,45 @@ class C<T> {
     print(x is List<T>);
     print(x is List<U>);
     print(x as Map<T, U>);
+    void local1() {
+      print(T);
+      print(U);
+    }
+
+    local1();
+    void local2<V>() {
+      print(Map<U, V>);
+    }
+
+    local2();
   }
+}
+
+void nestedFunctionTypeParameters1<S>() {
+  void nested1<T>() {
+    void nested2<U>() {
+      print(S);
+      print(T);
+      print(U);
+    }
+
+    nested2<int>();
+  }
+
+  nested1<String>();
+}
+
+void nestedFunctionTypeParameters2<S>() {
+  void nested1() {
+    void nested2<T>() {
+      print(S);
+      print(T);
+    }
+
+    nested2<int>();
+  }
+
+  nested1();
 }
 
 class D<S, T> {}

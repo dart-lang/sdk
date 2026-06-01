@@ -418,10 +418,15 @@ class FlowGraphBuilder {
     return instr;
   }
 
-  /// Append [TypeParameters] taking a parameter as input to the graph.
-  TypeParameters addTypeParameters(TypeParametersKind kind) {
-    final parameter = pop();
-    final instr = TypeParameters(graph, currentSourcePosition, kind, parameter);
+  /// Append [TypeParameters] to the graph.
+  TypeParameters addTypeParameters(TypeParametersKind kind, int inputCount) {
+    final instr = TypeParameters(
+      graph,
+      currentSourcePosition,
+      kind,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
     appendInstruction(instr);
     return instr;
   }

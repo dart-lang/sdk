@@ -145,14 +145,31 @@ class AstToIr extends ast.RecursiveVisitor {
     for (final param in localVarIndexer.parameters) {
       builder.addParameter(param);
     }
-    if (function.hasFunctionTypeParameters || function.hasClassTypeParameters) {
+    if (function.hasFunctionTypeParameters ||
+        function.hasEnclosingFunctionTypeParameters ||
+        function.hasClassTypeParameters) {
       _hasTypeParametersInScope = true;
       switch (typeParametersStyle) {
         case .separateFunctionAndClassTypeParameters:
-          if (function.hasFunctionTypeParameters) {
-            builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+          if (function.hasFunctionTypeParameters ||
+              function.hasEnclosingFunctionTypeParameters) {
+            var inputCount = 0;
+            if (function.hasFunctionTypeParameters) {
+              ++inputCount;
+              builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+            }
+            if (function.hasEnclosingFunctionTypeParameters) {
+              ++inputCount;
+              builder.addLoadLocal(localVarIndexer.closure);
+              builder.addLoadInstanceField(
+                CField(
+                  ClosureField(_currentClosureLayout.functionTypeArgsIndex),
+                ),
+              );
+            }
             functionTypeParameters = builder.addTypeParameters(
               .functionTypeParameters,
+              inputCount,
             );
           }
           if (function.hasClassTypeParameters) {
@@ -160,6 +177,7 @@ class AstToIr extends ast.RecursiveVisitor {
               builder.addLoadLocal(localVarIndexer.receiver);
               classTypeParameters = builder.addTypeParameters(
                 .classTypeParameters,
+                1,
               );
             } else if (_isCaptured(localVarIndexer.receiverDeclaration!)) {
               // Read captured receiver. Load context from closure
@@ -184,6 +202,7 @@ class AstToIr extends ast.RecursiveVisitor {
               );
               classTypeParameters = builder.addTypeParameters(
                 .classTypeParameters,
+                1,
               );
             }
           }
@@ -1802,7 +1821,11 @@ class AstToIr extends ast.RecursiveVisitor {
 
   void _translateClosure(ast.LocalFunction node, CType type) {
     final closureFunction =
-        functionRegistry.getFunction(function.member, localFunction: node)
+        functionRegistry.getFunction(
+              function.member,
+              enclosingFunction: function,
+              localFunction: node,
+            )
             as ClosureFunction;
     onLocalFunction(closureFunction);
 
@@ -1861,7 +1884,7 @@ class AstToIr extends ast.RecursiveVisitor {
         hasClassTypeArgs = visitor.containsClassTypeParams;
 
         hasFunctionTypeArgs = switch (closureFunction) {
-          LocalFunction() => closureFunction.hasGenericEnclosingFunction(),
+          LocalFunction() => closureFunction.hasEnclosingFunctionTypeParameters,
           TearOffFunction() => false,
         };
     }

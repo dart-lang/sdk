@@ -1141,13 +1141,15 @@ final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
 }
 
 enum TypeParametersKind {
+  /// All type parameters of the current function and all enclosing functions.
   functionTypeParameters,
+
+  /// All type parameters of the current class.
   classTypeParameters,
   // Add kinds for a single function/class type parameter.
 }
 
-/// Represents collection of type parameters corresponding to the
-/// given parameter.
+/// Represents collection of type parameters.
 /// Can be used as inputs in [TypeCast], [TypeTest], [TypeArguments] and
 /// [TypeLiteral] instructions.
 final class TypeParameters extends Definition with NoThrow, Pure {
@@ -1156,13 +1158,9 @@ final class TypeParameters extends Definition with NoThrow, Pure {
   TypeParameters(
     super.graph,
     super.sourcePosition,
-    this.kind,
-    Definition parameter,
-  ) : super(inputCount: 1) {
-    setInputAt(0, parameter);
-  }
-
-  Definition get parameter => inputDefAt(0);
+    this.kind, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
 
   @override
   CType get type => const TypeParametersType();
