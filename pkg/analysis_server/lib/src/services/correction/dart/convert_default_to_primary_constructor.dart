@@ -38,7 +38,10 @@ class ConvertDefaultToPrimaryConstructor extends ResolvedCorrectionProducer {
       if (namePart is! PrimaryConstructorDeclaration &&
           (!members.any((e) => e is ConstructorDeclaration))) {
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(namePart.typeName.end, '()');
+          builder.addSimpleInsertion(
+            namePart.typeParameters?.end ?? namePart.typeName.end,
+            '()',
+          );
         });
       }
     }
