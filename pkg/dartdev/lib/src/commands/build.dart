@@ -160,6 +160,14 @@ then that is used instead.''',
         allowed: Sanitizer.available().map((s) => s.name).toList(),
         defaultsTo: 'none',
       )
+      ..addOption(
+        'root-package',
+        help:
+            'The package for which hooks are run (including its transitive '
+            'dependencies). Must be provided if the entry point(s) are outside '
+            'the packages in the packages argument.',
+        valueHelp: 'name',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -255,6 +263,7 @@ then that is used instead.''',
       verbosity: verbosity,
       depFile: depFile,
       sanitizer: sanitizer,
+      runPackageName: args.option('root-package'),
     );
   }
 
@@ -271,6 +280,7 @@ then that is used instead.''',
     Sanitizer sanitizer = Sanitizer.none,
     bool progressUpdatesOnStderr = false,
     String? depFile,
+    String? runPackageName,
   }) async {
     if (executables.length >= 2) {
       if (recordUseEnabled) {
@@ -318,26 +328,29 @@ then that is used instead.''',
     if (packageConfig == null) {
       return compileErrorExitCode;
     }
-    final entrypointPackage = packageConfig.packageOf(
-      executables.first.sourceEntryPoint,
-    );
-    if (entrypointPackage == null) {
-      stderr.writeln(
-        "Error: The entrypoint '${executables.first.sourceEntryPoint.toFilePath()}' "
-        "does not reside in any package defined in the package config at '${packageConfigUri.toFilePath()}'.",
+    String? resolvedRunPackageName = runPackageName;
+    if (resolvedRunPackageName == null) {
+      final entrypointPackage = packageConfig.packageOf(
+        executables.first.sourceEntryPoint,
       );
-      return 255;
-    }
-    final runPackageName = entrypointPackage.name;
-
-    for (final executable in executables.skip(1)) {
-      final exePackage = packageConfig.packageOf(executable.sourceEntryPoint);
-      if (exePackage == null || exePackage.name != runPackageName) {
+      if (entrypointPackage == null) {
         stderr.writeln(
-          'Error: All entrypoints must reside in the same package. '
-          "'${executable.sourceEntryPoint.toFilePath()}' does not belong to package '$runPackageName'.",
+          "Error: The entrypoint '${executables.first.sourceEntryPoint.toFilePath()}' "
+          "does not reside in any package defined in the package config at '${packageConfigUri.toFilePath()}'.",
         );
         return 255;
+      }
+      resolvedRunPackageName = entrypointPackage.name;
+
+      for (final executable in executables.skip(1)) {
+        final exePackage = packageConfig.packageOf(executable.sourceEntryPoint);
+        if (exePackage == null || exePackage.name != resolvedRunPackageName) {
+          stderr.writeln(
+            'Error: All entrypoints must reside in the same package. '
+            "'${executable.sourceEntryPoint.toFilePath()}' does not belong to package '$resolvedRunPackageName'.",
+          );
+          return 255;
+        }
       }
     }
     pubspecUri ??=
@@ -351,7 +364,7 @@ then that is used instead.''',
       pubspecUri: pubspecUri,
       packageConfigUri: packageConfigUri,
       packageConfig: packageConfig,
-      runPackageName: runPackageName,
+      runPackageName: resolvedRunPackageName,
       includeDevDependencies: false,
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
