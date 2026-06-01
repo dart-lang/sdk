@@ -16,6 +16,11 @@ monorepo_properties = {
         "platform": "container-image=docker://gcr.io/cloud-marketplace/google/debian11@sha256:69e2789c9f3d28c6a0f13b25062c240ee7772be1f5e6d41bb4680b63eae6b304",
     },
     "clobber": False,
+    "custom_vars": {
+        "download_android_deps": False,
+        "download_emscripten": False,
+        "download_fuchsia_deps": False,
+    },
     "environment": "unused",
     "goma_jobs": "200",
     "rbe_jobs": "200",
