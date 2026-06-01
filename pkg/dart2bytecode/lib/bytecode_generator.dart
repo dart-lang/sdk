@@ -3535,6 +3535,8 @@ class BytecodeGenerator extends RecursiveVisitor {
         invocationKind != InvocationKind.getter &&
         _isUncheckedCall(node, interfaceTarget, receiver);
 
+    _recordCoverage(node);
+
     bool generated = false;
     if (invocationKind != InvocationKind.getter && !isDynamic && !isUnchecked) {
       final staticReceiverType = getStaticType(receiver, staticTypeContext);
@@ -3557,7 +3559,6 @@ class BytecodeGenerator extends RecursiveVisitor {
         targetName,
         argDesc,
       );
-      _recordCoverage(node);
       if (isDynamic) {
         assert(!isUnchecked);
         asm.emitDynamicCall(callCpIndex, totalArgCount);
