@@ -47,7 +47,7 @@ ConditionalExpression
   }
 
   test_downward_condition() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(int b, int c) {
   a() ? b : c;
 }
@@ -312,7 +312,7 @@ ConditionalExpression
   }
 
   test_upward() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(bool a, int b, int c) {
   var d = a ? b : c;
   print(d);

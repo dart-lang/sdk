@@ -154,7 +154,7 @@ VariableDeclaration
   }
 
   test_session_getterSetter() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = 0;
 ''');
     var getter = result.findElement.topGet('v');
@@ -165,28 +165,28 @@ var v = 0;
   }
 
   test_type_inferred_int() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = 0;
 ''');
     assertType(result.findElement.topVar('v').type, 'int');
   }
 
   test_type_inferred_Never() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = throw 42;
 ''');
     assertType(result.findElement.topVar('v').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v;
 ''');
     assertType(result.findElement.topVar('v').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = null;
 ''');
     assertType(result.findElement.topVar('v').type, 'dynamic');

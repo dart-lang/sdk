@@ -53,7 +53,7 @@ FunctionExpressionInvocation
   }
 
   test_call_infer_fromArguments_listLiteral() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   List<T> call<T>(List<T> _)  {
     throw 42;
@@ -61,6 +61,8 @@ class A {
 }
 
 main(A a) {
+//   ^
+// [diag.mainFirstPositionalParameterType] The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'.
   a([0]);
 }
 ''');

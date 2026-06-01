@@ -28,7 +28,7 @@ main() {
 class ForStatementResolutionTest_ForEachPartsWithDeclaration
     extends PubPackageResolutionTest {
   test_async_loopVariable_var_stream() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> values) async {
   await for (var v in values) {
     v;
@@ -395,7 +395,7 @@ ForStatement
   }
 
   test_sync_loopVariable_dynamic() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> values) {
   for (dynamic v in values) {
     v;
@@ -478,7 +478,7 @@ ForStatement
   }
 
   test_sync_loopVariable_var_iterable() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Iterable<int> values) {
   for (var v in values) {
     v;
@@ -517,7 +517,7 @@ ForStatement
   }
 
   test_sync_loopVariable_var_list() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> values) {
   for (var v in values) {
     v;

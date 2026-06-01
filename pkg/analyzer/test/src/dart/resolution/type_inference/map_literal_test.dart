@@ -42,7 +42,7 @@ Map<int, int> a = {1 : 2};
   }
 
   test_context_noTypeArgs_noElements_futureOr() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 FutureOr<Map<int, String>> f() {

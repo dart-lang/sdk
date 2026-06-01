@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class EqualTest extends PubPackageResolutionTest {
   test_simple() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object a, Object b) {
   var c = a == b;
   print(c);
@@ -31,7 +31,7 @@ void f(Object a, Object b) {
 @reflectiveTest
 class NotEqualTest extends PubPackageResolutionTest {
   test_simple() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Object a, Object b) {
   var c = a != b;
   print(c);

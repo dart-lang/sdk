@@ -494,7 +494,7 @@ FunctionExpression
   }
 
   test_downward_argumentType_Null() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void foo(void Function(Null) a) {}
 
 main() {
@@ -632,7 +632,7 @@ FunctionExpression
   }
 
   test_noContext_returnType_async_blockBody() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () async {
   return 0;
 };
@@ -641,14 +641,14 @@ var v = () async {
   }
 
   test_noContext_returnType_async_expressionBody() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () async => 0;
 ''');
     _assertReturnType(result, '() async =>', 'Future<int>');
   }
 
   test_noContext_returnType_asyncStar_blockBody() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () async* {
   yield 0;
 };
@@ -657,7 +657,7 @@ var v = () async* {
   }
 
   test_noContext_returnType_asyncStar_blockBody_hasReturn_empty() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () async* {
   yield 0;
   return;
@@ -667,7 +667,7 @@ var v = () async* {
   }
 
   test_noContext_returnType_asyncStar_blockBody_hasReturn_noYield() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () async* {
   return;
 };
@@ -676,7 +676,7 @@ var v = () async* {
   }
 
   test_noContext_returnType_asyncStar_blockBody_lubNum() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () async* {
   yield 0;
   yield 1.1;
@@ -686,7 +686,7 @@ var v = () async* {
   }
 
   test_noContext_returnType_asyncStar_blockBody_lubObject() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () async* {
   yield 0;
   yield '';
@@ -696,7 +696,7 @@ var v = () async* {
   }
 
   test_noContext_returnType_asyncStar_blockBody_lubWithNull() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () async* {
   yield 0;
   yield null;
@@ -706,7 +706,7 @@ var v = () async* {
   }
 
   test_noContext_returnType_sync_blockBody() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () {
   return 0;
 };
@@ -715,7 +715,7 @@ var v = () {
   }
 
   test_noContext_returnType_sync_blockBody_dynamic() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = (dynamic a) {
   return a;
 };
@@ -724,7 +724,7 @@ var v = (dynamic a) {
   }
 
   test_noContext_returnType_sync_blockBody_Never() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () {
   throw 42;
 };
@@ -733,7 +733,7 @@ var v = () {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = (bool b) {
   if (b) return 0;
   return 1.2;
@@ -826,7 +826,7 @@ main() {
   }
 
   test_noContext_returnType_sync_blockBody_null_hasReturn() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = (bool b) {
   if (b) return;
 };
@@ -835,14 +835,14 @@ var v = (bool b) {
   }
 
   test_noContext_returnType_sync_blockBody_null_noReturn() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () {};
 ''');
     _assertReturnType(result, '() {}', 'Null');
   }
 
   test_noContext_returnType_sync_blockBody_nullable() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = (bool b) {
   if (b) return 0;
 };
@@ -880,28 +880,28 @@ main() {
   }
 
   test_noContext_returnType_sync_expressionBody_dynamic() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = (dynamic a) => a;
 ''');
     _assertReturnType(result, '(dynamic a) =>', 'dynamic');
   }
 
   test_noContext_returnType_sync_expressionBody_Never() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () => throw 42;
 ''');
     _assertReturnType(result, '() =>', 'Never');
   }
 
   test_noContext_returnType_sync_expressionBody_notNullable() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () => 42;
 ''');
     _assertReturnType(result, '() =>', 'int');
   }
 
   test_noContext_returnType_sync_expressionBody_Null() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 main() {
   var v = () => null;
   v;
@@ -911,7 +911,7 @@ main() {
   }
 
   test_noContext_returnType_syncStar_blockBody() async {
-    var result = await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 var v = () sync* {
   yield 0;
 };
@@ -920,7 +920,7 @@ var v = () sync* {
   }
 
   test_noContext_returnType_syncStar_blockBody_hasReturn_empty() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () sync* {
   yield 0;
   return;
@@ -930,7 +930,7 @@ var v = () sync* {
   }
 
   test_noContext_returnType_syncStar_blockBody_hasReturn_noYield() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () sync* {
   return;
 };
@@ -939,7 +939,7 @@ var v = () sync* {
   }
 
   test_noContext_returnType_syncStar_blockBody_lubNum() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () sync* {
   yield 0;
   yield 1.1;
@@ -949,7 +949,7 @@ var v = () sync* {
   }
 
   test_noContext_returnType_syncStar_blockBody_lubObject() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () sync* {
   yield 0;
   yield '';
@@ -959,7 +959,7 @@ var v = () sync* {
   }
 
   test_noContext_returnType_syncStar_blockBody_lubWithNull() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var v = () sync* {
   yield 0;
   yield null;

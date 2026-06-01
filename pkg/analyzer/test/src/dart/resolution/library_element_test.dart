@@ -22,10 +22,15 @@ main() {
 
 @reflectiveTest
 class LibraryElementTest_featureSet extends PubPackageResolutionTest {
+  static String get _currentLanguageVersion {
+    var currentVersion = ExperimentStatus.currentVersion;
+    return '${currentVersion.major}.${currentVersion.minor}';
+  }
+
   test_language205() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.5');
 
-    var result = await resolveTestCode('');
+    var result = await resolveTestCodeWithDiagnostics('');
 
     _assertLanguageVersion(
       result,
@@ -44,7 +49,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   test_language208() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.8');
 
-    var result = await resolveTestCode('');
+    var result = await resolveTestCodeWithDiagnostics('');
 
     _assertLanguageVersion(
       result,
@@ -64,7 +69,10 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   test_language208_override205() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.8');
 
-    var result = await resolveTestCode('// @dart = 2.5');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// @dart = 2.5
+// [diag.illegalLanguageVersionOverride][column 1][length 14] The language version must be >=2.12.0.
+''');
 
     // Valid override, less than the latest supported language version.
     _assertLanguageVersion(
@@ -84,7 +92,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   test_language209() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.9');
 
-    var result = await resolveTestCode('');
+    var result = await resolveTestCodeWithDiagnostics('');
 
     _assertLanguageVersion(
       result,
@@ -104,7 +112,10 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   test_language212_override399() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
 
-    var result = await resolveTestCode('// @dart = 3.99');
+    var result = await resolveTestCodeWithDiagnostics('''
+// @dart = 3.99
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: $_currentLanguageVersion.
+''');
 
     // Invalid override: minor is greater than the latest minor.
     _assertLanguageVersion(
@@ -126,7 +137,10 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   test_language212_override400() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
 
-    var result = await resolveTestCode('// @dart = 4.00');
+    var result = await resolveTestCodeWithDiagnostics('''
+// @dart = 4.00
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: $_currentLanguageVersion.
+''');
 
     // Invalid override: major is greater than the latest major.
     _assertLanguageVersion(
