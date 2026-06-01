@@ -32,7 +32,7 @@ class IndexTest extends PubPackageResolutionTest {
     Element element,
     String expected,
   ) {
-    var actual = _getElementRelationsText(result, element);
+    var actual = _IndexTextBuilder(result).elementRelations(element);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       printPrettyDiff(expected, actual);
@@ -45,7 +45,7 @@ class IndexTest extends PubPackageResolutionTest {
     LibraryFragmentImpl fragment,
     String expected,
   ) {
-    var actual = _getLibraryFragmentReferencesText(result, fragment);
+    var actual = _IndexTextBuilder(result).libraryFragmentReferences(fragment);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       printPrettyDiff(expected, actual);
@@ -54,7 +54,7 @@ class IndexTest extends PubPackageResolutionTest {
   }
 
   void assertNameIndexText(_IndexResult result, String name, String expected) {
-    var actual = _getNameRelationsText(result, name);
+    var actual = _IndexTextBuilder(result).nameRelations(name);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       printPrettyDiff(expected, actual);
@@ -4845,10 +4845,148 @@ void f() {
     return stringIds.map((i) => index.strings[i]).toList();
   }
 
-  /// Return the [element] identifier in the result index, or `null`.
-  int? _findElementId(_IndexResult result, Element element) {
+  Future<_IndexResult> _indexFileWithDiagnostics(File file, String code) async {
+    var unitResult = await resolveFileWithDiagnostics(file, code);
+    var indexBuilder = indexUnit(unitResult.unit);
+    var indexBytes = indexBuilder.toBuffer();
+    var index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    return _IndexResult(unitResult, index);
+  }
+
+  Future<_IndexResult> _indexTestCode(String code) {
+    return _indexFileWithDiagnostics(testFile, code);
+  }
+
+  String? _interfaceId(InterfaceElement element) {
+    var libraryFile = element.library.firstFragment.source.mustBeFile;
+    var libraryPath = libraryFile.path;
+
+    var fragmentFile = element.firstFragment.libraryFragment.source.mustBeFile;
+    var fragmentPath = fragmentFile.path;
+
+    return '$libraryPath;$fragmentPath;${element.name}';
+  }
+}
+
+final class _IndexRelation {
+  final IndexRelationKind kind;
+  final int offset;
+  final int length;
+  final bool isQualified;
+
+  _IndexRelation({
+    required this.kind,
+    required this.offset,
+    required this.length,
+    required this.isQualified,
+  });
+
+  @override
+  String toString() {
+    return '_IndexRelation{kind: $kind, offset: $offset, length: $length, '
+        'isQualified: $isQualified})';
+  }
+}
+
+final class _IndexResult {
+  final TestResolvedUnitResult resolvedUnit;
+  final AnalysisDriverUnitIndex index;
+
+  _IndexResult(this.resolvedUnit, this.index);
+
+  FindElement2 get findElement => resolvedUnit.findElement;
+}
+
+final class _IndexTextBuilder {
+  final _IndexResult result;
+
+  _IndexTextBuilder(this.result);
+
+  String elementRelations(Element element) {
     var index = result.index;
-    var unitId = _getUnitId(index, element);
+    var elementId = _findElementId(element);
+    if (elementId == null) {
+      return '';
+    }
+
+    var relations = <_IndexRelation>[];
+    for (var i = 0; i < index.usedElementOffsets.length; i++) {
+      if (index.usedElements[i] == elementId) {
+        relations.add(
+          _IndexRelation(
+            kind: index.usedElementKinds[i],
+            offset: index.usedElementOffsets[i],
+            length: index.usedElementLengths[i],
+            isQualified: index.usedElementIsQualifiedFlags[i],
+          ),
+        );
+      }
+    }
+
+    var buffer = StringBuffer();
+    _writeRelationsText(buffer, relations);
+    _writeImportPrefixesText(buffer, index.elementImportPrefixes[elementId]);
+    return buffer.toString();
+  }
+
+  String libraryFragmentReferences(LibraryFragmentImpl target) {
+    var index = result.index;
+    var targetId = index.getLibraryFragmentId(target);
+
+    expect(
+      index.libFragmentRefTargets.length,
+      index.libFragmentRefUriOffsets.length,
+    );
+
+    expect(
+      index.libFragmentRefTargets.length,
+      index.libFragmentRefUriLengths.length,
+    );
+
+    var buffer = StringBuffer();
+    for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
+      if (index.libFragmentRefTargets[i] == targetId) {
+        _writeSourceSpanText(
+          buffer,
+          index.libFragmentRefUriOffsets[i],
+          index.libFragmentRefUriLengths[i],
+        );
+        buffer.writeln();
+      }
+    }
+    return buffer.toString();
+  }
+
+  String nameRelations(String name) {
+    var index = result.index;
+    var nameId = index.getStringId(name);
+    if (nameId == -1) {
+      return '';
+    }
+
+    var relations = <_IndexRelation>[];
+    for (var i = 0; i < index.usedNameOffsets.length; i++) {
+      if (index.usedNames[i] == nameId) {
+        relations.add(
+          _IndexRelation(
+            kind: index.usedNameKinds[i],
+            offset: index.usedNameOffsets[i],
+            length: name.length,
+            isQualified: index.usedNameIsQualifiedFlags[i],
+          ),
+        );
+      }
+    }
+
+    var buffer = StringBuffer();
+    _writeRelationsText(buffer, relations);
+    return buffer.toString();
+  }
+
+  /// Return the [element] identifier in the result index, or `null`.
+  int? _findElementId(Element element) {
+    var index = result.index;
+    var unitId = _getUnitId(element);
 
     // Prepare the element that was put into the index.
     IndexElementInfo info = IndexElementInfo(element);
@@ -4878,32 +5016,13 @@ void f() {
     return null;
   }
 
-  String _getElementRelationsText(_IndexResult result, Element element) {
-    var index = result.index;
-    var elementId = _findElementId(result, element);
-    if (elementId == null) {
-      return '';
-    }
+  int _getUnitId(Element element) {
+    var unitElement = getUnitElement(element);
+    return result.index.getLibraryFragmentId(unitElement);
+  }
 
-    var relations = <_Relation>[];
-    for (var i = 0; i < index.usedElementOffsets.length; i++) {
-      if (index.usedElements[i] == elementId) {
-        relations.add(
-          _Relation(
-            kind: index.usedElementKinds[i],
-            offset: index.usedElementOffsets[i],
-            length: index.usedElementLengths[i],
-            isQualified: index.usedElementIsQualifiedFlags[i],
-          ),
-        );
-      }
-    }
-
-    var buffer = StringBuffer();
-    _writeRelationsText(buffer, result, relations);
-
-    var prefixString = index.elementImportPrefixes[elementId];
-    // If the only access is unprefixed, omit the line
+  void _writeImportPrefixesText(StringBuffer buffer, String prefixString) {
+    // If the only access is unprefixed, omit the line.
     if (prefixString.isNotEmpty) {
       // Otherwise, use some marker text for unprefixed so it's clearer in the
       // output than an empty string.
@@ -4914,110 +5033,12 @@ void f() {
 
       buffer.writeln('Prefixes: $prefixes');
     }
-
-    return buffer.toString();
-  }
-
-  String _getLibraryFragmentReferencesText(
-    _IndexResult result,
-    LibraryFragmentImpl target,
-  ) {
-    var index = result.index;
-    var lineInfo = result.resolvedUnit.unit.lineInfo;
-    var targetId = index.getLibraryFragmentId(target);
-
-    expect(
-      index.libFragmentRefTargets.length,
-      index.libFragmentRefUriOffsets.length,
-    );
-
-    expect(
-      index.libFragmentRefTargets.length,
-      index.libFragmentRefUriLengths.length,
-    );
-
-    var buffer = StringBuffer();
-    for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
-      if (index.libFragmentRefTargets[i] == targetId) {
-        var offset = index.libFragmentRefUriOffsets[i];
-        var length = index.libFragmentRefUriLengths[i];
-        var location = lineInfo.getLocation(offset);
-        var snippet = result.resolvedUnit.content.substring(
-          offset,
-          offset + length,
-        );
-        buffer.write(offset);
-        buffer.write(' ');
-        buffer.write(location.lineNumber);
-        buffer.write(':');
-        buffer.write(location.columnNumber);
-        buffer.write(' ');
-        buffer.write('|$snippet|');
-        buffer.writeln();
-      }
-    }
-    return buffer.toString();
-  }
-
-  String _getNameRelationsText(_IndexResult result, String name) {
-    var index = result.index;
-    var nameId = index.getStringId(name);
-    if (nameId == -1) {
-      return '';
-    }
-
-    var relations = <_Relation>[];
-    for (var i = 0; i < index.usedNameOffsets.length; i++) {
-      if (index.usedNames[i] == nameId) {
-        relations.add(
-          _Relation(
-            kind: index.usedNameKinds[i],
-            offset: index.usedNameOffsets[i],
-            length: name.length,
-            isQualified: index.usedNameIsQualifiedFlags[i],
-          ),
-        );
-      }
-    }
-
-    var buffer = StringBuffer();
-    _writeRelationsText(buffer, result, relations);
-    return buffer.toString();
-  }
-
-  int _getUnitId(AnalysisDriverUnitIndex index, Element element) {
-    var unitElement = getUnitElement(element);
-    return index.getLibraryFragmentId(unitElement);
-  }
-
-  Future<_IndexResult> _indexFileWithDiagnostics(File file, String code) async {
-    var unitResult = await resolveFileWithDiagnostics(file, code);
-    var indexBuilder = indexUnit(unitResult.unit);
-    var indexBytes = indexBuilder.toBuffer();
-    var index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
-    return _IndexResult(unitResult, index);
-  }
-
-  Future<_IndexResult> _indexTestCode(String code) {
-    return _indexFileWithDiagnostics(testFile, code);
-  }
-
-  String? _interfaceId(InterfaceElement element) {
-    var libraryFile = element.library.firstFragment.source.mustBeFile;
-    var libraryPath = libraryFile.path;
-
-    var fragmentFile = element.firstFragment.libraryFragment.source.mustBeFile;
-    var fragmentPath = fragmentFile.path;
-
-    return '$libraryPath;$fragmentPath;${element.name}';
   }
 
   void _writeRelationsText(
     StringBuffer buffer,
-    _IndexResult result,
-    List<_Relation> relations,
+    List<_IndexRelation> relations,
   ) {
-    var lineInfo = result.resolvedUnit.unit.lineInfo;
     var sortedRelations = relations.sorted((a, b) {
       var byOffset = a.offset - b.offset;
       if (byOffset != 0) {
@@ -5042,20 +5063,7 @@ void f() {
     }
 
     for (var relation in sortedRelations) {
-      var offset = relation.offset;
-      var length = relation.length;
-      var location = lineInfo.getLocation(offset);
-      var snippet = result.resolvedUnit.content.substring(
-        offset,
-        offset + length,
-      );
-      buffer.write(offset);
-      buffer.write(' ');
-      buffer.write(location.lineNumber);
-      buffer.write(':');
-      buffer.write(location.columnNumber);
-      buffer.write(' ');
-      buffer.write('|$snippet|');
+      _writeSourceSpanText(buffer, relation.offset, relation.length);
       buffer.write(' ');
       buffer.write(relation.kind.name);
       if (relation.isQualified) {
@@ -5064,34 +5072,21 @@ void f() {
       buffer.writeln();
     }
   }
-}
 
-final class _IndexResult {
-  final TestResolvedUnitResult resolvedUnit;
-  final AnalysisDriverUnitIndex index;
-
-  _IndexResult(this.resolvedUnit, this.index);
-
-  FindElement2 get findElement => resolvedUnit.findElement;
-}
-
-class _Relation {
-  final IndexRelationKind kind;
-  final int offset;
-  final int length;
-  final bool isQualified;
-
-  _Relation({
-    required this.kind,
-    required this.offset,
-    required this.length,
-    required this.isQualified,
-  });
-
-  @override
-  String toString() {
-    return '_Relation{kind: $kind, offset: $offset, length: $length, '
-        'isQualified: $isQualified})';
+  void _writeSourceSpanText(StringBuffer buffer, int offset, int length) {
+    var lineInfo = result.resolvedUnit.unit.lineInfo;
+    var location = lineInfo.getLocation(offset);
+    var snippet = result.resolvedUnit.content.substring(
+      offset,
+      offset + length,
+    );
+    buffer.write(offset);
+    buffer.write(' ');
+    buffer.write(location.lineNumber);
+    buffer.write(':');
+    buffer.write(location.columnNumber);
+    buffer.write(' ');
+    buffer.write('|$snippet|');
   }
 }
 
