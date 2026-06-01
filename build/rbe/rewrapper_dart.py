@@ -122,23 +122,6 @@ def find_inputs(uris, exec_root, package_config):
     return inputs
 
 
-# Rewrite absolute paths in an argument to be relative.
-def rewrite_absolute(arg, exec_root, working_directory):
-    # The file:// schema does not work with relative paths as they are parsed as
-    # the authority by the dart Uri class.
-    arg = arg.replace('file:///' + exec_root, '../../')
-    arg = arg.replace('file://' + exec_root, '../../')
-    # Replace the absolute exec root by a relative path to the exec root.
-    arg = arg.replace(exec_root, '../../')
-    # Simplify paths going to the exec root and back into the out directory.
-    # Carefully ensure the whole path isn't optimized away.
-    if arg.endswith(f'../../{working_directory}/'):
-        arg = arg.replace(f'../../{working_directory}/', '.')
-    else:
-        arg = arg.replace(f'../../{working_directory}/', '')
-    return arg
-
-
 # Parse the command line execution to recognize well known programs during the
 # Dart SDK build, so the inputs and output files can be determined, and the
 # command can be offloaded to RBE.
@@ -858,15 +841,7 @@ def main(argv):
     command.append('--labels=type=tool')
     command.append('--inputs=' + ','.join(paths))
     command.append('--output_files=' + ','.join(output_files))
-    # Absolute paths must not be used with RBE, but since the build currently
-    # heavily relies on them, work around this issue by rewriting the command
-    # to instead use relative paths. The Dart SDK build rules needs to be fixed
-    # rather than doing this, but this is an initial step towards that goal
-    # which will land in subsequent follow up changes.
-    command += argv[2:rewrapper_end] + [
-        rewrite_absolute(arg, rewrapper.exec_root, working_directory)
-        for arg in argv[rewrapper_end:]
-    ]
+    command += argv[2:]
 
     # Finally execute the command remotely.
     run_command(command, rewrapper.exec_strategy)

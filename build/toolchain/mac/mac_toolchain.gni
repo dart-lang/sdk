@@ -171,7 +171,8 @@ template("mac_toolchain") {
         # to the link step. Which means we can't specify per target
         # entitlement files - and instead rely on dart_codesign.py script to
         # match binaries to their entitlement files by name.
-        signing_script = rebase_path("//runtime/tools/dart_codesign.py")
+        signing_script =
+            rebase_path("//runtime/tools/dart_codesign.py", root_build_dir)
         command += " && $signing_script --identity $codesigning_identity --binary $dylib"
       }
 
@@ -237,7 +238,8 @@ template("mac_toolchain") {
         # to the link step. Which means we can't specify per target
         # entitlement files - and instead rely on dart_codesign.py script to
         # match binaries to their entitlement files by name.
-        signing_script = rebase_path("//runtime/tools/dart_codesign.py")
+        signing_script =
+            rebase_path("//runtime/tools/dart_codesign.py", root_build_dir)
         binaries_to_sign = [
           "--binary",
           outfile,

@@ -409,7 +409,7 @@ ddc_compile("meta_canary_ddc_js") {
 
 compile_platform("ddc_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("$sdk_root/")
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   args = [
