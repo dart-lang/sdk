@@ -53,7 +53,10 @@ template("copy_tree") {
       ]
     }
 
-    outputs = [ stampfile ]
+    outputs = [
+      stampfile,
+      dest,
+    ]
     script = "$_dart_root/tools/copy_tree.py"
     args = common_args
   }
