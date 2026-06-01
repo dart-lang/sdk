@@ -1374,6 +1374,13 @@ class CloneVisitorNotMembers
       "Unsupported auxiliary initializer ${node} (${node.runtimeType}).",
     );
   }
+
+  @override
+  TreeNode visitAuxiliaryPattern(AuxiliaryPattern node) {
+    throw new UnsupportedError(
+      "Unsupported auxiliary pattern ${node} (${node.runtimeType}).",
+    );
+  }
 }
 
 /// Visitor that return a clone of a tree, maintaining references to cloned
