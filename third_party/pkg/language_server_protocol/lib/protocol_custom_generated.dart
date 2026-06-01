@@ -445,6 +445,33 @@ bool _canParseListFlutterWidgetPreviewDetails(
   return true;
 }
 
+bool _canParseListFormAnswer(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !FormAnswer.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<FormAnswer>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListFormField(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2799,6 +2826,70 @@ class FlutterWidgetPreviews implements ToJsonable {
   }
 }
 
+/// A single answer to a FormField, identified by its unique ID.
+class FormAnswer implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    FormAnswer.canParse,
+    FormAnswer.fromJson,
+  );
+
+  /// The ID of the FormField being answered.
+  final String id;
+
+  /// The user's answer value.
+  final LSPAny value;
+
+  FormAnswer({
+    required this.id,
+    this.value,
+  });
+  @override
+  int get hashCode => Object.hash(
+        id,
+        value,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is FormAnswer &&
+        other.runtimeType == FormAnswer &&
+        id == other.id &&
+        value == other.value;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['id'] = id;
+    result['value'] = value;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(obj, reporter, 'id',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type FormAnswer');
+      return false;
+    }
+  }
+
+  static FormAnswer fromJson(Map<String, Object?> json) {
+    final idJson = json['id'];
+    final id = idJson as String;
+    final valueJson = json['value'];
+    final value = valueJson;
+    return FormAnswer(
+      id: id,
+      value: value,
+    );
+  }
+}
+
 /// A single question in a form and its validation state.
 class FormField implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -2817,12 +2908,21 @@ class FormField implements ToJsonable {
   /// current answer is considered valid.
   final String? error;
 
+  /// A unique identifier for this field. This key is used as the property name
+  /// in FormAnswers to map the user's input back to this specific field.
+  final String id;
+
+  /// Whether an answer is absolutely required for this field.
+  final bool required;
+
   /// The data type and validation constraints for the answer.
   final FormFieldType type;
   FormField({
     this.defaultValue,
     required this.description,
     this.error,
+    required this.id,
+    required this.required,
     required this.type,
   });
   @override
@@ -2830,6 +2930,8 @@ class FormField implements ToJsonable {
         defaultValue,
         description,
         error,
+        id,
+        required,
         type,
       );
 
@@ -2840,6 +2942,8 @@ class FormField implements ToJsonable {
         defaultValue == other.defaultValue &&
         description == other.description &&
         error == other.error &&
+        id == other.id &&
+        required == other.required &&
         type == other.type;
   }
 
@@ -2853,6 +2957,8 @@ class FormField implements ToJsonable {
     if (error != null) {
       result['error'] = error;
     }
+    result['id'] = id;
+    result['required'] = required;
     result['type'] = type.toJson();
     return result;
   }
@@ -2870,6 +2976,14 @@ class FormField implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
+      if (!_canParseString(obj, reporter, 'id',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'required',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
       return _canParseFormFieldType(obj, reporter, 'type',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -2885,12 +2999,18 @@ class FormField implements ToJsonable {
     final description = descriptionJson as String;
     final errorJson = json['error'];
     final error = errorJson as String?;
+    final idJson = json['id'];
+    final id = idJson as String;
+    final requiredJson = json['required'];
+    final required = requiredJson as bool;
     final typeJson = json['type'];
     final type = FormFieldType.fromJson(typeJson as Map<String, Object?>);
     return FormField(
       defaultValue: defaultValue,
       description: description,
       error: error,
+      id: id,
+      required: required,
       type: type,
     );
   }
@@ -3029,7 +3149,14 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
   );
 
   /// Existence constraint.
-  final FileExistence existence;
+  final FileExistence? existence;
+
+  /// Filters specifies the allowed file extensions without the leading dot. A
+  /// file is valid if it matches any of the extensions (OR logic). e.g. ["png",
+  /// "jpg"].
+  ///
+  /// If omitted or empty, no extension filter is applied.
+  final List<String>? filters;
 
   @override
   final String kind;
@@ -3038,11 +3165,12 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
   /// etc).
   ///
   /// Only applicable against existing file.
-  final FileType type;
+  final FileType? type;
   FormFieldTypeFile({
-    required this.existence,
+    this.existence,
+    this.filters,
     this.kind = 'file',
-    required this.type,
+    this.type,
   }) {
     if (kind != 'file') {
       throw 'kind may only be the literal \'file\'';
@@ -3051,6 +3179,7 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
   @override
   int get hashCode => Object.hash(
         existence,
+        lspHashCode(filters),
         kind,
         type,
       );
@@ -3060,6 +3189,7 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
     return other is FormFieldTypeFile &&
         other.runtimeType == FormFieldTypeFile &&
         existence == other.existence &&
+        const DeepCollectionEquality().equals(filters, other.filters) &&
         kind == other.kind &&
         type == other.type;
   }
@@ -3067,9 +3197,16 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
-    result['existence'] = existence.toJson();
+    if (existence != null) {
+      result['existence'] = existence?.toJson();
+    }
+    if (filters != null) {
+      result['filters'] = filters;
+    }
     result['kind'] = kind;
-    result['type'] = type.toJson();
+    if (type != null) {
+      result['type'] = type?.toJson();
+    }
     return result;
   }
 
@@ -3079,7 +3216,11 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
       if (!_canParseFileExistence(obj, reporter, 'existence',
-          allowsUndefined: false, allowsNull: false)) {
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseListString(obj, reporter, 'filters',
+          allowsUndefined: true, allowsNull: false)) {
         return false;
       }
       if (!_canParseLiteral(obj, reporter, 'kind',
@@ -3087,7 +3228,7 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
         return false;
       }
       return _canParseFileType(obj, reporter, 'type',
-          allowsUndefined: false, allowsNull: false);
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type FormFieldTypeFile');
       return false;
@@ -3096,13 +3237,19 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
 
   static FormFieldTypeFile fromJson(Map<String, Object?> json) {
     final existenceJson = json['existence'];
-    final existence = FileExistence.fromJson(existenceJson as int);
+    final existence = existenceJson != null
+        ? FileExistence.fromJson(existenceJson as int)
+        : null;
+    final filtersJson = json['filters'];
+    final filters =
+        (filtersJson as List<Object?>?)?.map((item) => item as String).toList();
     final kindJson = json['kind'];
     final kind = kindJson as String;
     final typeJson = json['type'];
-    final type = FileType.fromJson(typeJson as int);
+    final type = typeJson != null ? FileType.fromJson(typeJson as int) : null;
     return FormFieldTypeFile(
       existence: existence,
+      filters: filters,
       kind: kind,
       type: type,
     );
@@ -3337,24 +3484,32 @@ class InteractiveExecuteCommandParams
   @override
   final String command;
 
-  /// Context preserved for the server.
+  /// Additional data that the client preserves for the server. This data is for
+  /// server use only and the client should not inspect it.
   @override
   final LSPAny data;
 
-  /// FormAnswers contains the values for the form questions.
+  /// The answers for the form questions.
   ///
-  /// When sent by the language server, this field is optional but recommended
-  /// to support editing previous values.
+  /// When sent by the language server, this field is optional and contains the
+  /// current or default answers to the questions to support editing previous
+  /// values.
   ///
-  /// When sent by the language client as part of the ResolveXXX request, this
-  /// field is required. The slice must have the same length as FormFields (one
-  /// answer per question), where the answer at index i corresponds to the field
-  /// at index i.
+  /// When sent by the language client, this field contains the user's answers.
+  ///
+  /// Answers are linked to their respective questions using the field's unique
+  /// `id` rather than their array index. The list must not contain duplicate
+  /// IDs, and each answer's ID must correspond to a field ID defined in
+  /// `formFields`.
+  ///
+  /// The client must include answers for all required fields (where `required`
+  /// is true). Answers for optional fields (where `required` is false) may be
+  /// omitted if no answer was provided, or included if an answer is available.
   @override
-  final List<LSPAny>? formAnswers;
+  final List<FormAnswer>? formAnswers;
 
-  /// FormFields defines the questions and validation errors in previous answers
-  /// to the same questions.
+  /// The questions and validation errors in previous answers to the same
+  /// questions.
   ///
   /// This is a server-to-client field. The language server defines these, and
   /// the client uses them to render the form.
@@ -3408,7 +3563,8 @@ class InteractiveExecuteCommandParams
       result['data'] = data;
     }
     if (formAnswers != null) {
-      result['formAnswers'] = formAnswers;
+      result['formAnswers'] =
+          formAnswers?.map((item) => item.toJson()).toList();
     }
     if (formFields != null) {
       result['formFields'] = formFields?.map((item) => item.toJson()).toList();
@@ -3432,7 +3588,7 @@ class InteractiveExecuteCommandParams
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseListObjectNullable(obj, reporter, 'formAnswers',
+      if (!_canParseListFormAnswer(obj, reporter, 'formAnswers',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -3457,8 +3613,9 @@ class InteractiveExecuteCommandParams
     final dataJson = json['data'];
     final data = dataJson;
     final formAnswersJson = json['formAnswers'];
-    final formAnswers =
-        (formAnswersJson as List<Object?>?)?.map((item) => item).toList();
+    final formAnswers = (formAnswersJson as List<Object?>?)
+        ?.map((item) => FormAnswer.fromJson(item as Map<String, Object?>))
+        .toList();
     final formFieldsJson = json['formFields'];
     final formFields = (formFieldsJson as List<Object?>?)
         ?.map((item) => FormField.fromJson(item as Map<String, Object?>))
@@ -3483,22 +3640,30 @@ class InteractiveParams implements ToJsonable {
     InteractiveParams.fromJson,
   );
 
-  /// Context preserved for the server.
+  /// Additional data that the client preserves for the server. This data is for
+  /// server use only and the client should not inspect it.
   final LSPAny data;
 
-  /// FormAnswers contains the values for the form questions.
+  /// The answers for the form questions.
   ///
-  /// When sent by the language server, this field is optional but recommended
-  /// to support editing previous values.
+  /// When sent by the language server, this field is optional and contains the
+  /// current or default answers to the questions to support editing previous
+  /// values.
   ///
-  /// When sent by the language client as part of the ResolveXXX request, this
-  /// field is required. The slice must have the same length as FormFields (one
-  /// answer per question), where the answer at index i corresponds to the field
-  /// at index i.
-  final List<LSPAny>? formAnswers;
+  /// When sent by the language client, this field contains the user's answers.
+  ///
+  /// Answers are linked to their respective questions using the field's unique
+  /// `id` rather than their array index. The list must not contain duplicate
+  /// IDs, and each answer's ID must correspond to a field ID defined in
+  /// `formFields`.
+  ///
+  /// The client must include answers for all required fields (where `required`
+  /// is true). Answers for optional fields (where `required` is false) may be
+  /// omitted if no answer was provided, or included if an answer is available.
+  final List<FormAnswer>? formAnswers;
 
-  /// FormFields defines the questions and validation errors in previous answers
-  /// to the same questions.
+  /// The questions and validation errors in previous answers to the same
+  /// questions.
   ///
   /// This is a server-to-client field. The language server defines these, and
   /// the client uses them to render the form.
@@ -3534,7 +3699,8 @@ class InteractiveParams implements ToJsonable {
       result['data'] = data;
     }
     if (formAnswers != null) {
-      result['formAnswers'] = formAnswers;
+      result['formAnswers'] =
+          formAnswers?.map((item) => item.toJson()).toList();
     }
     if (formFields != null) {
       result['formFields'] = formFields?.map((item) => item.toJson()).toList();
@@ -3547,7 +3713,7 @@ class InteractiveParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListObjectNullable(obj, reporter, 'formAnswers',
+      if (!_canParseListFormAnswer(obj, reporter, 'formAnswers',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -3566,8 +3732,9 @@ class InteractiveParams implements ToJsonable {
     final dataJson = json['data'];
     final data = dataJson;
     final formAnswersJson = json['formAnswers'];
-    final formAnswers =
-        (formAnswersJson as List<Object?>?)?.map((item) => item).toList();
+    final formAnswers = (formAnswersJson as List<Object?>?)
+        ?.map((item) => FormAnswer.fromJson(item as Map<String, Object?>))
+        .toList();
     final formFieldsJson = json['formFields'];
     final formFields = (formFieldsJson as List<Object?>?)
         ?.map((item) => FormField.fromJson(item as Map<String, Object?>))
