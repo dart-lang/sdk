@@ -56,7 +56,7 @@ dart.ci_sandbox_builder(
     name = "flutter-linux",
     channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
-    execution_timeout = 180 * time.minute,
+    execution_timeout = 90 * time.minute,
     priority = priority.normal,
     properties = defaults.properties([monorepo_properties, {"config_name": "host_linux"}]),
     triggered_by = ["dart-gitiles-trigger-monorepo"],
@@ -77,7 +77,7 @@ luci.console_view_entry(
 dart.try_builder(
     "flutter-linux",
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
-    execution_timeout = 180 * time.minute,
+    execution_timeout = 90 * time.minute,
     properties = defaults.properties([monorepo_properties, {
         "builder_name_suffix": "-try",
         "config_name": "host_linux",
@@ -90,7 +90,7 @@ dart.ci_sandbox_builder(
     name = "flutter-web",
     channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
-    execution_timeout = 180 * time.minute,
+    execution_timeout = 90 * time.minute,
     priority = priority.normal,
     properties = defaults.properties([monorepo_properties, {"config_name": "web_linux"}]),
     triggered_by = ["dart-gitiles-trigger-monorepo"],
@@ -111,7 +111,7 @@ luci.console_view_entry(
 dart.try_builder(
     "flutter-web",
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
-    execution_timeout = 180 * time.minute,
+    execution_timeout = 90 * time.minute,
     properties = defaults.properties([monorepo_properties, {
         "builder_name_suffix": "-try",
         "config_name": "web_linux",
@@ -120,7 +120,7 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def _monorepo_builder(name, short_name, console, execution_timeout = 60 * time.minute):
+def _monorepo_builder(name, short_name, console, execution_timeout = 40 * time.minute):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
@@ -205,7 +205,7 @@ _monorepo_builder(
     "flutter-engine",
 )
 _monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
-_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine", execution_timeout = 120 * time.minute)
+_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
 _monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
 _monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
