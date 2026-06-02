@@ -19,7 +19,7 @@ class Types with StandardBounds {
   @override
   final ClassHierarchyBase hierarchy;
 
-  Types(this.hierarchy);
+  new(this.hierarchy);
 
   @override
   CoreTypes get coreTypes => hierarchy.coreTypes;

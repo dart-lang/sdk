@@ -44,7 +44,7 @@ DartType? nnbdTopMerge(CoreTypes coreTypes, DartType a, DartType b) {
 class NnbdTopMergeVisitor extends MergeVisitor {
   final CoreTypes coreTypes;
 
-  NnbdTopMergeVisitor(this.coreTypes);
+  new(this.coreTypes);
 
   @override
   Nullability? mergeNullability(Nullability a, Nullability b) {

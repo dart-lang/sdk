@@ -24,14 +24,14 @@ class NormalNamer<T> extends Namer<T> {
   @override
   final String prefix;
 
-  NormalNamer(this.prefix);
+  new(this.prefix);
 }
 
 class ConstantNamer extends RecursiveVisitor with Namer<Constant> {
   @override
   final String prefix;
 
-  ConstantNamer(this.prefix);
+  new(this.prefix);
 
   @override
   String getName(Constant constant) {
@@ -266,7 +266,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   static final int SYMBOL = 2;
   int state = SPACE;
 
-  Printer(
+  new(
     this.sink, {
     NameSystem? syntheticNames,
     this.showOffsets = false,

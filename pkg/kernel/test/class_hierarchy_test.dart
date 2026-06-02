@@ -86,7 +86,7 @@ class ClosedWorldClassHierarchyTest {
 
   ClassHierarchy? _hierarchy;
 
-  ClosedWorldClassHierarchyTest() {
+  new() {
     coreTypes = new CoreTypes(component);
     Uri uri = Uri.parse('org-dartlang:///test.dart');
     library = new Library(uri, fileUri: uri, name: 'test');

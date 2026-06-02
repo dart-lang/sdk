@@ -376,7 +376,7 @@ class Test {
   final bool? unorderedConstructors;
   final bool? unorderedAnnotations;
 
-  Test(
+  new(
     Node Function(bool) create, {
     this.inequivalence,
     this.unorderedLibraries,

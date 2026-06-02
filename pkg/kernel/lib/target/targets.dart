@@ -31,7 +31,7 @@ class TargetFlags {
   /// by their target platform.
   final bool includeUnsupportedPlatformLibraryStubs;
 
-  const TargetFlags({
+  const new({
     this.trackCreationLocations = false,
     this.supportMirrors = true,
     this.isClosureContextLoweringEnabled = false,
@@ -101,7 +101,7 @@ enum NumberSemantics {
 
 // Backend specific constant evaluation behavior
 class ConstantsBackend {
-  const ConstantsBackend({this.keepLocals = true});
+  const new({this.keepLocals = true});
 
   /// Lowering of a list constant to a backend-specific representation.
   Constant lowerListConstant(ListConstant constant) => constant;
@@ -259,7 +259,7 @@ abstract class DartLibrarySupport {
 /// [DartLibrarySupport] that only relies on the "supported" property of
 /// the libraries specification.
 class DefaultDartLibrarySupport implements DartLibrarySupport {
-  const DefaultDartLibrarySupport();
+  const new();
 
   @override
   bool computeDartLibrarySupport(
@@ -274,10 +274,7 @@ class CustomizedDartLibrarySupport implements DartLibrarySupport {
   final Set<String> supported;
   final Set<String> unsupported;
 
-  const CustomizedDartLibrarySupport({
-    this.supported = const {},
-    this.unsupported = const {},
-  });
+  const new({this.supported = const {}, this.unsupported = const {}});
 
   @override
   bool computeDartLibrarySupport(
@@ -640,17 +637,14 @@ class NoneConstantsBackend extends ConstantsBackend {
   @override
   final bool supportsUnevaluatedConstants;
 
-  const NoneConstantsBackend({
-    required this.supportsUnevaluatedConstants,
-    super.keepLocals,
-  });
+  const new({required this.supportsUnevaluatedConstants, super.keepLocals});
 }
 
 class NoneTarget extends Target {
   @override
   final TargetFlags flags;
 
-  NoneTarget(this.flags);
+  new(this.flags);
 
   @override
   int get enabledLateLowerings => LateLowering.none;
@@ -827,7 +821,7 @@ class TestTargetFlags extends TargetFlags {
   final Set<String> supportedDartLibraries;
   final Set<String> unsupportedDartLibraries;
 
-  const TestTargetFlags({
+  const new({
     bool trackCreationLocations = false,
     this.forceLateLoweringsForTesting,
     this.forceLateLoweringSentinelForTesting,
@@ -882,7 +876,7 @@ class TestDartLibrarySupport implements DartLibrarySupport {
   final DartLibrarySupport delegate;
   final TestTargetFlags flags;
 
-  TestDartLibrarySupport(this.delegate, this.flags);
+  new(this.delegate, this.flags);
 
   @override
   bool computeDartLibrarySupport(
@@ -904,7 +898,7 @@ class TestDartLibrarySupport implements DartLibrarySupport {
 class TargetWrapper extends Target {
   final Target _target;
 
-  TargetWrapper(this._target);
+  new(this._target);
 
   @override
   TargetFlags get flags => _target.flags;
@@ -1122,7 +1116,7 @@ class TestTargetWrapper extends TargetWrapper with TestTargetMixin {
   @override
   final TestTargetFlags flags;
 
-  TestTargetWrapper(Target target, this.flags) : super(target);
+  new(Target target, this.flags) : super(target);
 }
 
 /// Extends a Target to transform outlines to meet the requirements

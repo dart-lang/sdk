@@ -71,7 +71,7 @@ class NodeCreator {
   List<SwitchCase> _neededSwitchCases = [];
 
   /// Creates a [NodeCreator] requested to create nodes of the specified kinds.
-  NodeCreator({
+  new({
     Iterable<ExpressionKind> expressions = ExpressionKind.values,
     Iterable<StatementKind> statements = StatementKind.values,
     Iterable<DartTypeKind> dartTypes = DartTypeKind.values,

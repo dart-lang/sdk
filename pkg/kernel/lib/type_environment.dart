@@ -20,10 +20,9 @@ abstract class TypeEnvironment extends Types {
   @override
   final CoreTypes coreTypes;
 
-  TypeEnvironment.fromSubclass(this.coreTypes, ClassHierarchyBase base)
-    : super(base);
+  new fromSubclass(this.coreTypes, ClassHierarchyBase base) : super(base);
 
-  factory TypeEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  factory(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy);
   }
 
@@ -596,14 +595,14 @@ class IsSubtypeOf {
 
   final DartType? supertype;
 
-  const IsSubtypeOf._internal(bool isSuccess, this.subtype, this.supertype)
+  const new _internal(bool isSuccess, this.subtype, this.supertype)
     : _isSuccess = isSuccess;
 
   /// Subtype check succeeds.
-  const IsSubtypeOf.success() : this._internal(true, null, null);
+  const new success() : this._internal(true, null, null);
 
   /// Subtype check fails.
-  const IsSubtypeOf.failure() : this._internal(false, null, null);
+  const new failure() : this._internal(false, null, null);
 
   /// Checks if two types are in relation based solely on their nullabilities.
   ///
@@ -615,10 +614,7 @@ class IsSubtypeOf {
   /// is the result of a subtype check on the arguments `int` and `num`, and
   /// `Rn` is the result of [IsSubtypeOf.basedSolelyOnNullabilities] on the
   /// types `List<int>?` and `List<num>*`.
-  factory IsSubtypeOf.basedSolelyOnNullabilities(
-    DartType subtype,
-    DartType supertype,
-  ) {
+  factory basedSolelyOnNullabilities(DartType subtype, DartType supertype) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.success();
@@ -634,7 +630,7 @@ class IsSubtypeOf {
 
   /// Checks if two types are in relation based solely on their nullabilities
   /// and where the caller knows that neither type is a `InvalidType`.
-  factory IsSubtypeOf.basedSolelyOnNullabilitiesNotInvalidType(
+  factory basedSolelyOnNullabilitiesNotInvalidType(
     DartType subtype,
     DartType supertype,
   ) {
@@ -803,7 +799,7 @@ abstract class StaticTypeContext {
 
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  factory StaticTypeContext(
+  factory(
     Member member,
     TypeEnvironment typeEnvironment, {
     StaticTypeCache cache,
@@ -811,7 +807,7 @@ abstract class StaticTypeContext {
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
-  factory StaticTypeContext.forAnnotations(
+  factory forAnnotations(
     Library library,
     TypeEnvironment typeEnvironment, {
     StaticTypeCache cache,
@@ -855,23 +851,20 @@ class StaticTypeContextImpl implements StaticTypeContext {
 
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  StaticTypeContextImpl(
-    Member member,
-    TypeEnvironment typeEnvironment, {
-    StaticTypeCache? cache,
-  }) : this.direct(
-         member.enclosingLibrary,
-         typeEnvironment,
-         thisType: member.enclosingClass?.getThisType(
-           typeEnvironment.coreTypes,
-           member.enclosingLibrary.nonNullable,
-         ),
-         cache: cache,
-       );
+  new(Member member, TypeEnvironment typeEnvironment, {StaticTypeCache? cache})
+    : this.direct(
+        member.enclosingLibrary,
+        typeEnvironment,
+        thisType: member.enclosingClass?.getThisType(
+          typeEnvironment.coreTypes,
+          member.enclosingLibrary.nonNullable,
+        ),
+        cache: cache,
+      );
 
   /// Creates a static type context for computing static types in the body of
   /// a member, provided the enclosing [_library] and [thisType].
-  StaticTypeContextImpl.direct(
+  new direct(
     this._library,
     this.typeEnvironment, {
     this.thisType,
@@ -880,7 +873,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
-  StaticTypeContextImpl.forAnnotations(
+  new forAnnotations(
     Library library,
     TypeEnvironment typeEnvironment, {
     StaticTypeCache? cache,
@@ -937,15 +930,15 @@ abstract class StatefulStaticTypeContext implements StaticTypeContext {
 
   /// Creates a [StatefulStaticTypeContext] that supports entering multiple
   /// libraries and/or members successively.
-  factory StatefulStaticTypeContext.stacked(TypeEnvironment typeEnvironment) =
+  factory stacked(TypeEnvironment typeEnvironment) =
       _StackedStatefulStaticTypeContext;
 
   /// Creates a [StatefulStaticTypeContext] that only supports entering one
   /// library and/or member at a time.
-  factory StatefulStaticTypeContext.flat(TypeEnvironment typeEnvironment) =
+  factory flat(TypeEnvironment typeEnvironment) =
       _FlatStatefulStaticTypeContext;
 
-  StatefulStaticTypeContext._internal(this.typeEnvironment);
+  new _internal(this.typeEnvironment);
 
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
@@ -980,8 +973,7 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   Library? _currentLibrary;
   Member? _currentMember;
 
-  _FlatStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
-    : super._internal(typeEnvironment);
+  new(TypeEnvironment typeEnvironment) : super._internal(typeEnvironment);
 
   @override
   Library get enclosingLibrary => _library;
@@ -1088,8 +1080,7 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   final List<_StaticTypeContextState> _contextStack =
       <_StaticTypeContextState>[];
 
-  _StackedStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
-    : super._internal(typeEnvironment);
+  new(TypeEnvironment typeEnvironment) : super._internal(typeEnvironment);
 
   @override
   Library get enclosingLibrary => _library;
@@ -1192,7 +1183,7 @@ class _StaticTypeContextState {
   final Library _library;
   final InterfaceType? _thisType;
 
-  _StaticTypeContextState(this._node, this._library, this._thisType);
+  new(this._node, this._library, this._thisType);
 }
 
 /// Describes whether only performing a shape check is sufficient for a

@@ -34,7 +34,7 @@ class Component extends TreeNode {
   Reference? _mainMethodName;
   Reference? get mainMethodName => _mainMethodName;
 
-  Component({
+  new({
     CanonicalName? nameRoot,
     List<Library>? libraries,
     Map<Uri, Source>? uriToSource,
@@ -195,7 +195,7 @@ class Location {
   final int line; // 1-based.
   final int column; // 1-based.
 
-  Location(this.file, this.line, this.column);
+  new(this.file, this.line, this.column);
 
   @override
   String toString() => '$file:$line:$column';
@@ -216,9 +216,9 @@ class Source {
 
   String? cachedText;
 
-  Source(this.lineStarts, this.source, this.importUri, this.fileUri);
+  new(this.lineStarts, this.source, this.importUri, this.fileUri);
 
-  Source.emptySource(this.lineStarts, this.importUri, this.fileUri)
+  new emptySource(this.lineStarts, this.importUri, this.fileUri)
     : source = _emptySource;
 
   /// Return the text corresponding to [line] which is a 1-based line

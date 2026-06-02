@@ -49,7 +49,7 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, this.fileUri, Reference? reference) : super(reference);
+  new(this.name, this.fileUri, Reference? reference) : super(reference);
 
   /// The enclosing [TypeDeclaration] if this member a class member or an
   /// abstract extension type member.
@@ -294,7 +294,7 @@ class Field extends Member implements ScopeProvider {
   @override
   Scope? scope;
 
-  Field.mutable(
+  new mutable(
     Name name, {
     this.type = const DynamicType(),
     this.initializer,
@@ -320,7 +320,7 @@ class Field extends Member implements ScopeProvider {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(
+  new immutable(
     Name name, {
     this.type = const DynamicType(),
     this.initializer,
@@ -582,7 +582,7 @@ class Constructor extends Member {
 
   List<Initializer> initializers;
 
-  Constructor(
+  new(
     this.function, {
     required Name name,
     bool isConst = false,
@@ -974,7 +974,7 @@ class Procedure extends Member implements GenericFunction {
   /// being null.
   FunctionType? signatureType;
 
-  Procedure(
+  new(
     Name name,
     ProcedureKind kind,
     FunctionNode function, {
@@ -1011,7 +1011,7 @@ class Procedure extends Member implements GenericFunction {
          ),
        );
 
-  Procedure._byReferenceRenamed(
+  new _byReferenceRenamed(
     Name name,
     this.kind,
     this.function, {
@@ -1371,15 +1371,15 @@ class RedirectingFactoryTarget {
   /// otherwise.
   final String? errorMessage;
 
-  RedirectingFactoryTarget(Member target, List<DartType> typeArguments)
+  new(Member target, List<DartType> typeArguments)
     : this.byReference(target.reference, typeArguments);
 
-  RedirectingFactoryTarget.byReference(
+  new byReference(
     Reference this.targetReference,
     List<DartType> this.typeArguments,
   ) : errorMessage = null;
 
-  RedirectingFactoryTarget.error(String this.errorMessage)
+  new error(String this.errorMessage)
     : targetReference = null,
       typeArguments = null;
 

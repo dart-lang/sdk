@@ -53,7 +53,7 @@ class InvalidInitializer extends Initializer {
   final String message;
   int flags = 0;
 
-  InvalidInitializer(this.message);
+  new(this.message);
 
   @override
   bool get isRedirectingInitializer => flags & FlagRedirectingInitializer != 0;
@@ -118,10 +118,10 @@ class FieldInitializer extends Initializer {
   @override
   bool isSynthetic = false;
 
-  FieldInitializer(Field field, Expression value)
+  new(Field field, Expression value)
     : this.byReference(field.fieldReference, value);
 
-  FieldInitializer.byReference(this.fieldReference, this.value) {
+  new byReference(this.fieldReference, this.value) {
     value.parent = this;
   }
 
@@ -184,14 +184,14 @@ class SuperInitializer extends Initializer {
   @override
   bool isSynthetic = false;
 
-  SuperInitializer(Constructor target, Arguments arguments)
+  new(Constructor target, Arguments arguments)
     : this.byReference(
         // Getter vs setter doesn't matter for constructors.
         getNonNullableMemberReferenceGetter(target),
         arguments,
       );
 
-  SuperInitializer.byReference(this.targetReference, this.arguments) {
+  new byReference(this.targetReference, this.arguments) {
     arguments.parent = this;
   }
 
@@ -256,14 +256,14 @@ class RedirectingInitializer extends Initializer {
   Reference targetReference;
   Arguments arguments;
 
-  RedirectingInitializer(Constructor target, Arguments arguments)
+  new(Constructor target, Arguments arguments)
     : this.byReference(
         // Getter vs setter doesn't matter for constructors.
         getNonNullableMemberReferenceGetter(target),
         arguments,
       );
 
-  RedirectingInitializer.byReference(this.targetReference, this.arguments) {
+  new byReference(this.targetReference, this.arguments) {
     arguments.parent = this;
   }
 
@@ -325,7 +325,7 @@ class RedirectingInitializer extends Initializer {
 class LocalInitializer extends Initializer {
   Variable variable;
 
-  LocalInitializer(this.variable) {
+  new(this.variable) {
     variable.parent = this;
   }
 
@@ -367,7 +367,7 @@ class LocalInitializer extends Initializer {
 class AssertInitializer extends Initializer {
   AssertStatement statement;
 
-  AssertInitializer(this.statement) {
+  new(this.statement) {
     statement.parent = this;
   }
 

@@ -24,7 +24,7 @@ abstract class TypeChecker {
   Library? currentLibrary;
   InterfaceType? currentThisType;
 
-  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk = true})
+  new(this.coreTypes, this.hierarchy, {this.ignoreSdk = true})
     : environment = new TypeEnvironment(coreTypes, hierarchy);
 
   void checkComponent(Component component) {
@@ -149,7 +149,7 @@ class TypeCheckingVisitor
   DartType? currentYieldType;
   AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
 
-  TypeCheckingVisitor(this.checker, this.environment, this.hierarchy);
+  new(this.checker, this.environment, this.hierarchy);
 
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     checker.checkAssignable(where, from, to);

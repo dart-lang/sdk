@@ -31,7 +31,7 @@ class CloneVisitorNotMembers
   /// The boolean value of [cloneAnnotations] tells if the annotations on the
   /// outline elements in the source AST should be cloned to the target AST. The
   /// annotations in procedure bodies are cloned unconditionally.
-  CloneVisitorNotMembers({
+  new({
     Map<TypeParameter, DartType>? typeSubstitution,
     Map<TypeParameter, TypeParameter>? typeParams,
     Map<StructuralParameter, StructuralParameter>? structuralParameters,
@@ -1389,7 +1389,7 @@ class CloneVisitorNotMembers
 /// It is safe to clone members, but cloning a class or library is not
 /// supported.
 class CloneVisitorWithMembers extends CloneVisitorNotMembers {
-  CloneVisitorWithMembers({
+  new({
     Map<TypeParameter, DartType>? typeSubstitution,
     Map<TypeParameter, TypeParameter>? typeParams,
     bool cloneAnnotations = true,
@@ -1522,7 +1522,7 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   Map<Name, Member>? _getterMap;
   Map<Name, Member>? _setterMap;
 
-  MixinApplicationCloner(
+  new(
     this.mixinApplicationClass, {
     Map<TypeParameter, DartType>? typeSubstitution,
     Map<TypeParameter, TypeParameter>? typeParams,
@@ -1617,7 +1617,7 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
 }
 
 class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
-  CloneProcedureWithoutBody({
+  new({
     Map<TypeParameter, DartType>? typeSubstitution,
     bool cloneAnnotations = true,
   }) : super(

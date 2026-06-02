@@ -59,7 +59,7 @@ List<DartType>? rawUnaliasTypes(List<DartType> types) {
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
 class _Unalias extends ReplacementVisitor {
-  const _Unalias();
+  const new();
 
   @override
   DartType visitTypedefType(TypedefType node, Variance variance) {

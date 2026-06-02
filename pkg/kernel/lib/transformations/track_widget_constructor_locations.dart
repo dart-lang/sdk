@@ -135,8 +135,7 @@ class _WidgetCallSiteTransformer extends Transformer {
   /// of the library.
   Library? _currentLibrary;
 
-  _WidgetCallSiteTransformer({required WidgetCreatorTracker tracker})
-    : _tracker = tracker;
+  new({required WidgetCreatorTracker tracker}) : _tracker = tracker;
 
   /// Builds a call to the const constructor of the _Location
   /// object specifying the location where a constructor call was made and
@@ -905,7 +904,7 @@ class _TrackingClasses {
   final Class locationClass;
   final String locationFieldName;
 
-  _TrackingClasses({
+  new({
     required this.hasCreationLocationClass,
     required this.locationClass,
     required this.locationFieldName,

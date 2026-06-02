@@ -19,7 +19,7 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   final DartTypeVisitor1AuxiliaryFunction<DartType, CoreTypes>?
   unhandledTypeHandler;
 
-  const FutureValueTypeVisitor({this.unhandledTypeHandler});
+  const new({this.unhandledTypeHandler});
 
   DartType visit(DartType node, CoreTypes coreTypes) =>
       node.accept1(this, coreTypes);

@@ -102,7 +102,7 @@ class Env {
 
   late TypeParserEnvironment _libraryEnvironment;
 
-  Env(String source) {
+  new(String source) {
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
     TypeParserEnvironment coreEnvironment = new TypeParserEnvironment(
@@ -228,7 +228,7 @@ class TypeParserEnvironment {
   final List</* TypeParameterType | StructuralParameterType */ Object>
   pendingNullabilities = <TypeParameterType>[];
 
-  TypeParserEnvironment(this.uri, this.fileUri, [this._parent]);
+  new(this.uri, this.fileUri, [this._parent]);
 
   @override
   String toString() {
@@ -341,7 +341,7 @@ class TypeParserEnvironment {
 class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   final Map<String, DartType Function()>? additionalTypes; // Can be null.
 
-  const _KernelFromParsedType({this.additionalTypes});
+  const new({this.additionalTypes});
 
   DartType _parseType(ParsedType type, TypeParserEnvironment environment) {
     return type.accept<Node, TypeParserEnvironment>(this, environment)
@@ -860,12 +860,12 @@ class ParameterEnvironment {
   final List<TypeParameter> parameters;
   final TypeParserEnvironment environment;
 
-  const ParameterEnvironment(this.parameters, this.environment);
+  const new(this.parameters, this.environment);
 }
 
 class FunctionTypeParameterEnvironment {
   final List<StructuralParameter> parameters;
   final TypeParserEnvironment environment;
 
-  const FunctionTypeParameterEnvironment(this.parameters, this.environment);
+  const new(this.parameters, this.environment);
 }

@@ -42,7 +42,7 @@ class ExpressionStatement extends Statement {
   @override
   int get fileOffset => expression.fileOffset;
 
-  ExpressionStatement(this.expression) {
+  new(this.expression) {
     expression.parent = this;
   }
 
@@ -96,7 +96,7 @@ class Block extends Statement implements ScopeProvider {
   @override
   Scope? scope;
 
-  Block(this.statements) {
+  new(this.statements) {
     // Ensure statements is mutable.
     assert(checkListIsMutable(statements, dummyStatement));
     setParents(statements, this);
@@ -147,7 +147,7 @@ class Block extends Statement implements ScopeProvider {
 class AssertBlock extends Statement {
   final List<Statement> statements;
 
-  AssertBlock(this.statements) {
+  new(this.statements) {
     // Ensure statements is mutable.
     assert(checkListIsMutable(statements, dummyStatement));
     setParents(statements, this);
@@ -236,7 +236,7 @@ class AssertStatement extends Statement {
     conditionEndOffset,
   ];
 
-  AssertStatement(
+  new(
     this.condition, {
     this.message,
     required this.conditionStartOffset,
@@ -304,7 +304,7 @@ class AssertStatement extends Statement {
 class LabeledStatement extends Statement {
   late Statement body;
 
-  LabeledStatement(Statement? body) {
+  new(Statement? body) {
     if (body != null) {
       this.body = body..parent = this;
     }
@@ -389,7 +389,7 @@ class LabeledStatement extends Statement {
 class BreakStatement extends Statement {
   LabeledStatement target;
 
-  BreakStatement(this.target);
+  new(this.target);
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitBreakStatement(this);
@@ -434,7 +434,7 @@ class WhileStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  WhileStatement(this.condition, this.body) {
+  new(this.condition, this.body) {
     condition.parent = this;
     body.parent = this;
   }
@@ -488,7 +488,7 @@ class DoStatement extends Statement implements LoopStatement {
 
   Expression condition;
 
-  DoStatement(this.body, this.condition) {
+  new(this.body, this.condition) {
     body.parent = this;
     condition.parent = this;
   }
@@ -553,7 +553,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForStatement(this.variables, this.condition, this.updates, this.body) {
+  new(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
@@ -650,12 +650,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForInStatement(
-    this.variable,
-    this.iterable,
-    this.body, {
-    this.isAsync = false,
-  }) {
+  new(this.variable, this.iterable, this.body, {this.isAsync = false}) {
     variable.parent = this;
     iterable.parent = this;
     body.parent = this;
@@ -823,11 +818,7 @@ class SwitchStatement extends Statement {
   /// This is set during inference.
   DartType? expressionTypeInternal;
 
-  SwitchStatement(
-    this.expression,
-    this.cases, {
-    this.isExplicitlyExhaustive = false,
-  }) {
+  new(this.expression, this.cases, {this.isExplicitlyExhaustive = false}) {
     expression.parent = this;
     setParents(cases, this);
   }
@@ -924,7 +915,7 @@ class SwitchCase extends TreeNode {
   late Statement body;
   bool isDefault;
 
-  SwitchCase(
+  new(
     this.expressions,
     this.expressionOffsets,
     Statement? body, {
@@ -936,7 +927,7 @@ class SwitchCase extends TreeNode {
     }
   }
 
-  SwitchCase.defaultCase(Statement? body)
+  new defaultCase(Statement? body)
     : isDefault = true,
       expressions = <Expression>[],
       expressionOffsets = <int>[] {
@@ -1021,7 +1012,7 @@ class SwitchCase extends TreeNode {
 class ContinueSwitchStatement extends Statement {
   SwitchCase target;
 
-  ContinueSwitchStatement(this.target);
+  new(this.target);
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitContinueSwitchStatement(this);
@@ -1057,7 +1048,7 @@ class IfStatement extends Statement {
   Statement then;
   Statement? otherwise;
 
-  IfStatement(this.condition, this.then, this.otherwise) {
+  new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
@@ -1122,7 +1113,7 @@ class IfStatement extends Statement {
 class ReturnStatement extends Statement {
   Expression? expression; // May be null.
 
-  ReturnStatement([this.expression]) {
+  new([this.expression]) {
     expression?.parent = this;
   }
 
@@ -1175,7 +1166,7 @@ class TryCatch extends Statement {
   List<Catch> catches;
   bool isSynthetic;
 
-  TryCatch(this.body, this.catches, {this.isSynthetic = false}) {
+  new(this.body, this.catches, {this.isSynthetic = false}) {
     body.parent = this;
     setParents(catches, this);
   }
@@ -1232,7 +1223,7 @@ class Catch extends TreeNode implements ScopeProvider {
   @override
   Scope? scope;
 
-  Catch(
+  new(
     this.exception,
     this.body, {
     this.guard = const DynamicType(),
@@ -1349,7 +1340,7 @@ class TryFinally extends Statement {
   Statement body;
   Statement finalizer;
 
-  TryFinally(this.body, this.finalizer) {
+  new(this.body, this.finalizer) {
     body.parent = this;
     finalizer.parent = this;
   }
@@ -1405,7 +1396,7 @@ class YieldStatement extends Statement {
   Expression expression;
   int flags = 0;
 
-  YieldStatement(this.expression, {bool isYieldStar = false}) {
+  new(this.expression, {bool isYieldStar = false}) {
     expression.parent = this;
     this.isYieldStar = isYieldStar;
   }
@@ -1464,7 +1455,7 @@ class VariableStatement extends Statement {
   /// The declared variable.
   VariableDeclaration declaration;
 
-  VariableStatement(this.declaration) {
+  new(this.declaration) {
     declaration.parent = this;
   }
 
@@ -1517,7 +1508,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   @override
   LocalFunctionId id = LocalFunctionId.invalid;
 
-  FunctionDeclaration(this.variable, this.function) {
+  new(this.variable, this.function) {
     variable.parent = this;
     function.parent = this;
   }
