@@ -2817,6 +2817,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final variable = node.variable;
     variable.annotations.forEach(_visitAnnotation);
     final initializer = variable.initializer;
+    final savedCondition = _currentCondition;
     final TypeExpr initialValue = initializer == null
         ? ((variable.type.nullability == Nullability.nonNullable ||
                   variable.isLate)
@@ -2824,6 +2825,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
               : _nullType)
         : _visit(initializer);
     _declareVariable(variable, initialValue);
+    if (variable.isLate) {
+      // Restore condition as initializer of a late variable
+      // is not evaluated immediately.
+      _currentCondition = savedCondition;
+    }
     return null;
   }
 
