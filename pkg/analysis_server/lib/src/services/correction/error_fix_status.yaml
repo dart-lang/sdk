@@ -1959,6 +1959,8 @@ annotate_overrides:
   status: hasFix
 annotate_redeclares:
   status: hasFix
+async_return_with_no_await:
+  status: hasFix
 avoid_annotating_with_dynamic:
   status: hasFix
 avoid_bool_literals_in_conditional_expressions:

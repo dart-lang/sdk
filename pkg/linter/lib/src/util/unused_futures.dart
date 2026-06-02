@@ -5,7 +5,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../extensions.dart';
 
@@ -26,7 +26,13 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
   /// might report on it.
   final IsInterestingFilter _isInteresting;
 
-  new({required this._rule, required this._isInteresting});
+  final TypeProvider _typeProvider;
+
+  new({
+    required this._rule,
+    required this._isInteresting,
+    required this._typeProvider,
+  });
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
@@ -94,22 +100,11 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
 
     var type = expr.staticType;
     if (type != null &&
-        type.isOrImplementsFutureOrFutureOr &&
+        (type.asInstanceOf(_typeProvider.futureElement) != null ||
+            type.asInstanceOf(_typeProvider.futureOrElement) != null) &&
         _isInteresting(expr) &&
         expr is! AssignmentExpression) {
       _reportOnExpression(expr);
     }
-  }
-}
-
-extension DartTypeExtension on DartType {
-  /// Whether this type is `Future` or `FutureOr` from dart:async, or is a
-  /// subtype of `Future`.
-  bool get isOrImplementsFutureOrFutureOr {
-    var typeElement = element;
-    if (typeElement is! InterfaceElement) return false;
-    return isDartAsyncFuture ||
-        isDartAsyncFutureOr ||
-        typeElement.allSupertypes.any((t) => t.isDartAsyncFuture);
   }
 }

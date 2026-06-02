@@ -15,6 +15,7 @@ import 'rules/analyzer_element_model_tracking.dart';
 import 'rules/analyzer_public_api.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
+import 'rules/async_return_with_no_await.dart';
 import 'rules/avoid_annotating_with_dynamic.dart';
 import 'rules/avoid_as.dart';
 import 'rules/avoid_bool_literals_in_conditional_expressions.dart';
@@ -279,6 +280,7 @@ void registerLintRules() {
     ..registerLintRule(AnalyzerPublicApi())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())
+    ..registerLintRule(AsyncReturnWithNoAwait())
     ..registerLintRule(AvoidAnnotatingWithDynamic())
     ..registerLintRule(avoidAs)
     ..registerLintRule(AvoidBoolLiteralsInConditionalExpressions())

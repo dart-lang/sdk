@@ -343,6 +343,16 @@ annotateRedeclares = LinterLintTemplate(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments asyncReturnWithNoAwait =
+    LinterLintWithoutArguments(
+      name: 'async_return_with_no_await',
+      problemMessage: "Returning a 'Future' without 'await'.",
+      correctionMessage: "Try adding an 'await' or making the body non-async.",
+      uniqueName: 'async_return_with_no_await',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments avoidAnnotatingWithDynamic =
     LinterLintWithoutArguments(
       name: 'avoid_annotating_with_dynamic',

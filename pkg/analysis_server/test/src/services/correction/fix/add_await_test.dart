@@ -14,6 +14,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAwaitTest);
     defineReflectiveTests(AddAwaitTestArgumentAndAssignment);
+    defineReflectiveTests(AsyncReturnWithNoAwaitTest);
     defineReflectiveTests(UnawaitedReturnInTryBlockTest);
   });
 }
@@ -350,6 +351,45 @@ Future<void> baz() async {
   String variable = await bar();
 }
 ''', filter: (error) => error.diagnosticCode == diag.invalidAssignment);
+  }
+}
+
+@reflectiveTest
+class AsyncReturnWithNoAwaitTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.addAwait;
+
+  @override
+  String get lintCode => LintNames.async_return_with_no_await;
+
+  Future<void> test_blockBody() async {
+    await resolveTestCode('''
+class A {
+  Future<int> foo() async {
+    return Future.value(42);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<int> foo() async {
+    return await Future.value(42);
+  }
+}
+''');
+  }
+
+  Future<void> test_functionExpression() async {
+    await resolveTestCode('''
+class A {
+  Future<int> foo() async => Future.value(42);
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<int> foo() async => await Future.value(42);
+}
+''');
   }
 }
 
