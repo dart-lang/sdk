@@ -165,11 +165,7 @@ bool typesAreUnrelated(
   DartType leftType,
   DartType rightType,
 ) {
-  // This is harmless.
-  // ignore: parameter_assignments
   leftType = leftType.extensionTypeErasure;
-  // This is harmless.
-  // ignore: parameter_assignments
   rightType = rightType.extensionTypeErasure;
 
   // If we don't have enough information, or can't really compare the types,
