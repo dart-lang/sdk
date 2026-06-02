@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -102,24 +101,26 @@ class A {
 }
 
 @reflectiveTest
-class FieldFormalParameterTest extends _AstTest {
+class FieldFormalParameterTest extends ParserDiagnosticsTest {
   void test_endToken_noParameters() {
-    var node = _parseStringToNode<FieldFormalParameter>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   final int foo;
-  A(this.^foo);
+  A(this.foo);
 }
 ''');
+    var node = parseResult.findNode.singleFieldFormalParameter;
     expect(node.endToken, node.name);
   }
 
   void test_endToken_parameters() {
-    var node = _parseStringToNode<FieldFormalParameter>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   final Object foo;
-  A(this.^foo(a, b));
+  A(this.foo(a, b));
 }
 ''');
+    var node = parseResult.findNode.singleFieldFormalParameter;
     expect(node.endToken, node.functionTypedSuffix!.formalParameters.endToken);
   }
 }
@@ -560,117 +561,130 @@ class C {}
 }
 
 @reflectiveTest
-class IndexExpressionTest extends _AstTest {
+class IndexExpressionTest extends ParserDiagnosticsTest {
   void test_inGetterContext_assignment_compound_left() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ^a[0] += 0;
+  a[0] += 0;
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
   void test_inGetterContext_assignment_simple_left() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ^a[0] = 0;
+  a[0] = 0;
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inGetterContext(), isFalse);
   }
 
   void test_inGetterContext_nonAssignment() {
-    var node = _parseStringToNode<IndexExpression>(r'''
-var v = ^a[b] + c;
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = a[b] + c;
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_compound_left() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ^a[0] += 0;
+  a[0] += 0;
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_compound_right() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  b += ^a[0];
+  b += a[0];
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_assignment_simple_left() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ^a[0] = 0;
+  a[0] = 0;
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_simple_right() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  b = ^a[0];
+  b = a[0];
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_nonAssignment() {
-    var node = _parseStringToNode<IndexExpression>(r'''
-var v = ^a[b] + c;
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = a[b] + c;
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_postfix_bang() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ^a[0]!;
+  a[0]!;
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_postfix_plusPlus() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ^a[0]++;
+  a[0]++;
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_prefix_bang() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  !^a[0];
+  !a[0];
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_prefix_minusMinus() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  --^a[0];
+  --a[0];
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_prefix_plusPlus() {
-    var node = _parseStringToNode<IndexExpression>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  ++^a[0];
+  ++a[0];
 }
 ''');
+    var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -927,7 +941,7 @@ class A {
 }
 
 @reflectiveTest
-class MethodInvocationTest extends _AstTest {
+class MethodInvocationTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseStringWithErrors('''
 void f() {
@@ -1186,7 +1200,7 @@ E f() => g;
 }
 
 @reflectiveTest
-class PropertyAccessTest extends _AstTest {
+class PropertyAccessTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseStringWithErrors('''
 void f() {
@@ -1240,7 +1254,7 @@ import 'dart:core' show int Function();
 }
 
 @reflectiveTest
-class SimpleIdentifierTest extends _AstTest {
+class SimpleIdentifierTest extends ParserDiagnosticsTest {
   void test_inGetterContext() {
     for (_WrapperKind wrapper in _WrapperKind.values) {
       for (_AssignmentKind assignment in _AssignmentKind.values) {
@@ -1261,11 +1275,12 @@ class SimpleIdentifierTest extends _AstTest {
   }
 
   void test_inGetterContext_constructorFieldInitializer() {
-    var initializer = _parseStringToNode<ConstructorFieldInitializer>('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 class A {
-  A() : ^f = 0;
+  A() : f = 0;
 }
 ''');
+    var initializer = parseResult.findNode.singleConstructorFieldInitializer;
     SimpleIdentifier identifier = initializer.fieldName;
     expect(identifier.inGetterContext(), isFalse);
   }
@@ -1314,9 +1329,10 @@ void f() {
   }
 
   void test_isQualified_inConstructorName() {
-    var constructor = _parseStringToNode<ConstructorName>(r'''
-final x = List<String>.^foo();
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final x = List<String>.foo();
 ''');
+    var constructor = parseResult.findNode.singleConstructorName;
     var name = constructor.name!;
     expect(name.isQualified, isTrue);
   }
@@ -1584,7 +1600,7 @@ final v = $code;
 }
 
 @reflectiveTest
-class SpreadElementTest extends _AstTest {
+class SpreadElementTest extends ParserDiagnosticsTest {
   void test_notNullAwareSpread() {
     var parseResult = parseStringWithErrors('''
 final x = [...foo];
@@ -1768,28 +1784,30 @@ StringInterpolation
 }
 
 @reflectiveTest
-class SuperFormalParameterTest extends _AstTest {
+class SuperFormalParameterTest extends ParserDiagnosticsTest {
   void test_endToken_noParameters() {
-    var node = _parseStringToNode<SuperFormalParameter>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
-  A(super.^foo);
+  A(super.foo);
 }
 ''');
+    var node = parseResult.findNode.singleSuperFormalParameter;
     expect(node.endToken, node.name);
   }
 
   void test_endToken_parameters() {
-    var node = _parseStringToNode<SuperFormalParameter>(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
-  A(super.^foo(a, b));
+  A(super.foo(a, b));
 }
 ''');
+    var node = parseResult.findNode.singleSuperFormalParameter;
     expect(node.endToken, node.functionTypedSuffix!.formalParameters.endToken);
   }
 }
 
 @reflectiveTest
-class VariableDeclarationTest extends _AstTest {
+class VariableDeclarationTest extends ParserDiagnosticsTest {
   void test_getDocumentationComment_onGrandParent() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /// text
@@ -1876,34 +1894,6 @@ class _AssignmentKind {
 
   @override
   String toString() => name;
-}
-
-class _AstTest extends ParserDiagnosticsTest {
-  T _parseStringToNode<T extends AstNode>(String codeWithMark) {
-    var offset = codeWithMark.indexOf('^');
-    expect(offset, isNot(equals(-1)), reason: 'missing ^');
-
-    var nextOffset = codeWithMark.indexOf('^', offset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-
-    var codeBefore = codeWithMark.substring(0, offset);
-    var codeAfter = codeWithMark.substring(offset + 1);
-    var code = codeBefore + codeAfter;
-
-    var parseResult = parseStringWithErrors(code);
-
-    var node = NodeLocator2(offset).searchWithin(parseResult.unit);
-    if (node == null) {
-      throw StateError('No node at $offset:\n$code');
-    }
-
-    var result = node.thisOrAncestorOfType<T>();
-    if (result == null) {
-      throw StateError('No node of $T at $offset:\n$code');
-    }
-
-    return result;
-  }
 }
 
 class _WrapperKind {

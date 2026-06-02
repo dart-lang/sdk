@@ -65,6 +65,8 @@ class FindNode {
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
+  ConstructorName get singleConstructorName => _single();
+
   DotShorthandConstructorInvocation
   get singleDotShorthandConstructorInvocation => _single();
 
