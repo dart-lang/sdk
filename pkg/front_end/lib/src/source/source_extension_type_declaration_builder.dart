@@ -1072,4 +1072,8 @@ class SourceExtensionTypeDeclarationBuilder
   void onInferredType(DartType type) {
     _extensionTypeDeclaration.declaredRepresentationType = type;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

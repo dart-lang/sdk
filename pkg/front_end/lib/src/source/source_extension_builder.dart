@@ -337,4 +337,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   int resolveConstructors(SourceLibraryBuilder library) {
     return 0;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

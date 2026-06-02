@@ -269,4 +269,8 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   List<TypeParameter> get typeParameterNodes => extension.typeParameters;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

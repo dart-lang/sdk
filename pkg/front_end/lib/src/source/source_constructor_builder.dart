@@ -136,6 +136,31 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     }
   }
 
+  /// Returns `true` if field initializers should be moved to the initializer
+  /// list of this constructor.
+  ///
+  /// This is done for primary constructors because non-late field initializers
+  /// have access to the parameters of the primary constructor.
+  ///
+  /// An exception to this is for mixin classes. In the non-erroneous cases,
+  /// these can't have parameters, so the field initializers can stay in the
+  /// field declaration. This is done to ensure that mixin transformation can
+  /// simply clone the mixin class fields, instead of having to fetch the
+  /// initializer from the initializer list of the constructor. For mixin
+  /// classes with parameters in the primary constructor, which is an erroneous
+  /// case, the initializers are moved to the constructor like for other
+  /// primary constructors to avoid generating an AST where the parameters are
+  /// accessed out of scope.
+  bool get shouldTakeFieldInitializers {
+    if (isPrimaryConstructor) {
+      if (declarationBuilder.isMixinClass && !_introductory.hasParameters) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
   /// If this constructor is a primary constructor, returns the parameters
   /// available in the initializer scope. Otherwise return `null`.
   List<FormalParameterBuilder>?

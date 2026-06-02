@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+mixin class Class1 extends core::Object {
+  constructor •() → self::Class1
+    ;
+}
+mixin class Class2 extends core::Object {
+  constructor named() → self::Class2
+    ;
+}
+mixin class Class3 extends core::Object {
+  constructor •() → self::Class3
+    ;
+}
+mixin class Class4 extends core::Object {
+  constructor •() → self::Class4
+    ;
+  constructor named() → self::Class4
+    ;
+}
+mixin class Class5 extends core::Object {
+  constructor named() → self::Class5
+    ;
+  constructor •() → self::Class5
+    ;
+}

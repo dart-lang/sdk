@@ -655,7 +655,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     for (SourceMemberBuilder memberBuilder in _constructorBuilders) {
       if (memberBuilder is SourceConstructorBuilder &&
-          memberBuilder.isPrimaryConstructor &&
+          memberBuilder.shouldTakeFieldInitializers &&
           memberBuilder.isConst) {
         memberBuilder.buildPrimaryConstructorFieldInitializers();
       }
