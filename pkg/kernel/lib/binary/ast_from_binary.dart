@@ -20,7 +20,7 @@ class ParseError {
   final String message;
   final String path;
 
-  ParseError(
+  new(
     this.message, {
     required this.filename,
     required this.byteIndex,
@@ -35,7 +35,7 @@ class InvalidKernelVersionError {
   final String? filename;
   final int version;
 
-  InvalidKernelVersionError(this.filename, this.version);
+  new(this.filename, this.version);
 
   @override
   String toString() {
@@ -54,7 +54,7 @@ class InvalidKernelVersionError {
 class InvalidKernelSdkVersionError {
   final String version;
 
-  InvalidKernelSdkVersionError(this.version);
+  new(this.version);
 
   @override
   String toString() {
@@ -66,7 +66,7 @@ class InvalidKernelSdkVersionError {
 class CompilationModeError {
   final String message;
 
-  CompilationModeError(this.message);
+  new(this.message);
 
   @override
   String toString() => "CompilationModeError[$message]";
@@ -86,7 +86,7 @@ class _ComponentIndex {
   final int libraryCount;
   final int componentFileSizeInBytes;
 
-  _ComponentIndex({
+  new({
     required this.binaryOffsetForSourceTable,
     required this.binaryOffsetForCanonicalNames,
     required this.binaryOffsetForMetadataPayloads,
@@ -107,11 +107,7 @@ class SubComponentView {
   final int componentStartOffset;
   final int componentFileSize;
 
-  SubComponentView(
-    this.libraries,
-    this.componentStartOffset,
-    this.componentFileSize,
-  );
+  new(this.libraries, this.componentStartOffset, this.componentFileSize);
 }
 
 /// [StringInterner] allows Strings created from the binary to be shared with
@@ -184,7 +180,7 @@ class BinaryBuilder {
 
   /// Note that [disableLazyClassReading] is incompatible
   /// with checkCanonicalNames on readComponent.
-  BinaryBuilder(
+  new(
     this._bytes, {
     this.filename,
     bool disableLazyReading = false,
@@ -4585,7 +4581,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   List<int>? _allKnownMetadataKeys;
   int? _previousMetadataLookupKey;
 
-  BinaryBuilderWithMetadata(
+  new(
     Uint8List bytes, {
     String? filename,
     bool disableLazyReading = false,
@@ -4927,5 +4923,5 @@ class _MetadataSubsection {
   /// Deserialized mapping from node offsets to metadata offsets.
   final Map<int, int> mapping;
 
-  _MetadataSubsection(this.repository, this.mapping);
+  new(this.repository, this.mapping);
 }

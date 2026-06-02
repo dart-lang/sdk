@@ -66,7 +66,7 @@ class BinaryPrinter
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
   /// one.
-  BinaryPrinter(
+  new(
     Sink<List<int>> sink, {
     this.libraryFilter,
     StringIndexer? stringIndexer,
@@ -3608,7 +3608,7 @@ class StringIndexer {
   // Note that the iteration order is important.
   final Map<String, int> index = new Map<String, int>();
 
-  StringIndexer() {
+  new() {
     put('');
   }
 
@@ -3626,7 +3626,7 @@ class UriIndexer {
   // Note that the iteration order is important.
   final Map<Uri, int> index = new Map<Uri, int>();
 
-  UriIndexer();
+  new();
 
   int put(Uri uri) {
     int? result = index[uri];
@@ -3653,7 +3653,7 @@ class BufferedSink {
 
   int get offset => length + flushedLength;
 
-  BufferedSink(this._sink);
+  new(this._sink);
 
   void addDouble(double d) {
     Uint8List doubleBufferUint8 = _doubleBufferUint8 ??= _doubleBuffer.buffer
@@ -3758,7 +3758,7 @@ class _MetadataSubsection {
   /// (nodeOffset) in ascending order.
   final List<int> metadataMapping = <int>[];
 
-  _MetadataSubsection(this.repository);
+  new(this.repository);
 }
 
 /// A [Sink] that directly writes data into a byte builder.

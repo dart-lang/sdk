@@ -30,7 +30,7 @@ class Expectation {
 
   final ExpectationGroup group;
 
-  const Expectation(this.name, this.group);
+  const new(this.name, this.group);
 
   /// Returns the canonical expectation representing [group]. That is, one of
   /// the above expectations (except for `Meta` which returns `this`).
@@ -78,14 +78,14 @@ class ExpectationSet {
 
   final Map<String, Expectation> internalMap;
 
-  const ExpectationSet(this.internalMap);
+  const new(this.internalMap);
 
   Expectation operator [](String name) {
     return internalMap[name.toLowerCase()] ??
         (throw "No expectation named: '$name'.");
   }
 
-  factory ExpectationSet.fromJsonList(List data) {
+  factory fromJsonList(List data) {
     Map<String, Expectation> internalMap = Map<String, Expectation>.from(
       defaultExpectations.internalMap,
     );

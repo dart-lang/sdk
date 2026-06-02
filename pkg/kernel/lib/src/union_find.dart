@@ -12,13 +12,13 @@ class UnionFindNode<T> {
   final T value;
   UnionFindNode<T>? parent;
 
-  UnionFindNode(this.value);
+  new(this.value);
 }
 
 class UnionFind<T> {
   final Map<T, UnionFindNode<T>> _nodeMap;
 
-  UnionFind({bool useIdentity = false})
+  new({bool useIdentity = false})
     : _nodeMap = useIdentity ? new LinkedHashMap.identity() : {};
 
   UnionFindNode<T> operator [](T value) =>

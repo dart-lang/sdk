@@ -93,11 +93,11 @@ class CanonicalName implements Comparable<CanonicalName?> {
   /// Temporary index used during serialization.
   int index = -1;
 
-  CanonicalName._(CanonicalName parent, this.name) : _parent = parent {
+  new _(CanonicalName parent, this.name) : _parent = parent {
     _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
   }
 
-  CanonicalName.root() : _parent = null, _nonRootTop = null, name = '';
+  new root() : _parent = null, _nonRootTop = null, name = '';
 
   bool get isRoot => _parent == null;
 
@@ -672,14 +672,14 @@ class Reference implements Comparable<Reference> {
 class CanonicalNameError {
   final String message;
 
-  CanonicalNameError(this.message);
+  new(this.message);
 
   @override
   String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
-  CanonicalNameSdkError(String message) : super(message);
+  new(String message) : super(message);
 
   @override
   String toString() => 'CanonicalNameSdkError: $message';

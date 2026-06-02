@@ -176,7 +176,7 @@ Future<void> test(
     // JIT
     commands = [
       [
-        "$buildDir/dart",
+        "$buildDir/dartvm",
         ...someJitRuntimeFlags(),
         dartScript,
         ...dartArguments,
@@ -191,7 +191,7 @@ Future<void> test(
     // AOT
     commands = [
       [
-        "out/ReleaseX64/dart",
+        "out/ReleaseX64/dartvm",
         "pkg/vm/bin/gen_kernel.dart",
         "--platform=$buildDir/vm_platform.dill",
         "--aot",
@@ -284,7 +284,7 @@ Future<void> flagFuzz(
 
   await Directory("out/dartfuzz").create();
 
-  var executable = "out/ReleaseX64/dart";
+  var executable = "out/ReleaseX64/dartvm";
   var arguments = createDartCommand("out/dartfuzz/expected.$extension");
   var processResult = await Process.run(executable, arguments);
   if (processResult.exitCode != 0) {

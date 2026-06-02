@@ -16,7 +16,7 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   @override
   final ClassHierarchy hierarchy;
 
-  HierarchyBasedTypeEnvironment(CoreTypes coreTypes, this.hierarchy)
+  new(CoreTypes coreTypes, this.hierarchy)
     : super.fromSubclass(coreTypes, hierarchy);
 
   @override

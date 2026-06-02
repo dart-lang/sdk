@@ -34,7 +34,7 @@ import 'strong_components.dart';
 /// an incremental build, a different file is written for each which contains
 /// only the updated libraries.
 class IncrementalJavaScriptBundler {
-  IncrementalJavaScriptBundler(
+  new(
     this._fileSystem,
     this._loadedLibraries,
     this._fileSystemScheme, {

@@ -451,7 +451,7 @@ enum Compiler {
 }
 
 class _Test {
-  _Test({
+  new({
     required this.name,
     required this.dartSource,
     required this.sdkRoot,
@@ -531,7 +531,7 @@ class _Test {
 
 /// Equality that casts all [num]'s to [double] before comparing.
 class Dart2JSDeepCollectionEquality extends DeepCollectionEquality {
-  const Dart2JSDeepCollectionEquality();
+  const new();
 
   @override
   bool equals(Object? e1, Object? e2) {

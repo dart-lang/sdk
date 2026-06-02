@@ -21,7 +21,7 @@ class StdioProcess {
 
   final String output;
 
-  StdioProcess(this.exitCode, this.output);
+  new(this.exitCode, this.output);
 
   Result<int> toResult({int expected = 0}) {
     if (exitCode == expected) {

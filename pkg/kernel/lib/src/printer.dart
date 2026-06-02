@@ -74,7 +74,7 @@ class AstTextStrategy {
   /// printed. If exceeded, '...' is printed instead.
   final int? maxConstantDepth;
 
-  const AstTextStrategy({
+  const new({
     this.includeLibraryNamesInTypes = false,
     this.includeLibraryNamesInMembers = false,
     this.includeAuxiliaryProperties = false,
@@ -102,7 +102,7 @@ class AstPrinter {
   late final Map<Variable, String> _variableDeclarationNames = {};
   late final Map<VariableBase, String> _variableNames = {};
 
-  AstPrinter(this._strategy);
+  new(this._strategy);
 
   bool get includeAuxiliaryProperties => _strategy.includeAuxiliaryProperties;
 
@@ -680,7 +680,7 @@ class AstPrinter {
 
 class MarkingAstPrinter extends AstPrinter {
   Set<TreeNode> markThis;
-  MarkingAstPrinter(super.strategy, this.markThis);
+  new(super.strategy, this.markThis);
 
   @override
   void writeStatement(Statement node) {

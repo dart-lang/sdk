@@ -22,7 +22,7 @@ class Typedef extends NamedNode
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  Typedef(
+  new(
     this.name,
     this.type, {
     Reference? reference,

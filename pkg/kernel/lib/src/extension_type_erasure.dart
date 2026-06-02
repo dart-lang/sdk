@@ -23,7 +23,7 @@ DartType? rawExtensionTypeErasure(DartType type) {
 ///
 /// The visitor returns `null` if the type wasn't changed.
 class _ExtensionTypeErasure extends ReplacementVisitor {
-  const _ExtensionTypeErasure();
+  const new();
 
   @override
   DartType? visitExtensionType(ExtensionType node, Variance variance) {

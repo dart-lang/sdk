@@ -101,7 +101,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     _body = body;
   }
 
-  FunctionNode(
+  new(
     this._body, {
     List<TypeParameter>? typeParameters,
     List<Variable>? positionalParameters,

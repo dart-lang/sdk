@@ -1109,20 +1109,23 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _visitLocalVariableElement(LocalVariableElement element) {
-    if (!_isUsedElement(element) && !_isNamedWildcard(element)) {
-      DiagnosticWithArguments<
-        LocatableDiagnostic Function({required String name})
-      >
-      code;
-      if (_usedElements.isCatchException(element)) {
-        code = diag.unusedCatchClause;
-      } else if (_usedElements.isCatchStackTrace(element)) {
-        code = diag.unusedCatchStack;
-      } else {
-        code = diag.unusedLocalVariable;
-      }
+    if (_isUsedElement(element)) return;
+
+    if (_usedElements.isCatchException(element) &&
+        // TODO(srawlins): Report a wildcard catch clause exception variable.
+        !_isNamedWildcard(element)) {
       _reportDiagnosticForElement(
-        code.withArguments(name: element.displayName),
+        diag.unusedCatchClause.withArguments(name: element.displayName),
+        element,
+      );
+    } else if (_usedElements.isCatchStackTrace(element)) {
+      _reportDiagnosticForElement(
+        diag.unusedCatchStack.withArguments(name: element.displayName),
+        element,
+      );
+    } else if (!_isNamedWildcard(element)) {
+      _reportDiagnosticForElement(
+        diag.unusedLocalVariable.withArguments(name: element.displayName),
         element,
       );
     }

@@ -171,7 +171,7 @@ class SuiteRunner {
 
   final List<Uri> testUris = <Uri>[];
 
-  SuiteRunner(
+  new(
     this.suites,
     this.environment,
     Iterable<String> selectors,

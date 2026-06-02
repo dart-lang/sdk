@@ -40,16 +40,6 @@ f() {
 ''');
   }
 
-  test_on_unusedStack_wildcard() async {
-    await resolveTestCodeWithDiagnostics(r'''
-f() {
-  try {
-  } on String catch (exception, _) {
-  }
-}
-''');
-  }
-
   test_on_usedException() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {

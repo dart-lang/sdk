@@ -166,11 +166,7 @@ class FreshTypeParameters {
   /// Substitution from the original type parameters to [freshTypeArguments].
   final Substitution substitution;
 
-  FreshTypeParameters(
-    this.freshTypeParameters,
-    this.freshTypeArguments,
-    this.substitution,
-  );
+  new(this.freshTypeParameters, this.freshTypeArguments, this.substitution);
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 }
@@ -254,11 +250,7 @@ class FreshStructuralParametersFromTypeParameters {
   /// Substitution from the original type parameters to [freshTypeArguments].
   final Substitution substitution;
 
-  FreshStructuralParametersFromTypeParameters(
-    this.freshTypeParameters,
-    this.freshTypeArguments,
-    this.substitution,
-  );
+  new(this.freshTypeParameters, this.freshTypeArguments, this.substitution);
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 }
@@ -318,11 +310,7 @@ class FreshTypeParametersFromStructuralParameters {
   /// Substitution from the original type parameters to [freshTypeArguments].
   final FunctionTypeInstantiator instantiator;
 
-  FreshTypeParametersFromStructuralParameters(
-    this.freshTypeParameters,
-    this.freshTypeArguments,
-    this.instantiator,
-  );
+  new(this.freshTypeParameters, this.freshTypeArguments, this.instantiator);
 
   DartType substitute(DartType type) => instantiator.substitute(type);
 }
@@ -480,11 +468,7 @@ class FreshStructuralParameters {
   /// Substitution from the original type parameters to [freshTypeArguments].
   final FunctionTypeInstantiator instantiator;
 
-  FreshStructuralParameters(
-    this.freshTypeParameters,
-    this.freshTypeArguments,
-    this.instantiator,
-  );
+  new(this.freshTypeParameters, this.freshTypeArguments, this.instantiator);
 
   DartType substitute(DartType type) => instantiator.substitute(type);
 
@@ -511,7 +495,7 @@ class FreshStructuralParameters {
 // ------------------------------------------------------------------------
 
 abstract class Substitution {
-  const Substitution();
+  const new();
 
   static const Substitution empty = _NullSubstitution.instance;
 
@@ -788,7 +772,7 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
 class _NullSubstitution extends Substitution {
   static const _NullSubstitution instance = const _NullSubstitution();
 
-  const _NullSubstitution();
+  const new();
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
@@ -809,7 +793,7 @@ class _MapSubstitution extends Substitution {
   final Map<TypeParameter, DartType> upper;
   final Map<TypeParameter, DartType> lower;
 
-  _MapSubstitution(this.upper, this.lower);
+  new(this.upper, this.lower);
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
@@ -824,7 +808,7 @@ class _SingletonSubstitution extends Substitution {
   final TypeParameter typeParameter;
   final DartType type;
 
-  _SingletonSubstitution(this.typeParameter, this.type);
+  new(this.typeParameter, this.type);
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
@@ -838,7 +822,7 @@ class _SingletonSubstitution extends Substitution {
 class _TopSubstitutor extends _TypeSubstitutor {
   final Substitution substitution;
 
-  _TopSubstitutor(this.substitution, bool contravariant) : super(null) {
+  new(this.substitution, bool contravariant) : super(null) {
     if (contravariant) {
       invertVariance();
     }
@@ -858,7 +842,7 @@ class _TopSubstitutor extends _TypeSubstitutor {
 class _TypeDeclarationBottomSubstitution extends Substitution {
   final GenericDeclaration declaration;
 
-  _TypeDeclarationBottomSubstitution(this.declaration);
+  new(this.declaration);
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
@@ -872,7 +856,7 @@ class _TypeDeclarationBottomSubstitution extends Substitution {
 class _CombinedSubstitution extends Substitution {
   final Substitution first, second;
 
-  _CombinedSubstitution(this.first, this.second);
+  new(this.first, this.second);
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
@@ -887,10 +871,8 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
   final Map<StructuralParameter, DartType> substitution =
       <StructuralParameter, DartType>{};
 
-  _InnerTypeSubstitutor({
-    required _SubstitutorBase? outer,
-    required bool covariantContext,
-  }) : super(outer: outer, covariantContext: covariantContext);
+  new({required _SubstitutorBase? outer, required bool covariantContext})
+    : super(outer: outer, covariantContext: covariantContext);
 
   @override
   DartType? lookup(TypeParameter parameter, bool upperBound) {
@@ -1204,7 +1186,7 @@ abstract class _SubstitutorBase implements DartTypeVisitor<DartType> {
   /// check quickly if anything happened in a substitution.
   int useCounter = 0;
 
-  _SubstitutorBase({required this.outer, required this.covariantContext});
+  new({required this.outer, required this.covariantContext});
 
   DartType? lookup(TypeParameter parameter, bool upperBound);
 
@@ -1269,7 +1251,7 @@ abstract class _SubstitutorBase implements DartTypeVisitor<DartType> {
 }
 
 abstract class _TypeSubstitutor extends _SubstitutorBase {
-  _TypeSubstitutor(_SubstitutorBase? outer)
+  new(_SubstitutorBase? outer)
     : super(
         outer: outer,
         covariantContext: outer == null ? true : outer.covariantContext,
@@ -1467,19 +1449,15 @@ class FunctionTypeInstantiator implements DartTypeVisitor<DartType?> {
   Map<StructuralParameter, DartType> substitutionMap;
   FunctionTypeInstantiator? outer;
 
-  FunctionTypeInstantiator.fromMap(this.substitutionMap, {this.outer});
+  new fromMap(this.substitutionMap, {this.outer});
 
-  FunctionTypeInstantiator.fromIterables(
-    List<StructuralParameter> from,
-    List<DartType> to,
-  ) : this.fromMap(
+  new fromIterables(List<StructuralParameter> from, List<DartType> to)
+    : this.fromMap(
         new Map<StructuralParameter, DartType>.fromIterables(from, to),
       );
 
-  FunctionTypeInstantiator.fromInstantiation(
-    FunctionType functionType,
-    List<DartType> arguments,
-  ) : this.fromIterables(functionType.typeParameters, arguments);
+  new fromInstantiation(FunctionType functionType, List<DartType> arguments)
+    : this.fromIterables(functionType.typeParameters, arguments);
 
   static FunctionType instantiate(
     FunctionType functionType,
@@ -1775,7 +1753,7 @@ class _OccurrenceVisitor extends FindTypeVisitor {
   /// implementer of [DartType] is encountered.
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
-  _OccurrenceVisitor(this.variables, {this.unhandledTypeHandler});
+  new(this.variables, {this.unhandledTypeHandler});
 
   bool visit(DartType type) => type.accept(this);
 
@@ -1827,10 +1805,7 @@ class _StructuralParameterOccurrenceVisitor implements FindTypeVisitor {
   /// implementer of [DartType] is encountered.
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
-  _StructuralParameterOccurrenceVisitor(
-    this.variables, {
-    this.unhandledTypeHandler,
-  });
+  new(this.variables, {this.unhandledTypeHandler});
 
   bool visit(DartType node) => node.accept(this);
 
@@ -1925,7 +1900,7 @@ class _StructuralParameterOccurrenceVisitor implements FindTypeVisitor {
 class _FreeFunctionTypeVariableVisitor extends FindTypeVisitor {
   final Set<StructuralParameter> variables = new Set<StructuralParameter>();
 
-  _FreeFunctionTypeVariableVisitor();
+  new();
 
   bool visit(DartType node) => node.accept(this);
 
@@ -1946,7 +1921,7 @@ class _FreeFunctionTypeVariableVisitor extends FindTypeVisitor {
 class _FreeTypeVariableVisitor extends FindTypeVisitor {
   final Set<StructuralParameter> boundVariables;
 
-  _FreeTypeVariableVisitor({Set<StructuralParameter>? boundVariables})
+  new({Set<StructuralParameter>? boundVariables})
     : this.boundVariables = boundVariables ?? <StructuralParameter>{};
 
   bool visit(DartType type) => type.accept(this);
@@ -2006,7 +1981,7 @@ bool isPrimitiveDartType(DartType type) {
 /// to its purpose.  The reason for having a visitor is to make the need for an
 /// update visible when a new implementer of [DartType] is introduced in Kernel.
 class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
-  const _PrimitiveTypeVerifier();
+  const new();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) {
@@ -2095,7 +2070,7 @@ DartType unwrapNullabilityConstructor(DartType type) {
 /// Implementing the function as a visitor makes the necessity of supporting a
 /// new implementation of [DartType] visible at compile time.
 class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
-  const _NullabilityConstructorUnwrapper();
+  const new();
 
   @override
   DartType visitAuxiliaryType(AuxiliaryType node) {
@@ -2192,7 +2167,7 @@ abstract class TypeVariableEliminatorBase extends ReplacementVisitor {
   final CoreTypes coreTypes;
   late bool _isLeastClosure;
 
-  TypeVariableEliminatorBase({required this.coreTypes});
+  new({required this.coreTypes});
 
   bool containsTypeVariablesToEliminate(DartType type);
 
@@ -2287,7 +2262,7 @@ class TypeParameterEliminator extends TypeVariableEliminatorBase {
   final Set<TypeParameter> nominalEliminationTargets;
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
-  TypeParameterEliminator({
+  new({
     required this.structuralEliminationTargets,
     required this.nominalEliminationTargets,
     required CoreTypes coreTypes,
@@ -2332,8 +2307,7 @@ class TypeParameterEliminator extends TypeVariableEliminatorBase {
 class FreeTypeParameterEliminator extends TypeVariableEliminatorBase {
   Set<StructuralParameter> _boundVariables = <StructuralParameter>{};
 
-  FreeTypeParameterEliminator({required CoreTypes coreTypes})
-    : super(coreTypes: coreTypes);
+  new({required CoreTypes coreTypes}) : super(coreTypes: coreTypes);
 
   @override
   DartType? visitFunctionType(FunctionType node, Variance variance) {
@@ -2433,7 +2407,7 @@ bool isTypeWithoutNullabilityMarker(DartType type) {
 }
 
 class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
-  const _NullabilityMarkerDetector();
+  const new();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) {

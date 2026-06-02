@@ -54,7 +54,7 @@ void nopVerifyRecompileDelta(String? entryPoint) {}
 void nopVerify() {}
 
 class _MockedCompiler implements CompilerInterface {
-  _MockedCompiler({
+  new({
     this.verifyCompile = nopVerifyCompile,
     this.verifyRecompileDelta = nopVerifyRecompileDelta,
     this.verifyInvalidate = nopVerifyInvalidate,
@@ -3845,7 +3845,7 @@ class CompilationResult {
   late String filename;
   int errorsCount = 0;
 
-  CompilationResult.parse(String? filenameAndErrorCount) {
+  new parse(String? filenameAndErrorCount) {
     if (filenameAndErrorCount == null) {
       return;
     }
@@ -3864,7 +3864,7 @@ class OutputParser {
   String? _boundaryKey;
 
   bool _readingSources = false;
-  OutputParser(this._receivedResults);
+  new(this._receivedResults);
 
   void listener(String s) {
     if (_boundaryKey == null) {
@@ -3910,7 +3910,7 @@ class Result {
   String? status;
   List<String> sources;
 
-  Result(this.status, this.sources);
+  new(this.status, this.sources);
 
   void expectNoErrors({String? filename}) {
     CompilationResult result = new CompilationResult.parse(status);
@@ -3927,7 +3927,7 @@ Matcher not(Matcher matcher) => new NotMatcher(matcher);
 class NotMatcher extends Matcher {
   final Matcher matcher;
 
-  const NotMatcher(this.matcher);
+  const new(this.matcher);
 
   @override
   Description describe(Description description) =>
@@ -3947,7 +3947,7 @@ class FrontendServer {
   final StreamController<Result> receivedResults;
   final OutputParser outputParser;
 
-  factory FrontendServer() {
+  factory() {
     final StreamController<List<int>> inputStreamController =
         new StreamController<List<int>>();
     final StreamController<List<int>> stdoutStreamController =
@@ -3968,7 +3968,7 @@ class FrontendServer {
     );
   }
 
-  FrontendServer._internal(
+  new _internal(
     this.inputStreamController,
     this.stdoutStreamController,
     this.ioSink,

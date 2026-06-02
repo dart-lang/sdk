@@ -17,7 +17,7 @@ abstract class FailureListener {
 class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  factory NaiveTypeChecker(
+  factory(
     FailureListener failures,
     Component component, {
     bool ignoreSdk = false,
@@ -37,7 +37,7 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
     );
   }
 
-  NaiveTypeChecker._(
+  new _(
     this.failures,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,

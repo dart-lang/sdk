@@ -1079,22 +1079,44 @@ class _PluginsOptionsValidator extends OptionsValidator {
           if (pluginName is! String) {
             return;
           }
-          switch (pluginValue) {
-            case YamlScalar(value: String()):
-              // Valid enough. We could validate that it is a legal VersionConstraint
-              // from the pub_semver package.
-              break;
-            case YamlMap():
-              _validatePluginMap(reporter, pluginName, pluginValue);
-            default:
-              reporter.report(
-                diag.invalidSectionFormat
-                    .withArguments(
-                      sectionName:
-                          '${AnalysisOptionsFileKeys.plugins}/$pluginName',
-                    )
-                    .atSourceSpan(pluginValue.span),
-              );
+          if (pluginName == AnalysisOptionsFileKeys.dependencyOverrides) {
+            switch (pluginValue) {
+              case YamlMap():
+                pluginValue.nodes.forEach((
+                  overriddenPluginNameNode,
+                  overriddenPluginValue,
+                ) {
+                  if (overriddenPluginNameNode is! YamlScalar) {
+                    return;
+                  }
+                  var overriddenPluginName = overriddenPluginNameNode.value;
+                  if (overriddenPluginName is! String) {
+                    return;
+                  }
+                  _validatePlugin(
+                    reporter,
+                    '${AnalysisOptionsFileKeys.plugins}/${AnalysisOptionsFileKeys.dependencyOverrides}',
+                    overriddenPluginName,
+                    overriddenPluginValue,
+                  );
+                });
+              default:
+                reporter.report(
+                  diag.invalidSectionFormat
+                      .withArguments(
+                        sectionName:
+                            '${AnalysisOptionsFileKeys.plugins}/${AnalysisOptionsFileKeys.dependencyOverrides}',
+                      )
+                      .atSourceSpan(pluginValue.span),
+                );
+            }
+          } else {
+            _validatePlugin(
+              reporter,
+              AnalysisOptionsFileKeys.plugins,
+              pluginName,
+              pluginValue,
+            );
           }
         });
       case YamlList():
@@ -1116,12 +1138,11 @@ class _PluginsOptionsValidator extends OptionsValidator {
 
   void _validateDiagnostics(
     DiagnosticReporter reporter,
-    String pluginName,
+    String pluginPath,
     YamlNode diagnosticsValue,
   ) {
     var sectionName = [
-      AnalysisOptionsFileKeys.plugins,
-      pluginName,
+      pluginPath,
       AnalysisOptionsFileKeys.diagnostics,
     ].join('/');
     if (diagnosticsValue is! YamlMap) {
@@ -1161,14 +1182,10 @@ class _PluginsOptionsValidator extends OptionsValidator {
 
   void _validateGit(
     DiagnosticReporter reporter,
-    String pluginName,
+    String pluginPath,
     YamlNode gitValue,
   ) {
-    var sectionName = [
-      AnalysisOptionsFileKeys.plugins,
-      pluginName,
-      AnalysisOptionsFileKeys.git,
-    ].join('/');
+    var sectionName = [pluginPath, AnalysisOptionsFileKeys.git].join('/');
 
     if (gitValue is YamlScalar) {
       if (gitValue.value is! String) {
@@ -1205,25 +1222,44 @@ class _PluginsOptionsValidator extends OptionsValidator {
     });
   }
 
+  void _validatePlugin(
+    DiagnosticReporter reporter,
+    String parentPath,
+    String pluginName,
+    YamlNode pluginValue,
+  ) {
+    var pluginPath = '$parentPath/$pluginName';
+    switch (pluginValue) {
+      case YamlScalar(value: String()):
+        // Valid enough. We could validate that it is a legal VersionConstraint
+        // from the pub_semver package.
+        break;
+      case YamlMap():
+        _validatePluginMap(reporter, pluginPath, pluginValue);
+      default:
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: pluginPath)
+              .atSourceSpan(pluginValue.span),
+        );
+    }
+  }
+
   void _validatePluginMap(
     DiagnosticReporter reporter,
-    String pluginName,
+    String pluginPath,
     YamlMap pluginValue,
   ) {
     pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
         if (pluginMapKey == AnalysisOptionsFileKeys.diagnostics) {
-          _validateDiagnostics(reporter, pluginName, pluginMapValueNode);
+          _validateDiagnostics(reporter, pluginPath, pluginMapValueNode);
         } else if (pluginMapKey == AnalysisOptionsFileKeys.git) {
-          _validateGit(reporter, pluginName, pluginMapValueNode);
+          _validateGit(reporter, pluginPath, pluginMapValueNode);
         } else if (!AnalysisOptionsFileKeys.pluginsOptions.contains(
           pluginMapKey,
         )) {
-          _builder.reportError(
-            reporter,
-            '${AnalysisOptionsFileKeys.plugins}/$pluginName',
-            pluginMapKeyNode,
-          );
+          _builder.reportError(reporter, pluginPath, pluginMapKeyNode);
         }
       }
       // TODO(srawlins): Validate 'path' is a YamlScalar.

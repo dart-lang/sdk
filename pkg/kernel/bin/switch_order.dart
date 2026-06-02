@@ -120,7 +120,7 @@ class SortableDataString implements Comparable<SortableDataString> {
   final double data;
   final String value;
 
-  SortableDataString(this.data, this.value);
+  new(this.data, this.value);
 
   @override
   String toString() => value;
@@ -158,7 +158,7 @@ class WrappedBinaryBuilder extends BinaryBuilder {
   List<int> statementTypes = List<int>.filled(255, 0);
   List<int> typeTypes = List<int>.filled(255, 0);
 
-  WrappedBinaryBuilder(_bytes)
+  new(_bytes)
     : super(
         _bytes,
         disableLazyReading: true,

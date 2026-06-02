@@ -18,10 +18,9 @@ main() {
 class UnusedCatchStackTest extends PubPackageResolutionTest {
   test_on_unusedStack() async {
     await resolveTestCodeWithDiagnostics(r'''
-main() {
-  try {
-  } on String catch (exception, stackTrace) {
-//                              ^^^^^^^^^^
+void f() {
+  try {} on String catch (exception, stackTrace) {
+//                                   ^^^^^^^^^^
 // [diag.unusedCatchStack] The stack trace variable 'stackTrace' isn't used and can be removed.
   }
 }
@@ -30,9 +29,8 @@ main() {
 
   test_on_usedStack() async {
     await resolveTestCodeWithDiagnostics(r'''
-main() {
-  try {
-  } on String catch (exception, stackTrace) {
+void f() {
+  try {} on String catch (exception, stackTrace) {
     print(stackTrace);
   }
 }
@@ -41,10 +39,9 @@ main() {
 
   test_unusedStack() async {
     await resolveTestCodeWithDiagnostics(r'''
-main() {
-  try {
-  } catch (exception, stackTrace) {
-//                    ^^^^^^^^^^
+void f() {
+  try {} catch (exception, stackTrace) {
+//                         ^^^^^^^^^^
 // [diag.unusedCatchStack] The stack trace variable 'stackTrace' isn't used and can be removed.
   }
 }
@@ -53,9 +50,8 @@ main() {
 
   test_usedStack() async {
     await resolveTestCodeWithDiagnostics(r'''
-main() {
-  try {
-  } catch (exception, stackTrace) {
+void f() {
+  try {} catch (exception, stackTrace) {
     print(stackTrace);
   }
 }

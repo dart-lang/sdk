@@ -121,7 +121,7 @@ class Strategy extends EquivalenceStrategy {
   final bool unorderedConstructors;
   final bool unorderedAnnotations;
 
-  Strategy({
+  new({
     required this.unorderedLibraries,
     required this.unorderedLibraryDependencies,
     required this.unorderedAdditionalExports,

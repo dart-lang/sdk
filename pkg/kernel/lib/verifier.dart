@@ -48,7 +48,7 @@ enum VerificationStage {
 
 /// Interface that defines how the AST is verified.
 class Verification {
-  const Verification();
+  const new();
 
   /// Returns `true` if [node] is allowed to have no file offset.
   bool allowNoFileOffset(VerificationStage stage, TreeNode node) {
@@ -79,7 +79,7 @@ void verifyComponent(
 }
 
 class VerificationErrorListener {
-  const VerificationErrorListener();
+  const new();
 
   void reportError(
     String details, {
@@ -100,7 +100,7 @@ class VerificationError {
 
   final String details;
 
-  VerificationError(this.context, this.node, this.details);
+  new(this.context, this.node, this.details);
 
   @override
   String toString() {
@@ -200,7 +200,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     );
   }
 
-  VerifyingVisitor(
+  new(
     this.target,
     this.stage, {
     required this.skipPlatform,
@@ -2277,7 +2277,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   Member? currentMember;
   final StatefulStaticTypeContext _staticTypeContext;
 
-  VerifyGetStaticType(this.env)
+  new(this.env)
     : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
 
   @override
@@ -2359,7 +2359,7 @@ class AllowedTypes implements DartTypeVisitor<bool> {
 
   final bool inConstant;
 
-  const AllowedTypes({required this.inConstant});
+  const new({required this.inConstant});
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) => false;

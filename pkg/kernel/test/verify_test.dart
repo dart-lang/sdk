@@ -940,7 +940,7 @@ class TestHarness {
     return new TypeParameter(name, objectRawType, const DynamicType());
   }
 
-  TestHarness() {
+  new() {
     setupComponent();
   }
 

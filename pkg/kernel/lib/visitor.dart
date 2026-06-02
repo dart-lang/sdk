@@ -9,7 +9,7 @@ import 'dart:collection';
 import 'ast.dart';
 
 abstract class ExpressionVisitor<R> {
-  const ExpressionVisitor();
+  const new();
 
   R visitAuxiliaryExpression(AuxiliaryExpression node);
   R visitInvalidExpression(InvalidExpression node);
@@ -310,7 +310,7 @@ mixin PatternVisitorDefaultMixin<R> implements PatternVisitor<R> {
 }
 
 abstract class StatementVisitor<R> {
-  const StatementVisitor();
+  const new();
 
   R visitAuxiliaryStatement(AuxiliaryStatement node);
 
@@ -422,7 +422,7 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
 }
 
 abstract class VariableVisitor<R> {
-  const VariableVisitor();
+  const new();
 
   R visitLegacyVariable(LegacyVariable node);
   R visitPositionalParameter(PositionalParameter node);
@@ -458,7 +458,7 @@ mixin VariableVisitorDefaultMixin<R> implements VariableVisitor<R> {
 }
 
 abstract class MemberVisitor<R> {
-  const MemberVisitor();
+  const new();
 
   R visitConstructor(Constructor node);
   R visitProcedure(Procedure node);
@@ -479,7 +479,7 @@ mixin MemberVisitorDefaultMixin<R> implements MemberVisitor<R> {
 }
 
 abstract class MemberVisitor1<R, A> {
-  const MemberVisitor1();
+  const new();
 
   R visitConstructor(Constructor node, A arg);
   R visitProcedure(Procedure node, A arg);
@@ -500,7 +500,7 @@ mixin MemberVisitor1DefaultMixin<R, A> implements MemberVisitor1<R, A> {
 }
 
 abstract class InitializerVisitor<R> {
-  const InitializerVisitor();
+  const new();
 
   R visitAuxiliaryInitializer(AuxiliaryInitializer node);
   R visitInvalidInitializer(InvalidInitializer node);
@@ -536,7 +536,7 @@ mixin InitializerVisitorDefaultMixin<R> implements InitializerVisitor<R> {
 }
 
 abstract class InitializerVisitor1<R, A> {
-  const InitializerVisitor1();
+  const new();
 
   R visitAuxiliaryInitializer(AuxiliaryInitializer node, A arg);
   R visitInvalidInitializer(InvalidInitializer node, A arg);
@@ -584,7 +584,7 @@ abstract class TreeVisitor<R>
         VariableVisitor<R>,
         MemberVisitor<R>,
         InitializerVisitor<R> {
-  const TreeVisitor();
+  const new();
 
   // Classes
   R visitClass(Class node);
@@ -686,7 +686,7 @@ abstract class TreeVisitorDefault<R>
         MemberVisitorDefaultMixin<R>,
         TreeVisitorDefaultMixin<R>
     implements TreeVisitor<R> {
-  const TreeVisitorDefault();
+  const new();
 
   @override
   R defaultExpression(Expression node) => defaultTreeNode(node);
@@ -710,7 +710,7 @@ abstract class TreeVisitor1<R, A>
         VariableVisitor1<R, A>,
         MemberVisitor1<R, A>,
         InitializerVisitor1<R, A> {
-  const TreeVisitor1();
+  const new();
 
   // Classes
   R visitClass(Class node, A arg);
@@ -820,7 +820,7 @@ abstract class TreeVisitor1Default<R, A>
         InitializerVisitor1DefaultMixin<R, A>,
         MemberVisitor1DefaultMixin<R, A>
     implements TreeVisitor1<R, A> {
-  const TreeVisitor1Default();
+  const new();
 
   @override
   R defaultExpression(Expression node, A arg) => defaultTreeNode(node, arg);
@@ -840,7 +840,7 @@ typedef DartTypeVisitorAuxiliaryFunction<R> =
     R Function(AuxiliaryType node, R Function(AuxiliaryType node) recursor);
 
 abstract class DartTypeVisitor<R> {
-  const DartTypeVisitor();
+  const new();
 
   R visitAuxiliaryType(AuxiliaryType node);
   R visitInvalidType(InvalidType node);
@@ -913,7 +913,7 @@ typedef DartTypeVisitor1AuxiliaryFunction<R, A> =
     );
 
 abstract class DartTypeVisitor1<R, A> {
-  const DartTypeVisitor1();
+  const new();
 
   R visitAuxiliaryType(AuxiliaryType node, A arg);
   R visitInvalidType(InvalidType node, A arg);
@@ -989,7 +989,7 @@ mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
 /// Use [ComputeOnceConstantVisitor] or [VisitOnceConstantVisitor] to visit
 /// a constant node while ensuring each subnode is only visited once.
 abstract class ConstantVisitor<R> {
-  const ConstantVisitor();
+  const new();
 
   R visitAuxiliaryConstant(AuxiliaryConstant node);
   R visitNullConstant(NullConstant node);
@@ -1066,7 +1066,7 @@ mixin ConstantVisitorDefaultMixin<R> implements ConstantVisitor<R> {
 }
 
 abstract class ConstantVisitor1<R, A> {
-  const ConstantVisitor1();
+  const new();
 
   R visitAuxiliaryConstant(AuxiliaryConstant node, A arg);
   R visitNullConstant(NullConstant node, A arg);
@@ -1366,7 +1366,7 @@ abstract class _ConstantCallback<R> {
 class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
   final _ConstantCallback _callback;
 
-  _ConstantCallbackVisitor(this._callback);
+  new(this._callback);
 
   @override
   R visitUnevaluatedConstant(UnevaluatedConstant node) =>
@@ -1499,7 +1499,7 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   late final _ConstantCallbackVisitor<R> _visitor;
   Map<Constant, R> cache = new LinkedHashMap.identity();
 
-  ComputeOnceConstantVisitor() {
+  new() {
     _visitor = new _ConstantCallbackVisitor<R>(this);
   }
 
@@ -1530,7 +1530,7 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   late final _ConstantCallbackVisitor<void> _visitor;
   Set<Constant> cache = new LinkedHashSet.identity();
 
-  VisitOnceConstantVisitor() {
+  new() {
     _visitor = new _ConstantCallbackVisitor<void>(this);
   }
 
@@ -1546,7 +1546,7 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
 }
 
 abstract class MemberReferenceVisitor<R> {
-  const MemberReferenceVisitor();
+  const new();
 
   R visitFieldReference(Field node);
   R visitConstructorReference(Constructor node);
@@ -1568,7 +1568,7 @@ mixin MemberReferenceVisitorDefaultMixin<R>
 }
 
 abstract class MemberReferenceVisitor1<R, A> {
-  const MemberReferenceVisitor1();
+  const new();
 
   R visitFieldReference(Field node, A arg);
   R visitConstructorReference(Constructor node, A arg);
@@ -1598,7 +1598,7 @@ abstract class Visitor<R>
         ConstantVisitor<R>,
         MemberReferenceVisitor<R>,
         ConstantReferenceVisitor<R> {
-  const Visitor();
+  const new();
 
   // TODO(johnniwinther): Move these to [MemberReferenceVisitor].
   R visitClassReference(Class node);
@@ -1636,7 +1636,7 @@ abstract class VisitorDefault<R> extends TreeVisitorDefault<R>
         ConstantVisitorDefaultMixin<R>,
         MemberReferenceVisitorDefaultMixin<R>,
         ConstantReferenceVisitorDefaultMixin<R> {
-  const VisitorDefault();
+  const new();
 
   @override
   R defaultTreeNode(TreeNode node) => defaultNode(node);
@@ -1654,7 +1654,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
         ConstantVisitor1<R, A>,
         MemberReferenceVisitor1<R, A>,
         ConstantReferenceVisitor1<R, A> {
-  const Visitor1();
+  const new();
 
   // TODO(johnniwinther): Move these to [MemberReferenceVisitor1].
   R visitClassReference(Class node, A arg);
@@ -1699,7 +1699,7 @@ abstract class Visitor1Default<R, A> extends TreeVisitor1Default<R, A>
         ConstantVisitor1DefaultMixin<R, A>,
         MemberReferenceVisitor1DefaultMixin<R, A>,
         ConstantReferenceVisitor1DefaultMixin<R, A> {
-  const Visitor1Default();
+  const new();
 
   @override
   R defaultTreeNode(TreeNode node, A arg) => defaultNode(node, arg);
@@ -1849,7 +1849,7 @@ mixin VisitorDefaultValueMixin<R> implements VisitorDefault<R> {
 
 /// Recursive visitor that doesn't return anything from its visit methods.
 class RecursiveVisitor extends VisitorDefault<void> with VisitorVoidMixin {
-  const RecursiveVisitor();
+  const new();
 
   @override
   void defaultNode(Node node) {
@@ -1861,7 +1861,7 @@ class RecursiveVisitor extends VisitorDefault<void> with VisitorVoidMixin {
 /// visit methods.
 class RecursiveResultVisitor<R> extends VisitorDefault<R?>
     with VisitorNullMixin<R> {
-  const RecursiveResultVisitor();
+  const new();
 
   @override
   R? defaultNode(Node node) {
@@ -1896,7 +1896,7 @@ class RecursiveResultVisitor<R> extends VisitorDefault<R?>
 ///     }
 ///
 class Transformer extends TreeVisitorDefault<TreeNode> {
-  const Transformer();
+  const new();
 
   T transform<T extends TreeNode>(T node) {
     return node.accept<TreeNode>(this) as T;
@@ -2003,7 +2003,7 @@ class Transformer extends TreeVisitorDefault<TreeNode> {
 ///     }
 ///
 class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
-  const RemovingTransformer();
+  const new();
 
   /// Visits [node], returning the transformation result.
   ///
@@ -2328,7 +2328,7 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
 }
 
 abstract class ExpressionVisitor1<R, A> {
-  const ExpressionVisitor1();
+  const new();
 
   R visitAuxiliaryExpression(AuxiliaryExpression node, A arg);
   R visitInvalidExpression(InvalidExpression node, A arg);
@@ -2677,7 +2677,7 @@ mixin PatternVisitor1DefaultMixin<R, A> implements PatternVisitor1<R, A> {
 }
 
 abstract class StatementVisitor1<R, A> {
-  const StatementVisitor1();
+  const new();
 
   R visitAuxiliaryStatement(AuxiliaryStatement node, A arg);
   R visitExpressionStatement(ExpressionStatement node, A arg);
@@ -2778,7 +2778,7 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
 }
 
 abstract class VariableVisitor1<R, A> {
-  const VariableVisitor1();
+  const new();
 
   R visitLegacyVariable(LegacyVariable node, A arg);
   R visitPositionalParameter(PositionalParameter node, A arg);

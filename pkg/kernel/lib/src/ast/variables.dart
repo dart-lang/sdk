@@ -121,7 +121,7 @@ sealed class Variable extends VariableBase
   @override
   abstract bool isErroneouslyInitialized;
 
-  factory Variable(
+  factory(
     String? name, {
     Expression? initializer,
     DartType type,
@@ -140,7 +140,7 @@ sealed class Variable extends VariableBase
     bool isWildcard,
   }) = LegacyVariable;
 
-  factory Variable.forValue(
+  factory forValue(
     Expression? initializer, {
     bool isFinal,
     bool isConst,
@@ -152,7 +152,7 @@ sealed class Variable extends VariableBase
     DartType type,
   }) = LegacyVariable.forValue;
 
-  Variable.empty();
+  new empty();
 
   @override
   bool get hasIsFinal;
@@ -249,7 +249,7 @@ class LegacyVariable extends TreeNode implements Variable, Annotatable {
   @override
   Expression? initializer; // May be null.
 
-  LegacyVariable(
+  new(
     this._name, {
     this.initializer,
     this.type = const DynamicType(),
@@ -291,7 +291,7 @@ class LegacyVariable extends TreeNode implements Variable, Annotatable {
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
-  LegacyVariable.forValue(
+  new forValue(
     this.initializer, {
     bool isFinal = true,
     bool isConst = false,
@@ -724,7 +724,7 @@ class LocalVariable extends Variable {
   // TODO(johnniwinther): Remove this.
   Expression? initializer;
 
-  LocalVariable({
+  new({
     this.cosmeticName,
     required DartType? type,
     bool isFinal = false,
@@ -1036,7 +1036,7 @@ class LateVariable extends Variable {
   // TODO(johnniwinther): Rename to [initialValue].
   Expression? initializer;
 
-  LateVariable({
+  new({
     this.cosmeticName,
     required DartType? type,
     bool isFinal = false,
@@ -1351,7 +1351,7 @@ class CatchVariable extends Variable {
   @override
   late VariableContext context;
 
-  CatchVariable({
+  new({
     required String name,
     required DartType? type,
     bool isWildcard = false,
@@ -1651,7 +1651,7 @@ class CatchVariable extends Variable {
 sealed class FunctionParameter extends Variable {
   Expression? defaultValue;
 
-  FunctionParameter({
+  new({
     required Expression? defaultValue,
     required bool isCovariantByDeclaration,
     required bool isRequired,
@@ -1861,7 +1861,7 @@ class PositionalParameter extends FunctionParameter {
   @override
   late VariableContext context;
 
-  PositionalParameter({
+  new({
     this.cosmeticName,
     required this.type,
     super.defaultValue,
@@ -2014,7 +2014,7 @@ class NamedParameter extends FunctionParameter {
   @override
   late VariableContext context;
 
-  NamedParameter({
+  new({
     required this.parameterName,
     required this.type,
     super.defaultValue,
@@ -2170,7 +2170,7 @@ class ThisVariable extends Variable {
   @override
   late VariableContext context;
 
-  ThisVariable({required this.type}) : super.empty();
+  new({required this.type}) : super.empty();
 
   // TODO(cstefantsova): Consider a throwing implementation instead.
   @override
@@ -2458,7 +2458,7 @@ class SyntheticVariable extends Variable {
   // TODO(johnniwinther): Remove this.
   Expression? initializer;
 
-  SyntheticVariable({
+  new({
     this.cosmeticName,
     required this.type,
     this.initializer,
@@ -2740,7 +2740,7 @@ class VariableContext {
   final CaptureKind captureKind;
   final List<VariableBase> variables;
 
-  VariableContext({required this.captureKind, required this.variables});
+  new({required this.captureKind, required this.variables});
 
   void addVariable(VariableBase variable) {
     variable.context = this;
@@ -2774,7 +2774,7 @@ class VariableContext {
 class Scope {
   final List<VariableContext> contexts;
 
-  Scope({required this.contexts});
+  new({required this.contexts});
 
   void addContext(VariableContext context) {
     contexts.add(context);
@@ -2828,7 +2828,7 @@ class VariableDeclaration extends TreeNode implements ContextConsumer {
   @override
   List<VariableContext>? capturedContexts;
 
-  VariableDeclaration(this.variable) {
+  new(this.variable) {
     variable.parent = this;
     variable.variableDeclaration = this;
   }

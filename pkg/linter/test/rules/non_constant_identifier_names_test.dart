@@ -405,7 +405,7 @@ f() {
 
 f() {
   try {
-  } catch(__, ___) {}
+  } catch(__, ___) {} // ignore: unused_catch_stack
 }
 ''');
   }
@@ -414,7 +414,7 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   try {
-  } catch(_, _) {}
+  } catch(_, _) {} // ignore: unused_catch_stack
 }
 ''');
   }
@@ -426,7 +426,7 @@ f() {
 
 f() {
   try {
-  } catch(_, __) {}
+  } catch(_, __) {} // ignore: unused_catch_stack
 }
 ''');
   }

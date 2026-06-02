@@ -67,6 +67,7 @@ final class AnalysisOptionsFileKeys {
   static const String url = 'url';
   static const String version = 'version';
   static const String hosted = 'hosted';
+  static const String dependencyOverrides = 'dependency_overrides';
 
   /// Supported 'plugins' options.
   static const Set<String> pluginsOptions = {

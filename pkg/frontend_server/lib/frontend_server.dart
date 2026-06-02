@@ -573,7 +573,7 @@ class BinaryPrinterFactory {
 }
 
 class FrontendCompiler implements CompilerInterface {
-  FrontendCompiler(
+  new(
     StringSink? outputStream, {
     BinaryPrinterFactory? printerFactory,
     this.transformer,
