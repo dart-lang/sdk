@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -1254,8 +1253,7 @@ const x = <E>[];
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-List
-  elementType: int
+List<int>
   variable: <testLibrary>::@topLevelVariable::x
   typeNotExtensionTypeErased: List<E>
 ''');
@@ -1269,8 +1267,7 @@ const x = [E(0), E(1)];
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-List
-  elementType: int
+List<int>
   elements
     int 0
       typeNotExtensionTypeErased: E
@@ -1289,7 +1286,7 @@ const x = {E(0): E(1)};
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-Map
+Map<int, int>
   entries
     entry
       key: int 0
@@ -2861,8 +2858,7 @@ const x = <String>['a', 'b', 'c'];
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
-List
-  elementType: String
+List<String>
   elements
     String a
     String b
@@ -2877,8 +2873,7 @@ const x = <void Function()>[];
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
-List
-  elementType: void Function()
+List<void Function()>
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -2911,8 +2906,7 @@ const x = ['a', 'b', 'c'];
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
-List
-  elementType: String
+List<String>
   elements
     String a
     String b
@@ -2929,8 +2923,7 @@ const c = [a, 1, b];
 ''');
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
-List
-  elementType: int
+List<int>
   elements
     int 0
       variable: <testLibrary>::@topLevelVariable::a
@@ -2962,8 +2955,7 @@ const List<String> x = [
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-List
-  elementType: String
+List<String>
   elements
     String anotherString
   variable: <testLibrary>::@topLevelVariable::x
@@ -2980,8 +2972,7 @@ const List<String> x = [
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-List
-  elementType: String
+List<String>
   elements
     String anotherString
     String string
@@ -3464,7 +3455,7 @@ const x = {A(0): 1, fn: 2};
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
-Map
+Map<Object, int>
   entries
     entry
       key: A
@@ -3523,7 +3514,7 @@ const x = {'a' : 'm', 'b' : 'n', 'c' : 'o'};
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-Map
+Map<String, String>
   entries
     entry
       key: String a
@@ -3548,7 +3539,7 @@ const Map<String, int> alwaysInclude = {
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-Map
+Map<String, int>
   entries
     entry
       key: String string
@@ -3580,7 +3571,7 @@ const Map<String, int> x = {
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-Map
+Map<String, int>
   entries
     entry
       key: String anotherString
@@ -3603,7 +3594,7 @@ const a = {cp0, cm0};
 ''');
     var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, '''
-Set
+Set<C>
   elements
     C
       x: double 0.0
@@ -3657,7 +3648,7 @@ const Set<String> x = {
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-Set
+Set<String>
   elements
     String anotherString
     String string
@@ -3675,7 +3666,7 @@ const Set<String> x = {
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, '''
-Set
+Set<String>
   elements
     String anotherString
   variable: <testLibrary>::@topLevelVariable::x
@@ -3900,269 +3891,288 @@ mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
-    );
-    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+List<int>
+  elements
+    int 1
+    int 3
+    int 4
+''');
   }
 
   test_listLiteral_ifElement_false_withoutElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 < 0) 2, 3];
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
-    );
-    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+List<int>
+  elements
+    int 1
+    int 3
+''');
   }
 
   test_listLiteral_ifElement_true_withElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
-    );
-    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+List<int>
+  elements
+    int 1
+    int 2
+    int 4
+''');
   }
 
   test_listLiteral_ifElement_true_withoutElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) 2, 3];
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
-    );
-    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+List<int>
+  elements
+    int 1
+    int 2
+    int 3
+''');
   }
 
   test_listLiteral_nested() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    // The expected type ought to be `List<int>`, but type inference isn't yet
-    // implemented.
-    expect(
-      result.type,
-      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
-    );
-    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+List<int>
+  elements
+    int 1
+    int 2
+    int 3
+''');
   }
 
   test_listLiteral_spreadElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, ...[2, 3], 4];
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.listType(unitResult.typeProvider.intType),
-    );
-    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+List<int>
+  elements
+    int 1
+    int 2
+    int 3
+    int 4
+''');
   }
 
   test_mapLiteral_ifElement_false_withElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.mapType(
-        unitResult.typeProvider.stringType,
-        unitResult.typeProvider.intType,
-      ),
-    );
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(
-      value.keys.map((e) => e.toStringValue()),
-      unorderedEquals(['a', 'c', 'd']),
-    );
-    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3, 4]));
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Map<String, int>
+  entries
+    entry
+      key: String a
+      value: int 1
+    entry
+      key: String c
+      value: int 3
+    entry
+      key: String d
+      value: int 4
+''');
   }
 
   test_mapLiteral_ifElement_false_withoutElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.mapType(
-        unitResult.typeProvider.stringType,
-        unitResult.typeProvider.intType,
-      ),
-    );
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(
-      value.keys.map((e) => e.toStringValue()),
-      unorderedEquals(['a', 'c']),
-    );
-    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3]));
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Map<String, int>
+  entries
+    entry
+      key: String a
+      value: int 1
+    entry
+      key: String c
+      value: int 3
+''');
   }
 
   test_mapLiteral_ifElement_true_withElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.mapType(
-        unitResult.typeProvider.stringType,
-        unitResult.typeProvider.intType,
-      ),
-    );
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(
-      value.keys.map((e) => e.toStringValue()),
-      unorderedEquals(['a', 'b', 'd']),
-    );
-    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 4]));
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Map<String, int>
+  entries
+    entry
+      key: String a
+      value: int 1
+    entry
+      key: String b
+      value: int 2
+    entry
+      key: String d
+      value: int 4
+''');
   }
 
   test_mapLiteral_ifElement_true_withoutElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.mapType(
-        unitResult.typeProvider.stringType,
-        unitResult.typeProvider.intType,
-      ),
-    );
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(
-      value.keys.map((e) => e.toStringValue()),
-      unorderedEquals(['a', 'b', 'c']),
-    );
-    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Map<String, int>
+  entries
+    entry
+      key: String a
+      value: int 1
+    entry
+      key: String b
+      value: int 2
+    entry
+      key: String c
+      value: int 3
+''');
   }
 
   test_mapLiteral_nested() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) if (2 > 1) ...{'b' : 2}, 'c' : 3};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.mapType(
-        unitResult.typeProvider.stringType,
-        unitResult.typeProvider.intType,
-      ),
-    );
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(
-      value.keys.map((e) => e.toStringValue()),
-      unorderedEquals(['a', 'b', 'c']),
-    );
-    expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Map<String, int>
+  entries
+    entry
+      key: String a
+      value: int 1
+    entry
+      key: String b
+      value: int 2
+    entry
+      key: String c
+      value: int 3
+''');
   }
 
   test_mapLiteral_spreadElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.mapType(
-        unitResult.typeProvider.stringType,
-        unitResult.typeProvider.intType,
-      ),
-    );
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(
-      value.keys.map((e) => e.toStringValue()),
-      unorderedEquals(['a', 'b', 'c', 'd']),
-    );
-    expect(
-      value.values.map((e) => e.toIntValue()),
-      unorderedEquals([1, 2, 3, 4]),
-    );
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Map<String, int>
+  entries
+    entry
+      key: String a
+      value: int 1
+    entry
+      key: String b
+      value: int 2
+    entry
+      key: String c
+      value: int 3
+    entry
+      key: String d
+      value: int 4
+''');
   }
 
   test_setLiteral_ifElement_false_withElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
-    );
-    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Set<int>
+  elements
+    int 1
+    int 3
+    int 4
+''');
   }
 
   test_setLiteral_ifElement_false_withoutElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 < 0) 2, 3};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
-    );
-    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Set<int>
+  elements
+    int 1
+    int 3
+''');
   }
 
   test_setLiteral_ifElement_true_withElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
-    );
-    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Set<int>
+  elements
+    int 1
+    int 2
+    int 4
+''');
   }
 
   test_setLiteral_ifElement_true_withoutElse() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) 2, 3};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
-    );
-    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Set<int>
+  elements
+    int 1
+    int 2
+    int 3
+''');
   }
 
   test_setLiteral_nested() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
-    );
-    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Set<int>
+  elements
+    int 1
+    int 2
+    int 3
+''');
   }
 
   test_setLiteral_spreadElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, ...{2, 3}, 4};
 ''');
-    DartObjectImpl result = _evaluateConstant(unitResult, 'c');
-    expect(
-      result.type,
-      unitResult.typeProvider.setType(unitResult.typeProvider.intType),
-    );
-    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
+    var result = _evaluateConstant(unitResult, 'c');
+    assertDartObjectText(result, '''
+Set<int>
+  elements
+    int 1
+    int 2
+    int 3
+    int 4
+''');
   }
 
   test_visitAdjacentInterpolation_simple() async {

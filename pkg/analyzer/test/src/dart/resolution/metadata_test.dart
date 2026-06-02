@@ -855,15 +855,13 @@ Annotation
 ''');
     _assertAnnotationValueText(node, '''
 A<Object?>
-  f: List
-    elementType: List<Object?>
+  f: List<List<Object?>>
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: Object?}
     positionalArguments
-      0: List
-        elementType: List<Object?>
+      0: List<List<Object?>>
 ''');
   }
 
@@ -903,15 +901,13 @@ Annotation
 ''');
     _assertAnnotationValueText(node, r'''
 A<Object?>
-  f: List
-    elementType: List<Object?>
+  f: List<List<Object?>>
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: Object?}
     positionalArguments
-      0: List
-        elementType: List<Object?>
+      0: List<List<Object?>>
 ''');
   }
 
