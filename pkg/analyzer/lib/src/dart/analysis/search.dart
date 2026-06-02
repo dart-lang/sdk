@@ -168,6 +168,31 @@ enum DeclarationKind {
   VARIABLE,
 }
 
+/// A direct subtype with its declared instance member names.
+class DirectSubtypeWithMembers {
+  /// The library containing the subtype.
+  final FileState library;
+
+  /// The identifier of the subtype.
+  final String id;
+
+  /// The name of the subtype.
+  final String name;
+
+  /// The names of instance members declared in the class.
+  final List<String> members;
+
+  DirectSubtypeWithMembers({
+    required this.library,
+    required this.id,
+    required this.name,
+    required this.members,
+  });
+
+  @override
+  String toString() => id;
+}
+
 /// Searches through files known to [drivers] for declarations.
 ///
 /// If files are known to multiple drivers, they will be searched only within
@@ -384,6 +409,50 @@ class Search {
     return elements;
   }
 
+  /// Returns references that declare direct subtypes of the given [type].
+  Future<List<SearchResult>> directSubtypeReferences(
+    InterfaceElement? type,
+  ) async {
+    if (type == null) {
+      return const <SearchResult>[];
+    }
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, type, const {
+      IndexRelationKind.IS_EXTENDED_BY:
+          SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
+      IndexRelationKind.IS_MIXED_IN_BY:
+          SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
+      IndexRelationKind.IS_IMPLEMENTED_BY:
+          SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
+      IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
+    });
+    return results;
+  }
+
+  /// Return direct subtypes of [subtype] with their declared instance member
+  /// names.
+  Future<List<DirectSubtypeWithMembers>> directSubtypesWithMembersOfSubtype(
+    DirectSubtypeWithMembers subtype,
+  ) async {
+    return _directSubtypesWithMembers(name: subtype.name, id: subtype.id);
+  }
+
+  /// Return direct subtypes of [type] with their declared instance member
+  /// names.
+  Future<List<DirectSubtypeWithMembers>> directSubtypesWithMembersOfType(
+    InterfaceElement type,
+  ) async {
+    var typeElementId = SubtypeIndexElementId.fromElement(type);
+    if (typeElementId != null) {
+      return _directSubtypesWithMembers(
+        name: typeElementId.name,
+        id: typeElementId.id,
+      );
+    }
+
+    return [];
+  }
+
   /// Return the prefixes used to reference the [element] in any of the
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
@@ -483,68 +552,6 @@ class Search {
         range: SourceRange(match.offset, match.length),
       );
     }).toList();
-  }
-
-  /// Returns subtypes of the given [type].
-  Future<List<SearchResult>> subTypes(InterfaceElement? type) async {
-    if (type == null) {
-      return const <SearchResult>[];
-    }
-    List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, type, const {
-      IndexRelationKind.IS_EXTENDED_BY:
-          SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE,
-      IndexRelationKind.IS_MIXED_IN_BY:
-          SearchResultKind.REFERENCE_IN_WITH_CLAUSE,
-      IndexRelationKind.IS_IMPLEMENTED_BY:
-          SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
-      IndexRelationKind.CONSTRAINS: SearchResultKind.REFERENCE_IN_ON_CLAUSE,
-    });
-    return results;
-  }
-
-  /// Return direct [SubtypeResult]s for either the [type] or [subtype].
-  Future<List<SubtypeResult>> subtypes({
-    InterfaceElement? type,
-    SubtypeResult? subtype,
-  }) async {
-    String name;
-    String id;
-    if (type != null) {
-      if (type.name case var elementName?) {
-        name = elementName;
-        var libraryFile = type.library.firstFragment.source.mustBeFile;
-        var fragmentFile = type.firstFragment.libraryFragment.source.mustBeFile;
-        id = '${libraryFile.path};${fragmentFile.path};$name';
-      } else {
-        return [];
-      }
-    } else {
-      name = subtype!.name;
-      id = subtype.id;
-    }
-
-    List<SubtypeResult> results = [];
-
-    _driver.discoverAvailableFiles();
-
-    var subtypingFiles = _driver.fsState.getFilesSubtypingName(name);
-
-    if (subtypingFiles != null) {
-      for (var file in _filesForSearch()) {
-        if (!subtypingFiles.contains(file)) {
-          continue;
-        }
-
-        var index = await _driver.getIndex(file.path);
-        if (index != null) {
-          var request = _IndexRequest(index);
-          request.addSubtypes(id, results, file);
-        }
-      }
-    }
-
-    return results;
   }
 
   /// Returns top-level elements with names matching the given [regExp].
@@ -724,6 +731,33 @@ class Search {
       );
       results.addAll(fileResults);
     }
+  }
+
+  Future<List<DirectSubtypeWithMembers>> _directSubtypesWithMembers({
+    required String name,
+    required String id,
+  }) async {
+    List<DirectSubtypeWithMembers> results = [];
+
+    _driver.discoverAvailableFiles();
+
+    var subtypingFiles = _driver.fsState.getFilesSubtypingName(name);
+
+    if (subtypingFiles != null) {
+      for (var file in _filesForSearch()) {
+        if (!subtypingFiles.contains(file)) {
+          continue;
+        }
+
+        var index = await _driver.getIndex(file.path);
+        if (index != null) {
+          var request = _IndexRequest(index);
+          request.addDirectSubtypesWithMembers(id, results, file);
+        }
+      }
+    }
+
+    return results;
   }
 
   Iterable<FileState> _filesForSearch() {
@@ -1164,31 +1198,6 @@ enum SearchResultKind {
   REFERENCE_IN_IMPLEMENTS_CLAUSE,
 }
 
-/// A single subtype of a type.
-class SubtypeResult {
-  /// The library containing the subtype.
-  final FileState library;
-
-  /// The identifier of the subtype.
-  final String id;
-
-  /// The name of the subtype.
-  final String name;
-
-  /// The names of instance members declared in the class.
-  final List<String> members;
-
-  SubtypeResult({
-    required this.library,
-    required this.id,
-    required this.name,
-    required this.members,
-  });
-
-  @override
-  String toString() => id;
-}
-
 class WorkspaceSymbols {
   final List<Declaration> declarations = [];
   final List<String> files = [];
@@ -1521,9 +1530,9 @@ class _IndexRequest {
 
   _IndexRequest(this.index);
 
-  void addSubtypes(
+  void addDirectSubtypesWithMembers(
     String superIdString,
-    List<SubtypeResult> results,
+    List<DirectSubtypeWithMembers> results,
     FileState file,
   ) {
     var superId = index.getStringId(superIdString);
@@ -1549,12 +1558,16 @@ class _IndexRequest {
     ) {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
-      var subId = '${library.file.path};${file.path};$name';
+      var subtypeElementId = SubtypeIndexElementId(
+        librarySource: library.file.source,
+        declarationSource: file.source,
+        name: name,
+      );
       results.add(
-        SubtypeResult(
+        DirectSubtypeWithMembers(
           library: library.file,
-          id: subId,
-          name: name,
+          id: subtypeElementId.id,
+          name: subtypeElementId.name,
           members: subtype.members.map((m) => index.strings[m]).toList(),
         ),
       );
@@ -1861,15 +1874,4 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 /// The marker class that is thrown to stop adding declarations.
 class _MaxNumberOfDeclarationsError {
   const _MaxNumberOfDeclarationsError();
-}
-
-extension _SourceExtension on Source {
-  /// Returns the [File] for this source.
-  ///
-  /// This assumes that the source is a [FileSource], which is safe because
-  /// index and search are only supported in DAS, where all sources are file
-  /// based.
-  File get mustBeFile {
-    return (this as FileSource).file;
-  }
 }

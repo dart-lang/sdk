@@ -4,8 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -55,6 +53,15 @@ class IndexTest extends PubPackageResolutionTest {
 
   void assertNameIndexText(_IndexResult result, String name, String expected) {
     var actual = _IndexTextBuilder(result).nameRelations(name);
+    if (actual != expected) {
+      NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
+    }
+  }
+
+  void assertSubtypeIndexText(_IndexResult result, String expected) {
+    var actual = _toPosixPaths(_IndexTextBuilder(result).subtypes());
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       printPrettyDiff(expected, actual);
@@ -4179,16 +4186,15 @@ void useSetter() {
   }
 
   test_subtypes_classDeclaration() async {
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {}
 class B {}
 class C {}
 class D {}
 class E {}
 ''');
-    String libP = '${libFile.path};${libFile.path}';
     var result = await _indexTestCode('''
-import 'lib.dart';
+import 'a.dart';
 
 class X extends A {
   X();
@@ -4226,39 +4232,60 @@ class Z implements E, D {
 }
 ''');
 
-    expect(result.index.supertypes, hasLength(6));
-    expect(result.index.subtypes, hasLength(6));
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> X
+  field1
+  field2
+  getter1
+  method1
+  setter1
+/home/test/lib/a.dart;/home/test/lib/a.dart;B -> Y
+  methodY
+/home/test/lib/a.dart;/home/test/lib/a.dart;C -> Y
+  methodY
+/home/test/lib/a.dart;/home/test/lib/a.dart;D -> Z
+  methodZ
+/home/test/lib/a.dart;/home/test/lib/a.dart;E -> Z
+  methodZ
+/sdk/lib/core/core.dart;/sdk/lib/core/core.dart;Object -> Y
+  methodY
+''');
+  }
 
-    _assertSubtype(result, 0, '$libP;A', 'X', [
-      'field1',
-      'field2',
-      'getter1',
-      'method1',
-      'setter1',
-    ]);
-    _assertSubtype(result, 1, '$libP;B', 'Y', ['methodY']);
-    _assertSubtype(result, 2, '$libP;C', 'Y', ['methodY']);
-    _assertSubtype(result, 3, '$libP;D', 'Z', ['methodZ']);
-    _assertSubtype(result, 4, '$libP;E', 'Z', ['methodZ']);
-    _assertSubtype(
-      result,
-      5,
-      _interfaceId(result.resolvedUnit.typeProvider.objectElement)!,
-      'Y',
-      ['methodY'],
-    );
+  test_subtypes_classDeclaration_supertypeInPart() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', '''
+part of 'a.dart';
+
+class A {}
+''');
+
+    var result = await _indexTestCode('''
+import 'a.dart';
+
+class X extends A {
+  void methodX() {}
+}
+''');
+
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/a.dart;/home/test/lib/b.dart;A -> X
+  methodX
+''');
   }
 
   test_subtypes_classTypeAlias() async {
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {}
 class B {}
 class C {}
 class D {}
 ''');
-    String libP = '${libFile.path};${libFile.path}';
     var result = await _indexTestCode('''
-import 'lib.dart';
+import 'a.dart';
 
 class X = A with B, C;
 //               ^
@@ -4270,16 +4297,15 @@ class Y = A with B implements C, D;
 // [diag.classUsedAsMixin] The class 'B' can't be used as a mixin because it's neither a mixin class nor a mixin.
 ''');
 
-    expect(result.index.supertypes, hasLength(7));
-    expect(result.index.subtypes, hasLength(7));
-
-    _assertSubtype(result, 0, '$libP;A', 'X', []);
-    _assertSubtype(result, 1, '$libP;A', 'Y', []);
-    _assertSubtype(result, 2, '$libP;B', 'X', []);
-    _assertSubtype(result, 3, '$libP;B', 'Y', []);
-    _assertSubtype(result, 4, '$libP;C', 'X', []);
-    _assertSubtype(result, 5, '$libP;C', 'Y', []);
-    _assertSubtype(result, 6, '$libP;D', 'Y', []);
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> X
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> Y
+/home/test/lib/a.dart;/home/test/lib/a.dart;B -> X
+/home/test/lib/a.dart;/home/test/lib/a.dart;B -> Y
+/home/test/lib/a.dart;/home/test/lib/a.dart;C -> X
+/home/test/lib/a.dart;/home/test/lib/a.dart;C -> Y
+/home/test/lib/a.dart;/home/test/lib/a.dart;D -> Y
+''');
   }
 
   test_subtypes_dynamic() async {
@@ -4291,12 +4317,11 @@ class X extends dynamic {
 }
 ''');
 
-    expect(result.index.supertypes, isEmpty);
-    expect(result.index.subtypes, isEmpty);
+    assertSubtypeIndexText(result, r'''
+''');
   }
 
   test_subtypes_enum_implements() async {
-    String libP = '${testFile.path};${testFile.path}';
     var result = await _indexTestCode('''
 class A {}
 
@@ -4306,12 +4331,13 @@ enum E implements A {
 }
 ''');
 
-    expect(result.index.subtypes, hasLength(1));
-    _assertSubtype(result, 0, '$libP;A', 'E', ['foo']);
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/test.dart;/home/test/lib/test.dart;A -> E
+  foo
+''');
   }
 
   test_subtypes_enum_with() async {
-    String libP = '${testFile.path};${testFile.path}';
     var result = await _indexTestCode('''
 mixin M {}
 
@@ -4321,20 +4347,21 @@ enum E with M {
 }
 ''');
 
-    expect(result.index.subtypes, hasLength(1));
-    _assertSubtype(result, 0, '$libP;M', 'E', ['foo']);
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/test.dart;/home/test/lib/test.dart;M -> E
+  foo
+''');
   }
 
   test_subtypes_extensionType_class() async {
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   void method1() {}
   void method2() {}
 }
 ''');
-    String libP = '${libFile.path};${libFile.path}';
     var result = await _indexTestCode('''
-import 'lib.dart';
+import 'a.dart';
 
 extension type X(A it) implements A {
   void method1() {}
@@ -4342,22 +4369,22 @@ extension type X(A it) implements A {
 }
 ''');
 
-    expect(result.index.supertypes, hasLength(1));
-    expect(result.index.subtypes, hasLength(1));
-
-    _assertSubtype(result, 0, '$libP;A', 'X', ['method1', 'method3']);
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> X
+  method1
+  method3
+''');
   }
 
   test_subtypes_extensionType_extensionType() async {
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 extension type A(int it) {
   void method1() {}
   void method2() {}
 }
 ''');
-    String libP = '${libFile.path};${libFile.path}';
     var result = await _indexTestCode('''
-import 'lib.dart';
+import 'a.dart';
 
 extension type X(int it) implements A {
   void method1() {}
@@ -4365,37 +4392,36 @@ extension type X(int it) implements A {
 }
 ''');
 
-    expect(result.index.supertypes, hasLength(1));
-    expect(result.index.subtypes, hasLength(1));
-
-    _assertSubtype(result, 0, '$libP;A', 'X', ['method1', 'method3']);
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> X
+  method1
+  method3
+''');
   }
 
   test_subtypes_mixinDeclaration() async {
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {}
 class B {}
 class C {}
 class D {}
 class E {}
 ''');
-    String libP = '${libFile.path};${libFile.path}';
     var result = await _indexTestCode('''
-import 'lib.dart';
+import 'a.dart';
 
 mixin X on A implements B, C {}
 mixin Y on A, B implements C;
 ''');
 
-    expect(result.index.supertypes, hasLength(6));
-    expect(result.index.subtypes, hasLength(6));
-
-    _assertSubtype(result, 0, '$libP;A', 'X', []);
-    _assertSubtype(result, 1, '$libP;A', 'Y', []);
-    _assertSubtype(result, 2, '$libP;B', 'X', []);
-    _assertSubtype(result, 3, '$libP;B', 'Y', []);
-    _assertSubtype(result, 4, '$libP;C', 'X', []);
-    _assertSubtype(result, 5, '$libP;C', 'Y', []);
+    assertSubtypeIndexText(result, r'''
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> X
+/home/test/lib/a.dart;/home/test/lib/a.dart;A -> Y
+/home/test/lib/a.dart;/home/test/lib/a.dart;B -> X
+/home/test/lib/a.dart;/home/test/lib/a.dart;B -> Y
+/home/test/lib/a.dart;/home/test/lib/a.dart;C -> X
+/home/test/lib/a.dart;/home/test/lib/a.dart;C -> Y
+''');
   }
 
   test_SuperFormalParameterElement_ofConstructor_optionalNamed() async {
@@ -4824,27 +4850,6 @@ void f() {
 ''');
   }
 
-  void _assertSubtype(
-    _IndexResult result,
-    int i,
-    String superEncoded,
-    String subName,
-    List<String> members,
-  ) {
-    var index = result.index;
-    expect(index.strings[index.supertypes[i]], superEncoded);
-    var subtype = index.subtypes[i];
-    expect(index.strings[subtype.name], subName);
-    expect(_decodeStringList(index, subtype.members), members);
-  }
-
-  List<String> _decodeStringList(
-    AnalysisDriverUnitIndex index,
-    List<int> stringIds,
-  ) {
-    return stringIds.map((i) => index.strings[i]).toList();
-  }
-
   Future<_IndexResult> _indexFileWithDiagnostics(File file, String code) async {
     var unitResult = await resolveFileWithDiagnostics(file, code);
     var indexBuilder = indexUnit(unitResult.unit);
@@ -4857,14 +4862,12 @@ void f() {
     return _indexFileWithDiagnostics(testFile, code);
   }
 
-  String? _interfaceId(InterfaceElement element) {
-    var libraryFile = element.library.firstFragment.source.mustBeFile;
-    var libraryPath = libraryFile.path;
-
-    var fragmentFile = element.firstFragment.libraryFragment.source.mustBeFile;
-    var fragmentPath = fragmentFile.path;
-
-    return '$libraryPath;$fragmentPath;${element.name}';
+  static String _toPosixPaths(String text) {
+    return text.replaceAllMapped(RegExp(r'C:\\([a-zA-Z0-9_.\\]+)'), (match) {
+      var path = match.group(1)!;
+      var posixPath = path.replaceAll(r'\', '/');
+      return '/$posixPath';
+    });
   }
 }
 
@@ -4983,6 +4986,23 @@ final class _IndexTextBuilder {
     return buffer.toString();
   }
 
+  String subtypes() {
+    var index = result.index;
+    expect(index.supertypes.length, index.subtypes.length);
+
+    var buffer = StringBuffer();
+    for (var i = 0; i < index.supertypes.length; i++) {
+      var supertypeId = index.strings[index.supertypes[i]];
+      var subtype = index.subtypes[i];
+      var subtypeName = index.strings[subtype.name];
+      buffer.writeln('$supertypeId -> $subtypeName');
+      for (var member in subtype.members) {
+        buffer.writeln('  ${index.strings[member]}');
+      }
+    }
+    return buffer.toString();
+  }
+
   /// Return the [element] identifier in the result index, or `null`.
   int? _findElementId(Element element) {
     var index = result.index;
@@ -5087,16 +5107,5 @@ final class _IndexTextBuilder {
     buffer.write(location.columnNumber);
     buffer.write(' ');
     buffer.write('|$snippet|');
-  }
-}
-
-extension _SourceExtension on Source {
-  /// Returns the [File] for this source.
-  ///
-  /// This assumes that the source is a [FileSource], which is safe because
-  /// index and search are only supported in DAS, where all sources are file
-  /// based.
-  File get mustBeFile {
-    return (this as FileSource).file;
   }
 }

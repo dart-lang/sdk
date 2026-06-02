@@ -54,31 +54,35 @@ class SearchEngineImpl implements SearchEngine {
     var visitedIds = <String>{};
     var members = <String>{};
 
-    Future<void> addMembers(
-      InterfaceElement? type,
-      SubtypeResult? subtype,
-    ) async {
-      if (subtype != null && !visitedIds.add(subtype.id)) {
+    Future<void> addSubtype(DirectSubtypeWithMembers subtype) async {
+      if (!visitedIds.add(subtype.id)) {
         return;
       }
+
+      hasSubtypes = true;
+      members.addAll(
+        subtype.library.resource == libraryFile
+            ? subtype.members
+            : subtype.members.where((name) => !name.startsWith('_')),
+      );
+
       for (var driver in drivers) {
-        var subtypes = await driver.search.subtypes(
-          type: type,
-          subtype: subtype,
-        );
-        for (var subtype in subtypes) {
-          hasSubtypes = true;
-          members.addAll(
-            subtype.library.resource == libraryFile
-                ? subtype.members
-                : subtype.members.where((name) => !name.startsWith('_')),
-          );
-          await addMembers(null, subtype);
+        var directSubtypes = await driver.search
+            .directSubtypesWithMembersOfSubtype(subtype);
+        for (var directSubtype in directSubtypes) {
+          await addSubtype(directSubtype);
         }
       }
     }
 
-    await addMembers(type, null);
+    for (var driver in drivers) {
+      var directSubtypes = await driver.search.directSubtypesWithMembersOfType(
+        type,
+      );
+      for (var directSubtype in directSubtypes) {
+        await addSubtype(directSubtype);
+      }
+    }
 
     if (!hasSubtypes) {
       return null;
@@ -199,8 +203,8 @@ class SearchEngineImpl implements SearchEngine {
     _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await performance.runAsync(
-        'subTypes',
-        (_) => driver.search.subTypes(type),
+        'directSubtypeReferences',
+        (_) => driver.search.directSubtypeReferences(type),
       );
       allResults.addAll(results);
     }

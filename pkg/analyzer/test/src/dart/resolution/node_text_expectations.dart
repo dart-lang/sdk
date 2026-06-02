@@ -248,7 +248,7 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'SearchTest',
-      methodName: 'assertSubTypesText',
+      methodName: 'assertDirectSubtypeReferencesText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
