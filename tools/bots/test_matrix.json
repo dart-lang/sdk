@@ -196,6 +196,17 @@
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json"
+    ],
+    "fuchsia": [
+      ".dart_tool/package_config.json",
+      "build/fuchsia/",
+      "out/ReleaseFuchsiaARM64/gen/dart_test/",
+      "pkg/",
+      "samples/",
+      "tests/",
+      "third_party/fuchsia/",
+      "third_party/pkg/",
+      "tools/"
     ]
   },
   "configurations": {
@@ -1683,7 +1694,7 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
             "-j8",
@@ -1691,7 +1702,7 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
             "-j8",
@@ -1717,15 +1728,17 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
             "-j1",
             "ffi"
-          ]
+          ],
+          "fileset": "fuchsia",
+          "shards": 3
         },
         {
-          "name": "vm tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
             "-j1",
