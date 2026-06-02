@@ -1459,9 +1459,12 @@ class BytecodeGenerator extends RecursiveVisitor {
           break;
       }
       if (returnMethod != null) {
-        // Unlike other async machinery, this can't be marked synthetic
-        // as the method may return directly from the direct call and so
-        // the debugger needs to pause at it, not the following return.
+        // Before returning, the suspend state variable is cleared, and
+        // the debugger assumes a null suspend state variable in an asynchronous
+        // function means that it is still in the function prologue. Emit
+        // an appropriate source position first so the debugger pauses prior
+        // to returning without requiring special detection of the call/return.
+        asm.emitSourcePosition();
         asm.emitPopLocal(locals.returnVarIndexInFrame);
         asm.emitPush(locals.suspendStateVarIndexInFrame);
         asm.emitPush(locals.returnVarIndexInFrame);

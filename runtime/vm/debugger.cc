@@ -3998,45 +3998,6 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
   return false;
 }
 
-static bool IsAtBytecodeAsyncReturn(ActivationFrame* top_frame) {
-#if defined(DART_DYNAMIC_MODULES)
-  if (!top_frame->IsInterpreted()) return false;
-  const auto& bytecode = top_frame->bytecode();
-  const uword return_address = top_frame->pc();
-  const uword prev = bytecode.GetInstructionBefore(return_address);
-  if (prev == 0) {
-    const uword start = bytecode.PayloadStart();
-    // Async awaiter frames have an PC offset of 0 or 1.
-    ASSERT(return_address == start ||
-           return_address == start + StackTraceUtils::kFutureListenerPcOffset);
-    return false;
-  }
-  auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
-  // Async returns in bytecode are implemented via direct calls to
-  // the appropriate Dart async return method. Note that unlike other async
-  // machinery, the direct call to _returnAsync is not marked synthetic.
-  if (!KernelBytecode::IsDirectCallOpcode(instr)) {
-    return false;
-  }
-  auto const index = KernelBytecode::DecodeD(instr);
-  auto* const thread = Thread::Current();
-  Zone* const zone = thread->zone();
-  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
-  const auto& obj = Object::Handle(zone, pool.ObjectAt(index));
-  if (obj.IsNull() || !obj.IsFunction()) {
-    return false;
-  }
-  const auto& target = Function::Cast(obj);
-  auto* const object_store = thread->isolate_group()->object_store();
-  return target.ptr() == object_store->suspend_state_return_async() ||
-         target.ptr() ==
-             object_store->suspend_state_return_async_not_future() ||
-         target.ptr() == object_store->suspend_state_return_async_star();
-#else
-  return false;
-#endif
-}
-
 #if defined(DART_DYNAMIC_MODULES)
 static ActivationFrame::Relation CompareTopDartFrameTo(uword other_fp,
                                                        bool is_interpreted) {
@@ -4130,10 +4091,7 @@ ErrorPtr Debugger::PauseStepping() {
   // with regular function wrt the first stop in the function prologue.
   if ((frame->function().IsAsyncFunction() ||
        frame->function().IsAsyncGenerator()) &&
-      frame->GetSuspendStateVar() == Object::null() &&
-      // The bytecode generator sets the suspend state var to null prior
-      // to returning.
-      !IsAtBytecodeAsyncReturn(frame)) {
+      frame->GetSuspendStateVar() == Object::null()) {
     return Error::null();
   }
 
