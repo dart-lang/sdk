@@ -206,6 +206,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     INFO (static getter: AnalysisErrorSeverity)
     WARNING (static getter: AnalysisErrorSeverity)
     values (static getter: List<AnalysisErrorSeverity>)
+    fromJson (constructor: AnalysisErrorSeverity Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisErrorType (enum):
@@ -218,6 +219,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     SYNTACTIC_ERROR (static getter: AnalysisErrorType)
     TODO (static getter: AnalysisErrorType)
     values (static getter: List<AnalysisErrorType>)
+    fromJson (constructor: AnalysisErrorType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AssistDescription (class extends Object implements HasToJson):
@@ -311,6 +313,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     PACKAGE_NAME (static getter: CompletionSuggestionKind)
     PARAMETER (static getter: CompletionSuggestionKind)
     values (static getter: List<CompletionSuggestionKind>)
+    fromJson (constructor: CompletionSuggestionKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   DiagnosticMessage@1 (class extends Object implements HasToJson):
@@ -393,6 +396,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     UNIT_TEST_TEST (static getter: ElementKind@1)
     UNKNOWN (static getter: ElementKind@1)
     values (static getter: List<ElementKind@1>)
+    fromJson (constructor: ElementKind@1 Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   FixDescription (class extends Object implements HasToJson):
@@ -421,6 +425,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     LITERAL (static getter: FoldingKind)
     PARAMETERS (static getter: FoldingKind)
     values (static getter: List<FoldingKind>)
+    fromJson (constructor: FoldingKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   FoldingRegion (class extends Object implements HasToJson):
@@ -534,6 +539,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     UNRESOLVED_INSTANCE_MEMBER_REFERENCE (static getter: HighlightRegionType)
     VALID_STRING_ESCAPE (static getter: HighlightRegionType)
     values (static getter: List<HighlightRegionType>)
+    fromJson (constructor: HighlightRegionType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   LinkedEditGroup (class extends Object implements HasToJson):
@@ -569,6 +575,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     TYPE (static getter: LinkedEditSuggestionKind)
     VARIABLE (static getter: LinkedEditSuggestionKind)
     values (static getter: List<LinkedEditSuggestionKind>)
+    fromJson (constructor: LinkedEditSuggestionKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   Location (class extends Object implements HasToJson):
@@ -681,6 +688,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     REQUIRED_NAMED (static getter: ParameterKind)
     REQUIRED_POSITIONAL (static getter: ParameterKind)
     values (static getter: List<ParameterKind>)
+    fromJson (constructor: ParameterKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   PluginDetails (class extends Object implements HasToJson):
@@ -735,6 +743,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     MOVE_FILE (static getter: RefactoringKind)
     RENAME (static getter: RefactoringKind)
     values (static getter: List<RefactoringKind>)
+    fromJson (constructor: RefactoringKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringMethodParameter (class extends Object implements HasToJson):
@@ -759,6 +768,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     POSITIONAL (static getter: RefactoringMethodParameterKind)
     REQUIRED (static getter: RefactoringMethodParameterKind)
     values (static getter: List<RefactoringMethodParameterKind>)
+    fromJson (constructor: RefactoringMethodParameterKind Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RefactoringProblem (class extends Object implements HasToJson):
@@ -781,6 +791,7 @@ package:analyzer_plugin/protocol/protocol_common.dart:
     WARNING (static getter: RefactoringProblemSeverity)
     values (static getter: List<RefactoringProblemSeverity>)
     max (static method: RefactoringProblemSeverity? Function(RefactoringProblemSeverity?, RefactoringProblemSeverity?))
+    fromJson (constructor: RefactoringProblemSeverity Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   RemoveContentOverlay (class extends Object implements HasToJson):
@@ -1090,6 +1101,7 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     OCCURRENCES (static getter: AnalysisService)
     OUTLINE (static getter: AnalysisService)
     values (static getter: List<AnalysisService>)
+    fromJson (constructor: AnalysisService Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   AnalysisSetAnalysisRootsParams (class extends Object implements RequestParams):
@@ -1656,6 +1668,7 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     PLUGIN_ERROR (static getter: RequestErrorCode)
     UNKNOWN_REQUEST (static getter: RequestErrorCode)
     values (static getter: List<RequestErrorCode>)
+    fromJson (constructor: RequestErrorCode Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
   WatchEvent (class extends Object implements HasToJson):
@@ -1674,6 +1687,7 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     MODIFY (static getter: WatchEventType)
     REMOVE (static getter: WatchEventType)
     values (static getter: List<WatchEventType>)
+    fromJson (constructor: WatchEventType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
 package:analyzer_plugin/src/protocol/protocol_internal.dart:
