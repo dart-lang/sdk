@@ -5,23 +5,12 @@
 import("build/config/gclient_args.gni")
 import("sdk_args.gni")
 
-targeting_fuchsia = target_os == "fuchsia"
-
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (targeting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
   deps = [ ":runtime" ]
 }
 
 group("most") {
-  import("runtime/runtime_args.gni")
-  if (targeting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
   deps = [
     ":analysis_server",
     ":create_sdk",
@@ -34,11 +23,6 @@ group("most") {
 
 group("runtime") {
   import("runtime/runtime_args.gni")
-
-  if (targeting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
 
   deps = [
     "runtime/bin:dart",
@@ -472,7 +456,6 @@ if (is_fuchsia) {
 
   foreach(binary, test_binaries) {
     fuchsia_component("${binary}_test_component") {
-      testonly = true
       manifest = "runtime/bin/${binary}_test_component.cml"
       data_deps = [
         "runtime/bin:${binary}",
@@ -515,7 +498,6 @@ if (is_fuchsia) {
   }
 
   fuchsia_package("fuchsia_test_package") {
-    testonly = true
     package_name = "dart_test"
     deps = []
     foreach(binary, test_binaries) {

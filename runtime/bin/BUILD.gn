@@ -1111,10 +1111,6 @@ executable("create_process_test_helper") {
 }
 
 source_set("run_vm_tests_set") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   configs += [
     "..:dart_arch_config",
     "..:dart_config",
@@ -1171,10 +1167,6 @@ source_set("run_vm_tests_set") {
 }
 
 executable("run_vm_tests") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   configs += [
     "..:dart_arch_config",
     "..:dart_config",
