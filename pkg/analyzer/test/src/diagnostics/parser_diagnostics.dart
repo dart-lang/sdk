@@ -52,6 +52,22 @@ class ParserDiagnosticsTest {
     );
   }
 
+  /// Parses [content] without checking diagnostics.
+  ///
+  /// Use this only for parser smoke tests where diagnostics are intentionally
+  /// irrelevant, for example when verifying that a broad set of inputs does not
+  /// crash or loop.
+  ParseStringResult parseTestCodeIgnoringDiagnostics(
+    String content, {
+    FeatureSet? featureSet,
+  }) {
+    return parseString(
+      content: content,
+      featureSet: featureSet ?? testFeatureSet,
+      throwIfDiagnostics: false,
+    );
+  }
+
   /// Parses [content] and checks that its inline diagnostic markers match the
   /// diagnostics. Marker lines are test metadata and are removed before
   /// parsing, so they cannot influence parser recovery.

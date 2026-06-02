@@ -8,7 +8,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../src/diagnostics/parser_diagnostics.dart';
-import '../../util/ast_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,7 @@ main() {
 @reflectiveTest
 class BreadthFirstVisitorTest extends ParserDiagnosticsTest {
   void test_it() {
-    String source = r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   bool get g => true;
 }
@@ -37,19 +36,19 @@ A f(p) {
   } else {
     return null;
   }
-}''';
-    CompilationUnit unit = parseStringWithErrors(source).unit;
-    List<AstNode> nodes = <AstNode>[];
-    _BreadthFirstVisitorTestHelper visitor = _BreadthFirstVisitorTestHelper(
-      nodes,
-    );
-    visitor.visitAllNodes(unit);
+}''');
+    var findNode = parseResult.findNode;
+
+    var nodes = <AstNode>[];
+    var visitor = _BreadthFirstVisitorTestHelper(nodes);
+    visitor.visitAllNodes(parseResult.unit);
+
     expect(nodes, hasLength(51));
-    expect(nodes[0], isCompilationUnit);
-    expect(nodes[2], isClassDeclaration);
-    expect(nodes[3], isFunctionDeclaration);
-    expect(nodes[24], isFunctionDeclarationStatement);
-    expect(nodes[50], isIntegerLiteral); // 3
+    expect(nodes[0], parseResult.unit);
+    expect(nodes[2], findNode.classDeclaration('class B'));
+    expect(nodes[3], findNode.functionDeclaration('A f'));
+    expect(nodes[24], findNode.functionDeclarationStatement('num q'));
+    expect(nodes[50], findNode.integerLiteral('3'));
   }
 }
 

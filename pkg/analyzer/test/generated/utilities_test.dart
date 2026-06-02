@@ -145,7 +145,7 @@ class LineInfoTest {
 @reflectiveTest
 class NodeReplacerTest extends ParserDiagnosticsTest {
   void test_adjacentStrings() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   'aaa' 'bbb';
 }
@@ -159,7 +159,7 @@ void f() {
   }
 
   void test_annotation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @prefix.A<int>.named(args)
 @prefix.B<double>.named(args)
 void f() {}
@@ -177,7 +177,7 @@ void f() {}
   }
 
   void test_argumentList() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   g(0, 1);
 }
@@ -191,7 +191,7 @@ void f() {
   }
 
   void test_asExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   0 as int;
   1 as int;
@@ -205,7 +205,7 @@ void f() {
   }
 
   void test_assertStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   assert(true, 'first');
   assert(true, 'second');
@@ -219,7 +219,7 @@ void f() {
   }
 
   void test_assignmentExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a = 0;
   b = 1;
@@ -236,7 +236,7 @@ void f() {
   }
 
   void test_awaitExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {
   await 0;
   await 1;
@@ -250,7 +250,7 @@ void f() async {
   }
 
   void test_binaryExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   0 + 1;
   1 + 2;
@@ -264,7 +264,7 @@ void f() {
   }
 
   void test_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   print(0);
   print(1);
@@ -279,7 +279,7 @@ void f() {
   }
 
   void test_blockFunctionBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   print('fff');
 }
@@ -296,7 +296,7 @@ void g() {
   }
 
   void test_breakStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   while (true) {
     break first;
@@ -312,7 +312,7 @@ void f() {
   }
 
   void test_cascadeExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   0..foo..bar;
   1..foo;
@@ -333,7 +333,7 @@ void f() {
   }
 
   void test_catchClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   try {} on E catch (e, st) {}
   try {} on E2 catch (e2, st2) {}
@@ -352,7 +352,7 @@ void f() {
   }
 
   void test_classTypeAlias() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Comment A.
 @myA1
 @myA2
@@ -381,7 +381,7 @@ class B<U> = B0 with N implements J;
   }
 
   void test_comment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Has [foo] and [bar].
 void f() {}
 ''');
@@ -394,7 +394,7 @@ void f() {}
   }
 
   void test_commentReference() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Has [foo] and [bar].
 void f() {}
 ''');
@@ -406,7 +406,7 @@ void f() {}
   }
 
   void test_compilationUnit() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 class A {}
@@ -426,7 +426,7 @@ class B {}
   }
 
   void test_conditionalExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   true ? 0 : 1;
   false ? 2 : 3;
@@ -444,7 +444,7 @@ void f() {
   }
 
   void test_constantPattern() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(x) async {
   if (x case 0) {}
   if (x case 1) {}
@@ -462,7 +462,7 @@ void f(x) async {
   }
 
   void test_constructorDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   @myA1
   @myA2
@@ -482,7 +482,7 @@ class B {
   }
 
   void test_constructorDeclaration_redirectedConstructor() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   factory A() = R;
 }
@@ -499,7 +499,7 @@ class B {
   }
 
   void test_constructorFieldInitializer() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A() : a = 0, b = 1;
 }
@@ -512,7 +512,7 @@ class A {
   }
 
   void test_constructorName() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   new prefix.A.foo();
   new prefix.B.bar();
@@ -526,7 +526,7 @@ void f() {
   }
 
   void test_continueStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   while (true) {
     continue first;
@@ -542,7 +542,7 @@ void f() {
   }
 
   void test_declaredIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   for (int i in []) {}
   for (double j in []) {}
@@ -556,7 +556,7 @@ void f() {
   }
 
   void test_defaultFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
     _assertReplacementForChildren<FormalParameter>(
@@ -567,18 +567,25 @@ void f({int a = 0, double b = 1}) {}
   }
 
   void test_doStatement() {
-    var parseResult = parseStringWithErrors(r'''
-void f({int a = 0, double b = 1}) {}
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  do {
+    0;
+  } while (true);
+  do {
+    1;
+  } while (false);
+}
 ''');
-    _assertReplacementForChildren<FormalParameter>(
-      destination: parseResult.findNode.formalParameter('a ='),
-      source: parseResult.findNode.formalParameter('b ='),
-      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
+    _assertReplacementForChildren<DoStatement>(
+      destination: parseResult.findNode.doStatement('true'),
+      source: parseResult.findNode.doStatement('false'),
+      childAccessors: [(node) => node.body, (node) => node.condition],
     );
   }
 
   void test_enumBody_constants() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E1 {one}
 enum E2 {two}
 ''');
@@ -590,7 +597,7 @@ enum E2 {two}
   }
 
   void test_enumBody_members() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E1 {one; void foo() {}}
 enum E2 {two; void bar() {}}
 ''');
@@ -602,7 +609,7 @@ enum E2 {two; void bar() {}}
   }
 
   void test_enumConstantDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E {
   @myA1
   @myA2
@@ -614,7 +621,7 @@ enum E {
   }
 
   void test_enumDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 enum E1<T> with M1 implements I1 {one, two}
 enum E2<U> with M2 implements I2 {one, two}
 ''');
@@ -629,7 +636,7 @@ enum E2<U> with M2 implements I2 {one, two}
   }
 
   void test_exportDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 export 'a.dart' hide A show B;
@@ -650,7 +657,7 @@ export 'b.dart';
   }
 
   void test_expressionFunctionBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() => 0;
 void g() => 1;
 ''');
@@ -662,7 +669,7 @@ void g() => 1;
   }
 
   void test_expressionStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   0;
   1;
@@ -676,7 +683,7 @@ void f() {
   }
 
   void test_extendsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A extends A0 {}
 class B extends B0 {}
 ''');
@@ -688,7 +695,7 @@ class B extends B0 {}
   }
 
   void test_extensionDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Comment A.
 @myA1
 @myA2
@@ -714,7 +721,7 @@ extension F<U> on double {}
   }
 
   void test_fieldDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   @myA1
   @myA2
@@ -732,7 +739,7 @@ class B extends B0 {}
   }
 
   void test_fieldFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A([int this.foo = 0, double this.bar = 1]);
 }
@@ -745,7 +752,7 @@ class A {
   }
 
   void test_fieldFormalParameter_functionTyped() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(
     @myA1
@@ -768,7 +775,7 @@ class A {
   }
 
   void test_forEachPartsWithDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   for (int a in []) {}
   for (int b in []) {}
@@ -782,7 +789,7 @@ void f() {
   }
 
   void test_forEachPartsWithIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   for (a in []) {}
   for (b in []) {}
@@ -796,7 +803,7 @@ void f() {
   }
 
   void test_forEachPartsWithPattern() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   for (var (a) in []) {}
   for (var (b) in []) {}
@@ -810,7 +817,7 @@ void f() {
   }
 
   void test_forEachStatement_withIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(int a) {
   for (a in []) {}
   for (b in []) {}
@@ -824,7 +831,7 @@ void f(int a) {
   }
 
   void test_formalParameterList() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(int a, int b) {}
 ''');
     _assertReplaceInList(
@@ -835,7 +842,7 @@ void f(int a, int b) {}
   }
 
   void test_forPartsWithDeclarations() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   for (int i = 0; i < 8; i++, i += 2) {}
   for (int j = 0; j < 8; j++) {}
@@ -855,7 +862,7 @@ void f() {
   }
 
   void test_forPartsWithExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   for (i = 0; i < 8; i++, i += 2) {}
   for (j = 0; j < 8; j++) {}
@@ -878,7 +885,7 @@ void f() {
   }
 
   void test_functionDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 int f() => 0;
@@ -896,7 +903,7 @@ double g() => 0;
   }
 
   void test_functionDeclarationStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   void g() {}
   void h() {}
@@ -910,7 +917,7 @@ void f() {
   }
 
   void test_functionExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f<T>(int a) {
   0;
 }
@@ -935,7 +942,7 @@ void g<U>(double b) {
   }
 
   void test_functionExpressionInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (g)<int>(0);
   (h)<double>(1);
@@ -953,7 +960,7 @@ void f() {
   }
 
   void test_functionTypeAlias() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 typedef int F<T>(int a);
@@ -977,7 +984,7 @@ typedef double G<U>(double b);
   }
 
   void test_functionTypedFormalParameterSuffix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(
   int a<T>(int a1),
   double b<U>(double b2),
@@ -1001,7 +1008,7 @@ void f(
   }
 
   void test_genericFunctionType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 typedef A = int Function<T>(int a);
 typedef B = double Function<U>(double b);
 ''');
@@ -1022,7 +1029,7 @@ typedef B = double Function<U>(double b);
   }
 
   void test_genericTypeAlias() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 typedef A<T> = int;
@@ -1042,7 +1049,7 @@ typedef B<U> = double;
   }
 
   void test_hideCombinator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import '' hide A, B;
 ''');
     var node = parseResult.findNode.hideCombinator('hide');
@@ -1054,7 +1061,7 @@ import '' hide A, B;
   }
 
   void test_ifStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   if (true) {
     0;
@@ -1080,7 +1087,7 @@ void f() {
   }
 
   void test_implementsClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A implements I, J {}
 ''');
     var node = parseResult.findNode.implementsClause('implements');
@@ -1092,7 +1099,7 @@ class A implements I, J {}
   }
 
   void test_importDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 import 'a.dart' hide A show B;
@@ -1113,7 +1120,7 @@ import 'b.dart';
   }
 
   void test_indexExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a[0];
   b[1];
@@ -1127,7 +1134,7 @@ void f() {
   }
 
   void test_instanceCreationExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   new A(0);
   new B(1);
@@ -1144,7 +1151,7 @@ void f() {
   }
 
   void test_interpolationExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   '$foo $bar';
 }
@@ -1157,7 +1164,7 @@ void f() {
   }
 
   void test_isExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   0 is int;
   1 is double;
@@ -1171,7 +1178,7 @@ void f() {
   }
 
   void test_labeledStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   foo: bar: 0;
   baz: 1;
@@ -1191,7 +1198,7 @@ void f() {
   }
 
   void test_libraryDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 library foo;
@@ -1206,7 +1213,7 @@ library foo;
   }
 
   void test_listLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   <int>[0, 1];
   <double>[];
@@ -1226,7 +1233,7 @@ void f() {
   }
 
   void test_mapLiteralEntry() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   <int, int>{0: 1, 2: 3};
 }
@@ -1239,7 +1246,7 @@ void f() {
   }
 
   void test_methodDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   @myA1
   @myA2
@@ -1271,7 +1278,7 @@ class A {
   }
 
   void test_methodInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a.foo<int>(0);
   b.bar<double>(1);
@@ -1289,7 +1296,7 @@ void f() {
   }
 
   void test_mixinDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 mixin A<T> on A0 implements I {
@@ -1318,7 +1325,7 @@ mixin B<U> on B0 implements J {
   }
 
   void test_namedArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   g(foo: 0, bar: 1);
 }
@@ -1331,7 +1338,7 @@ void f() {
   }
 
   void test_nameWithTypeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A<T> {}
 class B<U> {}
 ''');
@@ -1348,7 +1355,7 @@ class B<U> {}
   }
 
   void test_nativeFunctionBody() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() native 'foo';
 void g() native 'bar';
 ''');
@@ -1360,7 +1367,7 @@ void g() native 'bar';
   }
 
   void test_parenthesizedExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (0);
   (1);
@@ -1374,7 +1381,7 @@ void f() {
   }
 
   void test_partDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 part 'a.dart';
@@ -1390,7 +1397,7 @@ part 'b.dart';
   }
 
   void test_partOfDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 part of 'a.dart';
@@ -1405,7 +1412,7 @@ part of 'a.dart';
   }
 
   void test_patternAssignment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   int a;
   int b;
@@ -1421,7 +1428,7 @@ void f() {
   }
 
   void test_patternVariableDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   var (a) = 0;
   var (b) = 1;
@@ -1435,7 +1442,7 @@ void f() {
   }
 
   void test_postfixExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a++;
   b++;
@@ -1449,7 +1456,7 @@ void f() {
   }
 
   void test_prefixedIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a.foo;
   b.bar;
@@ -1463,7 +1470,7 @@ void f() {
   }
 
   void test_prefixExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   ++a;
   ++b;
@@ -1477,7 +1484,7 @@ void f() {
   }
 
   void test_primaryConstructorDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A<T>.a(int a) {}
 class B<U>.b(double b) {}
 ''');
@@ -1500,7 +1507,7 @@ class B<U>.b(double b) {}
   }
 
   void test_propertyAccess() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (a).foo;
   (b).bar;
@@ -1514,7 +1521,7 @@ void f() {
   }
 
   void test_recordLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (1, 2);
 }
@@ -1528,7 +1535,7 @@ void f() {
   }
 
   void test_redirectingConstructorInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A.named();
   A.foo() : this.named(0);
@@ -1546,7 +1553,7 @@ class A {
   }
 
   void test_regularFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f([int a = 0, double b = 1]) {}
 ''');
     _assertReplacementForChildren<RegularFormalParameter>(
@@ -1559,7 +1566,7 @@ void f([int a = 0, double b = 1]) {}
   }
 
   void test_regularFormalParameter_functionTyped() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(
   @myA1
   @myA2
@@ -1584,7 +1591,7 @@ void f(
   }
 
   void test_relationalPattern() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case > 0) {}
   if (x case > 1) {}
@@ -1598,7 +1605,7 @@ void f(x) {
   }
 
   void test_returnStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   return 0;
   return 1;
@@ -1612,7 +1619,7 @@ void f() {
   }
 
   void test_setOrMapLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   <int, int>{0: 1, 2: 3};
   <double, double>{};
@@ -1632,7 +1639,7 @@ void f() {
   }
 
   void test_showCombinator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 import '' show A, B;
 ''');
     var node = parseResult.findNode.showCombinator('show');
@@ -1644,7 +1651,7 @@ import '' show A, B;
   }
 
   void test_simpleFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(
   @myA1
   @myA2
@@ -1662,7 +1669,7 @@ void f(
   }
 
   void test_stringInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   'my $foo other $bar';
 }
@@ -1676,7 +1683,7 @@ void f() {
   }
 
   void test_superConstructorInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A.foo() : super.first(0);
   A.bar() : super.second(0);
@@ -1693,7 +1700,7 @@ class A {
   }
 
   void test_superFormalParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A([num a = 0]);
 }
@@ -1711,7 +1718,7 @@ class B extends A {
   }
 
   void test_superFormalParameter_functionTyped() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   A(int foo<T>(int a));
 }
@@ -1732,7 +1739,7 @@ class B extends A {
   }
 
   void test_switchCase_language219() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f() {
   switch (x) {
@@ -1751,7 +1758,7 @@ void f() {
   }
 
   void test_switchDefault() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   switch (x) {
     foo: bar:
@@ -1763,7 +1770,7 @@ void f() {
   }
 
   void test_switchStatement_language219() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 void f() {
   switch (0) {
@@ -1786,7 +1793,7 @@ void f() {
   }
 
   void test_throwExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   throw 0;
   throw 1;
@@ -1800,7 +1807,7 @@ void f() {
   }
 
   void test_topLevelVariableDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
 @myA2
 var a = 0;
@@ -1817,7 +1824,7 @@ var b = 1;
   }
 
   void test_tryStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   try { // 0
     0;
@@ -1846,7 +1853,7 @@ void f() {
   }
 
   void test_typeArgumentList() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   g<int, double>();
 }
@@ -1859,7 +1866,7 @@ void f() {
   }
 
   void test_typeParameter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A<T extends int, U extends double> {}
 ''');
     _assertReplacementForChildren<TypeParameter>(
@@ -1870,7 +1877,7 @@ class A<T extends int, U extends double> {}
   }
 
   void test_typeParameterList() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A<T, U> {}
 ''');
     // Find from the offset after the `<` because NodeLocator usually picks
@@ -1884,7 +1891,7 @@ class A<T, U> {}
   }
 
   void test_variableDeclaration() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   var a = 0;
   var b = 1;
@@ -1898,7 +1905,7 @@ void f() {
   }
 
   void test_variableDeclarationList() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   int a = 0, b = 1;
   double c = 2;
@@ -1917,7 +1924,7 @@ void f() {
   }
 
   void test_variableDeclarationStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   int a = 0;
   double b = 1;
@@ -1931,7 +1938,7 @@ void f() {
   }
 
   void test_whenClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   if (x case 0 when 1) {}
   if (x case 0 when 2) {}
@@ -1945,7 +1952,7 @@ void f() {
   }
 
   void test_whileStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   while (true) {
     0;
@@ -1963,7 +1970,7 @@ void f() {
   }
 
   void test_withClause() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class A with M, N {}
 ''');
     var node = parseResult.findNode.withClause('with');
@@ -1975,7 +1982,7 @@ class A with M, N {}
   }
 
   void test_yieldStatement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() sync* {
   yield 0;
   yield 1;
