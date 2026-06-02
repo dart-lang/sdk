@@ -146,7 +146,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<StatementInferenceResult>,
         InitializerVisitor<InitializerInferenceResult>,
-        PatternVisitor1<PatternResult, SharedMatchContext>,
         InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
@@ -922,17 +921,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       "${node.runtimeType}",
       "InferenceVisitor",
       node.fileOffset,
-      node.location!.file,
-    );
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Never _unhandledPattern(Pattern node) {
-    problems.unhandled(
-      "${node.runtimeType}",
-      "InferenceVisitor",
-      node.fileOffset,
-      node.location!.file,
+      fileUri,
     );
   }
 
@@ -3504,7 +3493,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     });
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
-      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
     flowAnalysis.for_updaterBegin();
@@ -3866,9 +3854,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node.then,
           node.otherwise,
           {
-            for (Variable variable
-                in node.patternGuard.pattern.declaredVariables)
-              variable.name!: variable,
+            for (InternalVariable variable
+                in (node.patternGuard.pattern as InternalPattern)
+                    .internalDeclaredVariables)
+              variable.cosmeticName!: variable.astVariable,
           },
         );
 
@@ -4286,9 +4275,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expression: element.expression,
           pattern: element.patternGuard.pattern,
           variables: {
-            for (Variable variable
-                in element.patternGuard.pattern.declaredVariables)
-              variable.name!: variable,
+            for (InternalVariable variable
+                in (element.patternGuard.pattern as InternalPattern)
+                    .internalDeclaredVariables)
+              variable.cosmeticName!: variable.astVariable,
           },
           guard: element.patternGuard.guard,
           ifTrue: element.then,
@@ -4340,7 +4330,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(patternGuard.pattern, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
     }
 
@@ -4394,7 +4383,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite(NullValues.Expression);
     if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       patternVariableDeclaration.pattern = (rewrite as Pattern)
         ..parent = patternVariableDeclaration;
     }
@@ -7413,9 +7401,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expression: entry.expression,
           pattern: entry.patternGuard.pattern,
           variables: {
-            for (Variable variable
-                in entry.patternGuard.pattern.declaredVariables)
-              variable.name!: variable,
+            for (InternalVariable variable
+                in (entry.patternGuard.pattern as InternalPattern)
+                    .internalDeclaredVariables)
+              variable.cosmeticName!: variable.astVariable,
           },
           guard: entry.patternGuard.guard,
           ifTrue: entry.then,
@@ -7495,7 +7484,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(patternGuard.pattern, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
     }
 
@@ -7543,7 +7531,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite(NullValues.Expression);
     if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       patternVariableDeclaration.pattern = (rewrite as Pattern)
         ..parent = patternVariableDeclaration;
     }
@@ -14280,7 +14267,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // performed.
     needsCoercion =
         needsCoercion ||
-        parent is RelationalPattern && parent.expression == node;
+        parent is InternalRelationalPattern && parent.expression == node;
 
     ExpressionInferenceResult expressionResult = inferExpression(
       node,
@@ -14323,8 +14310,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   PatternResult dispatchPattern(SharedMatchContext context, TreeNode node) {
-    if (node is Pattern) {
-      return node.accept1(this, context);
+    if (node is InternalPattern) {
+      return node.acceptInference(this, context);
     } else {
       return analyzeConstantPattern(context, node, node as Expression);
     }
@@ -14332,87 +14319,94 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   SharedTypeSchemaView dispatchPatternSchema(Node node) {
-    if (node is AndPattern) {
-      return analyzeLogicalAndPatternSchema(node.left, node.right);
-    } else if (node is AssignedVariablePattern) {
-      return analyzeAssignedVariablePatternSchema(node.variable);
-    } else if (node is CastPattern) {
-      return analyzeCastPatternSchema();
-    } else if (node is ConstantPattern) {
-      return analyzeConstantPatternSchema();
-    } else if (node is ListPattern) {
-      return analyzeListPatternSchema(
-        elementType: node.typeArgument?.wrapSharedTypeView(),
-        elements: node.patterns,
-      );
-    } else if (node is MapPattern) {
-      return analyzeMapPatternSchema(
-        typeArguments:
-            node.keyType != null &&
-                // Coverage-ignore(suite): Not run.
-                node.valueType != null
-            ?
-              // Coverage-ignore(suite): Not run.
-              (
-                keyType: new SharedTypeView(node.keyType!),
-                valueType: new SharedTypeView(node.valueType!),
-              )
-            : null,
-        elements: node.entries,
-      );
-    } else if (node is NamedPattern) {
-      // Coverage-ignore-block(suite): Not run.
-      return dispatchPatternSchema(node.pattern);
-    } else if (node is NullAssertPattern) {
-      return analyzeNullCheckOrAssertPatternSchema(
-        node.pattern,
-        isAssert: true,
-      );
-    } else if (node is NullCheckPattern) {
-      return analyzeNullCheckOrAssertPatternSchema(
-        node.pattern,
-        isAssert: false,
-      );
-    } else if (node is ObjectPattern) {
-      return analyzeObjectPatternSchema(new SharedTypeView(node.requiredType));
-    } else if (node is OrPattern) {
-      // Coverage-ignore-block(suite): Not run.
-      return analyzeLogicalOrPatternSchema(node.left, node.right);
-    } else if (node is RecordPattern) {
-      return analyzeRecordPatternSchema(
-        fields: <RecordPatternField<TreeNode, Pattern>>[
-          for (Pattern element in node.patterns)
-            if (element is NamedPattern)
-              new RecordPatternField<TreeNode, Pattern>(
-                node: element,
-                name: element.name,
-                pattern: element.pattern,
-              )
-            else
-              new RecordPatternField<TreeNode, Pattern>(
-                node: element,
-                name: null,
-                pattern: element,
-              ),
-        ],
-      );
-    } else if (node is RelationalPattern) {
-      // Coverage-ignore-block(suite): Not run.
-      return analyzeRelationalPatternSchema();
-    } else if (node is RestPattern) {
-      // Coverage-ignore-block(suite): Not run.
-      // This pattern can't appear on it's own.
-      return new SharedTypeSchemaView(const InvalidType());
-    } else if (node is VariablePattern) {
-      return analyzeDeclaredVariablePatternSchema(
-        node.type?.wrapSharedTypeView(),
-      );
-    } else if (node is WildcardPattern) {
-      return analyzeDeclaredVariablePatternSchema(
-        node.type?.wrapSharedTypeView(),
-      );
-    } else if (node is InvalidPattern) {
-      return new SharedTypeSchemaView(const InvalidType());
+    if (node is InternalPattern) {
+      switch (node) {
+        case InternalAndPattern():
+          return analyzeLogicalAndPatternSchema(node.left, node.right);
+        case InternalAssignedVariablePattern():
+          return analyzeAssignedVariablePatternSchema(
+            node.variable.astVariable,
+          );
+        case InternalCastPattern():
+          return analyzeCastPatternSchema();
+        case InternalConstantPattern():
+          return analyzeConstantPatternSchema();
+        case InternalListPattern():
+          return analyzeListPatternSchema(
+            elementType: node.typeArgument?.wrapSharedTypeView(),
+            elements: node.patterns,
+          );
+        case InternalMapPattern():
+          return analyzeMapPatternSchema(
+            typeArguments:
+                node.keyType != null &&
+                    // Coverage-ignore(suite): Not run.
+                    node.valueType != null
+                ?
+                  // Coverage-ignore(suite): Not run.
+                  (
+                    keyType: new SharedTypeView(node.keyType!),
+                    valueType: new SharedTypeView(node.valueType!),
+                  )
+                : null,
+            elements: node.entries,
+          );
+        case InternalNamedPattern():
+          // Coverage-ignore(suite): Not run.
+          return dispatchPatternSchema(node.pattern);
+        case InternalNullAssertPattern():
+          return analyzeNullCheckOrAssertPatternSchema(
+            node.pattern,
+            isAssert: true,
+          );
+        case InternalNullCheckPattern():
+          return analyzeNullCheckOrAssertPatternSchema(
+            node.pattern,
+            isAssert: false,
+          );
+        case InternalObjectPattern():
+          return analyzeObjectPatternSchema(
+            new SharedTypeView(node.requiredType),
+          );
+        case InternalOrPattern():
+          // Coverage-ignore(suite): Not run.
+          return analyzeLogicalOrPatternSchema(node.left, node.right);
+        case InternalRecordPattern():
+          return analyzeRecordPatternSchema(
+            fields: <RecordPatternField<TreeNode, Pattern>>[
+              for (InternalPattern element in node.patterns)
+                if (element is InternalNamedPattern)
+                  new RecordPatternField<TreeNode, Pattern>(
+                    node: element,
+                    name: element.name,
+                    pattern: element.pattern,
+                  )
+                else
+                  new RecordPatternField<TreeNode, Pattern>(
+                    node: element,
+                    name: null,
+                    pattern: element,
+                  ),
+            ],
+          );
+        case InternalRelationalPattern():
+          // Coverage-ignore(suite): Not run.
+          return analyzeRelationalPatternSchema();
+        case InternalRestPattern():
+          // Coverage-ignore(suite): Not run.
+          // This pattern can't appear on it's own.
+          return new SharedTypeSchemaView(const InvalidType());
+        case InternalVariablePattern():
+          return analyzeDeclaredVariablePatternSchema(
+            node.type?.wrapSharedTypeView(),
+          );
+        case InternalWildcardPattern():
+          return analyzeDeclaredVariablePatternSchema(
+            node.type?.wrapSharedTypeView(),
+          );
+        case InternalInvalidPattern():
+          return new SharedTypeSchemaView(const InvalidType());
+      }
     } else {
       // Coverage-ignore-block(suite): Not run.
       return problems.unhandled(
@@ -14553,8 +14547,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (node as SwitchExpression).cases[index];
     Pattern pattern = switchExpressionCase.patternGuard.pattern;
     Map<String, Variable> variables = {
-      for (Variable declaredVariable in pattern.declaredVariables)
-        declaredVariable.name!: declaredVariable,
+      for (InternalVariable declaredVariable
+          in (pattern as InternalPattern).internalDeclaredVariables)
+        declaredVariable.cosmeticName!: declaredVariable.astVariable,
     };
     return new SwitchExpressionMemberInfo<TreeNode, Expression, Variable>(
       head: new CaseHeadOrDefaultInfo<TreeNode, Expression, Variable>(
@@ -14591,9 +14586,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               pattern: patternGuard.pattern,
               guard: patternGuard.guard,
               variables: {
-                for (Variable variable
-                    in patternGuard.pattern.declaredVariables)
-                  variable.name!: variable,
+                for (InternalVariable variable
+                    in (patternGuard.pattern as InternalPattern)
+                        .internalDeclaredVariables)
+                  variable.cosmeticName!: variable.astVariable,
               },
             ),
           if (case_.isDefault)
@@ -14822,9 +14818,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  @override
-  PatternResult visitVariablePattern(
-    VariablePattern node,
+  PatternResult visitInternalVariablePattern(
+    InternalVariablePattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -14834,12 +14829,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analyzeDeclaredVariablePattern(
           context,
           node,
-          node.variable,
-          node.variable.name!,
+          node.variable.astVariable,
+          node.variableName,
           node.type?.wrapSharedTypeView(),
         );
 
-    node.matchedValueType = analysisResult.matchedValueType.unwrapTypeView();
+    DartType matchedValueType = analysisResult.matchedValueType
+        .unwrapTypeView();
 
     Pattern? replacement;
 
@@ -14847,10 +14843,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
     DartType inferredType = analysisResult.staticType.unwrapTypeView();
@@ -14858,15 +14854,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.variable.type = inferredType;
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createVariablePattern(
+            type: node.type,
+            variable: node.variable.astVariable,
+            matchedValueType: matchedValueType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitWildcardPattern(
-    WildcardPattern node,
+  PatternResult visitInternalWildcardPattern(
+    InternalWildcardPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -14885,21 +14888,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createWildcardPattern(
+            type: node.type,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitConstantPattern(
-    ConstantPattern node,
+  PatternResult visitInternalConstantPattern(
+    InternalConstantPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -14913,15 +14921,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
-    DartType expressionType = node.expressionType = analysisResult
-        .expressionType
-        .unwrapTypeView();
+    DartType expressionType = analysisResult.expressionType.unwrapTypeView();
 
     ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
       expressionType,
@@ -14936,8 +14942,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           equalsInvokeTarget.isNever,
     );
 
-    node.equalsTarget = equalsInvokeTarget.classMember as Procedure;
-    node.equalsType = equalsInvokeTarget
+    Procedure equalsTarget = equalsInvokeTarget.classMember as Procedure;
+    FunctionType equalsType = equalsInvokeTarget
         .getFunctionType(this)
         .equalsFunctionType;
 
@@ -14946,18 +14952,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     Object? rewrite = popRewrite();
+    Expression expression = node.expression;
     if (!identical(node.expression, rewrite)) {
-      node.expression = (rewrite as Expression)..parent = node;
+      expression = rewrite as Expression;
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createConstantPattern(
+            expression: expression,
+            expressionType: expressionType,
+            equalsTarget: equalsTarget,
+            equalsType: equalsType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitAndPattern(AndPattern node, SharedMatchContext context) {
+  PatternResult visitInternalAndPattern(
+    InternalAndPattern node,
+    SharedMatchContext context,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -14976,25 +14994,33 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     Object? rewrite = popRewrite();
+    Pattern right = node.right;
     if (!identical(rewrite, node.right)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.right = (rewrite as Pattern)..parent = node;
+      right = rewrite as Pattern;
     }
 
     rewrite = popRewrite();
+    Pattern left = node.left;
     if (!identical(rewrite, node.left)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.left = (rewrite as Pattern)..parent = node;
+      left = rewrite as Pattern;
     }
 
-    pushRewrite(node);
+    pushRewrite(
+      extern.createAndPattern(
+        left: left,
+        right: right,
+        fileOffset: node.fileOffset,
+      ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitOrPattern(OrPattern node, SharedMatchContext context) {
+  PatternResult visitInternalOrPattern(
+    InternalOrPattern node,
+    SharedMatchContext context,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -15014,34 +15040,35 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
     Object? rewrite = popRewrite();
+    Pattern right = node.right;
     if (!identical(rewrite, node.right)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.right = (rewrite as Pattern)..parent = node;
+      right = rewrite as Pattern;
     }
 
     rewrite = popRewrite();
+    Pattern left = node.left;
     if (!identical(rewrite, node.left)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.left = (rewrite as Pattern)..parent = node;
+      left = rewrite as Pattern;
     }
 
     Map<String, Variable> leftDeclaredVariablesByName = {
-      for (Variable variable in node.left.declaredVariables)
-        variable.name!: variable,
+      for (InternalVariable variable in node.left.internalDeclaredVariables)
+        variable.cosmeticName!: variable.astVariable,
     };
     Map<String, Variable> jointVariableNames = {
-      for (Variable variable in node.orPatternJointVariables)
-        variable.name!: variable,
+      for (InternalVariable variable in node.orPatternJointVariables)
+        variable.cosmeticName!: variable.astVariable,
     };
-    for (Variable rightVariable in node.right.declaredVariables) {
-      String rightVariableName = rightVariable.name!;
+    for (InternalVariable rightVariable
+        in node.right.internalDeclaredVariables) {
+      String rightVariableName = rightVariable.cosmeticName!;
       Variable? leftVariable = leftDeclaredVariablesByName[rightVariableName];
       Variable? jointVariable = jointVariableNames[rightVariableName];
       if (leftVariable != null && jointVariable != null) {
@@ -15062,14 +15089,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    pushRewrite(replacement ?? node);
+    replacement ??= extern.createOrPattern(
+      left: left,
+      right: right,
+      orPatternJointVariables: jointVariableNames.values.toList(),
+      fileOffset: node.fileOffset,
+    );
+
+    pushRewrite(replacement);
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitCastPattern(CastPattern node, SharedMatchContext context) {
+  PatternResult visitInternalCastPattern(
+    InternalCastPattern node,
+    SharedMatchContext context,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -15085,20 +15121,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     Object? rewrite = popRewrite();
+    Pattern pattern = node.pattern;
     if (!identical(rewrite, node.pattern)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.pattern = (rewrite as Pattern)..parent = node;
+      pattern = rewrite as Pattern;
     }
 
-    pushRewrite(node);
+    pushRewrite(
+      extern.createCastPattern(
+        pattern: pattern,
+        type: node.type,
+        fileOffset: node.fileOffset,
+      ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitNullAssertPattern(
-    NullAssertPattern node,
+  PatternResult visitInternalNullAssertPattern(
+    InternalNullAssertPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -15122,27 +15163,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
-    Object? rewrite = popRewrite();
-    if (!identical(rewrite, node.pattern)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.pattern = (rewrite as Pattern)..parent = node;
-    }
+    Pattern pattern = popRewrite() as Pattern;
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createNullAssertPattern(
+            pattern: pattern,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitNullCheckPattern(
-    NullCheckPattern node,
+  PatternResult visitInternalNullCheckPattern(
+    InternalNullCheckPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -15160,20 +15202,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       checkStack(node, stackBase, [/* subpattern = */ ValueKinds.Pattern]),
     );
 
-    Object? rewrite = popRewrite();
-    if (!identical(rewrite, node.pattern)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.pattern = (rewrite as Pattern)..parent = node;
-    }
+    Pattern pattern = popRewrite() as Pattern;
 
-    pushRewrite(node);
+    pushRewrite(
+      extern.createNullCheckPattern(
+        pattern: pattern,
+        fileOffset: node.fileOffset,
+      ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitListPattern(ListPattern node, SharedMatchContext context) {
+  PatternResult visitInternalListPattern(
+    InternalListPattern node,
+    SharedMatchContext context,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -15184,8 +15229,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       elementType: node.typeArgument?.wrapSharedTypeView(),
     );
 
-    DartType matchedValueType = node.matchedValueType = analysisResult
-        .matchedValueType
+    DartType matchedValueType = analysisResult.matchedValueType
         .unwrapTypeView();
 
     assert(
@@ -15202,43 +15246,44 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
+    List<Pattern> patterns = new List.filled(
+      node.patterns.length,
+      dummyPattern,
+    );
     for (int i = node.patterns.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
       InvalidExpression? error = analysisResult.duplicateRestPatternErrors?[i];
       if (error != null) {
-        node.patterns[i] =
-            new InvalidPattern(
-                error,
-                declaredVariables: node.patterns[i].declaredVariables,
-              )
-              ..fileOffset = error.fileOffset
-              ..parent = node;
-      } else if (!identical(rewrite, node.patterns[i])) {
-        node.patterns[i] = (rewrite as Pattern)..parent = node;
+        patterns[i] = extern.createInvalidPattern(
+          error: error,
+          declaredVariables: node.patterns[i].internalDeclaredVariables,
+        );
+      } else {
+        patterns[i] = rewrite as Pattern;
       }
     }
 
     // TODO(johnniwinther): The required type computed by the type analyzer
     // isn't trivially `List<dynamic>` in all cases. Does that matter for the
     // lowering?
-    DartType requiredType = node.requiredType = analysisResult.requiredType
-        .unwrapTypeView();
+    DartType requiredType = analysisResult.requiredType.unwrapTypeView();
 
-    node.needsCheck = _needsCheck(
+    bool needsCheck = _needsCheck(
       matchedType: matchedValueType,
       requiredType: requiredType,
     );
 
-    if (node.needsCheck) {
-      node.lookupType = requiredType;
+    DartType lookupType;
+    if (needsCheck) {
+      lookupType = requiredType;
     } else {
-      node.lookupType = matchedValueType;
+      lookupType = matchedValueType;
     }
 
     ObjectAccessTarget lengthTarget = findInterfaceMember(
@@ -15250,8 +15295,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     assert(lengthTarget.isInstanceMember);
 
-    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
-    node.lengthTarget = lengthTarget.classMember!;
+    DartType lengthType = lengthTarget.getGetterType(this);
+    Member lengthMember = lengthTarget.classMember!;
 
     ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
       requiredType,
@@ -15262,8 +15307,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     assert(sublistInvokeTarget.isInstanceMember);
 
-    node.sublistTarget = sublistInvokeTarget.classMember as Procedure;
-    node.sublistType = sublistInvokeTarget
+    Procedure sublistTarget = sublistInvokeTarget.classMember as Procedure;
+    FunctionType sublistType = sublistInvokeTarget
         .getFunctionType(this)
         .sublistFunctionType;
 
@@ -15277,8 +15322,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(minusTarget.isInstanceMember);
     assert(minusTarget.isSpecialCasedBinaryOperator(this));
 
-    node.minusTarget = minusTarget.classMember as Procedure;
-    node.minusType = replaceReturnType(
+    Procedure minusProcedure = minusTarget.classMember as Procedure;
+    FunctionType minusType = replaceReturnType(
       minusTarget.getFunctionType(this).minusFunctionType,
       typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
         lengthType,
@@ -15295,19 +15340,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     assert(indexGetTarget.isInstanceMember);
 
-    node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType = indexGetTarget
+    Procedure indexGet = indexGetTarget.classMember as Procedure;
+    FunctionType indexGetType = indexGetTarget
         .getFunctionType(this)
         .indexGetFunctionType;
 
-    for (Pattern pattern in node.patterns) {
+    bool hasRestPattern = false;
+    for (Pattern pattern in patterns) {
       if (pattern is RestPattern) {
-        node.hasRestPattern = true;
+        hasRestPattern = true;
         break;
       }
     }
 
-    if (node.hasRestPattern) {
+    Procedure lengthCheckTarget;
+    FunctionType lengthCheckType;
+    if (hasRestPattern) {
       ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
         lengthType,
         greaterThanOrEqualsName,
@@ -15317,9 +15365,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       assert(greaterThanOrEqualTarget.isInstanceMember);
 
-      node.lengthCheckTarget =
-          greaterThanOrEqualTarget.classMember as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget
+      lengthCheckTarget = greaterThanOrEqualTarget.classMember as Procedure;
+      lengthCheckType = greaterThanOrEqualTarget
           .getFunctionType(this)
           .greaterThanOrEqualsFunctionType;
     } else if (node.patterns.isEmpty) {
@@ -15332,9 +15379,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       assert(lessThanOrEqualsInvokeTarget.isInstanceMember);
 
-      node.lengthCheckTarget =
-          lessThanOrEqualsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType = lessThanOrEqualsInvokeTarget
+      lengthCheckTarget = lessThanOrEqualsInvokeTarget.classMember as Procedure;
+      lengthCheckType = lessThanOrEqualsInvokeTarget
           .getFunctionType(this)
           .lessThanOrEqualsFunctionType;
     } else {
@@ -15347,13 +15393,35 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       assert(equalsInvokeTarget.isInstanceMember);
 
-      node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType = equalsInvokeTarget
+      lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
+      lengthCheckType = equalsInvokeTarget
           .getFunctionType(this)
           .equalsFunctionType;
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createListPattern(
+            typeArgument: node.typeArgument,
+            patterns: patterns,
+            requiredType: requiredType,
+            matchedValueType: matchedValueType,
+            needsCheck: needsCheck,
+            lookupType: lookupType,
+            hasRestPattern: hasRestPattern,
+            lengthTarget: lengthMember,
+            lengthType: lengthType,
+            lengthCheckTarget: lengthCheckTarget,
+            lengthCheckType: lengthCheckType,
+            sublistTarget: sublistTarget,
+            sublistType: sublistType,
+            minusTarget: minusProcedure,
+            minusType: minusType,
+            indexGetTarget: indexGet,
+            indexGetType: indexGetType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
@@ -15376,9 +15444,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         matchedType is DynamicType;
   }
 
-  @override
-  PatternResult visitObjectPattern(
-    ObjectPattern node,
+  PatternResult visitInternalObjectPattern(
+    InternalObjectPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -15389,7 +15456,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           context,
           node,
           fields: <RecordPatternField<TreeNode, Pattern>>[
-            for (NamedPattern field in node.fields)
+            for (InternalNamedPattern field in node.fields)
               new RecordPatternField(
                 node: field,
                 name: field.name,
@@ -15398,8 +15465,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ],
         );
 
-    DartType matchedValueType = node.matchedValueType = analysisResult
-        .matchedValueType
+    DartType matchedValueType = analysisResult.matchedValueType
         .unwrapTypeView();
 
     assert(
@@ -15419,44 +15485,54 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
+    List<NamedPattern> fields = new List.filled(
+      node.fields.length,
+      dummyNamedPattern,
+    );
     for (int i = node.fields.length - 1; i >= 0; i--) {
-      NamedPattern field = node.fields[i];
+      InternalNamedPattern field = node.fields[i];
       Object? rewrite = popRewrite();
       InvalidExpression? error =
           analysisResult.duplicateRecordPatternFieldErrors?[i];
       if (error != null) {
-        field.pattern =
-            new InvalidPattern(
-                error,
-                declaredVariables: field.pattern.declaredVariables,
-              )
-              ..fileOffset = error.fileOffset
-              ..parent = field;
-      } else if (!identical(rewrite, field.pattern)) {
-        field.pattern = (rewrite as Pattern)..parent = field;
+        fields[i] = extern.createNamedPattern(
+          name: field.name,
+          fieldName: new Name(field.name, libraryBuilder.library),
+          pattern: extern.createInvalidPattern(
+            error: error,
+            declaredVariables: field.pattern.internalDeclaredVariables,
+          ),
+          fileOffset: field.fileOffset,
+        );
+      } else {
+        fields[i] = extern.createNamedPattern(
+          name: field.name,
+          fieldName: new Name(field.name, libraryBuilder.library),
+          pattern: rewrite as Pattern,
+          fileOffset: field.fileOffset,
+        );
       }
     }
 
-    node.needsCheck = _needsCheck(
+    bool needsCheck = _needsCheck(
       matchedType: matchedValueType,
       requiredType: node.requiredType,
     );
 
-    if (node.needsCheck) {
-      node.lookupType = node.requiredType;
+    DartType lookupType;
+    if (needsCheck) {
+      lookupType = node.requiredType;
     } else {
-      node.lookupType = matchedValueType;
+      lookupType = matchedValueType;
     }
 
-    for (NamedPattern field in node.fields) {
-      field.fieldName = new Name(field.name, libraryBuilder.library);
-
+    for (NamedPattern field in fields) {
       ObjectAccessTarget fieldTarget = findInterfaceMember(
         node.requiredType,
         field.fieldName,
@@ -15568,27 +15644,35 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createObjectPattern(
+            requiredType: node.requiredType,
+            fields: fields,
+            matchedValueType: matchedValueType,
+            needsCheck: needsCheck,
+            lookupType: lookupType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitRestPattern(RestPattern node, SharedMatchContext context) {
-    // A rest pattern isn't a real pattern; this code should never be reached.
-    throw new StateError('visitRestPattern should never be reached');
-  }
-
-  @override
-  PatternResult visitInvalidPattern(
-    InvalidPattern node,
+  PatternResult visitInternalInvalidPattern(
+    InternalInvalidPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    pushRewrite(node);
+    pushRewrite(
+      extern.createInvalidPattern(
+        error: node.invalidExpression,
+        declaredVariables: node.internalDeclaredVariables,
+      ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
 
@@ -15597,9 +15681,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  PatternResult visitRelationalPattern(
-    RelationalPattern node,
+  PatternResult visitInternalRelationalPattern(
+    InternalRelationalPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -15608,8 +15691,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     RelationalPatternResult<InvalidExpression> analysisResult =
         analyzeRelationalPattern(context, node, node.expression);
 
-    DartType matchedValueType = node.matchedValueType = analysisResult
-        .matchedValueType
+    DartType matchedValueType = analysisResult.matchedValueType
         .unwrapTypeView();
 
     assert(
@@ -15623,37 +15705,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.operatorReturnTypeNotAssignableToBoolError ??
         analysisResult.argumentTypeNotAssignableError;
     if (error != null) {
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
     Object? rewrite = popRewrite();
+    Expression expression = node.expression;
     if (!identical(rewrite, node.expression)) {
-      node.expression = (rewrite as Expression)..parent = node;
+      expression = rewrite as Expression;
     }
 
     DartType expressionType = analysisResult.operandType.unwrapTypeView();
-    node.expressionType = expressionType;
 
     Name name;
     switch (node.kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
-        name = node.name = equalsName;
+        name = equalsName;
         break;
       case RelationalPatternKind.lessThan:
-        name = node.name = lessThanName;
+        name = lessThanName;
         break;
       case RelationalPatternKind.lessThanEqual:
-        name = node.name = lessThanOrEqualsName;
+        name = lessThanOrEqualsName;
         break;
       case RelationalPatternKind.greaterThan:
-        name = node.name = greaterThanName;
+        name = greaterThanName;
         break;
       case RelationalPatternKind.greaterThanEqual:
-        name = node.name = greaterThanOrEqualsName;
+        name = greaterThanOrEqualsName;
         break;
     }
     ObjectAccessTarget invokeTarget = findInterfaceMember(
@@ -15663,6 +15745,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       includeExtensionMethods: true,
       isSetter: false,
     );
+    FunctionType? functionType;
+    RelationalAccessKind? accessKind;
+    Procedure? target;
+    List<DartType>? typeArguments;
     switch (node.kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
@@ -15672,11 +15758,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               invokeTarget.isNever,
         );
 
-        node.functionType = invokeTarget
-            .getFunctionType(this)
-            .equalsFunctionType;
-        node.accessKind = RelationalAccessKind.Instance;
-        node.target = invokeTarget.classMember as Procedure;
+        functionType = invokeTarget.getFunctionType(this).equalsFunctionType;
+        accessKind = RelationalAccessKind.Instance;
+        target = invokeTarget.classMember as Procedure;
         break;
       case RelationalPatternKind.lessThan:
       case RelationalPatternKind.lessThanEqual:
@@ -15684,26 +15768,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case RelationalPatternKind.greaterThanEqual:
         switch (invokeTarget.kind) {
           case ObjectAccessTargetKind.instanceMember:
-            node.functionType = invokeTarget
+            functionType = invokeTarget
                 .getFunctionType(this)
                 .lessThanOrEqualsFunctionType;
-            node.target = invokeTarget.classMember as Procedure;
-            node.accessKind = RelationalAccessKind.Instance;
+            target = invokeTarget.classMember as Procedure;
+            accessKind = RelationalAccessKind.Instance;
             break;
           case ObjectAccessTargetKind.nullableInstanceMember:
           case ObjectAccessTargetKind.nullableExtensionMember:
           case ObjectAccessTargetKind.nullableExtensionTypeMember:
           case ObjectAccessTargetKind.missing:
           case ObjectAccessTargetKind.ambiguous:
-            replacement ??= new InvalidPattern(
-              createMissingMethodInvocation(
+            accessKind = RelationalAccessKind.Invalid;
+            replacement ??= extern.createInvalidPattern(
+              error: createMissingMethodInvocation(
                 node.fileOffset,
                 matchedValueType,
                 name,
                 isExpressionInvocation: false,
               ),
-              declaredVariables: node.declaredVariables,
-            )..fileOffset = node.fileOffset;
+              declaredVariables: node.internalDeclaredVariables,
+            );
             break;
           case ObjectAccessTargetKind.objectMember:
           case ObjectAccessTargetKind.superMember:
@@ -15723,34 +15808,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             );
           case ObjectAccessTargetKind.extensionMember:
           case ObjectAccessTargetKind.extensionTypeMember:
-            node.functionType = invokeTarget
+            functionType = invokeTarget
                 .getFunctionType(this)
                 .relationalFunctionType;
-            node.typeArguments = invokeTarget.receiverTypeArguments;
-            node.target = invokeTarget.member as Procedure;
-            node.accessKind = RelationalAccessKind.Static;
+            typeArguments = invokeTarget.receiverTypeArguments;
+            target = invokeTarget.member as Procedure;
+            accessKind = RelationalAccessKind.Static;
             break;
           case ObjectAccessTargetKind.dynamic:
-            node.accessKind = RelationalAccessKind.Dynamic;
+            accessKind = RelationalAccessKind.Dynamic;
             break;
           case ObjectAccessTargetKind.never:
-            node.accessKind = RelationalAccessKind.Never;
+            accessKind = RelationalAccessKind.Never;
             break;
           case ObjectAccessTargetKind.invalid:
-            node.accessKind = RelationalAccessKind.Invalid;
+            accessKind = RelationalAccessKind.Invalid;
             break;
         }
         break;
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createRelationalPattern(
+            kind: node.kind,
+            expression: expression,
+            expressionType: expressionType,
+            matchedValueType: matchedValueType,
+            accessKind: accessKind,
+            name: name,
+            target: target,
+            typeArguments: typeArguments,
+            functionType: functionType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitMapPattern(MapPattern node, SharedMatchContext context) {
+  PatternResult visitInternalMapPattern(
+    InternalMapPattern node,
+    SharedMatchContext context,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -15770,8 +15871,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       elements: node.entries,
     );
 
-    DartType matchedValueType = node.matchedValueType = analysisResult
-        .matchedValueType
+    DartType matchedValueType = analysisResult.matchedValueType
         .unwrapTypeView();
 
     Pattern? replacement;
@@ -15780,35 +15880,35 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
     error = analysisResult.emptyMapPatternError;
     if (error != null) {
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
     // TODO(johnniwinther): The required type computed by the type analyzer
     // isn't trivially `Map<dynamic, dynamic>` in all cases. Does that matter
     // for the lowering?
-    DartType requiredType = node.requiredType = analysisResult.requiredType
-        .unwrapTypeView();
+    DartType requiredType = analysisResult.requiredType.unwrapTypeView();
 
-    node.needsCheck = _needsCheck(
+    bool needsCheck = _needsCheck(
       matchedType: matchedValueType,
       requiredType: requiredType,
     );
 
-    if (node.needsCheck) {
-      node.lookupType = requiredType;
+    DartType lookupType;
+    if (needsCheck) {
+      lookupType = requiredType;
     } else {
-      node.lookupType = matchedValueType;
+      lookupType = matchedValueType;
     }
 
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
@@ -15821,8 +15921,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(containsKeyTarget.isInstanceMember);
 
-    node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
-    node.containsKeyType = containsKeyTarget
+    Procedure containsKeyProcedure = containsKeyTarget.classMember as Procedure;
+    FunctionType containsKeyType = containsKeyTarget
         .getFunctionType(this)
         .containsKeyFunctionType;
 
@@ -15835,8 +15935,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     assert(indexGetTarget.isInstanceMember);
 
-    node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType = indexGetTarget
+    Procedure indexGetProcedure = indexGetTarget.classMember as Procedure;
+    FunctionType indexGetType = indexGetTarget
         .getFunctionType(this)
         .indexGetFunctionType;
 
@@ -15849,12 +15949,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
+    List<MapPatternEntry> entries = new List.filled(
+      node.entries.length,
+      dummyMapPatternEntry,
+      growable: true,
+    );
     for (int i = node.entries.length - 1; i >= 0; i--) {
-      Object? rewrite = popRewrite();
-      if (!identical(node.entries[i], rewrite)) {
-        // Coverage-ignore-block(suite): Not run.
-        node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
-      }
+      entries[i] = popRewrite() as MapPatternEntry;
     }
 
     Map<int, InvalidExpression>? restPatternErrors =
@@ -15862,61 +15963,67 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (restPatternErrors != null) {
       InvalidExpression? firstError;
       int insertionIndex = 0;
-      for (int readIndex = 0; readIndex < node.entries.length; readIndex++) {
+      for (int readIndex = 0; readIndex < entries.length; readIndex++) {
         InvalidExpression? error = restPatternErrors[readIndex];
         if (error != null) {
           firstError ??= error;
         } else {
-          node.entries[insertionIndex++] = node.entries[readIndex];
+          entries[insertionIndex++] = entries[readIndex];
         }
       }
-      node.entries.length = insertionIndex;
+      entries.length = insertionIndex;
       if (insertionIndex == 0) {
-        replacement ??= new InvalidPattern(
-          firstError!,
-          declaredVariables: node.declaredVariables,
-        )..fileOffset = node.fileOffset;
+        replacement ??= extern.createInvalidPattern(
+          error: firstError!,
+          declaredVariables: node.internalDeclaredVariables,
+          fileOffset: node.fileOffset,
+        );
       }
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createMapPattern(
+            keyType: node.keyType,
+            valueType: node.valueType,
+            entries: entries,
+            requiredType: requiredType,
+            matchedValueType: matchedValueType,
+            needsCheck: needsCheck,
+            lookupType: lookupType,
+            containsKeyTarget: containsKeyProcedure,
+            containsKeyType: containsKeyType,
+            indexGetTarget: indexGetProcedure,
+            indexGetType: indexGetType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
   }
 
-  @override
-  PatternResult visitNamedPattern(
-    NamedPattern node,
-    SharedMatchContext context,
-  ) {
-    // NamedPattern isn't a real pattern; this code should never be reached.
-    throw new StateError('visitNamedPattern should never be reached');
-  }
-
-  @override
-  PatternResult visitRecordPattern(
-    RecordPattern node,
+  PatternResult visitInternalRecordPattern(
+    InternalRecordPattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
     List<RecordPatternField<TreeNode, Pattern>> fields = [
-      for (Pattern fieldPattern in node.patterns)
+      for (InternalPattern fieldPattern in node.patterns)
         new RecordPatternField(
           node: fieldPattern,
-          pattern: fieldPattern is NamedPattern
+          pattern: fieldPattern is InternalNamedPattern
               ? fieldPattern.pattern
               : fieldPattern,
-          name: fieldPattern is NamedPattern ? fieldPattern.name : null,
+          name: fieldPattern is InternalNamedPattern ? fieldPattern.name : null,
         ),
     ];
     RecordPatternResult<InvalidExpression> analysisResult =
         analyzeRecordPattern(context, node, fields: fields);
 
-    DartType matchedValueType = node.matchedValueType = analysisResult
-        .matchedValueType
+    DartType matchedValueType = analysisResult.matchedValueType
         .unwrapTypeView();
 
     assert(
@@ -15934,50 +16041,62 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analysisResult.patternTypeMismatchInIrrefutableContextError ??
         analysisResult.duplicateRecordPatternFieldErrors?.values.first;
     if (error != null) {
-      replacement = new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement = extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
-    RecordType requiredType = node.requiredType =
-        analysisResult.requiredType as RecordType;
+    RecordType requiredType = analysisResult.requiredType as RecordType;
 
     // TODO(johnniwinther): How does `recordType` relate to `node.recordType`?
-    node.needsCheck = _needsCheck(
+    bool needsCheck = _needsCheck(
       matchedType: matchedValueType,
       requiredType: requiredType,
     );
-    if (node.needsCheck) {
-      node.lookupType = requiredType;
+    RecordType lookupType;
+    if (needsCheck) {
+      lookupType = requiredType;
     } else {
       DartType resolvedType = matchedValueType.nonTypeParameterBound;
       if (resolvedType is RecordType) {
-        node.lookupType = resolvedType;
+        lookupType = resolvedType;
       } else {
-        // Coverage-ignore-block(suite): Not run.
         // In case of the matched type being an invalid type we use the
         // required type instead.
-        node.lookupType = requiredType;
+        lookupType = requiredType;
       }
     }
 
+    List<Pattern> patterns = new List.filled(
+      node.patterns.length,
+      dummyPattern,
+    );
     for (int i = node.patterns.length - 1; i >= 0; i--) {
-      Pattern subPattern = node.patterns[i];
+      InternalPattern subPattern = node.patterns[i];
       Object? rewrite = popRewrite();
-      if (subPattern is NamedPattern) {
-        if (!identical(rewrite, subPattern.pattern)) {
-          // Coverage-ignore-block(suite): Not run.
-          subPattern.pattern = (rewrite as Pattern)..parent = subPattern;
-        }
+      if (subPattern is InternalNamedPattern) {
+        patterns[i] = extern.createNamedPattern(
+          name: subPattern.name,
+          pattern: rewrite as Pattern,
+          fileOffset: subPattern.fileOffset,
+        );
       } else {
-        if (!identical(rewrite, subPattern)) {
-          node.patterns[i] = (rewrite as Pattern)..parent = node;
-        }
+        patterns[i] = rewrite as Pattern;
       }
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createRecordPattern(
+            patterns: patterns,
+            requiredType: requiredType,
+            matchedValueType: matchedValueType,
+            needsCheck: needsCheck,
+            lookupType: lookupType,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
@@ -16027,9 +16146,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  PatternResult visitAssignedVariablePattern(
-    AssignedVariablePattern node,
+  PatternResult visitInternalAssignedVariablePattern(
+    InternalAssignedVariablePattern node,
     SharedMatchContext context,
   ) {
     int? stackBase;
@@ -16037,7 +16155,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;
-    InternalVariable variable = node.variable as InternalVariable;
+    InternalVariable variable = node.variable;
     bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable.astVariable);
     bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
       variable.astVariable,
@@ -16045,75 +16163,87 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if ((variable.isLate && variable.isFinal) ||
         variable.isLateFinalWithoutInitializer) {
       if (isDefinitelyAssigned) {
-        replacement = new InvalidPattern(
-          problemReporting.buildProblem(
+        replacement = extern.createInvalidPattern(
+          error: problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: diag.lateDefinitelyAssignedError.withArguments(
-              variableName: node.variable.name!,
+              variableName: node.variableName,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
-            length: node.variable.name!.length,
+            length: node.variableName.length,
           ),
-          declaredVariables: node.declaredVariables,
-        )..fileOffset = node.fileOffset;
+          declaredVariables: node.internalDeclaredVariables,
+        );
       }
     } else if (variable.isStaticLate) {
       if (!isDefinitelyUnassigned) {
-        replacement = new InvalidPattern(
-          problemReporting.buildProblem(
+        replacement = extern.createInvalidPattern(
+          error: problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: diag.finalPossiblyAssignedError.withArguments(
-              variableName: node.variable.name!,
+              variableName: node.variableName,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
-            length: node.variable.name!.length,
+            length: node.variableName.length,
           ),
-          declaredVariables: node.declaredVariables,
-        )..fileOffset = node.fileOffset;
+          declaredVariables: node.internalDeclaredVariables,
+        );
       }
     } else if (variable.isFinal &&
         // Coverage-ignore(suite): Not run.
         variable.hasDeclaredInitializer) {
       // Coverage-ignore-block(suite): Not run.
-      replacement = new InvalidPattern(
-        problemReporting.buildProblem(
+      replacement = extern.createInvalidPattern(
+        error: problemReporting.buildProblem(
           compilerContext: compilerContext,
           message: diag.cannotAssignToFinalVariable.withArguments(
-            variableName: node.variable.name!,
+            variableName: node.variableName,
           ),
           fileUri: fileUri,
           fileOffset: node.fileOffset,
-          length: node.variable.name!.length,
+          length: node.variableName.length,
         ),
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = node.fileOffset;
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
     AssignedVariablePatternResult<InvalidExpression> analysisResult =
-        analyzeAssignedVariablePattern(context, node, node.variable);
+        analyzeAssignedVariablePattern(
+          context,
+          node,
+          node.variable.astVariable,
+        );
 
-    DartType matchedValueType = node.matchedValueType = analysisResult
-        .matchedValueType
+    DartType matchedValueType = analysisResult.matchedValueType
         .unwrapTypeView();
-    node.needsCast = _needsCast(
+    bool needsCast = _needsCast(
       matchedType: matchedValueType,
       requiredType: node.variable.type,
     );
-    node.hasObservableEffect = _inTryOrLocalFunction;
+    bool hasObservableEffect = _inTryOrLocalFunction;
 
     InvalidExpression? error =
         analysisResult.duplicateAssignmentPatternVariableError ??
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
-      replacement ??= new InvalidPattern(
-        error,
-        declaredVariables: node.declaredVariables,
-      )..fileOffset = error.fileOffset;
+      replacement ??= extern.createInvalidPattern(
+        error: error,
+        declaredVariables: node.internalDeclaredVariables,
+      );
     }
 
-    pushRewrite(replacement ?? node);
+    pushRewrite(
+      replacement ??
+          extern.createAssignedVariablePattern(
+            variable: node.variable.astVariable,
+            matchedValueType: matchedValueType,
+            needsCast: needsCast,
+            hasObservableEffect: hasObservableEffect,
+            fileOffset: node.fileOffset,
+          ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
@@ -16160,7 +16290,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   SharedTypeView downwardInferObjectPatternRequiredType({
     required SharedTypeView matchedType,
-    required covariant ObjectPatternInternal pattern,
+    required covariant InternalObjectPattern pattern,
   }) {
     DartType requiredType = pattern.requiredType;
     if (!pattern.hasExplicitTypeArguments) {
@@ -16339,22 +16469,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   bool isRestPatternElement(Node node) {
-    return node is RestPattern || node is MapPatternRestEntry;
+    return node is InternalRestPattern || node is InternalMapPatternRestEntry;
   }
 
   @override
   Pattern? getRestPatternElementPattern(TreeNode node) {
-    if (node is MapPatternRestEntry) {
+    if (node is InternalMapPatternRestEntry) {
       return null;
     } else {
-      return (node as RestPattern).subPattern;
+      return (node as InternalRestPattern).subPattern;
     }
   }
 
   @override
   void handleListPatternRestElement(Pattern container, TreeNode restElement) {
-    RestPattern restPattern = restElement as RestPattern;
+    InternalRestPattern restPattern = restElement as InternalRestPattern;
     int? stackBase;
+    Pattern? subPattern;
     if (restPattern.subPattern != null) {
       assert(checkStackBase(restPattern, stackBase = stackHeight - 1));
 
@@ -16364,18 +16495,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ]),
       );
 
-      Object? rewrite = popRewrite();
-      if (!identical(rewrite, restPattern.subPattern)) {
-        // Coverage-ignore-block(suite): Not run.
-        restPattern.subPattern = (rewrite as Pattern)..parent = restPattern;
-      }
+      subPattern = popRewrite() as Pattern;
     } else {
       assert(checkStackBase(restPattern, stackBase = stackHeight));
     }
 
     assert(checkStack(restPattern, stackBase, [/*empty*/]));
 
-    pushRewrite(restElement);
+    pushRewrite(
+      extern.createRestPattern(
+        subPattern: subPattern,
+        fileOffset: restPattern.fileOffset,
+      ),
+    );
 
     assert(
       checkStack(restPattern, stackBase, [
@@ -16386,15 +16518,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleMapPatternRestElement(Pattern container, TreeNode restElement) {
-    pushRewrite(restElement);
+    pushRewrite(
+      extern.createMapPatternRestEntry(fileOffset: container.fileOffset),
+    );
   }
 
   @override
   shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
     TreeNode element,
   ) {
-    element as MapPatternEntry;
-    if (element is MapPatternRestEntry) {
+    element as InternalMapPatternEntry;
+    if (element is InternalMapPatternRestEntry) {
       return null;
     } else {
       return new shared.MapPatternEntry<Expression, Pattern>(
@@ -16407,32 +16541,33 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void handleMapPatternEntry(
     Pattern container,
-    covariant MapPatternEntry entryElement,
+    covariant InternalMapPatternEntry entryElement,
     SharedTypeView keyType,
   ) {
+    Pattern value = popRewrite() as Pattern;
+    Expression key = entryElement.key;
     Object? rewrite = popRewrite();
-    if (!identical(rewrite, entryElement.value)) {
-      // Coverage-ignore-block(suite): Not run.
-      entryElement.value = rewrite as Pattern..parent = entryElement;
-    }
-
-    rewrite = popRewrite();
     if (!identical(rewrite, entryElement.key)) {
-      entryElement.key = (rewrite as Expression)..parent = entryElement;
+      key = rewrite as Expression;
     }
 
-    entryElement.keyType = keyType.unwrapTypeView();
-
-    pushRewrite(entryElement);
+    pushRewrite(
+      extern.createMapPatternEntry(
+        key: key,
+        keyType: keyType.unwrapTypeView(),
+        value: value,
+        fileOffset: entryElement.fileOffset,
+      ),
+    );
   }
 
   @override
   RelationalOperatorResolution? resolveRelationalPatternOperator(
-    covariant RelationalPattern node,
+    covariant InternalRelationalPattern node,
     SharedTypeView matchedValueType,
   ) {
     // TODO(johnniwinther): Reuse computed values between here and
-    // visitRelationalPattern.
+    // visitInternalRelationalPattern.
     Name operatorName;
     RelationalOperatorKind kind = RelationalOperatorKind.other;
     switch (node.kind) {
@@ -16494,15 +16629,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return node.acceptInference(this);
     }
     return _unhandledInitializer(node);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  PatternResult visitAuxiliaryPattern(
-    AuxiliaryPattern node,
-    SharedMatchContext context,
-  ) {
-    return _unhandledPattern(node);
   }
 
   @override

@@ -47,6 +47,14 @@ LogicalExpression createAndExpression(
     ..fileOffset = fileOffset;
 }
 
+AndPattern createAndPattern({
+  required Pattern left,
+  required Pattern right,
+  required int fileOffset,
+}) {
+  return new AndPattern(left, right)..fileOffset = fileOffset;
+}
+
 /// Creates an [Arguments] object for the [positional] and [named] arguments,
 /// and [types] as the type arguments.
 Arguments createArguments(
@@ -99,6 +107,20 @@ AssertStatement createAssertStatement(
   )..fileOffset = fileOffset;
 }
 
+AssignedVariablePattern createAssignedVariablePattern({
+  required Variable variable,
+  required DartType matchedValueType,
+  required bool needsCast,
+  required bool hasObservableEffect,
+  required int fileOffset,
+}) {
+  return new AssignedVariablePattern(variable)
+    ..matchedValueType = matchedValueType
+    ..needsCast = needsCast
+    ..hasObservableEffect = hasObservableEffect
+    ..fileOffset = fileOffset;
+}
+
 /// Creates a block containing the [statements].
 Block createBlock(
   List<Statement> statements, {
@@ -133,6 +155,14 @@ BreakStatement createBreakStatement(
   return new BreakStatement(target)..fileOffset = fileOffset;
 }
 
+CastPattern createCastPattern({
+  required Pattern pattern,
+  required DartType type,
+  required int fileOffset,
+}) {
+  return new CastPattern(pattern, type)..fileOffset = fileOffset;
+}
+
 CatchVariable createCatchVariable({
   required String name,
   required DartType? type,
@@ -145,27 +175,6 @@ CatchVariable createCatchVariable({
     type: type,
     isWildcard: isWildcard,
     isFinal: isFinal,
-  )..fileOffset = fileOffset;
-}
-
-LateVariable createLateVariable({
-  required String? cosmeticName,
-  required DartType? type,
-  bool isFinal = false,
-  bool isConst = false,
-  bool isWildcard = false,
-  required int fileOffset,
-  Expression? initializer,
-  bool hasDeclaredInitializer = false,
-}) {
-  return new LateVariable(
-    cosmeticName: cosmeticName,
-    type: type,
-    isFinal: isFinal,
-    isConst: isConst,
-    isWildcard: isWildcard,
-    initializer: initializer,
-    hasDeclaredInitializer: hasDeclaredInitializer,
   )..fileOffset = fileOffset;
 }
 
@@ -189,6 +198,20 @@ ConstantExpression createConstantExpression(
   required int fileOffset,
 }) {
   return new ConstantExpression(constant, type)..fileOffset = fileOffset;
+}
+
+ConstantPattern createConstantPattern({
+  required Expression expression,
+  required DartType expressionType,
+  required Procedure equalsTarget,
+  required FunctionType equalsType,
+  required int fileOffset,
+}) {
+  return new ConstantPattern(expression)
+    ..expressionType = expressionType
+    ..equalsTarget = equalsTarget
+    ..equalsType = equalsType
+    ..fileOffset = fileOffset;
 }
 
 Constructor createConstructor(
@@ -510,6 +533,19 @@ InvalidInitializer createInvalidInitializer(
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
 
+InvalidPattern createInvalidPattern({
+  required Expression error,
+  required List<InternalVariable> declaredVariables,
+  int? fileOffset,
+}) {
+  return new InvalidPattern(
+    error,
+    declaredVariables: declaredVariables
+        .map((InternalVariable variable) => variable.astVariable)
+        .toList(),
+  )..fileOffset = fileOffset ?? error.fileOffset;
+}
+
 /// Creates an is-test on [operand] against [type].
 IsExpression createIsExpression(
   Expression operand,
@@ -527,6 +563,27 @@ LabeledStatement createLabeledStatement(
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }
 
+LateVariable createLateVariable({
+  required String? cosmeticName,
+  required DartType? type,
+  bool isFinal = false,
+  bool isConst = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  Expression? initializer,
+  bool hasDeclaredInitializer = false,
+}) {
+  return new LateVariable(
+    cosmeticName: cosmeticName,
+    type: type,
+    isFinal: isFinal,
+    isConst: isConst,
+    isWildcard: isWildcard,
+    initializer: initializer,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+  )..fileOffset = fileOffset;
+}
+
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
 Let createLet(Variable variable, Expression body) {
@@ -539,6 +596,45 @@ Let createLet(Variable variable, Expression body) {
 Let createLetEffect({required Expression effect, required Expression result}) {
   return new Let(createVariableCache(effect, const DynamicType()), result)
     ..fileOffset = effect.fileOffset;
+}
+
+ListPattern createListPattern({
+  required DartType? typeArgument,
+  required List<Pattern> patterns,
+  required DartType requiredType,
+  required DartType matchedValueType,
+  required bool needsCheck,
+  required DartType lookupType,
+  required bool hasRestPattern,
+  required Member lengthTarget,
+  required DartType lengthType,
+  required Procedure lengthCheckTarget,
+  required FunctionType lengthCheckType,
+  required Procedure sublistTarget,
+  required FunctionType sublistType,
+  required Procedure minusTarget,
+  required FunctionType minusType,
+  required Procedure indexGetTarget,
+  required FunctionType indexGetType,
+  required int fileOffset,
+}) {
+  return new ListPattern(typeArgument, patterns)
+    ..requiredType = requiredType
+    ..matchedValueType = matchedValueType
+    ..needsCheck = needsCheck
+    ..lookupType = lookupType
+    ..hasRestPattern = hasRestPattern
+    ..lengthTarget = lengthTarget
+    ..lengthType = lengthType
+    ..lengthCheckTarget = lengthCheckTarget
+    ..lengthCheckType = lengthCheckType
+    ..sublistTarget = sublistTarget
+    ..sublistType = sublistType
+    ..minusTarget = minusTarget
+    ..minusType = minusType
+    ..indexGetTarget = indexGetTarget
+    ..indexGetType = indexGetType
+    ..fileOffset = fileOffset;
 }
 
 /// Creates an invocation of the local function [variable] with the provided
@@ -564,6 +660,47 @@ MapLiteralEntry createMapLiteralEntry(
   required int fileOffset,
 }) {
   return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
+}
+
+MapPattern createMapPattern({
+  required DartType? keyType,
+  required DartType? valueType,
+  required List<MapPatternEntry> entries,
+  required DartType requiredType,
+  required DartType matchedValueType,
+  required bool needsCheck,
+  required DartType lookupType,
+  required Procedure containsKeyTarget,
+  required FunctionType containsKeyType,
+  required Procedure indexGetTarget,
+  required FunctionType indexGetType,
+  required int fileOffset,
+}) {
+  return new MapPattern(keyType, valueType, entries)
+    ..requiredType = requiredType
+    ..matchedValueType = matchedValueType
+    ..needsCheck = needsCheck
+    ..lookupType = lookupType
+    ..containsKeyTarget = containsKeyTarget
+    ..containsKeyType = containsKeyType
+    ..indexGetTarget = indexGetTarget
+    ..indexGetType = indexGetType
+    ..fileOffset = fileOffset;
+}
+
+MapPatternEntry createMapPatternEntry({
+  required Expression key,
+  required DartType keyType,
+  required Pattern value,
+  required int fileOffset,
+}) {
+  return new MapPatternEntry(key, value)
+    ..keyType = keyType
+    ..fileOffset = fileOffset;
+}
+
+MapPatternRestEntry createMapPatternRestEntry({required int fileOffset}) {
+  return new MapPatternRestEntry()..fileOffset = fileOffset;
 }
 
 Field createMutableField(
@@ -636,9 +773,30 @@ NamedParameter createNamedParameter({
   )..fileOffset = fileOffset;
 }
 
+NamedPattern createNamedPattern({
+  required String name,
+  Name? fieldName,
+  required Pattern pattern,
+  required int fileOffset,
+}) {
+  NamedPattern result = new NamedPattern(name, pattern)
+    ..fileOffset = fileOffset;
+  if (fieldName != null) {
+    result.fieldName = fieldName;
+  }
+  return result;
+}
+
 /// Creates a [Not] of [operand].
 Not createNot(Expression operand) {
   return new Not(operand)..fileOffset = operand.fileOffset;
+}
+
+NullAssertPattern createNullAssertPattern({
+  required Pattern pattern,
+  required int fileOffset,
+}) {
+  return new NullAssertPattern(pattern)..fileOffset = fileOffset;
 }
 
 /// Creates a [NullCheck] of [expression].
@@ -646,9 +804,31 @@ NullCheck createNullCheck(Expression expression, {required int fileOffset}) {
   return new NullCheck(expression)..fileOffset = fileOffset;
 }
 
+NullCheckPattern createNullCheckPattern({
+  required Pattern pattern,
+  required int fileOffset,
+}) {
+  return new NullCheckPattern(pattern)..fileOffset = fileOffset;
+}
+
 /// Creates a null literal.
 NullLiteral createNullLiteral({required int fileOffset}) {
   return new NullLiteral()..fileOffset = fileOffset;
+}
+
+ObjectPattern createObjectPattern({
+  required DartType requiredType,
+  required List<NamedPattern> fields,
+  required DartType matchedValueType,
+  required bool needsCheck,
+  required DartType lookupType,
+  required int fileOffset,
+}) {
+  return new ObjectPattern(requiredType, fields)
+    ..matchedValueType = matchedValueType
+    ..needsCheck = needsCheck
+    ..lookupType = lookupType
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a logical or expression of [left] and [right].
@@ -659,6 +839,19 @@ LogicalExpression createOrExpression(
 }) {
   return new LogicalExpression(left, LogicalExpressionOperator.OR, right)
     ..fileOffset = fileOffset;
+}
+
+OrPattern createOrPattern({
+  required Pattern left,
+  required Pattern right,
+  required List<Variable> orPatternJointVariables,
+  required int fileOffset,
+}) {
+  return new OrPattern(
+    left,
+    right,
+    orPatternJointVariables: orPatternJointVariables,
+  )..fileOffset = fileOffset;
 }
 
 // TODO(johnniwinther): Should this require a type?
@@ -759,6 +952,53 @@ Procedure createProcedure(
     ..fileStartOffset = fileStartOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileEndOffset;
+}
+
+RecordPattern createRecordPattern({
+  required List<Pattern> patterns,
+  required RecordType requiredType,
+  required DartType matchedValueType,
+  required bool needsCheck,
+  required RecordType lookupType,
+
+  required int fileOffset,
+}) {
+  return new RecordPattern(patterns)
+    ..requiredType = requiredType
+    ..matchedValueType = matchedValueType
+    ..needsCheck = needsCheck
+    ..lookupType = lookupType
+    ..fileOffset = fileOffset;
+}
+
+RelationalPattern createRelationalPattern({
+  required RelationalPatternKind kind,
+  required Expression expression,
+  required DartType expressionType,
+  required DartType matchedValueType,
+  required RelationalAccessKind accessKind,
+  required Name? name,
+  required Procedure? target,
+  required List<DartType>? typeArguments,
+  required FunctionType? functionType,
+  required int fileOffset,
+}) {
+  return new RelationalPattern(kind, expression)
+    ..expressionType = expressionType
+    ..matchedValueType = matchedValueType
+    ..accessKind = accessKind
+    ..name = name
+    ..target = target
+    ..typeArguments = typeArguments
+    ..functionType = functionType
+    ..fileOffset = fileOffset;
+}
+
+RestPattern createRestPattern({
+  required Pattern? subPattern,
+  required int fileOffset,
+}) {
+  return new RestPattern(subPattern)..fileOffset;
 }
 
 ReturnStatement createReturnStatement(
@@ -951,6 +1191,17 @@ VariableGet createVariableGet(
     ..promotedType = promotedType != variable.type ? promotedType : null;
 }
 
+VariablePattern createVariablePattern({
+  required DartType? type,
+  required Variable variable,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new VariablePattern(type, variable)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
+}
+
 /// Creates a [VariableSet] of [variable] with the [value].
 Expression createVariableSet(
   Variable variable,
@@ -976,4 +1227,11 @@ Expression createVariableSet(
 VariableStatement createVariableStatement(VariableDeclaration declaration) {
   return new VariableStatement(declaration)
     ..fileOffset = declaration.fileOffset;
+}
+
+WildcardPattern createWildcardPattern({
+  required DartType? type,
+  required int fileOffset,
+}) {
+  return new WildcardPattern(type)..fileOffset = fileOffset;
 }
