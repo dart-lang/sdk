@@ -47,7 +47,7 @@ class AnalyzerImpl {
 
   final Set<String> gotErrorsFor;
 
-  AnalyzerImpl(
+  new(
     this.analysisOptions,
     this.analysisDriver,
     this.libraryFile,

@@ -76,7 +76,7 @@ class Driver implements CommandLineStarter {
   late PathFilter pathFilter;
 
   /// Create a new Driver instance.
-  Driver({@Deprecated('This parameter has no effect') bool isTesting = false});
+  new({@Deprecated('This parameter has no effect') bool isTesting = false});
 
   /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
@@ -549,7 +549,7 @@ class _AnalysisContextProvider {
   AnalysisContextCollectionImpl? _collection;
   DriverBasedAnalysisContext? _analysisContext;
 
-  _AnalysisContextProvider(this._resourceProvider)
+  new(this._resourceProvider)
     : _fileContentCache = FileContentCache(_resourceProvider);
 
   DriverBasedAnalysisContext? get analysisContext {

@@ -100,10 +100,8 @@ class CommandLineOptions {
   final bool trainSnapshot;
 
   /// Initialize options from the given parsed [args].
-  CommandLineOptions._fromArgs(
-    ResourceProvider resourceProvider,
-    ArgResults args,
-  ) : _argResults = args,
+  new _fromArgs(ResourceProvider resourceProvider, ArgResults args)
+    : _argResults = args,
       dartSdkPath = args.option(_sdkPathOption),
       disableCacheFlushing = args.flag('disable-cache-flushing'),
       displayVersion = args.flag('version'),
