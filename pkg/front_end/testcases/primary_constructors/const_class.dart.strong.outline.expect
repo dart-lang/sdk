@@ -78,7 +78,7 @@ class C1 extends core::Object /*hasConstConstructor*/  {
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
   const constructor •(final core::int x) → self::C2
-    : super core::Object::•()
+    : self::C2::x = x, super core::Object::•()
     ;
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
@@ -139,7 +139,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   final field core::int v;
   static const field core::List<self::E3> values = const <self::E3>[self::E3::e0];
   const constructor •(core::int #index, core::String #name, final core::int v) → self::E3
-    : super core::_Enum::•(#index, #name)
+    : self::E3::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
@@ -175,6 +175,6 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:49:
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:48:6 -> ListConstant(const <E1>[const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:54:6 -> InstanceConstant(const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:53:12 -> ListConstant(const <E2>[const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:60:3 -> InstanceConstant(const E3{E3.v: null, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:59:12 -> ListConstant(const <E3>[const E3{E3.v: null, _Enum.index: 0, _Enum._name: "e0"}])
-Extra constant evaluation: evaluated: 43, effectively constant: 8
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:60:3 -> InstanceConstant(const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:59:12 -> ListConstant(const <E3>[const E3{E3.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Extra constant evaluation: evaluated: 45, effectively constant: 8

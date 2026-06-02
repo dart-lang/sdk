@@ -26,6 +26,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
   final bool forAbstractClassOrEnumOrMixin;
+  final bool buildInitializersForOutline;
   Token? _beginInitializers;
 
   final DeclarationFragment enclosingDeclaration;
@@ -58,12 +59,13 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     required this.formals,
     required this.nativeMethodName,
     required this.forAbstractClassOrEnumOrMixin,
+    required this.buildInitializersForOutline,
     required Token? beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
   }) : _beginInitializers = beginInitializers;
 
-  Token? get beginInitializers {
+  Token? get initializersStartToken {
     Token? result = _beginInitializers;
     // Ensure that we don't hold onto the token.
     _beginInitializers = null;

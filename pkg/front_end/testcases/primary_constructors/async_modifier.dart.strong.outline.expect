@@ -146,7 +146,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 e0 = const self::E2::•(0, "e0", 0);
   static const field core::List<self::E2> values = const <self::E2>[self::E2::e0];
   const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E2
-    : self::E2::x = x, super core::_Enum::•(#index, #name)
+    : self::E2::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}), super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -166,7 +166,7 @@ class E4 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E4 e0 = const self::E4::•(0, "e0", 0);
   static const field core::List<self::E4> values = const <self::E4>[self::E4::e0];
   const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E4
-    : self::E4::x = x, super core::_Enum::•(#index, #name)
+    : self::E4::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}), super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
@@ -186,7 +186,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E6 e0 = const self::E6::•(0, "e0", 0);
   static const field core::List<self::E6> values = const <self::E6>[self::E6::e0];
   const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E6
-    : self::E6::x = x, super core::_Enum::•(#index, #name)
+    : self::E6::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}), super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
@@ -208,14 +208,8 @@ mixin class M3 extends core::Object {
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:6:3 -> InstanceConstant(const E1{E1.x: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:5:6 -> ListConstant(const <E1>[const E1{E1.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:11:3 -> InstanceConstant(const E2{E2.x: 0, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:10:6 -> ListConstant(const <E2>[const E2{E2.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:16:3 -> InstanceConstant(const E3{E3.x: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:15:6 -> ListConstant(const <E3>[const E3{E3.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:21:3 -> InstanceConstant(const E4{E4.x: 0, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:20:6 -> ListConstant(const <E4>[const E4{E4.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:26:3 -> InstanceConstant(const E5{E5.x: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:25:6 -> ListConstant(const <E5>[const E5{E5.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:31:3 -> InstanceConstant(const E6{E6.x: 0, _Enum.index: 0, _Enum._name: "e0"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:30:6 -> ListConstant(const <E6>[const E6{E6.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
-Extra constant evaluation: evaluated: 48, effectively constant: 12
+Extra constant evaluation: evaluated: 57, effectively constant: 6
