@@ -1601,8 +1601,9 @@
           "arguments": [
             "--mode=debug",
             "--no-clang",
-            "runtime",
-            "runtime_precompiled"
+            "dart",
+            "dartvm",
+            "dartaotruntime"
           ]
         },
         {
@@ -1620,8 +1621,9 @@
           "arguments": [
             "--mode=release",
             "--no-clang",
-            "runtime",
-            "runtime_precompiled"
+            "dart",
+            "dartvm",
+            "dartaotruntime"
           ]
         },
         {
