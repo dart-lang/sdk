@@ -1104,6 +1104,48 @@ library
 ''');
   }
 
+  test_formalParameters_rP1__rP1ft() async {
+    var library = await buildLibrary(r'''
+void foo(void Function(int) p1) {}
+augment void foo(void p1(int a)) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration p1 (nameOffset:28) (firstTokenOffset:9) (offset:28)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              nextFragment: #F4
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:48) (firstTokenOffset:35) (offset:48)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:52) (offset:57)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              parameters
+                #F5 requiredPositional isOriginDeclaration a (nameOffset:64) (firstTokenOffset:60) (offset:64)
+                  element: a@64
+              previousFragment: #F3
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional p1
+          firstFragment: #F3
+          type: void Function(int)
+      returnType: void
+''');
+  }
+
   test_formalParameters_rP1__rP2() async {
     var library = await buildLibrary(r'''
 void foo(int p1) {}
@@ -1552,6 +1594,208 @@ library
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
+''');
+  }
+
+  test_formalParameters_rP1ft__rP1() async {
+    var library = await buildLibrary(r'''
+void foo(void p1(int a)) {}
+augment void foo(void Function(int) p1) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              parameters
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: a@21
+              nextFragment: #F5
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:45) (offset:64)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              previousFragment: #F3
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional p1
+          firstFragment: #F3
+          type: void Function(int)
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F4
+              type: int
+      returnType: void
+''');
+  }
+
+  test_formalParameters_rP1ft__rP1ft() async {
+    var library = await buildLibrary(r'''
+void foo(void p1(int a)) {}
+augment void foo(void p1(int a)) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              parameters
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: a@21
+              nextFragment: #F5
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              parameters
+                #F6 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:53) (offset:57)
+                  element: a@57
+              previousFragment: #F3
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional p1
+          firstFragment: #F3
+          type: void Function(int)
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F4
+              type: int
+      returnType: void
+''');
+  }
+
+  test_formalParameters_rP1ft__rP1ft_differentType() async {
+    var library = await buildLibrary(r'''
+void foo(void p1(int a)) {}
+augment void foo(void p1(double a)) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              parameters
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: a@21
+              nextFragment: #F5
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              parameters
+                #F6 requiredPositional isOriginDeclaration a (nameOffset:60) (firstTokenOffset:53) (offset:60)
+                  element: a@60
+              previousFragment: #F3
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredPositional p1
+          firstFragment: #F3
+          type: void Function(int)
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F4
+              type: int
+      returnType: void
+''');
+  }
+
+  test_formalParameters_rP1ftt__rP1ftt() async {
+    var library = await buildLibrary(r'''
+void foo(int p1<T>(T a)) {}
+augment void foo(int p1<T>(T a)) {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              typeParameters
+                #F4 T (nameOffset:16) (firstTokenOffset:16) (offset:16)
+                  element: #E0 T
+              parameters
+                #F5 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:19) (offset:21)
+                  element: a@21
+              nextFragment: #F6
+        #F2 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration p1 (nameOffset:49) (firstTokenOffset:45) (offset:49)
+              element: <testLibrary>::@function::foo::@formalParameter::p1
+              typeParameters
+                #F7 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+                  element: #E1 T
+              parameters
+                #F8 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:55) (offset:57)
+                  element: a@57
+              previousFragment: #F3
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E2 requiredPositional p1
+          firstFragment: #F3
+          type: int Function<T>(T)
+          typeParameters
+            #E0 T
+              firstFragment: #F4
+          formalParameters
+            #E3 requiredPositional a
+              firstFragment: #F5
+              type: T
+      returnType: void
 ''');
   }
 
