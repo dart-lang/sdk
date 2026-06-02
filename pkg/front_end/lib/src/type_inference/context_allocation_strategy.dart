@@ -236,7 +236,6 @@ class LoopDepthAllocationStrategy
       case ScopeProviderInfoKind.FunctionNode:
       case ScopeProviderInfoKind.FunctionNodeWithThis:
       case ScopeProviderInfoKind.InstanceField:
-      // Coverage-ignore(suite): Not run.
       case ScopeProviderInfoKind.StaticField:
         return true;
     }

@@ -11,6 +11,7 @@ import 'package:kernel/core_types.dart';
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
+import '../kernel/internal_ast.dart';
 import '../source/check_helper.dart';
 import 'inference_visitor.dart';
 
@@ -249,7 +250,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression relationalPatternOperandTypeNotAssignable({
-    required covariant RelationalPattern pattern,
+    required covariant InternalRelationalPattern pattern,
     required SharedTypeView operandType,
     required SharedTypeView parameterType,
   }) {

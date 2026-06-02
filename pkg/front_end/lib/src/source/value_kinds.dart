@@ -135,17 +135,21 @@ class ValueKinds {
   static const ValueKind MapLiteralEntry =
       const SingleValueKind<type.MapLiteralEntry>();
   static const ValueKind MapPatternEntry =
-      const SingleValueKind<type.MapPatternEntry>();
+      const SingleValueKind<type.InternalMapPatternEntry>();
   static const ValueKind ParameterList =
       const SingleValueKind<List<type.ParameterVariableBuilder>>();
-  static const ValueKind Pattern = const SingleValueKind<type.Pattern>();
+  static const ValueKind Pattern =
+      const SingleValueKind<type.InternalPattern>();
   static const ValueKind PatternGuard =
       const SingleValueKind<type.PatternGuard>();
-  static const ValueKind PatternOrNull = const SingleValueKind<type.Pattern>(
-    NullValues.Pattern,
-  );
+  static const ValueKind PatternOrNull =
+      const SingleValueKind<type.InternalPattern>(NullValues.Pattern);
   static const ValueKind PatternListOrNull =
-      const SingleValueKind<List<type.Pattern>>(NullValues.PatternList);
+      const SingleValueKind<List<type.InternalPattern>>(NullValues.PatternList);
+  static const ValueKind NamedPatternListOrNull =
+      const SingleValueKind<List<type.InternalNamedPattern>>(
+        NullValues.PatternList,
+      );
   static const ValueKind PrefixOrNull = const SingleValueKind<type.Identifier>(
     NullValues.Prefix,
   );

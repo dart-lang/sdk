@@ -24,6 +24,25 @@ DECLARE_FLAG(bool, profile_vm_allocation);
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
+static void ExpectUnoptimizedOrBytecode(dart::Expect expect,
+                                        const char* expected,
+                                        const char* got) {
+#if defined(TESTING)
+  TextBuffer buffer(1024);
+  if (FLAG_interpreter) {
+    buffer.AddString("[Bytecode] ");
+  } else {
+    buffer.AddString("[Unoptimized] ");
+  }
+  buffer.Printf("%s", expected);
+  expect.StringEquals(buffer.buffer(), got);
+#endif
+}
+
+#define EXPECT_UNOPTIMIZED_OR_BYTECODE(expected, got)                          \
+  ExpectUnoptimizedOrBytecode(dart::Expect(__FILE__, __LINE__), (expected),    \
+                              (got))
+
 // SampleVisitor ignores samples with timestamp == 0.
 const int64_t kValidTimeStamp = 1;
 
@@ -509,15 +528,17 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
 
     // Move down from the root.
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("main", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -600,15 +621,17 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     ProfileStackWalker walker(&profile);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("main", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -686,17 +709,19 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
 
     // Move down from the root.
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
-    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
+      EXPECT_EQ(3, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("main", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT(!walker.Down());
@@ -758,14 +783,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     ProfileStackWalker walker(&profile, true);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
-
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
-    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
+      EXPECT_EQ(3, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+    }
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT(walker.Down());
@@ -818,12 +844,17 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
 
-    EXPECT_STREQ("Double_add", walker.VMTagName());
-    EXPECT_STREQ("[Unoptimized] double._add", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] double.+", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
+    if (FLAG_interpreter) {
+      // No intrinsic in the bytecode version.
+      EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    } else {
+      EXPECT_STREQ("Double_add", walker.VMTagName());
+      EXPECT_STREQ("[Unoptimized] double._add", walker.CurrentName());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Unoptimized] double.+", walker.CurrentName());
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -882,7 +913,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized] new _List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -962,9 +993,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     ProfileStackWalker walker(&profile);
 
     EXPECT_STREQ("DRT_AllocateContext", walker.VMTagName());
-    EXPECT_STREQ("[Stub] AllocateContext", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
+    if (!FLAG_interpreter) {
+      EXPECT_STREQ("[Stub] AllocateContext", walker.CurrentName());
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1021,9 +1054,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     ProfileStackWalker walker(&profile);
 
     EXPECT_SUBSTRING("DRT_AllocateClosure", walker.VMTagName());
-    EXPECT_STREQ("[Stub] AllocateClosure1", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_SUBSTRING("foo", walker.CurrentName());
+    if (!FLAG_interpreter) {
+      EXPECT_STREQ("[Stub] AllocateClosure1", walker.CurrentName());
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1089,7 +1124,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("[Unoptimized] new Float32List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1163,7 +1198,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     EXPECT_STREQ("String_concat", walker.VMTagName());
     EXPECT_STREQ("[Unoptimized] _StringBase.+", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1243,7 +1278,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     EXPECT_STREQ("[Unoptimized] _StringBase._interpolate",
                  walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
@@ -1563,51 +1598,53 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
     ProfileStackWalker walker(&profile);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
+      EXPECT(walker.Down());
+    }
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("orange", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] orange", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("napkin", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] napkin", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("mayo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] mayo", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("lemon", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] lemon", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("kindle", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] kindle", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("jeep", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] jeep", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("ice", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] ice", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("haystack", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] haystack", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("granola", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] granola", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("fred", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] fred", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("elephant", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] elephant", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("dog", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] dog", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("cantaloupe", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] cantaloupe", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("banana", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] banana", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("apple", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] apple", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("secondInit", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] secondInit", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("init", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] init", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("go", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] go", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
+    EXPECT_UNOPTIMIZED_OR_BYTECODE("main", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -1657,13 +1694,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
     ProfileStackWalker walker(&profile, true);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
+      EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+    }
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
@@ -1815,13 +1854,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
     ProfileStackWalker walker(&profile, true);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
+      EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+    }
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
@@ -2017,13 +2058,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     ProfileStackWalker walker(&profile, true);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+    if (!FLAG_interpreter) {
 #if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
 #else
-    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
 #endif
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
+      EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+    }
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());

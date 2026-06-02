@@ -475,4 +475,32 @@ void closures(Object a1, [String a2 = ""]) {
 
 external void foo2(Object x, Object y);
 
+// dart:collection::LinkedList.forEach.
+
+abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
+  E? _next;
+}
+
+class LinkedList<E extends LinkedListEntry<E>> {
+  int _modificationCount = 0;
+  int _length = 0;
+  E? _first;
+
+  bool get isEmpty => _length == 0;
+
+  void forEach(void action(E entry)) {
+    int modificationCount = _modificationCount;
+    if (isEmpty) return;
+
+    E current = _first!;
+    do {
+      action(current);
+      if (modificationCount != _modificationCount) {
+        throw ConcurrentModificationError(this);
+      }
+      current = current._next!;
+    } while (!identical(current, _first));
+  }
+}
+
 void main() {}
