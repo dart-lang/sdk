@@ -144,6 +144,10 @@ class Sdk {
         'dart2wasm_platform.dill',
       );
 
+  String get wasmStandalonePlatformDill => _dillPathFor(
+        'dart2wasm_standalone_platform.dill',
+      );
+
   String _dillPathFor(String dillName) => path.absolute(
       runFromBuildRoot
           ? sdkPath
