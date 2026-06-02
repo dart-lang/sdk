@@ -52,7 +52,7 @@ class TestExpectations {
   final ExpectationSet expectationSet;
   final Map<String, Set<Expectation>> _map = {};
 
-  TestExpectations(this.expectationSet);
+  new(this.expectationSet);
 
   void add(String name, List<String> allowedStatus) {
     Set<Expectation> expectations = (_map[name] ??= {});

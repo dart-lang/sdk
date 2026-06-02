@@ -106,7 +106,7 @@ abstract class Logger {
 }
 
 class StdoutLogger implements Logger {
-  const StdoutLogger();
+  const new();
 
   @override
   void logTestStart(

@@ -19,7 +19,7 @@ class FileBasedTestDescription extends TestDescription {
   final Uri root;
   final File file;
 
-  FileBasedTestDescription(this.root, this.file);
+  new(this.root, this.file);
 
   @override
   Uri get uri => file.uri;

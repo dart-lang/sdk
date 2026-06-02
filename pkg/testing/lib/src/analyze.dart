@@ -28,7 +28,7 @@ class Analyze extends Suite {
 
   final List<String>? gitGrepPatterns;
 
-  Analyze(
+  new(
     this.analysisOptions,
     this.uris,
     this.exclude,
@@ -114,7 +114,7 @@ class AnalyzerDiagnostic {
 
   static final Pattern unescapePattern = RegExp(r"\\(.)");
 
-  AnalyzerDiagnostic(
+  new(
     this.kind,
     this.detailedKind,
     this.code,
@@ -125,10 +125,9 @@ class AnalyzerDiagnostic {
     this.message,
   );
 
-  AnalyzerDiagnostic.malformed(String line)
-    : this(null, null, null, null, -1, -1, -1, line);
+  new malformed(String line) : this(null, null, null, null, -1, -1, -1, line);
 
-  factory AnalyzerDiagnostic.fromLine(String line) {
+  factory fromLine(String line) {
     List<String> parts = <String>[];
     int start = 0;
     int index = line.indexOf(potentialSplitPattern);
