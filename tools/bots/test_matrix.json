@@ -836,9 +836,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dartaotruntime",
-            "--os=android"
+            "--os=android",
+            "android_bot"
           ]
         },
         {
@@ -869,8 +868,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "--os=android"
+            "--os=android",
+            "android_bot"
           ]
         },
         {
@@ -880,7 +879,7 @@
             "ffi"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 2
         }
       ]
     },
