@@ -4,6 +4,8 @@ analyzer:
 
 linter:
   rules:
+    - unnecessary_type_name_in_constructor
+    - unnecessary_const_in_enum_constructor
     - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures
     - prefer_adjacent_string_concatenation

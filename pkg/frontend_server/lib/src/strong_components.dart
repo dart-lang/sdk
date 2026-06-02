@@ -26,12 +26,7 @@ import 'package:kernel/util/graph.dart';
 /// On incremental updates, we completely recompute the strongly connected
 /// components, but only for the partial component produced.
 class StrongComponents {
-  StrongComponents(
-    this.component,
-    this.loadedLibraries,
-    this.mainUri, [
-    this.fileSystem,
-  ]);
+  new(this.component, this.loadedLibraries, this.mainUri, [this.fileSystem]);
 
   /// The Component that is being compiled.
   ///
@@ -110,7 +105,7 @@ class StrongComponents {
 }
 
 class _LibraryGraph implements Graph<Library> {
-  _LibraryGraph(this.library, this.loadedLibraries, [this._partialComponent]);
+  new(this.library, this.loadedLibraries, [this._partialComponent]);
 
   final Library library;
   final Set<Library> loadedLibraries;

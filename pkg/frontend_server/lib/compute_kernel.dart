@@ -160,7 +160,7 @@ class ComputeKernelResult {
   final bool succeeded;
   final fe.InitializedCompilerState? previousState;
 
-  ComputeKernelResult(this.succeeded, this.previousState);
+  new(this.succeeded, this.previousState);
 }
 
 /// Computes a kernel file based on [args].
@@ -600,7 +600,7 @@ class _FakeFileSystem extends FileSystem {
   final Map<Uri, Uri> redirectsFromTo = {};
   final Set<Uri> redirectsTo = {};
   final FileSystem fs;
-  _FakeFileSystem(this.fs);
+  new(this.fs);
 
   void addRedirect(Uri from, Uri to) {
     redirectsTo.add(to);
@@ -621,11 +621,8 @@ class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
   @override
   final bool excludeNonSources;
 
-  DevCompilerSummaryTarget(
-    this.sources,
-    this.excludeNonSources,
-    TargetFlags targetFlags,
-  ) : super(targetFlags);
+  new(this.sources, this.excludeNonSources, TargetFlags targetFlags)
+    : super(targetFlags);
 
   @override
   bool isModularlyCompatibleWith(Target other) {
