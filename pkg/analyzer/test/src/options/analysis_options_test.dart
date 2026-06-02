@@ -330,6 +330,8 @@ code-style:
   }
 
   test_plugins_dependency_overrides_git() {
+    // A 'git' source is not an accepted plugin source from project
+    // configuration, so the dependency override is skipped.
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one: ^1.2.3
@@ -342,25 +344,7 @@ plugins:
 
     var dependencyOverrides =
         analysisOptions.pluginsOptions.dependencyOverrides;
-    expect(dependencyOverrides, isNotNull);
-    expect(dependencyOverrides, hasLength(1));
-
-    var packageOverride = dependencyOverrides!.entries.singleOrNull;
-    expect(packageOverride, isNotNull);
-    expect(packageOverride!.key, 'some_package');
-    expect(
-      packageOverride.value,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'some_package'),
-        'toYaml',
-        '''
-  some_package:
-    git:
-      url: https://github.com/dart-lang/some_package.git
-      ref: main
-''',
-      ),
-    );
+    expect(dependencyOverrides, anyOf(isNull, isEmpty));
   }
 
   test_plugins_dependency_overrides_relative() {
@@ -414,6 +398,8 @@ plugins:
   }
 
   test_plugins_dependency_overrides_versionConstraintHosted() {
+    // A 'hosted' source with a non-default host is not an accepted plugin
+    // source from project configuration, so the dependency override is skipped.
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one: ^1.2.3
@@ -421,6 +407,22 @@ plugins:
     some_package1:
       version: ^3.2.1
       hosted: https://example.com/packages/
+''');
+
+    var dependencyOverrides =
+        analysisOptions.pluginsOptions.dependencyOverrides;
+    expect(dependencyOverrides, anyOf(isNull, isEmpty));
+  }
+
+  test_plugins_dependency_overrides_versionConstraintHosted_default() {
+    // A 'hosted' source pointing at the default pub registry is accepted.
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one: ^1.2.3
+  dependency_overrides:
+    some_package1:
+      version: ^3.2.1
+      hosted: https://pub.dev
 ''');
 
     var dependencyOverrides =
@@ -439,37 +441,27 @@ plugins:
         '''
   some_package1:
     version: ^3.2.1
-    hosted: https://example.com/packages/
+    hosted: https://pub.dev
 ''',
       ),
     );
   }
 
   test_plugins_gitConstraint() {
+    // A 'git' source is not an accepted plugin source from project
+    // configuration, so the plugin is skipped.
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
     git: https://github.com/dart-lang/plugin_one.git
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/plugin_one.git
-''',
-      ),
-    );
+    expect(analysisOptions.pluginConfigurations, isEmpty);
   }
 
   test_plugins_gitConstraint_full() {
+    // A 'git' source is not an accepted plugin source from project
+    // configuration, so the plugin is skipped.
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -480,48 +472,19 @@ plugins:
       tag_pattern: 'v*'
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/sdk.git
-      ref: main
-      path: pkg/plugin_one
-      tag_pattern: v*
-''',
-      ),
-    );
+    expect(analysisOptions.pluginConfigurations, isEmpty);
   }
 
   test_plugins_gitConstraint_scalar() {
+    // A 'git' source is not an accepted plugin source from project
+    // configuration, so the plugin is skipped.
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
     git: https://github.com/dart-lang/plugin_one.git
 ''');
 
-    var configuration = analysisOptions.pluginConfigurations.single;
-    expect(configuration.isEnabled, isTrue);
-    expect(configuration.name, 'plugin_one');
-    expect(
-      configuration.source,
-      isA<GitPluginSource>().having(
-        (e) => e.toYaml(name: 'plugin_one'),
-        'toYaml',
-        '''
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/plugin_one.git
-''',
-      ),
-    );
+    expect(analysisOptions.pluginConfigurations, isEmpty);
   }
 
   test_plugins_pathConstraint() {
@@ -637,7 +600,7 @@ plugins:
 plugins:
   plugin_one:
     version: ^1.2.3
-    hosted: https://example.com/packages/
+    hosted: https://pub.dev
 ''');
 
     var configuration = analysisOptions.pluginConfigurations.single;
@@ -651,10 +614,23 @@ plugins:
         '''
   plugin_one:
     version: ^1.2.3
-    hosted: https://example.com/packages/
+    hosted: https://pub.dev
 ''',
       ),
     );
+  }
+
+  test_plugins_versionConstraintHosted_nonDefaultHost() {
+    // A 'hosted' source with a non-default host is not an accepted plugin
+    // source from project configuration, so the plugin is skipped.
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    version: ^1.2.3
+    hosted: https://example.com/packages/
+''');
+
+    expect(analysisOptions.pluginConfigurations, isEmpty);
   }
 
   test_signature_differs_for_hosted_plugin() {
@@ -662,7 +638,7 @@ plugins:
 plugins:
   plugin_one:
     version: ^1.2.3
-    hosted: https://example.com/packages/
+    hosted: https://pub.dev
 ''');
     var sig1 = options.signature;
 

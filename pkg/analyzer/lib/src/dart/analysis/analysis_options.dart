@@ -328,26 +328,22 @@ final class AnalysisOptionsBuilder {
       YamlScalar(value: String version),
       YamlScalar(value: String hostedUrl),
     )) {
+      // Only the default pub registry is accepted as a plugin source from
+      // project configuration. A plugin hosted on an arbitrary, non-default
+      // host is skipped.
+      if (!_isDefaultPluginHost(hostedUrl)) {
+        return null;
+      }
       return VersionedPluginSource(constraint: version, hostedUrl: hostedUrl);
     } else if (versionSource case YamlScalar(value: String version)) {
       return VersionedPluginSource(constraint: version);
     }
 
-    var gitSource = pluginNode.valueAt(AnalysisOptionsFileKeys.git);
-    if (gitSource case YamlScalar(:String value)) {
-      return GitPluginSource(url: value);
-    } else if (gitSource is YamlMap) {
-      var urlSource = gitSource.valueAt(AnalysisOptionsFileKeys.url);
-      if (urlSource case YamlScalar(:String value)) {
-        return GitPluginSource(
-          url: value,
-          path: gitSource.valueAt(AnalysisOptionsFileKeys.path).stringValue,
-          ref: gitSource.valueAt(AnalysisOptionsFileKeys.ref).stringValue,
-          tagPattern: gitSource
-              .valueAt(AnalysisOptionsFileKeys.tagPattern)
-              .stringValue,
-        );
-      }
+    // A 'git' source points a plugin at an arbitrary URL, which is not a
+    // supported way to specify an analyzer plugin in project configuration; it
+    // is skipped.
+    if (pluginNode.valueAt(AnalysisOptionsFileKeys.git) != null) {
+      return null;
     }
 
     var pathSource = pluginNode.valueAt(AnalysisOptionsFileKeys.path);
@@ -372,6 +368,12 @@ final class AnalysisOptionsBuilder {
       return PathPluginSource(path: pathValue);
     }
     return null;
+  }
+
+  /// Whether [hostedUrl] refers to the default pub package registry.
+  static bool _isDefaultPluginHost(String hostedUrl) {
+    var host = Uri.tryParse(hostedUrl)?.host;
+    return host == 'pub.dev' || host == 'pub.dartlang.org';
   }
 }
 
