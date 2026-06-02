@@ -82,10 +82,12 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     if (body == null) {
       return;
     }
-    var bodyRange = body.sourceRange;
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(bodyRange, ' {}');
-    });
+    if (body is EmptyClassBody || body is EmptyEnumBody) {
+      var bodyRange = body.sourceRange;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(bodyRange, ' {}');
+      });
+    }
   }
 
   Future<void> _computeMissingFunctionBody(

@@ -80,6 +80,13 @@ class C {}
 ''');
   }
 
+  Future<void> test_container_class_block() async {
+    await resolveTestCode('''
+class C ^{}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_container_enum() async {
     await resolveTestCode(
       '''
@@ -92,6 +99,16 @@ enum E {}
 ''');
   }
 
+  Future<void> test_container_enum_block() async {
+    await resolveTestCode(
+      '''
+enum E ^{}
+''',
+      ignore: [diag.enumWithoutConstants],
+    );
+    await assertNoAssist();
+  }
+
   Future<void> test_container_extension() async {
     await resolveTestCode('''
 extension E on int^;
@@ -99,6 +116,13 @@ extension E on int^;
     await assertHasAssist('''
 extension E on int {}
 ''');
+  }
+
+  Future<void> test_container_extension_block() async {
+    await resolveTestCode('''
+extension E on int ^{}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_container_extensionType() async {
@@ -110,6 +134,13 @@ extension type E(int i) {}
 ''');
   }
 
+  Future<void> test_container_extensionType_block() async {
+    await resolveTestCode('''
+extension type E(int i) ^{}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_container_mixin() async {
     await resolveTestCode('''
 mixin M^;
@@ -117,6 +148,13 @@ mixin M^;
     await assertHasAssist('''
 mixin M {}
 ''');
+  }
+
+  Future<void> test_container_mixin_block() async {
+    await resolveTestCode('''
+mixin M ^{}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_inExpression() async {
