@@ -616,6 +616,27 @@ linter:
     );
   }
 
+  test_plugins_dependencyOverrides() {
+    validate('''
+plugins:
+  dependency_overrides:
+    one:
+      git: https://github.com/dart-lang/linter.git
+''', []);
+  }
+
+  test_plugins_dependencyOverrides_invalid_mapKey() {
+    validate(
+      '''
+plugins:
+  dependency_overrides:
+    one:
+      ppath: foo/bar
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
+  }
+
   test_plugins_diagnostics_invalid() {
     validate(
       '''
