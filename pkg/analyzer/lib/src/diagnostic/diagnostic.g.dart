@@ -1168,6 +1168,19 @@ augmentedExpressionNotOperator = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments augmentsConstantVariable =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'augments_constant_variable',
+      problemMessage: "Const variables can't be augmented.",
+      correctionMessage:
+          "Try removing the augmentation, or changing the const variable to a "
+          "final variable.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augments_constant_variable',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments awaitInLateLocalVariableInitializer =
     DiagnosticWithoutArgumentsImpl(
       name: 'await_in_late_local_variable_initializer',
@@ -2251,6 +2264,17 @@ const DiagnosticWithoutArguments constantPatternWithNonConstantExpression =
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName: 'constant_pattern_with_non_constant_expression',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments constantVariableAugmentation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'constant_variable_augmentation',
+      problemMessage: "Variable augmentations can't be const.",
+      correctionMessage: "Try replacing 'const' with 'final'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'constant_variable_augmentation',
       expectedTypes: [],
     );
 
