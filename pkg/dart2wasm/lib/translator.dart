@@ -221,7 +221,7 @@ class Translator with KernelNodes {
   final Map<w.StorageType, w.ArrayType> immutableArrayTypeCache = {};
   final Map<w.StorageType, w.ArrayType> mutableArrayTypeCache = {};
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
-  final Map<Procedure, Map<w.ModuleBuilder, ClosureImplementation>>
+  final Map<Member, Map<w.ModuleBuilder, ClosureImplementation>>
   tearOffFunctionCache = {};
 
   final Map<FunctionNode, Map<w.ModuleBuilder, ClosureImplementation>>
@@ -902,9 +902,19 @@ class Translator with KernelNodes {
 
   /// Compute the runtime type of a tear-off. This is the signature of the
   /// method with the types of all covariant parameters replaced by `Object?`.
-  FunctionType getTearOffType(Procedure method) {
-    assert(method.kind == ProcedureKind.Method);
-    final FunctionType staticType = method.getterType as FunctionType;
+  FunctionType getTearOffType(Member method) {
+    if (method is Constructor) {
+      return method.function.computeFunctionType(Nullability.nonNullable);
+    }
+
+    method as Procedure;
+    assert(
+      method.kind == ProcedureKind.Method ||
+          method.kind == ProcedureKind.Factory,
+    );
+    final FunctionType staticType = method.function.computeFunctionType(
+      Nullability.nonNullable,
+    );
 
     final positionalParameters = List.of(staticType.positionalParameters);
     assert(
@@ -1221,18 +1231,23 @@ class Translator with KernelNodes {
   }
 
   ClosureImplementation getTearOffClosure(
-    Procedure member,
+    Member member,
     w.ModuleBuilder closureModule,
   ) {
+    assert(
+      member is Constructor ||
+          member is Procedure &&
+              (member.kind == ProcedureKind.Method ||
+                  member.kind == ProcedureKind.Factory),
+    );
     final innerCache = tearOffFunctionCache.putIfAbsent(member, () => {});
     return innerCache.putIfAbsent(closureModule, () {
-      assert(member.kind == ProcedureKind.Method);
       final reference = getFunctionEntry(
         member.reference,
         uncheckedEntry: false,
       );
       return getClosure(
-        member.function,
+        member.function!,
         directCallTarget(reference),
         closureModule,
         paramInfoForDirectCall(reference),
@@ -1298,13 +1313,16 @@ class Translator with KernelNodes {
       return existingImplementation;
     }
 
+    final functionType = functionNode.computeFunctionType(
+      Nullability.nonNullable,
+    );
+
     // Look up the closure representation for the signature.
-    int typeCount = functionNode.typeParameters.length;
-    int positionalCount = functionNode.positionalParameters.length;
-    final List<Variable> namedParamsSorted =
-        functionNode.namedParameters.toList()
-          ..sort((p1, p2) => p1.name!.compareTo(p2.name!));
-    List<String> names = namedParamsSorted.map((p) => p.name!).toList();
+    final int typeCount = functionType.typeParameters.length;
+    final int positionalCount = functionType.positionalParameters.length;
+    final namedParamsSorted = functionType.namedParameters.toList()
+      ..sort((p1, p2) => p1.name.compareTo(p2.name));
+    List<String> names = namedParamsSorted.map((p) => p.name).toList();
     assert(typeCount == paramInfo.typeParamCount);
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
@@ -1335,7 +1353,7 @@ class Translator with KernelNodes {
       while (namedArgIdx < argNames.length &&
           namedParamIdx < namedParamsSorted.length) {
         int comp = argNames[namedArgIdx].compareTo(
-          namedParamsSorted[namedParamIdx].name!,
+          namedParamsSorted[namedParamIdx].name,
         );
         if (comp < 0) {
           // Unexpected named argument passed
@@ -2770,7 +2788,10 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     final b = function.body;
 
-    final int typeCount = functionNode.typeParameters.length;
+    final member = functionNode.parent;
+    final int typeCount = member is Constructor
+        ? member.enclosingClass.typeParameters.length
+        : functionNode.typeParameters.length;
 
     final closureLocal = function.locals[0];
     final typeArgsListLocal = function.locals[1];

@@ -8,8 +8,6 @@ class C1 extends core::Object {
     : self::C1::id = id, super core::Object::•() {
     self::log = s;
   }
-  static synthetic method _#n1#tearOff(final core::int id, [final core::String s = #C1]) → self::C1
-    return new self::C1::n1(id, s);
 }
 extension type ET1(core::int id) {
   abstract extension-type-member representation-field get id() → core::int;
@@ -50,6 +48,6 @@ static method expect(final dynamic expected, final dynamic actual) → dynamic {
 constants  {
   #C1 = "a"
   #C2 = "b"
-  #C3 = static-tearoff self::C1::_#n1#tearOff
+  #C3 = constructor-tearoff self::C1::n1
   #C4 = static-tearoff self::ET1|constructor#_#n1#tearOff
 }
