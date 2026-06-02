@@ -216,8 +216,9 @@ class LspAnalysisServerMemoryUsageTest
   Map<String, List<lsp.Diagnostic>> currentAnalysisErrors = {};
 
   @override
-  void expect(Object? actual, Matcher matcher, {String? reason}) =>
-      outOfTestExpect(actual, matcher, reason: reason);
+  void expect(Object? actual, Object? matcher, {String? reason}) {
+    outOfTestExpect(actual, matcher, reason: reason);
+  }
 
   /// The server is automatically started before every test.
   @override

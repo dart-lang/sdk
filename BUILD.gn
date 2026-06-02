@@ -51,7 +51,6 @@ group("runtime") {
     "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
     "samples/ffi/httpIG:fake_httpIG",
-    "utils/dartdev",
     "utils/kernel-service",
   ]
 
@@ -71,6 +70,7 @@ group("runtime") {
   } else {
     deps += [
       "utils/dart_runtime_service_vm",
+      "utils/dartdev",
       "utils/dds",
       "utils/dtd",
       "utils/kernel-service:frontend_server",

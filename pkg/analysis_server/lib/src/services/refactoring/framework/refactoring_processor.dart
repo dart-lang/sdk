@@ -18,8 +18,9 @@ import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A function that can be executed to create a refactoring producer.
-typedef RefactoringProducerGenerator =
-    RefactoringProducer Function(RefactoringContext);
+typedef RefactoringProducerGenerator = RefactoringProducer Function(
+  RefactoringContext,
+);
 
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
@@ -101,16 +102,10 @@ class RefactoringProcessor {
             command: Command(
               command: command,
               title: producer.title,
-              arguments: [
-                {
-                  'filePath': context.resolvedUnitResult.path,
-                  'selectionOffset': context.selectionOffset,
-                  'selectionLength': context.selectionLength,
-                  'arguments': parameters
-                      .map((param) => param.defaultValue)
-                      .toList(),
-                },
-              ],
+              arguments: buildCommandArguments(
+                context,
+                parameters.map((param) => param.defaultValue).toList(),
+              ),
             ),
             data: {'parameters': parameters},
           ),
@@ -133,5 +128,29 @@ class RefactoringProcessor {
     _timer.stop();
     _performance?.computeTime = _timer.elapsed;
     return refactorings;
+  }
+
+  /// Builds the command arguments that go to the client, which include the
+  /// values required to rebuild the refactoring context, and the arguments
+  /// specific to the refactor.
+  ///
+  /// We always use a single argument that is a map so all values are named,
+  /// with the refactor-specific arguments being in the `arguments` field of
+  /// that map.
+  ///
+  /// This is the opposite of [extractRefactorArguments] which extracts the
+  /// refactor arguments back out of the command.
+  static List<Object?> buildCommandArguments(
+    RefactoringContext context,
+    List<Object?> refactorAguments,
+  ) {
+    return [
+      {
+        'filePath': context.resolvedUnitResult.path,
+        'selectionOffset': context.selectionOffset,
+        'selectionLength': context.selectionLength,
+        'arguments': refactorAguments,
+      },
+    ];
   }
 }

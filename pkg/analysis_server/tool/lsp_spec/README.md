@@ -60,17 +60,14 @@ Client workspace settings are requested with `workspace/configuration` during in
 Below is a list of LSP methods and their implementation status.
 
 - Method: The LSP method name
-- Basic Impl: This method has an implementation but may assume some client capabilities
-- Capabilities: Only types from the original spec or as advertised in client capabilities are returned
-- Plugins: This functionality works with server plugins
-- Tests: Has automated tests
-- Tested Client: Has been manually tested in at least one LSP client editor
+- Server: The method is supported by the Dart server.
+- Plugins: This functionality can be extended by third party analyzer plugins.
 
 | Method | Server | Plugins | Notes |
 | - | - | - | - |
-| initialize | ✅ | N/A | trace and other options NYI|
+| initialize | ✅ | N/A | trace and other options NYI |
 | initialized | ✅ | N/A | |
-| shutdown | ✅ | N/A | supported but does nothing|
+| shutdown | ✅ | N/A | supported but does nothing |
 | exit | ✅ | N/A | |
 | $/cancelRequest | ✅ | | |
 | $/logTrace | | | |
@@ -80,9 +77,9 @@ Below is a list of LSP methods and their implementation status.
 | client/unregisterCapability | ✅ | ✅ | |
 | notebookDocument/* | | | |
 | telemetry/event | | | |
-| textDocument/codeAction (assists) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`|
+| textDocument/codeAction (assists) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor` |
 | textDocument/codeAction (fixAll) | ✅ | | |
-| textDocument/codeAction (fixes) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`|
+| textDocument/codeAction (fixes) | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix` |
 | textDocument/codeAction (organiseImports) | ✅ | | |
 | textDocument/codeAction (refactors) | ✅ | | |
 | textDocument/codeAction (sortMembers) | ✅ | | |
@@ -146,7 +143,7 @@ Below is a list of LSP methods and their implementation status.
 | workspace/diagnostic | | | |
 | workspace/diagnostic/refresh | | | |
 | workspace/didChangeConfiguration | ✅ | | |
-| workspace/didChangeWatchedFiles | | | unused, server does own watching|
+| workspace/didChangeWatchedFiles | | | unused, server does own watching |
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | |
 | workspace/didCreateFiles | | | |
 | workspace/didDeleteFiles | | | |

@@ -223,6 +223,7 @@ class ServerError implements Exception {
 /// A plugin manager that simulates broadcasting requests to plugins by
 /// hard-coding the responses.
 class TestPluginManager implements PluginManager {
+  plugin.AnalysisSetAnalysisRootsParams? analysisSetAnalysisRootsParams;
   plugin.AnalysisSetPriorityFilesParams? analysisSetPriorityFilesParams;
   plugin.AnalysisSetSubscriptionsParams? analysisSetSubscriptionsParams;
   plugin.AnalysisUpdateContentParams? analysisUpdateContentParams;
@@ -298,7 +299,9 @@ class TestPluginManager implements PluginManager {
   @override
   void setAnalysisSetAnalysisRootsParams(
     plugin.AnalysisSetAnalysisRootsParams params,
-  ) {}
+  ) {
+    analysisSetAnalysisRootsParams = params;
+  }
 
   @override
   void setAnalysisSetPriorityFilesParams(

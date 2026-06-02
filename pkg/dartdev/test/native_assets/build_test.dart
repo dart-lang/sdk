@@ -570,6 +570,54 @@ void main() {
       });
     });
   });
+
+  test('dart build cli unmapped entrypoint succeeds with --root-package',
+      timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+      // Create an entry point outside the project structure (isolated temp dir)
+      await _withTempDir((tempUri) async {
+        final isolatedEntryPoint = tempUri.resolve('isolated.dart');
+        await File.fromUri(isolatedEntryPoint).writeAsString('''
+void main() {
+  print('Hello isolated');
+}
+''');
+
+        // Invoke build pointing to the isolated file with --root-package
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--packages=${dartAppUri.resolve('.dart_tool/package_config.json').toFilePath()}',
+            '--target=${isolatedEntryPoint.toFilePath()}',
+            '--root-package=dart_app',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
+
+        expect(result.stdout, contains('Running build hooks'));
+        expect(result.stdout, contains('Running link hooks'));
+
+        // Verify the executable runs correctly and prints expected output
+        final relativeExeUri = relativeBundleUri
+            .resolve('bin/')
+            .resolve(OS.current.executableFileName('isolated'));
+        final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+        expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+        final processResult = await runProcess(
+          executable: absoluteExeUri,
+          logger: logger,
+          throwOnUnexpectedExitCode: true,
+        );
+        expect(processResult.stdout, contains('Hello isolated'));
+      });
+    });
+  });
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

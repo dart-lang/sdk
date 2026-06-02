@@ -132,11 +132,13 @@ class InteractiveForm {
     _isComplete = true; // Default until we see validation errors.
     clientFields.clear();
     for (var field in _fieldMap.values) {
-      // Use the default value if no answer was supplied by the client, since
-      // this allows us to have unsupported form fields as long as they have
-      // defaults.
-      var answerValue = answerById[field.id]?.value ?? field.defaultValue;
-      var errorMessage = _validateAnswer(field, answerValue);
+      var answerValue = answerById[field.id]?.value;
+      var errorMessage = _validateAnswer(
+        field,
+        // For validation, we can use the default value if none was provided.
+        // This allows unsupported fields with defaults to pass validation.
+        answerValue ?? field.defaultValue,
+      );
       var isValid = errorMessage == null;
 
       // Record the current answer and validation state so it can be used by
@@ -152,7 +154,14 @@ class InteractiveForm {
       }
 
       // Update form completion state.
-      _isComplete = _isComplete && isValid;
+      if (!isValid) {
+        // User has given an invalid answer and must be shown an error.
+        _isComplete = false;
+      } else if (_isSupported(field) && field.required && answerValue == null) {
+        // A supported, required field does not have an answer so the form must
+        // still be presented again.
+        _isComplete = false;
+      }
     }
 
     // If the form is complete, no fields go back to the client.

@@ -391,6 +391,32 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     expectNoContextBuilds();
   }
 
+  Future<void> test_changeWorkspaceFolders_pluginAnalysisRoots() async {
+    await initialize(workspaceFolders: [workspaceFolder1Uri]);
+    expect(
+      pluginManager.analysisSetAnalysisRootsParams?.included,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    await changeWorkspaceFolders(
+      add: [workspaceFolder2Uri, workspaceFolder3Uri],
+    );
+    expect(
+      pluginManager.analysisSetAnalysisRootsParams?.included,
+      unorderedEquals([
+        workspaceFolder1Path,
+        workspaceFolder2Path,
+        workspaceFolder3Path,
+      ]),
+    );
+
+    await changeWorkspaceFolders(remove: [workspaceFolder1Uri]);
+    expect(
+      pluginManager.analysisSetAnalysisRootsParams?.included,
+      unorderedEquals([workspaceFolder2Path, workspaceFolder3Path]),
+    );
+  }
+
   Future<void> test_changeWorkspaceFolders_remove() async {
     await initialize(
       workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],

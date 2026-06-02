@@ -1158,8 +1158,8 @@ class LspAnalysisServer extends AnalysisServer {
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
     var includedPaths = _workspaceFolders.isNotEmpty
-        ? _workspaceFolders.toSet()
-        : _getRootsForOpenFiles();
+        ? _workspaceFolders.toList()
+        : _getRootsForOpenFiles().toList();
 
     var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
         .expand(
@@ -1175,25 +1175,28 @@ class LspAnalysisServer extends AnalysisServer {
                 ),
         )
         .map(pathContext.normalize)
-        .toSet();
+        .toSet()
+        .toList();
 
-    var includedPathsList = includedPaths.toList();
-    var excludedPathsList = excludedPaths.toList();
-    notificationManager.setAnalysisRoots(includedPathsList, excludedPathsList);
+    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     if (detachableFileSystemManager != null) {
       detachableFileSystemManager?.setAnalysisRoots(
         null,
-        includedPathsList,
-        excludedPathsList,
+        includedPaths,
+        excludedPaths,
       );
     } else {
       var completer = analysisContextRebuildCompleter = Completer();
       try {
-        await contextManager.setRoots(includedPathsList, excludedPathsList);
+        await contextManager.setRoots(includedPaths, excludedPaths);
       } finally {
         completer.complete();
       }
     }
+
+    pluginManager.setAnalysisSetAnalysisRootsParams(
+      plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
+    );
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
