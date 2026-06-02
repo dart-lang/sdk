@@ -164,12 +164,6 @@ final class MachoImageWriter extends ImageWriter {
     header = Header(this);
     symbolTable.addSymbol(snapshotTextAsmSymbol, textSection, 0);
     symbolTable.addSymbol(snapshotDataAsmSymbol, constSection, 0);
-
-    // TRANSITION
-    symbolTable.addSymbol("_kDartVmSnapshotInstructions", textSection, 0);
-    symbolTable.addSymbol("_kDartIsolateSnapshotInstructions", textSection, 0);
-    symbolTable.addSymbol("_kDartVmSnapshotData", constSection, 0);
-    symbolTable.addSymbol("_kDartIsolateSnapshotData", constSection, 0);
   }
 
   @override

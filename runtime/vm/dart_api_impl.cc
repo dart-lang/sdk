@@ -6885,36 +6885,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
 }
 
 DART_EXPORT Dart_Handle
-Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
-                                   void* callback_data) {
-#if defined(TARGET_ARCH_IA32)
-  return Api::NewError("AOT compilation is not supported on IA32.");
-#elif !defined(DART_PRECOMPILER)
-  return Api::NewError(
-      "This VM was built without support for AOT compilation.");
-#else
-  const char assembly[] =
-      ".text\n"
-      ".globl _kDartVmSnapshotInstructions\n"
-      ".balign 64, 0\n"
-      "_kDartVmSnapshotInstructions:\n"
-      ".quad 0\n"
-      ".size _kDartVmSnapshotInstructions, .-_kDartVmSnapshotInstructions\n"
-      ".type _kDartVmSnapshotInstructions, %object\n"
-      ".section .rodata\n"
-      ".globl _kDartVmSnapshotData\n"
-      ".balign 64, 0\n"
-      "_kDartVmSnapshotData:\n"
-      ".quad 0\n"
-      ".size _kDartVmSnapshotData, .-_kDartVmSnapshotData\n"
-      ".type _kDartVmSnapshotData, %object\n";
-  callback(callback_data, reinterpret_cast<const uint8_t*>(assembly),
-           sizeof(assembly));
-  return Api::Success();
-#endif
-}
-
-DART_EXPORT Dart_Handle
 Dart_WriteCallbackStub(Dart_StreamingWriteCallback callback,
                        void* callback_data) {
 #if defined(TARGET_ARCH_IA32)

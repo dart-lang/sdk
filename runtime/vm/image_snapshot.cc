@@ -1650,23 +1650,6 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   UNIMPLEMENTED();
 #endif
 
-#if 1
-  // TRANSITION
-  if (name == ProgramSection::Text) {
-    assembly_stream_->Printf(
-        ".globl _kDartVmSnapshotInstructions\n"
-        "_kDartVmSnapshotInstructions = _kDartSnapshotText\n"
-        ".globl _kDartIsolateSnapshotInstructions\n"
-        "_kDartIsolateSnapshotInstructions = _kDartSnapshotText\n");
-  } else if (name == ProgramSection::Data) {
-    assembly_stream_->Printf(
-        ".globl _kDartVmSnapshotData\n"
-        "_kDartVmSnapshotData = _kDartSnapshotData\n"
-        ".globl _kDartIsolateSnapshotData\n"
-        "_kDartIsolateSnapshotData = _kDartSnapshotData\n");
-  }
-#endif
-
   // We need to generate a text segment of the appropriate size in the shared
   // object writer for two reasons:
   //

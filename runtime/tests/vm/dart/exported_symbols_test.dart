@@ -82,7 +82,6 @@ main() {
     "Dart_CreateIsolateGroupFromKernel",
     "Dart_CreateIsolateInGroup",
     "Dart_CreateSnapshot",
-    "Dart_CreateVMAOTSnapshotAsAssembly",
     "Dart_CurrentIsolate",
     "Dart_CurrentIsolateData",
     "Dart_CurrentIsolateGroup",
@@ -370,13 +369,13 @@ main() {
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
     if (isAOTRuntime) ...[
-      "Dart_LoadELF2",
-      "Dart_LoadELF_Memory2",
-      "Dart_LoadMachODylib2",
-      "Dart_LoadMachODylib_Memory2",
+      "Dart_LoadELF",
+      "Dart_LoadELF_Memory",
+      "Dart_LoadMachODylib",
+      "Dart_LoadMachODylib_Memory",
       "Dart_UnloadELF",
       "Dart_UnloadMachODylib",
-      if (!Platform.isMacOS) ...["Dart_LoadELF_Fd2", "Dart_LoadMachODylib_Fd2"],
+      if (!Platform.isMacOS) ...["Dart_LoadELF_Fd", "Dart_LoadMachODylib_Fd"],
     ],
   ];
 

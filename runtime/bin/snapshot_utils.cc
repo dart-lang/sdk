@@ -291,13 +291,13 @@ static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
     if (memory == nullptr) return nullptr;
     const uint8_t* address =
         reinterpret_cast<const uint8_t*>(memory->address());
-    handle = Dart_LoadELF_Memory2(address + file_offset, file->Length(), &error,
-                                  &snapshot_data_buffer, &snapshot_text_buffer);
+    handle = Dart_LoadELF_Memory(address + file_offset, file->Length(), &error,
+                                 &snapshot_data_buffer, &snapshot_text_buffer);
     delete memory;
     file->Release();
   } else {
-    handle = Dart_LoadELF2(script_name, file_offset, &error,
-                           &snapshot_data_buffer, &snapshot_text_buffer);
+    handle = Dart_LoadELF(script_name, file_offset, &error,
+                          &snapshot_data_buffer, &snapshot_text_buffer);
   }
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
@@ -365,14 +365,14 @@ static AppSnapshot* TryReadAppSnapshotMachODylib(
     }
     const uint8_t* address =
         reinterpret_cast<const uint8_t*>(memory->address());
-    handle = Dart_LoadMachODylib_Memory2(address + file_offset, file->Length(),
-                                         &error, &snapshot_data_buffer,
-                                         &snapshot_text_buffer);
+    handle = Dart_LoadMachODylib_Memory(address + file_offset, file->Length(),
+                                        &error, &snapshot_data_buffer,
+                                        &snapshot_text_buffer);
     delete memory;
     file->Release();
   } else {
-    handle = Dart_LoadMachODylib2(script_name, file_offset, &error,
-                                  &snapshot_data_buffer, &snapshot_text_buffer);
+    handle = Dart_LoadMachODylib(script_name, file_offset, &error,
+                                 &snapshot_data_buffer, &snapshot_text_buffer);
   }
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
@@ -542,8 +542,8 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromPE(
 
       if (magic_number == DartUtils::kAotELFMagicNumber) {
         Dart_LoadedElf* const handle =
-            Dart_LoadELF_Memory2(snapshot.get(), size, &error,
-                                 &snapshot_data_buffer, &snapshot_text_buffer);
+            Dart_LoadELF_Memory(snapshot.get(), size, &error,
+                                &snapshot_data_buffer, &snapshot_text_buffer);
 
         if (handle == nullptr) {
           Syslog::PrintErr("Loading failed: %s\n", error);
@@ -556,7 +556,7 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromPE(
 
       if (magic_number == DartUtils::kAotMachO32MagicNumber ||
           magic_number == DartUtils::kAotMachO64MagicNumber) {
-        Dart_LoadedMachODylib* const handle = Dart_LoadMachODylib_Memory2(
+        Dart_LoadedMachODylib* const handle = Dart_LoadMachODylib_Memory(
             snapshot.get(), size, &error, &snapshot_data_buffer,
             &snapshot_text_buffer);
 

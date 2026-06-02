@@ -416,11 +416,11 @@ using namespace dart::bin::elf;  // NOLINT
 using Mappable = dart::bin::Mappable;
 
 #if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd2(int fd,
-                                             uint64_t file_offset,
-                                             const char** error,
-                                             const uint8_t** snapshot_data,
-                                             const uint8_t** snapshot_text) {
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
+                                            uint64_t file_offset,
+                                            const char** error,
+                                            const uint8_t** snapshot_data,
+                                            const uint8_t** snapshot_text) {
   std::unique_ptr<Mappable> mappable(Mappable::FromFD(fd));
   std::unique_ptr<LoadedElf> elf(
       new LoadedElf(std::move(mappable), file_offset));
@@ -434,11 +434,11 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd2(int fd,
 }
 #endif
 
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF2(const char* filename,
-                                          uint64_t file_offset,
-                                          const char** error,
-                                          const uint8_t** snapshot_data,
-                                          const uint8_t** snapshot_text) {
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
+                                         uint64_t file_offset,
+                                         const char** error,
+                                         const uint8_t** snapshot_data,
+                                         const uint8_t** snapshot_text) {
   std::unique_ptr<Mappable> mappable(Mappable::FromPath(filename));
   if (mappable == nullptr) {
     *error = "Couldn't open file.";
@@ -455,12 +455,11 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF2(const char* filename,
   return reinterpret_cast<Dart_LoadedElf*>(elf.release());
 }
 
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory2(
-    const uint8_t* snapshot,
-    uint64_t snapshot_size,
-    const char** error,
-    const uint8_t** snapshot_data,
-    const uint8_t** snapshot_text) {
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(const uint8_t* snapshot,
+                                                uint64_t snapshot_size,
+                                                const char** error,
+                                                const uint8_t** snapshot_data,
+                                                const uint8_t** snapshot_text) {
   std::unique_ptr<Mappable> mappable(
       Mappable::FromMemory(snapshot, snapshot_size));
   if (mappable == nullptr) {
