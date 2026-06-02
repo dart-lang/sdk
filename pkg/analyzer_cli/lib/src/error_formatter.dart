@@ -46,7 +46,7 @@ class AnalysisStats {
   int lintCount = 0;
   int warnCount = 0;
 
-  AnalysisStats();
+  new();
 
   /// The total number of diagnostics reported to the user.
   int get filteredCount => errorCount + warnCount + hintCount + lintCount;
@@ -116,7 +116,7 @@ class CLIError implements Comparable<CLIError> {
   final String? correction;
   final String? url;
 
-  CLIError({
+  new({
     required this.severity,
     required this.sourcePath,
     required this.offset,
@@ -171,7 +171,7 @@ class ContextMessage {
   final String message;
   final int line;
   final int column;
-  ContextMessage(this.filePath, this.message, this.line, this.column);
+  new(this.filePath, this.message, this.line, this.column);
 }
 
 /// Helper for formatting [Diagnostic]s.
@@ -184,7 +184,7 @@ abstract class ErrorFormatter {
   final AnalysisStats stats;
   final SeverityProcessor _severityProcessor;
 
-  ErrorFormatter(
+  new(
     this.out,
     this.options,
     this.stats, {
@@ -236,12 +236,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   // This is a Set in order to de-dup CLI errors.
   final Set<CLIError> batchedErrors = {};
 
-  HumanErrorFormatter(
-    super.out,
-    super.options,
-    super.stats, {
-    super.severityProcessor,
-  });
+  new(super.out, super.options, super.stats, {super.severityProcessor});
 
   @override
   void flush() {
@@ -357,12 +352,7 @@ class HumanErrorFormatter extends ErrorFormatter {
 }
 
 class JsonErrorFormatter extends ErrorFormatter {
-  JsonErrorFormatter(
-    super.out,
-    super.options,
-    super.stats, {
-    super.severityProcessor,
-  });
+  new(super.out, super.options, super.stats, {super.severityProcessor});
 
   @override
   void flush() {}
@@ -460,12 +450,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _return = '\r'.codeUnitAt(0);
   final Set<Diagnostic> _seenDiagnostics = <Diagnostic>{};
 
-  MachineErrorFormatter(
-    super.out,
-    super.options,
-    super.stats, {
-    super.severityProcessor,
-  });
+  new(super.out, super.options, super.stats, {super.severityProcessor});
 
   @override
   void flush() {}

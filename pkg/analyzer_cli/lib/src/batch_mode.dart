@@ -16,7 +16,7 @@ class BatchRunner {
   final StringSink outSink;
   final StringSink errorSink;
 
-  BatchRunner(this.outSink, this.errorSink);
+  new(this.outSink, this.errorSink);
 
   /// Run the tool in 'batch' mode, receiving command lines through stdin and
   /// returning pass/fail status through stdout. This feature is intended for
