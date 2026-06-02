@@ -3764,7 +3764,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var errorRange = superInvocation?.sourceRange ?? implicitErrorRange;
     diagnosticReporter.report(
       diag.constConstructorWithNonConstSuper
-          .withArguments(superclassName: element.enclosingElement.displayName)
+          .withArguments(
+            superclassName: invokedSuper.enclosingElement.displayName,
+          )
           .atSourceRange(errorRange),
     );
     return true;

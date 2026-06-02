@@ -20,7 +20,7 @@ class A {}
 class B extends A {
   const new(): super();
 //             ^^^^^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 }
 ''');
   }
@@ -31,7 +31,7 @@ class A {}
 class B extends A {
   const B(): super();
 //           ^^^^^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 }
 ''');
   }
@@ -42,7 +42,7 @@ class A {}
 class const B() extends A {
   this : super();
 //       ^^^^^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 }
 ''');
   }
@@ -53,7 +53,7 @@ class A {}
 class B extends A {
   const new();
 //      ^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 }
 ''');
   }
@@ -64,7 +64,7 @@ class A {}
 class B extends A {
   const B();
 //      ^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 }
 ''');
   }
@@ -74,7 +74,7 @@ class B extends A {
 class A {}
 class const B() extends A {
 //    ^^^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
   this;
 }
 ''');
@@ -85,7 +85,7 @@ class const B() extends A {
 class A {}
 class const B() extends A;
 //    ^^^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 ''');
   }
 
@@ -114,7 +114,7 @@ class B extends A {
   const B.foo() : this.bar();
   const B.bar() : super._();
 //                ^^^^^^^^^
-// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'B'.
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
 }
 ''');
   }
