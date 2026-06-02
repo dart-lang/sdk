@@ -3957,6 +3957,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _checkForDefaultValueAlreadySpecifiedInAugmentationChain(
+    FormalParameter formalParameter,
+  ) {
+    if (!formalParameter.isOptional) {
+      return;
+    }
+
+    var defaultClause = formalParameter.defaultClause;
+    if (defaultClause == null) {
+      return;
+    }
+
+    var fragment = formalParameter.declaredFragment;
+    if (fragment is! FormalParameterFragmentImpl) {
+      return;
+    }
+
+    for (var previousFragment in fragment.precedingFragments) {
+      if (previousFragment.constantInitializer != null) {
+        diagnosticReporter.report(
+          diag.defaultValueAlreadySpecifiedInAugmentationChain
+              .withContextMessages([
+                ?previousFragment.contextMessageAt(
+                  "The previous formal parameter with default value is here.",
+                ),
+              ])
+              .at(defaultClause.separator),
+        );
+        return;
+      }
+    }
+  }
+
   void _checkForDefaultValueAssignableAtType(FormalParameter node) {
     if (node.defaultClause case var defaultClause?) {
       var defaultValue = defaultClause.value;
@@ -7585,6 +7618,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }();
 
     for (var parameter in node.parameters) {
+      _checkForDefaultValueAlreadySpecifiedInAugmentationChain(parameter);
+
       if (parameter.isRequiredNamed) {
         if (parameter.defaultClause != null) {
           var errorTarget = parameter.name ?? parameter;

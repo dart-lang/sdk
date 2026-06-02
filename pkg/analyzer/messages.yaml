@@ -5128,6 +5128,13 @@ CompileTimeErrorCode:
     problemMessage: "The factory constructor '#name' must have a body or redirection after all augmentations are applied."
     correctionMessage: "Try adding a body or redirection to the introductory declaration, or providing an augmentation with a body or redirection."
     hasPublishedDocs: false
+  defaultValueAlreadySpecifiedInAugmentationChain:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "The default value for this optional parameter was already specified in the augmentation chain."
+    correctionMessage: "Try removing all but one of the default values."
+    hasPublishedDocs: false
   duplicateNamedArgument:
     type: compileTimeError
     parameters:

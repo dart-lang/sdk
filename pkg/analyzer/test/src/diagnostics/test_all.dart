@@ -178,6 +178,8 @@ import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'creation_with_non_type_test.dart' as creation_with_non_type;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
+import 'default_value_already_specified_in_augmentation_chain_test.dart'
+    as default_value_already_specified_in_augmentation_chain;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
@@ -1076,6 +1078,7 @@ main() {
     creation_with_non_type.main();
     dead_code.main();
     dead_null_aware_expression.main();
+    default_value_already_specified_in_augmentation_chain.main();
     default_value_in_function_type.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();

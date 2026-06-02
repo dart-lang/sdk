@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  84 "needsEvaluation"
+# -  85 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -566,6 +566,8 @@ continue_label_invalid:
   status: noFix
 could_not_infer:
   status: noFix
+default_value_already_specified_in_augmentation_chain:
+  status: needsEvaluation
 default_value_in_redirecting_factory_constructor:
   status: needsFix
   notes: |-

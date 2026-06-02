@@ -443,10 +443,48 @@ void f([int a = 0]) {}
 ''');
   }
 
+  test_function_nonNullable_positional_optional_default_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+void f([int a]);
+
+augment void f([int a = 0]) {}
+''');
+  }
+
+  test_function_nonNullable_positional_optional_default_introduction() async {
+    await resolveTestCodeWithDiagnostics('''
+void f([int a = 0]);
+
+augment void f([int a]) {}
+''');
+  }
+
+  test_function_nonNullable_positional_optional_default_middleAugmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+void f([int a]);
+
+augment void f([int a = 0]);
+
+augment void f([int a]) {}
+''');
+  }
+
   test_function_nonNullable_positional_optional_noDefault() async {
     await resolveTestCodeWithDiagnostics('''
 void f([int a]) {}
 //          ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+''');
+  }
+
+  test_function_nonNullable_positional_optional_noDefault_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+void f([int a]);
+//          ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+
+augment void f([int a]) {}
+//                  ^
 // [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 ''');
   }
@@ -675,11 +713,55 @@ class C {
 ''');
   }
 
+  test_method_nonNullable_positional_optional_default_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  void foo([int a]);
+
+  augment void foo([int a = 0]) {}
+}
+''');
+  }
+
+  test_method_nonNullable_positional_optional_default_introduction() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  void foo([int a = 0]);
+
+  augment void foo([int a]) {}
+}
+''');
+  }
+
+  test_method_nonNullable_positional_optional_default_middleAugmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  void foo([int a]);
+
+  augment void foo([int a = 0]);
+
+  augment void foo([int a]) {}
+}
+''');
+  }
+
   test_method_nonNullable_positional_optional_noDefault() async {
     await resolveTestCodeWithDiagnostics('''
 class C {
   void foo([int a]) {}
 //              ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+}
+''');
+  }
+
+  test_method_nonNullable_positional_optional_noDefault_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  void foo([int a]);
+
+  augment void foo([int a]) {}
+//                      ^
 // [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 }
 ''');
