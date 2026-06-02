@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -17,6 +19,10 @@ class MoveInitializationToFieldDeclaration extends ResolvedCorrectionProducer {
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
+
+  @override
+  AssistKind? get assistKind =>
+      DartAssistKind.moveInitializationToFieldDeclaration;
 
   @override
   FixKind get fixKind => DartFixKind.moveInitializationToFieldDeclaration;
@@ -33,6 +39,12 @@ class MoveInitializationToFieldDeclaration extends ResolvedCorrectionProducer {
     }
     var initializer = node.parent;
     if (initializer is! ConstructorFieldInitializer) {
+      return;
+    }
+    if (initializer.fieldName != node) {
+      // This will always be true when this producer is used as a fix, but we
+      // want to ensure that it's also true when used as an assist to avoid
+      // a confusing UX.
       return;
     }
     var field = node.element;

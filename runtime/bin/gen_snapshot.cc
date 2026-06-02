@@ -79,7 +79,6 @@ enum SnapshotKind {
   kAppAOTAssembly,
   kAppAOTElf,
   kAppAOTMachODylib,
-  kVMAOTAssembly,
   kFfiCallbackStub,
 };
 static SnapshotKind snapshot_kind = kCore;
@@ -93,7 +92,6 @@ static const char* const kSnapshotKindNames[] = {
     "app-aot-assembly",
     "app-aot-elf",
     "app-aot-macho-dylib",
-    "vm-aot-assembly",
     "ffi-callback-stub",
     nullptr,
     // clang-format on
@@ -105,10 +103,6 @@ static const char* const kSnapshotKindNames[] = {
   V(load_isolate_snapshot_data, load_isolate_snapshot_data_filename)           \
   V(load_isolate_snapshot_instructions,                                        \
     load_isolate_snapshot_instructions_filename)                               \
-  V(vm_snapshot_data, vm_snapshot_data_filename)                               \
-  V(vm_snapshot_instructions, vm_snapshot_instructions_filename)               \
-  V(isolate_snapshot_data, isolate_snapshot_data_filename)                     \
-  V(isolate_snapshot_instructions, isolate_snapshot_instructions_filename)     \
   V(snapshot_data, snapshot_data_filename)                                     \
   V(snapshot_text, snapshot_text_filename)                                     \
   V(assembly, assembly_filename)                                               \
@@ -146,7 +140,6 @@ DEFINE_CB_OPTION(ProcessEnvironmentOption);
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTAssembly) || (snapshot_kind == kAppAOTElf) ||
          (snapshot_kind == kAppAOTMachODylib) ||
-         (snapshot_kind == kVMAOTAssembly) ||
          (snapshot_kind == kFfiCallbackStub);
 }
 
@@ -254,8 +247,8 @@ static int ParseArguments(int argc,
 
   switch (snapshot_kind) {
     case kCore: {
-      if ((snapshot_data_filename == nullptr) &&
-          (isolate_snapshot_data_filename == nullptr)) {
+      if ((snapshot_data_filename == nullptr) ||
+          (snapshot_text_filename == nullptr)) {
         Syslog::PrintErr(
             "Building a core snapshot requires specifying output files for "
             "--snapshot_data and --snapshot_text.\n\n");
@@ -265,10 +258,8 @@ static int ParseArguments(int argc,
     }
     case kApp:
     case kAppJIT: {
-      if (((snapshot_data_filename == nullptr) &&
-           (isolate_snapshot_data_filename == nullptr)) ||
-          ((snapshot_text_filename == nullptr) &&
-           (isolate_snapshot_instructions_filename == nullptr))) {
+      if ((snapshot_data_filename == nullptr) ||
+          (snapshot_text_filename == nullptr)) {
         Syslog::PrintErr(
             "Building an app JIT snapshot requires specifying input files for "
             "--load_vm_snapshot_data and --load_vm_snapshot_instructions, an "
@@ -296,8 +287,7 @@ static int ParseArguments(int argc,
       }
       break;
     }
-    case kAppAOTAssembly:
-    case kVMAOTAssembly: {
+    case kAppAOTAssembly: {
       if (assembly_filename == nullptr) {
         Syslog::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
@@ -426,11 +416,8 @@ static void MaybeLoadCode() {
 
 static void CreateAndWriteCoreSnapshot() {
   ASSERT(snapshot_kind == kCore);
-#if 0
-  // TRANSITION
   ASSERT(snapshot_data_filename != nullptr);
   ASSERT(snapshot_text_filename != nullptr);
-#endif
 
   Dart_Handle result;
   uint8_t* snapshot_data_buffer = nullptr;
@@ -439,33 +426,9 @@ static void CreateAndWriteCoreSnapshot() {
   result = Dart_CreateSnapshot(&snapshot_data_buffer, &snapshot_data_size);
   CHECK_RESULT(result);
 
-  if (snapshot_data_filename != nullptr) {
-    WriteFile(snapshot_data_filename, snapshot_data_buffer, snapshot_data_size);
-  }
-  if (snapshot_text_filename != nullptr) {
-    // Create empty file for the convenience of build systems.
-    WriteFile(snapshot_text_filename, nullptr, 0);
-  }
-
-#if 1
-  // TRANSITION
-  if (vm_snapshot_data_filename != nullptr) {
-    // Create empty file for the convenience of build systems.
-    WriteFile(vm_snapshot_data_filename, nullptr, 0);
-  }
-  if (vm_snapshot_instructions_filename != nullptr) {
-    // Create empty file for the convenience of build systems.
-    WriteFile(vm_snapshot_instructions_filename, nullptr, 0);
-  }
-  if (isolate_snapshot_data_filename != nullptr) {
-    WriteFile(isolate_snapshot_data_filename, snapshot_data_buffer,
-              snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_filename != nullptr) {
-    // Create empty file for the convenience of build systems.
-    WriteFile(isolate_snapshot_instructions_filename, nullptr, 0);
-  }
-#endif
+  WriteFile(snapshot_data_filename, snapshot_data_buffer, snapshot_data_size);
+  // Create empty file for the convenience of build systems.
+  WriteFile(snapshot_text_filename, nullptr, 0);
 }
 
 static std::unique_ptr<MappedMemory> MapFile(const char* filename,
@@ -503,33 +466,18 @@ static void CreateAndWriteAppSnapshot() {
   result = Dart_CreateSnapshot(&snapshot_data_buffer, &snapshot_data_size);
   CHECK_RESULT(result);
 
-  if (snapshot_data_filename != nullptr) {
-    WriteFile(snapshot_data_filename, snapshot_data_buffer, snapshot_data_size);
-  }
+  WriteFile(snapshot_data_filename, snapshot_data_buffer, snapshot_data_size);
   if (snapshot_text_filename != nullptr) {
     // Create empty file for the convenience of build systems.
     WriteFile(snapshot_text_filename, nullptr, 0);
   }
-#if 1
-  // TRANSITION
-  if (isolate_snapshot_data_filename != nullptr) {
-    WriteFile(isolate_snapshot_data_filename, snapshot_data_buffer,
-              snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_filename != nullptr) {
-    // Create empty file for the convenience of build systems.
-    WriteFile(isolate_snapshot_instructions_filename, nullptr, 0);
-  }
-#endif
 }
 
 static void CreateAndWriteAppJITSnapshot() {
   ASSERT(snapshot_kind == kAppJIT);
-#if 0
-  // TRANSITION
   ASSERT(snapshot_data_filename != nullptr);
   ASSERT(snapshot_text_filename != nullptr);
-#endif
+
   Dart_Handle result;
   uint8_t* snapshot_data_buffer = nullptr;
   intptr_t snapshot_data_size = 0;
@@ -541,24 +489,8 @@ static void CreateAndWriteAppJITSnapshot() {
       &snapshot_text_size);
   CHECK_RESULT(result);
 
-  if (snapshot_data_filename != nullptr) {
-    WriteFile(snapshot_data_filename, snapshot_data_buffer, snapshot_data_size);
-  }
-  if (snapshot_text_filename != nullptr) {
-    WriteFile(snapshot_text_filename, snapshot_text_buffer, snapshot_text_size);
-  }
-
-#if 1
-  // TRANSITION
-  if (isolate_snapshot_data_filename != nullptr) {
-    WriteFile(isolate_snapshot_data_filename, snapshot_data_buffer,
-              snapshot_data_size);
-  }
-  if (isolate_snapshot_instructions_filename != nullptr) {
-    WriteFile(isolate_snapshot_instructions_filename, snapshot_text_buffer,
-              snapshot_text_size);
-  }
-#endif
+  WriteFile(snapshot_data_filename, snapshot_data_buffer, snapshot_data_size);
+  WriteFile(snapshot_text_filename, snapshot_text_buffer, snapshot_text_size);
 }
 
 static void StreamingWriteCallback(void* callback_data,
@@ -678,14 +610,6 @@ static void NextElfCallback(void* callback_data,
 static void CreateAndWritePrecompiledSnapshot() {
   ASSERT(IsSnapshottingForPrecompilation());
 
-  if (snapshot_kind == kVMAOTAssembly) {
-    File* file = OpenFile(assembly_filename);
-    RefCntReleaseScope<File> rs(file);
-    Dart_Handle result =
-        Dart_CreateVMAOTSnapshotAsAssembly(StreamingWriteCallback, file);
-    CHECK_RESULT(result);
-    return;
-  }
   if (snapshot_kind == kFfiCallbackStub) {
     File* file = OpenFile(ffi_callback_stub_filename);
     RefCntReleaseScope<File> rs(file);
@@ -892,7 +816,6 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     case kAppAOTAssembly:
     case kAppAOTElf:
     case kAppAOTMachODylib:
-    case kVMAOTAssembly:
     case kFfiCallbackStub:
       CreateAndWritePrecompiledSnapshot();
       break;

@@ -47,13 +47,13 @@ class DartObjectPrinter {
       } else if (state is GenericState) {
         _writeGenericState(type, state);
       } else if (state is ListState) {
-        _writeListState(state);
+        _writeListState(type, state);
       } else if (state is MapState) {
-        _writeMapState(state);
+        _writeMapState(type, state);
       } else if (state is RecordState) {
         _writeRecordState(type, state);
       } else if (state is SetState) {
-        _writeSetState(state);
+        _writeSetState(type, state);
       } else if (state is TypeState) {
         _writeTypeObject(object);
       } else {
@@ -132,10 +132,9 @@ class DartObjectPrinter {
     }
   }
 
-  void _writeListState(ListState state) {
-    _sink.writeln('List');
+  void _writeListState(DartType type, ListState state) {
+    _writelnType(type);
     _sink.withIndent(() {
-      _elementPrinter.writeNamedType('elementType', state.elementType);
       var elements = state.elements;
       if (elements.isNotEmpty) {
         _sink.writelnWithIndent('elements');
@@ -159,8 +158,8 @@ class DartObjectPrinter {
     }
   }
 
-  void _writeMapState(MapState state) {
-    _sink.writeln('Map');
+  void _writeMapState(DartType type, MapState state) {
+    _writelnType(type);
     _sink.withIndent(() {
       var entries = state.entries;
       if (entries.isNotEmpty) {
@@ -215,8 +214,8 @@ class DartObjectPrinter {
     });
   }
 
-  void _writeSetState(SetState state) {
-    _sink.writeln('Set');
+  void _writeSetState(DartType type, SetState state) {
+    _writelnType(type);
     _sink.withIndent(() {
       var elements = state.elements;
       if (elements.isNotEmpty) {

@@ -32,9 +32,9 @@ preAnalysisServerStart;
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
   AnalysisServer(
-    this.packagesFile,
-    this.sdkPath,
-    this.analysisRoots, {
+    this._packagesFile,
+    this._sdkPath,
+    this._analysisRoots, {
     this.cacheDirectoryPath,
     required this.commandName,
     required this.argResults,
@@ -46,9 +46,9 @@ class AnalysisServer {
   });
 
   final String? cacheDirectoryPath;
-  final File? packagesFile;
-  final Directory sdkPath;
-  final List<FileSystemEntity> analysisRoots;
+  final File? _packagesFile;
+  final Directory _sdkPath;
+  final List<FileSystemEntity> _analysisRoots;
   final String commandName;
   final ArgResults? argResults;
   final List<String> enabledExperiments;
@@ -113,7 +113,7 @@ class AnalysisServer {
 
   /// Starts the process and returns the pid for it.
   Future<int> start({bool setAnalysisRoots = true}) async {
-    preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
+    preAnalysisServerStart?.call(commandName, _analysisRoots, argResults);
 
     final process = await _startProcess();
     _process = process;
@@ -160,7 +160,7 @@ class AnalysisServer {
 
     _sendCommand(
       'server.setSubscriptions',
-      params: <String, dynamic>{
+      params: {
         'subscriptions': <String>['STATUS'],
       },
     );
@@ -172,7 +172,7 @@ class AnalysisServer {
     // The call to `absolute.resolveSymbolicLinksSync()` canonicalizes the path
     // to be passed to the analysis server.
     final analysisRootPaths = [
-      for (final root in analysisRoots)
+      for (final root in _analysisRoots)
         trimEnd(
           root.absolute.resolveSymbolicLinksSync(),
           path.context.separator,
@@ -217,9 +217,9 @@ class AnalysisServer {
         '--disable-status-notification-debouncing',
       '--disable-silent-analysis-exceptions',
       '--sdk',
-      sdkPath.path,
+      _sdkPath.path,
       if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
-      if (packagesFile != null) '--packages=${packagesFile!.path}',
+      if (_packagesFile != null) '--packages=${_packagesFile.path}',
       if (enabledExperiments.isNotEmpty)
         '--$experimentFlagName=${enabledExperiments.join(',')}',
       if (!_usePlugins) '--no-plugins',
@@ -243,7 +243,7 @@ class AnalysisServer {
   }) {
     return _sendCommand(
       'edit.bulkFixes',
-      params: <String, dynamic>{
+      params: {
         'included': [path.canonicalize(filePath)],
         'inTestMode': inTestMode,
         'updatePubspec': updatePubspec,
@@ -260,23 +260,18 @@ class AnalysisServer {
 
   Future<void> shutdown({Duration? timeout}) async {
     // Request shutdown.
-    final Future<void> future = _sendCommand('server.shutdown').then((
-      Map<String, dynamic> value,
-    ) {
+    var future = _sendCommand('server.shutdown').then((_) {
       _shutdownResponseReceived = true;
-      return;
     });
-    await (timeout != null
-            ? future.timeout(
-                timeout,
-                onTimeout: () {
-                  log.stderr(
-                    'The analysis server timed out while shutting down.',
-                  );
-                },
-              )
-            : future)
-        .whenComplete(dispose);
+    if (timeout != null) {
+      future = future.timeout(
+        timeout,
+        onTimeout: () {
+          log.stderr('The analysis server timed out while shutting down.');
+        },
+      );
+    }
+    await future.whenComplete(dispose);
   }
 
   /// Send an `analysis.updateContent` request with the given [files].
@@ -292,7 +287,7 @@ class AnalysisServer {
     Map<String, dynamic>? params,
   }) {
     final String id = (++_id).toString();
-    final String message = json.encode(<String, dynamic>{
+    final String message = json.encode({
       'id': id,
       'method': method,
       'params': params,
@@ -308,13 +303,12 @@ class AnalysisServer {
     return completer.future;
   }
 
-  void _handlePluginError(Map<String, dynamic>? error) {
+  void _handlePluginError(Map<String, dynamic> error) {
     _serverErrorReceived = true;
-    final err = error!;
-    // No need for a preamble (like in _handleServerError); the message should
+    // No need for a preamble (like in `_handleServerError`); the message should
     // have all of the context necessary.
-    log.stderr(err['message']);
-    final stackTrace = err['stackTrace'];
+    log.stderr(error['message']);
+    final stackTrace = error['stackTrace'];
     if (stackTrace is String && stackTrace.isNotEmpty) {
       log.stderr(stackTrace);
     }
@@ -338,7 +332,7 @@ class AnalysisServer {
           _requestCompleters
               .remove(id)
               ?.completeError(
-                RequestError.parse(error.cast<String, dynamic>()),
+                _RequestError.parse(error.cast<String, dynamic>()),
               );
         } else {
           _requestCompleters.remove(id)?.complete(response['result'] ?? {});
@@ -347,9 +341,8 @@ class AnalysisServer {
     }
   }
 
-  void _handleServerError(Map<String, dynamic>? error) {
+  void _handleServerError(Map<String, dynamic> error) {
     _serverErrorReceived = true;
-    final err = error!;
     log.stderr('An unexpected error was encountered by the Analysis Server.');
     log.stderr(
       'Please file an issue at '
@@ -357,8 +350,8 @@ class AnalysisServer {
       'details:\n',
     );
     // Fields are 'isFatal', 'message', and 'stackTrace'.
-    log.stderr(err['message']);
-    final stackTrace = err['stackTrace'];
+    log.stderr(error['message']);
+    final stackTrace = error['stackTrace'];
     if (stackTrace is String && stackTrace.isNotEmpty) {
       log.stderr(stackTrace);
     }
@@ -381,22 +374,21 @@ enum _AnalysisSeverity { error, warning, info, none }
 class AnalysisError implements Comparable<AnalysisError> {
   AnalysisError(this.json);
 
-  static final Map<String, _AnalysisSeverity> _severityMap =
-      <String, _AnalysisSeverity>{
-        'INFO': _AnalysisSeverity.info,
-        'WARNING': _AnalysisSeverity.warning,
-        'ERROR': _AnalysisSeverity.error,
-      };
+  static final Map<String, _AnalysisSeverity> _severityMap = {
+    'INFO': _AnalysisSeverity.info,
+    'WARNING': _AnalysisSeverity.warning,
+    'ERROR': _AnalysisSeverity.error,
+  };
 
   // "severity":"INFO","type":"TODO","location":{
   //   "file":"/Users/.../lib/test.dart","offset":362,"length":72,"startLine":15,"startColumn":4
   // },"message":"...","hasFix":false}
-  Map<String, dynamic> json;
+  final Map<String, dynamic> json;
 
-  String? get severity => json['severity'] as String?;
+  String get severity => json['severity'] as String;
 
   _AnalysisSeverity get _severityLevel =>
-      _severityMap[severity!] ?? _AnalysisSeverity.none;
+      _severityMap[severity] ?? _AnalysisSeverity.none;
 
   bool get isInfo => _severityLevel == _AnalysisSeverity.info;
 
@@ -429,18 +421,17 @@ class AnalysisError implements Comparable<AnalysisError> {
   String? get url => json['url'] as String?;
 
   List<DiagnosticMessage> get contextMessages {
-    var messages = json['contextMessages'] as List<dynamic>?;
-    if (messages == null) {
-      // The field is optional, so we return an empty list as a default value.
-      return [];
+    if (json['contextMessages'] case List<dynamic> messages) {
+      return messages.map((message) => DiagnosticMessage(message)).toList();
+    } else {
+      return const [];
     }
-    return messages.map((message) => DiagnosticMessage(message)).toList();
   }
 
   @override
   int compareTo(AnalysisError other) {
     // Sort in order of severity, file path, error location, and message.
-    final int diff = _severityLevel.index - other._severityLevel.index;
+    final diff = _severityLevel.index - other._severityLevel.index;
     if (diff != 0) {
       return diff;
     }
@@ -458,16 +449,12 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   @override
   String toString() =>
-      '${severity!.toLowerCase()} • '
+      '${severity.toLowerCase()} • '
       '$message • $file:$startLine:$startColumn • '
       '($code)';
 }
 
-class DiagnosticMessage {
-  final Map<String, dynamic> json;
-
-  DiagnosticMessage(this.json);
-
+extension type DiagnosticMessage(Map<String, dynamic> json) {
   int? get column => json['location']['startColumn'] as int?;
 
   int? get endColumn => json['location']['endColumn'] as int?;
@@ -492,20 +479,16 @@ class FileAnalysisErrors {
   FileAnalysisErrors(this.file, this.errors);
 }
 
-class RequestError {
-  static RequestError parse(dynamic error) {
-    return RequestError(
-      error['code'],
-      error['message'],
-      stackTrace: error['stackTrace'],
-    );
-  }
+class _RequestError {
+  factory _RequestError.parse(Map<String, dynamic> error) => _RequestError(
+    error['code'],
+    error['message'],
+  );
 
   final String code;
   final String message;
-  final String stackTrace;
 
-  RequestError(this.code, this.message, {required this.stackTrace});
+  _RequestError(this.code, this.message);
 
   @override
   String toString() => '[RequestError code: $code, message: $message]';

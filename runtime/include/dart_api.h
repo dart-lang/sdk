@@ -838,7 +838,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)(void);
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x0000000A)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x0000000B)
 
 /** Forward declaration */
 struct Dart_CodeObserver;
@@ -873,10 +873,6 @@ typedef struct {
    * should be initialized to DART_INITIALIZE_PARAMS_CURRENT_VERSION.
    */
   int32_t version;
-
-  /* TRANSITION */
-  const uint8_t* vm_snapshot_data;
-  const uint8_t* vm_snapshot_instructions;
 
   /**
    * A function to be called during isolate group creation.
@@ -4018,23 +4014,6 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 #define kSnapshotTextAsmSymbol "_kDartSnapshotText"
 #define kSnapshotBssAsmSymbol "_kDartSnapshotBss"
 
-/* TRANSITION */
-#if defined(__APPLE__)
-#define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
-#define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
-#define kVmSnapshotBssCSymbol "kDartVmSnapshotBss"
-#define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
-#define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
-#define kIsolateSnapshotBssCSymbol "kDartIsolateSnapshotBss"
-#else
-#define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
-#define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
-#define kVmSnapshotBssCSymbol "_kDartVmSnapshotBss"
-#define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
-#define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
-#define kIsolateSnapshotBssCSymbol "_kDartIsolateSnapshotBss"
-#endif
-
 /**
  *  Creates a precompiled snapshot.
  *   - A root library must have been loaded.
@@ -4207,14 +4186,9 @@ Dart_CreateAppAOTSnapshotAndRelocatableObject(
     const char* path);
 
 /**
- *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
- *  kDartVmSnapshotData and kDartVmSnapshotInstructions. It also does
- *  not strip DWARF information from the generated assembly or allow for
- *  separate debug information.
+ *  Creates a blob needed only on Fuchsia to work around platform deficiencies.
+ *  The embedder must place it at pkg/lib/ffi_callback_stub.bin.
  */
-DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
-                                   void* callback_data);
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_WriteCallbackStub(Dart_StreamingWriteCallback callback,
                        void* callback_data);

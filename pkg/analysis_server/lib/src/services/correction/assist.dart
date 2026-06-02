@@ -401,6 +401,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Join variable declaration',
   );
+  static const moveInitializationToFieldDeclaration = AssistKind(
+    'dart.assist.moveInitializationToFieldDeclaration',
+    DartAssistKindPriority.default_,
+    "Move the initialization to the field's declaration",
+  );
   static const removeAsync = AssistKind(
     'dart.assist.remove.async',
     DartAssistKindPriority.default_,

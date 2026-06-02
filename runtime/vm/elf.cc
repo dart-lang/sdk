@@ -1220,24 +1220,6 @@ void ElfSymbolTable::Initialize(const GrowableArray<ElfSection*>& sections) {
           // dynamic symbols there also. (see dartbug.com/41783).
           AddSymbol(portion.symbol_name, binding, type, portion.size,
                     section->index, portion.offset, portion.label);
-
-#if 1
-          // TRANSITION
-          if (strcmp(portion.symbol_name, "_kDartSnapshotText") == 0) {
-            AddSymbol("_kDartVmSnapshotInstructions", binding, type,
-                      portion.size, section->index, portion.offset,
-                      portion.label);
-            AddSymbol("_kDartIsolateSnapshotInstructions", binding, type,
-                      portion.size, section->index, portion.offset,
-                      portion.label);
-          }
-          if (strcmp(portion.symbol_name, "_kDartSnapshotData") == 0) {
-            AddSymbol("_kDartVmSnapshotData", binding, type, portion.size,
-                      section->index, portion.offset, portion.label);
-            AddSymbol("_kDartIsolateSnapshotData", binding, type, portion.size,
-                      section->index, portion.offset, portion.label);
-          }
-#endif
         }
         if (!dynamic_ && portion.symbols != nullptr) {
           for (const auto& symbol_data : *portion.symbols) {

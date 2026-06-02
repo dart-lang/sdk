@@ -3651,23 +3651,6 @@ void MachOSymbolTable::Initialize(SharedObjectWriter::Type type,
       if (portion.symbol_name != nullptr) {
         AddSymbol(portion.symbol_name, mach_o::N_SECT | mach_o::N_EXT, section,
                   desc, portion.offset, portion.label);
-#if 1
-        // TRANSITION
-        if (strcmp(portion.symbol_name, "_kDartSnapshotText") == 0) {
-          AddSymbol("_kDartVmSnapshotInstructions",
-                    mach_o::N_SECT | mach_o::N_EXT, section, desc,
-                    portion.offset, portion.label);
-          AddSymbol("_kDartIsolateSnapshotInstructions",
-                    mach_o::N_SECT | mach_o::N_EXT, section, desc,
-                    portion.offset, portion.label);
-        }
-        if (strcmp(portion.symbol_name, "_kDartSnapshotData") == 0) {
-          AddSymbol("_kDartVmSnapshotData", mach_o::N_SECT | mach_o::N_EXT,
-                    section, desc, portion.offset, portion.label);
-          AddSymbol("_kDartIsolateSnapshotData", mach_o::N_SECT | mach_o::N_EXT,
-                    section, desc, portion.offset, portion.label);
-        }
-#endif
       }
     }
   }

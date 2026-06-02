@@ -146,6 +146,38 @@ class IndexElementInfo {
   IndexElementInfo._(this.element, this.kind);
 }
 
+/// The identifier of an interface element in the subtype index.
+///
+/// It combines the library path, the path of the file containing the
+/// declaration, and the element name. The name is kept separately because
+/// search uses it as a file-state prefilter before matching the full [id].
+class SubtypeIndexElementId {
+  final String name;
+  final String id;
+
+  SubtypeIndexElementId({
+    required Source librarySource,
+    required Source declarationSource,
+    required this.name,
+  }) : id =
+           '${librarySource.mustBeFile.path};'
+           '${declarationSource.mustBeFile.path};'
+           '$name';
+
+  static SubtypeIndexElementId? fromElement(InterfaceElement element) {
+    var name = element.name;
+    if (name == null) {
+      return null;
+    }
+
+    return SubtypeIndexElementId(
+      librarySource: element.library.firstFragment.source,
+      declarationSource: element.firstFragment.libraryFragment.source,
+      name: name,
+    );
+  }
+}
+
 /// Information about an element referenced in index.
 class _ElementInfo {
   /// The identifier of the [LibraryFragmentImpl] containing the first
@@ -1275,22 +1307,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> supertypes = [];
     List<String> members = [];
 
-    String getInterfaceElementId(InterfaceElement element) {
-      var libraryFile = element.library.firstFragment.source.mustBeFile;
-      var libraryPath = libraryFile.path;
-
-      var libraryFragment = element.firstFragment.libraryFragment;
-      var libraryFragmentFile = libraryFragment.source.mustBeFile;
-      var libraryFragmentPath = libraryFragmentFile.path;
-
-      return '$libraryPath;$libraryFragmentPath;${element.name}';
-    }
-
     void addSupertype(NamedType? type) {
       var element = type?.element;
       if (element is InterfaceElement) {
-        var id = getInterfaceElementId(element);
-        supertypes.add(id);
+        var supertypeId = SubtypeIndexElementId.fromElement(element)?.id;
+        if (supertypeId != null) {
+          supertypes.add(supertypeId);
+        }
       }
     }
 

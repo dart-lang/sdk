@@ -528,7 +528,7 @@ using namespace dart::bin::mach_o;  // NOLINT
 using Mappable = dart::bin::Mappable;
 
 #if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
-DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd2(
+DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd(
     int fd,
     uint64_t file_offset,
     const char** error,
@@ -547,7 +547,7 @@ DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd2(
 }
 #endif
 
-DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib2(
+DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib(
     const char* filename,
     uint64_t file_offset,
     const char** error,
@@ -569,7 +569,7 @@ DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib2(
   return reinterpret_cast<Dart_LoadedMachODylib*>(macho.release());
 }
 
-DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory2(
+DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory(
     const uint8_t* snapshot,
     uint64_t snapshot_size,
     const char** error,

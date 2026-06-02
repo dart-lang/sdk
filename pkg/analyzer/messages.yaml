@@ -1951,6 +1951,13 @@ CompileTimeErrorCode:
     problemMessage: The enclosing augmentation doesn't augment the operator '#operator'.
     correctionMessage: Try augmenting or invoking the correct operator.
     hasPublishedDocs: false
+  augmentsConstantVariable:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Const variables can't be augmented."
+    correctionMessage: "Try removing the augmentation, or changing the const variable to a final variable."
+    hasPublishedDocs: false
   awaitInLateLocalVariableInitializer:
     type: compileTimeError
     parameters: none
@@ -4134,6 +4141,13 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "Type parameters can't be used in a constant expression."
     correctionMessage: Try replacing the type parameter with a different type.
+    hasPublishedDocs: false
+  constantVariableAugmentation:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Variable augmentations can't be const."
+    correctionMessage: "Try replacing 'const' with 'final'."
     hasPublishedDocs: false
   constWithNonConst:
     type: compileTimeError

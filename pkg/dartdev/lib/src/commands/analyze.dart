@@ -385,7 +385,7 @@ class AnalyzeCommand extends DartdevCommand {
         : (dartdevUsageLineLength! - _bodyIndentWidth);
 
     for (final AnalysisError error in errors) {
-      var severity = error.severity!.toLowerCase().padLeft(_severityWidth);
+      var severity = error.severity.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
         severity = ansi.error(severity);
       }

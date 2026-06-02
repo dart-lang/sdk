@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  82 "needsEvaluation"
+# -  84 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -271,6 +271,8 @@ augmented_expression_is_setter:
   status: noFix
 augmented_expression_not_operator:
   status: noFix
+augments_constant_variable:
+  status: needsEvaluation
 await_in_late_local_variable_initializer:
   status: hasFix
 await_in_wrong_context:
@@ -558,6 +560,8 @@ constant_pattern_with_non_constant_expression:
   notes: |-
     Has fix for expression that can be made constant. More cases to be
     implemented as per the tests.
+constant_variable_augmentation:
+  status: needsEvaluation
 continue_label_invalid:
   status: noFix
 could_not_infer:
