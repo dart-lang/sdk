@@ -462,4 +462,8 @@ class DillExtensionTypeDeclarationBuilder
 
   @override
   Reference get reference => _extensionTypeDeclaration.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

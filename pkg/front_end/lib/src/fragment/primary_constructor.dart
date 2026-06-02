@@ -17,7 +17,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final bool forAbstractClassOrEnumOrMixin;
-  Token? _beginInitializers;
+  final bool buildInitializersForOutline;
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
 
@@ -46,17 +46,10 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     required this.typeParameterScope,
     required this.formals,
     required this.forAbstractClassOrEnumOrMixin,
-    required Token? beginInitializers,
+    required this.buildInitializersForOutline,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  }) : _beginInitializers = beginInitializers;
-
-  Token? get beginInitializers {
-    Token? result = _beginInitializers;
-    // Ensure that we don't hold onto the token.
-    _beginInitializers = null;
-    return result;
-  }
+  });
 
   @override
   SourceConstructorBuilder get builder {

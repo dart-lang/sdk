@@ -19,6 +19,8 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
 
+  Token? _initializersStartToken;
+
   /// Whether this primary constructor body declaration was declared with a
   /// constructor body.
   ///
@@ -52,7 +54,15 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
     required this.enclosingCompilationUnit,
     required this.hasBody,
     required this.bodyOffset,
-  });
+    required Token? initializersStartToken,
+  }) : _initializersStartToken = initializersStartToken;
+
+  Token? get beginInitializers {
+    Token? result = _initializersStartToken;
+    // Ensure that we don't hold onto the token.
+    _initializersStartToken = null;
+    return result;
+  }
 
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(

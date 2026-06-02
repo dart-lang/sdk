@@ -1679,7 +1679,8 @@ class KernelTarget {
                 ],
               );
             }
-          } else if (!constructor.isConst) {
+          } else if (!constructor.isConst &&
+              constructor.shouldTakeFieldInitializers) {
             constructor.prependInitializer(
               field.takePrimaryConstructorFieldInitializer(),
             );

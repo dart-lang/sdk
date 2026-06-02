@@ -2034,7 +2034,7 @@ class OutlineBuilder extends StackListenerImpl {
       metadata: metadata,
       beginToken: beginToken,
       endOffset: endToken.charOffset,
-      beginInitializers: beginInitializers,
+      initializersStartToken: beginInitializers,
       hasBody: methodBody != MethodBody.Abstract,
       bodyOffset: methodBodyToken.charOffset,
     );
@@ -2717,7 +2717,7 @@ class OutlineBuilder extends StackListenerImpl {
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       nativeMethodName: nativeMethodName,
-      beginInitializers: beginInitializers,
+      initializersStartToken: beginInitializers,
       hasNewKeyword: newToken != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
     );

@@ -1483,15 +1483,8 @@ class FragmentFactoryImpl implements FragmentFactory {
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
-      beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
-          // const constructors will have their initializers compiled and
-          // written into the outline. In case of super-parameters language
-          // feature, the super initializers are required to infer the types
-          // of super parameters.
-          // TODO(johnniwinther): Avoid using a dummy token to ensure building
-          // of constant constructors in the outline phase.
-          ? new Token.eof(-1)
-          : null,
+      buildInitializersForOutline:
+          isConst || libraryFeatures.superParameters.isEnabled,
     );
 
     _addFragment(fragment);
@@ -1514,7 +1507,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required Token? beginInitializers,
+    required Token? initializersStartToken,
     required bool hasNewKeyword,
     required bool forAbstractClassOrEnumOrMixin,
   }) {
@@ -1572,16 +1565,9 @@ class FragmentFactoryImpl implements FragmentFactory {
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
-      beginInitializers:
-          modifiers.isConst || libraryFeatures.superParameters.isEnabled
-          // const constructors will have their initializers compiled and
-          // written into the outline. In case of super-parameters language
-          // feature, the super initializers are required to infer the types
-          // of super parameters.
-          // TODO(johnniwinther): Avoid using a dummy token to ensure building
-          // of constant constructors in the outline phase.
-          ? (beginInitializers ?? new Token.eof(-1))
-          : null,
+      buildInitializersForOutline:
+          modifiers.isConst || libraryFeatures.superParameters.isEnabled,
+      beginInitializers: initializersStartToken,
     );
 
     _addFragment(fragment);
@@ -1600,7 +1586,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required Token beginToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
-    required Token? beginInitializers,
+    required Token? initializersStartToken,
     required bool hasBody,
     required int bodyOffset,
   }) {
@@ -1616,6 +1602,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingCompilationUnit: _compilationUnit,
           hasBody: hasBody,
           bodyOffset: bodyOffset,
+          initializersStartToken: initializersStartToken,
         );
     _addFragment(fragment);
     offsetMap.registerPrimaryConstructorBody(beginToken, fragment);

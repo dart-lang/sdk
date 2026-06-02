@@ -3852,6 +3852,7 @@ class Parser {
 
     Token? beforeInitializers = token;
     token = parseInitializersOpt(beforeInitializers);
+    if (token == beforeInitializers) beforeInitializers = null;
 
     Token next = token.next!;
     if (next.isA(Keyword.ASYNC) || next.isA(Keyword.SYNC)) {
@@ -3874,7 +3875,11 @@ class Parser {
       /* allowAbstract = */ inPlainSync,
     );
 
-    listener.endPrimaryConstructorBody(beginToken, beforeInitializers, token);
+    listener.endPrimaryConstructorBody(
+      beginToken,
+      beforeInitializers?.next,
+      token,
+    );
     return token;
   }
 

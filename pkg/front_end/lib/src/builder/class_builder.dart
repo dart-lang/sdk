@@ -31,8 +31,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get declaresConstConstructor;
 
-  bool get isMixinClass;
-
   bool get isMixinDeclaration;
 
   bool get isMixinApplication;

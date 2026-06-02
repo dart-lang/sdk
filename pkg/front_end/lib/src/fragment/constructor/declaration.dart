@@ -149,7 +149,19 @@ mixin _ConstructorDeclarationMixin
 
   LookupScope get _typeParameterScope;
 
-  abstract Token? _beginInitializers;
+  /// Returns `true` if initializers should be built for the outline.
+  ///
+  /// Const constructors will have their initializers compiled and
+  /// written into the outline, and  super initializers are required to infer
+  /// the types of super parameters.
+  bool get _buildInitializersForOutline;
+
+  /// The `:` token starting the initializers of this constructor, if any.
+  Token? get _initializersStartToken;
+
+  /// Clears any cached [_initializersStartToken] to avoid holding on to tokens
+  /// after building the outline.
+  void _clearInitializersStartToken();
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
@@ -261,8 +273,7 @@ mixin _ConstructorDeclarationMixin
   ) {
     if (_hasSuperInitializingFormals) {
       List<Initializer>? initializers;
-      Token? beginInitializers = this._beginInitializers;
-      if (beginInitializers != null) {
+      if (_buildInitializersForOutline) {
         Resolver resolver = libraryBuilder.loader.createResolver();
         initializers = resolver.buildInitializersUnfinished(
           libraryBuilder: libraryBuilder,
@@ -270,7 +281,7 @@ mixin _ConstructorDeclarationMixin
           extensionScope: _extensionScope,
           typeParameterScope: _typeParameterScope,
           fileUri: fileUri,
-          beginInitializers: beginInitializers,
+          beginInitializers: _initializersStartToken,
           isConst: isConst,
         );
       }
@@ -534,7 +545,7 @@ mixin _ConstructorDeclarationMixin
   ) {
     if (!_hasSuperInitializingFormals) return;
 
-    if (_beginInitializers != null && initializers.isNotEmpty) {
+    if (_buildInitializersForOutline && initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can
       // be built separately from formal field initializers.
@@ -579,7 +590,7 @@ mixin _ConstructorDeclarationMixin
     SourceLibraryBuilder libraryBuilder,
     SourceConstructorBuilder constructorBuilder,
   ) {
-    if (_beginInitializers != null) {
+    if (_buildInitializersForOutline) {
       final LocalScope? formalParameterScope;
       if (isConst) {
         // We're going to fully build the constructor so we need scopes.
@@ -598,7 +609,7 @@ mixin _ConstructorDeclarationMixin
         formalParameterScope: formalParameterScope,
         bodyBuilderContext: createBodyBuilderContext(constructorBuilder),
         fileUri: fileUri,
-        beginInitializers: _beginInitializers!,
+        beginInitializers: _initializersStartToken,
         isConst: isConst,
         forPrimaryConstructor: _isPrimaryConstructor,
       );
@@ -674,7 +685,7 @@ mixin _ConstructorDeclarationMixin
       declarationBuilder,
       delayedDefaultValueCloners,
     );
-    _beginInitializers = null;
+    _clearInitializersStartToken();
   }
 
   @override
@@ -894,11 +905,20 @@ class RegularConstructorDeclaration
   late final List<SourceNominalParameterBuilder>? _typeParameters;
 
   @override
-  Token? _beginInitializers;
+  Token? _initializersStartToken;
 
   RegularConstructorDeclaration(this._fragment)
-    : _beginInitializers = _fragment.beginInitializers {
+    : _initializersStartToken = _fragment.initializersStartToken {
     _fragment.declaration = this;
+  }
+
+  @override
+  bool get _buildInitializersForOutline =>
+      _fragment.buildInitializersForOutline;
+
+  @override
+  void _clearInitializersStartToken() {
+    _initializersStartToken = null;
   }
 
   @override
@@ -1080,9 +1100,6 @@ class DefaultEnumConstructorDeclaration
   /// The scope in which to build the formal parameters.
   final LookupScope _lookupScope;
 
-  @override
-  Token? _beginInitializers;
-
   DefaultEnumConstructorDeclaration({
     required this.returnType,
     required this.formals,
@@ -1093,11 +1110,16 @@ class DefaultEnumConstructorDeclaration
   }) : fileUri = fileUri,
        fileOffset = fileOffset,
        _extensionScope = extensionScope,
-       _lookupScope = lookupScope,
-       // Trick the constructor to be built during the outline phase.
-       // TODO(johnniwinther): Avoid relying on [beginInitializers] to
-       // ensure building constructors creation during the outline phase.
-       _beginInitializers = new Token.eof(-1);
+       _lookupScope = lookupScope;
+
+  @override
+  Token? get _initializersStartToken => null;
+
+  @override
+  bool get _buildInitializersForOutline => true;
+
+  @override
+  void _clearInitializersStartToken() {}
 
   @override
   void createEncoding({
@@ -1227,11 +1249,20 @@ class PrimaryConstructorDeclaration
   late final ConstructorEncoding _encoding;
 
   @override
-  Token? _beginInitializers;
+  Token? _initializersStartToken;
 
   PrimaryConstructorDeclaration(this._fragment, this._bodyFragment)
-    : _beginInitializers = _fragment.beginInitializers {
+    : _initializersStartToken = _bodyFragment?.beginInitializers {
     _fragment.declaration = this;
+  }
+
+  @override
+  bool get _buildInitializersForOutline =>
+      _fragment.buildInitializersForOutline;
+
+  @override
+  void _clearInitializersStartToken() {
+    _initializersStartToken = null;
   }
 
   @override

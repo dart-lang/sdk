@@ -118,10 +118,12 @@ import 'utils.dart';
 part 'body_builder_helpers.dart';
 
 abstract class BodyBuilder {
-  BuildInitializersResult buildInitializers({required Token beginInitializers});
+  BuildInitializersResult buildInitializers({
+    required Token? beginInitializers,
+  });
 
   List<Initializer> buildInitializersUnfinished({
-    required Token beginInitializers,
+    required Token? beginInitializers,
   });
 
   BuildParameterInitializerResult buildParameterInitializer({
@@ -1226,13 +1228,13 @@ class BodyBuilderImpl extends StackListenerImpl
     _initializers.addAll(initializers);
   }
 
-  List<Initializer> parseInitializers(Token token) {
+  List<Initializer> parseInitializers(Token? token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
       experimentalFeatures: new LibraryExperimentalFeatures(libraryFeatures),
     );
-    if (!token.isEof) {
+    if (token != null) {
       token = parser.parseInitializers(token);
       checkEmpty(token.charOffset);
     } else {
@@ -11337,7 +11339,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   BuildInitializersResult buildInitializers({
-    required Token beginInitializers,
+    required Token? beginInitializers,
   }) {
     parseInitializers(beginInitializers);
     return new BuildInitializersResult(
@@ -11348,7 +11350,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   List<Initializer> buildInitializersUnfinished({
-    required Token beginInitializers,
+    required Token? beginInitializers,
   }) {
     return parseInitializers(beginInitializers);
   }
