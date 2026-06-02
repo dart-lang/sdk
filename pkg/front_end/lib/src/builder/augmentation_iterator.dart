@@ -10,7 +10,7 @@ class AugmentationIterator<T> implements Iterator<T> {
   Iterator<T>? _augmentationsIterator;
   T? _current;
 
-  AugmentationIterator(this._origin, this._augmentations);
+  new(this._origin, this._augmentations);
 
   @override
   T get current =>

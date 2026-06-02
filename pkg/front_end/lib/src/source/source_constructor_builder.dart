@@ -41,7 +41,7 @@ class InferableConstructor implements InferableMember {
 
   final SourceConstructorBuilder _builder;
 
-  InferableConstructor(this.member, this._builder);
+  new(this.member, this._builder);
 
   @override
   void inferMemberTypes(ClassHierarchyBase classHierarchy) {
@@ -110,7 +110,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final bool isPrimaryConstructor;
 
-  SourceConstructorBuilder({
+  new({
     required this.name,
     required this.libraryBuilder,
     required this.declarationBuilder,
@@ -580,7 +580,7 @@ class ConstructorReferences {
   /// compilations during an incremental compilation, these are the references
   /// used for the same generative constructor and tear-off in the previous
   /// compilation.
-  ConstructorReferences._({
+  new _({
     required Reference? preExistingConstructorReference,
     required Reference? preExistingTearOffReference,
     required bool hasTearOffLowering,
@@ -594,7 +594,7 @@ class ConstructorReferences {
 
   /// Creates a [ConstructorReferences] object preloaded with the pre-existing
   /// references from [indexedContainer], if available.
-  factory ConstructorReferences({
+  factory({
     required String name,
     required NameScheme nameScheme,
     required IndexedContainer? indexedContainer,

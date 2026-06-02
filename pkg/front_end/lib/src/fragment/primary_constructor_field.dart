@@ -20,7 +20,7 @@ class PrimaryConstructorFieldDeclaration
   @override
   bool hasBodyBeenBuilt = false;
 
-  PrimaryConstructorFieldDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -529,7 +529,7 @@ class PrimaryConstructorFieldFragment implements Fragment {
     name.length,
   );
 
-  PrimaryConstructorFieldFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.nameOffset,

@@ -106,7 +106,7 @@ sealed class MethodEncoding implements InferredTypeListener {
 }
 
 sealed class MethodEncodingStrategy {
-  factory MethodEncodingStrategy(
+  factory(
     DeclarationBuilder? declarationBuilder, {
     required bool isInstanceMember,
   }) {
@@ -420,11 +420,8 @@ class _ExtensionInstanceMethodEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionInstanceMethodEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(!_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(!_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionMethod;
@@ -1030,7 +1027,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 }
 
 class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionInstanceMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1076,11 +1073,8 @@ class _ExtensionInstanceOperatorEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionInstanceOperatorEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionOperator;
@@ -1100,8 +1094,7 @@ class _ExtensionStaticMethodEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _ExtensionStaticMethodEncoding(this._fragment)
-    : assert(!_fragment.isOperator);
+  new(this._fragment) : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -1120,7 +1113,7 @@ class _ExtensionStaticMethodEncoding extends MethodEncoding
 }
 
 class _ExtensionStaticMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionStaticMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1143,11 +1136,8 @@ class _ExtensionTypeInstanceMethodEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionTypeInstanceMethodEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(!_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(!_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeMethod;
@@ -1163,7 +1153,7 @@ class _ExtensionTypeInstanceMethodEncoding extends MethodEncoding
 }
 
 class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionTypeInstanceMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1209,11 +1199,8 @@ class _ExtensionTypeInstanceOperatorEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionTypeInstanceOperatorEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeOperator;
@@ -1233,8 +1220,7 @@ class _ExtensionTypeStaticMethodEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _ExtensionTypeStaticMethodEncoding(this._fragment)
-    : assert(!_fragment.isOperator);
+  new(this._fragment) : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -1253,7 +1239,7 @@ class _ExtensionTypeStaticMethodEncoding extends MethodEncoding
 }
 
 class _ExtensionTypeStaticMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionTypeStaticMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1270,7 +1256,7 @@ class _RegularMethodEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _RegularMethodEncoding(this._fragment) : assert(!_fragment.isOperator);
+  new(this._fragment) : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -1289,7 +1275,7 @@ class _RegularMethodEncoding extends MethodEncoding
 }
 
 class _RegularMethodStrategy implements MethodEncodingStrategy {
-  const _RegularMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1308,7 +1294,7 @@ class _RegularOperatorEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _RegularOperatorEncoding(this._fragment) : assert(_fragment.isOperator);
+  new(this._fragment) : assert(_fragment.isOperator);
 
   @override
   Procedure? get readTarget => null;

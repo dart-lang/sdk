@@ -28,7 +28,7 @@ class TypeScope {
 
   final LookupScope lookupScope;
 
-  TypeScope(this.kind, this.lookupScope, [TypeScope? parent]) {
+  new(this.kind, this.lookupScope, [TypeScope? parent]) {
     parent?._childScopes.add(this);
   }
 

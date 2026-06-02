@@ -52,7 +52,7 @@ class Context extends ChainContext with MatchContext {
     EXPECTATIONS,
   );
 
-  Context(Uri baseUri, Map<String, String> environment)
+  new(Uri baseUri, Map<String, String> environment)
     : updateExpectations =
           environment[EnvironmentKeys.updateExpectations] == "true";
 
@@ -65,7 +65,7 @@ class Context extends ChainContext with MatchContext {
 }
 
 class InstrumenterStep extends Step<TestDescription, TestDescription, Context> {
-  const InstrumenterStep();
+  const new();
 
   @override
   String get name => "Instrumenter";

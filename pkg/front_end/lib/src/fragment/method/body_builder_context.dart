@@ -20,7 +20,7 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   final MethodFragment _fragment;
   final MethodFragmentDeclaration _declaration;
 
-  MethodFragmentBodyBuilderContext(
+  new(
     this._fragment,
     this._declaration,
     SourceLibraryBuilder libraryBuilder,

@@ -167,7 +167,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// caused by lacking awaits etc).
   Completer<dynamic>? _currentlyCompiling;
 
-  IncrementalCompiler.fromComponent(
+  new fromComponent(
     this.context,
     Component? _componentToInitializeFrom, [
     bool? outlineOnly,
@@ -184,7 +184,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // Coverage-ignore(suite): Not run.
-  IncrementalCompiler(
+  new(
     this.context, [
     Uri? _initializeFromDillUri,
     bool? outlineOnly,
@@ -201,7 +201,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // Coverage-ignore(suite): Not run.
-  IncrementalCompiler.forExpressionCompilationOnly(
+  new forExpressionCompilationOnly(
     this.context,
     Component? _componentToInitializeFrom, [
     bool? resetTicker,
@@ -2564,10 +2564,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final Set<InternalVariable> knownButUnavailable = {};
   final ClassHierarchy hierarchy;
 
-  ExpressionEvaluationHelperImpl(
-    List<InternalVariable> extraKnown,
-    this.hierarchy,
-  ) {
+  new(List<InternalVariable> extraKnown, this.hierarchy) {
     for (InternalVariable variable in extraKnown) {
       if (variable.isConst) {
         // We allow const variables - these are inlined (we check
@@ -2734,13 +2731,13 @@ class _ExtensionTypeFinder extends VisitorDefault<void> with VisitorVoidMixin {
 }
 
 class PackageChangedError {
-  const PackageChangedError();
+  const new();
 }
 
 class InitializeFromComponentError {
   final String message;
 
-  const InitializeFromComponentError(this.message);
+  const new(this.message);
 
   @override
   String toString() => message;
@@ -2759,13 +2756,13 @@ class ReusageResult {
   final List<DillLibraryBuilder> reusedLibraries;
   final Map<Uri?, LibraryBuilder> partUriToParent;
 
-  ReusageResult.reusedLibrariesOnly(this.reusedLibraries)
+  new reusedLibrariesOnly(this.reusedLibraries)
     : notReusedLibraries = const {},
       directlyInvalidated = const {},
       invalidatedBecauseOfPackageUpdate = false,
       partUriToParent = const {};
 
-  ReusageResult(
+  new(
     this.notReusedLibraries,
     this.directlyInvalidated,
     this.invalidatedBecauseOfPackageUpdate,
@@ -2780,7 +2777,7 @@ class ExperimentalInvalidation {
   final Set<Uri> missingSources;
   final Set<Library>? invalidatedMixinApplicationLibraries;
 
-  ExperimentalInvalidation(
+  new(
     this.rebuildBodies,
     this.originalNotReusedLibraries,
     this.missingSources,
@@ -2794,7 +2791,7 @@ class IncrementalKernelTarget extends KernelTarget
   Set<Class>? classMemberChanges;
   Set<Library> librariesUsed = {};
 
-  IncrementalKernelTarget(
+  new(
     CompilerContext compilerContext,
     FileSystem fileSystem,
     bool includeComments,
@@ -2832,16 +2829,16 @@ class IncrementalKernelTarget extends KernelTarget
 }
 
 abstract class _InitializationStrategy {
-  const _InitializationStrategy();
+  const new();
 
-  factory _InitializationStrategy.fromComponent(Component? component) {
+  factory fromComponent(Component? component) {
     return component != null
         ? new _InitializationFromComponent(component)
         : const _InitializationFromSdkSummary();
   }
 
   // Coverage-ignore(suite): Not run.
-  factory _InitializationStrategy.fromUri(Uri? uri) {
+  factory fromUri(Uri? uri) {
     return uri != null
         ? new _InitializationFromUri(uri)
         : const _InitializationFromSdkSummary();
@@ -2865,7 +2862,7 @@ abstract class _InitializationStrategy {
 }
 
 class _InitializationFromSdkSummary extends _InitializationStrategy {
-  const _InitializationFromSdkSummary();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -2929,7 +2926,7 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
 class _InitializationFromComponent extends _InitializationStrategy {
   Component? _componentToInitializeFrom;
 
-  _InitializationFromComponent(Component componentToInitializeFrom)
+  new(Component componentToInitializeFrom)
     : _componentToInitializeFrom = componentToInitializeFrom;
 
   @override
@@ -2988,7 +2985,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
 class _InitializationFromUri extends _InitializationFromSdkSummary {
   Uri initializeFromDillUri;
 
-  _InitializationFromUri(this.initializeFromDillUri);
+  new(this.initializeFromDillUri);
 
   @override
   Future<int> initialize(
@@ -3399,7 +3396,7 @@ enum AdvancedInvalidationResult {
 }
 
 class RecorderForTesting {
-  const RecorderForTesting();
+  const new();
 
   // Coverage-ignore(suite): Not run.
   void recordAdvancedInvalidationResult(AdvancedInvalidationResult result) {}

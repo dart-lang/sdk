@@ -3438,7 +3438,7 @@ class TypeInfoListener implements Listener {
   List<ExpectedError>? errors;
   Token? firstToken;
 
-  TypeInfoListener({this.firstToken, this.metadataAllowed = false}) {
+  new({this.firstToken, this.metadataAllowed = false}) {
     if (firstToken != null && firstToken!.isEof) {
       firstToken = firstToken!.next;
     }
@@ -3695,7 +3695,7 @@ class ExpectedError {
   final int start;
   final int length;
 
-  ExpectedError(this.code, this.start, this.length);
+  new(this.code, this.start, this.length);
 
   @override
   bool operator ==(other) =>

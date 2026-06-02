@@ -22,7 +22,7 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
       ? new UriOffset(fileUri, nameOrExtensionOffset)
       : new UriOffsetLength(fileUri, nameOrExtensionOffset, name.length);
 
-  ExtensionFragment({
+  new({
     required String? name,
     required super.fileUri,
     required this.nameOrExtensionOffset,

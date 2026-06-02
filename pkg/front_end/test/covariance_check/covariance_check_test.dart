@@ -24,7 +24,7 @@ Future<void> main(List<String> args) async {
 }
 
 class CovarianceCheckDataComputer extends CfeDataComputer<String> {
-  const CovarianceCheckDataComputer();
+  const new();
 
   /// Function that computes a data mapping for [library].
   ///
@@ -62,7 +62,7 @@ class CovarianceCheckDataComputer extends CfeDataComputer<String> {
 }
 
 class CovarianceCheckDataExtractor extends CfeDataExtractor<String> {
-  CovarianceCheckDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
   ) : super(compilerResult, actualMap);

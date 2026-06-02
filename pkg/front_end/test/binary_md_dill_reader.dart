@@ -32,7 +32,7 @@ class BinaryMdDillReader {
   bool _ranSetup = false;
   List<String> readingStack = [];
 
-  BinaryMdDillReader(this._binaryMdContent, this._dillContent);
+  new(this._binaryMdContent, this._dillContent);
 
   void setup() {
     if (!_ranSetup) {

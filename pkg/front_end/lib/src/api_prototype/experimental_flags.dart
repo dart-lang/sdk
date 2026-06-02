@@ -28,7 +28,7 @@ class AllowedExperimentalFlags {
   /// are enabled for all files of this package.
   final Map<String, Set<ExperimentalFlag>> packageExperiments;
 
-  const AllowedExperimentalFlags({
+  const new({
     this.sdkDefaultExperiments = const {},
     this.sdkLibraryExperiments = const {},
     this.packageExperiments = const {},
@@ -249,7 +249,7 @@ abstract class ExperimentalFeature {
   /// The flag for the experimental feature.
   final ExperimentalFlag flag;
 
-  ExperimentalFeature(this.flag);
+  new(this.flag);
 
   /// `true` if this feature is enabled.
   bool get isEnabled;
@@ -260,7 +260,7 @@ class GlobalFeature extends ExperimentalFeature {
   @override
   final bool isEnabled;
 
-  GlobalFeature(ExperimentalFlag flag, this.isEnabled) : super(flag);
+  new(ExperimentalFlag flag, this.isEnabled) : super(flag);
 }
 
 /// The state of an experimental feature within a specific library.
@@ -279,7 +279,7 @@ class LibraryFeature extends ExperimentalFeature {
   /// The minimum language version for enabling this feature in this library.
   final Version enabledVersion;
 
-  LibraryFeature(
+  new(
     ExperimentalFlag flag,
     this.isSupported,
     this.enabledVersion,
@@ -290,7 +290,7 @@ class LibraryFeature extends ExperimentalFeature {
 class LibraryExperimentalFeatures implements parser.ExperimentalFeatures {
   final LibraryFeatures _libraryFeatures;
 
-  LibraryExperimentalFeatures(this._libraryFeatures);
+  new(this._libraryFeatures);
 
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {
@@ -301,7 +301,7 @@ class LibraryExperimentalFeatures implements parser.ExperimentalFeatures {
 class ExperimentalFeaturesFromVersion implements parser.ExperimentalFeatures {
   final Version _version;
 
-  ExperimentalFeaturesFromVersion(this._version);
+  new(this._version);
 
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {

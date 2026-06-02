@@ -34,7 +34,7 @@ class SharedTypeAnalyzerErrors
 
   final CoreTypes coreTypes;
 
-  SharedTypeAnalyzerErrors({
+  new({
     required this.visitor,
     required this.problemReporting,
     required this.compilerContext,

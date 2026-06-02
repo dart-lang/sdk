@@ -20,7 +20,7 @@ class DartScope {
   final Map<String, Variable> variables;
   final List<TypeParameter> typeParameters;
 
-  DartScope(
+  new(
     this.library,
     this.fileUri,
     this.offset,
@@ -65,7 +65,7 @@ class DartScope2 {
   final Map<String, Variable> variables;
   final List<TypeParameter> typeParameters;
 
-  DartScope2(
+  new(
     this.node,
     this.library,
     this.cls,
@@ -106,7 +106,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
   bool checkClasses = true;
   Uri _currentUri;
 
-  DartScopeBuilder2._(this._library, this._scriptUri, this._offset)
+  new _(this._library, this._scriptUri, this._offset)
     : _currentUri = _library.fileUri;
 
   void clearScope() {

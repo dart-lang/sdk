@@ -124,7 +124,7 @@ class AsyncModifier {
   final AsyncMarker kind;
   final int fileOffset;
 
-  const AsyncModifier({required this.kind, required this.fileOffset});
+  const new({required this.kind, required this.fileOffset});
 
   static const AsyncModifier implicitSync = const AsyncModifier(
     kind: AsyncMarker.Sync,

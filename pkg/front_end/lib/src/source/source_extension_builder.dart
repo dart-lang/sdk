@@ -60,7 +60,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   final List<ExtensionFragment> _augmentations;
 
-  SourceExtensionBuilder({
+  new({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required this.fileUri,
     required int startOffset,

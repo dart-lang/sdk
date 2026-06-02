@@ -13,7 +13,7 @@ class Duplicate {
   final List<FromToUri> where;
   final String example;
 
-  Duplicate(this.where, this.example);
+  new(this.where, this.example);
 
   @override
   String toString() => "Duplicate[$example]";
@@ -24,7 +24,7 @@ class FromToUri {
   final int startOffset;
   final int endOffset;
 
-  FromToUri(this.uri, this.startOffset, this.endOffset);
+  new(this.uri, this.startOffset, this.endOffset);
 }
 
 class Line {
@@ -35,13 +35,7 @@ class Line {
   Line? previous;
   Line? next;
 
-  Line(
-    this.content,
-    this.uri,
-    this.startOffset,
-    this.endOffset,
-    this.previous,
-  ) {
+  new(this.content, this.uri, this.startOffset, this.endOffset, this.previous) {
     if (previous != null) {
       previous!.next = this;
     }
@@ -52,7 +46,7 @@ class ExtendedLines {
   List<Line> startLines;
   int lineCount;
 
-  ExtendedLines(this.startLines, this.lineCount);
+  new(this.startLines, this.lineCount);
 }
 
 class MultiMap<K, V> {

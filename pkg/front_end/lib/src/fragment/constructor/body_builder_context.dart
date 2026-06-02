@@ -29,12 +29,8 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   @override
   final ConstructorContext constructorContext;
 
-  ConstructorBodyBuilderContext(
-    this._builder,
-    this._declaration,
-    this._member,
-    this.constructorContext,
-  ) : super(
+  new(this._builder, this._declaration, this._member, this.constructorContext)
+    : super(
         _builder.libraryBuilder,
         _builder.declarationBuilder,
         isDeclarationInstanceMember: false,

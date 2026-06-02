@@ -82,7 +82,7 @@ class SpreadElement extends ControlFlowElement
   /// during the desugaring.
   DartType? elementType;
 
-  SpreadElement(this.expression, {required this.isNullAware}) {
+  new(this.expression, {required this.isNullAware}) {
     expression.parent = this;
   }
 
@@ -134,7 +134,7 @@ class NullAwareElement extends ControlFlowElement
     with InternalTreeNode, ControlFlowElementMixin {
   Expression expression;
 
-  NullAwareElement(this.expression);
+  new(this.expression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -164,7 +164,7 @@ class IfElement extends ControlFlowElement
   Expression then;
   Expression? otherwise;
 
-  IfElement(this.condition, this.then, this.otherwise) {
+  new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
@@ -233,7 +233,7 @@ class ForElement extends ControlFlowElement
   @override
   Expression body;
 
-  ForElement(this.variables, this.condition, this.updates, this.body) {
+  new(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
@@ -311,7 +311,7 @@ class ForInElement extends ControlFlowElement
 
   ForInEncoding? encoding;
 
-  ForInElement(
+  new(
     this.element,
     this.iterable,
     this.body, {
@@ -375,7 +375,7 @@ class IfCaseElement extends ControlFlowElementImpl
   /// This is set during inference.
   DartType? matchedValueType;
 
-  IfCaseElement({
+  new({
     required this.prelude,
     required this.expression,
     required this.patternGuard,
@@ -482,7 +482,7 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   Expression body;
 
-  PatternForElement({
+  new({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
     required this.variables,
@@ -590,7 +590,7 @@ class NullAwareMapEntry extends TreeNode
   @override
   Expression value;
 
-  NullAwareMapEntry({
+  new({
     required this.isKeyNullAware,
     required this.key,
     required this.isValueNullAware,
@@ -625,7 +625,7 @@ class SpreadMapEntry extends TreeNode
   /// during the desugaring.
   DartType? entryType;
 
-  SpreadMapEntry(this.expression, {required this.isNullAware}) {
+  new(this.expression, {required this.isNullAware}) {
     expression.parent = this;
   }
 
@@ -650,7 +650,7 @@ class IfMapEntry extends TreeNode
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
 
-  IfMapEntry(this.condition, this.then, this.otherwise) {
+  new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
@@ -702,7 +702,7 @@ class ForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  ForMapEntry(this.variables, this.condition, this.updates, this.body) {
+  new(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
@@ -756,7 +756,7 @@ class PatternForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  PatternForMapEntry({
+  new({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
     required this.variables,
@@ -817,7 +817,7 @@ class ForInMapEntry extends TreeNode
 
   ForInEncoding? encoding;
 
-  ForInMapEntry(
+  new(
     this.element,
     this.iterable,
     this.body, {
@@ -858,7 +858,7 @@ class IfCaseMapEntry extends TreeNode
   /// This is set during inference.
   DartType? matchedValueType;
 
-  IfCaseMapEntry({
+  new({
     required this.prelude,
     required this.expression,
     required this.patternGuard,

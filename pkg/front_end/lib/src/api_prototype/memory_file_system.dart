@@ -24,7 +24,7 @@ class MemoryFileSystem implements FileSystem {
   /// Always ends in a trailing '/'.
   Uri currentDirectory;
 
-  MemoryFileSystem(Uri currentDirectory)
+  new(Uri currentDirectory)
     : currentDirectory = _addTrailingSlash(currentDirectory) {
     _directories.add(currentDirectory);
   }
@@ -61,7 +61,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  MemoryFileSystemEntity._(this._fileSystem, this.uri);
+  new _(this._fileSystem, this.uri);
 
   @override
   int get hashCode => uri.hashCode;

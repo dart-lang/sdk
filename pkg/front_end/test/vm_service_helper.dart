@@ -15,7 +15,7 @@ class VMServiceHelper {
   late vmService.VmService _serviceClient;
   vmService.VmService get serviceClient => _serviceClient;
 
-  VMServiceHelper();
+  new();
 
   Future connect(Uri observatoryUri) async {
     String path = observatoryUri.path;
@@ -182,7 +182,7 @@ class VMServiceHelper {
 }
 
 class StdOutLog implements vmService.Log {
-  const StdOutLog();
+  const new();
 
   @override
   void severe(String message) {

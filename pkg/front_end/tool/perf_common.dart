@@ -81,7 +81,7 @@ class TimingsCollector {
 
   final bool verbose;
 
-  TimingsCollector(this.verbose);
+  new(this.verbose);
 
   String? currentKey;
 

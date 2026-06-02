@@ -67,11 +67,7 @@ class MatchingCache {
   /// where a joint variable is used instead of the two declared 'a' variables.
   Map<Variable, Variable> _variableAliases = {};
 
-  MatchingCache(
-    this._matchingCacheIndex,
-    this._coreTypes, {
-    required this.useLowering,
-  });
+  new(this._matchingCacheIndex, this._coreTypes, {required this.useLowering});
 
   /// Declares that [jointVariables] should be used as aliases of the variables
   /// of the same name in [variables1] and [variables2].
@@ -748,7 +744,7 @@ abstract class CacheKey implements AccessKey {
 class ExpressionKey extends CacheKey {
   final Expression expression;
 
-  ExpressionKey(this.expression);
+  new(this.expression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -768,7 +764,7 @@ class ExpressionKey extends CacheKey {
 class ConstantKey extends CacheKey {
   final Constant constant;
 
-  ConstantKey(this.constant);
+  new(this.constant);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -788,7 +784,7 @@ class ConstantKey extends CacheKey {
 class IntegerKey extends CacheKey {
   final int value;
 
-  IntegerKey(this.value);
+  new(this.value);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -809,7 +805,7 @@ class IsKey extends CacheKey {
   final CacheKey receiver;
   final DartType type;
 
-  IsKey(this.receiver, this.type);
+  new(this.receiver, this.type);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -831,7 +827,7 @@ class AsKey extends CacheKey {
   final CacheKey receiver;
   final DartType type;
 
-  AsKey(this.receiver, this.type);
+  new(this.receiver, this.type);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -851,7 +847,7 @@ class AsKey extends CacheKey {
 class NullCheckKey extends CacheKey {
   final CacheKey operand;
 
-  NullCheckKey(this.operand);
+  new(this.operand);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -871,7 +867,7 @@ class NullCheckKey extends CacheKey {
 class NullAssertKey extends CacheKey {
   final CacheKey operand;
 
-  NullAssertKey(this.operand);
+  new(this.operand);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -894,7 +890,7 @@ class DynamicAccessKey extends CacheKey {
   final String propertyName;
   final List<CacheKey>? arguments;
 
-  DynamicAccessKey(this.receiver, this.propertyName, [this.arguments]);
+  new(this.receiver, this.propertyName, [this.arguments]);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -935,7 +931,7 @@ class StaticAccessKey extends CacheKey {
   final String propertyName;
   final List<CacheKey>? arguments;
 
-  StaticAccessKey(
+  new(
     this.receiver,
     this.target,
     this.typeArguments,
@@ -982,7 +978,7 @@ class AndKey extends CacheKey {
   final CacheKey left;
   final CacheKey right;
 
-  AndKey(this.left, this.right);
+  new(this.left, this.right);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1046,7 +1042,7 @@ class PromotedCacheableExpression
   @override
   final AccessKey accessKey;
 
-  PromotedCacheableExpression(this._expression, this._promotedType)
+  new(this._expression, this._promotedType)
     : accessKey = new PromotedAccessKey(_expression.accessKey, _promotedType);
 
   @override
@@ -1119,11 +1115,7 @@ class CovariantCheckCacheableExpression
 
   final int fileOffset;
 
-  CovariantCheckCacheableExpression(
-    this._expression,
-    this._checkedType, {
-    required this.fileOffset,
-  });
+  new(this._expression, this._checkedType, {required this.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1188,7 +1180,7 @@ class CacheExpression
   final Cache _cache;
   final DelayedExpression expression;
 
-  CacheExpression(this.cacheKey, this.accessKey, this._cache, this.expression);
+  new(this.cacheKey, this.accessKey, this._cache, this.expression);
 
   @override
   Expression createExpression(
@@ -1281,7 +1273,7 @@ class Cache {
   /// will have their own offsets.
   Map<AccessKey, CacheExpression> _accesses = {};
 
-  Cache(
+  new(
     this.cacheKey,
     this._matchingCache,
     this._name, {
@@ -1469,7 +1461,7 @@ class PromotedAccessKey implements AccessKey {
   final AccessKey accessKey;
   final DartType type;
 
-  PromotedAccessKey(this.accessKey, this.type);
+  new(this.accessKey, this.type);
 
   @override
   int get hashCode => Object.hash(accessKey, type);
@@ -1488,7 +1480,7 @@ class JointAccessKey implements AccessKey {
   final AccessKey leftAccessKey;
   final AccessKey rightAccessKey;
 
-  JointAccessKey(this.leftAccessKey, this.rightAccessKey);
+  new(this.leftAccessKey, this.rightAccessKey);
 
   @override
   int get hashCode => Object.hash(leftAccessKey, rightAccessKey);

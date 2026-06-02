@@ -28,7 +28,7 @@ class Annotation {
   final Token atToken;
   final bool createFileUriExpression;
 
-  Annotation(
+  new(
     this.metadataBuilder,
     this.atToken, {
     required this.createFileUriExpression,
@@ -55,7 +55,7 @@ class MetadataBuilder {
 
   final Uri fileUri;
 
-  MetadataBuilder(Token this._atToken, this.fileUri)
+  new(Token this._atToken, this.fileUri)
     : atOffset = _atToken.charOffset,
       hasPatch = _atToken.next?.lexeme == 'patch';
 

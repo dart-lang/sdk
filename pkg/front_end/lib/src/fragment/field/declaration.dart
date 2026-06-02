@@ -180,7 +180,7 @@ class RegularFieldDeclaration
   @override
   bool hasBodyBeenBuilt = false;
 
-  RegularFieldDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 

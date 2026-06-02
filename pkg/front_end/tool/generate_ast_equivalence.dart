@@ -28,7 +28,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   Map<AstClass, String> _classStrategyMembers = {};
   Map<AstField, String> _fieldStrategyMembers = {};
 
-  EquivalenceVisitorStrategy();
+  new();
 
   @override
   String get generatorCommand =>

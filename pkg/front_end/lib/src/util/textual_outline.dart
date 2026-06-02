@@ -114,7 +114,7 @@ class _LanguageVersionChunk extends _Chunk {
   final int major;
   final int minor;
 
-  _LanguageVersionChunk(this.major, this.minor);
+  new(this.major, this.minor);
 
   @override
   void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
@@ -133,7 +133,7 @@ abstract class _TokenChunk extends _Chunk {
   final Token startToken;
   final Token endToken;
 
-  _TokenChunk(this.startToken, this.endToken);
+  new(this.startToken, this.endToken);
 
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
     printTokenRange(startToken, endToken, sb);
@@ -153,8 +153,7 @@ abstract class _TokenChunk extends _Chunk {
 }
 
 abstract class _SortableChunk extends _TokenChunk {
-  _SortableChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 
   @override
   int compareTo(_Chunk o) {
@@ -187,7 +186,7 @@ abstract class _SortableChunk extends _TokenChunk {
 class _ImportExportChunk extends _Chunk {
   final List<_SingleImportExportChunk> content;
 
-  _ImportExportChunk(this.content, int originalPosition) {
+  new(this.content, int originalPosition) {
     this.originalPosition = originalPosition;
   }
 
@@ -220,12 +219,8 @@ abstract class _SingleImportExportChunk extends _SortableChunk {
   final List<_NamespaceCombinator>? combinators;
   String? sortedShowAndHide;
 
-  _SingleImportExportChunk(
-    Token startToken,
-    Token endToken,
-    this.firstShowOrHide,
-    this.combinators,
-  ) : super(startToken, endToken);
+  new(Token startToken, Token endToken, this.firstShowOrHide, this.combinators)
+    : super(startToken, endToken);
 
   @override
   void internalMergeAndSort(StringBuffer sb) {
@@ -256,7 +251,7 @@ abstract class _SingleImportExportChunk extends _SortableChunk {
 }
 
 class _ImportChunk extends _SingleImportExportChunk {
-  _ImportChunk(
+  new(
     Token startToken,
     Token endToken,
     Token? firstShowOrHide,
@@ -265,7 +260,7 @@ class _ImportChunk extends _SingleImportExportChunk {
 }
 
 class _ExportChunk extends _SingleImportExportChunk {
-  _ExportChunk(
+  new(
     Token startToken,
     Token endToken,
     Token? firstShowOrHide,
@@ -277,26 +272,21 @@ class _NamespaceCombinator {
   final bool isShow;
   final Set<String> names;
 
-  _NamespaceCombinator.hide(List<String> names)
-    : isShow = false,
-      names = names.toSet();
+  new hide(List<String> names) : isShow = false, names = names.toSet();
 
-  _NamespaceCombinator.show(List<String> names)
-    : isShow = true,
-      names = names.toSet();
+  new show(List<String> names) : isShow = true, names = names.toSet();
 }
 
 class _LibraryNameChunk extends _TokenChunk {
-  _LibraryNameChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _PartChunk extends _TokenChunk {
-  _PartChunk(Token startToken, Token endToken) : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _PartOfChunk extends _TokenChunk {
-  _PartOfChunk(Token startToken, Token endToken) : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 abstract class _ClassChunk extends _SortableChunk {
@@ -304,7 +294,7 @@ abstract class _ClassChunk extends _SortableChunk {
   Token? headerEnd;
   Token? footerStart;
 
-  _ClassChunk(Token startToken, Token endToken) : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 
   @override
   void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
@@ -338,33 +328,27 @@ abstract class _ClassChunk extends _SortableChunk {
 }
 
 class _ClassDeclarationChunk extends _ClassChunk {
-  _ClassDeclarationChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _MixinDeclarationChunk extends _ClassChunk {
-  _MixinDeclarationChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _ExtensionDeclarationChunk extends _ClassChunk {
-  _ExtensionDeclarationChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _ExtensionTypeDeclarationChunk extends _ClassChunk {
-  _ExtensionTypeDeclarationChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _NamedMixinApplicationChunk extends _ClassChunk {
-  _NamedMixinApplicationChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 abstract class _ProcedureEtcChunk extends _SortableChunk {
-  _ProcedureEtcChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 
   @override
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
@@ -378,47 +362,39 @@ abstract class _ProcedureEtcChunk extends _SortableChunk {
 }
 
 class _PrimaryConstructorBodyChunk extends _ProcedureEtcChunk {
-  _PrimaryConstructorBodyChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _ClassMethodChunk extends _ProcedureEtcChunk {
-  _ClassMethodChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _TopLevelMethodChunk extends _ProcedureEtcChunk {
-  _TopLevelMethodChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _ClassFactoryMethodChunk extends _ProcedureEtcChunk {
-  _ClassFactoryMethodChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _ClassFieldsChunk extends _ProcedureEtcChunk {
-  _ClassFieldsChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _TopLevelFieldsChunk extends _ProcedureEtcChunk {
-  _TopLevelFieldsChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _FunctionTypeAliasChunk extends _ProcedureEtcChunk {
-  _FunctionTypeAliasChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _EnumChunk extends _SortableChunk {
-  _EnumChunk(Token startToken, Token endToken) : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _MetadataChunk extends _TokenChunk {
-  _MetadataChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 
   void printMetadataOn(StringBuffer sb, String indent) {
     sb.write(indent);
@@ -429,18 +405,17 @@ class _MetadataChunk extends _TokenChunk {
 
 // Coverage-ignore(suite): Not run.
 class _ScriptTagChunk extends _TokenChunk {
-  _ScriptTagChunk(Token token) : super(token, token);
+  new(Token token) : super(token, token);
 }
 
 // Coverage-ignore(suite): Not run.
 class _UnknownChunk extends _TokenChunk {
-  _UnknownChunk(Token startToken, Token endToken) : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 // Coverage-ignore(suite): Not run.
 class _RecoveredImportChunk extends _TokenChunk {
-  _RecoveredImportChunk(Token startToken, Token endToken)
-    : super(startToken, endToken);
+  new(Token startToken, Token endToken) : super(startToken, endToken);
 }
 
 class _UnknownTokenBuilder {
@@ -450,7 +425,7 @@ class _UnknownTokenBuilder {
 
 class BoxedInt {
   int value;
-  BoxedInt(this.value);
+  new(this.value);
 }
 
 // TODO(jensj): Better support for not caring about preexisting spaces, e.g.

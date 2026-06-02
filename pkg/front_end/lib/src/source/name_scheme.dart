@@ -17,7 +17,7 @@ class NameScheme {
   final ContainerType containerType;
   final LibraryName libraryName;
 
-  NameScheme({
+  new({
     required this.isInstanceMember,
     required this.containerName,
     required this.containerType,
@@ -236,7 +236,7 @@ class LibraryName {
   /// [MemberName]s dependent on this library name.
   List<MemberName> _memberNames = [];
 
-  LibraryName(this._reference);
+  new(this._reference);
 
   /// Registers [name] as dependent on this library name.
   void attachMemberName(MemberName name) {
@@ -277,7 +277,7 @@ abstract class ContainerName {
 class ClassName extends ContainerName {
   final String _name;
 
-  ClassName(this._name);
+  new(this._name);
 
   @override
   String get name => _name;
@@ -313,7 +313,7 @@ class FixedExtensionName implements ExtensionName {
   @override
   final String name;
 
-  FixedExtensionName(this.name);
+  new(this.name);
 
   @override
   bool get isUnnamedExtension => false;
@@ -378,8 +378,7 @@ class UnnamedExtensionName implements ExtensionName {
 /// node has been determined, and for members of unnamed extensions, when the
 /// synthesized name of the unnamed extension has been determined.
 abstract class MemberName {
-  factory MemberName(LibraryName libraryName, String text) =>
-      text.startsWith('_')
+  factory(LibraryName libraryName, String text) => text.startsWith('_')
       ? new PrivateMemberName(libraryName, text)
       :
         // Coverage-ignore(suite): Not run.
@@ -407,9 +406,7 @@ class PublicMemberName implements MemberName {
   @override
   final Name name;
 
-  PublicMemberName(String text)
-    : assert(!text.startsWith('_')),
-      name = new Name(text);
+  new(String text) : assert(!text.startsWith('_')), name = new Name(text);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -456,8 +453,7 @@ class PrivateMemberName extends UpdatableMemberName {
   final LibraryName _libraryName;
   final String _text;
 
-  PrivateMemberName(this._libraryName, this._text)
-    : assert(_text.startsWith('_')) {
+  new(this._libraryName, this._text) : assert(_text.startsWith('_')) {
     _libraryName.attachMemberName(this);
   }
 
@@ -480,7 +476,7 @@ class ExtensionProcedureName extends UpdatableMemberName {
   final bool isStatic;
   final String _text;
 
-  ExtensionProcedureName(
+  new(
     this._libraryName,
     this._containerName,
     this._containerType,
@@ -518,7 +514,7 @@ class ExtensionTypeConstructorName extends UpdatableMemberName {
   final bool isTearOff;
   final String _text;
 
-  ExtensionTypeConstructorName(
+  new(
     this._libraryName,
     this._containerName,
     this._text, {
@@ -563,7 +559,7 @@ class SynthesizedFieldName extends UpdatableMemberName {
   final bool isSynthesized;
   final String _text;
 
-  SynthesizedFieldName(
+  new(
     this._libraryName,
     this._containerName,
     this._containerType,

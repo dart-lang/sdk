@@ -24,7 +24,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   final int? charOffset;
 
-  VoidTypeBuilder(this.fileUri, this.charOffset)
+  new(this.fileUri, this.charOffset)
     : typeName = new SyntheticTypeName('void', charOffset ?? TreeNode.noOffset);
 
   @override

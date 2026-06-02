@@ -1033,7 +1033,7 @@ abstract class Visitor32<R, A> {
 }
 
 class CounterVisitor32 implements Visitor32<void, Counter> {
-  const CounterVisitor32();
+  const new();
 
   @override
   void visitSub0(Sub0 sub, Counter counter) {

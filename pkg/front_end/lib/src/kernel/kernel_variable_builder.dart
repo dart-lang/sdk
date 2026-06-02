@@ -19,7 +19,7 @@ class VariableBuilderImpl extends NamedBuilderImpl
   @override
   final InternalVariable variable;
 
-  VariableBuilderImpl(this.name, this.variable, this.fileUri);
+  new(this.name, this.variable, this.fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.

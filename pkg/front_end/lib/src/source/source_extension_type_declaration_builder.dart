@@ -84,7 +84,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   Nullability? _nullability;
 
-  SourceExtensionTypeDeclarationBuilder({
+  new({
     required this.name,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required this.constructorReferences,

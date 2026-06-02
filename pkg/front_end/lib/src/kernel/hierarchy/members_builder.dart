@@ -32,10 +32,8 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   final bool _isClosureContextLoweringEnabled;
 
-  ClassMembersBuilder(
-    this.hierarchyBuilder, {
-    required bool isClosureContextLoweringEnabled,
-  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
+  new(this.hierarchyBuilder, {required bool isClosureContextLoweringEnabled})
+    : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   void clear() {
     classNodes.clear();

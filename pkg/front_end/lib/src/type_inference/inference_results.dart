@@ -14,15 +14,11 @@ import 'type_schema.dart';
 
 /// The result of a statement inference.
 class StatementInferenceResult {
-  const StatementInferenceResult();
+  const new();
 
-  factory StatementInferenceResult.single(Statement statement) =
-      SingleStatementInferenceResult;
+  factory single(Statement statement) = SingleStatementInferenceResult;
 
-  factory StatementInferenceResult.multiple(
-    int fileOffset,
-    List<Statement> statements,
-  ) {
+  factory multiple(int fileOffset, List<Statement> statements) {
     if (statements.length == 0) {
       return const StatementInferenceResult();
     } else if (statements.length == 1) {
@@ -52,7 +48,7 @@ class SingleStatementInferenceResult implements StatementInferenceResult {
   @override
   final Statement statement;
 
-  SingleStatementInferenceResult(this.statement);
+  new(this.statement);
 
   @override
   bool get hasChanged => true;
@@ -71,7 +67,7 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   @override
   final List<Statement> statements;
 
-  MultipleStatementInferenceResult(this.fileOffset, this.statements)
+  new(this.fileOffset, this.statements)
     : assert(
         statements.isNotEmpty,
         "The multi-statement result shouldn't be empty.",
@@ -100,12 +96,12 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
 }
 
 class VariableDeclarationInferenceResult {
-  const VariableDeclarationInferenceResult();
+  const new();
 
-  factory VariableDeclarationInferenceResult.effect([Expression? expression]) =
+  factory effect([Expression? expression]) =
       EffectVariableDeclarationInferenceResult;
 
-  factory VariableDeclarationInferenceResult.late(
+  factory late(
     List<VariableDeclaration> variableDeclarations,
     List<FunctionDeclaration> functionDeclarations, {
     required int fileOffset,
@@ -121,7 +117,7 @@ class EffectVariableDeclarationInferenceResult
     implements VariableDeclarationInferenceResult {
   final Expression? expression;
 
-  EffectVariableDeclarationInferenceResult([this.expression]);
+  new([this.expression]);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -142,7 +138,7 @@ class LateVariableDeclarationInferenceResult
   final List<VariableDeclaration> variableDeclarations;
   final List<FunctionDeclaration> functionDeclarations;
 
-  LateVariableDeclarationInferenceResult(
+  new(
     this.variableDeclarations,
     this.functionDeclarations, {
     required this.fileOffset,
@@ -236,7 +232,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
 
   final DartType? inferredReceiverType;
 
-  SuccessfulInferenceResult({
+  new({
     required this.inferredType,
     required this.functionType,
     required this.typeArguments,
@@ -378,7 +374,7 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final List<NamedExpression> named;
 
-  WrapInProblemInferenceResult({
+  new({
     required this.message,
     required this.problemReporting,
     required this.compilerContext,
@@ -436,7 +432,7 @@ abstract class InitializerInferenceResult {
   /// [LocalInitializer]s.
   void addHoistedArguments(List<Initializer> initializers);
 
-  factory InitializerInferenceResult.fromInvocationInferenceResult(
+  factory fromInvocationInferenceResult(
     Initializer initializer,
     InvocationInferenceResult invocationInferenceResult,
   ) {
@@ -449,7 +445,7 @@ class SuccessfulInitializerInferenceResult
   @override
   final Initializer initializer;
 
-  SuccessfulInitializerInferenceResult(this.initializer);
+  new(this.initializer);
 
   @override
   void addHoistedArguments(List<Initializer> initializers) {}
@@ -462,12 +458,9 @@ class SuccessfulInitializerInvocationInferenceResult
 
   final List<Variable>? hoistedArguments;
 
-  SuccessfulInitializerInvocationInferenceResult({
-    required this.initializer,
-    required this.hoistedArguments,
-  });
+  new({required this.initializer, required this.hoistedArguments});
 
-  SuccessfulInitializerInvocationInferenceResult.fromSuccessfulInferenceResult(
+  new fromSuccessfulInferenceResult(
     Initializer initializer,
     SuccessfulInferenceResult successfulInferenceResult,
   ) : this(
@@ -495,7 +488,7 @@ class WrapInProblemInitializerInferenceResult
   final Initializer initializer;
   final WrapInProblemInferenceResult wrapInProblemInferenceResult;
 
-  WrapInProblemInitializerInferenceResult.fromWrapInProblemInferenceResult(
+  new fromWrapInProblemInferenceResult(
     this.initializer,
     this.wrapInProblemInferenceResult,
   );
@@ -514,7 +507,7 @@ class PropertyGetInferenceResult {
   // class in favor of using [ExpressionInferenceResult]?
   final Member? member;
 
-  PropertyGetInferenceResult(this.expressionInferenceResult, this.member);
+  new(this.expressionInferenceResult, this.member);
 
   @override
   String toString() {
@@ -545,11 +538,8 @@ class ExpressionInferenceResult {
   /// type of the expression after coercion, `int` in the example above.
   final DartType? postCoercionType;
 
-  ExpressionInferenceResult(
-    this.inferredType,
-    this.expression, {
-    this.postCoercionType = null,
-  }) : assert(isKnown(inferredType), "$inferredType is not known.");
+  new(this.inferredType, this.expression, {this.postCoercionType = null})
+    : assert(isKnown(inferredType), "$inferredType is not known.");
 
   @override
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
@@ -565,11 +555,7 @@ class NullAwareGuard {
 
   final InferenceVisitorBase _inferrer;
 
-  NullAwareGuard(
-    this._nullAwareVariable,
-    this._nullAwareFileOffset,
-    this._inferrer,
-  );
+  new(this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer);
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].

@@ -31,7 +31,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
-  DillExtensionBuilder(this.extension, this.libraryBuilder) {
+  new(this.extension, this.libraryBuilder) {
     Map<String, MemberLookupResult> content = {};
 
     bool isPrivateFromOtherLibrary(Member member) {

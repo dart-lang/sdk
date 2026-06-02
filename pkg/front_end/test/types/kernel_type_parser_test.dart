@@ -163,7 +163,7 @@ class KernelSubtypeTest extends SubtypeTest<DartType, TypeParserEnvironment> {
 
   final TypeParserEnvironment environment;
 
-  KernelSubtypeTest(this.coreTypes, this.hierarchy, this.environment);
+  new(this.coreTypes, this.hierarchy, this.environment);
 
   @override
   bool get skipFutureOrPromotion => true;

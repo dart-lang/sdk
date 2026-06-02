@@ -20,7 +20,7 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
   final SetterFragmentDeclaration _declaration;
 
-  SetterBodyBuilderContext(
+  new(
     this._builder,
     this._declaration,
     SourceLibraryBuilder libraryBuilder,

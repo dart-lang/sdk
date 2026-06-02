@@ -67,7 +67,7 @@ class SetterFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
-  SetterFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.startOffset,
@@ -129,7 +129,7 @@ class _SetterFunctionBodyBuildingContext
     implements FunctionBodyBuildingContext {
   SetterFragment _fragment;
 
-  _SetterFunctionBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment

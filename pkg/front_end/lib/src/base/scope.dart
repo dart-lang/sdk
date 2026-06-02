@@ -52,14 +52,13 @@ class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  NameSpaceLookupScope(this._nameSpace, {LookupScope? parent})
-    : _parent = parent;
+  new(this._nameSpace, {LookupScope? parent}) : _parent = parent;
 }
 
 abstract class AbstractTypeParameterScope implements LookupScope {
   final LookupScope _parent;
 
-  AbstractTypeParameterScope(this._parent);
+  new(this._parent);
 
   TypeParameterBuilder? getTypeParameter(String name);
 
@@ -76,7 +75,7 @@ abstract class AbstractTypeParameterScope implements LookupScope {
 class TypeParameterScope extends AbstractTypeParameterScope {
   final Map<String, TypeParameterBuilder> _typeParameters;
 
-  TypeParameterScope(super._parent, this._typeParameters);
+  new(super._parent, this._typeParameters);
 
   @override
   TypeParameterBuilder? getTypeParameter(String name) => _typeParameters[name];
@@ -107,7 +106,7 @@ class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
   final SourceCompilationUnit _compilationUnit;
   final NameSpace _importNameSpace;
 
-  CompilationUnitImportScope(this._compilationUnit, this._importNameSpace);
+  new(this._compilationUnit, this._importNameSpace);
 
   @override
   NameSpace get _nameSpace => _importNameSpace;
@@ -132,8 +131,7 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitScope(this._compilationUnit, {LookupScope? parent})
-    : _parent = parent;
+  new(this._compilationUnit, {LookupScope? parent}) : _parent = parent;
 
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
@@ -147,10 +145,8 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitPrefixScope(
-    this._nameSpace, {
-    required CompilationUnitImportScope? parent,
-  }) : _parent = parent;
+  new(this._nameSpace, {required CompilationUnitImportScope? parent})
+    : _parent = parent;
 }
 
 class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
@@ -159,7 +155,7 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  DeclarationBuilderScope(this._parent);
+  new(this._parent);
 
   @override
   NameSpace get _nameSpace {
@@ -371,7 +367,7 @@ class LookupResultIterator implements Iterator<NamedBuilder> {
   LookupResult? _currentLookupResult;
   NamedBuilder? _currentBuilder;
 
-  LookupResultIterator(this._lookupResultIterator);
+  new(this._lookupResultIterator);
 
   @override
   bool moveNext() {
@@ -426,7 +422,7 @@ class FilteredIterator<T extends NamedBuilder> implements Iterator<T> {
   final Iterator<NamedBuilder> _iterator;
   final bool includeDuplicates;
 
-  FilteredIterator(this._iterator, {required this.includeDuplicates});
+  new(this._iterator, {required this.includeDuplicates});
 
   bool _include(NamedBuilder element) {
     if (!includeDuplicates && (element.isDuplicate)) {
@@ -475,8 +471,7 @@ class IteratorSequence<T> implements Iterator<T> {
 
   Iterator<T>? _current;
 
-  IteratorSequence(Iterable<Iterator<T>> iterators)
-    : _iterators = iterators.iterator;
+  new(Iterable<Iterator<T>> iterators) : _iterators = iterators.iterator;
 
   @override
   T get current {

@@ -103,7 +103,7 @@ class RegularGetterDeclaration
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
 
-  RegularGetterDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 

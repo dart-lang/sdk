@@ -193,7 +193,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// See [SourceLoader.buildOutlineExpressions] for details.
   List<SourceFactoryBuilder>? redirectingFactoryBuilders;
 
-  factory SourceLibraryBuilder({
+  factory({
     required SourceCompilationUnit compilationUnit,
     required Uri importUri,
     required Uri fileUri,
@@ -247,7 +247,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     );
   }
 
-  SourceLibraryBuilder._({
+  new _({
     required this.loader,
     required this.compilationUnit,
     required this.importUri,
@@ -1639,10 +1639,7 @@ class FieldNonPromotabilityInfo {
   /// whose values are the reasons why the given property couldn't be promoted.
   final Map<Member, PropertyNonPromotabilityReason> individualPropertyReasons;
 
-  FieldNonPromotabilityInfo({
-    required this.fieldNameInfo,
-    required this.individualPropertyReasons,
-  });
+  new({required this.fieldNameInfo, required this.individualPropertyReasons});
 }
 
 Uri computeLibraryUri(Builder declaration) {
@@ -1665,7 +1662,7 @@ class PostponedProblem {
   final int length;
   final Uri fileUri;
 
-  PostponedProblem(this.message, this.charOffset, this.length, this.fileUri);
+  new(this.message, this.charOffset, this.length, this.fileUri);
 }
 
 class LanguageVersion {
@@ -1675,7 +1672,7 @@ class LanguageVersion {
   final int charCount;
   bool isFinal = false;
 
-  LanguageVersion(this.version, this.fileUri, this.charOffset, this.charCount);
+  new(this.version, this.fileUri, this.charOffset, this.charCount);
 
   bool get isExplicit => true;
 
@@ -1713,7 +1710,7 @@ class InvalidLanguageVersion implements LanguageVersion {
   @override
   bool isFinal = false;
 
-  InvalidLanguageVersion(
+  new(
     this.fileUri,
     this.charOffset,
     this.charCount,
@@ -1747,7 +1744,7 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   bool isFinal = false;
 
-  ImplicitLanguageVersion(this.version);
+  new(this.version);
 
   @override
   bool get valid => true;
@@ -1786,7 +1783,7 @@ class PendingBoundsCheck {
   final TypeUse typeUse;
   final bool inferred;
 
-  PendingBoundsCheck(
+  new(
     this.type,
     this.fileUri,
     this.charOffset,
@@ -1800,7 +1797,7 @@ class GenericFunctionTypeCheck {
   final Uri fileUri;
   final int charOffset;
 
-  GenericFunctionTypeCheck(this.type, this.fileUri, this.charOffset);
+  new(this.type, this.fileUri, this.charOffset);
 }
 
 class LibraryAccess {
@@ -1809,5 +1806,5 @@ class LibraryAccess {
   final int charOffset;
   final int length;
 
-  LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
+  new(this.accessor, this.fileUri, this.charOffset, this.length);
 }

@@ -66,7 +66,7 @@ class Context extends ChainContext {
   final Set<Uri> fuzzedLibraries = {};
   int fuzzCompiles = 0;
 
-  Context(this.compilerContext, this.errors, bool updateExpectations, this.fuzz)
+  new(this.compilerContext, this.errors, bool updateExpectations, this.fuzz)
     : steps = <Step>[
         const ReadTest(),
         const CompileExpression(),
@@ -103,11 +103,7 @@ class CompilationResult {
   Procedure? compiledProcedure;
   List<CfeDiagnosticMessage> errors;
 
-  CompilationResult(
-    this.compiledInLibrary,
-    this.compiledProcedure,
-    this.errors,
-  );
+  new(this.compiledInLibrary, this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
@@ -170,7 +166,7 @@ class TestCase {
 
   List<CompilationResult> results = [];
 
-  TestCase(
+  new(
     this.description,
     this.sources,
     this.entryPoint,
@@ -206,7 +202,7 @@ class TestCase {
 
 class OutputParametersMatches
     extends Step<List<TestCase>, List<TestCase>, Context> {
-  const OutputParametersMatches();
+  const new();
 
   @override
   String get name => "output parameters matches";
@@ -259,10 +255,7 @@ class MatchProcedureExpectations
   final String suffix;
   final bool updateExpectations;
 
-  const MatchProcedureExpectations(
-    this.suffix, {
-    this.updateExpectations = false,
-  });
+  const new(this.suffix, {this.updateExpectations = false});
 
   @override
   String get name => "match expectations";
@@ -322,7 +315,7 @@ $actual""");
 }
 
 class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
-  const ReadTest();
+  const new();
 
   @override
   String get name => "read test";
@@ -432,7 +425,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
 }
 
 class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
-  const CompileExpression();
+  const new();
 
   @override
   String get name => "compile expression";

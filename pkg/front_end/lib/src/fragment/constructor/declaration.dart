@@ -907,7 +907,7 @@ class RegularConstructorDeclaration
   @override
   Token? _initializersStartToken;
 
-  RegularConstructorDeclaration(this._fragment)
+  new(this._fragment)
     : _initializersStartToken = _fragment.initializersStartToken {
     _fragment.declaration = this;
   }
@@ -1100,7 +1100,7 @@ class DefaultEnumConstructorDeclaration
   /// The scope in which to build the formal parameters.
   final LookupScope _lookupScope;
 
-  DefaultEnumConstructorDeclaration({
+  new({
     required this.returnType,
     required this.formals,
     required Uri fileUri,
@@ -1251,7 +1251,7 @@ class PrimaryConstructorDeclaration
   @override
   Token? _initializersStartToken;
 
-  PrimaryConstructorDeclaration(this._fragment, this._bodyFragment)
+  new(this._fragment, this._bodyFragment)
     : _initializersStartToken = _bodyFragment?.beginInitializers {
     _fragment.declaration = this;
   }
@@ -1669,7 +1669,7 @@ class DefaultConstructorDeclaration
   @override
   final Procedure? _constructorTearOff;
 
-  DefaultConstructorDeclaration({
+  new({
     required Constructor constructor,
     required Procedure? constructorTearOff,
   }) : this._constructor = constructor,
@@ -1735,7 +1735,7 @@ class ForwardingConstructorDeclaration
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
   TypeDependency? _typeDependency;
 
-  ForwardingConstructorDeclaration({
+  new({
     required Constructor constructor,
     required Procedure? constructorTearOff,
     required MemberBuilder definingConstructor,

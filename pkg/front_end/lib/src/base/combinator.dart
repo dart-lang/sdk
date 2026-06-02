@@ -7,12 +7,12 @@ class CombinatorBuilder {
 
   final Set<String> names;
 
-  CombinatorBuilder(this.isShow, this.names, int charOffset, Uri fileUri);
+  new(this.isShow, this.names, int charOffset, Uri fileUri);
 
-  CombinatorBuilder.show(Iterable<String> names, int charOffset, Uri fileUri)
+  new show(Iterable<String> names, int charOffset, Uri fileUri)
     : this(true, new Set<String>.of(names), charOffset, fileUri);
 
-  CombinatorBuilder.hide(Iterable<String> names, int charOffset, Uri fileUri)
+  new hide(Iterable<String> names, int charOffset, Uri fileUri)
     : this(false, new Set<String>.of(names), charOffset, fileUri);
 
   bool get isHide => !isShow;

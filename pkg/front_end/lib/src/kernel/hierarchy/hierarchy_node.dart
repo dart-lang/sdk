@@ -23,7 +23,7 @@ import 'mixin_inferrer.dart';
 abstract class HierarchyNodeBuilder {
   final ClassHierarchyBuilder _hierarchy;
 
-  HierarchyNodeBuilder(this._hierarchy);
+  new(this._hierarchy);
 
   LibraryBuilder get _libraryBuilder;
 
@@ -109,7 +109,7 @@ abstract class HierarchyNodeBuilder {
 class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   final ClassBuilder _classBuilder;
 
-  ClassHierarchyNodeBuilder(super.hierarchy, this._classBuilder);
+  new(super.hierarchy, this._classBuilder);
 
   ClassBuilder get _objectClass => _hierarchy.objectClassBuilder;
 
@@ -349,7 +349,7 @@ class ClassHierarchyNode {
 
   int get depth => superclasses.length;
 
-  ClassHierarchyNode(
+  new(
     this.classBuilder,
     this.directSuperClassNode,
     this.mixedInNode,
@@ -428,10 +428,7 @@ class ClassHierarchyNode {
 class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   final ExtensionTypeDeclarationBuilder _extensionTypeBuilder;
 
-  ExtensionTypeHierarchyNodeBuilder(
-    super._hierarchy,
-    this._extensionTypeBuilder,
-  );
+  new(super._hierarchy, this._extensionTypeBuilder);
 
   @override
   LibraryBuilder get _libraryBuilder => _extensionTypeBuilder.libraryBuilder;
@@ -640,7 +637,7 @@ class ExtensionTypeHierarchyNode {
   /// `Object`.
   final int maxInheritancePath;
 
-  ExtensionTypeHierarchyNode(
+  new(
     this.extensionTypeDeclarationBuilder,
     this.superclasses,
     this.superExtensionTypes,

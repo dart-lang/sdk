@@ -18,7 +18,7 @@ class _FieldClassMember implements ClassMember {
 
   Covariance? _covariance;
 
-  _FieldClassMember(
+  new(
     this._builder, {
     required this.uriOffset,
     required this.isStatic,
@@ -186,7 +186,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   final UriOffsetLength uriOffset;
 
-  _SynthesizedFieldClassMember(
+  new(
     this._builder,
     this._member,
     this._name,

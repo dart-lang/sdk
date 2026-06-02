@@ -31,7 +31,7 @@ class OffsetMap {
   final Map<int, Import> _imports = {};
   final Map<int, Export> _exports = {};
 
-  OffsetMap(this.uri);
+  new(this.uri);
 
   void registerImport(Token importKeyword, Import import) {
     assert(

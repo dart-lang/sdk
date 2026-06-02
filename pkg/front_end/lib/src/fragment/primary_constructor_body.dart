@@ -45,7 +45,7 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
 
   SourceConstructorBuilder? _builder;
 
-  PrimaryConstructorBodyFragment({
+  new({
     required this.fileUri,
     required this.thisOffset,
     required this.metadata,

@@ -98,7 +98,7 @@ enum ObjectAccessTargetKind {
 /// [InvocationTargetType] and its subclasses encode the type information about
 /// `f` in expressions like `f<int, String>(0.1, isFoo: false)`.
 sealed class InvocationTargetType {
-  const InvocationTargetType();
+  const new();
 
   /// If operator == is invoked, returns the target type or its approximation.
   FunctionType get equalsFunctionType;
@@ -150,7 +150,7 @@ sealed class InvocationTargetType {
 class InvocationTargetFunctionType extends InvocationTargetType {
   final FunctionType functionType;
 
-  InvocationTargetFunctionType(this.functionType);
+  new(this.functionType);
 
   @override
   FunctionType get equalsFunctionType => functionType;
@@ -200,7 +200,7 @@ class InvocationTargetFunctionType extends InvocationTargetType {
 /// Base class for all target types that can't be expressed as a fully defined
 /// [FunctionType].
 sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
-  const InvocationTargetNonFunctionType();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -315,7 +315,7 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
 /// For example: `foo(1)`, `bar(2, "3")`, where `foo` has static type `dynamic`
 /// and `bar` has static type `Function`.
 class InvocationTargetDynamicType extends InvocationTargetNonFunctionType {
-  const InvocationTargetDynamicType();
+  const new();
 
   @override
   DartType get returnType => const DynamicType();
@@ -326,7 +326,7 @@ class InvocationTargetDynamicType extends InvocationTargetNonFunctionType {
 /// This invocation target type is used whenever the invocation target isn't
 /// callable or has static type [InvalidType]. For example, `3()`.
 class InvocationTargetInvalidType extends InvocationTargetNonFunctionType {
-  const InvocationTargetInvalidType();
+  const new();
 
   @override
   DartType get returnType => const InvalidType();
@@ -337,7 +337,7 @@ class InvocationTargetInvalidType extends InvocationTargetNonFunctionType {
 /// For example: `(throw 0)(1, 2, 3)`, `X()`, where `X` is a type parameter
 /// defined as `X extends Never`.
 class InvocationTargetNeverType extends InvocationTargetNonFunctionType {
-  const InvocationTargetNeverType();
+  const new();
 
   @override
   DartType get returnType => const NeverType.nonNullable();
@@ -348,10 +348,10 @@ class InvocationTargetNeverType extends InvocationTargetNonFunctionType {
 abstract class ObjectAccessTarget {
   final ObjectAccessTargetKind kind;
 
-  const ObjectAccessTarget.internal(this.kind);
+  const new internal(this.kind);
 
   /// Creates an access to the instance [member].
-  factory ObjectAccessTarget.interfaceMember(
+  factory interfaceMember(
     DartType receiverType,
     Member member, {
     required bool hasNonObjectMemberAccess,
@@ -362,17 +362,15 @@ abstract class ObjectAccessTarget {
   }
 
   /// Creates an access to the super [member].
-  factory ObjectAccessTarget.superMember(DartType receiverType, Member member) =
+  factory superMember(DartType receiverType, Member member) =
       InstanceAccessTarget.superMember;
 
   /// Creates an access to the Object [member].
-  factory ObjectAccessTarget.objectMember(
-    DartType receiverType,
-    Member member,
-  ) = InstanceAccessTarget.object;
+  factory objectMember(DartType receiverType, Member member) =
+      InstanceAccessTarget.object;
 
   /// Creates an access to the extension [member].
-  factory ObjectAccessTarget.extensionMember(
+  factory extensionMember(
     DartType receiverType,
     Member member,
     Member? tearoffTarget,
@@ -382,7 +380,7 @@ abstract class ObjectAccessTarget {
   }) = ExtensionAccessTarget;
 
   /// Creates an access to the extension type [member].
-  factory ObjectAccessTarget.extensionTypeMember(
+  factory extensionTypeMember(
     DartType receiverType,
     Member member,
     Member? tearoffTarget,
@@ -392,7 +390,7 @@ abstract class ObjectAccessTarget {
   }) = ExtensionTypeAccessTarget;
 
   /// Creates an access to the [representationField] of the [extensionType].
-  factory ObjectAccessTarget.extensionTypeRepresentation(
+  factory extensionTypeRepresentation(
     DartType receiverType,
     ExtensionType extensionType,
     Procedure representationField, {
@@ -401,32 +399,30 @@ abstract class ObjectAccessTarget {
 
   /// Creates an access to a 'call' method on a function, i.e. a function
   /// invocation.
-  factory ObjectAccessTarget.callFunction(DartType receiverType) =
+  factory callFunction(DartType receiverType) =
       FunctionAccessTarget.nonNullable;
 
   /// Creates an access to a 'call' method on a potentially nullable function,
   /// i.e. a function invocation.
-  factory ObjectAccessTarget.nullableCallFunction(DartType receiverType) =
+  factory nullableCallFunction(DartType receiverType) =
       FunctionAccessTarget.nullable;
 
   /// Creates an access on a dynamic receiver type with no known target.
-  const factory ObjectAccessTarget.dynamic() = DynamicAccessTarget.dynamic;
+  const factory dynamic() = DynamicAccessTarget.dynamic;
 
   /// Creates an access on a receiver of type Never with no known target.
-  factory ObjectAccessTarget.never({
-    Member? member,
-    FunctionType? functionType,
-  }) = NeverAccessTarget;
+  factory never({Member? member, FunctionType? functionType}) =
+      NeverAccessTarget;
 
   /// Creates an access with no target due to an invalid receiver type.
   ///
   /// This is not in itself an error but a consequence of another error.
-  const factory ObjectAccessTarget.invalid() = DynamicAccessTarget.invalid;
+  const factory invalid() = DynamicAccessTarget.invalid;
 
   /// Creates an access with no target.
   ///
   /// This is an error case.
-  const factory ObjectAccessTarget.missing() = DynamicAccessTarget.missing;
+  const factory missing() = DynamicAccessTarget.missing;
 
   DartType? get receiverType;
 
@@ -769,19 +765,19 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   InferenceVisitorBase? _cachedGetterTypeBase;
 
   /// Creates an access to the instance [member].
-  InstanceAccessTarget.nonNullable(this.receiverType, this.member)
+  new nonNullable(this.receiverType, this.member)
     : super.internal(ObjectAccessTargetKind.instanceMember);
 
   /// Creates an access to the instance [member].
-  InstanceAccessTarget.nullable(this.receiverType, this.member)
+  new nullable(this.receiverType, this.member)
     : super.internal(ObjectAccessTargetKind.nullableInstanceMember);
 
   /// Creates an access to the super [member].
-  InstanceAccessTarget.superMember(this.receiverType, this.member)
+  new superMember(this.receiverType, this.member)
     : super.internal(ObjectAccessTargetKind.superMember);
 
   /// Creates an access to the Object [member].
-  InstanceAccessTarget.object(this.receiverType, this.member)
+  new object(this.receiverType, this.member)
     : super.internal(ObjectAccessTargetKind.objectMember);
 
   @override
@@ -917,12 +913,12 @@ class FunctionAccessTarget extends ObjectAccessTarget {
 
   /// Creates an access to a 'call' method on a function, i.e. a function
   /// invocation.
-  FunctionAccessTarget.nonNullable(this.receiverType)
+  new nonNullable(this.receiverType)
     : super.internal(ObjectAccessTargetKind.callFunction);
 
   /// Creates an access to a 'call' method on a potentially nullable function,
   /// i.e. a function invocation.
-  FunctionAccessTarget.nullable(this.receiverType)
+  new nullable(this.receiverType)
     : super.internal(ObjectAccessTargetKind.nullableCallFunction);
 
   @override
@@ -972,20 +968,17 @@ class FunctionAccessTarget extends ObjectAccessTarget {
 
 class DynamicAccessTarget extends ObjectAccessTarget {
   /// Creates an access on a dynamic receiver type with no known target.
-  const DynamicAccessTarget.dynamic()
-    : super.internal(ObjectAccessTargetKind.dynamic);
+  const new dynamic() : super.internal(ObjectAccessTargetKind.dynamic);
 
   /// Creates an access with no target due to an invalid receiver type.
   ///
   /// This is not in itself an error but a consequence of another error.
-  const DynamicAccessTarget.invalid()
-    : super.internal(ObjectAccessTargetKind.invalid);
+  const new invalid() : super.internal(ObjectAccessTargetKind.invalid);
 
   /// Creates an access with no target.
   ///
   /// This is an error case.
-  const DynamicAccessTarget.missing()
-    : super.internal(ObjectAccessTargetKind.missing);
+  const new missing() : super.internal(ObjectAccessTargetKind.missing);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1041,7 +1034,7 @@ class NeverAccessTarget extends ObjectAccessTarget {
   /// Creates an access on a receiver of type Never. If the target is known,
   /// being from `Object`, it is provided as [member] together with its
   /// function type.
-  NeverAccessTarget({this.member, this.functionType})
+  new({this.member, this.functionType})
     : super.internal(ObjectAccessTargetKind.never);
 
   @override
@@ -1368,7 +1361,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget
   @override
   final List<DartType> receiverTypeArguments;
 
-  ExtensionAccessTarget(
+  new(
     this.receiverType,
     this.member,
     this.tearoffTarget,
@@ -1394,7 +1387,7 @@ class AmbiguousExtensionAccessTarget extends ObjectAccessTarget {
   @override
   final List<ExtensionAccessCandidate> candidates;
 
-  AmbiguousExtensionAccessTarget(this.receiverType, this.candidates)
+  new(this.receiverType, this.candidates)
     : super.internal(ObjectAccessTargetKind.ambiguous);
 
   @override
@@ -1447,7 +1440,7 @@ class ExtensionAccessCandidate {
   final DartType onTypeInstantiateToBounds;
   final ObjectAccessTarget target;
 
-  ExtensionAccessCandidate(
+  new(
     this.memberBuilder,
     this.onType,
     this.onTypeInstantiateToBounds,
@@ -1512,11 +1505,8 @@ abstract class RecordAccessTarget extends ObjectAccessTarget {
 
   final DartType fieldType;
 
-  RecordAccessTarget(
-    this.receiverType,
-    this.fieldType,
-    ObjectAccessTargetKind kind,
-  ) : super.internal(kind);
+  new(this.receiverType, this.fieldType, ObjectAccessTargetKind kind)
+    : super.internal(kind);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1567,13 +1557,13 @@ class RecordIndexTarget extends RecordAccessTarget {
   @override
   final int recordFieldIndex;
 
-  RecordIndexTarget.nonNullable(
+  new nonNullable(
     RecordType receiverType,
     DartType fieldType,
     this.recordFieldIndex,
   ) : super(receiverType, fieldType, ObjectAccessTargetKind.recordIndexed);
 
-  RecordIndexTarget.nullable(
+  new nullable(
     RecordType receiverType,
     DartType fieldType,
     this.recordFieldIndex,
@@ -1588,13 +1578,13 @@ class RecordNameTarget extends RecordAccessTarget {
   @override
   final String recordFieldName;
 
-  RecordNameTarget.nonNullable(
+  new nonNullable(
     RecordType receiverType,
     DartType fieldType,
     this.recordFieldName,
   ) : super(receiverType, fieldType, ObjectAccessTargetKind.recordNamed);
 
-  RecordNameTarget.nullable(
+  new nullable(
     RecordType receiverType,
     DartType fieldType,
     this.recordFieldName,
@@ -1621,7 +1611,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget
   @override
   final List<DartType> receiverTypeArguments;
 
-  ExtensionTypeAccessTarget(
+  new(
     this.receiverType,
     this.member,
     this.tearoffTarget,
@@ -1646,7 +1636,7 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
   final ExtensionType extensionType;
   final Procedure representationField;
 
-  ExtensionTypeRepresentationAccessTarget(
+  new(
     this.receiverType,
     this.extensionType,
     this.representationField, {

@@ -80,7 +80,7 @@ Future<void> main(List<String> args) async {
 }
 
 class TextRepresentationDataComputer extends CfeDataComputer<String> {
-  const TextRepresentationDataComputer();
+  const new();
 
   @override
   void computeLibraryData(
@@ -119,7 +119,7 @@ class TextRepresentationDataComputer extends CfeDataComputer<String> {
 class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   final AstTextStrategy strategy;
 
-  TextRepresentationDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
     this.strategy,

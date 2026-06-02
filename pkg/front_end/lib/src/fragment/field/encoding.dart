@@ -304,7 +304,7 @@ class RegularFieldEncoding with RegularFieldEncodingMixin {
   final FieldFragment _fragment;
   final bool isEnumElement;
 
-  RegularFieldEncoding(this._fragment, {required this.isEnumElement}) {}
+  new(this._fragment, {required this.isEnumElement}) {}
 
   @override
   void buildOutlineNode(
@@ -375,7 +375,7 @@ class RegularFieldEncoding with RegularFieldEncodingMixin {
 class PrimaryConstructorFieldEncoding with RegularFieldEncodingMixin {
   final PrimaryConstructorFieldFragment _fragment;
 
-  PrimaryConstructorFieldEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   void buildOutlineNode(
@@ -460,12 +460,10 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   // we cannot trust non-nullable fields to be initialized with non-null values.
   bool _forceIncludeIsSetField;
 
-  AbstractLateFieldEncoding(
-    this._fragment, {
-    required late_lowering.IsSetStrategy isSetStrategy,
-  }) : _isSetStrategy = isSetStrategy,
-       _forceIncludeIsSetField =
-           isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {}
+  new(this._fragment, {required late_lowering.IsSetStrategy isSetStrategy})
+    : _isSetStrategy = isSetStrategy,
+      _forceIncludeIsSetField =
+          isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {}
 
   late_lowering.IsSetEncoding get isSetEncoding {
     assert(
@@ -981,18 +979,12 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
 
 class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     with NonFinalLate, LateWithoutInitializer {
-  LateFieldWithoutInitializerEncoding(
-    super._fragment, {
-    required super.isSetStrategy,
-  });
+  new(super._fragment, {required super.isSetStrategy});
 }
 
 class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
     with NonFinalLate {
-  LateFieldWithInitializerEncoding(
-    super._fragment, {
-    required super.isSetStrategy,
-  });
+  new(super._fragment, {required super.isSetStrategy});
 
   @override
   Statement _createGetterBody(
@@ -1030,10 +1022,7 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
 
 class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
     with LateWithoutInitializer {
-  LateFinalFieldWithoutInitializerEncoding(
-    super._fragment, {
-    required super.isSetStrategy,
-  });
+  new(super._fragment, {required super.isSetStrategy});
 
   @override
   Statement _createSetterBody(
@@ -1062,10 +1051,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
 }
 
 class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
-  LateFinalFieldWithInitializerEncoding(
-    super._fragment, {
-    required super.isSetStrategy,
-  });
+  new(super._fragment, {required super.isSetStrategy});
 
   @override
   Statement _createGetterBody(
@@ -1131,7 +1117,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   Procedure? _setter;
   DartType? _type;
 
-  AbstractOrExternalFieldEncoding(
+  new(
     this._fragment, {
     required bool isExtensionInstanceMember,
     required bool isExtensionTypeInstanceMember,
@@ -1541,7 +1527,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   late Procedure _getter;
   DartType? _type;
 
-  RepresentationFieldEncoding(this._fragment);
+  new(this._fragment);
   @override
   DartType get type {
     assert(
@@ -1729,10 +1715,8 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   Procedure? _setter;
   DartType? _type;
 
-  ExtensionInstanceFieldEncoding(
-    this._fragment, {
-    required bool isExtensionInstanceMember,
-  }) : _isExtensionInstanceMember = isExtensionInstanceMember;
+  new(this._fragment, {required bool isExtensionInstanceMember})
+    : _isExtensionInstanceMember = isExtensionInstanceMember;
 
   @override
   DartType get type {

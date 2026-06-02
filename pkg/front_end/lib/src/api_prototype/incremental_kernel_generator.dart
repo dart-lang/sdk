@@ -19,7 +19,7 @@ export '../base/incremental_serializer.dart' show IncrementalSerializer;
 
 // Coverage-ignore(suite): Not run.
 abstract class IncrementalKernelGenerator {
-  factory IncrementalKernelGenerator(
+  factory(
     CompilerOptions options,
     List<Uri> entryPoints, [
     Uri? initializeFromDillUri,
@@ -40,7 +40,7 @@ abstract class IncrementalKernelGenerator {
   ///
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
-  factory IncrementalKernelGenerator.fromComponent(
+  factory fromComponent(
     CompilerOptions options,
     List<Uri> entryPoints,
     Component? component, [
@@ -67,7 +67,7 @@ abstract class IncrementalKernelGenerator {
   ///
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
-  factory IncrementalKernelGenerator.forExpressionCompilationOnly(
+  factory forExpressionCompilationOnly(
     CompilerOptions options,
     List<Uri> entryPoints,
     Component component,
@@ -168,7 +168,7 @@ class IncrementalCompilerResult {
   final List<Component> loadedComponents;
   final Set<Library>? neededDillLibraries;
 
-  IncrementalCompilerResult(
+  new(
     this.component, {
     required this.classHierarchy,
     required this.coreTypes,

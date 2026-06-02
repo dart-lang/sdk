@@ -144,7 +144,7 @@ class ParserCreatorListener extends Listener {
   List<String?> parameterTypes = [];
   Token? formalParametersEnd;
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(

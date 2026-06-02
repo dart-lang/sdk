@@ -328,7 +328,7 @@ class SuccessfulConstructorResolutionResult
     extends ConstructorResolutionResult {
   final Expression constructorInvocation;
 
-  SuccessfulConstructorResolutionResult(this.constructorInvocation);
+  new(this.constructorInvocation);
 }
 
 /// Erroneous case of [ConstructorResolutionResult].
@@ -336,7 +336,7 @@ class ErroneousConstructorResolutionResult extends ConstructorResolutionResult {
   /// The expression signaling the error, typically an [InvalidExpression].
   final Expression errorExpression;
 
-  ErroneousConstructorResolutionResult({required this.errorExpression});
+  new({required this.errorExpression});
 }
 
 /// Unresolved case of [UnresolvedConstructorResolutionResult].
@@ -347,7 +347,7 @@ class UnresolvedConstructorResolutionResult
   final int charOffset;
   final UnresolvedKind unresolvedKind;
 
-  UnresolvedConstructorResolutionResult({
+  new({
     required this.errorName,
     required this.charOffset,
     required ExpressionGeneratorHelper helper,

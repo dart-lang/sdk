@@ -17,7 +17,7 @@ import 'package:kernel/type_environment.dart';
 class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
   final TypeEnvironment typeEnvironment;
 
-  FactorTypeTest(this.typeEnvironment);
+  new(this.typeEnvironment);
 
   CoreTypes get coreTypes => typeEnvironment.coreTypes;
 

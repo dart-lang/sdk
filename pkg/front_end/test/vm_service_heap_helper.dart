@@ -14,7 +14,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   bool verbose = false;
   int? timeout;
 
-  VMServiceHeapHelperSpecificExactLeakFinder({
+  new({
     List<Interest> interests = const [],
     List<Interest> prettyPrints = const [],
     this.throwOnPossibleLeak = false,
@@ -409,7 +409,7 @@ class Interest {
   final List<String> fieldNames;
   final bool expectToAlwaysFind;
 
-  Interest(
+  new(
     this.uri,
     this.className,
     this.fieldNames, {
@@ -422,5 +422,5 @@ class Leak {
   final int count;
   final List<String> prettyPrints;
 
-  Leak(this.duplicate, this.count, this.prettyPrints);
+  new(this.duplicate, this.count, this.prettyPrints);
 }

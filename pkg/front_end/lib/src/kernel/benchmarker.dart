@@ -111,7 +111,7 @@ class PhaseTiming {
     growable: false,
   );
 
-  PhaseTiming(this.phase);
+  new(this.phase);
 
   void addRuntime(int runtime) {
     _runtime += runtime;
@@ -141,7 +141,7 @@ class SubdivideTiming {
   int _runtime = 0;
   int _count = 0;
 
-  SubdivideTiming(this.phase);
+  new(this.phase);
 
   void addRuntime(int runtime, {required bool addAsCount}) {
     _runtime += runtime;

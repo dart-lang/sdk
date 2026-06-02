@@ -62,7 +62,7 @@ class CatchParameterBuilder extends NamedBuilderImpl
 
   final bool isClosureContextLoweringEnabled;
 
-  CatchParameterBuilder({
+  new({
     required this.modifiers,
     required this.type,
     required this.name,
@@ -245,7 +245,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final bool isPrimaryConstructorParameter;
 
-  FormalParameterBuilder({
+  new({
     required this.kind,
     required this.modifiers,
     required this.type,
@@ -554,7 +554,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   @override
   final String? name;
 
-  FunctionTypeParameterBuilder(this.kind, this.type, this.name);
+  new(this.kind, this.type, this.name);
 
   @override
   int get fileOffset {

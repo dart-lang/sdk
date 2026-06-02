@@ -26,7 +26,7 @@ class DelayedOverrideCheck implements DelayedCheck {
   final Set<ClassMember> _overriddenMembers;
   final ClassMember? _localMember;
 
-  DelayedOverrideCheck(
+  new(
     this._classBuilder,
     this._declaredMember,
     this._overriddenMembers, {
@@ -251,12 +251,7 @@ class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
   final ClassMember getable;
   final ClassMember setable;
 
-  DelayedClassGetterSetterCheck(
-    this.classBuilder,
-    this.name,
-    this.getable,
-    this.setable,
-  );
+  new(this.classBuilder, this.name, this.getable, this.setable);
 
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
@@ -331,7 +326,7 @@ class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
   final ClassMember getable;
   final ClassMember setable;
 
-  DelayedExtensionTypeGetterSetterCheck(
+  new(
     this.extensionTypeDeclarationBuilder,
     this.name,
     this.getable,
@@ -388,11 +383,8 @@ class DelayedTypeComputation {
   final Set<ClassMember> overriddenMembers;
   bool _computed = false;
 
-  DelayedTypeComputation(
-    this.builder,
-    this.declaredMember,
-    this.overriddenMembers,
-  ) : assert(declaredMember.isSourceDeclaration);
+  new(this.builder, this.declaredMember, this.overriddenMembers)
+    : assert(declaredMember.isSourceDeclaration);
 
   void compute(ClassMembersBuilder membersBuilder) {
     if (_computed) return;

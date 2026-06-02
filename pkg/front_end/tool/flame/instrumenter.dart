@@ -307,7 +307,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   final Map<String, Set<String>> wanted;
   final Set<String>? onlyIfIncludingCertainCalls;
 
-  TimerCounterInstrumenterConfig({
+  new({
     required this.libFilename,
     required this.reportCandidates,
     required this.includeAll,
@@ -420,7 +420,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
 }
 
 class CountCalls extends TimerCounterInstrumenterConfig {
-  CountCalls({
+  new({
     required super.libFilename,
     required super.reportCandidates,
     required super.includeAll,
@@ -756,7 +756,7 @@ class _CollectCallsVisitor extends RecursiveVisitor {
 
   Set<String> collected = {};
 
-  _CollectCallsVisitor._();
+  new _();
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
@@ -796,7 +796,7 @@ class _InvocationWrapperTransformer extends Transformer {
   final List<String> namesById;
   final Procedure instrumenterEnter;
 
-  _InvocationWrapperTransformer._(
+  new _(
     this.config,
     this.member,
     this.wantedNames,

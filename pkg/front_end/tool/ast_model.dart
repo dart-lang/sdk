@@ -178,7 +178,7 @@ class FieldRule {
   /// a reference to the declaration.
   final bool? isDeclaration;
 
-  const FieldRule({this.name, this.isDeclaration});
+  const new({this.name, this.isDeclaration});
 }
 
 /// Return the [FieldRule] to use for the [field] in [AstClass].
@@ -271,7 +271,7 @@ class AstClass {
 
   Map<String, AstField> fields = {};
 
-  AstClass(
+  new(
     this.node, {
     this.superclass,
     AstClassKind? kind,
@@ -410,7 +410,7 @@ class FieldType {
   final DartType type;
   final AstFieldKind kind;
 
-  FieldType(this.type, this.kind);
+  new(this.type, this.kind);
 
   @override
   String toString() => 'FieldType($type,$kind)';
@@ -419,8 +419,7 @@ class FieldType {
 class ListFieldType extends FieldType {
   final FieldType elementType;
 
-  ListFieldType(DartType type, this.elementType)
-    : super(type, AstFieldKind.list);
+  new(DartType type, this.elementType) : super(type, AstFieldKind.list);
 
   @override
   String toString() => 'ListFieldType($type,$elementType)';
@@ -429,7 +428,7 @@ class ListFieldType extends FieldType {
 class SetFieldType extends FieldType {
   final FieldType elementType;
 
-  SetFieldType(DartType type, this.elementType) : super(type, AstFieldKind.set);
+  new(DartType type, this.elementType) : super(type, AstFieldKind.set);
 
   @override
   String toString() => 'SetFieldType($type,$elementType)';
@@ -439,7 +438,7 @@ class MapFieldType extends FieldType {
   final FieldType keyType;
   final FieldType valueType;
 
-  MapFieldType(DartType type, this.keyType, this.valueType)
+  new(DartType type, this.keyType, this.valueType)
     : super(type, AstFieldKind.map);
 
   @override
@@ -449,8 +448,7 @@ class MapFieldType extends FieldType {
 class UtilityFieldType extends FieldType {
   final AstClass astClass;
 
-  UtilityFieldType(DartType type, this.astClass)
-    : super(type, AstFieldKind.utility);
+  new(DartType type, this.astClass) : super(type, AstFieldKind.utility);
 
   @override
   String toString() => 'UtilityFieldType($type,$astClass)';
@@ -463,7 +461,7 @@ class AstField {
   final FieldType type;
   final AstField? parentField;
 
-  AstField(this.astClass, this.node, this.name, this.type, this.parentField);
+  new(this.astClass, this.node, this.name, this.type, this.parentField);
 
   String dump([String indent = ""]) {
     StringBuffer sb = new StringBuffer();
@@ -480,7 +478,7 @@ class AstModel {
   final AstClass namedNodeClass;
   final AstClass constantClass;
 
-  AstModel(this.nodeClass, this.namedNodeClass, this.constantClass);
+  new(this.nodeClass, this.namedNodeClass, this.constantClass);
 
   /// Returns an [Iterable] for all declarative [Node] classes in the AST model.
   Iterable<AstClass> get declarativeClasses {

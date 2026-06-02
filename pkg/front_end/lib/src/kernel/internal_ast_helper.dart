@@ -1684,7 +1684,7 @@ class _VariablesDeclaration extends AuxiliaryStatement {
   final List<VariableDeclaration> declarations;
   final Uri uri;
 
-  _VariablesDeclaration(this.declarations, this.uri) {
+  new(this.declarations, this.uri) {
     setParents(declarations, this);
   }
 

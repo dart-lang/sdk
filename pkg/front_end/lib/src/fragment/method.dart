@@ -66,7 +66,7 @@ class MethodFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
-  MethodFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.startOffset,
@@ -128,7 +128,7 @@ class MethodFragment implements Fragment, FunctionFragment {
 class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
   MethodFragment _fragment;
 
-  _MethodBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment

@@ -47,7 +47,7 @@ class LintTestDescription extends TestDescription {
   final LintTestCache cache;
   final LintListener listener;
 
-  LintTestDescription(this.shortName, this.uri, this.cache, this.listener) {
+  new(this.shortName, this.uri, this.cache, this.listener) {
     this.listener.description = this;
     this.listener.uri = uri;
   }
@@ -75,7 +75,7 @@ class LintTestCache {
 
 class Context extends ChainContext {
   final bool onlyInGit;
-  Context({required this.onlyInGit});
+  new({required this.onlyInGit});
 
   @override
   final List<Step> steps = const <Step>[const LintStep()];
@@ -132,7 +132,7 @@ class Context extends ChainContext {
 }
 
 class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
-  const LintStep();
+  const new();
 
   @override
   String get name => "lint";
@@ -304,7 +304,7 @@ class LatestType {
   final Token token;
   bool type;
 
-  LatestType(this.token, this.type);
+  new(this.token, this.type);
 }
 
 class ImportsTwiceLintListener extends LintListener {

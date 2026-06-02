@@ -48,7 +48,7 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
 
   DartType? get emittedValueType;
 
-  factory BodyInferenceContext(
+  factory(
     InferenceVisitorBase inferrer,
     AsyncMarker asyncMarker,
     DartType returnContext, {
@@ -120,7 +120,7 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
     }
   }
 
-  BodyInferenceContext._(this.isRoot);
+  new _(this.isRoot);
 
   @override
   SharedTypeSchemaView get sharedYieldContext =>
@@ -209,7 +209,7 @@ class _SyncContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
 
-  _SyncContext(
+  new(
     this.inferrer,
     this._returnContext,
     this._declaredReturnType,
@@ -490,7 +490,7 @@ class _AsyncContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
 
-  _AsyncContext(
+  new(
     this.inferrer,
     this._returnContext,
     this._declaredReturnType,
@@ -793,7 +793,7 @@ class _SyncStarContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _yieldElementTypes;
 
-  _SyncStarContext(
+  new(
     this.inferrer,
     this._yieldElementContext,
     this._declaredReturnType,
@@ -954,7 +954,7 @@ class _AsyncStarContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _yieldElementTypes;
 
-  _AsyncStarContext(
+  new(
     this.inferrer,
     this._yieldElementContext,
     this._declaredReturnType,

@@ -107,7 +107,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   MemberDataForTesting? dataForTesting;
 
-  SourceMemberBuilderImpl()
+  new()
     : dataForTesting = retainDataForTesting
           ?
             // Coverage-ignore(suite): Not run.

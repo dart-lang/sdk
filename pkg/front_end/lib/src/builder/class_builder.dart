@@ -342,5 +342,5 @@ class ConstructorRedirection {
   String target;
   bool cycleReported;
 
-  ConstructorRedirection(this.target) : cycleReported = false;
+  new(this.target) : cycleReported = false;
 }

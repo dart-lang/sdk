@@ -134,7 +134,7 @@ class BenchmarkResult {
   final double warmupUs;
   final List<int> runsUs;
 
-  BenchmarkResult(this.name, this.coldRunUs, this.warmupUs, this.runsUs);
+  new(this.name, this.coldRunUs, this.warmupUs, this.runsUs);
 
   static T add<T extends num>(T x, T y) => x + y as T;
 
@@ -264,7 +264,7 @@ void _toBinary(Component p) {
 class CallSiteAttributesMetadata {
   final DartType receiverType;
 
-  const CallSiteAttributesMetadata({required this.receiverType});
+  const new({required this.receiverType});
 
   @override
   String toString() =>

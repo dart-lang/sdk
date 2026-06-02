@@ -38,7 +38,7 @@ class OmittedIdentifier implements Identifier {
   @override
   final Token token;
 
-  OmittedIdentifier(this.token);
+  new(this.token);
 
   int get charOffset => token.charOffset;
 
@@ -77,7 +77,7 @@ abstract class IdentifierImpl implements Identifier {
   @override
   final Token token;
 
-  IdentifierImpl(this.token);
+  new(this.token);
 
   @override
   String get name => token.lexeme;
@@ -107,7 +107,7 @@ abstract class IdentifierImpl implements Identifier {
 }
 
 class SimpleIdentifier extends IdentifierImpl {
-  SimpleIdentifier(super.token);
+  new(super.token);
 
   QualifiedNameIdentifier withIdentifierQualifier(Identifier qualifier) {
     return new QualifiedNameIdentifier(qualifier, token);
@@ -133,8 +133,7 @@ class OperatorIdentifier implements Identifier {
   @override
   final Operator operator;
 
-  OperatorIdentifier(this.token)
-    : this.operator = Operator.fromText(token.stringValue!)!;
+  new(this.token) : this.operator = Operator.fromText(token.stringValue!)!;
 
   @override
   String get name => operator.text;
@@ -169,8 +168,7 @@ class InitializedIdentifier extends SimpleIdentifier {
   @override
   final Expression initializer;
 
-  InitializedIdentifier(Identifier identifier, this.initializer)
-    : super(identifier.token);
+  new(Identifier identifier, this.initializer) : super(identifier.token);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -183,13 +181,13 @@ class InitializedIdentifier extends SimpleIdentifier {
 }
 
 sealed class QualifiedName extends IdentifierImpl {
-  QualifiedName(Token suffix) : super(suffix);
+  new(Token suffix) : super(suffix);
 }
 
 class QualifiedNameIdentifier extends QualifiedName {
   final Identifier qualifier;
 
-  QualifiedNameIdentifier(this.qualifier, Token suffix) : super(suffix);
+  new(this.qualifier, Token suffix) : super(suffix);
 
   // Coverage-ignore(suite): Not run.
   Token get suffix => token;
@@ -214,7 +212,7 @@ class QualifiedNameIdentifier extends QualifiedName {
 class QualifiedNameGenerator extends QualifiedName {
   final Generator qualifier;
 
-  QualifiedNameGenerator(this.qualifier, Token suffix) : super(suffix);
+  new(this.qualifier, Token suffix) : super(suffix);
 
   Token get suffix => token;
 
@@ -230,7 +228,7 @@ class QualifiedNameGenerator extends QualifiedName {
 class QualifiedNameBuilder extends QualifiedName {
   final Builder qualifier;
 
-  QualifiedNameBuilder(this.qualifier, Token suffix) : super(suffix);
+  new(this.qualifier, Token suffix) : super(suffix);
 
   Token get suffix => token;
 

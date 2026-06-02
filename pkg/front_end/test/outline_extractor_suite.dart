@@ -65,7 +65,7 @@ class Context extends ChainContext with MatchContext {
 
   final String suiteName;
 
-  Context(this.suiteName, this.updateExpectations);
+  new(this.suiteName, this.updateExpectations);
 
   @override
   final List<Step> steps = const <Step>[
@@ -81,7 +81,7 @@ class Context extends ChainContext with MatchContext {
 
 class OutlineExtractorStep
     extends Step<TestDescription, TestDescription, Context> {
-  const OutlineExtractorStep();
+  const new();
 
   @override
   String get name => "OutlineExtractorStep";
@@ -125,7 +125,7 @@ class OutlineExtractorStep
 
 class CompileAndCompareStep
     extends Step<TestDescription, TestDescription, Context> {
-  const CompileAndCompareStep();
+  const new();
 
   @override
   String get name => "CompileAndCompare";
@@ -234,7 +234,7 @@ class CompileAndCompareStep
 }
 
 class Strategy extends EquivalenceStrategy {
-  const Strategy();
+  const new();
 
   @override
   bool checkTreeNode_fileOffset(

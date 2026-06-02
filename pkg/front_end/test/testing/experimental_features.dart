@@ -14,7 +14,7 @@ class ExperimentalFeaturesFromFlags implements parser.ExperimentalFeatures {
   Version? _version;
   Map<cfe.ExperimentalFlag, bool> _explicitExperimentalFlags;
 
-  ExperimentalFeaturesFromFlags(this._explicitExperimentalFlags);
+  new(this._explicitExperimentalFlags);
 
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {

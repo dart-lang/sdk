@@ -21,11 +21,8 @@ class BuilderMixinInferrer {
   final SourceClassBuilder classBuilder;
   final ClassHierarchyBase classHierarchyBase;
 
-  BuilderMixinInferrer(
-    this.classBuilder,
-    this.classHierarchyBase,
-    this.typeParametersToSolveFor,
-  ) : coreTypes = classHierarchyBase.coreTypes,
+  new(this.classBuilder, this.classHierarchyBase, this.typeParametersToSolveFor)
+    : coreTypes = classHierarchyBase.coreTypes,
       _mixinInferenceSolution = new _MixinInferenceSolution(
         typeParametersToSolveFor,
       );
@@ -241,7 +238,7 @@ class _MixinInferenceSolution {
   structuralTypeParameterEqualityAssumptions =
       <StructuralParameter, StructuralParameter>{};
 
-  _MixinInferenceSolution(this.typeParametersToSolveFor);
+  new(this.typeParametersToSolveFor);
 
   Map<TypeParameter, DartType> get solution => _typeParameterSolution!;
 

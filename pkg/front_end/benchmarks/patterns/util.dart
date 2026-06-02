@@ -22,7 +22,7 @@ class Strategy {
   /// A full description of the strategy.
   final String description;
 
-  const Strategy(this.dartIdentifier, this.name, this.description);
+  const new(this.dartIdentifier, this.name, this.description);
 
   @override
   int get hashCode => name.hashCode;
@@ -50,7 +50,7 @@ class Scenario {
   /// A full description of the scenario.
   final String description;
 
-  const Scenario(this.dartIdentifier, this.name, this.description);
+  const new(this.dartIdentifier, this.name, this.description);
 
   @override
   int get hashCode => name.hashCode;
@@ -69,7 +69,7 @@ class Scenario {
 class XAxis {
   final List<num> values;
 
-  const XAxis(this.values);
+  const new(this.values);
 }
 
 /// Key for a strategy/scenario pair.
@@ -77,7 +77,7 @@ class SeriesKey {
   final Strategy strategy;
   final Scenario scenario;
 
-  const SeriesKey(this.strategy, this.scenario);
+  const new(this.strategy, this.scenario);
 
   @override
   int get hashCode => strategy.hashCode * 13 + scenario.hashCode * 17;
@@ -107,7 +107,7 @@ class Series {
   /// measurements performed for that x-value.
   final List<List<num>> values;
 
-  const Series(this.key, this.xAxis, this.values);
+  const new(this.key, this.xAxis, this.values);
 
   /// Returns a new [Series] where measurements have been removed using
   /// [filter].
@@ -132,7 +132,7 @@ class SeriesSet {
   /// All collected [Series].
   final List<Series> seriesList;
 
-  const SeriesSet(this.name, this.xAxis, this.seriesList);
+  const new(this.name, this.xAxis, this.seriesList);
 
   /// Returns a new [SeriesSet] where measurements have been removed using
   /// [filter].

@@ -40,7 +40,7 @@ Future<void> main(List<String> args) async {
 }
 
 class IdTestingDataComputer extends CfeDataComputer<String> {
-  const IdTestingDataComputer();
+  const new();
 
   @override
   void computeMemberData(
@@ -97,7 +97,7 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
 }
 
 class IdTestingDataExtractor extends CfeDataExtractor<String> {
-  IdTestingDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
   ) : super(compilerResult, actualMap);

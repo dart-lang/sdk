@@ -75,7 +75,7 @@ class Resolver {
 
   late CloneVisitorNotMembers _simpleCloner = new CloneVisitorNotMembers();
 
-  Resolver({
+  new({
     required ClassHierarchy classHierarchy,
     required CoreTypes coreTypes,
     required TypeInferenceEngineImpl typeInferenceEngine,

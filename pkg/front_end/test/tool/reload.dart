@@ -68,7 +68,7 @@ class RemoteVm {
     return (_eventStreams[streamId] = controller).stream;
   }
 
-  RemoteVm([this.port = 8181]);
+  new([this.port = 8181]);
 
   /// Establishes the JSON rpc connection.
   json_rpc.Peer _createPeer() {

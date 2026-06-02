@@ -19,7 +19,7 @@ class TryConstantEvaluator extends ConstantEvaluator {
   @override
   final _ErrorReporter errorReporter;
 
-  TryConstantEvaluator(
+  new(
     DartLibrarySupport librarySupport,
     ConstantsBackend constantsBackend,
     Component component,
@@ -37,7 +37,7 @@ class TryConstantEvaluator extends ConstantEvaluator {
          supportReevaluationForTesting: supportReevaluationForTesting,
        );
 
-  TryConstantEvaluator._(
+  new _(
     DartLibrarySupport librarySupport,
     ConstantsBackend constantsBackend,
     Component component,
@@ -123,7 +123,7 @@ class _ErrorReporter implements ErrorReporter {
   final ReportErrorFunction _reportError;
   late bool requiresConstant;
 
-  _ErrorReporter(this._reportError);
+  new(this._reportError);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -148,7 +148,7 @@ class _ErrorReporter implements ErrorReporter {
 /// [Constant] visitor that returns `true` if the visitor constant contains
 /// an [UnevaluatedConstant].
 class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
-  UnevaluatedConstantFinder();
+  new();
 
   @override
   bool visitUnevaluatedConstant(UnevaluatedConstant node) => true;

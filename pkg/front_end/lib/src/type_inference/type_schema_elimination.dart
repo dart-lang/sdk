@@ -58,7 +58,7 @@ DartType leastClosure(DartType schema, {required CoreTypes coreTypes}) {
 class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   final DartType _topType;
 
-  _TypeSchemaEliminationVisitor(this._topType);
+  new(this._topType);
 
   @override
   DartType? visitAuxiliaryType(AuxiliaryType node, Variance variance) {

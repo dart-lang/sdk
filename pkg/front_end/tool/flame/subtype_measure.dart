@@ -11,7 +11,7 @@ import 'instrumenter.dart';
 import 'instrumenter.dart' as instrumenter;
 
 class SubtypeInstrumenterConfig implements InstrumenterConfig {
-  const SubtypeInstrumenterConfig();
+  const new();
 
   @override
   String get afterName => 'after';

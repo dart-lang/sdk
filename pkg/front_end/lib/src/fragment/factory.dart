@@ -39,7 +39,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
     constructorName.fullNameLength,
   );
 
-  FactoryFragment({
+  new({
     required this.constructorName,
     required this.fileUri,
     required this.startOffset,
@@ -102,7 +102,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
 class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   FactoryFragment _fragment;
 
-  _FactoryBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment

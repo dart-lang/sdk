@@ -9,7 +9,7 @@ class Class<T> {
   T Function() functionReturn;
   T Function(T) functionArgumentReturn;
 
-  Class(
+  new(
     this.direct,
     this.functionArgument,
     this.functionReturn,

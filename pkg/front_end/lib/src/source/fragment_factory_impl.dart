@@ -103,7 +103,7 @@ class FragmentFactoryImpl implements FragmentFactory {
 
   final NativeMethodRegistry _nativeMethodRegistry;
 
-  FragmentFactoryImpl({
+  new({
     required SourceCompilationUnit compilationUnit,
     required SourceCompilationUnit augmentationRoot,
     required LibraryNameSpaceBuilder libraryNameSpaceBuilder,

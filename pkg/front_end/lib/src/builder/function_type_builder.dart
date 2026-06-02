@@ -47,7 +47,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   final bool hasFunctionFormalParameterSyntax;
 
-  factory FunctionTypeBuilderImpl(
+  factory(
     TypeBuilder returnType,
     List<StructuralParameterBuilder>? typeParameters,
     List<ParameterBuilder>? formals,
@@ -99,7 +99,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
           );
   }
 
-  FunctionTypeBuilderImpl._(
+  new _(
     this.returnType,
     this.typeParameters,
     this.formals,
@@ -487,7 +487,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 /// This is the normal function type whose return type or parameter types are
 /// either explicit or omitted.
 class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
-  _ExplicitFunctionTypeBuilder(
+  new(
     TypeBuilder returnType,
     List<StructuralParameterBuilder>? typeParameters,
     List<ParameterBuilder>? formals,
@@ -528,7 +528,7 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
 /// on type inference.
 class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
     with InferableTypeBuilderMixin {
-  _InferredFunctionTypeBuilder(
+  new(
     TypeBuilder returnType,
     List<StructuralParameterBuilder>? typeParameters,
     List<ParameterBuilder>? formals,

@@ -133,7 +133,7 @@ class TestOptions {
   Component? component;
   List<Iterable<String>>? errors;
 
-  TestOptions(
+  new(
     this.linkDependencies, {
     required this.allowedExperimentalFlags,
     required this.experimentEnabledVersion,

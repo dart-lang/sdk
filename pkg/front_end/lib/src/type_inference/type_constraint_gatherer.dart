@@ -44,7 +44,7 @@ class TypeConstraintGatherer
 
   final TypeInferenceResultForTesting? _inferenceResultForTesting;
 
-  TypeConstraintGatherer(
+  new(
     this._environment,
     Iterable<StructuralParameter> typeParameters, {
     required OperationsCfe typeOperations,

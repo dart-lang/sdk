@@ -108,7 +108,7 @@ abstract class InferenceVisitor {
 abstract class ReturnContext {}
 
 class StandardReturnContext implements ReturnContext {
-  const StandardReturnContext();
+  const new();
 }
 
 class AnonymousMethodReturnContext extends ReturnContext {
@@ -117,7 +117,7 @@ class AnonymousMethodReturnContext extends ReturnContext {
   final List<DartType> returnTypes = [];
   final DartType typeContext;
 
-  AnonymousMethodReturnContext({
+  new({
     required this.resultVariable,
     required this.label,
     required this.typeContext,
@@ -216,7 +216,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ContextAllocationStrategy _contextAllocationStrategy;
 
-  InferenceVisitorImpl(
+  new(
     super.inferrer,
     super.fileUri,
     this._constructorContext,
@@ -17447,7 +17447,7 @@ abstract class CollectionElementInferenceContext {
   Map<TreeNode, DartType> inferredSpreadTypes;
   Map<Expression, DartType> inferredConditionTypes;
 
-  CollectionElementInferenceContext({
+  new({
     required this.inferredSpreadTypes,
     required this.inferredConditionTypes,
   });
@@ -17457,7 +17457,7 @@ class ListAndSetElementInferenceContext
     extends CollectionElementInferenceContext {
   DartType inferredTypeArgument;
 
-  ListAndSetElementInferenceContext({
+  new({
     required this.inferredTypeArgument,
     required Map<TreeNode, DartType> inferredSpreadTypes,
     required Map<Expression, DartType> inferredConditionTypes,
@@ -17475,7 +17475,7 @@ class MapEntryInferenceContext extends CollectionElementInferenceContext {
   List<DartType> actualTypesForSet;
   _MapLiteralEntryOffsets offsets;
 
-  MapEntryInferenceContext({
+  new({
     required this.inferredKeyType,
     required this.inferredValueType,
     required this.spreadContext,
@@ -17520,12 +17520,12 @@ class OverwrittenInterfaceMember {
   final ObjectAccessTarget target;
   final Name name;
 
-  OverwrittenInterfaceMember({required this.target, required this.name});
+  new({required this.target, required this.name});
 }
 
 class _RedirectionTarget {
   final Member target;
   final List<DartType> typeArguments;
 
-  _RedirectionTarget(this.target, this.typeArguments);
+  new(this.target, this.typeArguments);
 }

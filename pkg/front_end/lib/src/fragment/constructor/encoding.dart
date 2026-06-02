@@ -131,11 +131,9 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   List<Initializer>? _prependedInitializers;
 
-  RegularConstructorEncoding({
-    required bool isExternal,
-    required bool isEnumConstructor,
-  }) : _isExternal = isExternal,
-       _isEnumConstructor = isEnumConstructor;
+  new({required bool isExternal, required bool isEnumConstructor})
+    : _isExternal = isExternal,
+      _isEnumConstructor = isEnumConstructor;
 
   @override
   void registerFunctionBody({
@@ -848,10 +846,7 @@ class _ExtensionTypeInitializerToStatementConverter
   VariableStatement thisVariableStatement;
   final List<Statement> statements;
 
-  _ExtensionTypeInitializerToStatementConverter(
-    this.statements,
-    this.thisVariableStatement,
-  );
+  new(this.statements, this.thisVariableStatement);
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
@@ -949,8 +944,7 @@ class ExtensionTypeConstructorEncoding
   @override
   final bool _isExternal;
 
-  ExtensionTypeConstructorEncoding({required bool isExternal})
-    : _isExternal = isExternal;
+  new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
   DartType _computeThisType(
@@ -1062,8 +1056,7 @@ class ExtensionConstructorEncoding
   @override
   final bool _isExternal;
 
-  ExtensionConstructorEncoding({required bool isExternal})
-    : _isExternal = isExternal;
+  new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
   void buildOutlineNodes(
@@ -1161,7 +1154,7 @@ class ExtensionConstructorEncoding
 }
 
 abstract class ConstructorEncodingStrategy {
-  factory ConstructorEncodingStrategy(
+  factory(
     DeclarationBuilder declarationBuilder, {
     required bool isClosureContextLoweringEnabled,
   }) {
@@ -1200,7 +1193,7 @@ abstract class ConstructorEncodingStrategy {
 
 class RegularConstructorEncodingStrategy
     implements ConstructorEncodingStrategy {
-  const RegularConstructorEncodingStrategy();
+  const new();
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1234,9 +1227,7 @@ class RegularConstructorEncodingStrategy
 class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
   final bool isClosureContextLoweringEnabled;
 
-  const EnumConstructorEncodingStrategy({
-    required this.isClosureContextLoweringEnabled,
-  });
+  const new({required this.isClosureContextLoweringEnabled});
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1293,7 +1284,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
 
 class ExtensionConstructorEncodingStrategy
     implements ConstructorEncodingStrategy {
-  const ExtensionConstructorEncodingStrategy();
+  const new();
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1339,7 +1330,7 @@ class ExtensionConstructorEncodingStrategy
 
 class ExtensionTypeConstructorEncodingStrategy
     implements ConstructorEncodingStrategy {
-  const ExtensionTypeConstructorEncodingStrategy();
+  const new();
 
   @override
   List<FormalParameterBuilder>? createFormals({
@@ -1386,7 +1377,7 @@ class ExtensionTypeConstructorEncodingStrategy
 class _RegularConstructorContext implements ConstructorContext {
   final SourceConstructorBuilder _builder;
 
-  _RegularConstructorContext(this._builder);
+  new(this._builder);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1407,7 +1398,7 @@ class _ExtensionTypeConstructorContext implements ConstructorContext {
   @override
   final Variable thisVariable;
 
-  _ExtensionTypeConstructorContext(this._builder, this.thisVariable);
+  new(this._builder, this.thisVariable);
 
   @override
   FunctionSignature get signature => _builder.signature;

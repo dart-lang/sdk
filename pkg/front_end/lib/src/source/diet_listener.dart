@@ -66,7 +66,7 @@ class DietListener extends StackListenerImpl {
 
   final OffsetMap _offsetMap;
 
-  DietListener({
+  new({
     required this.libraryBuilder,
     required this.outermostScope,
     required this.extensionScope,

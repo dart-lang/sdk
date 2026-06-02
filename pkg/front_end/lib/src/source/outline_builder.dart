@@ -516,7 +516,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   OffsetMap _offsetMap;
 
-  OutlineBuilder(
+  new(
     this._problemReporting,
     this._compilationUnit,
     this._builderFactory,
@@ -4902,7 +4902,7 @@ class EnumConstantInfo {
   final String name;
   final int nameOffset;
 
-  EnumConstantInfo(this.metadata, this.name, this.nameOffset);
+  new(this.metadata, this.name, this.nameOffset);
 }
 
 class NominalParameters {
@@ -4910,7 +4910,7 @@ class NominalParameters {
   final Token endToken;
   final List<TypeParameterFragment>? fragments;
 
-  NominalParameters({
+  new({
     required this.beginToken,
     required this.endToken,
     required this.fragments,
@@ -4926,7 +4926,7 @@ class StructuralParameters {
   final Token endToken;
   final List<SourceStructuralParameterBuilder>? builders;
 
-  StructuralParameters({
+  new({
     required this.beginToken,
     required this.endToken,
     required this.builders,

@@ -116,7 +116,7 @@ Future<void> useProcesses(int j) async {
 }
 
 class DevNullLogger implements Logger {
-  const DevNullLogger();
+  const new();
 
   @override
   void logExpectedResult(

@@ -35,7 +35,7 @@ class NameWithCount {
   final String name;
   final int count;
 
-  NameWithCount(this.name, this.count);
+  new(this.name, this.count);
 }
 
 String _formatInt(int input, int minLength) {

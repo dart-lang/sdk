@@ -162,7 +162,7 @@ final class LocalScopeImpl extends BaseLocalScope
   @override
   final LocalScopeKind kind;
 
-  LocalScopeImpl(this._parent, this.kind);
+  new(this._parent, this.kind);
 
   @override
   List<int>? declare(String name, VariableBuilder builder) {
@@ -206,7 +206,7 @@ final class LocalTypeParameterScope extends BaseLocalScope
 
   final Map<String, TypeParameterBuilder>? _local;
 
-  LocalTypeParameterScope({
+  new({
     required this.kind,
     LocalScope? parent,
     Map<String, TypeParameterBuilder>? local,
@@ -239,7 +239,7 @@ final class FixedLocalScope extends BaseLocalScope
   @override
   final Map<String, VariableBuilder>? _local;
 
-  FixedLocalScope({
+  new({
     required this.kind,
     LocalScope? parent,
     Map<String, VariableBuilder>? local,
@@ -257,11 +257,9 @@ final class FormalParameterScope extends BaseLocalScope
   @override
   final Map<String, VariableBuilder>? _local;
 
-  FormalParameterScope({
-    required LookupScope parent,
-    Map<String, VariableBuilder>? local,
-  }) : _parent = new EnclosingLocalScope(parent),
-       _local = local;
+  new({required LookupScope parent, Map<String, VariableBuilder>? local})
+    : _parent = new EnclosingLocalScope(parent),
+      _local = local;
 
   @override
   LocalScopeKind get kind => LocalScopeKind.formals;
@@ -275,7 +273,7 @@ final class EnclosingLocalScope extends BaseLocalScope
     with ImmutableLocalScopeMixin {
   final LookupScope _scope;
 
-  EnclosingLocalScope(this._scope);
+  new(this._scope);
 
   @override
   LocalScopeKind get kind => LocalScopeKind.enclosing;

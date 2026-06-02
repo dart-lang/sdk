@@ -356,7 +356,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   ExtensionScope extensionScope;
 
-  BodyBuilderImpl({
+  new({
     required this.libraryBuilder,
     required BodyBuilderContext context,
     required this.enclosingScope,

@@ -160,7 +160,7 @@ class Trimmer extends RecursiveVisitor {
   /// hence member bodies need to be preserved.
   bool preserveMemberBodies = false;
 
-  Trimmer(this.librariesToClear, this.isExtendable);
+  new(this.librariesToClear, this.isExtendable);
 
   @override
   void visitLibrary(Library node) {
@@ -306,7 +306,7 @@ class TrimOptions {
   /// to be present in the dill file for other reasons.
   final Set<String> librariesToClear;
 
-  TrimOptions({
+  new({
     required this.inputAppPath,
     required this.inputPlatformPath,
     required this.outputAppPath,

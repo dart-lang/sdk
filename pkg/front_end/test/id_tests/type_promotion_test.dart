@@ -28,7 +28,7 @@ Future<void> main(List<String> args) async {
 }
 
 class TypePromotionDataComputer extends CfeDataComputer<DartType> {
-  const TypePromotionDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -54,7 +54,7 @@ class TypePromotionDataComputer extends CfeDataComputer<DartType> {
 }
 
 class TypePromotionDataExtractor extends CfeDataExtractor<DartType> {
-  TypePromotionDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<DartType>> actualMap,
   ) : super(compilerResult, actualMap);
@@ -69,7 +69,7 @@ class TypePromotionDataExtractor extends CfeDataExtractor<DartType> {
 }
 
 class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
-  const _TypePromotionDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) =>

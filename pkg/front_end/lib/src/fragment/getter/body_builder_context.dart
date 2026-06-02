@@ -20,7 +20,7 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
   final GetterFragmentDeclaration _declaration;
 
-  GetterFragmentBodyBuilderContext(
+  new(
     this._builder,
     this._declaration,
     SourceLibraryBuilder libraryBuilder,

@@ -132,7 +132,7 @@ class SpellingResult {
   final List<bool>? misspelledWordsDenylisted;
   final List<List<String>?>? misspelledWordsAlternatives;
 
-  SpellingResult(
+  new(
     this.misspelledWords,
     this.misspelledWordsOffset,
     this.misspelledWordsDenylisted,

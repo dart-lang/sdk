@@ -99,7 +99,7 @@ class MethodDeclarationImpl
   final MethodFragment _fragment;
   late final MethodEncoding _encoding;
 
-  MethodDeclarationImpl(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 

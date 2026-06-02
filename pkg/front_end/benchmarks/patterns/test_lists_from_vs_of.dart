@@ -10,7 +10,7 @@ class InputOutputData<T> {
   final List<T> input;
   final List<T> output;
 
-  const InputOutputData(this.input, this.output);
+  const new(this.input, this.output);
 }
 
 const Strategy fromStrategy = Strategy('fromStrategy', 'from', '''
@@ -43,7 +43,7 @@ class Test<T> {
   final int size;
   final Map<Strategy, TestFunction<T>> strategies;
 
-  const Test(this.size, this.strategies);
+  const new(this.size, this.strategies);
 
   void _test(
     Registry registry,

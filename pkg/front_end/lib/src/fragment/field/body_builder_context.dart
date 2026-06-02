@@ -23,7 +23,7 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
 
   final bool _isConst;
 
-  FieldFragmentBodyBuilderContext(
+  new(
     this._builder,
     this._declaration, {
     required this.isLateField,

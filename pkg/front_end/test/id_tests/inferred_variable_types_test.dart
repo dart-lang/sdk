@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
 }
 
 class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
-  const InferredVariableTypesDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -69,7 +69,7 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  InferredTypeArgumentDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     this.typeInferenceResult,
     Map<Id, ActualData<DartType>> actualMap,
@@ -89,7 +89,7 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
 
 class _InferredVariableTypesDataInterpreter
     implements DataInterpreter<DartType> {
-  const _InferredVariableTypesDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) {

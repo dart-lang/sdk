@@ -35,10 +35,7 @@ class DillExtensionTypeDeclarationBuilder
   final List<MemberBuilder> _constructorBuilders = [];
   final List<MemberBuilder> _memberBuilders = [];
 
-  DillExtensionTypeDeclarationBuilder(
-    this._extensionTypeDeclaration,
-    this.libraryBuilder,
-  ) {
+  new(this._extensionTypeDeclaration, this.libraryBuilder) {
     Map<String, MemberLookupResult> constructors = {};
     Map<String, MemberLookupResult> content = {};
 

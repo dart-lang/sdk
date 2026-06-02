@@ -31,7 +31,7 @@ Future<SpellContext> createContext(
 }
 
 class SpellContextTest extends SpellContext {
-  SpellContextTest({required bool interactive, required bool onlyInGit})
+  new({required bool interactive, required bool onlyInGit})
     : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override

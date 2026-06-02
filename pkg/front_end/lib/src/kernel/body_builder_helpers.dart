@@ -20,7 +20,7 @@ class Operator {
 
   final int charOffset;
 
-  Operator(this.token, this.charOffset);
+  new(this.token, this.charOffset);
 
   @override
   String toString() => "operator($name)";
@@ -37,12 +37,7 @@ class JumpTarget {
 
   final int charOffset;
 
-  JumpTarget(
-    this.kind,
-    this.functionNestingLevel,
-    this.fileUri,
-    this.charOffset,
-  );
+  new(this.kind, this.functionNestingLevel, this.fileUri, this.charOffset);
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
 
@@ -114,7 +109,7 @@ class LabelTarget implements JumpTarget {
   @override
   final int charOffset;
 
-  LabelTarget(this.functionNestingLevel, this.fileUri, this.charOffset)
+  new(this.functionNestingLevel, this.fileUri, this.charOffset)
     : breakTarget = new JumpTarget(
         JumpTargetKind.Break,
         functionNestingLevel,
@@ -190,12 +185,7 @@ class FunctionTypeParameters {
   final int length;
   final Uri uri;
 
-  FunctionTypeParameters(
-    this.parameters,
-    this.charOffset,
-    this.length,
-    this.uri,
-  ) {
+  new(this.parameters, this.charOffset, this.length, this.uri) {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -274,7 +264,7 @@ class FormalParameters extends Parameters {
   @override
   final Uri uri;
 
-  FormalParameters(this.parameters, this.charOffset, this.length, this.uri) {
+  new(this.parameters, this.charOffset, this.length, this.uri) {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -352,7 +342,7 @@ class CatchParameters extends Parameters {
   @override
   final Uri uri;
 
-  CatchParameters(this.parameters, this.charOffset, this.length, this.uri) {
+  new(this.parameters, this.charOffset, this.length, this.uri) {
     if (parameters?.isEmpty ?? false) {
       throw "Empty parameters should be null";
     }
@@ -386,7 +376,7 @@ class Label {
   String name;
   int charOffset;
 
-  Label(this.name, this.charOffset);
+  new(this.name, this.charOffset);
 
   @override
   String toString() => "label($name)";
@@ -396,7 +386,7 @@ class Condition {
   final Expression expression;
   final PatternGuard? patternGuard;
 
-  Condition(this.expression, [this.patternGuard]);
+  new(this.expression, [this.patternGuard]);
 
   @override
   String toString() =>
@@ -415,15 +405,11 @@ class ExpressionOrPatternGuardCase {
   final Expression? expression;
   final PatternGuard? patternGuard;
 
-  ExpressionOrPatternGuardCase.expression(
-    this.caseOffset,
-    Expression this.expression,
-  ) : patternGuard = null;
+  new expression(this.caseOffset, Expression this.expression)
+    : patternGuard = null;
 
-  ExpressionOrPatternGuardCase.patternGuard(
-    this.caseOffset,
-    PatternGuard this.patternGuard,
-  ) : expression = null;
+  new patternGuard(this.caseOffset, PatternGuard this.patternGuard)
+    : expression = null;
 }
 
 extension on MemberKind {
@@ -458,7 +444,7 @@ class PendingAnnotations {
   final List<SingleTargetAnnotations>? singleTargetAnnotations;
   final List<MultiTargetAnnotations>? multiTargetAnnotations;
 
-  PendingAnnotations(this.singleTargetAnnotations, this.multiTargetAnnotations);
+  new(this.singleTargetAnnotations, this.multiTargetAnnotations);
 }
 
 /// A single target holding annotations to be inferred.
@@ -466,7 +452,7 @@ class SingleTargetAnnotations {
   final Annotatable target;
   final List<int>? indicesOfAnnotationsToBeInferred;
 
-  SingleTargetAnnotations(this.target, [this.indicesOfAnnotationsToBeInferred]);
+  new(this.target, [this.indicesOfAnnotationsToBeInferred]);
 }
 
 /// A multiple targets holding annotations to be inferred.
@@ -476,41 +462,41 @@ class SingleTargetAnnotations {
 class MultiTargetAnnotations {
   final List<Annotatable> targets;
 
-  MultiTargetAnnotations(this.targets);
+  new(this.targets);
 }
 
 class BuildInitializersResult {
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildInitializersResult(this.initializers, this.annotations);
+  new(this.initializers, this.annotations);
 }
 
 class BuildParameterInitializerResult {
   final Expression initializer;
   final PendingAnnotations? annotations;
 
-  BuildParameterInitializerResult(this.initializer, this.annotations);
+  new(this.initializer, this.annotations);
 }
 
 class BuildRedirectingFactoryMethodResult {
   final PendingAnnotations? annotations;
 
-  BuildRedirectingFactoryMethodResult(this.annotations);
+  new(this.annotations);
 }
 
 class BuildFieldsResult {
   final Map<Identifier, Expression?> fieldInitializers;
   final PendingAnnotations? annotations;
 
-  BuildFieldsResult(this.fieldInitializers, this.annotations);
+  new(this.fieldInitializers, this.annotations);
 }
 
 class BuildPrimaryConstructorResult {
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorResult(this.initializers, this.annotations);
+  new(this.initializers, this.annotations);
 }
 
 class BuildFunctionBodyResult {
@@ -519,7 +505,7 @@ class BuildFunctionBodyResult {
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildFunctionBodyResult({
+  new({
     required this.asyncModifier,
     required this.body,
     required this.initializers,
@@ -533,7 +519,7 @@ class BuildPrimaryConstructorBodyResult {
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorBodyResult({
+  new({
     required this.asyncModifier,
     required this.body,
     required this.initializers,
@@ -545,21 +531,21 @@ class BuildMetadataListResult {
   final List<Expression> expressions;
   final PendingAnnotations? annotations;
 
-  BuildMetadataListResult(this.expressions, this.annotations);
+  new(this.expressions, this.annotations);
 }
 
 class BuildFieldInitializerResult {
   final Expression initializer;
   final PendingAnnotations? annotations;
 
-  BuildFieldInitializerResult(this.initializer, this.annotations);
+  new(this.initializer, this.annotations);
 }
 
 class BuildEnumConstantResult {
   final ActualArguments arguments;
   final PendingAnnotations? annotations;
 
-  BuildEnumConstantResult(this.arguments, this.annotations);
+  new(this.arguments, this.annotations);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -567,5 +553,5 @@ class BuildSingleExpressionResult {
   final Expression expression;
   final PendingAnnotations? annotations;
 
-  BuildSingleExpressionResult(this.expression, this.annotations);
+  new(this.expression, this.annotations);
 }

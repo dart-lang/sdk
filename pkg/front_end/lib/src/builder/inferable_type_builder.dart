@@ -22,7 +22,7 @@ class InferableTypeUse implements InferableType {
   final TypeBuilder typeBuilder;
   final TypeUse typeUse;
 
-  InferableTypeUse(this.sourceLibraryBuilder, this.typeBuilder, this.typeUse);
+  new(this.sourceLibraryBuilder, this.typeBuilder, this.typeUse);
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
