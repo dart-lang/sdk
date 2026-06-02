@@ -23,9 +23,11 @@ Future<void> main() async {
     final client = SseClient(serviceUri);
     await client.onConnected;
     channel.sink.add('Success');
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     client.close();
   } catch (e) {
     channel.sink.add('Error: $e');
+    await Future<void>.delayed(const Duration(milliseconds: 500));
   }
   channel.close();
 }
