@@ -980,25 +980,21 @@
           ]
         },
         {
-          "name": "vm unit tests",
+          "name": "vm aot ffi tests",
           "arguments": [
-            "-nvm-linux-${mode}-arm-qemu",
-            "vm/cc"
+            "-nvm-aot-linux-${mode}-arm-qemu",
+            "ffi"
           ]
         },
         {
           "name": "vm jit ffi tests",
           "arguments": [
             "-nvm-linux-${mode}-arm-qemu",
+            "vm/cc",
             "ffi"
-          ]
-        },
-        {
-          "name": "vm aot ffi tests",
-          "arguments": [
-            "-nvm-aot-linux-${mode}-arm-qemu",
-            "ffi"
-          ]
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -1020,25 +1016,21 @@
           ]
         },
         {
-          "name": "vm unit tests",
+          "name": "vm aot ffi tests",
           "arguments": [
-            "-nvm-linux-${mode}-riscv64-qemu",
-            "vm/cc"
+            "-nvm-aot-linux-${mode}-riscv64-qemu",
+            "ffi"
           ]
         },
         {
           "name": "vm jit ffi tests",
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
+            "vm/cc",
             "ffi"
-          ]
-        },
-        {
-          "name": "vm aot ffi tests",
-          "arguments": [
-            "-nvm-aot-linux-${mode}-riscv64-qemu",
-            "ffi"
-          ]
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
