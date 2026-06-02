@@ -605,14 +605,16 @@ class ModifierContext {
     if (covariantToken == null && staticToken == null && !_afterFactory) {
       staticToken = next;
 
-      if (constToken != null) {
+      if (abstractToken != null && parser.isAugmentationsFeatureEnabled) {
+        reportModifierOutOfOrder(next, abstractToken!.lexeme);
+      } else if (constToken != null) {
         reportModifierOutOfOrder(next, constToken!.lexeme);
       } else if (finalToken != null) {
         reportModifierOutOfOrder(next, finalToken!.lexeme);
-      } else if (varToken != null) {
-        reportModifierOutOfOrder(next, varToken!.lexeme);
       } else if (lateToken != null) {
         reportModifierOutOfOrder(next, lateToken!.lexeme);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(next, varToken!.lexeme);
       }
       return next;
     }
