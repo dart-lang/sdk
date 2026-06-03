@@ -98,7 +98,7 @@ class KFieldAnalysis {
           if (constantValue != null && constantValue.isConstant) {
             initializerValue = Initializer.direct(constantValue);
           } else if (value is ir.VariableGet) {
-            ir.VariableDeclaration parameter = value.variable;
+            ir.Variable parameter = value.variable;
             int position = constructor.function.positionalParameters.indexOf(
               parameter,
             );

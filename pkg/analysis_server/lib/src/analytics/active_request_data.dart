@@ -14,5 +14,5 @@ class ActiveRequestData {
   final DateTime startTime;
 
   /// Initialize a newly created data holder.
-  ActiveRequestData(this.method, this.clientRequestTime, this.startTime);
+  new(this.method, this.clientRequestTime, this.startTime);
 }

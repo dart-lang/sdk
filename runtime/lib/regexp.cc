@@ -17,15 +17,13 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
-  ASSERT(
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
+DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 5) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(0));
 
-  bool multi_line = arguments->NativeArgAt(2) == Bool::True().ptr();
-  bool ignore_case = arguments->NativeArgAt(3) != Bool::True().ptr();
-  bool unicode = arguments->NativeArgAt(4) == Bool::True().ptr();
-  bool dot_all = arguments->NativeArgAt(5) == Bool::True().ptr();
+  bool multi_line = arguments->NativeArgAt(1) == Bool::True().ptr();
+  bool ignore_case = arguments->NativeArgAt(2) != Bool::True().ptr();
+  bool unicode = arguments->NativeArgAt(3) == Bool::True().ptr();
+  bool dot_all = arguments->NativeArgAt(4) == Bool::True().ptr();
 
   RegExpFlags flags;
   flags |= RegExpFlag::kGlobal;  // All dart regexps are global.

@@ -38,7 +38,7 @@ class Driver extends IntegrationTest {
   /// The [Completer] for [runComplete].
   final Completer<Results> _runCompleter = Completer<Results>();
 
-  Driver({this.diagnosticPort});
+  new({this.diagnosticPort});
 
   /// Return a [Future] that completes with the [Results] of running
   /// the analysis server once all operations have been performed.
@@ -126,7 +126,7 @@ class Measurement {
   int errorCount = 0;
   int unexpectedResultCount = 0;
 
-  Measurement(this.tag, this.notification);
+  new(this.tag, this.notification);
 
   int get count => elapsedTimes.length;
 

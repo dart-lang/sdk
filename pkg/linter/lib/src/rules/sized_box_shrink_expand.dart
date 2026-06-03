@@ -14,7 +14,7 @@ import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 class SizedBoxShrinkExpand extends AnalysisRule {
-  SizedBoxShrinkExpand()
+  new()
     : super(
         name: LintNames.sized_box_shrink_expand,
         description: 'Use SizedBox shrink and expand named constructors.',
@@ -37,7 +37,7 @@ class SizedBoxShrinkExpand extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final SizedBoxShrinkExpand rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

@@ -84,7 +84,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   Nullability? _nullability;
 
-  SourceExtensionTypeDeclarationBuilder({
+  new({
     required this.name,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required this.constructorReferences,
@@ -1072,4 +1072,8 @@ class SourceExtensionTypeDeclarationBuilder
   void onInferredType(DartType type) {
     _extensionTypeDeclaration.declaredRepresentationType = type;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

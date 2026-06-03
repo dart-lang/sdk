@@ -32,7 +32,7 @@ class TypeConstraintGathererTest {
 
   late Library _testLibrary;
 
-  TypeConstraintGathererTest();
+  new();
 
   Component get component => env.component;
 

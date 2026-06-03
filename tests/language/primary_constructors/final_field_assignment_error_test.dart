@@ -6,8 +6,6 @@
 // the instance variable declaration which is induced by this declaring
 // constructor parameter is `final`.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 class C(final int x);
 
 class D(var int x);
@@ -22,4 +20,3 @@ void main() {
   var d = D(1);
   d.x = 2;
 }
-

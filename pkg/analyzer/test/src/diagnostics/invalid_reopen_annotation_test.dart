@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,49 +21,43 @@ class InvalidReopenAnnotationTest extends PubPackageResolutionTest {
   }
 
   test_baseClass_mixedInTypeIsBase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 base mixin M {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 base class B with M {}
-''',
-      [error(diag.invalidReopenAnnotation, 52, 6)],
-    );
+''');
   }
 
   test_baseClass_supertypeHasNoModifiers() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 base class B extends A {}
-''',
-      [error(diag.invalidReopenAnnotation, 47, 6)],
-    );
+''');
   }
 
   test_baseClass_supertypeIsBase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 base class A {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 base class B extends A {}
-''',
-      [error(diag.invalidReopenAnnotation, 52, 6)],
-    );
+''');
   }
 
   test_baseClass_supertypeIsFinal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 final class A {}
@@ -75,7 +68,7 @@ base class B extends A {}
   }
 
   test_baseClass_supertypeIsInterface() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 interface class A {}
@@ -86,106 +79,92 @@ base class B extends A {}
   }
 
   test_baseClass_supertypeIsSealed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 sealed class A {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 base class B extends A {}
-''',
-      [error(diag.invalidReopenAnnotation, 54, 6)],
-    );
+''');
   }
 
   test_baseMixinClass_supertypeIsFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 final class A {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 base mixin class B implements A {}
-''',
-      [error(diag.invalidReopenAnnotation, 53, 6)],
-    );
+''');
   }
 
   test_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @reopen
+// [diag.invalidAnnotationTarget][column 2][length 6] The annotation 'reopen' can only be used on classes or mixins.
 extension type E(int i) {
   void m() { }
 }
-''',
-      [error(diag.invalidAnnotationTarget, 35, 6)],
-    );
+''');
   }
 
   test_finalClass_supertypeIsFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 final class A {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 final class B extends A {}
-''',
-      [error(diag.invalidReopenAnnotation, 53, 6)],
-    );
+''');
   }
 
   test_finalClassTypeAlias_supertypeIsFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 final class A {}
 mixin M {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 final class B = A with M;
-''',
-      [error(diag.invalidReopenAnnotation, 64, 6)],
-    );
+''');
   }
 
   test_noModifiers_noSupertype() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 class A {}
-''',
-      [error(diag.invalidReopenAnnotation, 35, 6)],
-    );
+''');
   }
 
   test_noModifiers_supertypeInDifferentLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 interface class A {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 import 'lib.dart';
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 class B implements A {}
-''',
-      [error(diag.invalidReopenAnnotation, 54, 6)],
-    );
+''');
   }
 
   test_noModifiers_supertypeIsInterface() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 interface class A {}
@@ -196,30 +175,26 @@ class B extends A {}
   }
 
   test_sealedClass_mixedInTypeIsBase() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 base mixin M {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 sealed class B with M {}
-''',
-      [error(diag.invalidReopenAnnotation, 52, 6)],
-    );
+''');
   }
 
   test_sealedClass_supertypeIsFinal() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 final class A {}
 
 @reopen
+// [diag.invalidReopenAnnotation][column 2][length 6] The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows.
 sealed class B extends A {}
-''',
-      [error(diag.invalidReopenAnnotation, 53, 6)],
-    );
+''');
   }
 }

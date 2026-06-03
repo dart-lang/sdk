@@ -2,68 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperInEnumConstructorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class SuperInEnumConstructorTest extends PubPackageResolutionTest {
   test_primary_one() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this : super();
+//       ^^^^^
+// [diag.superInEnumConstructor] The enum constructor can't have a 'super' initializer.
 }
-''',
-      [error(diag.superInEnumConstructor, 25, 5)],
-    );
+''');
   }
 
   test_typeName_hasRedirect() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E.named();
   const E() : this.named(), super();
+//                          ^^^^^
+// [diag.superInEnumConstructor] The enum constructor can't have a 'super' initializer.
 }
-''',
-      [error(diag.superInEnumConstructor, 61, 5)],
-    );
+''');
   }
 
   test_typeName_one() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E() : super();
+//            ^^^^^
+// [diag.superInEnumConstructor] The enum constructor can't have a 'super' initializer.
 }
-''',
-      [error(diag.superInEnumConstructor, 28, 5)],
-    );
+''');
   }
 
   test_typeName_two() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   const E() : super(), super();
+//            ^^^^^
+// [diag.superInEnumConstructor] The enum constructor can't have a 'super' initializer.
+//                     ^^^^^
+// [diag.superInEnumConstructor] The enum constructor can't have a 'super' initializer.
 }
-''',
-      [
-        error(diag.superInEnumConstructor, 28, 5),
-        error(diag.superInEnumConstructor, 37, 5),
-      ],
-    );
+''');
   }
 }

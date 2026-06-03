@@ -24,9 +24,9 @@ class Sdk {
 
   final bool _runFromBuildRoot;
 
-  factory Sdk() => _instance;
+  factory() => _instance;
 
-  Sdk._(this.sdkPath, this._runFromBuildRoot);
+  new _(this.sdkPath, this._runFromBuildRoot);
 
   /// Path to the 'dart' executable in the Dart SDK.
   String get dart {

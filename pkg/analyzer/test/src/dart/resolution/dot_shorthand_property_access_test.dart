@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -19,7 +18,7 @@ main() {
 class DotShorthandPropertyAccessResolutionTest
     extends PubPackageResolutionTest {
   test_chain_method() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get member => C(1);
   int x;
@@ -33,8 +32,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -47,7 +46,7 @@ DotShorthandPropertyAccess
   }
 
   test_chain_property() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get member => C(1);
   int x;
@@ -61,8 +60,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -75,7 +74,7 @@ DotShorthandPropertyAccess
   }
 
   test_class_basic() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static C get member => C(1);
   int x;
@@ -88,8 +87,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -102,7 +101,7 @@ DotShorthandPropertyAccess
   }
 
   test_const_assert_class() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Integer {
   static const Integer one = const Integer._(1);
   final int integer;
@@ -115,7 +114,7 @@ class CAssert {
 }
 ''');
 
-    var node = findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandPropertyAccess;
     assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
@@ -130,7 +129,7 @@ DotShorthandPropertyAccess
   }
 
   test_const_assert_enum() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum Color { red, green, blue }
 
 class CAssert {
@@ -138,7 +137,7 @@ class CAssert {
 }
 ''');
 
-    var node = findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandPropertyAccess;
     assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
@@ -153,7 +152,7 @@ DotShorthandPropertyAccess
   }
 
   test_const_class() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static const C member = const C._(1);
   final int x;
@@ -167,8 +166,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -181,7 +180,7 @@ DotShorthandPropertyAccess
   }
 
   test_const_enum() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum Color { red, green, blue }
 
 void main() {
@@ -190,8 +189,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -204,7 +203,7 @@ DotShorthandPropertyAccess
   }
 
   test_const_extensionType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension type C(int x) {
   static const C member = const C._(1);
   const C._(this.x);
@@ -216,8 +215,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -230,7 +229,7 @@ DotShorthandPropertyAccess
   }
 
   test_enum_basic() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum C { red }
 
 void main() {
@@ -239,8 +238,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -253,7 +252,7 @@ DotShorthandPropertyAccess
   }
 
   test_equality() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static C get member => C(1);
   int x;
@@ -267,8 +266,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -282,7 +281,7 @@ DotShorthandPropertyAccess
   }
 
   test_equality_indexExpression() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -294,8 +293,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -308,7 +307,7 @@ DotShorthandPropertyAccess
   }
 
   test_equality_nullAssert() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -320,8 +319,8 @@ main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -334,7 +333,7 @@ DotShorthandPropertyAccess
   }
 
   test_equality_nullAssert_chain() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -347,8 +346,8 @@ main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -361,7 +360,7 @@ DotShorthandPropertyAccess
   }
 
   test_equality_pattern() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 enum Color { red, blue }
 
 void main() {
@@ -370,8 +369,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -384,63 +383,59 @@ DotShorthandPropertyAccess
   }
 
   test_error_context_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C { }
 
 void main() {
   C Function() c = .member;
+//                 ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(c);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 46, 7)],
-    );
+''');
   }
 
   test_error_context_none() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void main() {
   var c = .member;
+//        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(c);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 24, 7)],
-    );
+''');
   }
 
   test_error_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C { }
 
 void main() {
   C c = .getter;
+//       ^^^^^^
+// [diag.dotShorthandUndefinedGetter] The static getter 'getter' isn't defined for the context type 'C'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedGetter, 36, 6)],
-    );
+''');
   }
 
   test_error_unresolved_new() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   C.named();
 }
 
 void main() {
   C c = .new;
+//       ^^^
+// [diag.dotShorthandUndefinedGetter] The static getter 'new' isn't defined for the context type 'C'.
   print(c);
 }
-''',
-      [error(diag.dotShorthandUndefinedGetter, 49, 3)],
-    );
+''');
   }
 
   test_extensionType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension type C(int integer) {
   static C get one => C(1);
 }
@@ -451,8 +446,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -465,7 +460,7 @@ DotShorthandPropertyAccess
   }
 
   test_functionExpression_call_argument() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static final C field = C();
   C call(int a) => this;
@@ -476,7 +471,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandPropertyAccess
@@ -502,7 +497,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_extension_field() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static final C field = C();
 }
@@ -516,7 +511,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandPropertyAccess
@@ -537,7 +532,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_extension_getter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get getter => C();
 }
@@ -551,7 +546,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandPropertyAccess
@@ -572,7 +567,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_field() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static final C field = C();
   C call() => this;
@@ -583,7 +578,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandPropertyAccess
@@ -604,7 +599,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static final C field = C();
   C call<T>(T t) => this;
@@ -615,7 +610,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandPropertyAccess
@@ -653,7 +648,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_call_getter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get getter => C();
   C call() => this;
@@ -664,7 +659,7 @@ void main() {
 }
 ''');
 
-    var node = findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: DotShorthandPropertyAccess
@@ -685,37 +680,35 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static final C field = C();
 }
 
 void main() {
   final C _ = .field();
+//            ^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 71, 6)],
-    );
+''');
   }
 
   test_functionExpression_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get getter => C();
 }
 
 void main() {
   final C _ = .getter();
+//            ^^^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
-''',
-      [error(diag.invocationOfNonFunctionExpression, 71, 7)],
-    );
+''');
   }
 
   test_functionReference() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static String foo<X>() => "C<$X>";
 
@@ -734,8 +727,8 @@ main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -748,7 +741,7 @@ DotShorthandPropertyAccess
   }
 
   test_futureOr() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 enum C { red }
@@ -759,8 +752,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -773,7 +766,7 @@ DotShorthandPropertyAccess
   }
 
   test_futureOr_nested() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 enum C { red }
@@ -784,8 +777,8 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -798,7 +791,7 @@ DotShorthandPropertyAccess
   }
 
   test_mixin() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C(this.x);
@@ -819,8 +812,8 @@ void main() {
 
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -833,8 +826,7 @@ DotShorthandPropertyAccess
   }
 
   test_postfixOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get member => C(1);
   int x;
@@ -843,19 +835,17 @@ class C {
 
 void main() {
   C c = .member++;
+//      ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//             ^^
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
 }
-''',
-      [
-        error(diag.dotShorthandMissingContext, 88, 7),
-        error(diag.illegalAssignmentToNonAssignable, 95, 2),
-      ],
-    );
+''');
   }
 
   test_prefixOperator() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get member => C(1);
   int x;
@@ -864,14 +854,13 @@ class C {
 
 void main() {
   C c = ++.member;
+//        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//         ^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);
 }
-''',
-      [
-        error(diag.dotShorthandMissingContext, 90, 7),
-        error(diag.missingAssignableSelector, 91, 6),
-      ],
-    );
+''');
   }
 
   test_privateClass_otherLibrary() async {
@@ -884,21 +873,20 @@ typedef Public = _Private;
 final Public p = _Private();
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
+//    ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(x);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 50, 7)],
-    );
+''');
   }
 
   test_privateClass_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class _Private {
   static _Private get getter => _Private();
 }
@@ -913,7 +901,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -934,21 +923,20 @@ typedef Public = _Private;
 final Public p = _Private.one;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .two;
+//    ^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(x);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 50, 4)],
-    );
+''');
   }
 
   test_privateEnum_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum _Private { one, two }
 
 typedef Public = _Private;
@@ -961,7 +949,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -984,21 +973,20 @@ typedef Public = _Private;
 final Public p = _Private(1);
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
+//    ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(x);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 50, 7)],
-    );
+''');
   }
 
   test_privateExtensionType_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type _Private(int i) {
   static _Private get getter => _Private(0);
 }
@@ -1013,7 +1001,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1037,21 +1026,20 @@ typedef Public = _Private;
 final Public p = C();
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
+//    ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(x);
 }
-''',
-      [error(diag.dotShorthandMissingContext, 50, 7)],
-    );
+''');
   }
 
   test_privateMixin_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 mixin _Private {
   static _Private get getter => C();
 }
@@ -1067,7 +1055,8 @@ void main() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1081,7 +1070,7 @@ DotShorthandPropertyAccess
   }
 
   test_tearOff_constructor() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C1 {
   C1.id();
 
@@ -1095,8 +1084,8 @@ main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1110,18 +1099,17 @@ DotShorthandPropertyAccess
   }
 
   test_tearOff_constructor_abstract() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 Function fn() {
   return .new;
+//       ^^^^
+// [diag.tearoffOfGenerativeConstructorOfAbstractClass] A generative constructor of an abstract class can't be torn off.
 }
-''',
-      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 25, 4)],
-    );
+''');
   }
 
   test_tearOff_constructor_generic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T t;
   C(this.t);
@@ -1139,8 +1127,8 @@ void main() {
 }
 ''');
 
-    var dotShorthand = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(dotShorthand, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1154,15 +1142,15 @@ DotShorthandPropertyAccess
   }
 
   test_tearOff_constructor_new() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void main() {
   Object o = .new;
   print(o);
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandPropertyAccess;
-    assertResolvedNodeText(identifier, r'''
+    var node = result.findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(node, r'''
 DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
@@ -1175,34 +1163,18 @@ DotShorthandPropertyAccess
   }
 
   test_undefinedGetter_message() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo;
-''',
-      [
-        error(
-          diag.dotShorthandUndefinedGetter,
-          12,
-          3,
-          messageContains: ["static getter 'foo'", "context type 'int'"],
-        ),
-      ],
-    );
+//          ^^^
+// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+''');
   }
 
   test_undefinedGetter_message_equalityRhs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo;
-''',
-      [
-        error(
-          diag.dotShorthandUndefinedGetter,
-          23,
-          3,
-          messageContains: ["static getter 'foo'", "context type 'int'"],
-        ),
-      ],
-    );
+//                     ^^^
+// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+''');
   }
 }

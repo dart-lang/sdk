@@ -18,7 +18,7 @@ class HybridFileSystem implements FileSystem {
   final MemoryFileSystem memory;
   final FileSystem physical;
 
-  HybridFileSystem(this.memory, [FileSystem? _physical])
+  new(this.memory, [FileSystem? _physical])
     : physical = _physical ?? StandardFileSystem.instance;
 
   @override
@@ -34,7 +34,7 @@ class HybridFileSystemEntity implements FileSystemEntity {
   FileSystemEntity? _delegate;
   final HybridFileSystem _fs;
 
-  HybridFileSystemEntity(this.uri, this._fs);
+  new(this.uri, this._fs);
 
   Future<FileSystemEntity> get delegate async {
     if (_delegate != null) {

@@ -13,7 +13,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
   // evaluated constants) or a `Constant` (potentially unevaluated).
   List<Object> parts = <Object>[<Constant>[]];
 
-  _ListOrSetConstantBuilder(this.original, this.elementType, this.evaluator);
+  new(this.original, this.elementType, this.evaluator);
 
   L makeLiteral(List<Expression> elements);
 
@@ -104,7 +104,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
   /// still results in a normal constant list at runtime.
   final bool isMutable;
 
-  ListConstantBuilder(
+  new(
     Expression original,
     DartType elementType,
     ConstantEvaluator evaluator, {
@@ -165,11 +165,8 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   final Set<Constant> seen = new Set<Constant>.identity();
   final Set<Constant> weakSeen = new Set<Constant>.identity();
 
-  SetConstantBuilder(
-    Expression original,
-    DartType elementType,
-    ConstantEvaluator evaluator,
-  ) : super(original, elementType, evaluator);
+  new(Expression original, DartType elementType, ConstantEvaluator evaluator)
+    : super(original, elementType, evaluator);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -256,12 +253,7 @@ class MapConstantBuilder {
   final Set<Constant> seenKeys = new Set<Constant>.identity();
   final Set<Constant> weakSeenKeys = new Set<Constant>.identity();
 
-  MapConstantBuilder(
-    this.original,
-    this.keyType,
-    this.valueType,
-    this.evaluator,
-  );
+  new(this.original, this.keyType, this.valueType, this.evaluator);
 
   /// Add a map entry to the constant map being built by this builder
   ///

@@ -1616,7 +1616,7 @@ class TestError {
   final DiagnosticCode diagnosticCode;
   final List<Object> arguments;
 
-  TestError(this.offset, this.diagnosticCode, this.arguments);
+  new(this.offset, this.diagnosticCode, this.arguments);
 
   @override
   int get hashCode {

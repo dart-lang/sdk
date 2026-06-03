@@ -6,18 +6,19 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousExtensionMemberAccessTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AmbiguousExtensionMemberAccessTest extends PubPackageResolutionTest {
   test_call() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E1 on A {
@@ -29,14 +30,13 @@ extension E2 on A {
 }
 
 int f(A a) => a();
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 110, 1)],
-    );
+//            ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'call' is defined in 'extension E1 on A' and 'extension E2 on A', and neither is more specific.
+''');
   }
 
   test_getter_getter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   void get a => 1;
 }
@@ -47,12 +47,12 @@ extension E2 on int {
 
 f() {
   0.a;
+//  ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'a' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 98, 1)],
-    );
+''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -68,7 +68,7 @@ PropertyAccess
   }
 
   test_getter_getterStatic() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   void get a => 1;
 }
@@ -82,7 +82,7 @@ f() {
 }
 ''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -98,8 +98,7 @@ PropertyAccess
   }
 
   test_getter_method() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get a => 1;
 }
@@ -110,12 +109,12 @@ extension E2 on int {
 
 f() {
   0.a;
+//  ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'a' is defined in 'extension E on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 91, 1)],
-    );
+''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -131,8 +130,7 @@ PropertyAccess
   }
 
   test_getter_setter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get a => 1;
 }
@@ -143,12 +141,12 @@ extension E2 on int {
 
 f() {
   0.a;
+//  ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'a' is defined in 'extension E on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 96, 1)],
-    );
+''');
 
-    var node = findNode.propertyAccess('0.a');
+    var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: IntegerLiteral
@@ -164,26 +162,16 @@ PropertyAccess
   }
 
   test_method_conflict_conflict_notSpecific() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int { void foo() {} }
 extension E2 on int { void foo() {} }
 extension E on int? { void foo() {} }
 void f() {
   0.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessTwo,
-          129,
-          3,
-          messageContains: [
-            "in 'extension E1 on int' and 'extension E2 on int',",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_conflict_conflict_notSpecific_sameName() async {
@@ -218,39 +206,26 @@ void f() {
   }
 
   test_method_conflict_conflict_notSpecific_sameName_invalidType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore_for_file: unused_element
 void f(Iterable<void> p) {
   p.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessTwo][context 1][context 2] A member named 'foo' is defined in 'extension on Iterable<InvalidType> (where <unnamed extension> is defined in /home/test/lib/test.dart)' and 'extension on Iterable<InvalidType> (where <unnamed extension> is defined in /home/test/lib/test.dart)', and neither is more specific.
 }
 extension on Iterable<Undef1> { void foo() {} }
+// [context 1][column 1][length 0] <unnamed extension> is defined in /home/test/lib/test.dart
+//                    ^^^^^^
+// [diag.nonTypeAsTypeArgument] The name 'Undef1' isn't a type, so it can't be used as a type argument.
 extension on Iterable<Undef2> { void foo() {} }
-''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessTwo,
-          66,
-          3,
-          messageContains: [
-            "'extension on Iterable<InvalidType> "
-                "(where <unnamed extension> is defined in ${testFile.path})' and "
-                "'extension on Iterable<InvalidType> "
-                "(where <unnamed extension> is defined in ${testFile.path})',",
-          ],
-          contextMessages: [
-            message(testFile, 75, 0),
-            message(testFile, 123, 0),
-          ],
-        ),
-        error(diag.nonTypeAsTypeArgument, 97, 6),
-        error(diag.nonTypeAsTypeArgument, 145, 6),
-      ],
-    );
+// [context 2][column 1][length 0] <unnamed extension> is defined in /home/test/lib/test.dart
+//                    ^^^^^^
+// [diag.nonTypeAsTypeArgument] The name 'Undef2' isn't a type, so it can't be used as a type argument.
+''');
   }
 
   test_method_conflict_conflict_specific() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int? { void foo() {} }
 extension E2 on int? { void foo() {} }
 extension E on int { void foo() {} }
@@ -261,30 +236,20 @@ void f() {
   }
 
   test_method_conflict_notSpecific_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int { void foo() {} }
 extension E on int? { void foo() {} }
 extension E2 on int { void foo() {} }
 void f() {
   0.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessTwo,
-          129,
-          3,
-          messageContains: [
-            "in 'extension E1 on int' and 'extension E2 on int',",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_conflict_specific_conflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int? { void foo() {} }
 extension E on int { void foo() {} }
 extension E2 on int? { void foo() {} }
@@ -295,8 +260,7 @@ void f() {
   }
 
   test_method_method() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   void a() {}
 }
@@ -307,12 +271,12 @@ extension E2 on int {
 
 f() {
   0.a();
+//  ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'a' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 88, 1)],
-    );
+''');
 
-    var node = findNode.methodInvocation('0.a()');
+    var node = result.findNode.methodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: IntegerLiteral
@@ -332,54 +296,34 @@ MethodInvocation
   }
 
   test_method_notSpecific_conflict_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int? { void foo() {} }
 extension E1 on int { void foo() {} }
 extension E2 on int { void foo() {} }
 void f() {
   0.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessTwo,
-          129,
-          3,
-          messageContains: [
-            "in 'extension E1 on int' and 'extension E2 on int',",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_notSpecific_conflict_conflict_conflict() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int? { void foo() {} }
 extension E1 on int { void foo() {} }
 extension E2 on int { void foo() {} }
 extension E3 on int { void foo() {} }
 void f() {
   0.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessThreeOrMore] A member named 'foo' is defined in extension 'E1', extension 'E2', and extension 'E3', and none are more specific.
 }
-''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessThreeOrMore,
-          167,
-          3,
-          messageContains: [
-            "in extension 'E1', extension 'E2', and extension 'E3',",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_specific_conflict_conflict() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int { void foo() {} }
 extension E1 on int? { void foo() {} }
 extension E2 on int? { void foo() {} }
@@ -421,8 +365,7 @@ void f() {
   }
 
   test_noMoreSpecificExtension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Target<T> {}
 
 class SubTarget<T> extends Target<T> {}
@@ -440,15 +383,14 @@ f(SubTarget<num> t) {
   // The instantiated on type of `E2(t)` is `Target<num>`.
   // Neither is a subtype of the other, so the resolution is ambiguous.
   t.foo;
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on SubTarget<Object>' and 'extension E2<T> on Target<T>', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 396, 3)],
-    );
+''');
   }
 
   test_operator_binary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E1 on A {
@@ -460,14 +402,13 @@ extension E2 on A {
 }
 
 A f(A a) => a + a;
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 122, 5)],
-    );
+//          ^^^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named '+' is defined in 'extension E1 on A' and 'extension E2 on A', and neither is more specific.
+''');
   }
 
   test_operator_binary_compoundAssignment() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E1 on A {
@@ -480,15 +421,14 @@ extension E2 on A {
 
 void f(A a) {
   a += 0;
+//  ^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named '+' is defined in 'extension E1 on A' and 'extension E2 on A', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 130, 2)],
-    );
+''');
   }
 
   test_operator_index_index() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E1 on A {
@@ -500,14 +440,13 @@ extension E2 on A {
 }
 
 int f(A a) => a[0];
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 134, 1)],
-    );
+//            ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named '[]' is defined in 'extension E1 on A' and 'extension E2 on A', and neither is more specific.
+''');
   }
 
   test_operator_index_indexEq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   int operator[](int index) => 0;
 }
@@ -518,15 +457,14 @@ extension E2 on int {
 
 f() {
   0[1] += 2;
+//^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named '[]' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 136, 1)],
-    );
+''');
   }
 
   test_operator_unary() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 extension E1 on A {
@@ -538,14 +476,13 @@ extension E2 on A {
 }
 
 int f(A a) => -a;
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 123, 1)],
-    );
+//             ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'unary-' is defined in 'extension E1 on A' and 'extension E2 on A', and neither is more specific.
+''');
   }
 
   test_setter_setter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
   set a(x) {}
 }
@@ -556,12 +493,13 @@ extension E2 on int {
 
 f() {
   0.a = 3;
+//  ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'a' is defined in 'extension E1 on int' and 'extension E2 on int', and neither is more specific.
 }
-''',
-      [error(diag.ambiguousExtensionMemberAccessTwo, 88, 1)],
-    );
+''');
 
-    assertResolvedNodeText(findNode.assignment('= 3'), r'''
+    var node = result.findNode.assignment('= 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
     target: IntegerLiteral
@@ -588,8 +526,7 @@ AssignmentExpression
   }
 
   test_unnamed_extensions() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 class C extends A implements B {}
@@ -603,21 +540,12 @@ extension on List<B> {
 }
 
 int f(List<C> x) => x();
+//                  ^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'call' is defined in 'extension on List<A>' and 'extension on List<B>', and neither is more specific.
 
 // Additional calls to avoid UNUSED_ELEMENT
 int g(List<A> x) => x();
 int h(List<B> x) => x();
-''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessTwo,
-          167,
-          1,
-          messageContains: [
-            "'extension on List<A>' and 'extension on List<B>',",
-          ],
-        ),
-      ],
-    );
+''');
   }
 }

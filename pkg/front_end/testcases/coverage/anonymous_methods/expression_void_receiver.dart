@@ -5,12 +5,12 @@
 void v = null;
 
 void test() {
-  v. => 1; // Error
+  v.=> 1; // Error
   v.(p) => 1; // Error
-  v?. => 1; // Error
+  v?.=> 1; // Error
   v?.(p) => 1; // Error
-  v.. => 1; // Error
+  v..=> 1; // Error
   v..(p) => 1; // Error
-  v?.. => 1; // Error
+  v?..=> 1; // Error
   v?..(p) => 1; // Error
 }

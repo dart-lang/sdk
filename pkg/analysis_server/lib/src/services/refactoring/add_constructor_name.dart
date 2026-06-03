@@ -10,7 +10,6 @@ import 'package:analysis_server/src/utilities/extensions/selection.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// The refactoring that adds a name to an unnamed constructor.
@@ -19,16 +18,13 @@ class AddConstructorName extends RefactoringProducer {
 
   static const String constTitle = 'Add a name to the constructor';
 
-  AddConstructorName(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;
 
   @override
   CodeActionKind get kind => DartCodeActionKind.refactorAdd;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
 
   @override
   String get title => constTitle;

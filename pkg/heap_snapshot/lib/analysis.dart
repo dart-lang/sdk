@@ -36,13 +36,19 @@ class Analysis {
   late final _finalizerEntryCid = _findClassId('FinalizerEntry');
 
   late final _weakPropertyKeyIdx = _findFieldIndex(_weakPropertyCid, 'key_');
-  late final _weakPropertyValueIdx =
-      _findFieldIndex(_weakPropertyCid, 'value_');
+  late final _weakPropertyValueIdx = _findFieldIndex(
+    _weakPropertyCid,
+    'value_',
+  );
 
-  late final _finalizerEntryDetachIdx =
-      _findFieldIndex(_finalizerEntryCid, 'detach_');
-  late final _finalizerEntryValueIdx =
-      _findFieldIndex(_finalizerEntryCid, 'value_');
+  late final _finalizerEntryDetachIdx = _findFieldIndex(
+    _finalizerEntryCid,
+    'detach_',
+  );
+  late final _finalizerEntryValueIdx = _findFieldIndex(
+    _finalizerEntryCid,
+    'value_',
+  );
 
   late final _Arch _arch = (() {
     // We want to figure out the architecture this heapsnapshot was made from
@@ -53,7 +59,8 @@ class Analysis {
     // -> PatchClass seems to satisfy this.
     final size = graph.objects
         .firstWhere(
-            (obj) => obj.classId == _patchClassCid && obj.shallowSize != 0)
+          (obj) => obj.classId == _patchClassCid && obj.shallowSize != 0,
+        )
         .shallowSize;
 
     switch (size) {
@@ -168,7 +175,10 @@ class Analysis {
       }
     }
     return ObjectInformation(
-        klass.name, klass.libraryUri.toString(), fieldValues);
+      klass.name,
+      klass.libraryUri.toString(),
+      fieldValues,
+    );
   }
 
   /// Generates statistics about the given set of [objects].
@@ -195,8 +205,9 @@ class Analysis {
         if (diff != 0) return diff;
         diff = counts[b.classId] - counts[a.classId];
         if (diff != 0) return diff;
-        return graph.classes[b.classId].name
-            .compareTo(graph.classes[a.classId].name);
+        return graph.classes[b.classId].name.compareTo(
+          graph.classes[a.classId].name,
+        );
       });
     } else {
       classes.sort((a, b) {
@@ -204,8 +215,9 @@ class Analysis {
         if (diff != 0) return diff;
         diff = sizes[b.classId] - sizes[a.classId];
         if (diff != 0) return diff;
-        return graph.classes[b.classId].name
-            .compareTo(graph.classes[a.classId].name);
+        return graph.classes[b.classId].name.compareTo(
+          graph.classes[a.classId].name,
+        );
       });
     }
 
@@ -268,7 +280,9 @@ class Analysis {
         if (cid == _weakPropertyCid) {
           if (tfilter == null ||
               tfilter._shouldTraverseEdge(
-                  _weakPropertyCid, _weakPropertyValueIdx)) {
+                _weakPropertyCid,
+                _weakPropertyValueIdx,
+              )) {
             weakProperties.add(objectIdToExpand);
           }
           continue;
@@ -372,7 +386,7 @@ class Analysis {
             final index = predecessor.references.indexOf(objectIdToExpand);
             passedFilter =
                 (tfilter._shouldTraverseEdge(predecessor.classId, index) &&
-                    tfilter._shouldIncludeObject(predecessor.classId));
+                tfilter._shouldIncludeObject(predecessor.classId));
           }
           if (passedFilter) {
             reachable.add(predecessorId);
@@ -409,9 +423,11 @@ class Analysis {
     final classes = graph.classes;
     final cids = IntSet();
     for (final klass in classes) {
-      if (regexPatterns.any((pattern) =>
-          pattern.hasMatch(klass.name) ||
-          pattern.hasMatch(klass.libraryUri.toString()))) {
+      if (regexPatterns.any(
+        (pattern) =>
+            pattern.hasMatch(klass.name) ||
+            pattern.hasMatch(klass.libraryUri.toString()),
+      )) {
         cids.add(klass.classId);
       }
     }
@@ -514,7 +530,8 @@ class Analysis {
         if (tfilter != null) {
           final user = objects[userId];
           final idx = user.references.indexOf(objId);
-          passedFilter = tfilter._shouldTraverseEdge(user.classId, idx) &&
+          passedFilter =
+              tfilter._shouldTraverseEdge(user.classId, idx) &&
               tfilter._shouldIncludeObject(user.classId);
         }
         if (passedFilter) {
@@ -539,7 +556,8 @@ class Analysis {
         bool passedFilter = true;
         if (tfilter != null) {
           final other = objects[refId];
-          passedFilter = tfilter._shouldTraverseEdge(object.classId, i) &&
+          passedFilter =
+              tfilter._shouldTraverseEdge(object.classId, i) &&
               tfilter._shouldIncludeObject(other.classId);
         }
         if (passedFilter) {
@@ -580,8 +598,9 @@ class Analysis {
       // - String has: header, length (hash - on 32-bit platforms) + payload
       final fixedSize =
           _headerSize + _wordSize * (_arch == _Arch.arch32 ? 2 : 1);
-      final len =
-          object.shallowSize == 0 ? 0 : (object.shallowSize - fixedSize);
+      final len = object.shallowSize == 0
+          ? 0
+          : (object.shallowSize - fixedSize);
       if (len < 128) return (object.data as String).length;
       return len; // Over-approximates to 2 * wordsize.
     }
@@ -620,10 +639,12 @@ class Analysis {
 
   int _findClassId(String className) {
     return graph.classes
-        .singleWhere((klass) =>
-            klass.name == className &&
-            (klass.libraryUri.scheme == 'dart' ||
-                klass.libraryUri.toString() == ''))
+        .singleWhere(
+          (klass) =>
+              klass.name == className &&
+              (klass.libraryUri.scheme == 'dart' ||
+                  klass.libraryUri.toString() == ''),
+        )
         .classId;
   }
 
@@ -760,8 +781,14 @@ class TraverseFilter {
   final Map<int, IntSet>? _followMap;
   final Map<int, IntSet>? _notFollowMap;
 
-  const TraverseFilter._(this._patterns, this._bits, this._allowed,
-      this._disallowed, this._followMap, this._notFollowMap);
+  const TraverseFilter._(
+    this._patterns,
+    this._bits,
+    this._allowed,
+    this._disallowed,
+    this._followMap,
+    this._notFollowMap,
+  );
 
   bool get _hasPositiveClassPattern =>
       (_bits & _hasPositiveClassPatternBit) != 0;
@@ -770,7 +797,8 @@ class TraverseFilter {
   String asString(HeapSnapshotGraph graph) {
     final sb = StringBuffer();
     sb.writeln(
-        'The traverse filter expression "${_patterns.join(' ')}" matches:\n');
+      'The traverse filter expression "${_patterns.join(' ')}" matches:\n',
+    );
 
     final ca = _allowed ?? IntSet();
     final cna = _disallowed ?? IntSet();
@@ -1006,8 +1034,4 @@ class DedupedUint32List {
   }
 }
 
-enum _Arch {
-  arch32,
-  arch64,
-  arch64c,
-}
+enum _Arch { arch32, arch64, arch64c }

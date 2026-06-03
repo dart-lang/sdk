@@ -2,113 +2,95 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AsyncKeywordUsedAsIdentifierTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AsyncKeywordUsedAsIdentifierTest extends PubPackageResolutionTest {
   test_async_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() async {
     int async;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'async' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 32, 5)],
-    );
+''');
   }
 
   test_await_async() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async {
   var await = 1;
+//    ^^^^^
+// [diag.asyncKeywordUsedAsIdentifier] The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function.
+// [diag.unusedLocalVariable] The value of the local variable 'await' isn't used.
 }
-''',
-      [
-        error(diag.asyncKeywordUsedAsIdentifier, 18, 5),
-        error(diag.unusedLocalVariable, 18, 5),
-      ],
-    );
+''');
   }
 
   test_await_asyncStar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async* {
   var await = 1;
+//    ^^^^^
+// [diag.asyncKeywordUsedAsIdentifier] The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function.
+// [diag.unusedLocalVariable] The value of the local variable 'await' isn't used.
 }
-''',
-      [
-        error(diag.asyncKeywordUsedAsIdentifier, 19, 5),
-        error(diag.unusedLocalVariable, 19, 5),
-      ],
-    );
+''');
   }
 
   test_await_syncStar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() sync* {
   var await = 1;
+//    ^^^^^
+// [diag.asyncKeywordUsedAsIdentifier] The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function.
+// [diag.unusedLocalVariable] The value of the local variable 'await' isn't used.
 }
-''',
-      [
-        error(diag.asyncKeywordUsedAsIdentifier, 18, 5),
-        error(diag.unusedLocalVariable, 18, 5),
-      ],
-    );
+''');
   }
 
   test_yield_async() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async {
   var yield = 1;
+//    ^^^^^
+// [diag.asyncKeywordUsedAsIdentifier] The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function.
+// [diag.unusedLocalVariable] The value of the local variable 'yield' isn't used.
 }
-''',
-      [
-        error(diag.asyncKeywordUsedAsIdentifier, 18, 5),
-        error(diag.unusedLocalVariable, 18, 5),
-      ],
-    );
+''');
   }
 
   test_yield_asyncStar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() async* {
   var yield = 1;
+//    ^^^^^
+// [diag.asyncKeywordUsedAsIdentifier] The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function.
+// [diag.unusedLocalVariable] The value of the local variable 'yield' isn't used.
 }
-''',
-      [
-        error(diag.asyncKeywordUsedAsIdentifier, 19, 5),
-        error(diag.unusedLocalVariable, 19, 5),
-      ],
-    );
+''');
   }
 
   test_yield_syncStar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 f() sync* {
   var yield = 1;
+//    ^^^^^
+// [diag.asyncKeywordUsedAsIdentifier] The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function.
+// [diag.unusedLocalVariable] The value of the local variable 'yield' isn't used.
 }
-''',
-      [
-        error(diag.asyncKeywordUsedAsIdentifier, 18, 5),
-        error(diag.unusedLocalVariable, 18, 5),
-      ],
-    );
+''');
   }
 }

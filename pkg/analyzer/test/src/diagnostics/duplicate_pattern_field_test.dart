@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,130 +15,96 @@ main() {
 @reflectiveTest
 class DuplicatePatternFieldTest extends PubPackageResolutionTest {
   test_objectPattern() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case int(sign: 0, sign: 1):
+//           ^^^^
+// [context 1] The first field.
+//                    ^^^^
+// [diag.duplicatePatternField][context 1] The field 'sign' is already matched in this pattern.
       break;
   }
 }
-''',
-      [
-        error(
-          diag.duplicatePatternField,
-          57,
-          4,
-          contextMessages: [message(testFile, 48, 4)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordPattern_dynamicType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case (foo: 0, foo: 1):
+//        ^^^
+// [context 1] The first field.
+//                ^^^
+// [diag.duplicatePatternField][context 1] The field 'foo' is already matched in this pattern.
       break;
   }
 }
-''',
-      [
-        error(
-          diag.duplicatePatternField,
-          45,
-          3,
-          contextMessages: [message(testFile, 37, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordPattern_dynamicType_implicitName_duplicate() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case (foo: 0, :var foo):
+//        ^^^
+// [context 1] The first field.
+//                ^
+// [diag.duplicatePatternField][context 1] The field 'foo' is already matched in this pattern.
+//                     ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
 }
-''',
-      [
-        error(
-          diag.duplicatePatternField,
-          45,
-          1,
-          contextMessages: [message(testFile, 37, 3)],
-        ),
-        error(diag.unusedLocalVariable, 50, 3),
-      ],
-    );
+''');
   }
 
   test_recordPattern_dynamicType_implicitName_original() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case (:var foo, foo: 1):
+//        ^
+// [context 1] The first field.
+//             ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
+//                  ^^^
+// [diag.duplicatePatternField][context 1] The field 'foo' is already matched in this pattern.
       break;
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 42, 3),
-        error(
-          diag.duplicatePatternField,
-          47,
-          3,
-          contextMessages: [message(testFile, 37, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordPattern_interfaceType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {
   switch (x) {
     case (foo: 0, foo: 1):
+//        ^^^
+// [context 1] The first field.
+//                ^^^
+// [diag.duplicatePatternField][context 1] The field 'foo' is already matched in this pattern.
       break;
   }
 }
-''',
-      [
-        error(
-          diag.duplicatePatternField,
-          53,
-          3,
-          contextMessages: [message(testFile, 45, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_recordPattern_recordType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(({int foo}) x) {
   switch (x) {
     case (foo: 0, foo: 1):
+//        ^^^
+// [context 1] The first field.
+//                ^^^
+// [diag.duplicatePatternField][context 1] The field 'foo' is already matched in this pattern.
       break;
   }
 }
-''',
-      [
-        error(
-          diag.duplicatePatternField,
-          57,
-          3,
-          contextMessages: [message(testFile, 49, 3)],
-        ),
-      ],
-    );
+''');
   }
 }

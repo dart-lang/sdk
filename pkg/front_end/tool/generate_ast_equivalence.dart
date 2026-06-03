@@ -28,7 +28,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   Map<AstClass, String> _classStrategyMembers = {};
   Map<AstField, String> _fieldStrategyMembers = {};
 
-  EquivalenceVisitorStrategy();
+  new();
 
   @override
   String get generatorCommand =>
@@ -401,8 +401,19 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
-    sb.writeln('''
+    sb.write('''
 $preamble
+''');
+    // This code generator generates Dart 3.12-style constructor declarations,
+    // so ignore the `unnecessary_type_name_in_constructor` lint.
+    // TODO(paulberry): switch the code generator to Dart 3.13-style constructor
+    // declarations, and remove this ignore comment.
+    sb.write('''
+
+// ignore_for_file: unnecessary_type_name_in_constructor
+''');
+
+    sb.writeln('''
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';

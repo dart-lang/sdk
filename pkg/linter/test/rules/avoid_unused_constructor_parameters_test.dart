@@ -24,16 +24,13 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  A(int a);
+  A([!int a!]);
 }
-''',
-      [lint(41, 5)],
-    );
+''');
   }
 
   test_augmentedConstructor() async {
@@ -89,14 +86,11 @@ class C {
   }
 
   test_namedParameter_hasDefault() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C({int c = 0});
+  C({[!int c = 0!]});
 }
-''',
-      [lint(15, 9)],
-    );
+''');
   }
 
   test_noParameters() async {
@@ -108,15 +102,12 @@ class C {
   }
 
   test_redirectingConstructor1() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C.named(int p);
+  C.named([!int p!]);
   factory C(int p) = C.named;
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_redirectingConstructor2() async {
@@ -149,34 +140,25 @@ class C([final int p = 0]);
   }
 
   test_unused_optionalPositional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C([int p = 0]) {}
+  C([[!int p = 0!]]) {}
 }
-''',
-      [lint(15, 9)],
-    );
+''');
   }
 
   test_unused_optionalPositional_primary() async {
-    await assertDiagnostics(
-      r'''
-class C([int p = 0]);
-''',
-      [lint(9, 9)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class C([[!int p = 0!]]);
+''');
   }
 
   test_unused_requiredPositional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C(int p);
+  C([!int p!]);
 }
-''',
-      [lint(14, 5)],
-    );
+''');
   }
 
   test_usedInConstructorBody() async {
@@ -212,6 +194,14 @@ class C {
     await assertNoDiagnostics(r'''
 class C({int p = 0}) {
   this : assert(p > 0);
+}
+''');
+  }
+
+  test_usedInFieldInitializer_primary() async {
+    await assertNoDiagnostics(r'''
+class C(int p) {
+  final int f = p; 
 }
 ''');
   }

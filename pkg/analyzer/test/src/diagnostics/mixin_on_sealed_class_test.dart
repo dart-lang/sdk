@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOnSealedClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -34,17 +35,15 @@ import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:foo/foo.dart';
 mixin Bar on Foo {}
-''',
-      [error(diag.mixinOnSealedClass, 31, 19)],
-    );
+// [diag.mixinOnSealedClass][column 1][length 19] The class 'Foo' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have 'Foo' as a superclass.
+''');
   }
 
   test_withinLibrary_OK() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 mixin Bar on Foo {}
@@ -52,57 +51,47 @@ mixin Bar on Foo {}
   }
 
   test_withinPackageLibDirectory_OK() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    await resolveFileWithDiagnostics(lib1, r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    var lib2 = newFile('$testPackageLibPath/src/lib2.dart', r'''
+    var lib2 = getFile('$testPackageLibPath/src/lib2.dart');
+    await resolveFileWithDiagnostics(lib2, r'''
 import '../lib1.dart';
 mixin Bar on Foo {}
 ''');
-
-    await resolveFile2(lib1);
-    assertNoErrorsInResult();
-
-    await resolveFile2(lib2);
-    assertNoErrorsInResult();
   }
 
   test_withinPackageTestDirectory_OK() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    await resolveFileWithDiagnostics(lib1, r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    var lib2 = newFile('$testPackageRootPath/test/lib2.dart', r'''
+    var lib2 = getFile('$testPackageRootPath/test/lib2.dart');
+    await resolveFileWithDiagnostics(lib2, r'''
 import 'package:test/lib1.dart';
 mixin Bar on Foo {}
 ''');
-
-    await resolveFile2(lib1);
-    assertNoErrorsInResult();
-
-    await resolveFile2(lib2);
-    assertNoErrorsInResult();
   }
 
   test_withinPart_OK() async {
-    var lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
+    var lib1 = getFile('$testPackageLibPath/lib1.dart');
+    var lib2 = getFile('$testPackageLibPath/part1.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib1: r'''
 import 'package:meta/meta.dart';
 part 'part1.dart';
 @sealed class Foo {}
-''');
-
-    var lib2 = newFile('$testPackageLibPath/part1.dart', r'''
+''',
+      lib2: r'''
 part of 'lib1.dart';
 mixin Bar on Foo {}
-''');
-
-    await resolveFile2(lib1);
-    assertNoErrorsInResult();
-
-    await resolveFile2(lib2);
-    assertNoErrorsInResult();
+''',
+    });
   }
 }

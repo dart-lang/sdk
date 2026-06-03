@@ -6,12 +6,16 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+
 // We use many SCREAMING_SNAKE_CASE identifiers which might affect API.
 // ignore_for_file: constant_identifier_names, unnecessary_ignore
 

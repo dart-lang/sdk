@@ -36,7 +36,7 @@ class Chain extends Suite {
   final List<String> excludeContains;
   final List<String> excludeEndsWith;
 
-  Chain(
+  new(
     String name,
     String kind,
     this.source,
@@ -50,7 +50,7 @@ class Chain extends Suite {
     this.excludeEndsWith,
   ) : super(name, kind, statusFile);
 
-  factory Chain.fromJsonMap(Uri base, Map json, String name, String kind) {
+  factory fromJsonMap(Uri base, Map json, String name, String kind) {
     Uri source = base.resolve(json["source"]);
     String root = json["root"];
     if (!root.endsWith("/")) {
@@ -138,7 +138,7 @@ class Chain extends Suite {
 }
 
 abstract class ChainContext {
-  const ChainContext();
+  const new();
 
   List<Step> get steps;
 
@@ -403,7 +403,7 @@ abstract class ChainContext {
 }
 
 abstract class Step<I, O, C extends ChainContext> {
-  const Step();
+  const new();
 
   String get name;
 
@@ -467,7 +467,7 @@ class Result<O> {
   ///
   final bool canBeFixWithUpdateExpectations;
 
-  Result(
+  new(
     this.output,
     this.outcome,
     this.error, {
@@ -476,12 +476,12 @@ class Result<O> {
     this.canBeFixWithUpdateExpectations = false,
   });
 
-  Result.pass(O output) : this(output, Expectation.pass, null);
+  new pass(O output) : this(output, Expectation.pass, null);
 
-  Result.crash(Object? error, StackTrace trace)
+  new crash(Object? error, StackTrace trace)
     : this(null, Expectation.crash, error, trace: trace);
 
-  Result.fail(O output, [error, StackTrace? trace])
+  new fail(O output, [error, StackTrace? trace])
     : this(output, Expectation.fail, error, trace: trace);
 
   bool get isPass => outcome == Expectation.pass;

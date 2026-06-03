@@ -7,10 +7,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionalConstResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -207,13 +209,13 @@ class C<T> {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart' as p;
 
 const x = p.C<int>();
 ''');
 
-    var node = findNode.instanceCreation('p.C<int>()');
+    var node = result.findNode.instanceCreation('p.C<int>()');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -270,12 +272,13 @@ const a = $expr;
 ''');
     }
 
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').element as PropertyAccessorElementImpl;
+    var vg =
+        result.findNode.simple('a;').element as PropertyAccessorElementImpl;
     var v = vg.variable.firstFragment;
 
     var creation = v.constantInitializer as InstanceCreationExpression;

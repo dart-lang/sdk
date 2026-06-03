@@ -35,10 +35,7 @@ class DillExtensionTypeDeclarationBuilder
   final List<MemberBuilder> _constructorBuilders = [];
   final List<MemberBuilder> _memberBuilders = [];
 
-  DillExtensionTypeDeclarationBuilder(
-    this._extensionTypeDeclaration,
-    this.libraryBuilder,
-  ) {
+  new(this._extensionTypeDeclaration, this.libraryBuilder) {
     Map<String, MemberLookupResult> constructors = {};
     Map<String, MemberLookupResult> content = {};
 
@@ -462,4 +459,8 @@ class DillExtensionTypeDeclarationBuilder
 
   @override
   Reference get reference => _extensionTypeDeclaration.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isMixinClass => false;
 }

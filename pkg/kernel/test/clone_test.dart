@@ -151,7 +151,7 @@ void testMemberCloning() {
 }
 
 class NoFileOffsetEquivalenceStrategy extends EquivalenceStrategy {
-  const NoFileOffsetEquivalenceStrategy();
+  const new();
 
   @override
   bool checkTreeNode_fileOffset(
@@ -165,7 +165,7 @@ class NoFileOffsetEquivalenceStrategy extends EquivalenceStrategy {
 }
 
 class MemberEquivalenceStrategy extends EquivalenceStrategy {
-  const MemberEquivalenceStrategy();
+  const new();
 
   void assumeClonedReferences(
     EquivalenceVisitor visitor,

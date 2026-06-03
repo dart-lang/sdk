@@ -25,7 +25,7 @@ class DartUnitHoverComputer {
   final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  DartUnitHoverComputer(
+  new(
     DartdocDirectiveInfo dartdocInfo,
     this._unit,
     this._offset, {
@@ -47,6 +47,7 @@ class DartUnitHoverComputer {
 
     if (node is CompilationUnitMember ||
         node is CatchClauseParameter ||
+        node is EnumConstantDeclaration ||
         node is Expression ||
         node is FormalParameter ||
         node is MethodDeclaration ||
@@ -232,10 +233,11 @@ class DartUnitHoverComputer {
       ConstructorDeclaration() =>
         node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
       DeclaredIdentifier() => node.name,
+      EnumConstantDeclaration() => node.name,
       EnumDeclaration() => node.namePart.typeName,
       Expression() => node,
       ExtensionDeclaration() => node.name,
-      ExtensionTypeDeclaration() => node.primaryConstructor.typeName,
+      ExtensionTypeDeclaration() => node.namePart.typeName,
       FormalParameter() => node.name,
       FunctionDeclaration() => node.name,
       ImportPrefixReference() => node.name,

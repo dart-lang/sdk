@@ -2400,9 +2400,9 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub() {
-  GenerateNArgsCheckInlineCacheStub(
-      2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kUnoptimized, kStaticCall, kIgnoreExactness);
+  GenerateNArgsCheckInlineCacheStub(1, kStaticCallMissHandlerOneArgRuntimeEntry,
+                                    Token::kILLEGAL, kUnoptimized, kStaticCall,
+                                    kIgnoreExactness);
 }
 
 // ECX: ICData

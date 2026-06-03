@@ -17,7 +17,7 @@ class ThrottlingBucket {
   late int _drops = bucketSize;
   late int _lastReplenish = DateTime.now().millisecondsSinceEpoch;
 
-  ThrottlingBucket(this.bucketSize, this.replenishDuration);
+  new(this.bucketSize, this.replenishDuration);
 
   bool removeDrop() {
     _checkReplenish();

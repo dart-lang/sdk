@@ -136,6 +136,7 @@ front_end/NeverReachableSwitchDefaultError/example: missingExample # Probably on
 front_end/NeverReachableSwitchExpressionError/example: missingExample # No coverage.
 front_end/NeverReachableSwitchStatementError/example: missingExample # No coverage.
 front_end/NeverValueError/example: missingExample # No coverage.
+front_end/NonIdentifierForInElement/example: missingExample # TODO(johnniwinther): Use this error in the parser.
 front_end/NonPartOfDirectiveInPart/script1: hasOnlyUnrelatedMessages # Specifically ignored in `isIgnoredParserError`?!?
 front_end/NoUnnamedConstructorInObject/example: missingExample # No coverage.
 front_end/PatchClassTypeParametersMismatch/example: missingExample # Patching.

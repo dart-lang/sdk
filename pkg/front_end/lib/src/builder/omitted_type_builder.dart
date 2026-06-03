@@ -20,7 +20,7 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
-  const OmittedTypeBuilderImpl();
+  const new();
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
@@ -111,7 +111,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
 /// instead. This should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
-  const ImplicitTypeBuilder();
+  const new();
 
   @override
   DartType build(
@@ -163,7 +163,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
     implements InferableType {
   final InferenceDefaultType inferenceDefaultType;
 
-  InferableTypeBuilder(this.inferenceDefaultType);
+  new(this.inferenceDefaultType);
 
   @override
   DartType build(

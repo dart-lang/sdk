@@ -6,17 +6,19 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class InvalidOverrideTest extends PubPackageResolutionTest {
   test_abstract_field_covariant_inheritance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract covariant num x;
 }
@@ -31,7 +33,11 @@ abstract class C implements B {
   }
 
   test_class_augment_method_covariant_multiFile_invalid() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {
@@ -39,22 +45,25 @@ class A {
 }
 
 class B extends A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class B {
   void foo(covariant String a) {}
+//     ^^^
+// [diag.invalidOverride] 'B.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(num)').
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [error(diag.invalidOverride, 44, 3)]);
+''',
+    });
   }
 
   test_class_augment_method_covariant_multiFile_valid() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {
@@ -62,23 +71,19 @@ class A {
 }
 
 class B extends A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class B {
   void foo(covariant int a) {}
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_class_augment_method_covariant_singleFile_invalid() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(num a) {}
 }
@@ -87,14 +92,14 @@ class B extends A {}
 
 augment class B {
   void foo(covariant String a) {}
+//     ^^^
+// [diag.invalidOverride] 'B.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(num)').
 }
-''',
-      [error(diag.invalidOverride, 81, 3)],
-    );
+''');
   }
 
   test_class_augment_method_covariant_singleFile_valid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(num a) {}
 }
@@ -108,110 +113,104 @@ augment class B {
   }
 
   test_class_augment_method_multiFile() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {
   int foo() => 0;
+//    ^^^
+// [context 1] The member being overridden.
 }
 
 class B extends A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class B {
   String foo() => '';
+//       ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('String Function()') isn't a valid override of 'A.foo' ('int Function()').
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(diag.invalidOverride, 46, 3, contextMessages: [message(a, 32, 3)]),
-    ]);
+''',
+    });
   }
 
   test_class_augment_method_singleFile() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo() => 0;
+//    ^^^
+// [context 1] The member being overridden.
 }
 
 class B extends A {}
 
 augment class B {
   String foo() => '';
+//       ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('String Function()') isn't a valid override of 'A.foo' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          80,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_augment_setter_multiFile() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 class A {
   void set foo(int value) {}
+//         ^^^
+// [context 1] The setter being overridden.
 }
 
 class B extends A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class B {
   void set foo(String value) {}
+//         ^^^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(int)').
 }
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, [
-      error(
-        diag.invalidOverrideSetter,
-        48,
-        3,
-        contextMessages: [message(a, 37, 3)],
-      ),
-    ]);
+''',
+    });
   }
 
   test_class_augment_setter_singleFile() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void set foo(int value) {}
+//         ^^^
+// [context 1] The setter being overridden.
 }
 
 class B extends A {}
 
 augment class B {
   void set foo(String value) {}
+//         ^^^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(int)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          93,
-          3,
-          contextMessages: [message(testFile, 21, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_augment_withClause_multiFile__declaration0_augment1_augment1() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 part 'c.dart';
 
@@ -219,67 +218,64 @@ mixin M1 {}
 mixin M2 {}
 
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class A with M1 {}
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
+''',
+      c: r'''
 part of 'a.dart';
 
 augment class A with M2 {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
+''',
+    });
   }
 
   test_class_augment_withClause_multiFile_declaration0_augment2() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 mixin M1 {}
 mixin M2 {}
 
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class A with M1, M2 {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_class_augment_withClause_multiFile_declaration1_augment1() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 mixin M1 {}
 mixin M2 {}
 
 class A with M1 {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class A with M2 {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_class_augment_withClause_singleFile_declaration0_augment1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 
 class A {}
@@ -289,7 +285,7 @@ augment class A with M {}
   }
 
   test_class_augment_withClause_singleFile_declaration0_augment1_augment1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {}
 mixin M2 {}
 
@@ -302,7 +298,7 @@ augment class A with M2 {}
   }
 
   test_class_augment_withClause_singleFile_declaration0_augment2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {}
 mixin M2 {}
 
@@ -313,7 +309,7 @@ augment class A with M1, M2 {}
   }
 
   test_class_augment_withClause_singleFile_declaration1_augment1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M1 {}
 mixin M2 {}
 
@@ -324,26 +320,27 @@ augment class A with M2 {}
   }
 
   test_class_augment_withClause_twoFiles_declaration0_augment1() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'b.dart';
 
 mixin M {}
 
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 
 augment class A with M {}
-''');
-
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
+''',
+    });
   }
 
   test_external_field_covariant_inheritance() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   external covariant num x;
 }
@@ -358,29 +355,23 @@ abstract class C implements B {
   }
 
   test_getter_overrides_abstract_field_covariant_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract covariant int x;
+//                       ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
   num get x;
+//        ^
+// [diag.invalidOverride][context 1] 'B.x' ('num Function()') isn't a valid override of 'A.x' ('int Function()').
   void set x(num value);
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          91,
-          1,
-          contextMessages: [message(testFile, 44, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_overrides_abstract_field_covariant_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract covariant num x;
 }
@@ -391,29 +382,23 @@ abstract class B implements A {
   }
 
   test_getter_overrides_abstract_field_final_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract final int x;
+//                   ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
   num get x;
+//        ^
+// [diag.invalidOverride][context 1] 'B.x' ('num Function()') isn't a valid override of 'A.x' ('int Function()').
   void set x(num value);
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          87,
-          1,
-          contextMessages: [message(testFile, 40, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_overrides_abstract_field_final_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract final num x;
 }
@@ -424,29 +409,23 @@ abstract class B implements A {
   }
 
   test_getter_overrides_abstract_field_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
+//             ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
   num get x;
+//        ^
+// [diag.invalidOverride][context 1] 'B.x' ('num Function()') isn't a valid override of 'A.x' ('int Function()').
   void set x(num value);
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          81,
-          1,
-          contextMessages: [message(testFile, 34, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_overrides_abstract_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract num x;
 }
@@ -457,29 +436,23 @@ abstract class B implements A {
   }
 
   test_getter_overrides_external_field_covariant_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external covariant int x;
+//                       ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
   num get x;
+//        ^
+// [diag.invalidOverride][context 1] 'B.x' ('num Function()') isn't a valid override of 'A.x' ('int Function()').
   void set x(num value);
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          82,
-          1,
-          contextMessages: [message(testFile, 35, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_overrides_external_field_covariant_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external covariant num x;
 }
@@ -490,29 +463,23 @@ abstract class B implements A {
   }
 
   test_getter_overrides_external_field_final_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external final int x;
+//                   ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
   num get x;
+//        ^
+// [diag.invalidOverride][context 1] 'B.x' ('num Function()') isn't a valid override of 'A.x' ('int Function()').
   void set x(num value);
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          78,
-          1,
-          contextMessages: [message(testFile, 31, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_overrides_external_field_final_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external final num x;
 }
@@ -523,29 +490,23 @@ abstract class B implements A {
   }
 
   test_getter_overrides_external_field_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
+//             ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
   num get x;
+//        ^
+// [diag.invalidOverride][context 1] 'B.x' ('num Function()') isn't a valid override of 'A.x' ('int Function()').
   void set x(num value);
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          72,
-          1,
-          contextMessages: [message(testFile, 25, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_overrides_external_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external num x;
 }
@@ -556,59 +517,44 @@ abstract class B implements A {
   }
 
   test_getter_returnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int get g { return 0; }
+//        ^
+// [context 1] The member being overridden.
 }
 class B extends A {
   String get g { return 'a'; }
+//           ^
+// [diag.invalidOverride][context 1] 'B.g' ('String Function()') isn't a valid override of 'A.g' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          71,
-          1,
-          contextMessages: [message(testFile, 20, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_returnType_implicit() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   String? f;
+//        ^
+// [context 1] The member being overridden.
+// [context 2] The setter being overridden.
 }
 class B extends A {
   int? f;
+//     ^
+// [diag.invalidOverride][context 1] 'B.f' ('int? Function()') isn't a valid override of 'A.f' ('String? Function()').
+// [diag.invalidOverrideSetter][context 2] The setter 'B.f' ('void Function(int?)') isn't a valid override of 'A.f' ('void Function(String?)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          52,
-          1,
-          contextMessages: [message(testFile, 20, 1)],
-        ),
-        error(
-          diag.invalidOverrideSetter,
-          52,
-          1,
-          contextMessages: [message(testFile, 20, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_returnType_twoInterfaces() async {
     // test from language/override_inheritance_field_test_11.dart
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I {
   int get getter => 0;
+//        ^^^^^^
+// [context 1] The member being overridden.
 }
 abstract class J {
   num get getter => 0;
@@ -616,51 +562,35 @@ abstract class J {
 abstract class A implements I, J {}
 class B extends A {
   String get getter => '';
+//           ^^^^^^
+// [diag.invalidOverride][context 1] 'B.getter' ('String Function()') isn't a valid override of 'I.getter' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          157,
-          6,
-          contextMessages: [message(testFile, 29, 6)],
-        ),
-      ],
-    );
+''');
   }
 
   test_getter_returnType_twoInterfaces_conflicting() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I<U> {
   U get g => throw 0;
+//      ^
+// [context 1] The member being overridden.
 }
 abstract class J<V> {
   V get g => throw 0;
+//      ^
+// [context 2] The member being overridden.
 }
 class B implements I<int>, J<String> {
   double get g => throw 0;
+//           ^
+// [diag.invalidOverride][context 1] 'B.g' ('double Function()') isn't a valid override of 'I.g' ('int Function()').
+// [diag.invalidOverride][context 2] 'B.g' ('double Function()') isn't a valid override of 'J.g' ('String Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          144,
-          1,
-          contextMessages: [message(testFile, 30, 1)],
-        ),
-        error(
-          diag.invalidOverride,
-          144,
-          1,
-          contextMessages: [message(testFile, 76, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_issue48468() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   void foo<T extends R, R>();
 }
@@ -672,74 +602,59 @@ class B implements A {
   }
 
   test_method_abstractOverridesConcrete() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A	{
   int add(int a, int b) => a + b;
+//    ^^^
+// [context 1] The member being overridden.
 }
 class B	extends A {
+//    ^
+// [diag.invalidImplementationOverride] 'A.add' ('int Function(int, int)') isn't a valid concrete implementation of 'B.add' ('int Function()').
   int add();
+//    ^^^
+// [diag.invalidOverride][context 1] 'B.add' ('int Function()') isn't a valid override of 'A.add' ('int Function(int, int)').
 }
-''',
-      [
-        error(diag.invalidImplementationOverride, 52, 1),
-        error(
-          diag.invalidOverride,
-          72,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_abstractOverridesConcreteInMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {
   int add(int a, int b) => a + b;
+//    ^^^
+// [context 1] The member being overridden.
 }
 class A with M {
+//    ^
+// [diag.invalidImplementationOverride] 'M.add' ('int Function(int, int)') isn't a valid concrete implementation of 'A.add' ('int Function()').
   int add();
+//    ^^^
+// [diag.invalidOverride][context 1] 'A.add' ('int Function()') isn't a valid override of 'M.add' ('int Function(int, int)').
 }
-''',
-      [
-        error(diag.invalidImplementationOverride, 52, 1),
-        error(
-          diag.invalidOverride,
-          69,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_abstractOverridesConcreteViaMixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int add(int a, int b) => a + b;
+//    ^^^
+// [context 1] The member being overridden.
 }
 mixin M {
   int add();
 }
 class B	extends A with M {}
-''',
-      [
-        error(diag.invalidImplementationOverride, 77, 1),
-        error(
-          diag.invalidOverride,
-          94,
-          1,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+//    ^
+// [diag.invalidImplementationOverride] 'A.add' ('int Function(int, int)') isn't a valid concrete implementation of 'M.add' ('int Function()').
+//                     ^
+// [diag.invalidOverride][context 1] 'M.add' ('int Function()') isn't a valid override of 'A.add' ('int Function(int, int)').
+''');
   }
 
   test_method_covariant_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<T> {
   A<U> foo<U>(covariant A<Map<T, U>> a);
 }
@@ -751,7 +666,7 @@ abstract class B<U, T> extends A<T> {
   }
 
   test_method_covariant_2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   R foo<R>(VA<R> v);
 }
@@ -767,8 +682,7 @@ abstract class VB<T> implements VA<T> {}
   }
 
   test_method_covariant_3() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo(num a) {}
 }
@@ -779,352 +693,256 @@ class B extends A {
 
 class C extends B {
   void foo(covariant String a) {}
+//     ^^^
+// [diag.invalidOverride] 'C.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(num)').
 }
-''',
-      [error(diag.invalidOverride, 109, 3)],
-    );
+''');
   }
 
   test_method_named_fewerNamedParameters() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m({a, b}) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m({a}) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function({dynamic a})') isn't a valid override of 'A.m' ('dynamic Function({dynamic a, dynamic b})').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          49,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_named_missingNamedParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m({a, b}) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m({a, c}) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function({dynamic a, dynamic c})') isn't a valid override of 'A.m' ('dynamic Function({dynamic a, dynamic b})').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          49,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_namedParamType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m({int? a}) {}
+//^
+// [context 1] The member being overridden.
 }
 class B implements A {
   m({String? a}) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function({String? a})') isn't a valid override of 'A.m' ('dynamic Function({int? a})').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          54,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_normalParamType_interface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m(int a) {}
+//^
+// [context 1] The member being overridden.
 }
 class B implements A {
   m(String a) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function(String)') isn't a valid override of 'A.m' ('dynamic Function(int)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          51,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_normalParamType_superclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m(int a) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m(String a) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function(String)') isn't a valid override of 'A.m' ('dynamic Function(int)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          48,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_normalParamType_superclass_interface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I<U> {
   void m(U u) => null;
+//     ^
+// [context 1] The member being overridden.
 }
 abstract class J<V> {
   void m(V v) => null;
+//     ^
+// [context 2] The member being overridden.
 }
 class B extends I<int> implements J<String> {
   void m(double d) {}
+//     ^
+// [diag.invalidOverride][context 1] 'B.m' ('void Function(double)') isn't a valid override of 'I.m' ('void Function(int)').
+// [diag.invalidOverride][context 2] 'B.m' ('void Function(double)') isn't a valid override of 'J.m' ('void Function(String)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          147,
-          1,
-          contextMessages: [message(testFile, 76, 1)],
-        ),
-        error(
-          diag.invalidOverride,
-          147,
-          1,
-          contextMessages: [message(testFile, 29, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_normalParamType_twoInterfaces() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I {
   m(int n);
 }
 abstract class J {
   m(num n);
+//^
+// [context 1] The member being overridden.
 }
 abstract class A implements I, J {}
 class B extends A {
   m(String n) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function(String)') isn't a valid override of 'J.m' ('dynamic Function(num)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          124,
-          1,
-          contextMessages: [message(testFile, 54, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_normalParamType_twoInterfaces_conflicting() async {
     // language/override_inheritance_generic_test/08
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I<U> {
   void m(U u) => null;
+//     ^
+// [context 1] The member being overridden.
 }
 abstract class J<V> {
   void m(V v) => null;
+//     ^
+// [context 2] The member being overridden.
 }
 class B implements I<int>, J<String> {
   void m(double d) {}
+//     ^
+// [diag.invalidOverride][context 1] 'B.m' ('void Function(double)') isn't a valid override of 'I.m' ('void Function(int)').
+// [diag.invalidOverride][context 2] 'B.m' ('void Function(double)') isn't a valid override of 'J.m' ('void Function(String)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          140,
-          1,
-          contextMessages: [message(testFile, 29, 1)],
-        ),
-        error(
-          diag.invalidOverride,
-          140,
-          1,
-          contextMessages: [message(testFile, 76, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_optionalParamType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m([int? a]) {}
+//^
+// [context 1] The member being overridden.
 }
 class B implements A {
   m([String? a]) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function([String?])') isn't a valid override of 'A.m' ('dynamic Function([int?])').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          54,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_optionalParamType_twoInterfaces() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I {
   m([int? n]);
 }
 abstract class J {
   m([num? n]);
+//^
+// [context 1] The member being overridden.
 }
 abstract class A implements I, J {}
 class B extends A {
   m([String? n]) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function([String?])') isn't a valid override of 'J.m' ('dynamic Function([num?])').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          130,
-          1,
-          contextMessages: [message(testFile, 57, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_positional_optional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m([a, b]) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m([a]) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function([dynamic])') isn't a valid override of 'A.m' ('dynamic Function([dynamic, dynamic])').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          49,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_positional_optionalAndRequired() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m(a, b, [c, d]) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m(a, b, [c]) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function(dynamic, dynamic, [dynamic])') isn't a valid override of 'A.m' ('dynamic Function(dynamic, dynamic, [dynamic, dynamic])').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          55,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_positional_optionalAndRequired2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m(a, b, [c, d]) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m(a, [c, d]) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function(dynamic, [dynamic, dynamic])') isn't a valid override of 'A.m' ('dynamic Function(dynamic, dynamic, [dynamic, dynamic])').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          55,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_required() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   m(a) {}
+//^
+// [context 1] The member being overridden.
 }
 class B extends A {
   m(a, b) {}
+//^
+// [diag.invalidOverride][context 1] 'B.m' ('dynamic Function(dynamic, dynamic)') isn't a valid override of 'A.m' ('dynamic Function(dynamic)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          44,
-          1,
-          contextMessages: [message(testFile, 12, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_interface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int m() { return 0; }
+//    ^
+// [context 1] The member being overridden.
 }
 class B implements A {
   String m() { return 'a'; }
+//       ^
+// [diag.invalidOverride][context 1] 'B.m' ('String Function()') isn't a valid override of 'A.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          68,
-          1,
-          contextMessages: [message(testFile, 16, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -1153,68 +971,50 @@ augment class B implements A {}
   }
 
   test_method_returnType_interface_grandparent() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   int m();
+//    ^
+// [context 1] The member being overridden.
 }
 abstract class B implements A {
 }
 class C implements B {
   String m() { return 'a'; }
+//       ^
+// [diag.invalidOverride][context 1] 'C.m' ('String Function()') isn't a valid override of 'A.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          98,
-          1,
-          contextMessages: [message(testFile, 25, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_mixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 mixin class A {
   int m() { return 0; }
+//    ^
+// [context 1] The member being overridden.
 }
 class B extends Object with A {
   String m() { return 'a'; }
+//       ^
+// [diag.invalidOverride][context 1] 'B.m' ('String Function()') isn't a valid override of 'A.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          83,
-          1,
-          contextMessages: [message(testFile, 22, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_superclass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int m() { return 0; }
+//    ^
+// [context 1] The member being overridden.
 }
 class B extends A {
   String m() { return 'a'; }
+//       ^
+// [diag.invalidOverride][context 1] 'B.m' ('String Function()') isn't a valid override of 'A.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          65,
-          1,
-          contextMessages: [message(testFile, 16, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -1243,33 +1043,28 @@ augment class B extends A {}
   }
 
   test_method_returnType_superclass_grandparent() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int m() { return 0; }
+//    ^
+// [context 1] The member being overridden.
 }
 class B extends A {
 }
 class C extends B {
   String m() { return 'a'; }
+//       ^
+// [diag.invalidOverride][context 1] 'C.m' ('String Function()') isn't a valid override of 'A.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          87,
-          1,
-          contextMessages: [message(testFile, 16, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_twoInterfaces() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I {
   int m();
+//    ^
+// [context 1] The member being overridden.
 }
 abstract class J {
   num m();
@@ -1277,110 +1072,75 @@ abstract class J {
 abstract class A implements I, J {}
 class B extends A {
   String m() => '';
+//       ^
+// [diag.invalidOverride][context 1] 'B.m' ('String Function()') isn't a valid override of 'I.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          129,
-          1,
-          contextMessages: [message(testFile, 25, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_method_returnType_void() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   int m() { return 0; }
+//    ^
+// [context 1] The member being overridden.
 }
 class B extends A {
   void m() {}
+//     ^
+// [diag.invalidOverride][context 1] 'B.m' ('void Function()') isn't a valid override of 'A.m' ('int Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          63,
-          1,
-          contextMessages: [message(testFile, 16, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_field_type_on() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   String foo = '';
+//       ^^^
+// [context 1] The member being overridden.
+// [context 2] The setter being overridden.
 }
 
 mixin M on A {
   int foo = 0;
+//    ^^^
+// [diag.invalidOverride][context 1] 'M.foo' ('int Function()') isn't a valid override of 'A.foo' ('String Function()').
+// [diag.invalidOverrideSetter][context 2] The setter 'M.foo' ('void Function(int)') isn't a valid override of 'A.foo' ('void Function(String)').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          53,
-          3,
-          contextMessages: [message(testFile, 19, 3)],
-        ),
-        error(
-          diag.invalidOverrideSetter,
-          53,
-          3,
-          contextMessages: [message(testFile, 19, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_getter_type_on() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   String get foo => '';
+//           ^^^
+// [context 1] The member being overridden.
 }
 
 mixin M on A {
   int get foo => 0;
+//        ^^^
+// [diag.invalidOverride][context 1] 'M.foo' ('int Function()') isn't a valid override of 'A.foo' ('String Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          62,
-          3,
-          contextMessages: [message(testFile, 23, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_mixin_method_returnType_on() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   String foo() => '';
+//       ^^^
+// [context 1] The member being overridden.
 }
 
 mixin M on A {
   int foo() => 0;
+//    ^^^
+// [diag.invalidOverride][context 1] 'M.foo' ('int Function()') isn't a valid override of 'A.foo' ('String Function()').
 }
-''',
-      [
-        error(
-          diag.invalidOverride,
-          56,
-          3,
-          contextMessages: [message(testFile, 19, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -1409,131 +1169,98 @@ augment mixin M on A {}
   }
 
   test_mixin_setter_type_on() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(String _) {}
+//    ^^^
+// [context 1] The setter being overridden.
 }
 
 mixin M on A {
   set foo(int _) {}
+//    ^^^
+// [diag.invalidOverrideSetter][context 1] The setter 'M.foo' ('void Function(int)') isn't a valid override of 'A.foo' ('void Function(String)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          57,
-          3,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_normalParamType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   void set s(int v) {}
+//         ^
+// [context 1] The setter being overridden.
 }
 class B extends A {
   void set s(String v) {}
+//         ^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.s' ('void Function(String)') isn't a valid override of 'A.s' ('void Function(int)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          66,
-          1,
-          contextMessages: [message(testFile, 21, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_normalParamType_superclass_interface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I {
   set setter14(int _) => null;
 }
 abstract class J {
   set setter14(num _) => null;
+//    ^^^^^^^^
+// [context 1] The setter being overridden.
 }
 abstract class A extends I implements J {}
 class B extends A {
   set setter14(String _) => null;
+//    ^^^^^^^^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.setter14' ('void Function(String)') isn't a valid override of 'J.setter14' ('void Function(num)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          173,
-          8,
-          contextMessages: [message(testFile, 77, 8)],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_normalParamType_twoInterfaces() async {
     // test from language/override_inheritance_field_test_34.dart
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I {
   set setter14(int _) => null;
 }
 abstract class J {
   set setter14(num _) => null;
+//    ^^^^^^^^
+// [context 1] The setter being overridden.
 }
 abstract class A implements I, J {}
 class B extends A {
   set setter14(String _) => null;
+//    ^^^^^^^^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.setter14' ('void Function(String)') isn't a valid override of 'J.setter14' ('void Function(num)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          166,
-          8,
-          contextMessages: [message(testFile, 77, 8)],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_normalParamType_twoInterfaces_conflicting() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class I<U> {
   set s(U u) {}
+//    ^
+// [context 1] The setter being overridden.
 }
 abstract class J<V> {
   set s(V v) {}
+//    ^
+// [context 2] The setter being overridden.
 }
 class B implements I<int>, J<String> {
   set s(double d) {}
+//    ^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.s' ('void Function(double)') isn't a valid override of 'I.s' ('void Function(int)').
+// [diag.invalidOverrideSetter][context 2] The setter 'B.s' ('void Function(double)') isn't a valid override of 'J.s' ('void Function(String)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          125,
-          1,
-          contextMessages: [message(testFile, 28, 1)],
-        ),
-        error(
-          diag.invalidOverrideSetter,
-          125,
-          1,
-          contextMessages: [message(testFile, 68, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_overrides_abstract_field_covariant_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract covariant num x;
 }
@@ -1545,7 +1272,7 @@ abstract class B implements A {
   }
 
   test_setter_overrides_abstract_field_final_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract final num x;
 }
@@ -1557,30 +1284,23 @@ abstract class B implements A {
   }
 
   test_setter_overrides_abstract_field_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract num x;
+//             ^
+// [context 1] The setter being overridden.
 }
 abstract class B implements A {
   int get x;
   void set x(int value);
+//         ^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.x' ('void Function(int)') isn't a valid override of 'A.x' ('void Function(num)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          95,
-          1,
-          contextMessages: [message(testFile, 34, 1)],
-          messageContains: ["'B.x'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_overrides_abstract_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {
   abstract int x;
 }
@@ -1591,7 +1311,7 @@ abstract class B implements A {
   }
 
   test_setter_overrides_external_field_covariant_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external covariant num x;
 }
@@ -1603,7 +1323,7 @@ abstract class B implements A {
   }
 
   test_setter_overrides_external_field_final_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external final num x;
 }
@@ -1615,29 +1335,23 @@ abstract class B implements A {
   }
 
   test_setter_overrides_external_field_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external num x;
+//             ^
+// [context 1] The setter being overridden.
 }
 abstract class B implements A {
   int get x;
   void set x(int value);
+//         ^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.x' ('void Function(int)') isn't a valid override of 'A.x' ('void Function(num)').
 }
-''',
-      [
-        error(
-          diag.invalidOverrideSetter,
-          86,
-          1,
-          contextMessages: [message(testFile, 25, 1)],
-        ),
-      ],
-    );
+''');
   }
 
   test_setter_overrides_external_field_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   external int x;
 }

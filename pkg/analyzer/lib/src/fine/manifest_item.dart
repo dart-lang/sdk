@@ -185,6 +185,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
           flags.isConst == element.isConst &&
           flags.isFactory == element.isFactory &&
           flags.isOriginDeclaration == element.isOriginDeclaration &&
+          flags.isOriginExtensionTypeRecovery ==
+              element.isOriginExtensionTypeRecovery &&
           flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
           flags.isOriginMixinApplication == element.isOriginMixinApplication &&
           flags.isPrimary == element.isPrimary &&
@@ -1082,7 +1084,9 @@ sealed class ManifestItem<E extends ElementImpl> {
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
-    return metadata.match(context, element.effectiveMetadata);
+    return flags.isAugmentationWithoutAugmentedDeclaration ==
+            element.isAugmentationWithoutAugmentedDeclaration &&
+        metadata.match(context, element.effectiveMetadata);
   }
 
   @mustCallSuper
@@ -1649,6 +1653,7 @@ enum _ConstructorItemFlag {
   isConst,
   isFactory,
   isOriginDeclaration,
+  isOriginExtensionTypeRecovery,
   isOriginImplicitDefault,
   isOriginMixinApplication,
   isPrimary,
@@ -1688,7 +1693,7 @@ enum _InstanceItemFlag { isSimplyBounded }
 
 enum _InterfaceItemFlag { reserved }
 
-enum _ManifestItemFlag { isPlaceholder }
+enum _ManifestItemFlag { isAugmentationWithoutAugmentedDeclaration }
 
 enum _MethodItemFlag {
   isOperatorEqualWithParameterTypeFromObject,
@@ -1815,6 +1820,9 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isOriginDeclaration) {
       bits |= _maskFor(_ConstructorItemFlag.isOriginDeclaration);
     }
+    if (element.isOriginExtensionTypeRecovery) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginExtensionTypeRecovery);
+    }
     if (element.isOriginImplicitDefault) {
       bits |= _maskFor(_ConstructorItemFlag.isOriginImplicitDefault);
     }
@@ -1841,6 +1849,10 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isOriginDeclaration {
     return _has(_ConstructorItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginExtensionTypeRecovery {
+    return _has(_ConstructorItemFlag.isOriginExtensionTypeRecovery);
   }
 
   bool get isOriginImplicitDefault {
@@ -2159,9 +2171,13 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(0);
   }
 
-  // ignore: avoid_unused_constructor_parameters
   factory _ManifestItemFlags.encode(ElementImpl element) {
     var bits = 0;
+    if (element.isAugmentationWithoutAugmentedDeclaration) {
+      bits |= _maskFor(
+        _ManifestItemFlag.isAugmentationWithoutAugmentedDeclaration,
+      );
+    }
     return _ManifestItemFlags._(bits);
   }
 
@@ -2169,8 +2185,8 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(reader.readUint30());
   }
 
-  bool get isPlaceholder {
-    return _has(_ManifestItemFlag.isPlaceholder);
+  bool get isAugmentationWithoutAugmentedDeclaration {
+    return _has(_ManifestItemFlag.isAugmentationWithoutAugmentedDeclaration);
   }
 
   void write(BinaryWriter writer) {

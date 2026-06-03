@@ -34,14 +34,11 @@ extension type E(Object o) {
   }
 
   test_field_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(Object o) {
-  static int _i = 0;
+  static int [!_i = 0!];
 }
-''',
-      [lint(42, 6)],
-    );
+''');
   }
 
   test_field_static_writtenInConstructor() async {
@@ -62,15 +59,12 @@ class PreferFinalFieldsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_final_fields;
 
   test_assignedInConstructorInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  int _x;
+  int [!_x!];
   C() : _x = 7;
 }
-''',
-      [lint(16, 2)],
-    );
+''');
   }
 
   test_assignedInConstructorInitializer_butNotAll() async {
@@ -172,18 +166,15 @@ class C {
   }
 
   test_indexAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  var _x = [];
+  var [!_x = []!];
 
   void f() {
     _x[0] = 3;
   }
 }
-''',
-      [lint(16, 7)],
-    );
+''');
   }
 
   test_overrideField_extends() async {
@@ -318,60 +309,48 @@ class C {
   }
 
   test_prefixExpression_not() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  bool _x = false;
+  bool [!_x = false!];
   void f() {
     !_x;
   }
 }
-''',
-      [lint(17, 10)],
-    );
+''');
   }
 
   test_prefixExpression_tilde() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  int _x = 0xffff;
+  int [!_x = 0xffff!];
   void f() {
     ~_x;
   }
 }
-''',
-      [lint(16, 11)],
-    );
+''');
   }
 
   test_propertyAccess() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  int _x = 1;
+  int [!_x = 1!];
   void f() {
     _x.isEven;
   }
 }
-''',
-      [lint(16, 6)],
-    );
+''');
   }
 
   test_readInInstanceMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  int _x = 0;
+  int [!_x = 0!];
 
   void f() {
     var a = _x;
   }
 }
-''',
-      [lint(16, 6)],
-    );
+''');
   }
 
   test_reassigned() async {
@@ -386,16 +365,13 @@ class C {
   }
 
   test_referencedInFieldFormalParameters() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  int _x;
+  int [!_x!];
   C(this._x);
   C.named(this._x);
 }
-''',
-      [lint(16, 2)],
-    );
+''');
   }
 
   test_subclassOnGenericClass() async {
@@ -413,41 +389,32 @@ class D extends C<int> {
   }
 
   test_unused() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  var _x = 1;
+  var [!_x = 1!];
 }
-''',
-      [lint(16, 6)],
-    );
+''');
   }
 
   test_unused_fromDeclaringParameter() async {
-    await assertDiagnostics(
-      r'''
-class C(var int _x) {
+    await assertDiagnosticsFromMarkdown(r'''
+class C([!var int _x!]) {
   void m() {
     print(_x);
   }
 }
-''',
-      [lint(8, 10)],
-    );
+''');
   }
 
   test_unused_multiple() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  var _x = 1, _y = 2;
+  var _x = 1, [!_y = 2!];
   void f() {
     _x = 2;
   }
 }
-''',
-      [lint(24, 6)],
-    );
+''');
   }
 
   test_unused_public() async {

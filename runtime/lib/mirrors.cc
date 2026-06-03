@@ -1405,19 +1405,32 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   }
 
   ASSERT(!type.IsNull());
-  TypeArguments& type_arguments = TypeArguments::Handle();
   if (!type.IsInstantiated()) {
     // Must have been a declaration type.
-    const Type& rare_type = Type::Handle(klass.RareType());
-    ASSERT(rare_type.IsInstantiated());
-    type_arguments = rare_type.GetInstanceTypeArguments(thread);
-  } else {
-    type_arguments = type.GetInstanceTypeArguments(thread);
+    type = klass.RareType();
+    ASSERT(type.IsInstantiated());
+  }
+
+  const bool is_generic_factory =
+      lookup_constructor.IsFactory() && lookup_constructor.IsGeneric();
+  intptr_t type_args_len = 0;
+  TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
+  TypeArguments& function_type_arguments = TypeArguments::Handle();
+  if (lookup_constructor.IsGenerativeConstructor()) {
+    instantiator_type_arguments = type.GetInstanceTypeArguments(thread);
+  } else if (is_generic_factory) {
+    function_type_arguments = type.arguments();
+    type_args_len = lookup_constructor.NumTypeParameters();
+    ASSERT(function_type_arguments.IsNull() ||
+           function_type_arguments.Length() == type_args_len);
   }
 
   Class& redirected_klass = Class::Handle(klass.ptr());
   const intptr_t num_explicit_args = explicit_args.Length();
-  const intptr_t num_implicit_args = 1;
+  const intptr_t num_implicit_positional_args =
+      lookup_constructor.IsGenerativeConstructor() ? 1 : 0;
+  const intptr_t num_implicit_args =
+      ((type_args_len > 0) ? 1 : 0) + num_implicit_positional_args;
   const Array& args =
       Array::Handle(Array::New(num_implicit_args + num_explicit_args));
 
@@ -1427,10 +1440,14 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
     explicit_argument = explicit_args.At(i);
     args.SetAt(i + num_implicit_args, explicit_argument);
   }
+  if (is_generic_factory) {
+    args.SetAt(0, function_type_arguments);
+  }
 
-  const int kTypeArgsLen = 0;
-  const Array& args_descriptor_array = Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), arg_names));
+  const Array& args_descriptor_array =
+      Array::Handle(ArgumentsDescriptor::NewBoxed(
+          type_args_len, num_implicit_positional_args + num_explicit_args,
+          arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (!lookup_constructor.AreValidArguments(args_descriptor, nullptr)) {
@@ -1442,14 +1459,18 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
     UNREACHABLE();
   }
 #if defined(DEBUG)
-  // Make sure the receiver is the null value, so that DoArgumentTypesMatch does
-  // not attempt to retrieve the instantiator type arguments from the receiver.
-  explicit_argument = args.At(args_descriptor.FirstArgIndex());
-  ASSERT(explicit_argument.IsNull());
+  if (lookup_constructor.IsGenerativeConstructor()) {
+    // Make sure the receiver is the null value, so that DoArgumentTypesMatch
+    // does not attempt to retrieve the instantiator type arguments from
+    // the receiver.
+    explicit_argument = args.At(args_descriptor.FirstArgIndex());
+    ASSERT(explicit_argument.IsNull());
+  }
 #endif
   const Object& type_error =
       Object::Handle(lookup_constructor.DoArgumentTypesMatch(
-          args, args_descriptor, type_arguments));
+          args, args_descriptor, instantiator_type_arguments,
+          function_type_arguments));
   if (!type_error.IsNull()) {
     Exceptions::PropagateError(Error::Cast(type_error));
     UNREACHABLE();
@@ -1461,16 +1482,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
     // Note we have delayed allocation until after the function
     // type and argument matching checks.
     new_object = Instance::New(redirected_klass);
-    if (!type_arguments.IsNull()) {
+    if (!instantiator_type_arguments.IsNull()) {
       // The type arguments will be null if the class has no type parameters, in
       // which case the following call would fail because there is no slot
       // reserved in the object for the type vector.
-      new_object.SetTypeArguments(type_arguments);
+      new_object.SetTypeArguments(instantiator_type_arguments);
     }
     args.SetAt(0, new_object);
-  } else {
-    // Factories get type arguments.
-    args.SetAt(0, type_arguments);
   }
 
   // Invoke the constructor and return the new object.

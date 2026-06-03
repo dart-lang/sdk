@@ -32,10 +32,17 @@ DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd(
     int fd,
     uint64_t file_offset,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs);
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text);
+inline Dart_LoadedMachODylib* Dart_LoadMachODylib_Fd2(
+    int fd,
+    uint64_t file_offset,
+    const char** error,
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
+  return Dart_LoadMachODylib_Fd(fd, file_offset, error, snapshot_data,
+                                snapshot_text);
+}
 #endif
 
 /// Please see documentation for Dart_LoadMachODylib_Fd.
@@ -43,20 +50,34 @@ DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib(
     const char* filename,
     uint64_t file_offset,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs);
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text);
+inline Dart_LoadedMachODylib* Dart_LoadMachODylib2(
+    const char* filename,
+    uint64_t file_offset,
+    const char** error,
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
+  return Dart_LoadMachODylib(filename, file_offset, error, snapshot_data,
+                             snapshot_text);
+}
 
 /// Please see documentation for Dart_LoadMachODylib_Fd.
 DART_EXPORT Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory(
     const uint8_t* snapshot,
     uint64_t snapshot_size,
     const char** error,
-    const uint8_t** vm_snapshot_data,
-    const uint8_t** vm_snapshot_instrs,
-    const uint8_t** vm_isolate_data,
-    const uint8_t** vm_isolate_instrs);
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text);
+inline Dart_LoadedMachODylib* Dart_LoadMachODylib_Memory2(
+    const uint8_t* snapshot,
+    uint64_t snapshot_size,
+    const char** error,
+    const uint8_t** snapshot_data,
+    const uint8_t** snapshot_text) {
+  return Dart_LoadMachODylib_Memory(snapshot, snapshot_size, error,
+                                    snapshot_data, snapshot_text);
+}
 
 /// Unloads an MachO dynamic library object loaded through
 /// Dart_LoadMachODylib{_Fd, _Memory}.

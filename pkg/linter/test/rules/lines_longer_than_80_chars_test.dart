@@ -31,10 +31,9 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   }
 
   test_blockComment_spaceAfter80() async {
-    await assertDiagnostics(
-      '/*  5   10   15   20   25   30   35   40   50   55   60'
-      '   65   70   75   80   85   90   95  100 */',
-      [lint(80, 18)],
+    await assertDiagnosticsFromMarkdown(
+      r'''
+/*  5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100 */!]''',
     );
   }
 
@@ -52,10 +51,9 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   }
 
   test_docComment_spaceAfter80() async {
-    await assertDiagnostics(
-      '/// 5   10   15   20   25   30   35   40   50   55   60'
-      '   65   70   75   80   85   90   95  100',
-      [lint(80, 15)],
+    await assertDiagnosticsFromMarkdown(
+      r'''
+/// 5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100!]''',
     );
   }
 
@@ -73,10 +71,9 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   }
 
   test_endOfLineComment_spaceAfter80() async {
-    await assertDiagnostics(
-      '//  5   10   15   20   25   30   35   40   50   55   60'
-      '   65   70   75   80   85   90   95  100',
-      [lint(80, 15)],
+    await assertDiagnosticsFromMarkdown(
+      r'''
+//  5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100!]''',
     );
   }
 
@@ -95,13 +92,10 @@ var p =
   }
 
   test_longerThan80Characters() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var p =
-    '                                                                          ';
-''',
-      [lint(88, 1)],
-    );
+    '                                                                          '[!;!]
+''');
   }
 
   test_multilineBlockComment_noSpaceAfter80() async {
@@ -131,13 +125,10 @@ var p =
   }
 
   test_multilineBlockComment_spaceAfter80() async {
-    await assertDiagnostics(
-      '/*\n'
-      ' *  5   10   15   20   25   30   35   40   50   55   60'
-      '   65   70   75   80   85   90   95  100\n'
-      ' */',
-      [lint(83, 15)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+/*
+ *  5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100!]
+ */''');
   }
 
   test_multilineString() async {

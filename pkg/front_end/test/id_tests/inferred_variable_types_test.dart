@@ -7,6 +7,7 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -32,7 +33,7 @@ Future<void> main(List<String> args) async {
 }
 
 class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
-  const InferredVariableTypesDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -65,18 +66,22 @@ class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
 }
 
 class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
+  final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  InferredTypeArgumentDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     this.typeInferenceResult,
     Map<Id, ActualData<DartType>> actualMap,
-  ) : super(compilerResult, actualMap);
+  ) : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
+      super(compilerResult, actualMap);
 
   @override
   DartType? computeNodeValue(Id id, TreeNode node) {
-    if (node is VariableDeclaration || node is LocalFunction) {
-      return typeInferenceResult.inferredVariableTypes[node];
+    if (node is Variable || node is LocalFunction) {
+      TreeNode? alias = _sourceLoaderDataForTesting.toOriginal(node);
+      return typeInferenceResult.inferredVariableTypes[alias];
     }
     return null;
   }
@@ -84,7 +89,7 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
 
 class _InferredVariableTypesDataInterpreter
     implements DataInterpreter<DartType> {
-  const _InferredVariableTypesDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) {

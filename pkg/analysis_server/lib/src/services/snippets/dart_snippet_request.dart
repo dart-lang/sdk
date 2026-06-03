@@ -37,6 +37,9 @@ class DartSnippetRequest {
   /// The path of the file snippets are being requested for.
   final String filePath;
 
+  /// Whether [file] is in a "test" directory of its workspace package.
+  final bool isInTestDirectory;
+
   /// The offset within the source at which snippets are being
   /// requested for.
   final int offset;
@@ -48,14 +51,16 @@ class DartSnippetRequest {
   /// replaced if the snippet is selected.
   late final SourceRange replacementRange;
 
-  DartSnippetRequest({required ResolvedUnitResult unit, required this.offset})
+  new({required ResolvedUnitResult unit, required this.offset})
     : analysisSession = unit.session,
       typeProvider = unit.typeProvider,
       file = unit.file,
       content = unit.content,
       compilationUnit = unit.unit,
       libraryElement = unit.libraryElement,
-      filePath = unit.path {
+      filePath = unit.path,
+      isInTestDirectory =
+          unit is ResolvedUnitResultImpl && unit.fileState.isInTestDirectory {
     var target = CompletionTarget.forOffset(unit.unit, offset);
     context = _getContext(target);
     replacementRange = target.computeReplacementRange(
@@ -66,7 +71,7 @@ class DartSnippetRequest {
     );
   }
 
-  DartSnippetRequest.fromCompletionResult({
+  new fromCompletionResult({
     required ResolvedForCompletionResultImpl unit,
     required this.offset,
     required this.file,
@@ -75,7 +80,8 @@ class DartSnippetRequest {
        content = unit.content,
        compilationUnit = unit.parsedUnit,
        libraryElement = unit.libraryFragment.element,
-       filePath = unit.path {
+       filePath = unit.path,
+       isInTestDirectory = unit.fileState.isInTestDirectory {
     var target = CompletionTarget.forOffset(unit.parsedUnit, offset);
     context = _getContext(target);
     replacementRange = target.computeReplacementRange(

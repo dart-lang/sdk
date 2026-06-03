@@ -99,6 +99,10 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
 }
 
 /// A base class defining support for writing bulk fix processor tests.
+///
+/// Tests using this base class validate that if there is more than one place to
+/// apply a fix, then the code is valid after applying as many fixes as possible
+/// in a single pass.
 abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// The source change associated with the fix that was found, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
@@ -150,8 +154,12 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, normalizeSource(expectedCode));
   }
 
-  Future<void> assertHasFix(String expected, {bool isParse = false}) async {
-    change = await _computeSourceChange(isParse: isParse);
+  Future<void> assertHasFix(
+    String expected, {
+    List<String>? codes,
+    bool isParse = false,
+  }) async {
+    change = await _computeSourceChange(codes: codes, isParse: isParse);
 
     // apply to "file"
     var fileEdits = change.edits;
@@ -180,11 +188,15 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Computes fixes for the specified [testUnit].
-  Future<BulkFixProcessor> computeFixes({bool isParse = false}) async {
+  Future<BulkFixProcessor> computeFixes({
+    List<String>? codes,
+    bool isParse = false,
+  }) async {
     var analysisContext = contextFor(testFile);
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
+      codes: codes,
     );
     if (isParse) {
       await processor.fixErrorsUsingParsedResult([analysisContext]);
@@ -210,8 +222,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Returns the source change for computed fixes in the specified [testUnit].
-  Future<SourceChange> _computeSourceChange({bool isParse = false}) async {
-    processor = await computeFixes(isParse: isParse);
+  Future<SourceChange> _computeSourceChange({
+    List<String>? codes,
+    bool isParse = false,
+  }) async {
+    processor = await computeFixes(codes: codes, isParse: isParse);
     return processor.builder.sourceChange;
   }
 

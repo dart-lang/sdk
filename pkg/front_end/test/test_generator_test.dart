@@ -82,7 +82,7 @@ class TestCompiler {
   final List<Code> formattedErrorsCodes;
   final List<Code> formattedWarningsCodes;
 
-  TestCompiler._(
+  new _(
     this.testUri,
     this.fs,
     this.formattedErrors,
@@ -277,7 +277,7 @@ class Generator {
   final String beforePlug;
   final String afterPlug;
 
-  Generator(this.typeParameters, this.beforePlug, this.afterPlug);
+  new(this.typeParameters, this.beforePlug, this.afterPlug);
 
   String generate(String plug) {
     return "${beforePlug}${plug}${afterPlug}";
@@ -288,5 +288,5 @@ class CompilerAndOptions {
   final TestCompiler compiler;
   final CompilerOptions options;
 
-  CompilerAndOptions(this.compiler, this.options);
+  new(this.compiler, this.options);
 }

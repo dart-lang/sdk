@@ -28,47 +28,35 @@ void f(Iterable<int> i) {
   }
 
   test_hasKeyAndValue_blockBody_singleReturn() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Iterable<int> i) {
-  Map.fromIterable(i, key: (k) { return k * 2; }, value: (v) { return 0; });
+  [!Map.fromIterable(i, key: (k) { return k * 2; }, value: (v) { return 0; })!];
 }
-''',
-      [lint(28, 73)],
-    );
+''');
   }
 
   test_hasKeyAndValue_closuresAreSimple() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Iterable<int> i) {
-  Map.fromIterable(i, key: (k) => k * 2, value: (v) => 0);
+  [!Map.fromIterable(i, key: (k) => k * 2, value: (v) => 0)!];
 }
-''',
-      [lint(28, 55)],
-    );
+''');
   }
 
   test_hasKeyAndValue_closuresReferenceE() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Iterable<int> i, int e) {
-  Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e);
+  [!Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e)!];
 }
-''',
-      [lint(35, 59)],
-    );
+''');
   }
 
   test_hasKeyAndValue_closuresShadowVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Iterable<int> i, int k) {
-  Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
+  [!Map.fromIterable(i, key: (k) => k * 2, value: (v) => k)!];
 }
-''',
-      [lint(35, 55)],
-    );
+''');
   }
 
   test_missingKey() async {

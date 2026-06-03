@@ -30,14 +30,11 @@ void f() {
   }
 
   test_localVariableDeclaration_nullOnLeft() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  var x = null ?? 1;
+  var x = [!null!] ?? 1;
 }
-''',
-      [lint(21, 4)],
-    );
+''');
   }
 
   test_localVariableDeclaration_nullOnRight() async {
@@ -129,12 +126,9 @@ var x = 1 ?? 1;
   }
 
   test_topLevelVariableDeclaration_nullOnLeft() async {
-    await assertDiagnostics(
-      r'''
-var x = null ?? 1;
-''',
-      [lint(8, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!null!] ?? 1;
+''');
   }
 
   test_topLevelVariableDeclaration_nullOnRight() async {

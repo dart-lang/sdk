@@ -352,6 +352,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeHeaderFlags(e.flagsForTesting);
       _assertHasExactlyOneTrue([
         e.isOriginDeclaration,
+        e.isOriginExtensionTypeRecovery,
         e.isOriginImplicitDefault,
         e.isOriginMixinApplication,
       ]);
@@ -413,6 +414,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeHeaderFlags(f.flagsForTesting);
       _assertHasExactlyOneTrue([
         f.isOriginDeclaration,
+        f.isOriginExtensionTypeRecovery,
         f.isOriginImplicitDefault,
         f.isOriginMixinApplication,
       ]);
@@ -567,22 +569,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementName(e);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-
-    //     var getter = e.getter;
-    //     if (getter != null) {
-    //       _sink.writelnWithIndent('getter: ${_idMap[getter]}');
-    //     }
-
-    //     var setter = e.setter;
-    //     if (setter != null) {
-    //       _sink.writelnWithIndent('setter: ${_idMap[setter]}');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
@@ -599,7 +585,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeShouldUseTypeForInitializerInference(e);
       _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
-      // writeLinking();
       _writeElementReference('getter', e.getter);
       _writeElementReference('setter', e.setter);
       _writeElementReference(
@@ -639,22 +624,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentName(f);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[f]}');
-
-    //     var getter = f.getter2;
-    //     if (getter != null) {
-    //       _sink.writelnWithIndent('getter: ${_idMap[getter]}');
-    //     }
-
-    //     var setter = f.setter2;
-    //     if (setter != null) {
-    //       _sink.writelnWithIndent('setter: ${_idMap[setter]}');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
@@ -665,7 +634,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeShouldUseTypeForInitializerInference(f);
       _writeVariableFragmentInitializer(f);
       // _writeNonSyntheticElement(f);
-      // writeLinking();
+      _writeFragmentReference('inducedGetter', f.inducedGetter);
+      _writeFragmentReference('inducedSetter', f.inducedSetter);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -884,17 +854,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementName(e);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-    //     if (e.variable2 case var variable?) {
-    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
-    //     } else {
-    //       _sink.writelnWithIndent('variable: <null>');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
@@ -916,7 +875,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeReturnType(e.returnType);
       _writeElementReference('variable', e.variable);
       // _writeNonSyntheticElement(e);
-      // writeLinking();
     });
   }
 
@@ -940,22 +898,12 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeBodyModifiers(e);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-    //     if (e.variable2 case var variable?) {
-    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
-    //     } else {
-    //       _sink.writelnWithIndent('variable: <null>');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
+      _writeFragmentReference('inducingVariable', f.inducingVariable);
 
       // expect(f.typeParameters2, isEmpty);
       _writeFragmentList(
@@ -965,7 +913,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterFragment,
       );
       // _writeNonSyntheticElement(f);
-      // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -1446,17 +1393,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementName(e);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-    //     if (e.variable2 case var variable?) {
-    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
-    //     } else {
-    //       _sink.writelnWithIndent('variable: <null>');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
@@ -1478,7 +1414,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeReturnType(e.returnType);
       _writeElementReference('variable', e.variable);
       // _writeNonSyntheticElement(e);
-      // writeLinking();
     });
   }
 
@@ -1502,22 +1437,12 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeBodyModifiers(f);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-    //     if (e.variable2 case var variable?) {
-    //       _sink.writelnWithIndent('variable: ${_idMap[variable]}');
-    //     } else {
-    //       _sink.writelnWithIndent('variable: <null>');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
+      _writeFragmentReference('inducingVariable', f.inducingVariable);
 
       expect(f.typeParameters, isEmpty);
       _writeFragmentList(
@@ -1528,7 +1453,6 @@ class _Element2Writer extends _AbstractElementWriter {
       );
       // _writeReturnType(f.returnType);
       // _writeNonSyntheticElement(f);
-      // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });
@@ -1633,22 +1557,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementName(e);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-
-    //     var getter = e.getter;
-    //     if (getter != null) {
-    //       _sink.writelnWithIndent('getter: ${_idMap[getter]}');
-    //     }
-
-    //     var setter = e.setter;
-    //     if (setter != null) {
-    //       _sink.writelnWithIndent('setter: ${_idMap[setter]}');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
@@ -1664,7 +1572,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeShouldUseTypeForInitializerInference(e);
       _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
-      // writeLinking();
       _writeElementReference('getter', e.getter);
       _writeElementReference('setter', e.setter);
     });
@@ -1693,22 +1600,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentName(f);
     });
 
-    // void writeLinking() {
-    //   if (configuration.withPropertyLinking) {
-    //     _sink.writelnWithIndent('id: ${_idMap[e]}');
-
-    //     var getter = e.getter;
-    //     if (getter != null) {
-    //       _sink.writelnWithIndent('getter: ${_idMap[getter]}');
-    //     }
-
-    //     var setter = e.setter;
-    //     if (setter != null) {
-    //       _sink.writelnWithIndent('setter: ${_idMap[setter]}');
-    //     }
-    //   }
-    // }
-
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
@@ -1718,7 +1609,8 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeShouldUseTypeForInitializerInference(f);
       _writeVariableFragmentInitializer(f);
       // _writeNonSyntheticElement(f);
-      // writeLinking();
+      _writeFragmentReference('inducedGetter', f.inducedGetter);
+      _writeFragmentReference('inducedSetter', f.inducedSetter);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
     });

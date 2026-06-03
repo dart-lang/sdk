@@ -246,7 +246,7 @@ Future<Component> processUri(
 }
 
 class Strategy extends EquivalenceStrategy {
-  const Strategy();
+  const new();
 
   @override
   bool checkTreeNode_fileOffset(

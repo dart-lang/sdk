@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/pages.dart';
 
 class FileByteStoreTimingPage extends DiagnosticPageWithNav
     with PerformanceChartMixin {
-  FileByteStoreTimingPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'file-byte-store-timing',

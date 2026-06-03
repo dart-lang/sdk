@@ -95,8 +95,7 @@ class CoreTypes {
   final Map<Class, InterfaceType> _bottomInterfaceTypes =
       new Map<Class, InterfaceType>.identity();
 
-  CoreTypes(Component component)
-    : index = new LibraryIndex.coreLibraries(component);
+  new(Component component) : index = new LibraryIndex.coreLibraries(component);
 
   late final Library asyncLibrary = index.getLibrary('dart:async');
 

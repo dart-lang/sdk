@@ -277,6 +277,71 @@ void main(List<String> args) {
     });
   }
 
+  test('dart build link hook cache isolation', timeout: longTimeout, () async {
+    await recordUseTest('drop_dylib_recording', (dartAppUri) async {
+      // First run: compile with target drop_dylib_recording_calls.dart.
+      // This is the first compile, so it should run both build and link hooks.
+      final run1 = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'build',
+          'cli',
+          '--target',
+          'bin/drop_dylib_recording_calls.dart',
+          '-v',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+      expect(run1.stdout, contains('Running build hooks'));
+      expect(run1.stdout, contains('Running link hooks'));
+      expect(run1.stdout, isNot(contains('Skipping build for')));
+      expect(run1.stdout, isNot(contains('Skipping link for')));
+
+      // Second run: compile with target drop_dylib_recording_calls.dart again.
+      // Since no inputs changed, it should skip both build and link hooks (cache hit).
+      final run2 = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'build',
+          'cli',
+          '--target',
+          'bin/drop_dylib_recording_calls.dart',
+          '-v',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+      expect(run2.stdout, contains('Skipping build for drop_dylib_recording'));
+      expect(run2.stdout, contains('Skipping link for drop_dylib_recording'));
+      expect(run2.stdout, isNot(contains('hook.dill')));
+
+      // Third run: compile with target drop_dylib_recording_instances.dart.
+      // The entrypoint target changed.
+      // The build hook is NOT dependent on entrypoints, so build should remain a cache hit.
+      // The link hook is dependent on entrypoints, so link must cache miss and run again.
+      final run3 = await runDart(
+        arguments: [
+          '--enable-experiment=record-use',
+          'build',
+          'cli',
+          '--target',
+          'bin/drop_dylib_recording_instances.dart',
+          '-v',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: true,
+      );
+      expect(run3.stdout, contains('Skipping build for drop_dylib_recording'));
+      expect(run3.stdout,
+          isNot(contains('Skipping link for drop_dylib_recording')));
+      expect(run3.stdout, contains('hook.dill'));
+    });
+  });
+
   test(
     'dart build with native dynamic linking',
     timeout: longTimeout,
@@ -350,6 +415,209 @@ void main(List<String> args) {
       },
     );
   }
+
+  for (var sanitizer in ['asan', 'msan', 'tsan']) {
+    test('dart build cli --target-sanitizer $sanitizer', timeout: longTimeout,
+        () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--target-sanitizer',
+            sanitizer,
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+        final Directory binDir = File(Platform.resolvedExecutable).parent;
+        final sanitizedRuntime =
+            File.fromUri(binDir.uri.resolve('dartaotruntime_$sanitizer'));
+        if (sanitizedRuntime.existsSync()) {
+          expect(result.exitCode, 0);
+          final relativeExeUri = relativeBundleUri
+              .resolve('bin/')
+              .resolve(OS.current.executableFileName('dart_app'));
+          final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+          expect(await File.fromUri(absoluteExeUri).exists(), true);
+        } else {
+          expect(result.stderr, contains('dartaotruntime_$sanitizer'));
+          expect(result.exitCode, 255);
+        }
+      });
+    }, skip: !Platform.isLinux);
+  }
+
+  test('dart build cli with positional target is rejected',
+      timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          'bin/dart_app.dart',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.stderr, contains('Unexpected arguments'));
+      expect(result.exitCode, isNot(0));
+    });
+  });
+
+  test('dart build cli with custom entrypoint and custom package config',
+      timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+      // 1. Create a custom entry point outside bin/
+      final customDir = Directory.fromUri(dartAppUri.resolve('custom_dir/'));
+      await customDir.create();
+      final customEntryPoint = customDir.uri.resolve('my_custom_main.dart');
+
+      final originalCode = await File.fromUri(
+        dartAppUri.resolve('bin/dart_app.dart'),
+      ).readAsString();
+      await File.fromUri(customEntryPoint).writeAsString(originalCode);
+
+      // 2. Relocate the package config and package graph to a custom directory matching same depth
+      final customToolDir =
+          Directory.fromUri(dartAppUri.resolve('.custom_tool/'));
+      await customToolDir.create();
+
+      final originalConfig = File.fromUri(
+        dartAppUri.resolve('.dart_tool/package_config.json'),
+      );
+      final customConfig = File.fromUri(
+        customToolDir.uri.resolve('my_custom_packages.json'),
+      );
+      await originalConfig.copy(customConfig.path);
+
+      final originalGraph = File.fromUri(
+        dartAppUri.resolve('.dart_tool/package_graph.json'),
+      );
+      final customGraph = File.fromUri(
+        customToolDir.uri.resolve('package_graph.json'),
+      );
+      await originalGraph.copy(customGraph.path);
+
+      // 3. Invoke build using the custom arguments
+      final result = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--packages=${customConfig.path}',
+          '--target=${customEntryPoint.toFilePath()}',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      expect(result.stdout, contains('Running build hooks'));
+      expect(result.stdout, contains('Running link hooks'));
+
+      // 4. Verify the executable runs correctly and prints expected output
+      final relativeExeUri = relativeBundleUri
+          .resolve('bin/')
+          .resolve(OS.current.executableFileName('my_custom_main'));
+      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+      expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+      final processResult = await runProcess(
+        executable: absoluteExeUri,
+        logger: logger,
+        throwOnUnexpectedExitCode: true,
+      );
+      expectDartAppStdout(processResult.stdout);
+    });
+  });
+
+  test('dart build cli unmapped entrypoint aborts', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+      // Create an entry point outside the project structure (isolated temp dir)
+      await _withTempDir((tempUri) async {
+        final isolatedEntryPoint = tempUri.resolve('isolated.dart');
+        await File.fromUri(isolatedEntryPoint).writeAsString('''
+void main() {
+  print('Hello isolated');
+}
+''');
+
+        // Invoke build pointing to the isolated file
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--packages=${dartAppUri.resolve('.dart_tool/package_config.json').toFilePath()}',
+            '--target=${isolatedEntryPoint.toFilePath()}',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+
+        expect(
+          result.stderr,
+          contains(
+              'does not reside in any package defined in the package config'),
+        );
+        expect(result.exitCode, 255);
+      });
+    });
+  });
+
+  test('dart build cli unmapped entrypoint succeeds with --root-package',
+      timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+      // Create an entry point outside the project structure (isolated temp dir)
+      await _withTempDir((tempUri) async {
+        final isolatedEntryPoint = tempUri.resolve('isolated.dart');
+        await File.fromUri(isolatedEntryPoint).writeAsString('''
+void main() {
+  print('Hello isolated');
+}
+''');
+
+        // Invoke build pointing to the isolated file with --root-package
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--packages=${dartAppUri.resolve('.dart_tool/package_config.json').toFilePath()}',
+            '--target=${isolatedEntryPoint.toFilePath()}',
+            '--root-package=dart_app',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+          expectExitCodeZero: true,
+        );
+
+        expect(result.stdout, contains('Running build hooks'));
+        expect(result.stdout, contains('Running link hooks'));
+
+        // Verify the executable runs correctly and prints expected output
+        final relativeExeUri = relativeBundleUri
+            .resolve('bin/')
+            .resolve(OS.current.executableFileName('isolated'));
+        final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+        expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+        final processResult = await runProcess(
+          executable: absoluteExeUri,
+          logger: logger,
+          throwOnUnexpectedExitCode: true,
+        );
+        expect(processResult.stdout, contains('Hello isolated'));
+      });
+    });
+  });
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

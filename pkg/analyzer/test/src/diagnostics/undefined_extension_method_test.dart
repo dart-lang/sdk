@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedExtensionMethodTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedExtensionMethodTest extends PubPackageResolutionTest {
   test_method_defined() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on String {
   int m() => 0;
 }
@@ -27,17 +28,16 @@ f() {
   }
 
   test_method_undefined() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on String {}
 f() {
   E('a').m();
+//       ^
+// [diag.undefinedExtensionMethod] The method 'm' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionMethod, 40, 1)],
-    );
+''');
 
-    var node = findNode.methodInvocation('m();');
+    var node = result.findNode.methodInvocation('m();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -65,24 +65,22 @@ MethodInvocation
   }
 
   test_static_withInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Object {}
 var a = E.m();
-''',
-      [error(diag.undefinedExtensionMethod, 35, 1)],
-    );
+//        ^
+// [diag.undefinedExtensionMethod] The method 'm' isn't defined for the extension 'E'.
+''');
   }
 
   test_static_withoutInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on Object {}
 void f() {
   E.m();
+//  ^
+// [diag.undefinedExtensionMethod] The method 'm' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionMethod, 40, 1)],
-    );
+''');
   }
 }

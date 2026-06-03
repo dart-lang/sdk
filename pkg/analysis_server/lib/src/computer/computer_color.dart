@@ -18,7 +18,7 @@ class ColorComputer {
   final ResolvedUnitResult resolvedUnit;
   final List<ColorReference> _colors = [];
 
-  ColorComputer(this.resolvedUnit, path.Context pathContext);
+  new(this.resolvedUnit, path.Context pathContext);
 
   /// Returns information about the color references in [resolvedUnit].
   ///
@@ -326,7 +326,7 @@ class ColorInformation {
   /// Blue as a value from 0 to 255.
   final int blue;
 
-  ColorInformation(this.alpha, this.red, this.green, this.blue);
+  new(this.alpha, this.red, this.green, this.blue);
 }
 
 /// Information about a specific known location of a [ColorInformation]
@@ -336,13 +336,13 @@ class ColorReference {
   final int length;
   final ColorInformation color;
 
-  ColorReference(this.offset, this.length, this.color);
+  new(this.offset, this.length, this.color);
 }
 
 class _ColorBuilder extends RecursiveAstVisitor<void> {
   final ColorComputer computer;
 
-  _ColorBuilder(this.computer);
+  new(this.computer);
 
   @override
   void visitDotShorthandConstructorInvocation(

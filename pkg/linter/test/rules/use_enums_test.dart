@@ -45,42 +45,33 @@ augment class C {
   }
 
   test_constructor_private() async {
-    await assertDiagnostics(
-      r'''
-class A {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!A!] {
   static const A a = A._(1);
   static const A b = A._(2);
   final int value;
   const A._(this.value);
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_extendsObject() async {
-    await assertDiagnostics(
-      r'''
-class A extends Object {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!A!] extends Object {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_multiDeclaration() async {
-    await assertDiagnostics(
-      r'''
-class A {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!A!] {
   static const A a = A._(), b = A._();
   const A._();
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_no_lint_abstract() async {
@@ -343,15 +334,12 @@ class _A(int x) {
   }
 
   test_primaryConstructor_private() async {
-    await assertDiagnostics(
-      r'''
-class const A._(final int value) {
+    await assertDiagnosticsFromMarkdown(r'''
+class const [!A!]._(final int value) {
   static const A a = A._(1);
   static const A b = A._(2);
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_primaryConstructor_public() async {
@@ -373,9 +361,8 @@ class const A._(final int values) {
   }
 
   test_referencedFactoryConstructor() async {
-    await assertDiagnostics(
-      r'''
-class _E {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!_E!] {
   static const _E c = _E();
   static const _E d = _E();
 
@@ -385,65 +372,51 @@ class _E {
 }
 
 _E e = _E.withValue(0);
-''',
-      [lint(6, 2)],
-    );
+''');
   }
 
   test_simple_hasPart() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part 'a.dart';
-class A {
+class [!A!] {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(21, 1)],
-    );
+''');
   }
 
   test_simple_private() async {
-    await assertDiagnostics(
-      r'''
-class _A {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!_A!] {
   static const _A a = _A();
   static const _A b = _A();
   const _A();
 }
-''',
-      [lint(6, 2)],
-    );
+''');
   }
 
   test_simple_public() async {
-    await assertDiagnostics(
-      r'''
-class A {
+    await assertDiagnosticsFromMarkdown(r'''
+class [!A!] {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(6, 1)],
-    );
+''');
   }
 
   test_withMixin() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin class M { }
-class A with M {
+class [!A!] with M {
   static const A a = A._();
   static const A b = A._();
   const A._();
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 }

@@ -476,7 +476,7 @@ void f() {
 class _RawParams extends ToJsonable {
   final String _json;
 
-  _RawParams(this._json);
+  new(this._json);
 
   @override
   Object toJson() => jsonDecode(_json) as Object;

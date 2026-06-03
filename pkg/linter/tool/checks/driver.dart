@@ -45,7 +45,7 @@ class Driver {
   final List<AnalysisRule> lints;
   final bool silent;
 
-  Driver(this.lints, {this.silent = true});
+  new(this.lints, {this.silent = true});
 
   Future<List<Diagnostic>> analyze(List<String> sources) async {
     if (sources.isEmpty) {

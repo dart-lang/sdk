@@ -48,18 +48,15 @@ Widget f() {
   }
 
   test_containerWithDecorationAndChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
-  return Container(
+  return [!Container!](
     decoration: BoxDecoration(),
     child: SizedBox(),
   );
 }
-''',
-      [lint(61, 9)],
-    );
+''');
   }
 
   test_containerWithDecorationAndChildAndOtherArgument() async {
@@ -121,19 +118,16 @@ Widget f() {
   }
 
   test_containerWithKeyAndDecorationAndChild() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
-  return Container(
+  return [!Container!](
     key: Key('abc'),
     decoration: BoxDecoration(),
     child: SizedBox(),
   );
 }
-''',
-      [lint(61, 9)],
-    );
+''');
   }
 
   test_containerWithoutArguments() async {

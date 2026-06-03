@@ -39,7 +39,7 @@ class Import {
   /// This set in [SourceLibraryBuilder._addDependencies].
   LibraryDependency? libraryDependency;
 
-  Import({
+  new({
     required SourceCompilationUnit importer,
     required this.importedCompilationUnit,
     required this.deferred,

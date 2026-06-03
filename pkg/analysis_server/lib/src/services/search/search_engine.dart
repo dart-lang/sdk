@@ -10,8 +10,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
@@ -69,7 +67,7 @@ enum MatchKind {
 
   final bool isReference;
 
-  const MatchKind({this.isReference = false});
+  new({this.isReference = false});
 
   @override
   String toString() => name;
@@ -128,11 +126,8 @@ abstract class SearchEngine {
   /// Returns direct subtypes of the given [type].
   ///
   /// [type] - the [InterfaceElement] being subtyped by the found matches.
-  /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
-  ///    empty it will be filled out and can be used on any subsequent query.
   Future<List<SearchMatch>> searchSubtypes(
-    InterfaceElement type,
-    SearchEngineCache cache, {
+    InterfaceElement type, {
     OperationPerformanceImpl? performance,
   });
 
@@ -141,13 +136,6 @@ abstract class SearchEngine {
   /// [pattern] the regular expression used to match the names of the
   ///    declarations to be found.
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern);
-}
-
-class SearchEngineCache {
-  List<AnalysisDriver>? drivers;
-  // TODO(jensj): Can `searchedFiles` be removed?
-  SearchedFiles? searchedFiles;
-  Map<AnalysisDriver, List<FileState>>? assignedFiles;
 }
 
 /// Instances of the class [SearchMatch] represent a match found by

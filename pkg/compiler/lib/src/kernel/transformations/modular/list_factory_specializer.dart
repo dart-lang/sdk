@@ -97,11 +97,11 @@ class ListFactorySpecializer extends BaseSpecializer {
     // If the length is a constant, use the constant directly so that the
     // inferrer can see the constant length.
     int? lengthConstant = _getLengthArgument(args);
-    VariableDeclaration? lengthVariable;
+    Variable? lengthVariable;
 
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
-      lengthVariable ??= VariableDeclaration(
+      lengthVariable ??= Variable(
         '_length',
         initializer: length,
         isFinal: true,
@@ -116,7 +116,7 @@ class ListFactorySpecializer extends BaseSpecializer {
       Arguments([getLength()], types: args.types),
     )..fileOffset = node.fileOffset;
 
-    final listVariable = VariableDeclaration(
+    final listVariable = Variable(
       _listNameFromContext(node),
       initializer: allocation,
       isFinal: true,
@@ -126,7 +126,7 @@ class ListFactorySpecializer extends BaseSpecializer {
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
 
-    final indexVariable = VariableDeclaration(
+    final indexVariable = Variable(
       _indexNameFromContext(generator),
       initializer: IntLiteral(0),
       type: intType,
@@ -137,7 +137,7 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     final loop = ForStatement(
       // initializers: _i = 0
-      [indexVariable],
+      [VariableDeclaration(indexVariable)],
       // condition: _i < _length
       InstanceInvocation(
         InstanceAccessKind.Instance,
@@ -170,15 +170,20 @@ class ListFactorySpecializer extends BaseSpecializer {
     )..fileOffset = node.fileOffset;
 
     return BlockExpression(
-      Block([?lengthVariable, listVariable, loop]),
+      Block([
+        if (lengthVariable != null)
+          VariableStatement(VariableDeclaration(lengthVariable!)),
+        VariableStatement(VariableDeclaration(listVariable)),
+        loop,
+      ]),
       VariableGet(listVariable)..fileOffset = node.fileOffset,
     );
   }
 
   Statement _loopBody(
     int constructorFileOffset,
-    VariableDeclaration listVariable,
-    VariableDeclaration indexVariable,
+    Variable listVariable,
+    Variable indexVariable,
     FunctionExpression generator,
   ) {
     final inliner = ListGenerateLoopBodyInliner(
@@ -237,7 +242,7 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// use one JavaScript variable with the source name for 'both' variables.
   String? _listNameFromContext(Expression node) {
     TreeNode? parent = node.parent;
-    if (parent is VariableDeclaration) return parent.name;
+    if (parent is Variable) return parent.name;
     return '_list';
   }
 
@@ -255,10 +260,10 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
 
   /// Offset for the constructor call, used for all nodes that carry the value of the list.
   final int constructorFileOffset;
-  final VariableDeclaration listVariable;
+  final Variable listVariable;
   final FunctionNode function;
-  late final VariableDeclaration argument;
-  late final VariableDeclaration parameter;
+  late final Variable argument;
+  late final Variable parameter;
   int functionNestingLevel = 0;
 
   ListGenerateLoopBodyInliner(
@@ -296,7 +301,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     return false;
   }
 
-  void bind(VariableDeclaration argument) {
+  void bind(Variable argument) {
     // The [argument] is the loop index variable. In the general case this needs
     // to be copied to a variable for the closure parameter as that is a
     // separate location that may be mutated.  In the usual case the closure
@@ -304,7 +309,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     // argument to help dart2js allocate both locations to the same JavaScript
     // variable. The argument is usually named after the closure parameter.
     final closureParameter = function.positionalParameters.single;
-    parameter = VariableDeclaration(
+    parameter = Variable(
       argument.name,
       initializer: VariableGet(argument)..fileOffset = argument.fileOffset,
       type: closureParameter.type,
@@ -316,7 +321,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
 
   Statement run() {
     Statement body = cloneInContext(function.body!);
-    return Block([parameter, body]);
+    return Block([VariableStatement(VariableDeclaration(parameter)), body]);
   }
 
   @override
@@ -376,8 +381,8 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   }
 
   @override
-  VariableDeclaration getVariableClone(VariableDeclaration variable) {
-    VariableDeclaration? clone = super.getVariableClone(variable);
+  Variable getVariableClone(Variable variable) {
+    Variable? clone = super.getVariableClone(variable);
     return clone ?? variable;
   }
 }

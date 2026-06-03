@@ -15,7 +15,7 @@ class StdioAnalysisServer {
   SocketServer socketServer;
 
   /// Initialize a newly created stdio server.
-  StdioAnalysisServer(this.socketServer);
+  new(this.socketServer);
 
   /// Begin serving requests over stdio.
   ///

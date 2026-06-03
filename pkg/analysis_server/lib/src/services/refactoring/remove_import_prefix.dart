@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// The refactoring that removes a prefix from an import directive.
@@ -20,16 +19,13 @@ class RemoveImportPrefix extends RefactoringProducer {
 
   static const String constTitle = 'Remove the prefix from the import';
 
-  RemoveImportPrefix(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;
 
   @override
   CodeActionKind get kind => DartCodeActionKind.refactorRemove;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
 
   @override
   String get title => constTitle;

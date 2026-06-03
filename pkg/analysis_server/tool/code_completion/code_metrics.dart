@@ -101,7 +101,7 @@ class CodeShapeData {
   Set<String> missedChildren = {};
 
   /// Initialize a newly created set of relevance data to be empty.
-  CodeShapeData();
+  new();
 
   /// Record that an element of the given [node] was found in the given
   /// [context].
@@ -163,7 +163,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
-  CodeShapeDataCollector(this.data);
+  new(this.data);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -370,8 +370,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'externalKeyword': node.externalKeyword,
       'constKeyword': node.constKeyword,
       'factoryKeyword': node.factoryKeyword,
-      // TODO(scheglov): support primary constructors
-      'returnType': node.typeName!,
+      'returnType': ?node.typeName,
       'name': node.name,
       'parameters': node.parameters,
       'initializers': node.initializers,
@@ -1271,7 +1270,7 @@ class CodeShapeMetricsComputer {
 
   /// Initialize a newly created metrics computer that can compute the metrics
   /// in one or more files and directories.
-  CodeShapeMetricsComputer();
+  new();
 
   /// Compute the metrics for the file(s) in the [rootPath].
   Future<void> compute(String rootPath) async {

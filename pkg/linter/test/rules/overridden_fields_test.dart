@@ -97,17 +97,14 @@ class B extends A {
   }
 
   test_extendingClass_multipleDeclarations() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int y = 1;
 }
 class B extends A {
-  final x = 1, y = 2;
+  final x = 1, [!y!] = 2;
 }
-''',
-      [lint(60, 1)],
-    );
+''');
   }
 
   test_extendingClass_overridingAbstract() async {
@@ -134,19 +131,16 @@ class B extends A {
   }
 
   test_extendsClass_indirectly() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int x = 0;
 }
 class B extends A {}
 class C extends B {
   @override
-  int x = 1;
+  int [!x!] = 1;
 }
-''',
-      [lint(84, 1)],
-    );
+''');
   }
 
   test_externalLibrary() async {
@@ -155,15 +149,12 @@ class A {
   int? public;
 }
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'a.dart';
 class B extends A {
-  int? public;
+  int? [!public!];
 }
-''',
-      [lint(44, 6)],
-    );
+''');
   }
 
   test_externalLibraryWithPrivateField() async {
@@ -205,18 +196,15 @@ class B implements A {
   }
 
   test_mixingInMixin() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 mixin M {
   int x = 1;
 }
 class A with M {
   @override
-  int x = 2;
+  int [!x!] = 2;
 }
-''',
-      [lint(60, 1)],
-    );
+''');
   }
 
   test_mixingInMixin_overridingAbstract() async {
@@ -324,18 +312,15 @@ class GC34 extends GC33 {
   }
 
   test_mixinSuperclassConstraint() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int x = 1;
 }
 mixin M on A {
   @override
-  final x = 1;
+  final [!x!] = 1;
 }
-''',
-      [lint(60, 1)],
-    );
+''');
   }
 
   test_overridingAbstractField() async {
@@ -352,46 +337,37 @@ class B extends A {
   }
 
   test_privateFieldInSameLibrary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int _x = 0;
 }
 
 class B extends A {
-  int _x = 9;
+  int [!_x!] = 9;
 }
-''',
-      [lint(53, 2)],
-    );
+''');
   }
 
   test_publicFieldFromDeclaringParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int x = 0;
 }
 
-class B(var int x) extends A {}
-''',
-      [lint(42, 1)],
-    );
+class B(var int [!x!]) extends A {}
+''');
   }
 
   test_publicFieldInSameLibrary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   int x = 0;
 }
 
 class B extends A {
-  int x = 9;
+  int [!x!] = 9;
 }
-''',
-      [lint(52, 1)],
-    );
+''');
   }
 
   test_recursiveInterfaceInheritance() async {

@@ -16,7 +16,7 @@ class DartUnitOutlineComputer {
   final ResolvedUnitResult resolvedUnit;
   final bool withBasicFlutter;
 
-  DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false});
+  new(this.resolvedUnit, {this.withBasicFlutter = false});
 
   /// Returns the computed outline, not `null`.
   Outline compute() {
@@ -325,7 +325,7 @@ class DartUnitOutlineComputer {
     ExtensionTypeDeclaration node,
     List<Outline> extensionContents,
   ) {
-    var nameToken = node.primaryConstructor.typeName;
+    var nameToken = node.namePart.typeName;
     var name = nameToken.lexeme;
     var element = Element(
       ElementKind.EXTENSION_TYPE,
@@ -335,9 +335,7 @@ class DartUnitOutlineComputer {
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
-      typeParameters: _getTypeParametersStr(
-        node.primaryConstructor.typeParameters,
-      ),
+      typeParameters: _getTypeParametersStr(node.namePart.typeParameters),
     );
     return _nodeOutline(node, element, extensionContents);
   }
@@ -674,7 +672,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   final DartUnitOutlineComputer outlineComputer;
   final List<Outline> contents;
 
-  _FunctionBodyOutlinesVisitor(this.outlineComputer, this.contents);
+  new(this.outlineComputer, this.contents);
 
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.

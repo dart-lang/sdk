@@ -82,7 +82,11 @@ ProgramInfo toProgramInfo(List<SymbolInfo> symbols,
 
     // Handle stubs specially.
     if (libraryUri == null) {
-      assert(sym.name.isStub);
+      // The UnknownDartCode stub mostly pretends to be function code. This
+      // seems to have originally been for the profiler to deal with collected
+      // code. Is this still worthwhile?
+      assert(
+          sym.name.isStub || sym.name.raw == '[Unoptimized] <optimized out>');
       final node = program.makeNode(
           name: scrubbed, parent: program.stubs, type: NodeType.functionNode);
       assert(node.size == null || sym.name.isTypeTestingStub);

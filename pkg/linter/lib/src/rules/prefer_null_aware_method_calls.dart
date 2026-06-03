@@ -16,7 +16,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer `null`-aware method calls.';
 
 class PreferNullAwareMethodCalls extends AnalysisRule {
-  PreferNullAwareMethodCalls()
+  new()
     : super(name: LintNames.prefer_null_aware_method_calls, description: _desc);
 
   @override
@@ -36,7 +36,7 @@ class PreferNullAwareMethodCalls extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {

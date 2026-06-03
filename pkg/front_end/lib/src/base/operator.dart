@@ -31,7 +31,7 @@ enum Operator {
   final String text;
   final int requiredArgumentCount;
 
-  const Operator(this.text, this.requiredArgumentCount);
+  new(this.text, this.requiredArgumentCount);
 
   static Operator? fromText(String text) {
     // TODO(johnniwinther): Should we have a map instead?

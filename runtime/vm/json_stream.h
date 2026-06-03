@@ -69,6 +69,7 @@ enum JSONRpcErrorCode {
   kFileSystemAlreadyExists = 1001,
   kFileSystemDoesNotExist = 1002,
   kFileDoesNotExist = 1003,
+  kNativeMemoryReadError = 1004,
 };
 
 // Builds on JSONWriter to provide support for serializing various objects

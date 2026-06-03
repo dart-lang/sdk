@@ -40,7 +40,7 @@ bool _onlyLiterals(Expression? rawExpression) {
 }
 
 class LiteralOnlyBooleanExpressions extends AnalysisRule {
-  LiteralOnlyBooleanExpressions()
+  new()
     : super(
         name: LintNames.literal_only_boolean_expressions,
         description: _desc,
@@ -66,7 +66,7 @@ class LiteralOnlyBooleanExpressions extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDoStatement(DoStatement node) {

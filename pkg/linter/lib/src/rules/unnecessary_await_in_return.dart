@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Unnecessary `await` keyword in return.';
 
 class UnnecessaryAwaitInReturn extends AnalysisRule {
-  UnnecessaryAwaitInReturn()
+  new()
     : super(name: LintNames.unnecessary_await_in_return, description: _desc);
 
   @override
@@ -38,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, this.typeSystem);
+  new(this.rule, this.typeSystem);
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {

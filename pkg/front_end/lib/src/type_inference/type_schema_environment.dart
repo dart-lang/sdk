@@ -20,12 +20,11 @@ import 'type_inference_engine.dart';
 import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType;
 
-typedef GeneratedTypeConstraint =
-    shared.GeneratedTypeConstraint<VariableDeclaration>;
+typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<Variable>;
 
 typedef MergedTypeConstraint =
     shared.MergedTypeConstraint<
-      VariableDeclaration,
+      Variable,
       TypeDeclarationType,
       TypeDeclaration,
       TreeNode
@@ -33,7 +32,7 @@ typedef MergedTypeConstraint =
 
 typedef UnknownTypeConstraintOrigin =
     shared.UnknownTypeConstraintOrigin<
-      VariableDeclaration,
+      Variable,
       TypeDeclarationType,
       TypeDeclaration,
       TreeNode
@@ -60,8 +59,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   @override
   final ClassHierarchy hierarchy;
 
-  TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
-    : super(coreTypes, hierarchy);
+  new(CoreTypes coreTypes, this.hierarchy) : super(coreTypes, hierarchy);
 
   // Coverage-ignore(suite): Not run.
   InterfaceType functionRawType(Nullability nullability) {
@@ -318,7 +316,7 @@ class AllTypeParameterEliminator extends Substitution {
   final DartType bottomType;
   final DartType topType;
 
-  AllTypeParameterEliminator(this.bottomType, this.topType);
+  new(this.bottomType, this.topType);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,45 +15,44 @@ main() {
 @reflectiveTest
 class ExtensionDeclaresMemberOfObjectTest extends PubPackageResolutionTest {
   test_instance_differentKind() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   void hashCode() {}
+//     ^^^^^^^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
 }
-''',
-      [error(diag.extensionDeclaresMemberOfObject, 31, 8)],
-    );
+''');
   }
 
   test_instance_sameKind() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   bool operator==(Object _) => false;
+//             ^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
   int get hashCode => 0;
+//        ^^^^^^^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
   String toString() => '';
+//       ^^^^^^^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
   dynamic get runtimeType => null;
+//            ^^^^^^^^^^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
   dynamic noSuchMethod(_) => null;
+//        ^^^^^^^^^^^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
 }
-''',
-      [
-        error(diag.extensionDeclaresMemberOfObject, 39, 2),
-        error(diag.extensionDeclaresMemberOfObject, 72, 8),
-        error(diag.extensionDeclaresMemberOfObject, 96, 8),
-        error(diag.extensionDeclaresMemberOfObject, 128, 11),
-        error(diag.extensionDeclaresMemberOfObject, 159, 12),
-      ],
-    );
+''');
   }
 
   test_static() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on String {
   static void hashCode() {}
+//            ^^^^^^^^
+// [diag.extensionDeclaresMemberOfObject] Extensions can't declare members with the same name as a member declared by 'Object'.
 }
-''',
-      [error(diag.extensionDeclaresMemberOfObject, 38, 8)],
-    );
+''');
   }
 }

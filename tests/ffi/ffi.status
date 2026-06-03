@@ -70,6 +70,7 @@ many_listener_callbacks_test/*: Skip # Test harness doesn't support multitest wi
 native_assets/*: Skip # Source not available in the emulator
 run_isolate_group_run_test: Skip # gen_snapshot requires experimental-shared-data flag
 static_checks/*: SkipByDesign # Expecting compile time failures in multi tests doesn't work on the Fuchsia test runner.
+threading_test: Skip # gen_snapshot requires experimental-shared-data flag
 unaligned_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 vmspecific_enable_ffi_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 vmspecific_function_callbacks_exit_test/*: Skip # Test harness doesn't support multitest with Fuchsia
@@ -79,6 +80,9 @@ vmspecific_pointer_load_il_test: SkipByDesign # Not bloating the Fuchsia test pa
 
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
+
+[ $system != windows ]
+ffi_induce_a_crash_test: SkipByDesign
 
 [ $qemu ]
 function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable

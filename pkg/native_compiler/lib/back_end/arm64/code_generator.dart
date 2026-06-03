@@ -239,7 +239,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       argumentsDescriptorReg,
       argumentsDescriptorReg,
       Immediate(
-        vmOffsets.ArgumentsDescriptor_first_named_entry_offset +
+        vmOffsets.ArgumentsDescriptor_first_named_entry_offset -
+            heapObjectTag +
             vmOffsets.ArgumentsDescriptor_position_offset,
       ),
     );
@@ -482,7 +483,38 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitComparison(Comparison instr) {
-    _asm.unimplemented('Unimplemented: code generation for Comparison');
+    final left = inputReg(instr, 0);
+    final right = instr.right;
+    final result = outputReg(instr);
+    switch (instr.op) {
+      case ComparisonOpcode.equal:
+      case ComparisonOpcode.notEqual:
+      case ComparisonOpcode.intEqual:
+      case ComparisonOpcode.intNotEqual:
+      case ComparisonOpcode.intLess:
+      case ComparisonOpcode.intLessOrEqual:
+      case ComparisonOpcode.intGreater:
+      case ComparisonOpcode.intGreaterOrEqual:
+        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        if (negated) {
+          _asm.cmn(left, operand);
+        } else {
+          _asm.cmp(left, operand);
+        }
+        break;
+      case ComparisonOpcode.intTestIsZero:
+      case ComparisonOpcode.intTestIsNotZero:
+        final operand = _generateLogicalRightOperand(instr, right);
+        _asm.tst(left, operand);
+        break;
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for Comparison ${instr.op}',
+        );
+    }
+    _asm.loadConstant(result, ConstantValue.fromBool(true));
+    _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
+    _asm.csel(result, result, tempReg, instr.op.conditionCode);
   }
 
   @override
@@ -687,7 +719,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   bool _canBeSmi(Definition def) => switch (def) {
     Constant(:var value) => value.isInt && objectLayout.isSmi(value.intValue),
-    _ => def.type is IntType || const IntType().isSubtypeOf(def.type),
+    Definition(:var type) => type.canBeInt,
   };
 
   void _writeBarrier(
@@ -721,12 +753,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     _asm.ldr(
       scratch1Reg,
-      _asm.address(objectReg, vmOffsets.Object_tags_offset, .u8),
+      _asm.address(
+        objectReg,
+        vmOffsets.Object_tags_offset - heapObjectTag,
+        .u8,
+      ),
       .u8,
     );
     _asm.ldr(
       scratch2Reg,
-      _asm.address(valueReg, vmOffsets.Object_tags_offset, .u8),
+      _asm.address(valueReg, vmOffsets.Object_tags_offset - heapObjectTag, .u8),
       .u8,
     );
     _asm.and(
@@ -869,7 +905,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitNullCheck(NullCheck instr) {
-    _asm.unimplemented('Unimplemented: code generation for NullCheck');
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    if (operandReg != resultReg) {
+      _asm.mov(resultReg, operandReg);
+    }
+    final Label slowPath = addSlowPath(() {
+      _asm.callRuntime(RuntimeEntry.NullCastError, 0);
+      _asm.breakpoint();
+    });
+    _asm.cmp(resultReg, nullReg);
+    _asm.b(slowPath, .equal);
   }
 
   int _getNumberOfInputsForSubtypeTestCache(
@@ -986,7 +1032,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _asm.b(done, .equal);
           _asm.ldr(
             TypeTestingStub.dstTypeReg,
-            _asm.address(
+            _asm.fieldAddress(
               typeArgsReg,
               vmOffsets.TypeArguments_types_offset +
                   index * objectLayout.compressedWordSize,
@@ -997,7 +1043,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         }
         _asm.ldr(
           tempReg,
-          _asm.address(
+          _asm.fieldAddress(
             TypeTestingStub.dstTypeReg,
             vmOffsets.AbstractType_type_test_stub_entry_point_offset,
           ),
@@ -1137,7 +1183,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeArguments');
+    _asm.loadConstant(
+      InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
+      ConstantValue(TypeArgumentsConstant(instr.types)),
+    );
+    _asm.callVmStub(StubCode.InstantiateTypeArguments);
   }
 
   @override
@@ -1161,7 +1211,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.b(done, .equal);
       _asm.ldr(
         resultReg,
-        _asm.address(
+        _asm.fieldAddress(
           typeArgsReg,
           vmOffsets.TypeArguments_types_offset +
               index * objectLayout.compressedWordSize,
@@ -1247,37 +1297,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitAllocateClosure(AllocateClosure instr) {
     final function = instr.function;
-    final hasDelayedTypeArgs = function.hasFunctionTypeParameters;
-    final hasInstantiatorTypeArgs = switch (function) {
-      LocalFunction() => containsClassTypeParameters(
-        function.functionNode!.computeFunctionType(ast.Nullability.nonNullable),
-      ),
-      TearOffFunction() =>
-        function.member.isInstanceMember &&
-            containsClassTypeParameters(
-              function.member.function!.computeFunctionType(
-                ast.Nullability.nonNullable,
-              ),
-            ),
-    };
-    final hasFunctionTypeArgs = switch (function) {
-      LocalFunction() => hasGenericEnclosingFunction(function.localFunction),
-      TearOffFunction() => false,
-    };
-    final numElements =
-        (hasDelayedTypeArgs ? 1 : 0) +
-        (hasInstantiatorTypeArgs ? 1 : 0) +
-        (hasFunctionTypeArgs ? 1 : 0) +
-        1 /* context */;
+    final closureLayout = instr.closureLayout;
     final lengthAndFlags = vmOffsets.encodeClosureLengthAndFlags(
-      numElements,
-      hasDelayedTypeArgs: hasDelayedTypeArgs,
-      hasInstantiatorTypeArgs: hasInstantiatorTypeArgs,
-      hasFunctionTypeArgs: hasFunctionTypeArgs,
+      closureLayout.length,
+      hasDelayedTypeArgs: closureLayout.hasDelayedTypeArgs,
+      hasInstantiatorTypeArgs: closureLayout.hasClassTypeArgs,
+      hasFunctionTypeArgs: closureLayout.hasFunctionTypeArgs,
     );
     final instanceSize = roundUp(
       vmOffsets.Closure_elementsStartOffset +
-          numElements * objectLayout.compressedWordSize,
+          closureLayout.length * objectLayout.compressedWordSize,
       objectAlignment(wordSize),
     );
 
@@ -1321,8 +1350,51 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(resultReg, vmOffsets.Closure_length_and_flags_offset),
     );
     _asm.str(ZR, _asm.fieldAddress(resultReg, vmOffsets.Closure_hash_offset));
-    // TODO: initialize the rest of the fields.
-    assert(instr.inputCount == 0);
+    // TODO: initialize delayed type arguments.
+    _asm.bind(done);
+  }
+
+  @override
+  void visitAllocateContext(AllocateContext instr) {
+    final instanceSize = roundUp(
+      vmOffsets.Context_elementsStartOffset +
+          instr.length * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateContext slow path',
+      );
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      AllocationStub.tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.ContextCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: true,
+    );
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadImmediate(fieldReg, instr.length);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Context_num_variables_offset),
+    );
     _asm.bind(done);
   }
 
@@ -1399,6 +1471,50 @@ final class Arm64CodeGenerator extends CodeGenerator {
         valueCanBeSmi: _canBeSmi(instr.value),
       );
     }
+  }
+
+  @override
+  void visitAllocateRecord(AllocateRecord instr) {
+    final instanceSize = roundUp(
+      vmOffsets.Record_elementsStartOffset +
+          instr.type.numFields * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateRecord slow path',
+      );
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      AllocationStub.tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.RecordCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: true,
+    );
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadFromPool(fieldReg, instr.type.shape);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Record_shape_offset),
+    );
+    _asm.bind(done);
   }
 
   @override
@@ -1629,9 +1745,21 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
-    );
+    final operandReg = inputReg(instr, 0);
+    switch (instr.op) {
+      case .neg:
+        _asm.neg(outputReg(instr), operandReg);
+        break;
+      case .bitNot:
+        _asm.mvn(outputReg(instr), operandReg);
+        break;
+      case .toDouble:
+        _asm.scvtf(outputFPReg(instr), operandReg);
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
+        );
+    }
   }
 
   @override
@@ -1650,9 +1778,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitUnaryBoolOp(UnaryBoolOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for UnaryBoolOp ${instr.op.token}',
-    );
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    switch (instr.op) {
+      case .not:
+        final boolValueBit = boolValueBitPosition(log2wordSize);
+        _asm.eor(resultReg, operandReg, Immediate(1 << boolValueBit));
+        break;
+    }
   }
 
   @override
@@ -1773,6 +1906,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
           case Register():
             _asm.ldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
             return;
+          case FPRegister():
+            _asm.fldr(to, _asm.address(FP, stackFrame.offsetFromFP(from)));
+            return;
+          default:
+            break;
+        }
+      case FPRegister():
+        switch (to) {
+          case StackLocation():
+            _asm.fstr(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
+            return;
           default:
             break;
         }
@@ -1786,13 +1930,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void generateLoadConstant(ConstantValue value, Location to) {
-    if (to is Register) {
-      _asm.loadConstant(to, value);
-      return;
+    switch (to) {
+      case Register():
+        _asm.loadConstant(to, value);
+        return;
+      case FPRegister():
+        assert(value.isDouble && value.isUnboxed);
+        _asm.loadDoubleImmediate(to, value.doubleValue);
+        return;
+      case StackLocation():
+        _asm.loadConstant(tempReg, value);
+        _asm.str(tempReg, _asm.address(FP, stackFrame.offsetFromFP(to)));
+        return;
     }
-    _asm.unimplemented(
-      'Unimplemented: code generation for generateLoadConstant',
-    );
   }
 }
 

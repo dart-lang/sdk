@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FunctionTest extends PubPackageResolutionTest {
   test_genericFunction_upwards() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
@@ -24,7 +25,7 @@ f() {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -55,18 +56,17 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_missingRequiredArgument() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>({required T x, required T y}) {}
 
 f() {
   foo(x: 1);
+//^^^
+// [diag.missingRequiredArgument] The named parameter 'y' is required, but there's no corresponding argument.
 }
-''',
-      [error(diag.missingRequiredArgument, 54, 3)],
-    );
+''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -94,18 +94,17 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_notEnoughPositionalArguments() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1);
+//     ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'foo', but 1 found.
 }
-''',
-      [error(diag.notEnoughPositionalArgumentsNamePlural, 39, 1)],
-    );
+''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -130,18 +129,17 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_tooManyPositionalArguments() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1, 2, 3);
+//          ^
+// [diag.extraPositionalArguments] Too many positional arguments: 2 expected, but 3 found.
 }
-''',
-      [error(diag.extraPositionalArguments, 44, 1)],
-    );
+''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -176,18 +174,17 @@ MethodInvocation
   }
 
   test_genericFunction_upwards_undefinedNamedParameter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void foo<T>(T x, T y) {}
 
 f() {
   foo(1, 2, z: 3);
+//          ^
+// [diag.undefinedNamedParameter] The named parameter 'z' isn't defined.
 }
-''',
-      [error(diag.undefinedNamedParameter, 44, 1)],
-    );
+''');
 
-    var node = findNode.methodInvocation('foo(');
+    var node = result.findNode.methodInvocation('foo(');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

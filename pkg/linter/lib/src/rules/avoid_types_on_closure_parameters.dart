@@ -17,7 +17,7 @@ import '../extensions.dart';
 const _desc = r'Avoid annotating types for function expression parameters.';
 
 class AvoidTypesOnClosureParameters extends AnalysisRule {
-  AvoidTypesOnClosureParameters()
+  new()
     : super(
         name: LintNames.avoid_types_on_closure_parameters,
         description: _desc,
@@ -42,7 +42,7 @@ class AvoidTypesOnClosureParameters extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {

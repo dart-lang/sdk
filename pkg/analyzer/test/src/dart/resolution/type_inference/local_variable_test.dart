@@ -5,47 +5,51 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalVariableTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LocalVariableTest extends PubPackageResolutionTest {
   test_int() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   var v = 0;
   v;
 }
 ''');
-    _assertTypeOfV('int');
+    _assertTypeOfV(result, 'int');
   }
 
   test_Never() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f(Never a) {
   var v = a;
   v;
+//^^
+// [diag.deadCode] Dead code.
 }
 ''');
-    _assertTypeOfV('Never');
+    _assertTypeOfV(result, 'Never');
   }
 
   test_null() async {
-    await resolveTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   var v = null;
   v;
 }
 ''');
-    _assertTypeOfV('dynamic');
+    _assertTypeOfV(result, 'dynamic');
   }
 
-  void _assertTypeOfV(String expected) {
-    assertType(findElement2.localVar('v').type, expected);
-    assertType(findNode.simple('v;'), expected);
+  void _assertTypeOfV(TestResolvedUnitResult result, String expected) {
+    assertType(result.findElement.localVar('v').type, expected);
+    assertType(result.findNode.simple('v;'), expected);
   }
 }

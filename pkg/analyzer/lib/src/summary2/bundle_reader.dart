@@ -1432,6 +1432,18 @@ class LibraryReader {
         variable.setter = setter;
         setter.variable = variable;
       }
+
+      for (var variableFragment in variable.internal.fragments) {
+        var getterFragment = _readOptionalFragmentById() as GetterFragmentImpl?;
+        if (getterFragment != null) {
+          variableFragment.inducedGetter = getterFragment;
+        }
+
+        var setterFragment = _readOptionalFragmentById() as SetterFragmentImpl?;
+        if (setterFragment != null) {
+          variableFragment.inducedSetter = setterFragment;
+        }
+      }
     });
   }
 

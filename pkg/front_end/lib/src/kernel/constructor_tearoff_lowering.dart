@@ -9,6 +9,7 @@ import 'package:kernel/type_algebra.dart';
 import '../builder/library_builder.dart';
 import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart';
+import 'external_ast_helper.dart' as extern;
 import 'kernel_helper.dart';
 
 // TODO(johnniwinther): move all lowering predicates to `package:kernel`.
@@ -316,19 +317,18 @@ Procedure _createTearOffProcedure(
   int fileOffset,
   Reference? reference,
 ) {
-  Procedure tearOff =
-      new Procedure(
-          dummyName,
-          ProcedureKind.Method,
-          new FunctionNode(null),
-          fileUri: fileUri,
-          isStatic: true,
-          isSynthetic: true,
-          reference: reference,
-        )
-        ..fileStartOffset = fileOffset
-        ..fileOffset = fileOffset
-        ..fileEndOffset = fileOffset;
+  Procedure tearOff = extern.createProcedure(
+    dummyName,
+    ProcedureKind.Method,
+    extern.createFunctionNode(null, fileOffset: fileOffset),
+    fileUri: fileUri,
+    isStatic: true,
+    isSynthetic: true,
+    reference: reference,
+    fileStartOffset: fileOffset,
+    fileOffset: fileOffset,
+    fileEndOffset: fileOffset,
+  );
   tearOffName.attachMember(tearOff);
   return tearOff;
 }
@@ -363,15 +363,11 @@ DelayedDefaultValueCloner _createParameters(
   Substitution substitution,
   SourceLibraryBuilder libraryBuilder,
 ) {
-  bool isClosureContextLoweringEnabled = libraryBuilder
-      .loader
-      .target
-      .backendTarget
-      .flags
-      .isClosureContextLoweringEnabled;
+  bool isClosureContextLoweringEnabled =
+      libraryBuilder.loader.isClosureContextLoweringEnabled;
 
-  VariableDeclaration createTearOffParameter(
-    VariableDeclaration constructorParameter, {
+  Variable createTearOffParameter(
+    Variable constructorParameter, {
     required bool isPositional,
   }) {
     DartType tearOffParameterType = substitution.substituteType(
@@ -392,25 +388,25 @@ DelayedDefaultValueCloner _createParameters(
         )..fileOffset = constructorParameter.fileOffset;
       }
     } else {
-      return new VariableDeclaration(
+      return extern.createParameterVariable(
         constructorParameter.name,
         type: substitution.substituteType(constructorParameter.type),
         isRequired: !isPositional && constructorParameter.isRequired,
-      )..fileOffset = constructorParameter.fileOffset;
+        fileOffset: constructorParameter.fileOffset,
+      );
     }
   }
 
-  for (VariableDeclaration constructorParameter
-      in function.positionalParameters) {
-    VariableDeclaration tearOffParameter = createTearOffParameter(
+  for (Variable constructorParameter in function.positionalParameters) {
+    Variable tearOffParameter = createTearOffParameter(
       constructorParameter,
       isPositional: true,
     );
     tearOff.function.positionalParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }
-  for (VariableDeclaration constructorParameter in function.namedParameters) {
-    VariableDeclaration tearOffParameter = createTearOffParameter(
+  for (Variable constructorParameter in function.namedParameters) {
+    Variable tearOffParameter = createTearOffParameter(
       constructorParameter,
       isPositional: false,
     );
@@ -446,27 +442,26 @@ Arguments _createArguments(
   int fileOffset,
 ) {
   List<Expression> positionalArguments = [];
-  for (VariableDeclaration tearOffParameter
-      in tearOff.function.positionalParameters) {
+  for (Variable tearOffParameter in tearOff.function.positionalParameters) {
     positionalArguments.add(
-      new VariableGet(tearOffParameter)..fileOffset = fileOffset,
+      extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
     );
   }
   List<NamedExpression> namedArguments = [];
-  for (VariableDeclaration tearOffParameter
-      in tearOff.function.namedParameters) {
+  for (Variable tearOffParameter in tearOff.function.namedParameters) {
     namedArguments.add(
-      new NamedExpression(
+      extern.createNamedExpression(
         tearOffParameter.name!,
-        new VariableGet(tearOffParameter)..fileOffset = fileOffset,
-      )..fileOffset = fileOffset,
+        extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
+      ),
     );
   }
-  Arguments arguments = new Arguments(
+  Arguments arguments = extern.createArguments(
     positionalArguments,
     named: namedArguments,
     types: typeArguments,
-  )..fileOffset = tearOff.fileOffset;
+    fileOffset: tearOff.fileOffset,
+  );
   return arguments;
 }
 
@@ -480,14 +475,20 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
   );
   Expression constructorInvocation;
   if (target is Constructor) {
-    constructorInvocation = new ConstructorInvocation(target, arguments)
-      ..fileOffset = tearOff.fileOffset;
+    constructorInvocation = extern.createConstructorInvocation(
+      target,
+      arguments,
+      fileOffset: tearOff.fileOffset,
+    );
   } else {
-    constructorInvocation = new StaticInvocation(target as Procedure, arguments)
-      ..fileOffset = tearOff.fileOffset;
+    constructorInvocation = extern.createStaticInvocation(
+      target as Procedure,
+      arguments,
+      fileOffset: tearOff.fileOffset,
+    );
   }
   tearOff.function.registerFunctionBody(
-    new ReturnStatement(constructorInvocation)..fileOffset = tearOff.fileOffset,
+    extern.createReturnStatement(constructorInvocation),
   );
 }
 
@@ -497,11 +498,7 @@ class LoweredTypedefTearOff {
   Expression targetTearOff;
   List<DartType> typeArguments;
 
-  LoweredTypedefTearOff(
-    this.typedefTearOff,
-    this.targetTearOff,
-    this.typeArguments,
-  );
+  new(this.typedefTearOff, this.targetTearOff, this.typeArguments);
 
   /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
   /// [expression] is the encoding of a lowered typedef tear off.
@@ -537,9 +534,15 @@ class LoweredTypedefTearOff {
           if (target is Constructor ||
               target is Procedure && target.isFactory) {
             // Coverage-ignore-block(suite): Not run.
-            targetTearOff = new ConstructorTearOff(target!);
+            targetTearOff = extern.createConstructorTearOff(
+              target!,
+              fileOffset: expression.fileOffset,
+            );
           } else {
-            targetTearOff = new StaticTearOff(target as Procedure);
+            targetTearOff = extern.createStaticTearOff(
+              target as Procedure,
+              fileOffset: expression.fileOffset,
+            );
           }
           return new LoweredTypedefTearOff(
             typedefTearOff,

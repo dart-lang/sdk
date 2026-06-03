@@ -146,7 +146,7 @@ Future<void> testDart2jsCompile() async {
 }
 
 class Strategy extends EquivalenceStrategy {
-  const Strategy();
+  const new();
 
   @override
   bool checkClass_procedures(

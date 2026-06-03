@@ -364,7 +364,7 @@ ConstantPool {
   [2] = Type dart:core::Map < DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::D::TypeParam/0, DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::D::TypeParam/1 >
   [3] = ObjectRef ''
   [4] = SubtypeTestCache
-  [5] = DirectCall 'dart:core::_GrowableList::_literal1 (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [5] = DirectCall 'dart:core::_GrowableList::_literal1 (constructor)', ArgDesc num-args 1, num-type-args 1, names []
   [6] = Reserved
   [7] = InterfaceCall 'dart:core::List::[]', ArgDesc num-args 2, num-type-args 0, names []
   [8] = Reserved
@@ -403,23 +403,28 @@ Function '', factory, static, reflectable, debuggable
     return-type DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E < DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E:: (constructor)::TypeParam/0 >
 
 Bytecode {
-  Entry                1
-  CheckStack           0
-  Push                 FP[-5]
+  Entry                2
+  CheckFunctionTypeArgs 1, r0
+  JumpIfNotZeroTypeArgs L1
   PushConstant         CP#0
-  AllocateT
-  StoreLocal           r0
+  PopLocal             r0
+L1:
+  CheckStack           0
   Push                 r0
-  DirectCall           CP#1, 1
+  PushConstant         CP#1
+  AllocateT
+  StoreLocal           r1
+  Push                 r1
+  DirectCall           CP#2, 1
   Drop1
   ReturnTOS
 }
-Default function type arguments: CP#3
+Default function type arguments: CP#0
 ConstantPool {
-  [0] = Class DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E
-  [1] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E::_ (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [2] = Reserved
-  [3] = ObjectRef < dart:core::String >
+  [0] = ObjectRef < dart:core::String >
+  [1] = Class DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E
+  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::E::_ (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 
 

@@ -29,6 +29,12 @@ import("../executable_suffix.gni")
 #   Runs the binary built for runtime/bin:gen_snapshot using the host
 #   toolchain. It should only be used when an artifact agreeing exactly
 #   with the version of the Dart VM being built must be produced.
+#
+# - dartaotruntime_action()
+#   Runs the binary built for runtime/bin:dartaotruntime using the host
+#   toolchain. It should only be used to run AOT snapshots produced by
+#   gen_snapshot_action() when an artifact agreeing exactly with the version
+#   of the Dart VM being built must be produced.
 
 # This assigns _dart_root the GN absolute path of the Dart repo. For example,
 # in a Dart checkout, this will be "//". In a client repo it might be
@@ -46,17 +52,15 @@ template("_compiled_action") {
   assert(defined(invoker.args), "args must be defined for $target_name")
 
   action(target_name) {
-    if (defined(invoker.visibility)) {
-      visibility = invoker.visibility
-    }
-
-    if (defined(invoker.testonly)) {
-      testonly = invoker.testonly
-    }
-
-    if (defined(invoker.pool)) {
-      pool = invoker.pool
-    }
+    forward_variables_from(invoker,
+                           [
+                             "depfile",
+                             "mnemonic",
+                             "outputs",
+                             "pool",
+                             "testonly",
+                             "visibility",
+                           ])
 
     script = "$_dart_root/build/gn_run_binary.py"
 
@@ -65,7 +69,6 @@ template("_compiled_action") {
     } else {
       inputs = []
     }
-    outputs = invoker.outputs
 
     # Construct the host toolchain version of the tool.
     host_tool = invoker.tool + "($host_toolchain)"
@@ -84,10 +87,6 @@ template("_compiled_action") {
     deps = [ host_tool ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
-    }
-
-    if (defined(invoker.depfile)) {
-      depfile = invoker.depfile
     }
 
     # The "compiled_action" argument to gn_run_binary.py indicates that
@@ -125,6 +124,7 @@ template("_prebuilt_tool_action") {
                            [
                              "depfile",
                              "deps",
+                             "mnemonic",
                              "outputs",
                              "pool",
                              "testonly",
@@ -297,10 +297,11 @@ template("_built_tool_action") {
                              "deps",
                              "inputs",
                              "metadata",
+                             "mnemonic",
                              "outputs",
                              "pool",
-                             "tool",
                              "testonly",
+                             "tool",
                              "visibility",
                            ])
 
@@ -362,6 +363,7 @@ template("dart_action") {
                              "depfile",
                              "deps",
                              "inputs",
+                             "mnemonic",
                              "metadata",
                              "outputs",
                              "packages",
@@ -383,6 +385,50 @@ template("dart_action") {
       }
       deps += [ "$_dart_root/utils/kernel-service" ]
     }
+  }
+}
+
+# This template runs the dartaotruntime produced by the in-progress build.
+# It should only be used when an artifact agreeing exactly with the version
+# of the Dart VM being built must be produced.
+#
+# Parameters:
+#  script:
+#    The un-rebased path to the Dart AOT snapshot.
+#
+#  vm_args (optional):
+#    Arguments to pass to the Dart VM.
+#
+#  args (optional):
+#    The arguments to pass to the Dart script.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    metadata
+#    outputs
+#    testonly
+#    visibility
+template("dartaotruntime_action") {
+  assert(defined(invoker.script), "script must be defined for $target_name")
+  _built_tool_action(target_name) {
+    tool = "$_dart_root/runtime/bin:dartaotruntime"
+    forward_variables_from(invoker,
+                           [
+                             "args",
+                             "depfile",
+                             "deps",
+                             "inputs",
+                             "metadata",
+                             "outputs",
+                             "pool",
+                             "script",
+                             "testonly",
+                             "tool",
+                             "visibility",
+                             "vm_args",
+                           ])
   }
 }
 
@@ -418,6 +464,7 @@ template("gen_snapshot_action") {
       !defined(invoker.script),
       "script must not be defined for $target_name. If there is a script use args instead.")
   _built_tool_action(target_name) {
+    mnemonic = "GEN_SNAPSHOT"
     if (product_mode) {
       tool = "$_dart_root/runtime/bin:gen_snapshot_product"
     } else {

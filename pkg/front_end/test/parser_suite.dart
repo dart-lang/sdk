@@ -109,7 +109,7 @@ class Context extends ChainContext with MatchContext {
   final SuiteFolderOptions folderOptions;
 
   final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
-  Context({
+  new({
     required Uri baseUri,
     required this.suiteName,
     required this.updateExpectations,
@@ -136,7 +136,7 @@ class Context extends ChainContext with MatchContext {
 }
 
 class ContextChecksOnly extends Context {
-  ContextChecksOnly({
+  new({
     required Uri baseUri,
     required String suiteName,
     required Map<String, String> environment,
@@ -163,7 +163,7 @@ class ContextChecksOnly extends Context {
 
 class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
   final bool enablePossibleExpectFile;
-  const ParserAstStep(this.enablePossibleExpectFile);
+  const new(this.enablePossibleExpectFile);
 
   @override
   String get name => "ParserAst";
@@ -223,7 +223,7 @@ class ExtractSomeMembers extends RecursiveParserAstVisitor {
 class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   final bool doExpects;
 
-  const ListenerStep(this.doExpects);
+  const new(this.doExpects);
 
   @override
   String get name => "listener";
@@ -309,7 +309,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 }
 
 class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
-  const IntertwinedStep();
+  const new();
 
   @override
   String get name => "intertwined";
@@ -368,7 +368,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
   final bool onlyScanner;
   final String suffix;
 
-  const TokenStep(this.onlyScanner, this.suffix);
+  const new(this.onlyScanner, this.suffix);
 
   @override
   String get name => "token";
@@ -576,12 +576,8 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   final List<String> errors = <String>[];
   Location? latestSeenLocation;
 
-  ParserTestListenerWithMessageFormatting(
-    bool trace,
-    this.annotateLines,
-    this.source,
-    this.shortName,
-  ) : super(trace);
+  new(bool trace, this.annotateLines, this.source, this.shortName)
+    : super(trace);
 
   @override
   void doPrint(String s) {
@@ -681,11 +677,8 @@ class ParserTestListenerForIntertwined
     extends ParserTestListenerWithMessageFormatting {
   late TestParser parser;
 
-  ParserTestListenerForIntertwined(
-    bool trace,
-    bool annotateLines,
-    Source source,
-  ) : super(trace, annotateLines, source, null);
+  new(bool trace, bool annotateLines, Source source)
+    : super(trace, annotateLines, source, null);
 
   @override
   void doPrint(String s) {

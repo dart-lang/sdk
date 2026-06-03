@@ -14,7 +14,7 @@ class MoreTypedStreamController<T, ListenData, PauseData> {
   /// There is no static guarantee that [onPause] will not be invoked twice.
   ///
   /// Internally the wrapper is not safe, and uses explicit null checks.
-  factory MoreTypedStreamController({
+  factory({
     required ListenData Function(StreamController<T>) onListen,
     PauseData Function(ListenData)? onPause,
     void Function(ListenData, PauseData)? onResume,
@@ -54,5 +54,5 @@ class MoreTypedStreamController<T, ListenData, PauseData> {
     return MoreTypedStreamController._(controller);
   }
 
-  MoreTypedStreamController._(this.controller);
+  new _(this.controller);
 }

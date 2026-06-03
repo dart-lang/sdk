@@ -45,7 +45,7 @@ class ExhaustivenessResult {
   final Set<int> unreachableCases;
   final NonExhaustiveness? nonExhaustiveness;
 
-  ExhaustivenessResult(
+  new(
     this.scrutineeType,
     this.caseSpaces,
     this.caseOffsets,
@@ -58,7 +58,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   final TypeEnvironment _typeEnvironment;
   final Library _enclosingLibrary;
 
-  CfeTypeOperations(this._typeEnvironment, this._enclosingLibrary);
+  new(this._typeEnvironment, this._enclosingLibrary);
 
   ClassHierarchy get _classHierarchy => _typeEnvironment.hierarchy;
 
@@ -396,7 +396,7 @@ class EnumValue {
   final Class enumClass;
   final String name;
 
-  EnumValue(this.enumClass, this.name);
+  new(this.enumClass, this.name);
 
   @override
   int get hashCode => Object.hash(enumClass, name);
@@ -438,7 +438,7 @@ class CfeEnumOperations
     implements EnumOperations<DartType, Class, Field, EnumValue> {
   final ConstantEvaluator _constantEvaluator;
 
-  CfeEnumOperations(this._constantEvaluator);
+  new(this._constantEvaluator);
 
   @override
   Class? getEnumClass(DartType type) {
@@ -490,7 +490,7 @@ class CfeSealedClassOperations
     implements SealedClassOperations<DartType, Class> {
   final TypeEnvironment _typeEnvironment;
 
-  CfeSealedClassOperations(this._typeEnvironment);
+  new(this._typeEnvironment);
 
   @override
   List<Class> getDirectSubclasses(Class sealedClass) {
@@ -606,10 +606,8 @@ class CfeExhaustivenessCache
     extends ExhaustivenessCache<DartType, Class, Class, Field, EnumValue> {
   final TypeEnvironment typeEnvironment;
 
-  CfeExhaustivenessCache(
-    ConstantEvaluator constantEvaluator,
-    Library enclosingLibrary,
-  ) : typeEnvironment = constantEvaluator.typeEnvironment,
+  new(ConstantEvaluator constantEvaluator, Library enclosingLibrary)
+    : typeEnvironment = constantEvaluator.typeEnvironment,
       super(
         new CfeTypeOperations(
           constantEvaluator.typeEnvironment,
@@ -626,7 +624,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   final StaticTypeContext context;
   final bool Function(Constant) hasPrimitiveEquality;
 
-  PatternConverter(
+  new(
     this.languageVersion,
     this.cache,
     this.context, {
@@ -909,7 +907,7 @@ bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {
 class ExhaustiveDartTypeVisitor
     with DartTypeVisitor1ExperimentExclusionMixin<bool, CoreTypes>
     implements DartTypeVisitor1<bool, CoreTypes> {
-  const ExhaustiveDartTypeVisitor();
+  const new();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
@@ -1016,7 +1014,7 @@ class ExhaustiveDartTypeVisitor
 }
 
 class TypeParameterReplacer extends ReplacementVisitor {
-  const TypeParameterReplacer();
+  const new();
 
   @override
   DartType? visitTypeParameterType(TypeParameterType node, Variance variance) {

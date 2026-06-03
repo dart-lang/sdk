@@ -17,7 +17,7 @@ class Analysis_UpdateContent extends ServerOperation {
 
   /// Initialize an operation to send an 'analysis.updateContent' request with
   /// the given [filePath] and [overlay] as parameters.
-  Analysis_UpdateContent(this.filePath, this.overlay);
+  new(this.filePath, this.overlay);
 
   @override
   void perform(Server server) {

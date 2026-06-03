@@ -63,5 +63,5 @@ class _Data {
   final int visits;
   final int active;
 
-  _Data(this.name, this.combinedRuntime, this.visits, this.active);
+  new(this.name, this.combinedRuntime, this.visits, this.active);
 }

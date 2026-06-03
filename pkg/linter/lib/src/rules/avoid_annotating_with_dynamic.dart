@@ -17,7 +17,7 @@ import '../extensions.dart';
 const _desc = r'Avoid annotating with `dynamic` when not required.';
 
 class AvoidAnnotatingWithDynamic extends AnalysisRule {
-  AvoidAnnotatingWithDynamic()
+  new()
     : super(name: LintNames.avoid_annotating_with_dynamic, description: _desc);
 
   @override
@@ -38,7 +38,7 @@ class AvoidAnnotatingWithDynamic extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {

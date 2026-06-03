@@ -196,6 +196,17 @@
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json"
+    ],
+    "fuchsia": [
+      ".dart_tool/package_config.json",
+      "build/fuchsia/",
+      "out/ReleaseFuchsiaARM64/gen/dart_test/",
+      "pkg/",
+      "samples/",
+      "tests/",
+      "third_party/fuchsia/",
+      "third_party/pkg/",
+      "tools/"
     ]
   },
   "configurations": {
@@ -825,9 +836,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dartaotruntime",
-            "--os=android"
+            "--os=android",
+            "android_bot"
           ]
         },
         {
@@ -858,8 +868,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "--os=android"
+            "--os=android",
+            "android_bot"
           ]
         },
         {
@@ -869,7 +879,7 @@
             "ffi"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 2
         }
       ]
     },
@@ -980,25 +990,21 @@
           ]
         },
         {
-          "name": "vm unit tests",
+          "name": "vm aot ffi tests",
           "arguments": [
-            "-nvm-linux-${mode}-arm-qemu",
-            "vm/cc"
+            "-nvm-aot-linux-${mode}-arm-qemu",
+            "ffi"
           ]
         },
         {
           "name": "vm jit ffi tests",
           "arguments": [
             "-nvm-linux-${mode}-arm-qemu",
+            "vm/cc",
             "ffi"
-          ]
-        },
-        {
-          "name": "vm aot ffi tests",
-          "arguments": [
-            "-nvm-aot-linux-${mode}-arm-qemu",
-            "ffi"
-          ]
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -1020,25 +1026,21 @@
           ]
         },
         {
-          "name": "vm unit tests",
+          "name": "vm aot ffi tests",
           "arguments": [
-            "-nvm-linux-${mode}-riscv64-qemu",
-            "vm/cc"
+            "-nvm-aot-linux-${mode}-riscv64-qemu",
+            "ffi"
           ]
         },
         {
           "name": "vm jit ffi tests",
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
+            "vm/cc",
             "ffi"
-          ]
-        },
-        {
-          "name": "vm aot ffi tests",
-          "arguments": [
-            "-nvm-aot-linux-${mode}-riscv64-qemu",
-            "ffi"
-          ]
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -1057,7 +1059,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--codesigning-identity=-",
             "--include-experimental-vm-service",
             "runtime"
           ]
@@ -1088,9 +1089,16 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--codesigning-identity=-",
             "--include-experimental-vm-service",
             "runtime"
+          ]
+        },
+        {
+          "name": "build iOS shared library",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=ios",
+            "runtime:dart_jit_library"
           ]
         },
         {
@@ -1103,15 +1111,6 @@
           ],
           "fileset": "vm",
           "shards": 16
-        },
-        {
-          "name": "build iOS shared library",
-          "script": "tools/build.py",
-          "arguments": [
-            "--codesigning-identity=-",
-            "--os=ios",
-            "runtime:dart_jit_library"
-          ]
         }
       ]
     },
@@ -1138,7 +1137,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--codesigning-identity=-",
             "runtime"
           ]
         },
@@ -1169,7 +1167,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--codesigning-identity=-",
             "--include-experimental-vm-service",
             "runtime",
             "dartaotruntime"
@@ -1211,7 +1208,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1326,7 +1322,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--dart-dynamic-modules",
-            "--codesigning-identity=-",
             "runtime",
             "utils/dart2bytecode",
             "utils/modular_aot_compiler"
@@ -1336,6 +1331,7 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-modaot-${system}-${mode}-${arch}",
+            "corelib",
             "language"
           ],
           "fileset": "vm",
@@ -1482,7 +1478,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--dart-dynamic-modules",
-            "--codesigning-identity=-",
             "runtime",
             "runtime_precompiled",
             "utils/gen_kernel"
@@ -1524,7 +1519,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--sanitizer=none,${sanitizer}",
             "runtime",
             "runtime_precompiled"
           ]
@@ -1607,8 +1601,18 @@
           "arguments": [
             "--mode=debug",
             "--no-clang",
-            "runtime",
-            "runtime_precompiled"
+            "dart",
+            "dartvm",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "build dart debug - split to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--no-clang",
+            "create_sdk"
           ]
         },
         {
@@ -1617,18 +1621,18 @@
           "arguments": [
             "--mode=release",
             "--no-clang",
-            "runtime",
-            "runtime_precompiled"
+            "dart",
+            "dartvm",
+            "dartaotruntime"
           ]
         },
         {
-          "name": "build dart product",
+          "name": "build dart release - split to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=product",
+            "--mode=release",
             "--no-clang",
-            "runtime",
-            "runtime_precompiled"
+            "create_sdk"
           ]
         }
       ]
@@ -1687,11 +1691,11 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime"
+            "fuchsia_test_package"
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
             "-j8",
@@ -1699,7 +1703,7 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
             "-j8",
@@ -1721,19 +1725,21 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime"
+            "fuchsia_test_package"
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
             "-j1",
             "ffi"
-          ]
+          ],
+          "fileset": "fuchsia",
+          "shards": 3
         },
         {
-          "name": "vm tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
             "-j1",
@@ -2783,6 +2789,39 @@
     },
     {
       "builders": [
+        "dart2wasm-mac-safari"
+      ],
+      "meta": {
+        "description": "dart2wasm tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=arm64",
+            "runtime",
+            "dart2wasm",
+            "create_sdk",
+            "dartaotruntime"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "--arch=arm64",
+            "-ndart2wasm-${system}-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2wasm-asserts-minified-linux-d8"
       ],
       "meta": {
@@ -2932,7 +2971,7 @@
           "name": "unit tests",
           "arguments": [
             "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/(analyzer|analysis_server|analysis_server_plugin|analyzer_cli|analyzer_plugin|api_summary)"
+            "pkg/(analyzer|analysis_server|analysis_server_plugin|analyzer_cli|analyzer_plugin)"
           ],
           "shards": 9,
           "fileset": "analyzer_unit_tests"
@@ -3016,13 +3055,6 @@
           ]
         },
         {
-          "name": "api_summary unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/api_summary"
-          ]
-        },
-        {
           "name": "benchmark analysis server",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -3102,7 +3134,8 @@
           "arguments": [
             "create_sdk",
             "dartanalyzer",
-            "ddc_stable_test"
+            "ddc_stable_test",
+            "dartpad"
           ]
         },
         {
@@ -3230,7 +3263,8 @@
           "arguments": [
             "create_sdk",
             "dartanalyzer",
-            "ddc_stable_test"
+            "ddc_stable_test",
+            "dartpad"
           ]
         },
         {
@@ -3477,10 +3511,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=x64,x64c",
-            "runtime",
-            "dartaotruntime",
-            "dart2js_platform.dill",
-            "dart2wasm_platform.dill"
+            "dartfuzz"
           ]
         },
         {
@@ -3489,8 +3520,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=simarm64,simarm64c",
-            "runtime",
-            "dartaotruntime"
+            "dartfuzz"
           ]
         },
         {
@@ -3499,8 +3529,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=simriscv32,simriscv64",
-            "runtime",
-            "dartaotruntime"
+            "dartfuzz"
           ]
         },
         {
@@ -3509,12 +3538,12 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=simarm",
-            "runtime"
+            "dartfuzz"
           ]
         },
         {
           "name": "dartfuzz - generated programs",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tools/dartfuzz/dartfuzz_test.dart",
             "--isolates",
@@ -3528,7 +3557,7 @@
         },
         {
           "name": "dartfuzz - dart2js",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart"
           ],
@@ -3537,7 +3566,7 @@
         },
         {
           "name": "dartfuzz - dart2wasm",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart"
           ],

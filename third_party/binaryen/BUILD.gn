@@ -10,34 +10,33 @@ config("binaryen_flags") {
     # Clang or GCC
     cflags += [
       "-Wno-deprecated-declarations",
-      "-Wno-unused-but-set-parameter",
-      "-Wno-unused-function",
-      "-Wno-unused-variable",
       "-Wno-pessimizing-move",
-      "-Wno-sign-compare",
       "-Wno-range-loop-construct",
+      "-Wno-sign-compare",
+      "-Wno-unused-function",
     ]
 
     if (is_clang) {
       # Clang
       cflags += [
+        "-Wno-deprecated-this-capture",
         "-Wno-header-hygiene",
-        "-Wno-unused-private-field",
         "-Wno-inconsistent-missing-override",
         "-Wno-unknown-warning-option",
-        "-Wno-deprecated-this-capture",
+        "-Wno-unused-private-field",
       ]
     } else {
       # GCC
       cflags += [
-        "-Wno-redundant-move",
-        "-Wno-uninitialized",
+        "-Wno-array-bounds",
+        "-Wno-dangling-pointer",
+        "-Wno-deprecated",
         "-Wno-init-list-lifetime",
 
         # Bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86465#c16 triggered by
         # https://github.com/WebAssembly/binaryen/blob/cdb7aeab40b4c522de20b242019f7e88641445d5/src/wasm/wasm-type.cpp#L530.
         "-Wno-maybe-uninitialized",
-        "-Wno-deprecated",
+        "-Wno-redundant-move",
       ]
     }
   }

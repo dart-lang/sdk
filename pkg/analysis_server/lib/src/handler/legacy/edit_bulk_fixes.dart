@@ -9,18 +9,15 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/lint/registry.dart';
 
 /// The handler for the `edit.bulkFixes` request.
 class EditBulkFixes extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditBulkFixes(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -46,6 +43,28 @@ class EditBulkFixes extends LegacyHandler {
         sdkPath: server.sdkPath,
         byteStore: server.byteStore,
         withFineDependencies: true,
+        updateAnalysisOptions4: codes != null && codes.isNotEmpty
+            ? ({required analysisOptions}) {
+                var rules = <AbstractAnalysisRule>[];
+                for (var code in codes) {
+                  var rule = Registry.ruleRegistry.getRule(code);
+                  if (rule != null) {
+                    rules.add(rule);
+                  }
+                }
+                if (rules.isNotEmpty) {
+                  analysisOptions.lint = true;
+                  var existingNames = analysisOptions.lintRules
+                      .map((rule) => rule.name)
+                      .toSet();
+                  for (var rule in rules) {
+                    if (!existingNames.contains(rule.name)) {
+                      analysisOptions.lintRules.add(rule);
+                    }
+                  }
+                }
+              }
+            : null,
       );
       var workspace = DartChangeWorkspace(
         collection.contexts.map((c) => c.currentSession).toList(),

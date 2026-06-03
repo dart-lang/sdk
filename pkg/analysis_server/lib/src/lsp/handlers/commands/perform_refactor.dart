@@ -16,13 +16,14 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide MessageType;
 import 'package:meta/meta.dart';
 
+/// A handler that performs legacy refactors such as EXTRACT_WIDGET.
 class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the refactor running.
   @visibleForTesting
   static Future<void>? delayAfterResolveForTests;
 
-  PerformRefactorCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Perform Refactor';
@@ -93,10 +94,21 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
               // server stall because this request is blocked on user-input.
               message.completer?.complete();
 
+              // Show the most severe message, but also a count of others.
+              var promptMessage = status.message!;
+              var numberOfOtherErrors = status.problems.length - 1;
+              if (numberOfOtherErrors > 0) {
+                var suffix = numberOfOtherErrors == 1
+                    ? ' (+ 1 other error)'
+                    : ' (+ $numberOfOtherErrors other errors)';
+
+                promptMessage += suffix;
+              }
+
               // Ask the user whether to proceed with the refactor.
               var userChoice = await prompt(
                 MessageType.warning,
-                status.message!,
+                promptMessage,
                 [UserPromptActions.refactorAnyway, UserPromptActions.cancel],
                 cancellationToken,
               );

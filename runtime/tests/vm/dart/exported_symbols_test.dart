@@ -82,7 +82,6 @@ main() {
     "Dart_CreateIsolateGroupFromKernel",
     "Dart_CreateIsolateInGroup",
     "Dart_CreateSnapshot",
-    "Dart_CreateVMAOTSnapshotAsAssembly",
     "Dart_CurrentIsolate",
     "Dart_CurrentIsolateData",
     "Dart_CurrentIsolateGroup",

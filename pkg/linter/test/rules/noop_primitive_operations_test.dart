@@ -18,80 +18,59 @@ class NoopPrimitiveOperationsTest extends LintRuleTest {
   String get lintRule => LintNames.noop_primitive_operations;
 
   test_double_toDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(double x) {
-  x.toDouble();
+  x.[!toDouble!]();
 }
-''',
-      [lint(23, 8)],
-    );
+''');
   }
 
   test_int_ceil() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x) {
-  x.ceil();
+  x.[!ceil!]();
 }
-''',
-      [lint(20, 4)],
-    );
+''');
   }
 
   test_int_floor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x) {
-  x.floor();
+  x.[!floor!]();
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_int_round() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x) {
-  x.round();
+  x.[!round!]();
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_int_toInt() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x) {
-  x.toInt();
+  x.[!toInt!]();
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_int_truncate() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x) {
-  x.truncate();
+  x.[!truncate!]();
 }
-''',
-      [lint(20, 8)],
-    );
+''');
   }
 
   test_interpolation_object_toString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  '${1.toString()}';
+  '${1.[!toString!]()}';
 }
-''',
-      [lint(18, 8)],
-    );
+''');
   }
 
   test_interpolation_super_toString() async {
@@ -105,25 +84,19 @@ class C {
   }
 
   test_print_null_toString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print(null.toString());
+  print(null.[!toString!]());
 }
-''',
-      [lint(24, 8)],
-    );
+''');
   }
 
   test_print_object_toString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  print(1.toString());
+  print(1.[!toString!]());
 }
-''',
-      [lint(21, 8)],
-    );
+''');
   }
 
   test_print_stringLiteral() async {
@@ -135,14 +108,11 @@ onPrint() {
   }
 
   test_string_adjacentBlankString_lintInMiddle() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(String x) {
-  x = 'hello\n' '' 'world\n';
+  x = 'hello\n' [!''!] 'world\n';
 }
-''',
-      [lint(35, 2)],
-    );
+''');
   }
 
   test_string_adjacentBlankString_okAtEnd() async {
@@ -170,14 +140,11 @@ void f(String? x) {
   }
 
   test_string_toString() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(String x) {
-  x.toString();
+  x.[!toString!]();
 }
-''',
-      [lint(23, 8)],
-    );
+''');
   }
 
   test_super_toString() async {

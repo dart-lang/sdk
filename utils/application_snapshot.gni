@@ -120,6 +120,7 @@ template("application_snapshot") {
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
+    mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
     }
@@ -139,13 +140,14 @@ template("application_snapshot") {
                main_dart,
                package_config,
              ]
-    output = "$target_gen_dir/$name.dart.dill"
+    output = "$target_out_dir/$name.dart.dill"
     outputs = [ output ]
 
     depfile = "$output.d"
 
     vm_args = [
-      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
+      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
+      # kernel.
       "-Dsdk_hash=$sdk_hash",
     ]
 
@@ -180,7 +182,7 @@ template("application_snapshot") {
   if (dart_snapshot_kind == "kernel") {
     copy(target_name) {
       deps = extra_deps + [ ":${target_name}_dill" ]
-      sources = [ "$target_gen_dir/$name.dart.dill" ]
+      sources = [ "$target_out_dir/$name.dart.dill" ]
       outputs = [ output ]
 
       assert(snapshot_vm_args != "", "Ignoring unused argument")
@@ -190,20 +192,21 @@ template("application_snapshot") {
     }
   } else {
     dart_action(target_name) {
+      mnemonic = "APP_JIT"
       if (defined(invoker.pool)) {
         pool = invoker.pool
       }
       deps = extra_deps + [ ":${target_name}_dill" ] + training_deps
       depfile = "$output.d"
 
-      script = "$target_gen_dir/$name.dart.dill"
+      script = "$target_out_dir/$name.dart.dill"
 
       inputs = extra_inputs + training_inputs
 
       outputs = [ output ]
 
-      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
-      # snapshot (creating a circular dep. for kernel-service_snapshot).
+      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel
+      # service snapshot (creating a circular dep. for kernel-service_snapshot).
       dfe = "NEVER_LOADED"
 
       vm_args = [

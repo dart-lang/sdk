@@ -15,7 +15,7 @@ abstract class PageWriter {
   static final HtmlEscape htmlEscape = HtmlEscape();
 
   /// Initialize a newly create page writer.
-  PageWriter();
+  new();
 
   /// Return the length of the common prefix for time stamps associated with the
   /// given log [entries].

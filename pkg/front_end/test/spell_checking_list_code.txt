@@ -135,6 +135,7 @@ backping
 backstop
 badly
 bail
+bailing
 balance
 bang
 bar
@@ -1812,6 +1813,7 @@ stdin
 stdio
 stdlib
 stdout
+stepping
 sticks
 sticky
 stmt

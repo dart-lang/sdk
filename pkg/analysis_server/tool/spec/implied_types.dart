@@ -32,7 +32,7 @@ class ImpliedType {
   /// API node from which this type was inferred.
   final ApiNode apiNode;
 
-  ImpliedType(
+  new(
     this.camelName,
     this.humanReadableName,
     this.type,
@@ -44,7 +44,7 @@ class ImpliedType {
 class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
   Map<String, ImpliedType> impliedTypes = <String, ImpliedType>{};
 
-  _ImpliedTypesVisitor(super.api);
+  new(super.api);
 
   void storeType(
     String name,

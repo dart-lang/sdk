@@ -6,6 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -13,6 +16,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
@@ -21,6 +25,7 @@ main() {
     defineReflectiveTests(StrongModeLocalInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -65,44 +70,15 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   late final AsserterBuilder<Element, DartType> _hasElement;
 
-  CompilationUnit get unit => result.unit;
-
   @override
-  Future<void> resolveTestFile() async {
-    var result = await super.resolveTestFile();
-
-    var assertions = _assertions;
-    if (assertions == null) {
-      assertions = _assertions = TypeAssertions(typeProvider);
-      _isType = assertions.isType;
-      _hasElement = assertions.hasElement;
-      _isInstantiationOf = assertions.isInstantiationOf;
-      _isInt = assertions.isInt;
-      _isNever = assertions.isNever;
-      _isNull = assertions.isNull;
-      _isNum = assertions.isNum;
-      _isObject = assertions.isObject;
-      _isString = assertions.isString;
-      _isDynamic = assertions.isDynamic;
-      _isInvalidType = assertions.isInvalidType;
-      _isListOf = assertions.isListOf;
-      _isMapOf = assertions.isMapOf;
-      _isFunction2Of = assertions.isFunction2Of;
-      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
-      _isFutureOrOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureOrElement),
-      );
-      _isFutureOfDynamic = _isFutureOf([_isDynamic]);
-      _isFutureOfInt = _isFutureOf([_isInt]);
-      _isFutureOfNull = _isFutureOf([_isNull]);
-      _isFutureOrOfInt = _isFutureOrOf([_isInt]);
-    }
-
+  Future<ResolvedUnitResultImpl> resolveFile(File file) async {
+    var result = await super.resolveFile(file);
+    _initAssertions(result.typeProvider);
     return result;
   }
 
   test_async_method_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A {
         Future f0() => new Future.value(3);
         Future f1() async => new Future.value(3);
@@ -120,11 +96,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         Future<int> g4() async { return new Future.value(3); }
         Future<int> g5() async { return await new Future.value(3); }
       }
-   ''';
-    await resolveTestCode(code);
+   ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
+      MethodDeclaration test = AstFinder.getMethodInClass(
+        result.unit,
+        "A",
+        name,
+      );
       FunctionBody body = test.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
@@ -159,7 +138,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_async_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       Future f0() => new Future.value(3);
       Future f1() async => new Future.value(3);
       Future f2() async => await new Future.value(3);
@@ -175,11 +154,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       Future<int> g3() { return new Future.value(3); }
       Future<int> g4() async { return new Future.value(3); }
       Future<int> g5() async { return await new Future.value(3); }
-   ''';
-    await resolveTestCode(code);
+   ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
+      FunctionDeclaration test = AstFinder.getTopLevelFunction(
+        result.unit,
+        name,
+      );
       var body = test.functionExpression.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
@@ -214,18 +195,19 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_cascadeExpression() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A<T> {
         List<T> map(T a, List<T> mapper(T x)) => mapper(a);
       }
 
       void main () {
         A<int> a = new A()..map(0, (x) => [x]);
-     }
-   ''';
-    await resolveTestCode(code);
+//             ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+      }
+   ''');
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     CascadeExpression fetch(int i) {
@@ -235,7 +217,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       return exp;
     }
 
-    var elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    var elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
@@ -243,24 +228,24 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var function = invoke.argumentList.arguments[1] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);
-    expect(f0.type.normalParameterTypes[0], typeProvider.intType);
+    expect(f0.type.normalParameterTypes[0], result.typeProvider.intType);
   }
 
   test_constrainedByBounds1() async {
     // Test that upwards inference with two type variables correctly
     // propagates from the constrained variable to the unconstrained
     // variable if they are ordered left to right.
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     T f<S, T extends S>(S x) => null;
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
     void test() { var x = f(3); }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 32, 4),
-      error(diag.unusedLocalVariable, 60, 1),
-    ]);
+//                    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -273,17 +258,17 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // Test that upwards inference with two type variables does
     // propagate from the constrained variable to the unconstrained
     // variable if they are ordered right to left.
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     T f<T extends S, S>(S x) => null;
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
     void test() { var x = f(3); }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 32, 4),
-      error(diag.unusedLocalVariable, 60, 1),
-    ]);
+//                    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -293,17 +278,17 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_constrainedByBounds3() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       T f<T extends S, S extends int>(S x) => null;
+//                                            ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
       void test() { var x = f(3); }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 46, 4),
-      error(diag.unusedLocalVariable, 76, 1),
-    ]);
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -317,18 +302,18 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // propagates from the constrained variable to the unconstrained
     // variable if they are ordered left to right, when the variable
     // appears co and contra variantly
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     T f<S, T extends Func1<S, S>>(S x) => null;
+//                                        ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
     void test() { var x = f(3)(4); }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
-      error(diag.unusedLocalVariable, 110, 1),
-    ]);
+//                    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -348,7 +333,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     T f<T extends Func1<S, S>, S>(S x) => null;
     void test() { var x = f(3)(null); }
    ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.returnOfInvalidTypeFromFunction, 82, 4),
       error(diag.unusedLocalVariable, 110, 1),
       error(diag.couldNotInfer, 114, 1),
@@ -356,7 +341,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ]);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     var stmt = statements[0] as VariableDeclarationStatement;
@@ -372,9 +357,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         A() : this.x = [];
       }
    ''';
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -384,18 +369,17 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_factoryConstructor_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A<T> {
         factory A() { return new B(); }
       }
       class B<S> extends A<S> {}
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.noGenerativeConstructorsInSuperclass, 92, 4),
-    ]);
+//                       ^^^^
+// [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
+   ''');
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -403,11 +387,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
     ClassElement elementB = AstFinder.getClass(
-      unit,
+      result.unit,
       "B",
     ).declaredFragment!.element;
     ClassElement elementA = AstFinder.getClass(
-      unit,
+      result.unit,
       "A",
     ).declaredFragment!.element;
     var type = exp.constructorName.type.typeOrThrow as InterfaceType;
@@ -427,36 +411,44 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         List<String> f0 = ["hello"];
       }
    ''';
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    VariableDeclaration field = AstFinder.getFieldInClass(unit, "A", "f0");
+    VariableDeclaration field = AstFinder.getFieldInClass(
+      result.unit,
+      "A",
+      "f0",
+    );
 
     _isListOf(_isString)(field.initializer!.staticType as InterfaceType);
   }
 
   test_functionDeclaration_body_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       List<int> test1() => [];
 
       Function2<int, int> test2 (int x) {
         Function2<String, int> inner() {
+//                             ^^^^^
+// [diag.unusedElement] The declaration 'inner' isn't referenced.
           return (x) => x.length;
         }
         return (x) => x;
      }
-   ''';
-    await assertErrorsInCode(code, [error(diag.unusedElement, 144, 5)]);
+   ''');
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
 
-    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(unit, "test1");
+    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test1",
+    );
     var body = test1.functionExpression.body as ExpressionFunctionBody;
     assertListOfInt(body.expression.staticType as InterfaceType);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test2",
     );
 
@@ -466,42 +458,49 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var return0 = body0.block.statements[0] as ReturnStatement;
     Expression anon0 = return0.expression!;
     var type0 = anon0.staticType as FunctionType;
-    expect(type0.returnType, typeProvider.intType);
-    expect(type0.normalParameterTypes[0], typeProvider.stringType);
+    expect(type0.returnType, result.typeProvider.intType);
+    expect(type0.normalParameterTypes[0], result.typeProvider.stringType);
 
     var anon1 =
         (statements[1] as ReturnStatement).expression as FunctionExpression;
     FunctionType type1 = anon1.declaredFragment!.element.type;
-    expect(type1.returnType, typeProvider.intType);
-    expect(type1.normalParameterTypes[0], typeProvider.intType);
+    expect(type1.returnType, result.typeProvider.intType);
+    expect(type1.normalParameterTypes[0], result.typeProvider.intType);
   }
 
   test_functionLiteral_assignment_typedArguments() async {
-    String code = r'''
-      typedef T Function2<S, T>(S x);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+        typedef T Function2<S, T>(S x);
 
       void main () {
         Function2<int, String> l0 = (int x) => null;
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
+//                                             ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         Function2<int, String> l1 = (int x) => "hello";
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Function2<int, String> l2 = (String x) => "hello";
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                                  ^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'String Function(String)' can't be assigned to a variable of type 'Function2<int, String>'.
         Function2<int, String> l3 = (int x) => 3;
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                                             ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         Function2<int, String> l4 = (int x) {return 3;};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
+//                                                  ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 91, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 107, 4),
-      error(diag.unusedLocalVariable, 144, 2),
-      error(diag.unusedLocalVariable, 200, 2),
-      error(diag.invalidAssignment, 205, 21),
-      error(diag.unusedLocalVariable, 259, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 275, 1),
-      error(diag.unusedLocalVariable, 309, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 330, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -519,30 +518,36 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_assignment_unTypedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       void main () {
         Function2<int, String> l0 = (x) => null;
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
+//                                         ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         Function2<int, String> l1 = (x) => "hello";
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Function2<int, String> l2 = (x) => "hello";
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
         Function2<int, String> l3 = (x) => 3;
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                                         ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         Function2<int, String> l4 = (x) {return 3;};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
+//                                              ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 91, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 103, 4),
-      error(diag.unusedLocalVariable, 140, 2),
-      error(diag.unusedLocalVariable, 192, 2),
-      error(diag.unusedLocalVariable, 244, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 256, 1),
-      error(diag.unusedLocalVariable, 290, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 307, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -560,28 +565,33 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_body_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       void main () {
         Function2<int, List<String>> l0 = (int x) => ["hello"];
+//                                   ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         Function2<int, List<String>> l1 = (String x) => ["hello"];
+//                                   ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
+//                                        ^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<String> Function(String)' can't be assigned to a variable of type 'Function2<int, List<String>>'.
         Function2<int, List<String>> l2 = (int x) => [3];
+//                                   ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                                                    ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
         Function2<int, List<String>> l3 = (int x) {return [3];};
+//                                   ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                                                         ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 97, 2),
-      error(diag.unusedLocalVariable, 161, 2),
-      error(diag.invalidAssignment, 166, 23),
-      error(diag.unusedLocalVariable, 228, 2),
-      error(diag.listElementTypeNotAssignable, 245, 1),
-      error(diag.unusedLocalVariable, 286, 2),
-      error(diag.listElementTypeNotAssignable, 308, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     Expression functionReturnValue(int i) {
@@ -605,29 +615,32 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionExpressionInvocation_typedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
+//                                     ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'F'.
       }
 
       void main () {
         (new Mapper<int, String>().map)((int x) => null);
+//                                                 ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         (new Mapper<int, String>().map)((int x) => "hello");
         (new Mapper<int, String>().map)((String x) => "hello");
+//                                      ^^^^^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String Function(String)' can't be assigned to the parameter type 'String Function(int)'.
         (new Mapper<int, String>().map)((int x) => 3);
+//                                                 ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         (new Mapper<int, String>().map)((int x) {return 3;});
+//                                                      ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 66, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 154, 4),
-      error(diag.argumentTypeNotAssignable, 262, 21),
-      error(diag.returnOfInvalidTypeFromClosure, 337, 1),
-      error(diag.returnOfInvalidTypeFromClosure, 397, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -645,28 +658,30 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionExpressionInvocation_unTypedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
+//                                     ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'F'.
       }
 
       void main () {
         (new Mapper<int, String>().map)((x) => null);
+//                                             ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         (new Mapper<int, String>().map)((x) => "hello");
         (new Mapper<int, String>().map)((x) => "hello");
         (new Mapper<int, String>().map)((x) => 3);
+//                                             ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         (new Mapper<int, String>().map)((x) {return 3;});
+//                                                  ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 66, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 150, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 318, 1),
-      error(diag.returnOfInvalidTypeFromClosure, 374, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -684,27 +699,30 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionInvocation_typedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       String map(String mapper(int x)) => mapper(null);
+//                                               ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'int'.
 
       void main () {
         map((int x) => null);
+//                     ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         map((int x) => "hello");
         map((String x) => "hello");
+//          ^^^^^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String Function(String)' can't be assigned to the parameter type 'String Function(int)'.
         map((int x) => 3);
+//                     ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         map((int x) {return 3;});
+//                          ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 49, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 101, 4),
-      error(diag.argumentTypeNotAssignable, 153, 21),
-      error(diag.returnOfInvalidTypeFromClosure, 200, 1),
-      error(diag.returnOfInvalidTypeFromClosure, 232, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -722,26 +740,28 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_functionInvocation_unTypedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       String map(String mapper(int x)) => mapper(null);
+//                                               ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'int'.
 
       void main () {
         map((x) => null);
+//                 ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         map((x) => "hello");
         map((x) => "hello");
         map((x) => 3);
+//                 ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         map((x) {return 3;});
+//                      ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 49, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 97, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 181, 1),
-      error(diag.returnOfInvalidTypeFromClosure, 209, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -759,29 +779,32 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_methodInvocation_typedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
+//                                     ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'F'.
       }
 
       void main () {
         new Mapper<int, String>().map((int x) => null);
+//                                               ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         new Mapper<int, String>().map((int x) => "hello");
         new Mapper<int, String>().map((String x) => "hello");
+//                                    ^^^^^^^^^^^^^^^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String Function(String)' can't be assigned to the parameter type 'String Function(int)'.
         new Mapper<int, String>().map((int x) => 3);
+//                                               ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         new Mapper<int, String>().map((int x) {return 3;});
+//                                                    ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 66, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 152, 4),
-      error(diag.argumentTypeNotAssignable, 256, 21),
-      error(diag.returnOfInvalidTypeFromClosure, 329, 1),
-      error(diag.returnOfInvalidTypeFromClosure, 387, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -799,28 +822,30 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_methodInvocation_unTypedArguments() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class Mapper<F, T> {
         T map(T mapper(F x)) => mapper(null);
+//                                     ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'F'.
       }
 
       void main () {
         new Mapper<int, String>().map((x) => null);
+//                                           ^^^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'Null' isn't returnable from a 'String' function, as required by the closure's context.
         new Mapper<int, String>().map((x) => "hello");
         new Mapper<int, String>().map((x) => "hello");
         new Mapper<int, String>().map((x) => 3);
+//                                           ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         new Mapper<int, String>().map((x) {return 3;});
+//                                                ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 66, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 148, 4),
-      error(diag.returnOfInvalidTypeFromClosure, 310, 1),
-      error(diag.returnOfInvalidTypeFromClosure, 364, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -838,29 +863,34 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_functionLiteral_unTypedArgument_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       typedef T Function2<S, T>(S x);
 
       void main () {
         Function2<int, int> l0 = (x) => x;
+//                          ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         Function2<int, int> l1 = (x) => x+1;
+//                          ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Function2<int, String> l2 = (x) => x;
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                                         ^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
         Function2<int, String> l3 = (x) => x.toLowerCase();
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                                           ^^^^^^^^^^^
+// [diag.undefinedMethod] The method 'toLowerCase' isn't defined for the type 'int'.
         Function2<String, String> l4 = (x) => x.toLowerCase();
+//                                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 88, 2),
-      error(diag.unusedLocalVariable, 131, 2),
-      error(diag.unusedLocalVariable, 179, 2),
-      error(diag.returnOfInvalidTypeFromClosure, 191, 1),
-      error(diag.unusedLocalVariable, 225, 2),
-      error(diag.undefinedMethod, 239, 11),
-      error(diag.unusedLocalVariable, 288, 2),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     Expression functionReturnValue(int i) {
@@ -876,11 +906,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       }
     }
 
-    expect(functionReturnValue(0).staticType, typeProvider.intType);
-    expect(functionReturnValue(1).staticType, typeProvider.intType);
-    expect(functionReturnValue(2).staticType, typeProvider.intType);
+    expect(functionReturnValue(0).staticType, result.typeProvider.intType);
+    expect(functionReturnValue(1).staticType, result.typeProvider.intType);
+    expect(functionReturnValue(2).staticType, result.typeProvider.intType);
     expect(functionReturnValue(3).staticType, InvalidTypeImpl.instance);
-    expect(functionReturnValue(4).staticType, typeProvider.stringType);
+    expect(functionReturnValue(4).staticType, result.typeProvider.stringType);
   }
 
   test_futureOr_assignFromFuture() async {
@@ -1248,7 +1278,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // type schemas correctly.  Downwards inference in a partial context
     // (e.g. Map<String, ?>) should still allow upwards inference to fill
     // in the missing information.
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T x);
   A.fromA(A<T> a) {}
@@ -1264,23 +1294,29 @@ class B<S, T> {
 
 void test() {
     var a0 = new A.fromA(new A(3));
+//      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
     var a1 = new A.fromMap({'hello' : 3});
+//      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
     var a2 = new A.fromList([3]);
+//      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
     var a3 = new A.fromT(3);
+//      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a3' isn't used.
     var a4 = new A.fromB(new B(3));
+//      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a4' isn't used.
 }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 205, 2),
-      error(diag.unusedLocalVariable, 241, 2),
-      error(diag.unusedLocalVariable, 284, 2),
-      error(diag.unusedLocalVariable, 318, 2),
-      error(diag.unusedLocalVariable, 347, 2),
-    ]);
+   ''');
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "test",
     );
     void check(int i) {
@@ -1296,7 +1332,7 @@ void test() {
   }
 
   test_inferConstructor_unknownTypeLowerBound() async {
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
         class C<T> {
           C(void callback(List<T> a));
         }
@@ -1304,12 +1340,16 @@ void test() {
           // downwards inference pushes List<?> and in parameter position this
           // becomes inferred as List<Null>.
           var c = new C((items) {});
+//            ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
         }
-        ''';
-    await assertErrorsInCode(code, [error(diag.unusedLocalVariable, 225, 1)]);
+        ''');
 
-    DartType cType = findElement2.localVar('c').type;
-    Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
+    DartType cType = result.findElement.localVar('c').type;
+    Element elementC = AstFinder.getClass(
+      result.unit,
+      "C",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementC))([_isType])(cType);
   }
@@ -1324,12 +1364,12 @@ test() {
   var h = g((int x) => 42.0);
 }
  ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.unusedLocalVariable, 84, 1),
       error(diag.couldNotInfer, 88, 1),
       error(diag.argumentTypeNotAssignable, 90, 15),
     ]);
-    _expectInferenceError(r'''
+    _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'double' for 'T' which doesn't work:
@@ -1351,13 +1391,13 @@ test() {
   var h = g((int x) => 42.0, (double x) => 42);
 }
  ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.unusedLocalVariable, 95, 1),
       error(diag.couldNotInfer, 99, 1),
       error(diag.argumentTypeNotAssignable, 101, 15),
       error(diag.argumentTypeNotAssignable, 118, 16),
     ]);
-    _expectInferenceError(r'''
+    _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1373,20 +1413,21 @@ Consider passing explicit type argument(s) to the generic.
 
   test_inference_error_extendsFromReturn() async {
     // This is not an inference error because we successfully infer Null.
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T max<T extends num>(T x, T y) => x;
 
 test() {
   String hello = max(1, 2);
+//       ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'hello' isn't used.
+//                   ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
+//                      ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
 }
- ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 56, 5),
-      error(diag.argumentTypeNotAssignable, 68, 1),
-      error(diag.argumentTypeNotAssignable, 71, 1),
-    ]);
+ ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -1417,22 +1458,22 @@ MethodInvocation
   }
 
   test_inference_error_extendsFromReturn2() async {
-    var code = r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef R F<T, R>(T t);
 F<T, T> g<T extends num>() => (y) => y;
 
 test() {
   F<String, String> hello = g();
+//                  ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'hello' isn't used.
+//                          ^^^
+// [diag.invalidAssignment] A value of type 'F<num, num>' can't be assigned to a variable of type 'F<String, String>'.
 }
- ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 94, 5),
-      error(diag.invalidAssignment, 102, 3),
-    ]);
+ ''');
   }
 
   test_inference_error_genericFunction() async {
-    var code = r'''
+    await resolveTestCodeWithDiagnostics(r'''
 T max<T extends num>(T x, T y) => x < y ? y : x;
 abstract class Iterable<T> {
   T get first;
@@ -1440,12 +1481,12 @@ abstract class Iterable<T> {
 }
 test(Iterable values) {
   num n = values.fold(values.first as num, max);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'n' isn't used.
+//                                         ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(num, dynamic)'.
 }
- ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 158, 1),
-      error(diag.argumentTypeNotAssignable, 195, 3),
-    ]);
+ ''');
   }
 
   test_inference_error_returnContext() async {
@@ -1458,12 +1499,12 @@ test() {
   F<num, int> h = g(42);
 }
  ''';
-    await assertErrorsInCode(code, [
+    var result = await assertErrorsInCode(code, [
       error(diag.unusedLocalVariable, 80, 1),
       error(diag.couldNotInfer, 84, 1),
       error(diag.invalidAssignment, 84, 5),
     ]);
-    _expectInferenceError(r'''
+    _expectInferenceError(result, r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1476,33 +1517,34 @@ Consider passing explicit type argument(s) to the generic.
   }
 
   test_inference_hints() async {
-    var code = r'''
+    await resolveTestCodeWithDiagnostics(r'''
       void main () {
         var x = 3;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
         List<int> l0 = [];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 33, 1),
-      error(diag.unusedLocalVariable, 58, 2),
-    ]);
+   ''');
   }
 
   test_inference_simplePolymorphicRecursion_function() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with a function type
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) target) {
+//   ^^^^^^^^^^
+// [diag.unusedElement] The declaration '_mergeSort' isn't referenced.
   _mergeSort(list, compare, target);
   _mergeSort(list, compare, list);
   _mergeSort(target, compare, target);
   _mergeSort(target, compare, list);
 }
-    ''';
-    await assertErrorsInCode(code, [error(diag.unusedElement, 5, 10)]);
+    ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1659,17 +1701,18 @@ Block
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with an interface type
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
+//   ^^^^^^^^^^
+// [diag.unusedElement] The declaration '_mergeSort' isn't referenced.
   _mergeSort(list, compare, target);
   _mergeSort(list, compare, list);
   _mergeSort(target, compare, target);
   _mergeSort(target, compare, list);
 }
-    ''';
-    await assertErrorsInCode(code, [error(diag.unusedElement, 5, 10)]);
+    ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1826,17 +1869,18 @@ Block
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with a simple type parameter
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void _mergeSort<T>(T list, int compare(T a, T b), T target) {
+//   ^^^^^^^^^^
+// [diag.unusedElement] The declaration '_mergeSort' isn't referenced.
   _mergeSort(list, compare, target);
   _mergeSort(list, compare, list);
   _mergeSort(target, compare, target);
   _mergeSort(target, compare, list);
 }
-    ''';
-    await assertErrorsInCode(code, [error(diag.unusedElement, 5, 10)]);
+    ''');
 
-    var node = findNode.singleBlock;
+    var node = result.findNode.singleBlock;
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -1991,19 +2035,19 @@ Block
 
   test_inferGenericInstantiation() async {
     // Verify that we don't infer '?` when we instantiate a generic function.
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T x(T t)) => x(null);
+//                    ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'T'.
 S g<S>(S s) => s;
 test() {
  var h = f(g);
+//   ^
+// [diag.unusedLocalVariable] The value of the local variable 'h' isn't used.
 }
-    ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 22, 4),
-      error(diag.unusedLocalVariable, 61, 1),
-    ]);
+    ''');
 
-    var node = findNode.methodInvocation('f(g)');
+    var node = result.findNode.methodInvocation('f(g)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -2035,19 +2079,18 @@ MethodInvocation
   test_inferGenericInstantiation2() async {
     // Verify the behavior when we cannot infer an instantiation due to invalid
     // constraints from an outer generic method.
-    var code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 T max<T extends num>(T x, T y) => x < y ? y : x;
 abstract class Iterable<T> {
   T get first;
   S fold<S>(S s, S f(S s, T t));
 }
 num test(Iterable values) => values.fold(values.first as num, max);
-    ''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 190, 3),
-    ]);
+//                                                            ^^^
+// [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(num, dynamic)'.
+    ''');
 
-    var node = findNode.methodInvocation('values.fold');
+    var node = result.findNode.methodInvocation('values.fold');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -2122,7 +2165,7 @@ MethodInvocation
         get map => { 43: [] };
       }
    ''';
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
     Asserter<InterfaceType> assertMapOfIntToListOfInt = _isMapOf(
@@ -2130,8 +2173,16 @@ MethodInvocation
       (DartType type) => assertListOfInt(type as InterfaceType),
     );
 
-    VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
-    MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
+    VariableDeclaration mapB = AstFinder.getFieldInClass(
+      result.unit,
+      "B",
+      "map",
+    );
+    MethodDeclaration mapC = AstFinder.getMethodInClass(
+      result.unit,
+      "C",
+      "map",
+    );
     assertMapOfIntToListOfInt(
       mapB.declaredFragment!.element.type as InterfaceType,
     );
@@ -2154,7 +2205,7 @@ MethodInvocation
   }
 
   test_instanceCreation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A<S, T> {
         S x;
         T y;
@@ -2179,143 +2230,210 @@ MethodInvocation
 
       class E<S, T> extends A<C<S>, T> {
         E(T a) : super(null, a);
+//                     ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'C<S>'.
       }
 
       class F<S, T> extends A<S, T> {
         F(S x, T y, {List<S> a, List<T> b}) : super(x, y);
+//                           ^
+// [diag.missingDefaultValueForParameter] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+//                                      ^
+// [diag.missingDefaultValueForParameter] The parameter 'b' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
         F.named(S x, T y, [S a, T b]) : super(a, b);
+//                           ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+//                                ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'b' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
       }
 
       void test0() {
         A<int, String> a0 = new A(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
         A<int, String> a1 = new A.named(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
         A<int, String> a2 = new A<int, String>(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
         A<int, String> a3 = new A<int, String>.named(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a3' isn't used.
         A<int, String> a4 = new A<int, dynamic>(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a4' isn't used.
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'A<int, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
         A<int, String> a5 = new A<dynamic, dynamic>.named(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a5' isn't used.
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'A<dynamic, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
       }
       void test1()  {
         A<int, String> a0 = new A("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
+//                                ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+//                                         ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
         A<int, String> a1 = new A.named("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
+//                                      ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+//                                               ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
       }
       void test2() {
         A<int, String> a0 = new B("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
         A<int, String> a1 = new B.named("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
         A<int, String> a2 = new B<String, int>("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
         A<int, String> a3 = new B<String, int>.named("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a3' isn't used.
         A<int, String> a4 = new B<String, dynamic>("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a4' isn't used.
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'B<String, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
         A<int, String> a5 = new B<dynamic, dynamic>.named("hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a5' isn't used.
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'B<dynamic, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
       }
       void test3() {
         A<int, String> a0 = new B(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
+//                                ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+//                                   ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
         A<int, String> a1 = new B.named(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
+//                                      ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+//                                         ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
       }
       void test4() {
         A<int, int> a0 = new C(3);
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
         A<int, int> a1 = new C.named(3);
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
         A<int, int> a2 = new C<int>(3);
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
         A<int, int> a3 = new C<int>.named(3);
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a3' isn't used.
         A<int, int> a4 = new C<dynamic>(3);
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a4' isn't used.
+//                       ^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'C<dynamic>' can't be assigned to a variable of type 'A<int, int>'.
         A<int, int> a5 = new C<dynamic>.named(3);
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a5' isn't used.
+//                       ^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'C<dynamic>' can't be assigned to a variable of type 'A<int, int>'.
       }
       void test5() {
         A<int, int> a0 = new C("hello");
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
+//                             ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
         A<int, int> a1 = new C.named("hello");
+//                  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
+//                                   ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
       }
       void test6()  {
         A<int, String> a0 = new D("hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
         A<int, String> a1 = new D.named("hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
         A<int, String> a2 = new D<int, String>("hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
         A<int, String> a3 = new D<String, String>.named("hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a3' isn't used.
         A<int, String> a4 = new D<num, dynamic>("hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a4' isn't used.
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'D<num, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
         A<int, String> a5 = new D<dynamic, dynamic>.named("hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a5' isn't used.
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'D<dynamic, dynamic>' can't be assigned to a variable of type 'A<int, String>'.
       }
       void test7() {
         A<int, String> a0 = new D(3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
+//                                ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
         A<int, String> a1 = new D.named(3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
+//                                      ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
       }
       void test8() {
         A<C<int>, String> a0 = new E("hello");
+//                        ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
       }
       void test9() { // Check named and optional arguments
         A<int, String> a0 = new F(3, "hello", a: [3], b: ["hello"]);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a0' isn't used.
         A<int, String> a1 = new F(3, "hello", a: ["hello"], b:[3]);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a1' isn't used.
+//                                                ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
+//                                                             ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
         A<int, String> a2 = new F.named(3, "hello", 3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a2' isn't used.
         A<int, String> a3 = new F.named(3, "hello");
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a3' isn't used.
         A<int, String> a4 = new F.named(3, "hello", "hello", 3);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a4' isn't used.
+//                                                  ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+//                                                           ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
         A<int, String> a5 = new F.named(3, "hello", "hello");
-      }''';
-    await assertErrorsInCode(code, [
-      error(diag.argumentTypeNotAssignable, 547, 4),
-      error(diag.missingDefaultValueForParameter, 633, 1),
-      error(diag.missingDefaultValueForParameter, 644, 1),
-      error(diag.missingDefaultValueForParameterPositional, 692, 1),
-      error(diag.missingDefaultValueForParameterPositional, 697, 1),
-      error(diag.unusedLocalVariable, 769, 2),
-      error(diag.unusedLocalVariable, 816, 2),
-      error(diag.unusedLocalVariable, 869, 2),
-      error(diag.unusedLocalVariable, 929, 2),
-      error(diag.unusedLocalVariable, 995, 2),
-      error(diag.invalidAssignment, 1000, 31),
-      error(diag.unusedLocalVariable, 1056, 2),
-      error(diag.invalidAssignment, 1061, 41),
-      error(diag.unusedLocalVariable, 1157, 2),
-      error(diag.argumentTypeNotAssignable, 1168, 7),
-      error(diag.argumentTypeNotAssignable, 1177, 1),
-      error(diag.unusedLocalVariable, 1204, 2),
-      error(diag.argumentTypeNotAssignable, 1221, 7),
-      error(diag.argumentTypeNotAssignable, 1230, 1),
-      error(diag.unusedLocalVariable, 1286, 2),
-      error(diag.unusedLocalVariable, 1333, 2),
-      error(diag.unusedLocalVariable, 1386, 2),
-      error(diag.unusedLocalVariable, 1446, 2),
-      error(diag.unusedLocalVariable, 1512, 2),
-      error(diag.invalidAssignment, 1517, 34),
-      error(diag.unusedLocalVariable, 1576, 2),
-      error(diag.invalidAssignment, 1581, 41),
-      error(diag.unusedLocalVariable, 1676, 2),
-      error(diag.argumentTypeNotAssignable, 1687, 1),
-      error(diag.argumentTypeNotAssignable, 1690, 7),
-      error(diag.unusedLocalVariable, 1723, 2),
-      error(diag.argumentTypeNotAssignable, 1740, 1),
-      error(diag.argumentTypeNotAssignable, 1743, 7),
-      error(diag.unusedLocalVariable, 1802, 2),
-      error(diag.unusedLocalVariable, 1837, 2),
-      error(diag.unusedLocalVariable, 1878, 2),
-      error(diag.unusedLocalVariable, 1918, 2),
-      error(diag.unusedLocalVariable, 1964, 2),
-      error(diag.invalidAssignment, 1969, 17),
-      error(diag.unusedLocalVariable, 2008, 2),
-      error(diag.invalidAssignment, 2013, 23),
-      error(diag.unusedLocalVariable, 2087, 2),
-      error(diag.argumentTypeNotAssignable, 2098, 7),
-      error(diag.unusedLocalVariable, 2128, 2),
-      error(diag.argumentTypeNotAssignable, 2145, 7),
-      error(diag.unusedLocalVariable, 2208, 2),
-      error(diag.unusedLocalVariable, 2252, 2),
-      error(diag.unusedLocalVariable, 2302, 2),
-      error(diag.unusedLocalVariable, 2359, 2),
-      error(diag.unusedLocalVariable, 2425, 2),
-      error(diag.invalidAssignment, 2430, 28),
-      error(diag.unusedLocalVariable, 2483, 2),
-      error(diag.invalidAssignment, 2488, 38),
-      error(diag.unusedLocalVariable, 2580, 2),
-      error(diag.argumentTypeNotAssignable, 2591, 1),
-      error(diag.unusedLocalVariable, 2618, 2),
-      error(diag.argumentTypeNotAssignable, 2635, 1),
-      error(diag.unusedLocalVariable, 2694, 2),
-      error(diag.unusedLocalVariable, 2805, 2),
-      error(diag.unusedLocalVariable, 2874, 2),
-      error(diag.listElementTypeNotAssignable, 2901, 7),
-      error(diag.listElementTypeNotAssignable, 2914, 1),
-      error(diag.unusedLocalVariable, 2942, 2),
-      error(diag.unusedLocalVariable, 3007, 2),
-      error(diag.unusedLocalVariable, 3060, 2),
-      error(diag.argumentTypeNotAssignable, 3089, 7),
-      error(diag.argumentTypeNotAssignable, 3098, 1),
-      error(diag.unusedLocalVariable, 3125, 2),
-      error(diag.argumentTypeNotAssignable, 3154, 7),
-    ]);
+//                     ^^
+// [diag.unusedLocalVariable] The value of the local variable 'a5' isn't used.
+//                                                  ^^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+      }''');
 
     Expression rhs(AstNode stmt) {
       stmt as VariableDeclarationStatement;
@@ -2327,12 +2445,30 @@ MethodInvocation
     void hasType(Asserter<DartType> assertion, Expression exp) =>
         assertion(exp.typeOrThrow);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
-    Element elementC = AstFinder.getClass(unit, "C").declaredFragment!.element;
-    Element elementD = AstFinder.getClass(unit, "D").declaredFragment!.element;
-    Element elementE = AstFinder.getClass(unit, "E").declaredFragment!.element;
-    Element elementF = AstFinder.getClass(unit, "F").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
+    Element elementC = AstFinder.getClass(
+      result.unit,
+      "C",
+    ).declaredFragment!.element;
+    Element elementD = AstFinder.getClass(
+      result.unit,
+      "D",
+    ).declaredFragment!.element;
+    Element elementE = AstFinder.getClass(
+      result.unit,
+      "E",
+    ).declaredFragment!.element;
+    Element elementF = AstFinder.getClass(
+      result.unit,
+      "F",
+    ).declaredFragment!.element;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -2349,7 +2485,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test0",
       ).cast<VariableDeclarationStatement>();
 
@@ -2364,7 +2500,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test1",
       ).cast<VariableDeclarationStatement>();
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
@@ -2373,7 +2509,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test2",
       ).cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
@@ -2386,7 +2522,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test3",
       ).cast<VariableDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
@@ -2395,7 +2531,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test4",
       ).cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
@@ -2408,7 +2544,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test5",
       ).cast<VariableDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
@@ -2420,7 +2556,7 @@ MethodInvocation
       // context.  We could choose a tighter type, but currently
       // we just use dynamic.
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test6",
       ).cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
@@ -2433,7 +2569,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test7",
       ).cast<VariableDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
@@ -2442,7 +2578,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test8",
       ).cast<VariableDeclarationStatement>();
       hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
@@ -2450,7 +2586,7 @@ MethodInvocation
 
     {
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-        unit,
+        result.unit,
         "test9",
       ).cast<VariableDeclarationStatement>();
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
@@ -2463,24 +2599,27 @@ MethodInvocation
   }
 
   test_listLiteral_nested() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         List<List<int>> l0 = [[]];
+//                      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         Iterable<List<int>> l1 = [[3]];
+//                          ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Iterable<List<int>> l2 = [[3], [4]];
+//                          ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
         List<List<int>> l3 = [["hello", 3], []];
+//                      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                             ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 45, 2),
-      error(diag.unusedLocalVariable, 84, 2),
-      error(diag.unusedLocalVariable, 124, 2),
-      error(diag.unusedLocalVariable, 165, 2),
-      error(diag.listElementTypeNotAssignable, 172, 7),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     ListLiteral literal(int i) {
@@ -2512,25 +2651,29 @@ MethodInvocation
   }
 
   test_listLiteral_simple() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         List<int> l0 = [];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         List<int> l1 = [3];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         List<int> l2 = ["hello"];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                      ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
         List<int> l3 = ["hello", 3];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                      ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 39, 2),
-      error(diag.unusedLocalVariable, 66, 2),
-      error(diag.unusedLocalVariable, 94, 2),
-      error(diag.listElementTypeNotAssignable, 100, 7),
-      error(diag.unusedLocalVariable, 128, 2),
-      error(diag.listElementTypeNotAssignable, 134, 7),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -2549,25 +2692,29 @@ MethodInvocation
   }
 
   test_listLiteral_simple_const() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         const List<int> c0 = const [];
+//                      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'c0' isn't used.
         const List<int> c1 = const [3];
+//                      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'c1' isn't used.
         const List<int> c2 = const ["hello"];
+//                      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'c2' isn't used.
+//                                  ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
         const List<int> c3 = const ["hello", 3];
+//                      ^^
+// [diag.unusedLocalVariable] The value of the local variable 'c3' isn't used.
+//                                  ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 45, 2),
-      error(diag.unusedLocalVariable, 84, 2),
-      error(diag.unusedLocalVariable, 124, 2),
-      error(diag.listElementTypeNotAssignable, 136, 7),
-      error(diag.unusedLocalVariable, 170, 2),
-      error(diag.listElementTypeNotAssignable, 182, 7),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -2586,27 +2733,33 @@ MethodInvocation
   }
 
   test_listLiteral_simple_disabled() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         List<int> l0 = <num>[];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
+//                     ^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<num>' can't be assigned to a variable of type 'List<int>'.
         List<int> l1 = <num>[3];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
+//                     ^^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<num>' can't be assigned to a variable of type 'List<int>'.
         List<int> l2 = <String>["hello"];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                     ^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<String>' can't be assigned to a variable of type 'List<int>'.
         List<int> l3 = <dynamic>["hello", 3];
+//                ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                     ^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'List<dynamic>' can't be assigned to a variable of type 'List<int>'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 39, 2),
-      error(diag.invalidAssignment, 44, 7),
-      error(diag.unusedLocalVariable, 71, 2),
-      error(diag.invalidAssignment, 76, 8),
-      error(diag.unusedLocalVariable, 104, 2),
-      error(diag.invalidAssignment, 109, 17),
-      error(diag.unusedLocalVariable, 146, 2),
-      error(diag.invalidAssignment, 151, 21),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     DartType literal(int i) {
@@ -2623,25 +2776,29 @@ MethodInvocation
   }
 
   test_listLiteral_simple_subtype() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Iterable<int> l0 = [];
+//                    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         Iterable<int> l1 = [3];
+//                    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Iterable<int> l2 = ["hello"];
+//                    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                          ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
         Iterable<int> l3 = ["hello", 3];
+//                    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                          ^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'String' can't be assigned to the list type 'int'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 43, 2),
-      error(diag.unusedLocalVariable, 74, 2),
-      error(diag.unusedLocalVariable, 106, 2),
-      error(diag.listElementTypeNotAssignable, 112, 7),
-      error(diag.unusedLocalVariable, 144, 2),
-      error(diag.listElementTypeNotAssignable, 150, 7),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     InterfaceType literal(int i) {
@@ -2660,29 +2817,36 @@ MethodInvocation
   }
 
   test_mapLiteral_nested() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Map<int, List<String>> l0 = {};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         Map<int, List<String>> l1 = {3: ["hello"]};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Map<int, List<String>> l2 = {"hello": ["hello"]};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                                   ^^^^^^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
         Map<int, List<String>> l3 = {3: [3]};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                                       ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
         Map<int, List<String>> l4 = {3:["hello"], "hello": [3]};
+//                             ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
+//                                                ^^^^^^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
+//                                                          ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 52, 2),
-      error(diag.unusedLocalVariable, 92, 2),
-      error(diag.unusedLocalVariable, 144, 2),
-      error(diag.mapKeyTypeNotAssignable, 150, 7),
-      error(diag.unusedLocalVariable, 202, 2),
-      error(diag.listElementTypeNotAssignable, 212, 1),
-      error(diag.unusedLocalVariable, 248, 2),
-      error(diag.mapKeyTypeNotAssignable, 267, 7),
-      error(diag.listElementTypeNotAssignable, 277, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     SetOrMapLiteral literal(int i) {
@@ -2723,29 +2887,36 @@ MethodInvocation
   }
 
   test_mapLiteral_simple() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Map<int, String> l0 = {};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
         Map<int, String> l1 = {3: "hello"};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
         Map<int, String> l2 = {"hello": "hello"};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                             ^^^^^^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
         Map<int, String> l3 = {3: 3};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                                ^
+// [diag.mapValueTypeNotAssignable] The element type 'int' can't be assigned to the map value type 'String'.
         Map<int, String> l4 = {3:"hello", "hello": 3};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
+//                                        ^^^^^^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
+//                                                 ^
+// [diag.mapValueTypeNotAssignable] The element type 'int' can't be assigned to the map value type 'String'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 46, 2),
-      error(diag.unusedLocalVariable, 80, 2),
-      error(diag.unusedLocalVariable, 124, 2),
-      error(diag.mapKeyTypeNotAssignable, 130, 7),
-      error(diag.unusedLocalVariable, 174, 2),
-      error(diag.mapValueTypeNotAssignable, 183, 1),
-      error(diag.unusedLocalVariable, 212, 2),
-      error(diag.mapKeyTypeNotAssignable, 229, 7),
-      error(diag.mapValueTypeNotAssignable, 238, 1),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     InterfaceType literal(int i) {
@@ -2767,28 +2938,35 @@ MethodInvocation
   }
 
   test_mapLiteral_simple_disabled() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       void main () {
         Map<int, String> l0 = <int, dynamic>{};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l0' isn't used.
+//                            ^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'Map<int, dynamic>' can't be assigned to a variable of type 'Map<int, String>'.
         Map<int, String> l1 = <int, dynamic>{3: "hello"};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l1' isn't used.
+//                            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'Map<int, dynamic>' can't be assigned to a variable of type 'Map<int, String>'.
         Map<int, String> l2 = <int, dynamic>{"hello": "hello"};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l2' isn't used.
+//                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'Map<int, dynamic>' can't be assigned to a variable of type 'Map<int, String>'.
+//                                           ^^^^^^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
         Map<int, String> l3 = <int, dynamic>{3: 3};
+//                       ^^
+// [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
+//                            ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'Map<int, dynamic>' can't be assigned to a variable of type 'Map<int, String>'.
      }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unusedLocalVariable, 46, 2),
-      error(diag.invalidAssignment, 51, 16),
-      error(diag.unusedLocalVariable, 94, 2),
-      error(diag.invalidAssignment, 99, 26),
-      error(diag.unusedLocalVariable, 152, 2),
-      error(diag.invalidAssignment, 157, 32),
-      error(diag.mapKeyTypeNotAssignable, 172, 7),
-      error(diag.unusedLocalVariable, 216, 2),
-      error(diag.invalidAssignment, 221, 20),
-    ]);
+   ''');
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
-      unit,
+      result.unit,
       "main",
     );
     InterfaceType literal(int i) {
@@ -2810,19 +2988,18 @@ MethodInvocation
   }
 
   test_methodDeclaration_body_propagation() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
       class A {
         List<String> m0(int x) => ["hello"];
         List<String> m1(int x) {return [3];}
+//                                      ^
+// [diag.listElementTypeNotAssignable] The element type 'int' can't be assigned to the list type 'String'.
       }
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.listElementTypeNotAssignable, 101, 1),
-    ]);
+   ''');
 
     Expression methodReturnValue(String methodName) {
       MethodDeclaration method = AstFinder.getMethodInClass(
-        unit,
+        result.unit,
         "A",
         methodName,
       );
@@ -2844,16 +3021,18 @@ MethodInvocation
     // Test that downwards inference with a partial type
     // correctly uses the partial information to fill in subterm
     // types
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     S f<S, T>(Func1<S, T> g) => null;
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'S'.
     String test() => f((l) => l.length);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 72, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     _isString(body.expression.typeOrThrow);
     var invoke = body.expression as MethodInvocation;
@@ -2867,25 +3046,32 @@ MethodInvocation
     // Test that downwards inference with two different downwards covariant
     // constraints on the same parameter correctly fails to infer when
     // the types do not share a common subtype
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> { B(S s); }
     A<int, String> test() => new B(3);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-      error(diag.argumentTypeNotAssignable, 126, 1),
-    ]);
+//                                 ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNever])(type);
   }
@@ -2893,24 +3079,30 @@ MethodInvocation
   test_pinning_multipleConstraints2() async {
     // Test that downwards inference with two identical downwards covariant
     // constraints on the same parameter correctly infers and pins the type
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> { B(S s); }
     A<num, num> test() => new B(3);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -2919,25 +3111,32 @@ MethodInvocation
     // Test that downwards inference with two different downwards covariant
     // constraints on the same parameter correctly fails to infer when
     // the types do not share a common subtype, but do share a common supertype
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> { B(S s); }
     A<int, double> test() => new B(3);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-      error(diag.argumentTypeNotAssignable, 126, 1),
-    ]);
+//                                 ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isNever])(type);
   }
@@ -2946,24 +3145,30 @@ MethodInvocation
     // Test that downwards inference with two subtype related downwards
     // covariant constraints on the same parameter correctly infers and pins
     // the type
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> {}
     A<int, num> test() => new B();
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredFragment!.element;
+    Element elementB = AstFinder.getClass(
+      result.unit,
+      "B",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -2972,27 +3177,33 @@ MethodInvocation
     // Test that downwards inference with two different downwards contravariant
     // constraints on the same parameter chooses the upper bound
     // when the only supertype is Object
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> {}
     typedef void Contra1<T>(T x);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, String>> test() => mkA();
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -3000,27 +3211,33 @@ MethodInvocation
   test_pinning_multipleConstraints_contravariant2() async {
     // Test that downwards inference with two identical downwards contravariant
     // constraints on the same parameter correctly pins the type
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> {}
     typedef void Contra1<T>(T x);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<num, num>> test() => mkA();
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3029,27 +3246,33 @@ MethodInvocation
     // Test that downwards inference with two different downwards contravariant
     // constraints on the same parameter correctly choose the least upper bound
     // when they share a common supertype
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> {}
     typedef void Contra1<T>(T x);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, double>> test() => mkA();
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3058,27 +3281,33 @@ MethodInvocation
     // Test that downwards inference with two different downwards contravariant
     // constraints on the same parameter correctly choose the least upper bound
     // when one is a subtype of the other
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     class A<S, T> {
       S s;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 's' must be initialized.
       T t;
+//      ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 't' must be initialized.
     }
     class B<S> extends A<S, S> {}
     typedef void Contra1<T>(T x);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, num>> test() => mkA();
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableInstanceField, 28, 1),
-      error(diag.notInitializedNonNullableInstanceField, 39, 1),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredFragment!.element;
+    Element elementA = AstFinder.getClass(
+      result.unit,
+      "A",
+    ).declaredFragment!.element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -3093,9 +3322,9 @@ class B<T2, U2> {
   factory B() = A.named;
 }
    ''';
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
-    var b = unit.declarations[1] as ClassDeclaration;
+    var b = result.unit.declarations[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
@@ -3110,7 +3339,7 @@ class B<T2, U2> {
   }
 
   test_redirectedConstructor_self() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A();
   factory A.redirected() = A;
@@ -3119,7 +3348,7 @@ class A<T> {
   }
 
   test_redirectedConstructor_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> implements B<T, U> {
   A();
 }
@@ -3149,10 +3378,10 @@ class B<T2, U2> {
         A.named(List<String> x);
       }
    ''';
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -3165,16 +3394,18 @@ class B<T2, U2> {
   test_returnType_variance1() async {
     // Check that downwards inference correctly pins a type parameter
     // when the parameter is constrained in a contravariant position
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<T, String> f<T>(T x) => null;
+//                                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'Func1<T, String>'.
     Func1<num, String> test() => f(42);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var invoke = body.expression as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
@@ -3185,16 +3416,18 @@ class B<T2, U2> {
   test_returnType_variance2() async {
     // Check that downwards inference correctly pins a type parameter
     // when the parameter is constrained in a covariant position
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<String, T> f<T>(T x) => null;
+//                                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'Func1<String, T>'.
     Func1<String, num> test() => f(42);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var invoke = body.expression as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
@@ -3206,16 +3439,18 @@ class B<T2, U2> {
     // Check that the variance heuristic chooses the most precise type
     // when the return type uses the variable in a contravariant position
     // and there is no downwards constraint.
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<T, String> f<T>(T x, g(T x)) => null;
+//                                        ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'Func1<T, String>'.
     dynamic test() => f(42, (num x) => x);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
@@ -3226,16 +3461,18 @@ class B<T2, U2> {
     // Check that the variance heuristic chooses the more precise type
     // when the return type uses the variable in a covariant position
     // and there is no downwards constraint
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<String, T> f<T>(T x, g(T x)) => null;
+//                                        ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'Func1<String, T>'.
     dynamic test() => f(42, (num x) => x);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 82, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.returnType;
@@ -3245,18 +3482,21 @@ class B<T2, U2> {
   test_returnType_variance5() async {
     // Check that pinning works correctly with a partial type
     // when the return type uses the variable in a contravariant position
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<T, String> f<T>(T x) => null;
+//                                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'Func1<T, String>'.
     T g<T, S>(Func1<T, S> f) => null;
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'T'.
     num test() => g(f(3));
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
-      error(diag.returnOfInvalidTypeFromFunction, 112, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var call = body.expression as MethodInvocation;
     _isNum(call.typeOrThrow);
@@ -3268,18 +3508,21 @@ class B<T2, U2> {
   test_returnType_variance6() async {
     // Check that pinning works correctly with a partial type
     // when the return type uses the variable in a covariant position
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
     typedef To Func1<From, To>(From x);
     Func1<String, T> f<T>(T x) => null;
+//                                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'Func1<String, T>'.
     T g<T, S>(Func1<S, T> f) => null;
+//                              ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'T'.
     num test() => g(f(3));
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.returnOfInvalidTypeFromFunction, 74, 4),
-      error(diag.returnOfInvalidTypeFromFunction, 112, 4),
-    ]);
+   ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     var call = body.expression as MethodInvocation;
     _isNum(call.typeOrThrow);
@@ -3297,10 +3540,10 @@ class B<T2, U2> {
         A() : super([]);
       }
    ''';
-    await assertNoErrorsInCode(code);
+    var result = await resolveTestCodeWithDiagnostics(code);
 
     ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
-      unit,
+      result.unit,
       "A",
       null,
     );
@@ -3311,7 +3554,10 @@ class B<T2, U2> {
 
   /// Verifies the result has [diag.couldNotInfer] with
   /// the expected [errorMessage].
-  void _expectInferenceError(String errorMessage) {
+  void _expectInferenceError(
+    TestResolvedUnitResult result,
+    String errorMessage,
+  ) {
     var errors = result.diagnostics
         .where((e) => e.diagnosticCode == diag.couldNotInfer)
         .map((e) => e.message)
@@ -3323,6 +3569,35 @@ class B<T2, U2> {
       errorMessage, // Print the literal error message for easy copy+paste:
       reason: 'Actual error did not match expected error:\n$actual',
     );
+  }
+
+  void _initAssertions(TypeProvider typeProvider) {
+    var assertions = _assertions;
+    if (assertions == null) {
+      assertions = _assertions = TypeAssertions(typeProvider);
+      _isType = assertions.isType;
+      _hasElement = assertions.hasElement;
+      _isInstantiationOf = assertions.isInstantiationOf;
+      _isInt = assertions.isInt;
+      _isNever = assertions.isNever;
+      _isNull = assertions.isNull;
+      _isNum = assertions.isNum;
+      _isObject = assertions.isObject;
+      _isString = assertions.isString;
+      _isDynamic = assertions.isDynamic;
+      _isInvalidType = assertions.isInvalidType;
+      _isListOf = assertions.isListOf;
+      _isMapOf = assertions.isMapOf;
+      _isFunction2Of = assertions.isFunction2Of;
+      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
+      _isFutureOrOf = _isInstantiationOf(
+        _hasElement(typeProvider.futureOrElement),
+      );
+      _isFutureOfDynamic = _isFutureOf([_isDynamic]);
+      _isFutureOfInt = _isFutureOf([_isInt]);
+      _isFutureOfNull = _isFutureOf([_isNull]);
+      _isFutureOrOfInt = _isFutureOrOf([_isInt]);
+    }
   }
 
   /// Helper method for testing `FutureOr<T>`.
@@ -3340,9 +3615,12 @@ import "dart:async";
 
 $code
 """;
-    await assertErrorsInCode(fullCode, expectedDiagnostics);
+    var result = await assertErrorsInCode(fullCode, expectedDiagnostics);
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      result.unit,
+      "test",
+    );
     var body = test.functionExpression.body as ExpressionFunctionBody;
     return body.expression as MethodInvocation;
   }
@@ -3351,16 +3629,15 @@ $code
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_dynamicObjectGetter_hashCode() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   dynamic a = null;
   var foo = a.hashCode;
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 3)],
-    );
-    expectInitializerType('foo', 'int');
+''');
+    expectInitializerType(result, 'foo =', 'int');
   }
 
   test_futureOr_promotion1() async {
@@ -3369,20 +3646,19 @@ main() {
     import "dart:async";
     dynamic test(FutureOr<int> x) => (x is int) && (x.abs() == 0);
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
   }
 
   test_futureOr_promotion2() async {
     // Test that promotion from FutureOr<T> to Future<T> works for concrete
     // types
-    String code = r'''
+    await resolveTestCodeWithDiagnostics(r'''
     import "dart:async";
     dynamic test(FutureOr<int> x) => (x is Future<int>) &&
                                      (x.then((x) => x) == null);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unnecessaryNullComparisonNeverNullFalse, 139, 7),
-    ]);
+//                                                     ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullFalse] The operand can't be 'null', so the condition is always 'false'.
+   ''');
   }
 
   test_futureOr_promotion3() async {
@@ -3393,40 +3669,40 @@ main() {
     dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&
                                                   (x.abs() == 0);
    ''';
-    await assertNoErrorsInCode(code);
+    await resolveTestCodeWithDiagnostics(code);
   }
 
   test_futureOr_promotion4() async {
     // Test that promotion from FutureOr<T> to Future<T> works for type
     // parameters T
-    String code = r'''
+    await resolveTestCodeWithDiagnostics(r'''
     import "dart:async";
     dynamic test<T extends num>(FutureOr<T> x) => (x is Future<T>) &&
                                                   (x.then((x) => x) == null);
-   ''';
-    await assertErrorsInCode(code, [
-      error(diag.unnecessaryNullComparisonNeverNullFalse, 163, 7),
-    ]);
+//                                                                  ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullFalse] The operand can't be 'null', so the condition is always 'false'.
+   ''');
   }
 
   test_generalizedVoid_assignToVoidOk() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void main() {
   void x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   x = 42;
 }
-''',
-      [error(diag.unusedLocalVariable, 21, 1)],
-    );
+''');
   }
 
   test_genericFunction() async {
-    await assertErrorsInCode(r'T f<T>(T x) => null;', [
-      error(diag.returnOfInvalidTypeFromFunction, 15, 4),
-    ]);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+T f<T>(T x) => null;
+//             ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
+''');
 
-    var node = findNode.functionDeclaration('f<T>');
+    var node = result.findNode.functionDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -3472,11 +3748,13 @@ FunctionDeclaration
   }
 
   test_genericFunction_bounds() async {
-    await assertErrorsInCode(r'T f<T extends num>(T x) => null;', [
-      error(diag.returnOfInvalidTypeFromFunction, 27, 4),
-    ]);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+T f<T extends num>(T x) => null;
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
+''');
 
-    var node = findNode.functionDeclaration('f<T');
+    var node = result.findNode.functionDeclaration('f<T');
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -3527,26 +3805,25 @@ FunctionDeclaration
   }
 
   test_genericFunction_parameter() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void g(T f<T>(T x)) {}
 ''');
 
-    var fType = findElement2.parameter('f').type;
+    var fType = result.findElement.parameter('f').type;
     fType as FunctionType;
     assertType(fType, 'T Function<T>(T)');
   }
 
   test_genericFunction_static() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   static T f<T>(T x) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 37, 4)],
-    );
+''');
 
-    var node = findNode.methodDeclaration('f<T>');
+    var node = result.findNode.methodDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   modifierKeyword: static
@@ -3588,13 +3865,19 @@ MethodDeclaration
   }
 
   test_genericFunction_typedef() async {
-    String code = r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef T F<T>(T x);
 F f0;
+//^^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f0' must be initialized.
 
 class C {
   static F f1;
+//         ^^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f1' must be initialized.
   F f2;
+//  ^^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 'f2' must be initialized.
   void g(F f3) { // C
     F f4;
     f0(3);
@@ -3602,12 +3885,18 @@ class C {
     f2(3);
     f3(3);
     f4(3);
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f4' must be assigned before it can be used.
   }
 }
 
 class D<S> {
   static F f1;
+//         ^^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f1' must be initialized.
   F f2;
+//  ^^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 'f2' must be initialized.
   void g(F f3) { // D
     F f4;
     f0(3);
@@ -3615,25 +3904,18 @@ class D<S> {
     f2(3);
     f3(3);
     f4(3);
+//  ^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f4' must be assigned before it can be used.
   }
 }
-''';
-    await assertErrorsInCode(code, [
-      error(diag.notInitializedNonNullableVariable, 23, 2),
-      error(diag.notInitializedNonNullableVariable, 49, 2),
-      error(diag.notInitializedNonNullableInstanceField, 57, 2),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 141, 2),
-      error(diag.notInitializedNonNullableVariable, 179, 2),
-      error(diag.notInitializedNonNullableInstanceField, 187, 2),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 271, 2),
-    ]);
+''');
 
     checkBody(String className) {
-      var statements = findNode.block('{ // $className').statements;
+      var statements = result.findNode.block('{ // $className').statements;
 
       for (int i = 1; i <= 5; i++) {
         Expression exp = (statements[i] as ExpressionStatement).expression;
-        expect(exp.staticType, typeProvider.dynamicType);
+        expect(exp.staticType, result.typeProvider.dynamicType);
       }
     }
 
@@ -3643,390 +3925,411 @@ class D<S> {
 
   test_genericFunction_upwardsAndDownwards() async {
     // Regression tests for https://github.com/dart-lang/sdk/issues/27586.
-    await assertNoErrorsInCode(r'List<num> x = [1, 2];');
-    expectInitializerType('x', 'List<num>');
+    var result = await resolveTestCodeWithDiagnostics(r'List<num> x = [1, 2];');
+    expectInitializerType(result, 'x =', 'List<num>');
   }
 
   test_genericFunction_upwardsAndDownwards_Object() async {
     // Regression tests for https://github.com/dart-lang/sdk/issues/27625.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 List<Object> aaa = [];
 List<Object> bbb = [1, 2, 3];
 List<Object> ccc = [null];
+//                  ^^^^
+// [diag.listElementTypeNotAssignableNullability] The element type 'Null' can't be assigned to the list type 'Object'.
 List<Object> ddd = [1 as dynamic];
 List<Object> eee = [new Object()];
-''',
-      [error(diag.listElementTypeNotAssignableNullability, 73, 4)],
-    );
-    expectInitializerType('aaa', 'List<Object>');
-    expectInitializerType('bbb', 'List<Object>');
-    expectInitializerType('ccc', 'List<Object>');
-    expectInitializerType('ddd', 'List<Object>');
-    expectInitializerType('eee', 'List<Object>');
+''');
+    expectInitializerType(result, 'aaa =', 'List<Object>');
+    expectInitializerType(result, 'bbb =', 'List<Object>');
+    expectInitializerType(result, 'ccc =', 'List<Object>');
+    expectInitializerType(result, 'ddd =', 'List<Object>');
+    expectInitializerType(result, 'eee =', 'List<Object>');
   }
 
   test_genericMethod() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
+//                     ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'List<T>'.
 }
 main() {
   C<String> cOfString;
+//          ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'cOfString' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 36, 4),
-        error(diag.unusedLocalVariable, 65, 9),
-      ],
-    );
-    assertType(findElement2.method('f').type, 'List<T> Function<T>(E)');
+''');
+    assertType(result.findElement.method('f').type, 'List<T> Function<T>(E)');
 
-    var cOfString = findElement2.localVar('cOfString');
-    var ft = inheritanceManager
+    var cOfString = result.findElement.localVar('cOfString');
+    var ft = result.inheritanceManager
         .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
         .type;
     assertType(ft, 'List<T> Function<T>(String)');
     assertType(
-      ft.instantiate([typeProvider.intType]),
+      ft.instantiate([result.typeProvider.intType]),
       'List<int> Function(String)',
     );
   }
 
   test_genericMethod_explicitTypeParams() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
+//                     ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'List<T>'.
 }
 main() {
   C<String> cOfString;
   var x = cOfString.f<int>('hi');
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//        ^^^^^^^^^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'cOfString' must be assigned before it can be used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 36, 4),
-        error(diag.unusedLocalVariable, 82, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 86, 9),
-      ],
-    );
-    var f = findNode.simple('f<int>').parent as MethodInvocation;
+''');
+    var f = result.findNode.simple('f<int>').parent as MethodInvocation;
     var ft = f.staticInvokeType as FunctionType;
     assertType(ft, 'List<int> Function(String)');
 
-    var x = findElement2.localVar('x');
-    expect(x.type, typeProvider.listType(typeProvider.intType));
+    var x = result.findElement.localVar('x');
+    expect(x.type, result.typeProvider.listType(result.typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static T Function<T>(T) h = null;
+//                            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'T Function<T>(T)'.
 }
 
 T topF<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'topF' because it has a return type of 'T'.
 var topG = topF;
 void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'lf' because it has a return type of 'T'.
 
   var lambdaCall = (<E>(E e) => e)<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'lambdaCall' isn't used.
   var methodCall = (c.f)<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'methodCall' isn't used.
   var staticCall = (C.g)<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticCall' isn't used.
   var staticFieldCall = (C.h)<int>(3);
+//    ^^^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticFieldCall' isn't used.
   var topFunCall = (topF)<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFunCall' isn't used.
   var topFieldCall = (topG)<int>(3);
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFieldCall' isn't used.
   var localCall = (lf)<int>(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'localCall' isn't used.
   var paramCall = (pf)<int>(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
-        error(diag.invalidAssignment, 96, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
-        error(diag.unusedLocalVariable, 237, 10),
-        error(diag.unusedLocalVariable, 281, 10),
-        error(diag.unusedLocalVariable, 315, 10),
-        error(diag.unusedLocalVariable, 349, 15),
-        error(diag.unusedLocalVariable, 388, 10),
-        error(diag.unusedLocalVariable, 423, 12),
-        error(diag.unusedLocalVariable, 460, 9),
-        error(diag.unusedLocalVariable, 492, 9),
-      ],
-    );
-    _assertLocalVarType('lambdaCall', "int");
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'lambdaCall', "int");
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 9)],
-    );
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 9)],
-    );
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static T Function<T>(T) h = null;
+//                            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'T Function<T>(T)'.
 }
 
 T topF<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'topF' because it has a return type of 'T'.
 var topG = topF;
 void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'lf' because it has a return type of 'T'.
 
   var lambdaCall = (<E>(E e) => e)(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'lambdaCall' isn't used.
   var methodCall = (c.f)(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'methodCall' isn't used.
   var staticCall = (C.g)(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticCall' isn't used.
   var staticFieldCall = (C.h)(3);
+//    ^^^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticFieldCall' isn't used.
   var topFunCall = (topF)(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFunCall' isn't used.
   var topFieldCall = (topG)(3);
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFieldCall' isn't used.
   var localCall = (lf)(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'localCall' isn't used.
   var paramCall = (pf)(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
-        error(diag.invalidAssignment, 96, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
-        error(diag.unusedLocalVariable, 237, 10),
-        error(diag.unusedLocalVariable, 276, 10),
-        error(diag.unusedLocalVariable, 305, 10),
-        error(diag.unusedLocalVariable, 334, 15),
-        error(diag.unusedLocalVariable, 368, 10),
-        error(diag.unusedLocalVariable, 398, 12),
-        error(diag.unusedLocalVariable, 430, 9),
-        error(diag.unusedLocalVariable, 457, 9),
-      ],
-    );
-    _assertLocalVarType('lambdaCall', "int");
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'lambdaCall', "int");
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_explicit() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static T Function<T>(T) h = null;
+//                            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'T Function<T>(T)'.
 }
 
 T topF<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'topF' because it has a return type of 'T'.
 var topG = topF;
 void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'lf' because it has a return type of 'T'.
   var methodCall = c.f<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'methodCall' isn't used.
   var staticCall = C.g<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticCall' isn't used.
   var staticFieldCall = C.h<int>(3);
+//    ^^^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticFieldCall' isn't used.
   var topFunCall = topF<int>(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFunCall' isn't used.
   var topFieldCall = topG<int>(3);
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFieldCall' isn't used.
   var localCall = lf<int>(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'localCall' isn't used.
   var paramCall = pf<int>(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
-        error(diag.invalidAssignment, 96, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
-        error(diag.unusedLocalVariable, 236, 10),
-        error(diag.unusedLocalVariable, 268, 10),
-        error(diag.unusedLocalVariable, 300, 15),
-        error(diag.unusedLocalVariable, 337, 10),
-        error(diag.unusedLocalVariable, 370, 12),
-        error(diag.unusedLocalVariable, 405, 9),
-        error(diag.unusedLocalVariable, 435, 9),
-      ],
-    );
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 9)],
-    );
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 9)],
-    );
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_inferred() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(T e) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static T Function<T>(T) h = null;
+//                            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'T Function<T>(T)'.
 }
 
 T topF<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'topF' because it has a return type of 'T'.
 var topG = topF;
 void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'lf' because it has a return type of 'T'.
   var methodCall = c.f(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'methodCall' isn't used.
   var staticCall = C.g(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticCall' isn't used.
   var staticFieldCall = C.h(3);
+//    ^^^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticFieldCall' isn't used.
   var topFunCall = topF(3);
+//    ^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFunCall' isn't used.
   var topFieldCall = topG(3);
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFieldCall' isn't used.
   var localCall = lf(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'localCall' isn't used.
   var paramCall = pf(3);
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramCall' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
-        error(diag.invalidAssignment, 96, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
-        error(diag.unusedLocalVariable, 236, 10),
-        error(diag.unusedLocalVariable, 263, 10),
-        error(diag.unusedLocalVariable, 290, 15),
-        error(diag.unusedLocalVariable, 322, 10),
-        error(diag.unusedLocalVariable, 350, 12),
-        error(diag.unusedLocalVariable, 380, 9),
-        error(diag.unusedLocalVariable, 405, 9),
-      ],
-    );
-    _assertLocalVarType('methodCall', "int");
-    _assertLocalVarType('staticCall', "int");
-    _assertLocalVarType('staticFieldCall', "int");
-    _assertLocalVarType('topFunCall', "int");
-    _assertLocalVarType('topFieldCall', "int");
-    _assertLocalVarType('localCall', "int");
-    _assertLocalVarType('paramCall', "int");
+''');
+    _assertLocalVarType(result, 'methodCall', "int");
+    _assertLocalVarType(result, 'staticCall', "int");
+    _assertLocalVarType(result, 'staticFieldCall', "int");
+    _assertLocalVarType(result, 'topFunCall', "int");
+    _assertLocalVarType(result, 'topFieldCall', "int");
+    _assertLocalVarType(result, 'localCall', "int");
+    _assertLocalVarType(result, 'paramCall', "int");
   }
 
   test_genericMethod_functionTypedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   List<T> f<T>(T f(E e)) => null;
+//                          ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'List<T>'.
 }
 main() {
   C<String> cOfString;
+//          ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'cOfString' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 41, 4),
-        error(diag.unusedLocalVariable, 70, 9),
-      ],
-    );
+''');
     assertType(
-      findElement2.method('f').type,
+      result.findElement.method('f').type,
       'List<T> Function<T>(T Function(E))',
     );
 
-    var cOfString = findElement2.localVar('cOfString');
-    var ft = inheritanceManager
+    var cOfString = result.findElement.localVar('cOfString');
+    var ft = result.inheritanceManager
         .getMember3(cOfString.type as InterfaceType, Name(null, 'f'))!
         .type;
     assertType(ft, 'List<T> Function<T>(T Function(String))');
     assertType(
-      ft.instantiate([typeProvider.intType]),
+      ft.instantiate([result.typeProvider.intType]),
       'List<int> Function(int Function(String))',
     );
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramTearOff' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 12)],
-    );
-    _assertLocalVarType('paramTearOff', "T Function<T>(T)");
+''');
+    _assertLocalVarType(result, 'paramTearOff', "T Function<T>(T)");
   }
 
   test_genericMethod_implicitDynamic() async {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25100#issuecomment-162047588
     // These should not cause any hints or warnings.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class List<E> {
   T map<T>(T f(E e)) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'map' because it has a return type of 'T'.
 }
 void foo() {
   List list = null;
+//            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'List<dynamic>'.
   list.map((e) => e);
   list.map((e) => 3);
-}''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 40, 4),
-        error(diag.invalidAssignment, 75, 4),
-      ],
-    );
+}''');
 
-    var node1 = findNode.methodInvocation('map((e) => e);');
+    var node1 = result.findNode.methodInvocation('map((e) => e);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4072,7 +4375,7 @@ MethodInvocation
     dynamic
 ''');
 
-    var node2 = findNode.methodInvocation('map((e) => 3);');
+    var node2 = result.findNode.methodInvocation('map((e) => 3);');
     assertResolvedNodeText(node2, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4119,73 +4422,68 @@ MethodInvocation
   }
 
   test_genericMethod_max_doubleDouble() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2.0);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 3)],
-    );
-    expectInitializerType('foo', 'double');
+''');
+    expectInitializerType(result, 'foo =', 'double');
   }
 
   test_genericMethod_max_doubleDouble_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as math;
 main() {
   var foo = math.max(1.0, 2.0);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 43, 3)],
-    );
-    expectInitializerType('foo', 'double');
+''');
+    expectInitializerType(result, 'foo =', 'double');
   }
 
   test_genericMethod_max_doubleInt() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 3)],
-    );
-    expectInitializerType('foo', 'num');
+''');
+    expectInitializerType(result, 'foo =', 'num');
   }
 
   test_genericMethod_max_intDouble() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2.0);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 3)],
-    );
-    expectInitializerType('foo', 'num');
+''');
+    expectInitializerType(result, 'foo =', 'num');
   }
 
   test_genericMethod_max_intInt() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 3)],
-    );
-    expectInitializerType('foo', 'int');
+''');
+    expectInitializerType(result, 'foo =', 'int');
   }
 
   test_genericMethod_nestedBound() async {
     // Just validate that there is no warning on the call to `.abs()`.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Foo<T extends num> {
   void method<U extends T>(U u) {
     u.abs();
@@ -4195,20 +4493,19 @@ class Foo<T extends num> {
   }
 
   test_genericMethod_nestedCapture() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T f<S>(S x) {
     new C<S>().f<int>(3);
     new C<S>().f; // tear-off
     return null;
+//         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 96, 4)],
-    );
+''');
 
-    var node1 = findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: InstanceCreationExpression
@@ -4266,23 +4563,21 @@ MethodInvocation
   }
 
   test_genericMethod_nestedCaptureBounds() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   T f<S extends T>(S x) {
     new C<S>().f<int>(3);
+//               ^^^
+// [diag.typeArgumentNotMatchingBounds] 'int' doesn't conform to the bound 'S' of the type parameter 'S'.
     new C<S>().f; // tear-off
     return null;
+//         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   }
 }
-''',
-      [
-        error(diag.typeArgumentNotMatchingBounds, 56, 3),
-        error(diag.returnOfInvalidTypeFromMethod, 106, 4),
-      ],
-    );
+''');
 
-    var node1 = findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
   target: InstanceCreationExpression
@@ -4338,7 +4633,7 @@ MethodInvocation
     int
 ''');
 
-    var node2 = findNode.simple('f;');
+    var node2 = result.findNode.simple('f;');
     assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: f
@@ -4350,42 +4645,38 @@ SimpleIdentifier
   }
 
   test_genericMethod_nestedFunctions() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 S f<S>(S x) {
   g<S>(S x) => f;
+//^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
   return null;
+//       ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'S'.
 }
-''',
-      [
-        error(diag.unusedElement, 16, 1),
-        error(diag.returnOfInvalidTypeFromFunction, 41, 4),
-      ],
-    );
-    assertType(findElement2.topFunction('f').type, 'S Function<S>(S)');
+''');
+    assertType(result.findElement.topFunction('f').type, 'S Function<S>(S)');
     assertType(
-      findElement2.localFunction('g').type,
+      result.findElement.localFunction('g').type,
       'S Function<S>(S) Function<S₀>(S₀)',
     );
   }
 
   test_genericMethod_override() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   T f<T>(T x) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 class D extends C {
   T f<T>(T y) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 27, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 72, 4),
-      ],
-    );
+''');
 
-    var node = findNode.methodDeclaration('f<T>(T y)');
+    var node = result.findNode.methodDeclaration('f<T>(T y)');
     assertResolvedNodeText(node, r'''
 MethodDeclaration
   returnType: NamedType
@@ -4426,32 +4717,30 @@ MethodDeclaration
   }
 
   test_genericMethod_override_bounds() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {
   T f<T extends A>(T x) => null;
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 // override with the same bound is OK
 class C extends B {
   T f<T extends A>(T x) => null;
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 // override with new name and the same bound is OK
 class D extends B {
   Q f<Q extends A>(Q x) => null;
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'Q'.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 48, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 141, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 247, 4),
-      ],
-    );
+''');
   }
 
   test_genericMethod_override_covariant_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   num get x;
   set x(covariant num _);
@@ -4459,14 +4748,14 @@ abstract class A {
 
 class B extends A {
   int x;
+//    ^
+// [diag.notInitializedNonNullableInstanceField] Non-nullable instance field 'x' must be initialized.
 }
-''',
-      [error(diag.notInitializedNonNullableInstanceField, 87, 1)],
-    );
+''');
   }
 
   test_genericMethod_override_differentContextsSameBounds() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
         class GenericMethodBounds<T> {
   Type get t => T;
   GenericMethodBounds<E> foo<E extends T>() => new GenericMethodBounds<E>();
@@ -4483,95 +4772,79 @@ class GenericMethodBoundsDerived extends GenericMethodBounds<num> {
   }
 
   test_genericMethod_override_invalidContravariantTypeParamBounds() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class C {
   T f<T extends A>(T x) => null;
+//  ^
+// [context 1] The member being overridden.
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 class D extends C {
   T f<T extends B>(T x) => null;
-}''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 69, 4),
-        error(
-          diag.invalidOverride,
-          101,
-          1,
-          contextMessages: [message(testFile, 46, 1)],
-        ),
-        error(diag.returnOfInvalidTypeFromMethod, 124, 4),
-      ],
-    );
+//  ^
+// [diag.invalidOverride][context 1] 'D.f' ('T Function<T extends B>(T)') isn't a valid override of 'C.f' ('T Function<T extends A>(T)').
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
+}''');
   }
 
   test_genericMethod_override_invalidCovariantTypeParamBounds() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {}
 class C {
   T f<T extends B>(T x) => null;
+//  ^
+// [context 1] The member being overridden.
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 class D extends C {
   T f<T extends A>(T x) => null;
-}''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 69, 4),
-        error(
-          diag.invalidOverride,
-          101,
-          1,
-          contextMessages: [message(testFile, 46, 1)],
-        ),
-        error(diag.returnOfInvalidTypeFromMethod, 124, 4),
-      ],
-    );
+//  ^
+// [diag.invalidOverride][context 1] 'D.f' ('T Function<T extends A>(T)') isn't a valid override of 'C.f' ('T Function<T extends B>(T)').
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
+}''');
   }
 
   test_genericMethod_override_invalidReturnType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   Iterable<T> f<T>(T x) => null;
+//            ^
+// [context 1] The member being overridden.
+//                         ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'Iterable<T>'.
 }
 class D extends C {
   String f<S>(S x) => null;
-}''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 37, 4),
-        error(
-          diag.invalidOverride,
-          74,
-          1,
-          contextMessages: [message(testFile, 24, 1)],
-        ),
-        error(diag.returnOfInvalidTypeFromMethod, 87, 4),
-      ],
-    );
+//       ^
+// [diag.invalidOverride][context 1] 'D.f' ('String Function<S>(S)') isn't a valid override of 'C.f' ('Iterable<T> Function<T>(T)').
+//                    ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'String'.
+}''');
   }
 
   test_genericMethod_override_invalidTypeParamCount() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   T f<T>(T x) => null;
+//  ^
+// [context 1] The member being overridden.
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
 }
 class D extends C {
   S f<T, S>(T x) => null;
-}''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 27, 4),
-        error(
-          diag.invalidOverride,
-          59,
-          1,
-          contextMessages: [message(testFile, 14, 1)],
-        ),
-        error(diag.returnOfInvalidTypeFromMethod, 75, 4),
-      ],
-    );
+//  ^
+// [diag.invalidOverride][context 1] 'D.f' ('S Function<T, S>(T)') isn't a valid override of 'C.f' ('T Function<T>(T)').
+//                  ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'S'.
+}''');
   }
 
   test_genericMethod_propagatedType_promotion() async {
@@ -4582,8 +4855,7 @@ class D extends C {
     // example won't work, as we now compute a static type and therefore discard
     // the propagated type. So a new test was created that doesn't run under
     // strong mode.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Iter {
   List<S> map<S>(S f(x));
 }
@@ -4591,68 +4863,75 @@ class C {}
 C toSpan(dynamic element) {
   if (element is Iter) {
     var y = element.map(toSpan);
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
   }
   return null;
+//       ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'toSpan' because it has a return type of 'C'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 122, 1),
-        error(diag.returnOfInvalidTypeFromFunction, 160, 4),
-      ],
-    );
-    _assertLocalVarType('y', 'List<C>');
+''');
+    _assertLocalVarType(result, 'y', 'List<C>');
   }
 
   test_genericMethod_tearoff() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(E e) => null;
+//               ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'f' because it has a return type of 'T'.
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static T Function<T>(T) h = null;
+//                            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'T Function<T>(T)'.
 }
 
 T topF<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'topF' because it has a return type of 'T'.
 var topG = topF;
 void test<S>(T Function<T>(T) pf) {
   var c = new C<int>();
   T lf<T>(T e) => null;
+//                ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'lf' because it has a return type of 'T'.
   var methodTearOff = c.f;
+//    ^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'methodTearOff' isn't used.
   var staticTearOff = C.g;
+//    ^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticTearOff' isn't used.
   var staticFieldTearOff = C.h;
+//    ^^^^^^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'staticFieldTearOff' isn't used.
   var topFunTearOff = topF;
+//    ^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFunTearOff' isn't used.
   var topFieldTearOff = topG;
+//    ^^^^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'topFieldTearOff' isn't used.
   var localTearOff = lf;
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'localTearOff' isn't used.
   var paramTearOff = pf;
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'paramTearOff' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 30, 4),
-        error(diag.returnOfInvalidTypeFromMethod, 60, 4),
-        error(diag.invalidAssignment, 96, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 123, 4),
-        error(diag.returnOfInvalidTypeFromFunction, 224, 4),
-        error(diag.unusedLocalVariable, 236, 13),
-        error(diag.unusedLocalVariable, 263, 13),
-        error(diag.unusedLocalVariable, 290, 18),
-        error(diag.unusedLocalVariable, 322, 13),
-        error(diag.unusedLocalVariable, 350, 15),
-        error(diag.unusedLocalVariable, 380, 12),
-        error(diag.unusedLocalVariable, 405, 12),
-      ],
-    );
-    _assertLocalVarType('methodTearOff', "T Function<T>(int)");
-    _assertLocalVarType('staticTearOff', "T Function<T>(T)");
-    _assertLocalVarType('staticFieldTearOff', "T Function<T>(T)");
-    _assertLocalVarType('topFunTearOff', "T Function<T>(T)");
-    _assertLocalVarType('topFieldTearOff', "T Function<T>(T)");
-    _assertLocalVarType('localTearOff', "T Function<T>(T)");
-    _assertLocalVarType('paramTearOff', "T Function<T>(T)");
+''');
+    _assertLocalVarType(result, 'methodTearOff', "T Function<T>(int)");
+    _assertLocalVarType(result, 'staticTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'staticFieldTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'topFunTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'topFieldTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'localTearOff', "T Function<T>(T)");
+    _assertLocalVarType(result, 'paramTearOff', "T Function<T>(T)");
   }
 
-  @failingTest
+  @SkippedTest() // TODO(scheglov): fix it
   test_genericMethod_tearoff_instantiated() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
@@ -4673,97 +4952,90 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOffInst = pf<int>;
 }
 ''');
-    expectIdentifierType('methodTearOffInst', "int Function(int)");
-    expectIdentifierType('staticTearOffInst', "int Function(int)");
-    expectIdentifierType('staticFieldTearOffInst', "int Function(int)");
-    expectIdentifierType('topFunTearOffInst', "int Function(int)");
-    expectIdentifierType('topFieldTearOffInst', "int Function(int)");
-    expectIdentifierType('localTearOffInst', "int Function(int)");
-    expectIdentifierType('paramTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'methodTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'staticTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'staticFieldTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'topFunTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'topFieldTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'localTearOffInst', "int Function(int)");
+    expectIdentifierType(result, 'paramTearOffInst', "int Function(int)");
   }
 
   test_genericMethod_then() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 String toString(int x) => x.toString();
 main() {
   Future<int> bar = null;
+//                  ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Future<int>'.
   var foo = bar.then(toString);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [
-        error(diag.invalidAssignment, 69, 4),
-        error(diag.unusedLocalVariable, 81, 3),
-      ],
-    );
+''');
 
-    expectInitializerType('foo', 'Future<String>');
+    expectInitializerType(result, 'foo =', 'Future<String>');
   }
 
   test_genericMethod_then_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as async;
 String toString(int x) => x.toString();
 main() {
   async.Future<int> bar = null;
+//                        ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Future<int>'.
   var foo = bar.then(toString);
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
 }
-''',
-      [
-        error(diag.invalidAssignment, 105, 4),
-        error(diag.unusedLocalVariable, 117, 3),
-      ],
-    );
-    expectInitializerType('foo', 'Future<String>');
+''');
+    expectInitializerType(result, 'foo =', 'Future<String>');
   }
 
   test_genericMethod_then_propagatedType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25482.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
   Future<String> p;
   var foo = p.then((r) => new Future<String>.value(3));
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
+//          ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'p' must be assigned before it can be used.
+//                                                 ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'FutureOr<String>?'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 40, 3),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 46, 1),
-        error(diag.argumentTypeNotAssignable, 85, 1),
-      ],
-    );
+''');
     // Note: this correctly reports the error
     // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
-    expectInitializerType('foo', 'Future<String>');
+    expectInitializerType(result, 'foo =', 'Future<String>');
   }
 
   test_genericMethod_toplevel_field_staticTearoff() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static T Function<T>(T) h = null;
+//                            ^^^^
+// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'T Function<T>(T)'.
 }
 
 void test() {
   var fieldRead = C.h;
+//    ^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'fieldRead' isn't used.
 }
-''',
-      [
-        error(diag.returnOfInvalidTypeFromMethod, 37, 4),
-        error(diag.invalidAssignment, 73, 4),
-        error(diag.unusedLocalVariable, 102, 9),
-      ],
-    );
-    _assertLocalVarType('fieldRead', "T Function<T>(T)");
+''');
+    _assertLocalVarType(result, 'fieldRead', "T Function<T>(T)");
   }
 
   test_implicitBounds() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 class B<T extends num> {}
@@ -4772,59 +5044,51 @@ class C<S extends int, T extends B<S>, U extends A> {}
 
 void test() {
   A ai;
+//  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'ai' isn't used.
   B bi;
+//  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'bi' isn't used.
   C ci;
+//  ^^
+// [diag.unusedLocalVariable] The value of the local variable 'ci' isn't used.
   var aa = new A();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'aa' isn't used.
   var bb = new B();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'bb' isn't used.
   var cc = new C();
+//    ^^
+// [diag.unusedLocalVariable] The value of the local variable 'cc' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 116, 2),
-        error(diag.unusedLocalVariable, 124, 2),
-        error(diag.unusedLocalVariable, 132, 2),
-        error(diag.unusedLocalVariable, 142, 2),
-        error(diag.unusedLocalVariable, 162, 2),
-        error(diag.unusedLocalVariable, 182, 2),
-      ],
-    );
-    _assertLocalVarType('ai', "A<dynamic>");
-    _assertLocalVarType('bi', "B<num>");
-    _assertLocalVarType('ci', "C<int, B<int>, A<dynamic>>");
-    _assertLocalVarType('aa', "A<dynamic>");
-    _assertLocalVarType('bb', "B<num>");
-    _assertLocalVarType('cc', "C<int, B<int>, A<dynamic>>");
+''');
+    _assertLocalVarType(result, 'ai', "A<dynamic>");
+    _assertLocalVarType(result, 'bi', "B<num>");
+    _assertLocalVarType(result, 'ci', "C<int, B<int>, A<dynamic>>");
+    _assertLocalVarType(result, 'aa', "A<dynamic>");
+    _assertLocalVarType(result, 'bb', "B<num>");
+    _assertLocalVarType(result, 'cc', "C<int, B<int>, A<dynamic>>");
   }
 
   test_instantiateToBounds_class_error_extension_malbounded() async {
     // Test that superclasses are strictly checked for malbounded default
     // types
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 class D extends C {}
-''',
-      [
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          69,
-          1,
-          contextMessages: [message(testFile, 69, 1)],
-        ),
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          69,
-          1,
-          contextMessages: [message(testFile, 69, 1)],
-        ),
-      ],
-    );
+//              ^
+// [context 1] The raw type was instantiated as 'C<List<dynamic>, List<dynamic>>', and is not regular-bounded.
+// [context 2] The raw type was instantiated as 'C<List<dynamic>, List<dynamic>>', and is not regular-bounded.
+// [diag.typeArgumentNotMatchingBounds][context 1] 'List<dynamic>' doesn't conform to the bound 'List<List<dynamic>>' of the type parameter 'T0'.
+// [diag.typeArgumentNotMatchingBounds][context 2] 'List<dynamic>' doesn't conform to the bound 'List<List<dynamic>>' of the type parameter 'T1'.
+''');
   }
 
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
     // Test that instance creations are strictly checked for malbounded default
     // types
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 void test() {
@@ -4842,149 +5106,139 @@ void test() {
         ),
       ],
     );
-    _assertLocalVarType('c', 'C<List<Object?>, List<List<Object?>>>');
+    _assertLocalVarType(result, 'c', 'C<List<Object?>, List<List<Object?>>>');
   }
 
   test_instantiateToBounds_class_error_recursion() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 55, 1)],
-    );
-    _assertTopVarType('c', 'C<List<dynamic>, List<dynamic>>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<List<dynamic>, List<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T extends C<T>> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 29, 1)],
-    );
-    _assertTopVarType('c', 'C<C<dynamic>>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<C<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<E> {}
 class C<T extends A<T>> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 43, 1)],
-    );
-    _assertTopVarType('c', 'C<A<dynamic>>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<A<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_typedef() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef T F<T>(T x);
 class C<T extends F<T>> {}
 C c;
-''',
-      [
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          48,
-          1,
-          contextMessages: [message(testFile, 48, 1), message(testFile, 48, 1)],
-        ),
-        error(diag.notInitializedNonNullableVariable, 50, 1),
-      ],
-    );
-    _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
+// [context 1][column 1][length 1] The raw type was instantiated as 'C<dynamic Function(dynamic)>', and is not regular-bounded.
+// [context 2][column 1][length 1] The inverted type 'C<Never Function(Never)>' is also not regular-bounded, so the type is not well-bounded.
+// [diag.typeArgumentNotMatchingBounds][column 1][length 1][context 1][context 2] 'F<Never>' doesn't conform to the bound 'F<F<Never>>' of the type parameter 'T'.
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<dynamic Function(dynamic)>');
   }
 
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends Map<T1, T2>, T1 extends List, T2 extends int> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 70, 1)],
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(
+      result,
+      'c',
+      'C<Map<List<dynamic>, int>, List<dynamic>, int>',
     );
-    _assertTopVarType('c', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends T1, T1 extends int> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 44, 1)],
-    );
-    _assertTopVarType('c', 'C<int, int>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends Map<T1, T1>, T1 extends int> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 53, 1)],
-    );
-    _assertTopVarType('c', 'C<Map<int, int>, int>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<Map<int, int>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_before() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends int, T1 extends T0> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 44, 1)],
-    );
-    _assertTopVarType('c', 'C<int, int>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
 C c;
-''',
-      [error(diag.notInitializedNonNullableVariable, 74, 1)],
-    );
-    _assertTopVarType('c', 'C<Map<List<int>, int>, List<int>, int>');
+//^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'c' must be initialized.
+''');
+    _assertTopVarType(result, 'c', 'C<Map<List<int>, int>, List<int>, int>');
   }
 
   test_instantiateToBounds_class_ok_simpleBounds() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 class B<T extends num> {}
 class C<T extends List<int>> {}
 class D<T extends A> {}
 void main() {
   A a;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
   B b;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
   C c;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
   D d;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 114, 1),
-        error(diag.unusedLocalVariable, 121, 1),
-        error(diag.unusedLocalVariable, 128, 1),
-        error(diag.unusedLocalVariable, 135, 1),
-      ],
-    );
-    _assertLocalVarType('a', 'A<dynamic>');
-    _assertLocalVarType('b', 'B<num>');
-    _assertLocalVarType('c', 'C<List<int>>');
-    _assertLocalVarType('d', 'D<A<dynamic>>');
+''');
+    _assertLocalVarType(result, 'a', 'A<dynamic>');
+    _assertLocalVarType(result, 'b', 'B<num>');
+    _assertLocalVarType(result, 'c', 'C<List<int>>');
+    _assertLocalVarType(result, 'd', 'D<A<dynamic>>');
   }
 
   test_instantiateToBounds_generic_function_error_malbounded() async {
     // Test that generic methods are strictly checked for malbounded default
     // types
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       r'''
 T0 f<T0 extends List<T1>, T1 extends List<T0>>() {}
 void g() {
@@ -4998,27 +5252,25 @@ void g() {
         error(diag.couldNotInfer, 73, 1),
       ],
     );
-    _assertLocalVarType('c', 'List<Object?>');
+    _assertLocalVarType(result, 'c', 'List<Object?>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   void m<S0 extends T, S1 extends List<S0>>(S0 p0, S1 p1) {}
 
   void main() {
     m(null, null);
+//    ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'T'.
+//          ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'List<T>'.
   }
 }
-''',
-      [
-        error(diag.argumentTypeNotAssignable, 97, 4),
-        error(diag.argumentTypeNotAssignable, 103, 4),
-      ],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5052,20 +5304,19 @@ MethodInvocation
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   Map<S0, S1> m<S0 extends T, S1 extends List<S0>>() => null;
+//                                                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'm' because it has a return type of 'Map<S0, S1>'.
 
   void main() {
     m();
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 69, 4)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5086,20 +5337,19 @@ MethodInvocation
   }
 
   test_instantiateToBounds_method_ok_simpleBounds() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   void m<S extends T>(S p0) {}
 
   void main() {
     m(null);
+//    ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'T'.
   }
 }
-''',
-      [error(diag.argumentTypeNotAssignable, 67, 4)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5126,20 +5376,19 @@ MethodInvocation
   }
 
   test_instantiateToBounds_method_ok_simpleBounds2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   S m<S extends T>() => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'm' because it has a return type of 'S'.
 
   void main() {
     m();
   }
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 37, 4)],
-    );
+''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier
@@ -5159,15 +5408,14 @@ MethodInvocation
   }
 
   test_issue32396() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
   static T g<T>(T e) => null;
+//                      ^^^^
+// [diag.returnOfInvalidTypeFromMethod] A value of type 'Null' can't be returned from the method 'g' because it has a return type of 'T'.
   static final h = g;
 }
-''',
-      [error(diag.returnOfInvalidTypeFromMethod, 37, 4)],
-    );
+''');
   }
 
   test_objectMethodOnFunctions_Anonymous() async {
@@ -5346,29 +5594,27 @@ void main() {
   }
 
   test_returnOfInvalidType_object_void() async {
-    await assertErrorsInCode(
-      "Object f() { void voidFn() => null; return voidFn(); }",
-      [error(diag.returnOfInvalidTypeFromFunction, 43, 8)],
-    );
+    await resolveTestCodeWithDiagnostics(r'''
+Object f() { void voidFn() => null; return voidFn(); }
+//                                         ^^^^^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'void' can't be returned from the function 'f' because it has a return type of 'Object'.
+''');
   }
 
   test_setterWithDynamicTypeIsError() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   dynamic set f(String s) => null;
+//^^^^^^^
+// [diag.nonVoidReturnForSetter] The return type of the setter must be 'void' or absent.
 }
 dynamic set g(int x) => null;
-''',
-      [
-        error(diag.nonVoidReturnForSetter, 12, 7),
-        error(diag.nonVoidReturnForSetter, 47, 7),
-      ],
-    );
+// [diag.nonVoidReturnForSetter][column 1][length 7] The return type of the setter must be 'void' or absent.
+''');
   }
 
   test_setterWithExplicitVoidType_returningVoid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void returnsVoid() {}
 class A {
   void set f(String s) => returnsVoid();
@@ -5378,21 +5624,20 @@ void set g(int x) => returnsVoid();
   }
 
   test_setterWithNoVoidType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set f(String s) {
     return '42';
+//         ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'String' can't be returned from the function 'f' because it has a return type of 'void'.
   }
 }
 set g(int x) => 42;
-''',
-      [error(diag.returnOfInvalidTypeFromFunction, 41, 4)],
-    );
+''');
   }
 
   test_setterWithNoVoidType_returningVoid() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void returnsVoid() {}
 class A {
   set f(String s) => returnsVoid();
@@ -5402,53 +5647,62 @@ set g(int x) => returnsVoid();
   }
 
   test_setterWithOtherTypeIsError() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   String set f(String s) => null;
+//^^^^^^
+// [diag.nonVoidReturnForSetter] The return type of the setter must be 'void' or absent.
+//                          ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'String'.
 }
 Object set g(x) => null;
-''',
-      [
-        error(diag.nonVoidReturnForSetter, 12, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 38, 4),
-        error(diag.nonVoidReturnForSetter, 46, 6),
-        error(diag.returnOfInvalidTypeFromFunction, 65, 4),
-      ],
-    );
+// [diag.nonVoidReturnForSetter][column 1][length 6] The return type of the setter must be 'void' or absent.
+//                 ^^^^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'g' because it has a return type of 'Object'.
+''');
   }
 
   test_ternaryOperator_null_left() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var foo = (true) ? null : 3;
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
+//                          ^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.unusedLocalVariable, 15, 3), error(diag.deadCode, 37, 1)],
-    );
-    expectInitializerType('foo', 'int?');
+''');
+    expectInitializerType(result, 'foo =', 'int?');
   }
 
   test_ternaryOperator_null_right() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var foo = (true) ? 3 : null;
+//    ^^^
+// [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
+//                       ^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.unusedLocalVariable, 15, 3), error(diag.deadCode, 34, 4)],
-    );
-    expectInitializerType('foo', 'int?');
+''');
+    expectInitializerType(result, 'foo =', 'int?');
   }
 
-  void _assertLocalVarType(String name, String expectedType) {
-    var element = findElement2.localVar(name);
+  void _assertLocalVarType(
+    TestResolvedUnitResult result,
+    String name,
+    String expectedType,
+  ) {
+    var element = result.findElement.localVar(name);
     assertType(element.type, expectedType);
   }
 
-  void _assertTopVarType(String name, String expectedType) {
-    var element = findElement2.topVar(name);
+  void _assertTopVarType(
+    TestResolvedUnitResult result,
+    String name,
+    String expectedType,
+  ) {
+    var element = result.findElement.topVar(name);
     assertType(element.type, expectedType);
   }
 
@@ -5456,20 +5710,20 @@ main() {
     String code,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
-    await assertErrorsInCode(code, expectedDiagnostics);
-    _assertLocalVarType('t0', "String");
-    _assertLocalVarType('t1', "String Function()");
-    _assertLocalVarType('t2', "int");
-    _assertLocalVarType('t3', "String");
-    _assertLocalVarType('t4', "String Function()");
-    _assertLocalVarType('t5', "int");
+    var result = await assertErrorsInCode(code, expectedDiagnostics);
+    _assertLocalVarType(result, 't0', "String");
+    _assertLocalVarType(result, 't1', "String Function()");
+    _assertLocalVarType(result, 't2', "int");
+    _assertLocalVarType(result, 't3', "String");
+    _assertLocalVarType(result, 't4', "String Function()");
+    _assertLocalVarType(result, 't5', "int");
   }
 }
 
 @reflectiveTest
 class StrongModeTypePropagationTest extends PubPackageResolutionTest {
   test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef bool F<E>(E argument);
 
 abstract class Base {
@@ -5488,43 +5742,44 @@ class C extends Override implements Base {}
   }
 
   test_localVariableInference_bottom_disabled() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = null;
   v; // marker
 }''');
-    assertTypeDynamic(findElement2.localVar('v').type);
-    assertTypeDynamic(findNode.simple('v; // marker'));
+    assertTypeDynamic(result.findElement.localVar('v').type);
+    assertTypeDynamic(result.findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_constant() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = 3;
   v; // marker
 }''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_declaredType_disabled() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   dynamic v = 3;
   v; // marker
 }''');
-    assertTypeDynamic(findElement2.localVar('v').type);
-    assertTypeDynamic(findNode.simple('v; // marker'));
+    assertTypeDynamic(result.findElement.localVar('v').type);
+    assertTypeDynamic(result.findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_noInitializer_disabled() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v;
   v = 3;
   v; // marker
 }''');
-    assertResolvedNodeText(findNode.assignment('= 3'), r'''
+    var node = result.findNode.assignment('= 3');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: v
@@ -5542,11 +5797,11 @@ AssignmentExpression
   element: <null>
   staticType: int
 ''');
-    assertTypeDynamic(findNode.simple('v; // marker'));
+    assertTypeDynamic(result.findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   final x = 3;
   f() {
@@ -5557,12 +5812,12 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   f() {
     var v = x;
@@ -5573,12 +5828,12 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 3;
   f() {
@@ -5589,12 +5844,12 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   f() {
     var v = x;
@@ -5605,77 +5860,77 @@ class A {
 main() {
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_list_local() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var x = <int>[3];
   var v = x[0];
   v; // marker
 }''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_local() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var x = 3;
   var v = x;
   v; // marker
 }''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_topLevel_inferred_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = 3;
 main() {
   var v = x;
   v; // marker
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = x;
   v; // marker
 }
 final x = 3;
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_topLevel_lexical() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int x = 3;
 main() {
   var v = x;
   v; // marker
 }
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_topLevel_reversed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = x;
   v; // marker
 }
 int x = 3;
 ''');
-    assertType(findElement2.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // marker'), 'int');
+    assertType(result.findElement.localVar('v').type, 'int');
+    assertType(result.findNode.simple('v; // marker'), 'int');
   }
 }

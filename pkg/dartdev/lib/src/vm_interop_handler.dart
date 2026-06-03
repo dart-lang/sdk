@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -75,11 +76,23 @@ abstract class VmInteropHandler {
   /// Sets the environment variable [name] to [value] for the current process.
   ///
   /// If [value] is null, the environment variable is removed.
-  static void setEnvironmentVariable(String name, String? value) {
+  static Future<void> setEnvironmentVariable(String name, String? value) async {
     final port = _port;
     if (port == null) return;
-    final message = <dynamic>[_kResultSetEnvironmentVariable, name, value];
+    final replyPort = RawReceivePort();
+    final completer = Completer<void>();
+    replyPort.handler = (message) {
+      completer.complete();
+      replyPort.close();
+    };
+    final message = <dynamic>[
+      _kResultSetEnvironmentVariable,
+      replyPort.sendPort,
+      name,
+      value,
+    ];
     port.send(message);
+    await completer.future;
   }
 
   /// This code is identical to the one in process_patch.dart, please ensure

@@ -518,17 +518,6 @@ void Precompiler::DoCompileAll() {
 
         global_object_pool_builder()->Reset();
         stub_pool.CopyInto(global_object_pool_builder());
-
-        // We have various stubs we would like to generate inside the isolate,
-        // to ensure the rest of the AOT compilation will use the
-        // isolate-specific stubs (callable via pc-relative calls).
-        auto& stub_code = Code::Handle();
-#define DO(member, name)                                                       \
-  stub_code = StubCode::BuildIsolateSpecific##name##Stub(                      \
-      global_object_pool_builder());                                           \
-  IG->object_store()->set_##member(stub_code);
-        OBJECT_STORE_STUB_CODE_LIST(DO)
-#undef DO
       }
 
       CollectDynamicFunctionNames();
@@ -835,7 +824,8 @@ void Precompiler::CollectCallbackFields() {
               dispatcher = subcls.GetInvocationDispatcher(
                   field_name, args_desc,
                   UntaggedFunction::kInvokeFieldDispatcher,
-                  /* create_if_absent = */ true);
+                  /* create_if_absent = */ true,
+                  field.is_dynamically_callable());
               if (FLAG_trace_precompiler) {
                 THR_Print("Added invoke-field-dispatcher for %s to %s\n",
                           field_name.ToCString(), subcls.ToCString());
@@ -1329,7 +1319,8 @@ void Precompiler::AddClosureCall(const String& call_selector,
       Function::Handle(Z, cache_class.GetInvocationDispatcher(
                               call_selector, arguments_descriptor,
                               UntaggedFunction::kInvokeFieldDispatcher,
-                              true /* create_if_absent */));
+                              /* create_if_absent = */ true,
+                              /* is_dynamically_callable = */ true));
   AddFunction(dispatcher, RetainReasons::kInvokeFieldDispatcher);
 }
 
@@ -1757,7 +1748,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
             function.kind() == UntaggedFunction::kRegularFunction;
         if (is_getter || is_setter || is_regular) {
           selector2 = Function::CreateDynamicInvocationForwarderName(selector);
-          if (IsSent(selector2)) {
+          bool generate_dynamic_forwarder = false;
+          if (function.is_dynamically_callable()) {
+            generate_dynamic_forwarder = true;
+          } else if (IsSent(selector2)) {
             if (function.kind() == UntaggedFunction::kImplicitGetter ||
                 function.kind() == UntaggedFunction::kImplicitSetter) {
               field = function.accessor_field();
@@ -1765,22 +1759,16 @@ void Precompiler::CheckForNewDynamicFunctions() {
             } else if (!found_metadata) {
               metadata = kernel::ProcedureAttributesOf(function, Z);
             }
-
-            if (is_getter) {
-              if (metadata.getter_called_dynamically) {
-                function2 = function.GetDynamicInvocationForwarder(selector2);
-                AddFunction(function2,
-                            RetainReasons::kDynamicInvocationForwarder);
-                functions_called_dynamically_.Insert(function2);
-              }
-            } else {
-              if (metadata.method_or_setter_called_dynamically) {
-                function2 = function.GetDynamicInvocationForwarder(selector2);
-                AddFunction(function2,
-                            RetainReasons::kDynamicInvocationForwarder);
-                functions_called_dynamically_.Insert(function2);
-              }
-            }
+            generate_dynamic_forwarder =
+                is_getter ? metadata.getter_called_dynamically
+                          : metadata.method_or_setter_called_dynamically;
+          }
+          if (generate_dynamic_forwarder) {
+            function2 = function.GetDynamicInvocationForwarder(selector2);
+            ASSERT(function.is_dynamically_callable() ==
+                   function2.is_dynamically_callable());
+            AddFunction(function2, RetainReasons::kDynamicInvocationForwarder);
+            functions_called_dynamically_.Insert(function2);
           }
         }
       }
@@ -2435,9 +2423,6 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
 
     // Find all type objects in this isolate.
     IG->heap()->VisitObjects(&visitor);
-
-    // Find all type objects in the vm-isolate.
-    Dart::vm_isolate_group()->heap()->VisitObjects(&visitor);
   }
 
   TypeUsageInfo* type_usage_info = Thread::Current()->type_usage_info();
@@ -2451,12 +2436,9 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   for (intptr_t i = 0; i < types.length(); i++) {
     const AbstractType& type = types.At(i);
 
-    if (type.InVMIsolateHeap()) {
-      // The only important types in the vm isolate are
-      // "dynamic"/"void"/"Never", which will get their optimized
-      // testing stub installed at creation.
-      continue;
-    }
+    if (type.type_class_id() == kDynamicCid) continue;
+    if (type.type_class_id() == kVoidCid) continue;
+    if (type.type_class_id() == kNeverCid) continue;
 
     if (type_usage_info->IsUsedInTypeTest(type)) {
       code = type_testing_stubs.OptimizedCodeForType(type);
@@ -3296,7 +3278,10 @@ void Precompiler::PruneDictionaries() {
 
 // Traits for the HashTable template.
 struct CodeKeyTraits {
-  static uint32_t Hash(const Object& key) { return Code::Cast(key).Size(); }
+  static uint32_t Hash(const Object& key) {
+    // Instructions never move.
+    return FinalizeHash(Code::Cast(key).PayloadStart());
+  }
   static const char* Name() { return "CodeKeyTraits"; }
   static bool IsMatch(const Object& x, const Object& y) {
     return x.ptr() == y.ptr();

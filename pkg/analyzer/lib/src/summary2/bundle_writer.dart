@@ -876,6 +876,10 @@ class BundleWriter {
       _writeReference(variable.reference);
       _writeOptionalReference(variable.getter?.reference);
       _writeOptionalReference(variable.setter?.reference);
+      for (var fragment in variable.internal.fragments) {
+        _writeOptionalFragmentId(fragment.inducedGetter);
+        _writeOptionalFragmentId(fragment.inducedSetter);
+      }
     });
   }
 

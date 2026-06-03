@@ -48,6 +48,22 @@ extension on DateTime {
   }
 }
 
+/// Safely converts [maybeUri] to a local file path.
+///
+/// Returns [maybeUri] as-is if it is already a raw path (e.g. `C:\foo.dart`
+/// or `/foo.dart`) or a non-file URI. This avoids crashes on Windows where
+/// drive letters (like `C:`) are incorrectly interpreted as URI schemes by
+/// [Uri.parse].
+String _maybeUriToFilename(String maybeUri) {
+  final Uri? uri = Uri.tryParse(maybeUri);
+  if (uri != null && (uri.scheme == 'file' || uri.scheme == '')) {
+    try {
+      return uri.toFilePath();
+    } catch (_) {}
+  }
+  return maybeUri;
+}
+
 enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
 
 /// A wrapper around the FrontendCompiler, along with all the state needed
@@ -81,7 +97,7 @@ class ResidentCompiler {
   File get _outputDill =>
       new File(_compileOptions.option(ResidentFrontendServer._outputString)!);
 
-  ResidentCompiler(this._entryPoint, this._compileOptions) {
+  new(this._entryPoint, this._compileOptions) {
     _compiler = new FrontendCompiler(_compilerOutput);
     updateState(_compileOptions);
   }
@@ -520,16 +536,16 @@ class ResidentFrontendServer {
         // evaluation is taking place to compute [canonicalizedLibraryPath]
         // instead.
         canonicalizedLibraryPath = path.canonicalize(
-          Uri.parse(request[_rootLibraryUriString]).toFilePath(),
+          _maybeUriToFilename(request[_rootLibraryUriString]),
         );
       } else {
         canonicalizedLibraryPath = path.canonicalize(
-          Uri.parse(request[_libraryUriString]).toFilePath(),
+          _maybeUriToFilename(request[_libraryUriString]),
         );
       }
-    } catch (e) {
+    } catch (e, st) {
       return _encodeErrorMessage(
-        "Request contains invalid '$_libraryUriString' property",
+        "Request contains invalid '$_libraryUriString' property: $e\n$st",
       );
     }
 

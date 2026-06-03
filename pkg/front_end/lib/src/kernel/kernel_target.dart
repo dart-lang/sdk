@@ -167,7 +167,7 @@ class KernelTarget {
 
   final Benchmarker? benchmarker;
 
-  KernelTarget(
+  new(
     this.context,
     this.fileSystem,
     this.includeComments,
@@ -1078,18 +1078,11 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    bool isClosureContextLoweringEnabled = libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .flags
-        .isClosureContextLoweringEnabled;
+    bool isClosureContextLoweringEnabled =
+        libraryBuilder.loader.isClosureContextLoweringEnabled;
 
-    VariableDeclaration copyFormal(
-      VariableDeclaration formal, {
-      required bool isPositional,
-    }) {
-      VariableDeclaration copy;
+    Variable copyFormal(Variable formal, {required bool isPositional}) {
+      Variable copy;
       if (isClosureContextLoweringEnabled) {
         // Coverage-ignore-block(suite): Not run.
         if (isPositional) {
@@ -1098,7 +1091,7 @@ class KernelTarget {
             type: const UnknownType(),
             isFinal: formal.isFinal,
             isRequired: formal.isRequired,
-            hasDeclaredDefaultType: formal.hasDeclaredInitializer,
+            hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
           );
         } else {
           copy = new NamedParameter(
@@ -1106,11 +1099,11 @@ class KernelTarget {
             type: const UnknownType(),
             isFinal: formal.isFinal,
             isRequired: formal.isRequired,
-            hasDeclaredDefaultType: formal.hasDeclaredInitializer,
+            hasDeclaredDefaultValue: formal.hasDeclaredInitializer,
           );
         }
       } else {
-        copy = new VariableDeclaration(
+        copy = new Variable(
           formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
@@ -1137,19 +1130,17 @@ class KernelTarget {
         }
       }
     }
-    List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
-    List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
+    List<Variable> positionalParameters = <Variable>[];
+    List<Variable> namedParameters = <Variable>[];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
 
-    for (VariableDeclaration formal
-        in superConstructor.function.positionalParameters) {
+    for (Variable formal in superConstructor.function.positionalParameters) {
       positionalParameters.add(copyFormal(formal, isPositional: true));
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (VariableDeclaration formal
-        in superConstructor.function.namedParameters) {
-      VariableDeclaration clone = copyFormal(formal, isPositional: false);
+    for (Variable formal in superConstructor.function.namedParameters) {
+      Variable clone = copyFormal(formal, isPositional: false);
       namedParameters.add(clone);
       named.add(
         new NamedExpression(
@@ -1688,7 +1679,8 @@ class KernelTarget {
                 ],
               );
             }
-          } else if (!constructor.isConst) {
+          } else if (!constructor.isConst &&
+              constructor.shouldTakeFieldInitializers) {
             constructor.prependInitializer(
               field.takePrimaryConstructorFieldInitializer(),
             );
@@ -2046,7 +2038,7 @@ class KernelDiagnosticReporter
     extends DiagnosticReporter<Message, LocatedMessage> {
   final SourceLoader loader;
 
-  KernelDiagnosticReporter(this.loader);
+  new(this.loader);
 
   @override
   void report(
@@ -2063,5 +2055,5 @@ class KernelDiagnosticReporter
 class BuildResult {
   final Component? component;
 
-  BuildResult({this.component});
+  new({this.component});
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
@@ -879,6 +881,7 @@ abstract class AbstractParserAstListener implements Listener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
@@ -886,6 +889,7 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.BEGIN,
       declarationKind: declarationKind,
       lastConsumed: lastConsumed,
+      augmentToken: augmentToken,
       externalToken: externalToken,
       constToken: constToken,
     );
@@ -5445,6 +5449,7 @@ class ExpressionStatementHandle extends ParserAstNode
 class FactoryBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
   final Token lastConsumed;
+  final Token? augmentToken;
   final Token? externalToken;
   final Token? constToken;
 
@@ -5452,6 +5457,7 @@ class FactoryBegin extends ParserAstNode {
     ParserAstType type, {
     required this.declarationKind,
     required this.lastConsumed,
+    this.augmentToken,
     this.externalToken,
     this.constToken,
   }) : super("Factory", type);
@@ -5460,6 +5466,7 @@ class FactoryBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
     "declarationKind": declarationKind,
     "lastConsumed": lastConsumed,
+    "augmentToken": augmentToken,
     "externalToken": externalToken,
     "constToken": constToken,
   };

@@ -174,7 +174,7 @@ class BulkFixProcessor {
 
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [_workspace].
-  BulkFixProcessor(
+  new(
     this._instrumentationService,
     this._workspace, {
     List<String>? codes,
@@ -423,7 +423,7 @@ class BulkFixProcessor {
         var result = await _runPubspecValidatorAndFixGenerator(
           FileSource(pubspecFile),
           pubspecDeps.packages,
-          pubspecDeps.devPackages,
+          pubspecDeps.devPackages.difference(pubspecDeps.packages),
           context.contextRoot.resourceProvider,
         );
         if (result.isNotEmpty) {
@@ -1008,9 +1008,9 @@ class BulkFixRequestResult {
   final ChangeBuilder? builder;
   final String? errorMessage;
 
-  BulkFixRequestResult(this.builder) : errorMessage = null;
+  new(this.builder) : errorMessage = null;
 
-  BulkFixRequestResult.error(this.errorMessage) : builder = null;
+  new error(this.errorMessage) : builder = null;
 }
 
 /// Maps changes to library paths.
@@ -1052,7 +1052,7 @@ class IterativeBulkFixProcessor {
   /// invalid).
   final CancellationToken? _cancellationToken;
 
-  IterativeBulkFixProcessor({
+  new({
     required this._instrumentationService,
     required this._context,
     required this._applyTemporaryOverlayEdits,

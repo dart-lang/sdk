@@ -39,7 +39,7 @@ class FieldFragment implements Fragment {
     name.length,
   );
 
-  FieldFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.nameOffset,

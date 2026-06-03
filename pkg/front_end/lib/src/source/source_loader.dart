@@ -16,9 +16,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner, ScannerResult, Token, scan;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:front_end/src/kernel/internal_ast.dart'
-    show VariableDeclarationImpl;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -53,6 +50,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
+import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_library_builder.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
 import '../kernel/body_builder_context.dart';
@@ -62,6 +60,7 @@ import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart' show InternalVariable;
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
@@ -216,6 +215,10 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     return null;
   }
 
+  bool get isClosureContextLoweringEnabled {
+    return target.backendTarget.flags.isClosureContextLoweringEnabled;
+  }
+
   int byteCount = 0;
 
   UriOffset? currentUriForCrashReporting;
@@ -223,7 +226,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
   final List<String> _expectedOutlineFutureProblems = [];
   final List<String> _expectedBodyBuildingFutureProblems = [];
 
-  SourceLoader(this.fileSystem, this.includeComments, this.target)
+  new(this.fileSystem, this.includeComments, this.target)
     : dataForTesting = retainDataForTesting
           ?
             // Coverage-ignore(suite): Not run.
@@ -1487,8 +1490,8 @@ severity: $severity
     String? enclosingClassOrExtension,
     bool isClassInstanceMember,
     Procedure procedure,
-    VariableDeclaration? extensionThis,
-    List<VariableDeclarationImpl> extraKnownVariables,
+    InternalVariable? extensionThis,
+    List<InternalVariable> extraKnownVariables,
     ExpressionEvaluationHelper expressionEvaluationHelper,
   ) async {
     // TODO(johnniwinther): Support expression compilation in a specific
@@ -2971,8 +2974,7 @@ severity: $severity
           hierarchyBuilder,
           sourceClasses,
           sourceExtensionTypes,
-          isClosureContextLoweringEnabled:
-              target.backendTarget.flags.isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
         );
     typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy members");
@@ -3542,7 +3544,7 @@ class _SourceClassGraph implements Graph<SourceClassBuilder> {
   directSupertypeMap = {};
   final Map<SourceClassBuilder, List<SourceClassBuilder>> _supertypeMap = {};
 
-  _SourceClassGraph(this.vertices, this._objectClass);
+  new(this.vertices, this._objectClass);
 
   List<SourceClassBuilder> computeSuperClasses(SourceClassBuilder cls) {
     Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
@@ -3577,7 +3579,7 @@ class _SourceExtensionTypeGraph
   >
   _supertypeMap = {};
 
-  _SourceExtensionTypeGraph(this.vertices);
+  new(this.vertices);
 
   List<SourceExtensionTypeDeclarationBuilder> computeSuperClasses(
     SourceExtensionTypeDeclarationBuilder extensionTypeBuilder,
@@ -3612,7 +3614,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
   final Member _enclosingMember;
   final _SuperMemberCache cache;
 
-  _CheckSuperAccess(
+  new(
     this._sourceLibraryBuilder,
     this._mixinApplicationClass,
     this._typeBuilder,

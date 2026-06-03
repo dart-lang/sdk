@@ -23,18 +23,14 @@ class CiderErrorFixes {
 
   final LineInfo lineInfo;
 
-  CiderErrorFixes({
-    required this.diagnostic,
-    required this.fixes,
-    required this.lineInfo,
-  });
+  new({required this.diagnostic, required this.fixes, required this.lineInfo});
 }
 
 class CiderFixesComputer {
   final PerformanceLog _logger;
   final FileResolver _fileResolver;
 
-  CiderFixesComputer(this._logger, this._fileResolver);
+  new(this._logger, this._fileResolver);
 
   /// Compute quick fixes for errors on the line at [lineNumber].
   Future<List<CiderErrorFixes>> compute(String path, int lineNumber) async {
@@ -78,7 +74,7 @@ class CiderFixesComputer {
 class _CiderDartFixContextImpl extends DartFixContext {
   final FileResolver _fileResolver;
 
-  _CiderDartFixContextImpl(
+  new(
     this._fileResolver, {
     required super.workspace,
     required super.libraryResult,

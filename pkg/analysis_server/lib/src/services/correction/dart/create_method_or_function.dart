@@ -25,7 +25,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   /// [PrefixedIdentifier] or [PropertyAccess], and `null` otherwise.
   final Element? _targetElement;
 
-  factory CreateMethodOrFunction({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return CreateMethodOrFunction._(
         context: context,
@@ -67,11 +67,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     );
   }
 
-  CreateMethodOrFunction._({
-    required super.context,
-    this._targetElement,
-    required this.fixKind,
-  });
+  new _({required super.context, this._targetElement, required this.fixKind});
 
   @override
   CorrectionApplicability get applicability =>

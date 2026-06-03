@@ -13,6 +13,7 @@
 # or ":copy_libraries" may delete/overwrite your addition, and the build will
 # fail.
 
+import("../build/config/gclient_args.gni")
 import("../build/dart/copy_tree.gni")
 import("../build/executable_suffix.gni")
 import("../sdk_args.gni")
@@ -149,11 +150,6 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
       "../utils/dtd:dtd_aot",
       "dart_tooling_daemon_aot",
     ],
-    [
-      "dart_mcp_server_aot_product",
-      "../utils/dart_mcp_server:dart_mcp_server_aot",
-      "dart_mcp_server_aot",
-    ],
   ]
   if (include_experimental_vm_service) {
     _platform_sdk_snapshots += [ [
@@ -247,6 +243,7 @@ _full_sdk_libraries = [
   "js",
   "js_interop",
   "js_interop_unsafe",
+  "_js_interop_wasm",
   "js_util",
   "math",
   "mirrors",
@@ -299,24 +296,27 @@ copy_tree("copy_dartdoc_resources") {
   exclude = "{}"
 }
 
-# This rule copies the pre-built DevTools application to
-# bin/resources/devtools/
-copy_tree("copy_prebuilt_devtools") {
-  visibility = [ ":create_common_sdk" ]
-  source = "../third_party/devtools/web"
-  dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
-  exclude = "{}"
-}
-
-# This action compiles the devtools app from sources.
-action("build_devtools") {
-  output = "$root_out_dir/$dart_sdk_output/web/devtools_app"
-  outputs = [ output ]
-  script = "../tools/build_devtools.py"
-  args = [
-    "--output",
-    rebase_path(output),
-  ]
+if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+  # This action compiles the devtools app from sources.
+  action("build_devtools") {
+    visibility = [ ":create_common_sdk" ]
+    output = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
+    outputs = [ output ]
+    script = "../tools/build_devtools.py"
+    args = [
+      "--output",
+      rebase_path(output, root_build_dir),
+    ]
+  }
+} else {
+  # This rule copies the pre-built DevTools application to
+  # bin/resources/devtools/
+  copy_tree("copy_prebuilt_devtools") {
+    visibility = [ ":create_common_sdk" ]
+    source = "../third_party/devtools/web"
+    dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
+    exclude = "{}"
+  }
 }
 
 # This loop generates rules to copy libraries to lib/
@@ -443,10 +443,12 @@ if (!using_sanitizer && current_os == "linux" &&
     }
   } else if (current_cpu == "riscv64") {
     # Fuchsia Clang is missing the riscv64 MSAN runtime.
-    sanitizers += [
-      "asan",
-      "tsan",
-    ]
+    sanitizers += [ "asan" ]
+
+    # gcc tsan is broken on Ubuntu Noble.
+    if (is_clang) {
+      sanitizers += [ "tsan" ]
+    }
   }
 
   foreach(sanitizer, sanitizers) {
@@ -668,12 +670,15 @@ copy("copy_dart2wasm_platform") {
     "../:dart2wasm_platform",
     "../utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
     "../utils/dart2wasm:compile_dart2wasm_platform",
+    "../utils/dart2wasm:compile_dart2wasm_standalone_platform",
   ]
   sources = [
     "$root_out_dir/dart2wasm_js_compatibility_outline.dill",
     "$root_out_dir/dart2wasm_js_compatibility_platform.dill",
     "$root_out_dir/dart2wasm_outline.dill",
     "$root_out_dir/dart2wasm_platform.dill",
+    "$root_out_dir/dart2wasm_standalone_outline.dill",
+    "$root_out_dir/dart2wasm_standalone_platform.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
@@ -815,7 +820,7 @@ action("write_version_file") {
   script = "../tools/write_version_file.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
   if (!dart_version_git_info) {
     args += [ "--no-git-hash" ]
@@ -831,7 +836,7 @@ action("write_revision_file") {
   script = "../tools/write_revision_file.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
   if (!dart_version_git_info) {
     args += [ "--no-git-hash" ]
@@ -861,7 +866,7 @@ action("write_dartdoc_options") {
   script = "../tools/write_dartdoc_options_file.py"
   args = [
     "--output",
-    rebase_path(output),
+    rebase_path(output, root_build_dir),
   ]
   if (!dart_version_git_info) {
     args += [ "--no-git-hash" ]
@@ -897,7 +902,6 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
-    ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_sdk_packages_yaml",
     ":copy_vm_dill_files",
@@ -906,6 +910,12 @@ group("create_common_sdk") {
     ":write_revision_file",
     ":write_version_file",
   ]
+
+  if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+    public_deps += [ ":build_devtools" ]
+  } else {
+    public_deps += [ ":copy_prebuilt_devtools" ]
+  }
 
   # We do not support AOT on ia32 and should therefore not add the
   # dart native compilation files since there is no AOT compiler/runtime

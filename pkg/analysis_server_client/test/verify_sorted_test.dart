@@ -110,7 +110,7 @@ class StatusHandler with NotificationHandler, ConnectionHandler {
 
   final Completer<bool> initialAnalysis = Completer();
 
-  StatusHandler(this.server);
+  new(this.server);
 
   @override
   void onServerStatus(ServerStatusParams params) {

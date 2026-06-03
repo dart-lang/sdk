@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class MakeVariableNotFinal extends ResolvedCorrectionProducer {
   String _variableName = '';
 
-  MakeVariableNotFinal({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

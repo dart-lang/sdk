@@ -19,14 +19,11 @@ class EmptyConstructorBodiesTest extends LintRuleTest {
   String get lintRule => LintNames.empty_constructor_bodies;
 
   test_empty_primary() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A() {
-  this : assert(1 < 2) {}
+  this : assert(1 < 2) [!{}!]
 }
-''',
-      [lint(35, 2)],
-    );
+''');
   }
 
   test_empty_secondary_factory() async {
@@ -43,25 +40,19 @@ class A {
   }
 
   test_empty_secondary_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  new() {}
+  new() [!{}!]
 }
-''',
-      [lint(18, 2)],
-    );
+''');
   }
 
   test_empty_secondary_normal() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A() {}
+  A() [!{}!]
 }
-''',
-      [lint(16, 2)],
-    );
+''');
   }
 
   test_empty_withComment() async {

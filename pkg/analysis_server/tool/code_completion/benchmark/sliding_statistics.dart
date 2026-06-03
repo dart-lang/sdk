@@ -10,7 +10,7 @@ class SlidingStatistics {
   int _index = 0;
   bool _isReady = false;
 
-  SlidingStatistics(int length) : _values = Uint32List(length);
+  new(int length) : _values = Uint32List(length);
 
   bool get isReady => _isReady;
 

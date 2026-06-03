@@ -7,7 +7,7 @@ library;
 
 /// Version of bytecode format
 /// (should match runtime/vm/constants_kbc.h).
-const int bytecodeFormatVersion = 2;
+const int bytecodeFormatVersion = 3;
 
 enum Opcode {
   kTrap,
@@ -222,6 +222,10 @@ enum Opcode {
   // FFI
   kFfiCall,
   kFfiCall_Wide,
+
+  // Coverage
+  kRecordCoverage,
+  kRecordCoverage_Wide,
 }
 
 /// Compact variants of opcodes are always even.
@@ -771,6 +775,11 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kFfiCall: const Format(Encoding.kD, const [
     Operand.lit,
     Operand.none,
+    Operand.none,
+  ]),
+  Opcode.kRecordCoverage: const Format(Encoding.kAE, const [
+    Operand.imm,
+    Operand.imm,
     Operand.none,
   ]),
 };

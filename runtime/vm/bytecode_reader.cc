@@ -19,6 +19,7 @@
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/hash.h"
+#include "vm/hash_map.h"
 #include "vm/hash_table.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -227,6 +228,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       (flags & Code::kHasForwardingStubTargetFlag) != 0;
   const bool has_default_function_type_args =
       (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
+  const bool has_recorded_coverage =
+      (flags & Code::kHasRecordedCoverageFlag) != 0;
 
   if (has_parameter_flags) {
     intptr_t num_flags = reader_.ReadUInt();
@@ -265,6 +268,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   ReadSourcePositions(bytecode, has_source_positions);
 
   ReadLocalVariables(bytecode, has_local_variables);
+
+  ReadRecordedCoverage(bytecode, has_recorded_coverage);
 
   if (FLAG_dump_kernel_bytecode) {
     if (ShouldPrint(function)) {
@@ -306,6 +311,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
           (flags & ClosureCode::kHasLocalVariablesFlag) != 0;
       const bool captures_only_final_not_late_vars =
           (flags & ClosureCode::kCapturesOnlyFinalNotLateVarsFlag) != 0;
+      const bool has_recorded_coverage =
+          (flags & ClosureCode::kHasRecordedCoverageFlag) != 0;
 
       intptr_t local_function_id = -1;
       if ((flags & ClosureCode::kHasLocalFunctionIdFlag) != 0) {
@@ -325,6 +332,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       ReadSourcePositions(closure_bytecode, has_source_positions);
 
       ReadLocalVariables(closure_bytecode, has_local_variables);
+
+      ReadRecordedCoverage(closure_bytecode, has_recorded_coverage);
 
       if (FLAG_dump_kernel_bytecode) {
         if (ShouldPrint(closure)) {
@@ -914,6 +923,21 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+void BytecodeReaderHelper::ReadRecordedCoverage(const Bytecode& bytecode,
+                                                bool has_recorded_coverage) {
+  if (!has_recorded_coverage) {
+    return;
+  }
+
+  const intptr_t offset = reader_.ReadUInt();
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  bytecode.set_recorded_coverage_binary_offset(
+      bytecode_component_->GetRecordedCoverageOffset() + offset);
+#else
+  USE(offset);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent() {
   AlternativeReadingScope alt(&reader_, 0);
 
@@ -968,6 +992,9 @@ ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent() {
   reader_.ReadUInt32();  // Skip localVariables.numItems
   const intptr_t local_variables_offset = start_offset + reader_.ReadUInt32();
 
+  reader_.ReadUInt32();  // Skip recordedCoverage.numItems
+  const intptr_t recorded_coverage_offset = start_offset + reader_.ReadUInt32();
+
   reader_.ReadUInt32();  // Skip annotations.numItems
   const intptr_t annotations_offset = start_offset + reader_.ReadUInt32();
 
@@ -989,14 +1016,15 @@ ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent() {
   reader_.set_offset(object_offsets_offset);
 
   auto& bytecode_component_array = Array::Handle(
-      Z, BytecodeComponentData::New(
-             Z, *(reader_.typed_data()), version, num_objects,
-             string_table_offset, strings_contents_offset,
-             object_offsets_offset, objects_contents_offset, main_offset,
-             num_libraries, library_index_offset, libraries_offset, num_classes,
-             classes_offset, members_offset, num_codes, codes_offset,
-             source_positions_offset, source_files_offset, line_starts_offset,
-             local_variables_offset, annotations_offset, Heap::kOld));
+      Z,
+      BytecodeComponentData::New(
+          Z, *(reader_.typed_data()), version, num_objects, string_table_offset,
+          strings_contents_offset, object_offsets_offset,
+          objects_contents_offset, main_offset, num_libraries,
+          library_index_offset, libraries_offset, num_classes, classes_offset,
+          members_offset, num_codes, codes_offset, source_positions_offset,
+          source_files_offset, line_starts_offset, local_variables_offset,
+          recorded_coverage_offset, annotations_offset, Heap::kOld));
 
   BytecodeComponentData bytecode_component(bytecode_component_array);
 
@@ -1528,16 +1556,8 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
         type =
             Class::Cast(parent).TypeParameterAt(index_in_parent, nullability);
       } else if (parent.IsFunction()) {
-        if (Function::Cast(parent).IsFactory()) {
-          // For factory constructors VM uses type parameters of a class
-          // instead of constructor's type parameters.
-          parent = Function::Cast(parent).Owner();
-          type =
-              Class::Cast(parent).TypeParameterAt(index_in_parent, nullability);
-        } else {
-          type = Function::Cast(parent).TypeParameterAt(index_in_parent,
-                                                        nullability);
-        }
+        type = Function::Cast(parent).TypeParameterAt(index_in_parent,
+                                                      nullability);
       } else if (parent.IsNull()) {
         ASSERT(!enclosing_function_types_.is_empty());
         for (intptr_t i = enclosing_function_types_.length() - 1; i >= 0; --i) {
@@ -2124,7 +2144,6 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     intptr_t flags = reader_.ReadUInt();
 
     const bool is_static = (flags & kIsStaticFlag) != 0;
-    const bool is_factory = (flags & kIsFactoryFlag) != 0;
     const bool is_native = (flags & kIsNativeFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
     const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
@@ -2204,7 +2223,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       ReadTypeParametersDeclaration(Class::Handle(Z), signature);
     }
 
-    const intptr_t num_implicit_params = (!is_static || is_factory) ? 1 : 0;
+    const intptr_t num_implicit_params = (!is_static) ? 1 : 0;
     const intptr_t num_params = num_implicit_params + reader_.ReadUInt();
     const bool has_optional_named_params =
         ((flags & kHasOptionalNamedParamsFlag) != 0);
@@ -2240,11 +2259,6 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       signature.SetParameterTypeAt(param_index, type);
       NOT_IN_PRECOMPILED(
           function.SetParameterNameAt(param_index, Symbols::This()));
-      ++param_index;
-    } else if (is_factory) {
-      signature.SetParameterTypeAt(param_index, AbstractType::dynamic_type());
-      NOT_IN_PRECOMPILED(function.SetParameterNameAt(
-          param_index, Symbols::TypeArgumentsParameter()));
       ++param_index;
     }
 
@@ -2748,6 +2762,10 @@ intptr_t BytecodeComponentData::GetLocalVariablesOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kLocalVariablesOffset)));
 }
 
+intptr_t BytecodeComponentData::GetRecordedCoverageOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kRecordedCoverageOffset)));
+}
+
 intptr_t BytecodeComponentData::GetAnnotationsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kAnnotationsOffset)));
 }
@@ -2781,6 +2799,7 @@ ArrayPtr BytecodeComponentData::New(Zone* zone,
                                     intptr_t source_files_offset,
                                     intptr_t line_starts_offset,
                                     intptr_t local_variables_offset,
+                                    intptr_t recorded_coverage_offset,
                                     intptr_t annotations_offset,
                                     Heap::Space space) {
   const Array& data =
@@ -2845,6 +2864,9 @@ ArrayPtr BytecodeComponentData::New(Zone* zone,
 
   smi_handle = Smi::New(local_variables_offset);
   data.SetAt(kLocalVariablesOffset, smi_handle);
+
+  smi_handle = Smi::New(recorded_coverage_offset);
+  data.SetAt(kRecordedCoverageOffset, smi_handle);
 
   smi_handle = Smi::New(annotations_offset);
   data.SetAt(kAnnotationsOffset, smi_handle);

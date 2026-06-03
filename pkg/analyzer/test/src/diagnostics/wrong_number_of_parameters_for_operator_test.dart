@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WrongNumberOfParametersForOperatorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -54,7 +56,7 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
   }
 
   test_correct_number_of_parameters_index_assignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   operator []=(a, b) {}
 }
@@ -67,14 +69,13 @@ class A {
   }
 
   test_unaryMinus() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   operator -(a, b) {}
+//         ^
+// [diag.wrongNumberOfParametersForOperatorMinus] Operator '-' should declare 0 or 1 parameter, but 2 found.
 }
-''',
-      [error(diag.wrongNumberOfParametersForOperatorMinus, 21, 1)],
-    );
+''');
   }
 
   test_unaryTilde() async {
@@ -96,7 +97,7 @@ class A {
   }
 
   Future<void> _checkCorrect(String name, String parameters) async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   operator $name($parameters) {}
 }

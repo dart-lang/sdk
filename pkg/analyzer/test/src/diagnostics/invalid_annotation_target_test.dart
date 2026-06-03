@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +25,7 @@ class InvalidAnnotationTarget_MustBeOverriddenTest
   }
 
   test_class_instance_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -37,7 +36,7 @@ class A {
   }
 
   test_class_instance_field_declaredInPrimaryConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A(@mustBeOverridden var int f);
@@ -45,7 +44,7 @@ class A(@mustBeOverridden var int f);
   }
 
   test_class_instance_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -56,7 +55,7 @@ class A {
   }
 
   test_class_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -67,7 +66,7 @@ class A {
   }
 
   test_class_instance_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -78,102 +77,95 @@ class A {
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   static int f = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 16)],
-    );
+''');
   }
 
   test_class_static_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   static int get f => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 16)],
-    );
+''');
   }
 
   test_class_static_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   static void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 16)],
-    );
+''');
   }
 
   test_class_static_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   static void set f(int value) {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 16)],
-    );
+''');
   }
 
   test_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   C();
 }
-''',
-      [error(diag.invalidAnnotationTarget, 47, 16)],
-    );
+''');
   }
 
   test_enum_member() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 enum E {
   one, two;
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 58, 16)],
-    );
+''');
   }
 
   test_extension_member() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 extension E on String {
   @mustBeOverridden
+// ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 61, 16)],
-    );
+''');
   }
 
   test_mixin_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -184,39 +176,35 @@ mixin M {
   }
 
   test_parameter_declaredInPrimaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A(@mustBeOverridden int f);
-''',
-      [error(diag.invalidAnnotationTarget, 43, 16)],
-    );
+//       ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
+''');
   }
 
   test_parameter_fieldFormal_declaredInPrimaryConstructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A(@mustBeOverridden this.f) {
+//       ^^^^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustBeOverridden' can only be used on overridable members.
   final int f;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 43, 16)],
-    );
+''');
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @mustBeOverridden
+// [diag.invalidAnnotationTarget][column 2][length 16] The annotation 'mustBeOverridden' can only be used on overridable members.
 void m() {}
-''',
-      [error(diag.invalidAnnotationTarget, 35, 16)],
-    );
+''');
   }
 }
 
@@ -230,7 +218,7 @@ class InvalidAnnotationTarget_MustCallSuperTest
   }
 
   test_class_instance_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -241,7 +229,7 @@ class A {
   }
 
   test_class_instance_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -252,7 +240,7 @@ class A {
   }
 
   test_class_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -263,7 +251,7 @@ class A {
   }
 
   test_class_instance_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -274,102 +262,95 @@ class A {
   }
 
   test_class_static_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   static int f = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 13)],
-    );
+''');
   }
 
   test_class_static_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   static int get f => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 13)],
-    );
+''');
   }
 
   test_class_static_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   static void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 13)],
-    );
+''');
   }
 
   test_class_static_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   static void set f(int value) {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 46, 13)],
-    );
+''');
   }
 
   test_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   C();
 }
-''',
-      [error(diag.invalidAnnotationTarget, 47, 13)],
-    );
+''');
   }
 
   test_enum_member() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 enum E {
   one, two;
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 58, 13)],
-    );
+''');
   }
 
   test_extension_member() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 extension E on String {
   @mustCallSuper
+// ^^^^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'mustCallSuper' can only be used on overridable members.
   void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 61, 13)],
-    );
+''');
   }
 
   test_mixin_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 mixin M {
@@ -380,15 +361,13 @@ mixin M {
   }
 
   test_topLevel() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @mustCallSuper
+// [diag.invalidAnnotationTarget][column 2][length 13] The annotation 'mustCallSuper' can only be used on overridable members.
 void m() {}
-''',
-      [error(diag.invalidAnnotationTarget, 35, 13)],
-    );
+''');
   }
 }
 
@@ -401,21 +380,20 @@ class InvalidAnnotationTarget_RedeclareTest extends PubPackageResolutionTest {
   }
 
   test_class_instance_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
   @redeclare
+// ^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'redeclare' can only be used on instance members of extension types.
   void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 47, 9)],
-    );
+''');
   }
 
   test_extensionType_instance_getter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -430,7 +408,7 @@ extension type E(C c) implements C {
   }
 
   test_extensionType_instance_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -445,7 +423,7 @@ extension type E(C c) implements C {
   }
 
   test_extensionType_instance_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -460,8 +438,7 @@ extension type E(C c) implements C {
   }
 
   test_extensionType_static_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -470,16 +447,15 @@ class C {
 
 extension type E(C c) {
   @redeclare
+// ^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'redeclare' can only be used on instance members of extension types.
   static int get g => 0; 
 }
-''',
-      [error(diag.invalidAnnotationTarget, 100, 9)],
-    );
+''');
   }
 
   test_extensionType_static_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -488,16 +464,15 @@ class C {
 
 extension type E(C c) {
   @redeclare
+// ^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'redeclare' can only be used on instance members of extension types.
   static void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 95, 9)],
-    );
+''');
   }
 
   test_extensionType_static_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -506,11 +481,11 @@ class C {
 
 extension type E(C c) {
   @redeclare
+// ^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'redeclare' can only be used on instance members of extension types.
   static set g(int i) {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 99, 9)],
-    );
+''');
   }
 }
 
@@ -525,7 +500,7 @@ class InvalidAnnotationTargetTest extends PubPackageResolutionTest {
   // TODO(pq): add tests for topLevelVariables:
   // https://dart-review.googlesource.com/c/sdk/+/200301
   void test_classType_class() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -539,7 +514,7 @@ class C {}
   }
 
   void test_classType_classTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -555,8 +530,7 @@ class C = Object with M;
   }
 
   void test_classType_mixin() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -565,15 +539,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on classes.
 mixin M {}
-''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
-    );
+''');
   }
 
   void test_classType_topLevelVariable_constructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -582,15 +554,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on classes.
 int x = 0;
-''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
-    );
+''');
   }
 
   void test_classType_topLevelVariable_topLevelConstant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType})
@@ -601,15 +571,13 @@ class A {
 const a = A();
 
 @a
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'a' can only be used on classes.
 int x = 0;
-''',
-      [error(diag.invalidAnnotationTarget, 114, 1)],
-    );
+''');
   }
 
   void test_constructor_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -618,15 +586,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on constructors.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 100, 1)],
-    );
+''');
   }
 
   void test_constructor_classWithPrimaryConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -635,14 +601,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on constructors.
 class C(final int i);
-''',
-      [error(diag.invalidAnnotationTarget, 100, 1)],
-    );
+''');
   }
 
   void test_constructor_constructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -657,8 +622,7 @@ class C {
   }
 
   void test_constructor_enumWithPrimaryConstructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -667,17 +631,15 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on constructors.
 enum C(int i) {
   a(1), b(2), c(3);
 }
-''',
-      [error(diag.invalidAnnotationTarget, 100, 1)],
-    );
+''');
   }
 
   void test_constructor_extensionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -686,15 +648,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on constructors.
 extension type C(int i);
-''',
-      [error(diag.invalidAnnotationTarget, 100, 1)],
-    );
+''');
   }
 
   void test_constructor_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -703,15 +663,16 @@ class A {
 }
 
 class C {
-  @A() void m() {}
+  @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on constructors.
+  void m() {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 112, 1)],
-    );
+''');
   }
 
   void test_constructor_primaryConstructorBody() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -728,8 +689,7 @@ class C(final int i) {
   }
 
   void test_directive_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 // ignore: deprecated_member_use
@@ -739,14 +699,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on directives.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 131, 1)],
-    );
+''');
   }
 
   void test_directive_directive() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @A()
@@ -761,8 +720,7 @@ class A {
   }
 
   void test_enumType_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.enumType})
@@ -771,14 +729,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on enums.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 97, 1)],
-    );
+''');
   }
 
   void test_enumType_enum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.enumType})
@@ -792,7 +749,7 @@ enum E {a, b}
   }
 
   void test_enumValue_enumValue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.enumValue})
@@ -807,8 +764,7 @@ enum E {
   }
 
   void test_enumValue_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.enumValue})
@@ -817,15 +773,16 @@ class A {
 }
 
 class C {
-  @A() int f = 7;
+  @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on enum values.
+  int f = 7;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 110, 1)],
-    );
+''');
   }
 
   void test_exportDirective_exportDirective() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @A()
@@ -839,25 +796,22 @@ class A {
   }
 
   void test_exportDirective_importDirective() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on export directives.
 import 'dart:core';
 
 @Target({TargetKind.exportDirective})
 class A {
   const A();
 }
-''',
-      [error(diag.invalidAnnotationTarget, 40, 1)],
-    );
+''');
   }
 
   void test_extension_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.extension})
@@ -866,14 +820,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on extensions.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
-    );
+''');
   }
 
   void test_extension_extension() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.extension})
@@ -888,7 +841,7 @@ class C {}
   }
 
   void test_extension_type_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.parameter})
@@ -901,8 +854,7 @@ extension type const E(@A() int x) {}
   }
 
   void test_field_enumValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.field})
@@ -912,15 +864,15 @@ class A {
 
 enum E {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on fields.
   one
 }
-''',
-      [error(diag.invalidAnnotationTarget, 105, 1)],
-    );
+''');
   }
 
   void test_field_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.field})
@@ -936,7 +888,7 @@ class C {
   }
 
   void test_field_field_declaredInPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.field})
@@ -949,7 +901,7 @@ class C(@A() final int f);
   }
 
   void test_function_localFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -966,8 +918,7 @@ void f() {
   }
 
   void test_function_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -977,15 +928,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on top-level functions.
   int M(int x) => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 109, 1)],
-    );
+''');
   }
 
   void test_function_topLevelFunction() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -999,8 +950,7 @@ int f(int x) => 0;
   }
 
   void test_function_topLevelGetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -1009,15 +959,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on top-level functions.
 int get x => 0;
-''',
-      [error(diag.invalidAnnotationTarget, 97, 1)],
-    );
+''');
   }
 
   void test_function_topLevelSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.function})
@@ -1026,15 +974,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on top-level functions.
 set x(_x) {}
-''',
-      [error(diag.invalidAnnotationTarget, 97, 1)],
-    );
+''');
   }
 
   void test_getter_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -1044,15 +990,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on getters.
   int x = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_getter_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -1068,8 +1014,7 @@ class C {
   }
 
   void test_getter_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -1079,16 +1024,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on getters.
   int m(int x) => x;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_getter_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -1098,15 +1042,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on getters.
   set x(int _x) {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_getter_topLevelGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.getter})
@@ -1120,8 +1064,7 @@ int get x => 0;
   }
 
   void test_library_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.library})
@@ -1130,14 +1073,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on libraries.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 96, 1)],
-    );
+''');
   }
 
   void test_library_import() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 @A()
 import 'package:meta/meta_meta.dart';
 
@@ -1149,7 +1091,7 @@ class A {
   }
 
   void test_library_library() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 @A()
 library test;
 
@@ -1163,8 +1105,7 @@ class A {
   }
 
   void test_method_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -1174,15 +1115,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on methods.
   int get x => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_method_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -1198,7 +1139,7 @@ class C {
   }
 
   void test_method_operator() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -1214,8 +1155,7 @@ class C {
   }
 
   void test_method_setter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -1225,16 +1165,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on methods.
   set x(int _x) {}
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_method_topLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.method})
@@ -1243,15 +1182,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on methods.
 int f(int x) => x;
-''',
-      [error(diag.invalidAnnotationTarget, 95, 1)],
-    );
+''');
   }
 
   void test_mixinType_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.mixinType})
@@ -1260,14 +1197,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on mixins.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
-    );
+''');
   }
 
   void test_mixinType_mixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.mixinType})
@@ -1281,8 +1217,7 @@ mixin M {}
   }
 
   void test_multiple_invalid() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType, TargetKind.method})
@@ -1291,14 +1226,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on classes or methods.
 int x = 0;
-''',
-      [error(diag.invalidAnnotationTarget, 117, 1)],
-    );
+''');
   }
 
   void test_multiple_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.classType, TargetKind.method})
@@ -1315,7 +1249,7 @@ class C {
   }
 
   void test_optionalParameter_optionalNamed() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.optionalParameter})
@@ -1328,7 +1262,7 @@ void f({@A() int? x}) {}
   }
 
   void test_optionalParameter_optionalPositional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.optionalParameter})
@@ -1341,8 +1275,7 @@ void f([@A() int? x]) {}
   }
 
   void test_optionalParameter_requiredNamed() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.optionalParameter})
@@ -1351,14 +1284,13 @@ class A {
 }
 
 void f({@A() required int x}) {}
-''',
-      [error(diag.invalidAnnotationTarget, 114, 1)],
-    );
+//       ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on optional parameters.
+''');
   }
 
   void test_optionalParameter_requiredPositional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.optionalParameter})
@@ -1367,25 +1299,22 @@ class A {
 }
 
 void f(@A() int x) {}
-''',
-      [error(diag.invalidAnnotationTarget, 113, 1)],
-    );
+//      ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on optional parameters.
+''');
   }
 
   void test_overridableMember_class_visibleForOverriding() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForOverriding
+// [diag.invalidAnnotationTarget][column 2][length 20] The annotation 'visibleForOverriding' can only be used on overridable members.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 34, 20)],
-    );
+''');
   }
 
   void test_overridableMember_constructor() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1395,40 +1324,37 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on overridable members.
   C();
 }
-''',
-      [error(diag.invalidAnnotationTarget, 118, 1)],
-    );
+''');
   }
 
   void test_overridableMember_enumConstant() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 enum E {
   @nonVirtual
+// ^^^^^^^^^^
+// [diag.invalidAnnotationTarget] The annotation 'nonVirtual' can only be used on overridable members.
   a,
   b, c
 }
-''',
-      [error(diag.invalidAnnotationTarget, 45, 10)],
-    );
+''');
   }
 
   void test_overridableMember_extensionType_visibleForOverride() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForOverriding
+// [diag.invalidAnnotationTarget][column 2][length 20] The annotation 'visibleForOverriding' can only be used on overridable members.
 extension type E(int i) {}
-''',
-      [error(diag.invalidAnnotationTarget, 34, 20)],
-    );
+''');
   }
 
   void test_overridableMember_instanceGetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1444,7 +1370,7 @@ class C {
   }
 
   void test_overridableMember_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1460,8 +1386,7 @@ class C {
   }
 
   void test_overridableMember_instanceMethod_onEnum() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1472,16 +1397,15 @@ class A {
 enum E {
   one, two;
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on overridable members.
   int x() => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 129, 1)],
-    );
+''');
   }
 
   void test_overridableMember_instanceMethod_onExtension() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1491,15 +1415,15 @@ class A {
 
 extension E on int {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on overridable members.
   int x() => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 129, 1)],
-    );
+''');
   }
 
   void test_overridableMember_instanceMethod_onMixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1515,7 +1439,7 @@ mixin M {
   }
 
   void test_overridableMember_instanceOperator() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1531,7 +1455,7 @@ class C {
   }
 
   void test_overridableMember_instanceSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1547,8 +1471,7 @@ class C {
   }
 
   void test_overridableMember_staticField() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1558,16 +1481,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on overridable members.
   static int x = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 118, 1)],
-    );
+''');
   }
 
   void test_overridableMember_staticMethod() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.overridableMember})
@@ -1577,70 +1499,61 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on overridable members.
   static int x() => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 118, 1)],
-    );
+''');
   }
 
   void test_overridableMember_topLevelField_visibleForOverriding() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
-@visibleForOverriding var a = 1, b;
-''',
-      [error(diag.invalidAnnotationTarget, 34, 20)],
-    );
+@visibleForOverriding
+// [diag.invalidAnnotationTarget][column 2][length 20] The annotation 'visibleForOverriding' can only be used on overridable members.
+var a = 1, b;
+''');
   }
 
   void test_overridableMember_topLevelFunction_visibleForOverriding() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @visibleForOverriding void foo() {}
-''',
-      [error(diag.invalidAnnotationTarget, 34, 20)],
-    );
+// [diag.invalidAnnotationTarget][column 2][length 20] The annotation 'visibleForOverriding' can only be used on overridable members.
+''');
   }
 
   void test_overridableMember_topLevelGetter_nonVirtual() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
+// [diag.invalidAnnotationTarget][column 2][length 10] The annotation 'nonVirtual' can only be used on overridable members.
 int get a => 1;
-''',
-      [error(diag.invalidAnnotationTarget, 35, 10)],
-    );
+''');
   }
 
   void test_overridableMember_topLevelSetter_nonVirtual() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 
 @nonVirtual
+// [diag.invalidAnnotationTarget][column 2][length 10] The annotation 'nonVirtual' can only be used on overridable members.
 set a(int value) {}
-''',
-      [error(diag.invalidAnnotationTarget, 35, 10)],
-    );
+''');
   }
 
   void test_overridableMember_typedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 @nonVirtual
+// [diag.invalidAnnotationTarget][column 2][length 10] The annotation 'nonVirtual' can only be used on overridable members.
 typedef bool predicate(Object o);
-''',
-      [error(diag.invalidAnnotationTarget, 34, 10)],
-    );
+''');
   }
 
   void test_override_field() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int a = 0;
 }
@@ -1652,7 +1565,7 @@ class D extends C {
   }
 
   void test_override_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   int get a => 0;
 }
@@ -1664,7 +1577,7 @@ class D extends C {
   }
 
   void test_override_method() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void m() {}
 }
@@ -1676,7 +1589,7 @@ class D extends C {
   }
 
   void test_override_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   set a(int p) {}
 }
@@ -1688,28 +1601,23 @@ class D extends C {
   }
 
   void test_override_topLevelField() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 @override
+// [diag.invalidAnnotationTarget][column 2][length 8] The annotation 'override' can only be used on fields, getters, methods, or setters.
 int a = 1;
-''',
-      [error(diag.invalidAnnotationTarget, 1, 8)],
-    );
+''');
   }
 
   void test_override_topLevelFunction() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 @override
+// [diag.invalidAnnotationTarget][column 2][length 8] The annotation 'override' can only be used on fields, getters, methods, or setters.
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 1, 8)],
-    );
+''');
   }
 
   void test_parameter_function() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.parameter})
@@ -1718,14 +1626,13 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on parameters.
 void f(int x) {}
-''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
-    );
+''');
   }
 
   void test_parameter_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.parameter})
@@ -1738,20 +1645,18 @@ void f(@A() int x) {}
   }
 
   void test_partOfDirective_importDirective() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on "part of" directives.
 import 'dart:core';
 
 @Target({TargetKind.partOfDirective})
 class A {
   const A();
 }
-''',
-      [error(diag.invalidAnnotationTarget, 40, 1)],
-    );
+''');
   }
 
   void test_partOfDirective_partOfDirective() async {
@@ -1760,7 +1665,7 @@ import 'package:meta/meta_meta.dart';
 
 part 'test.dart';
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 
 @A()
 part of 'b.dart';
@@ -1773,8 +1678,7 @@ class A {
   }
 
   void test_setter_field_final() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1784,16 +1688,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on setters.
   final int x = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_setter_field_mutable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1803,16 +1706,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on setters.
   int x = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_setter_getter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1822,16 +1724,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on setters.
   int get x => 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_setter_method() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1841,15 +1742,15 @@ class A {
 
 class C {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on setters.
   int m(int x) => x;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 107, 1)],
-    );
+''');
   }
 
   void test_setter_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1865,7 +1766,7 @@ class C {
   }
 
   void test_setter_topLevelSetter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.setter})
@@ -1879,8 +1780,7 @@ set x(_x) {}
   }
 
   void test_topLevelVariable_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.topLevelVariable})
@@ -1890,15 +1790,15 @@ class A {
 
 class B {
   @A()
+// ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on top-level variables.
   int f = 0;
 }
-''',
-      [error(diag.invalidAnnotationTarget, 117, 1)],
-    );
+''');
   }
 
   void test_topLevelVariable_topLevelVariable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.topLevelVariable})
@@ -1912,7 +1812,7 @@ int f = 0;
   }
 
   void test_type_class() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -1926,7 +1826,7 @@ class C {}
   }
 
   void test_type_classTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -1942,7 +1842,7 @@ class C = Object with M;
   }
 
   void test_type_enum() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -1956,8 +1856,7 @@ enum E {a, b}
   }
 
   void test_type_extension() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -1966,15 +1865,14 @@ class A {
 }
 
 @A()
+// [diag.invalidAnnotationTarget][column 2][length 1] The annotation 'A.new' can only be used on types (classes, enums, mixins, or typedefs).
 extension on C {}
 class C {}
-''',
-      [error(diag.invalidAnnotationTarget, 93, 1)],
-    );
+''');
   }
 
   void test_type_genericTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -1988,7 +1886,7 @@ typedef F = void Function(int);
   }
 
   void test_type_mixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.type})
@@ -2002,7 +1900,7 @@ mixin M {}
   }
 
   void test_typedefType_genericTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.typedefType})
@@ -2016,8 +1914,7 @@ typedef F = void Function(int);
   }
 
   void test_typeParameter_parameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.typeParameter})
@@ -2026,13 +1923,13 @@ class A {
 }
 
 void f(@A() p) {}
-''',
-      [error(diag.invalidAnnotationTarget, 109, 1)],
-    );
+//      ^
+// [diag.invalidAnnotationTarget] The annotation 'A.new' can only be used on type parameters.
+''');
   }
 
   void test_typeParameter_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.typeParameter})

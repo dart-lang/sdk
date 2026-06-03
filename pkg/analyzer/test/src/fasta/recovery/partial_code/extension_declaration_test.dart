@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,10 +17,11 @@ main() {
 @reflectiveTest
 class ExtensionDeclarationTest extends ParserDiagnosticsTest {
   void test_extension_declaration_extendedType_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String class A {}
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -47,10 +47,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String const a = 0;
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -79,10 +80,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String enum E { v }
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -111,10 +113,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -133,10 +136,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String final a = 0;
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -165,10 +169,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String int f() {}
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -199,10 +204,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String void f() {}
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -233,10 +239,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String int get a => 0;
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -266,10 +273,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String mixin M {}
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -294,10 +302,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String set a(b) {}
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -329,10 +338,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String typedef A = B Function(C, D);
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -369,10 +379,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_extendedType_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String var a;
+//             ^^^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -398,14 +409,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension class A {}
+// [diag.expectedToken][column 1][length 9] Expected to find 'on'.
+//        ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedTypeName, 10, 5),
-      error(diag.expectedExtensionBody, 10, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -430,18 +440,21 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension const a = 0;
+//        ^^^^^
+// [diag.extensionPrimaryConstructor] Extensions can't have primary constructors.
+//              ^
+// [diag.expectedToken] Expected to find 'on'.
+//                ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                  ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                   ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.extensionPrimaryConstructor, 10, 5),
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedTypeName, 18, 1),
-      error(diag.expectedExtensionBody, 18, 1),
-      error(diag.expectedExecutable, 18, 1),
-      error(diag.expectedExecutable, 20, 1),
-      error(diag.unexpectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -460,14 +473,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension enum E { v }
+// [diag.expectedToken][column 1][length 9] Expected to find 'on'.
+//        ^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedTypeName, 10, 4),
-      error(diag.expectedExtensionBody, 10, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -495,14 +507,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension
+// [diag.expectedToken][column 1][length 9] Expected to find 'on'.
+//       ^
+// [diag.expectedTypeName][column 10][length 0] Expected a type name.
+// [diag.expectedExtensionBody][column 10][length 0] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedTypeName, 10, 0),
-      error(diag.expectedExtensionBody, 10, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -520,14 +531,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension final a = 0;
+// [diag.expectedToken][column 1][length 9] Expected to find 'on'.
+//        ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedTypeName, 10, 5),
-      error(diag.expectedExtensionBody, 10, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -555,16 +565,19 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension int f() {}
+//        ^^^
+// [diag.expectedToken] Expected to find 'on'.
+//            ^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
+//             ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//              ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 3),
-      error(diag.expectedExtensionBody, 14, 1),
-      error(diag.expectedExecutable, 15, 1),
-      error(diag.expectedExecutable, 16, 1),
-      error(diag.expectedExecutable, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -583,13 +596,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension void f() {}
+// [diag.expectedToken][column 1][length 9] Expected to find 'on'.
+//        ^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedExtensionBody, 10, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -617,14 +629,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension int get a => 0;
+//        ^^^
+// [diag.expectedToken] Expected to find 'on'.
+//            ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 3),
-      error(diag.expectedTypeName, 14, 3),
-      error(diag.expectedExtensionBody, 14, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -652,10 +664,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension mixin M {}
+//        ^^^^^
+// [diag.expectedToken] Expected to find 'on'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 10, 5)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -674,18 +687,22 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension set a(b) {}
+//        ^^^
+// [diag.expectedToken] Expected to find 'on'.
+//            ^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
+//             ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//              ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 3),
-      error(diag.expectedExtensionBody, 14, 1),
-      error(diag.expectedExecutable, 15, 1),
-      error(diag.missingConstFinalVarOrType, 16, 1),
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedExecutable, 17, 1),
-      error(diag.expectedExecutable, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -710,14 +727,15 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension typedef A = B Function(C, D);
+//        ^^^^^^^
+// [diag.expectedToken] Expected to find 'on'.
+//                ^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
+//                  ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 7),
-      error(diag.expectedExtensionBody, 18, 1),
-      error(diag.expectedExecutable, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -750,14 +768,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_keyword_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension var a;
+// [diag.expectedToken][column 1][length 9] Expected to find 'on'.
+//        ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedTypeName, 10, 3),
-      error(diag.expectedExtensionBody, 10, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -782,14 +799,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E class A {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 5),
-      error(diag.expectedExtensionBody, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -815,14 +832,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E const a = 0;
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 5),
-      error(diag.expectedExtensionBody, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -851,14 +868,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E enum E { v }
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 4),
-      error(diag.expectedExtensionBody, 12, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -887,14 +904,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//         ^
+// [diag.expectedTypeName][column 12][length 0] Expected a type name.
+// [diag.expectedExtensionBody][column 12][length 0] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 0),
-      error(diag.expectedExtensionBody, 12, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -913,14 +930,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E final a = 0;
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 5),
-      error(diag.expectedExtensionBody, 12, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -949,13 +966,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E int f() {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedExtensionBody, 12, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -984,13 +1001,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E void f() {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedExtensionBody, 12, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1019,13 +1036,13 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E int get a => 0;
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedExtensionBody, 12, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1053,15 +1070,16 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E mixin M {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'mixin' can't be used as a type.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
+//                ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.builtInIdentifierAsType, 12, 5),
-      error(diag.expectedExtensionBody, 12, 5),
-      error(diag.missingFunctionParameters, 18, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1090,14 +1108,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E set a(b) {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 3),
-      error(diag.expectedExtensionBody, 12, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1129,14 +1147,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E typedef A = B Function(C, D);
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 7),
-      error(diag.expectedExtensionBody, 12, 7),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1173,14 +1191,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_named_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E var a;
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 3),
-      error(diag.expectedExtensionBody, 12, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1206,13 +1224,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on class A {}
+//             ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 5),
-      error(diag.expectedExtensionBody, 15, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1238,13 +1255,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on const a = 0;
+//             ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 5),
-      error(diag.expectedExtensionBody, 15, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1273,13 +1289,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on enum E { v }
+//             ^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 4),
-      error(diag.expectedExtensionBody, 15, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1308,13 +1323,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on
+//            ^
+// [diag.expectedTypeName][column 15][length 0] Expected a type name.
+// [diag.expectedExtensionBody][column 15][length 0] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 0),
-      error(diag.expectedExtensionBody, 15, 0),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1333,13 +1347,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on final a = 0;
+//             ^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 5),
-      error(diag.expectedExtensionBody, 15, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1368,10 +1381,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int f() {}
+//             ^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1400,10 +1414,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on void f() {}
+//             ^^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 4)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1432,10 +1447,11 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on int get a => 0;
+//             ^^^
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([error(diag.expectedExtensionBody, 15, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1463,14 +1479,14 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on mixin M {}
+//             ^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'mixin' can't be used as a type.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
+//                   ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.builtInIdentifierAsType, 15, 5),
-      error(diag.expectedExtensionBody, 15, 5),
-      error(diag.missingFunctionParameters, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1499,13 +1515,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on set a(b) {}
+//             ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 3),
-      error(diag.expectedExtensionBody, 15, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1537,13 +1552,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on typedef A = B Function(C, D);
+//             ^^^^^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 7),
-      error(diag.expectedExtensionBody, 15, 7),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1580,13 +1594,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_on_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on var a;
+//             ^^^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.expectedExtensionBody] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 15, 3),
-      error(diag.expectedExtensionBody, 15, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1612,13 +1625,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_class() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { class A {}
+//                      ^^^^^
+// [diag.classInClass] Classes can't be declared inside other classes.
+// [diag.expectedToken][column 35][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.classInClass, 24, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1637,10 +1649,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { const a = 0;
+// [diag.expectedToken][column 37][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 37, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1670,13 +1682,12 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_enum() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { enum E { v }
+//                      ^^^^
+// [diag.enumInClass] Enums can't be declared inside classes.
+// [diag.expectedToken][column 37][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.enumInClass, 24, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1695,10 +1706,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String {
+// [diag.expectedToken][column 24][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 24, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1717,10 +1728,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_final() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { final a = 0;
+// [diag.expectedToken][column 37][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 37, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1750,10 +1761,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_functionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { int f() {}
+// [diag.expectedToken][column 35][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1784,10 +1795,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_functionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { void f() {}
+// [diag.expectedToken][column 36][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 36, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1818,10 +1829,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_getter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { int get a => 0;
+// [diag.expectedToken][column 40][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 40, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1851,15 +1862,15 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_mixin() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { mixin M {}
+//                      ^^^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
+//                            ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
+// [diag.expectedToken][column 35][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.missingConstFinalVarOrType, 24, 5),
-      error(diag.expectedToken, 24, 5),
-      error(diag.missingFunctionParameters, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1894,10 +1905,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_setter() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { set a(b) {}
+// [diag.expectedToken][column 36][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 36, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1929,16 +1940,16 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_typedef() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { typedef A = B Function(C, D);
+//                      ^^^^^^^
+// [diag.typedefInClass] Typedefs can't be declared inside classes.
+//                              ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+//                                  ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.expectedToken][column 54][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 54, 1),
-      error(diag.typedefInClass, 24, 7),
-      error(diag.missingConstFinalVarOrType, 32, 1),
-      error(diag.expectedToken, 36, 1),
-      error(diag.extensionDeclaresAbstractMember, 38, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1978,10 +1989,10 @@ CompilationUnit
   }
 
   void test_extension_declaration_partialBody_var() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on String { var a;
+// [diag.expectedToken][column 31][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 31, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

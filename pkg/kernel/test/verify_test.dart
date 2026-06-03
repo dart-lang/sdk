@@ -24,62 +24,49 @@ void main() {
   positiveTest('Test harness has no errors', (TestHarness test) {
     test.addNode(NullLiteral());
   });
-  negative1Test(
-    'VariableGet out of scope',
-    (TestHarness test) {
-      VariableDeclaration node = test.makeVariable();
-      test.addNode(VariableGet(node));
-      return node;
-    },
-    (Node? node) => "${errorPrefix}Variable '$node' used out of scope.",
-  );
-  negative1Test(
-    'VariableSet out of scope',
-    (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
-      test.addNode(VariableSet(variable, new NullLiteral()));
-      return variable;
-    },
-    (Node? node) => "${errorPrefix}Variable '$node' used out of scope.",
-  );
-  negative1Test(
-    'Variable block scope',
-    (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
-      test.addNode(
-        Block([
-          new Block([variable]),
-          new ReturnStatement(new VariableGet(variable)),
-        ]),
-      );
-      return variable;
-    },
-    (Node? node) => "${errorPrefix}Variable '$node' used out of scope.",
-  );
-  negative1Test(
-    'Variable let scope',
-    (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
-      test.addNode(
-        LogicalExpression(
-          new Let(variable, new VariableGet(variable)),
-          LogicalExpressionOperator.AND,
-          new VariableGet(variable),
-        ),
-      );
-      return variable;
-    },
-    (Node? node) => "${errorPrefix}Variable '$node' used out of scope.",
-  );
-  negative1Test(
-    'Variable redeclared',
-    (TestHarness test) {
-      VariableDeclaration variable = test.makeVariable();
-      test.addNode(Block([variable, variable]));
-      return variable;
-    },
-    (Node? node) => "${errorPrefix}Variable '$node' declared more than once.",
-  );
+  negative1Test('VariableGet out of scope', (TestHarness test) {
+    Variable node = test.makeVariable();
+    test.addNode(VariableGet(node));
+    return node;
+  }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
+  negative1Test('VariableSet out of scope', (TestHarness test) {
+    Variable variable = test.makeVariable();
+    test.addNode(VariableSet(variable, new NullLiteral()));
+    return variable;
+  }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
+  negative1Test('Variable block scope', (TestHarness test) {
+    Variable variable = test.makeVariable();
+    test.addNode(
+      Block([
+        new Block([new VariableStatement(VariableDeclaration(variable))]),
+        new ReturnStatement(new VariableGet(variable)),
+      ]),
+    );
+    return variable;
+  }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
+  negative1Test('Variable let scope', (TestHarness test) {
+    Variable variable = test.makeVariable();
+    test.addNode(
+      LogicalExpression(
+        new Let(variable, new VariableGet(variable)),
+        LogicalExpressionOperator.AND,
+        new VariableGet(variable),
+      ),
+    );
+    return variable;
+  }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
+  negative1Test('Variable redeclared', (TestHarness test) {
+    Variable variable = test.makeVariable();
+    test.addNode(
+      Procedure(
+        new Name('bar'),
+        ProcedureKind.Method,
+        FunctionNode(null, positionalParameters: [variable, variable]),
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset,
+    );
+    return variable;
+  }, (Node? node) => "${errorPrefix}Variable '$node' declared more than once.");
   negative1Test(
     'Member redeclared',
     (TestHarness test) {
@@ -101,53 +88,39 @@ void main() {
     (Node? node) =>
         "${errorPrefix}Member '$node' has been declared more than once.",
   );
-  negative1Test(
-    'Class redeclared',
-    (TestHarness test) {
-      Class otherClass = test.otherClass;
-      test.addNode(
-        otherClass,
-      ); // Test harness also adds otherClass to component.
-      return test.otherClass;
-    },
-    (Node? node) => "${errorPrefix}Class '$node' declared more than once.",
-  );
-  negative1Test(
-    'Class type parameter redeclared',
-    (TestHarness test) {
-      TypeParameter parameter = test.makeTypeParameter();
-      test.addNode(
-        Class(
-          name: 'Test',
-          supertype: test.objectClass.asRawSupertype,
+  negative1Test('Class redeclared', (TestHarness test) {
+    Class otherClass = test.otherClass;
+    test.addNode(otherClass); // Test harness also adds otherClass to component.
+    return test.otherClass;
+  }, (Node? node) => "${errorPrefix}Class '$node' declared more than once.");
+  negative1Test('Class type parameter redeclared', (TestHarness test) {
+    TypeParameter parameter = test.makeTypeParameter();
+    test.addNode(
+      Class(
+        name: 'Test',
+        supertype: test.objectClass.asRawSupertype,
+        typeParameters: [parameter, parameter],
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset,
+    );
+    return parameter;
+  }, (Node? node) => "${errorPrefix}Type parameter '$node' redeclared.");
+  negative1Test('Member type parameter redeclared', (TestHarness test) {
+    TypeParameter parameter = test.makeTypeParameter();
+    test.addNode(
+      Procedure(
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(
+          new ReturnStatement(new NullLiteral()),
           typeParameters: [parameter, parameter],
-          fileUri: dummyUri,
-        )..fileOffset = dummyFileOffset,
-      );
-      return parameter;
-    },
-    (Node? node) => "${errorPrefix}Type parameter '$node' redeclared.",
-  );
-  negative1Test(
-    'Member type parameter redeclared',
-    (TestHarness test) {
-      TypeParameter parameter = test.makeTypeParameter();
-      test.addNode(
-        Procedure(
-          new Name('bar'),
-          ProcedureKind.Method,
-          new FunctionNode(
-            new ReturnStatement(new NullLiteral()),
-            typeParameters: [parameter, parameter],
-          ),
-          fileUri: dummyUri,
-        )..fileOffset = dummyFileOffset,
-      );
+        ),
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset,
+    );
 
-      return parameter;
-    },
-    (Node? node) => "${errorPrefix}Type parameter '$node' redeclared.",
-  );
+    return parameter;
+  }, (Node? node) => "${errorPrefix}Type parameter '$node' redeclared.");
   negative2Test(
     'Type parameter out of scope',
     (TestHarness test) {
@@ -355,7 +328,7 @@ void main() {
       ProcedureKind.Method,
       new FunctionNode(
         new EmptyStatement(),
-        positionalParameters: [new VariableDeclaration('p')],
+        positionalParameters: [new Variable('p')],
       ),
       isStatic: true,
       fileUri: dummyUri,
@@ -391,7 +364,7 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new EmptyStatement(),
-          positionalParameters: [new VariableDeclaration('p')],
+          positionalParameters: [new Variable('p')],
         ),
         isStatic: true,
         fileUri: dummyUri,
@@ -530,113 +503,87 @@ void main() {
     test.enclosingLibrary.addTypedef(typedef_);
     test.enclosingLibrary.addField(field);
   });
-  negative1Test(
-    'Invalid typedef Foo = Foo',
-    (TestHarness test) {
-      var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      typedef_.type = new TypedefType(typedef_, Nullability.nonNullable);
-      test.addNode(typedef_);
-      return typedef_;
-    },
-    (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
-  );
-  negative1Test(
-    'Invalid typedef Foo = `(Foo) => void`',
-    (TestHarness test) {
-      var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      typedef_.type = new FunctionType(
-        [new TypedefType(typedef_, Nullability.nonNullable)],
-        const VoidType(),
-        Nullability.nonNullable,
-      );
-      test.addNode(typedef_);
-      return typedef_;
-    },
-    (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
-  );
-  negative1Test(
-    'Invalid typedef Foo = `() => Foo`',
-    (TestHarness test) {
-      var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      typedef_.type = new FunctionType(
-        [],
-        new TypedefType(typedef_, Nullability.nonNullable),
-        Nullability.nonNullable,
-      );
-      test.addNode(typedef_);
-      return typedef_;
-    },
-    (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
-  );
-  negative1Test(
-    'Invalid typedef Foo = C<Foo>',
-    (TestHarness test) {
-      var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      typedef_.type = new InterfaceType(
-        test.otherClass,
-        Nullability.nonNullable,
-        [new TypedefType(typedef_, Nullability.nonNullable)],
-      );
-      test.addNode(typedef_);
-      return typedef_;
-    },
-    (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
-  );
-  negative1Test(
-    'Invalid typedefs Foo = Bar, Bar = Foo',
-    (TestHarness test) {
-      var foo = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var bar = new Typedef('Bar', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      foo.type = new TypedefType(bar, Nullability.nonNullable);
-      bar.type = new TypedefType(foo, Nullability.nonNullable);
-      test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addTypedef(bar);
-      return foo;
-    },
-    (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself",
-  );
-  negative1Test(
-    'Invalid typedefs Foo = Bar, Bar = C<Foo>',
-    (TestHarness test) {
-      var foo = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var bar = new Typedef('Bar', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      foo.type = new TypedefType(bar, Nullability.nonNullable);
-      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
-        new TypedefType(foo, Nullability.nonNullable),
-      ]);
-      test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addTypedef(bar);
-      return foo;
-    },
-    (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself",
-  );
-  negative1Test(
-    'Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
-    (TestHarness test) {
-      var foo = new Typedef('Foo', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      var bar = new Typedef('Bar', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
-        new TypedefType(bar, Nullability.nonNullable),
-      ]);
-      bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
-        new TypedefType(foo, Nullability.nonNullable),
-      ]);
-      test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addTypedef(bar);
-      return foo;
-    },
-    (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself",
-  );
+  negative1Test('Invalid typedef Foo = Foo', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    typedef_.type = new TypedefType(typedef_, Nullability.nonNullable);
+    test.addNode(typedef_);
+    return typedef_;
+  }, (Node? node) => "${errorPrefix}The typedef '$node' refers to itself");
+  negative1Test('Invalid typedef Foo = `(Foo) => void`', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    typedef_.type = new FunctionType(
+      [new TypedefType(typedef_, Nullability.nonNullable)],
+      const VoidType(),
+      Nullability.nonNullable,
+    );
+    test.addNode(typedef_);
+    return typedef_;
+  }, (Node? node) => "${errorPrefix}The typedef '$node' refers to itself");
+  negative1Test('Invalid typedef Foo = `() => Foo`', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    typedef_.type = new FunctionType(
+      [],
+      new TypedefType(typedef_, Nullability.nonNullable),
+      Nullability.nonNullable,
+    );
+    test.addNode(typedef_);
+    return typedef_;
+  }, (Node? node) => "${errorPrefix}The typedef '$node' refers to itself");
+  negative1Test('Invalid typedef Foo = C<Foo>', (TestHarness test) {
+    var typedef_ = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    typedef_.type = new InterfaceType(
+      test.otherClass,
+      Nullability.nonNullable,
+      [new TypedefType(typedef_, Nullability.nonNullable)],
+    );
+    test.addNode(typedef_);
+    return typedef_;
+  }, (Node? node) => "${errorPrefix}The typedef '$node' refers to itself");
+  negative1Test('Invalid typedefs Foo = Bar, Bar = Foo', (TestHarness test) {
+    var foo = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    var bar = new Typedef('Bar', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    foo.type = new TypedefType(bar, Nullability.nonNullable);
+    bar.type = new TypedefType(foo, Nullability.nonNullable);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+    return foo;
+  }, (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself");
+  negative1Test('Invalid typedefs Foo = Bar, Bar = C<Foo>', (TestHarness test) {
+    var foo = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    var bar = new Typedef('Bar', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    foo.type = new TypedefType(bar, Nullability.nonNullable);
+    bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+      new TypedefType(foo, Nullability.nonNullable),
+    ]);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+    return foo;
+  }, (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself");
+  negative1Test('Invalid typedefs Foo = C<Bar>, Bar = C<Foo>', (
+    TestHarness test,
+  ) {
+    var foo = new Typedef('Foo', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    var bar = new Typedef('Bar', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    foo.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+      new TypedefType(bar, Nullability.nonNullable),
+    ]);
+    bar.type = new InterfaceType(test.otherClass, Nullability.nonNullable, [
+      new TypedefType(foo, Nullability.nonNullable),
+    ]);
+    test.enclosingLibrary.addTypedef(foo);
+    test.enclosingLibrary.addTypedef(bar);
+    return foo;
+  }, (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself");
   positiveTest('Valid long typedefs C20 = C19 = ... = C1 = C0 = dynamic', (
     TestHarness test,
   ) {
@@ -652,27 +599,25 @@ void main() {
       test.enclosingLibrary.addTypedef(typedef_);
     }
   });
-  negative1Test(
-    'Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20',
-    (TestHarness test) {
-      Typedef firstTypedef = new Typedef('C0', null, fileUri: dummyUri)
-        ..fileOffset = dummyFileOffset;
-      Typedef typedef_ = firstTypedef;
+  negative1Test('Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20', (
+    TestHarness test,
+  ) {
+    Typedef firstTypedef = new Typedef('C0', null, fileUri: dummyUri)
+      ..fileOffset = dummyFileOffset;
+    Typedef typedef_ = firstTypedef;
+    test.enclosingLibrary.addTypedef(typedef_);
+    var first = typedef_;
+    for (int i = 1; i < 20; ++i) {
+      typedef_ = new Typedef(
+        'C$i',
+        new TypedefType(typedef_, Nullability.nonNullable),
+        fileUri: dummyUri,
+      )..fileOffset = dummyFileOffset;
       test.enclosingLibrary.addTypedef(typedef_);
-      var first = typedef_;
-      for (int i = 1; i < 20; ++i) {
-        typedef_ = new Typedef(
-          'C$i',
-          new TypedefType(typedef_, Nullability.nonNullable),
-          fileUri: dummyUri,
-        )..fileOffset = dummyFileOffset;
-        test.enclosingLibrary.addTypedef(typedef_);
-      }
-      first.type = new TypedefType(typedef_, Nullability.nonNullable);
-      return firstTypedef;
-    },
-    (Node? node) => "${errorPrefix}The typedef '$node' refers to itself",
-  );
+    }
+    first.type = new TypedefType(typedef_, Nullability.nonNullable);
+    return firstTypedef;
+  }, (Node? node) => "${errorPrefix}The typedef '$node' refers to itself");
   positiveTest('Valid typedef Foo<T extends C> = C<T>', (TestHarness test) {
     var param = new TypeParameter('T', test.otherRawType, test.otherRawType);
     var foo = new Typedef(
@@ -759,27 +704,25 @@ void main() {
     },
     (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself",
   );
-  negative1Test(
-    'Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
-    (TestHarness test) {
-      var param = new TypeParameter('T', null);
-      var foo = new Typedef(
-        'Foo',
-        new InterfaceType(test.otherClass, Nullability.nonNullable, [
-          new TypeParameterType(param, Nullability.nonNullable),
-        ]),
-        typeParameters: [param],
-        fileUri: dummyUri,
-      )..fileOffset = dummyFileOffset;
-      param.bound = new TypedefType(foo, Nullability.nonNullable, [
-        const DynamicType(),
-      ]);
-      param.defaultType = const DynamicType();
-      test.addNode(foo);
-      return foo;
-    },
-    (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself",
-  );
+  negative1Test('Invalid typedef Foo<T extends Foo<dynamic> = C<T>', (
+    TestHarness test,
+  ) {
+    var param = new TypeParameter('T', null);
+    var foo = new Typedef(
+      'Foo',
+      new InterfaceType(test.otherClass, Nullability.nonNullable, [
+        new TypeParameterType(param, Nullability.nonNullable),
+      ]),
+      typeParameters: [param],
+      fileUri: dummyUri,
+    )..fileOffset = dummyFileOffset;
+    param.bound = new TypedefType(foo, Nullability.nonNullable, [
+      const DynamicType(),
+    ]);
+    param.defaultType = const DynamicType();
+    test.addNode(foo);
+    return foo;
+  }, (Node? foo) => "${errorPrefix}The typedef '$foo' refers to itself");
   negative1Test(
     'Typedef arity error',
     (TestHarness test) {
@@ -884,29 +827,21 @@ void main() {
     test.enclosingLibrary.addClass(cls);
     return null;
   }, (Node? node) => "${errorPrefix}'Class' has no fileOffset");
-  negative1Test(
-    'Extension file offset',
-    (TestHarness test) {
-      var extension = new Extension(name: 'Extension', fileUri: dummyUri);
-      test.enclosingLibrary.addExtension(extension);
-      return null;
-    },
-    (Node? node) => "${errorPrefix}'Extension' has no fileOffset",
-  );
-  negative1Test(
-    'Procedure file offset',
-    (TestHarness test) {
-      var method = new Procedure(
-        new Name('method'),
-        ProcedureKind.Method,
-        new FunctionNode(null),
-        fileUri: dummyUri,
-      );
-      test.enclosingClass.addProcedure(method);
-      return null;
-    },
-    (Node? node) => "${errorPrefix}'method' has no fileOffset",
-  );
+  negative1Test('Extension file offset', (TestHarness test) {
+    var extension = new Extension(name: 'Extension', fileUri: dummyUri);
+    test.enclosingLibrary.addExtension(extension);
+    return null;
+  }, (Node? node) => "${errorPrefix}'Extension' has no fileOffset");
+  negative1Test('Procedure file offset', (TestHarness test) {
+    var method = new Procedure(
+      new Name('method'),
+      ProcedureKind.Method,
+      new FunctionNode(null),
+      fileUri: dummyUri,
+    );
+    test.enclosingClass.addProcedure(method);
+    return null;
+  }, (Node? node) => "${errorPrefix}'method' has no fileOffset");
   negative1Test('Field file offset', (TestHarness test) {
     var field = new Field.mutable(new Name('field'), fileUri: dummyUri);
     test.enclosingClass.addField(field);
@@ -999,14 +934,13 @@ class TestHarness {
     enclosingLibrary.addTypedef(node);
   }
 
-  VariableDeclaration makeVariable() =>
-      new VariableDeclaration(null, isSynthesized: true);
+  Variable makeVariable() => new Variable(null, isSynthesized: true);
 
   TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectRawType, const DynamicType());
   }
 
-  TestHarness() {
+  new() {
     setupComponent();
   }
 

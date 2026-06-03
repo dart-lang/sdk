@@ -360,7 +360,7 @@ class ChromeAppInspector extends AppInspector {
       }
       final scriptRef = scriptRefsById[objectId];
       if (scriptRef != null) {
-        return _getScript(scriptRef);
+        return await _getScript(scriptRef);
       }
       final instance = await _instanceHelper.instanceFor(
         remoteObjectFor(objectId),

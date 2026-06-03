@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,7 +16,7 @@ main() {
 @reflectiveTest
 class FieldInitializerNotAssignableTest extends PubPackageResolutionTest {
   test_class_implicitCallReference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call(int p) {}
 }
@@ -29,7 +28,7 @@ class A {
   }
 
   test_class_implicitCallReference_genericFunctionInstantiation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   void call<T>(T p) {}
 }
@@ -41,15 +40,14 @@ class A {
   }
 
   test_class_unrelated() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x;
   A() : x = '';
+//          ^^
+// [diag.fieldInitializerNotAssignable] The initializer type 'String' can't be assigned to the field type 'int'.
 }
-''',
-      [error(diag.fieldInitializerNotAssignable, 31, 2)],
-    );
+''');
   }
 }
 
@@ -58,26 +56,24 @@ class FieldInitializerNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_constructorInitializer() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 class A {
   int i;
   A(dynamic a) : i = a;
+//                   ^
+// [diag.fieldInitializerNotAssignable] The initializer type 'dynamic' can't be assigned to the field type 'int'.
 }
-''',
-      [error(diag.fieldInitializerNotAssignable, 40, 1)],
-    );
+''');
   }
 
   test_constructorInitializer_primaryConstructor() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 class A(dynamic a) {
   int i;
   this : i = a;
+//           ^
+// [diag.fieldInitializerNotAssignable] The initializer type 'dynamic' can't be assigned to the field type 'int'.
 }
-''',
-      [error(diag.fieldInitializerNotAssignable, 43, 1)],
-    );
+''');
   }
 }

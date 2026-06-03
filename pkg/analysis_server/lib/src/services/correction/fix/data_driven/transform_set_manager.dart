@@ -28,7 +28,7 @@ class TransformSetManager {
   TransformSet? _sdkCache;
 
   /// Initialize a newly created transform set manager.
-  TransformSetManager._();
+  new _();
 
   /// Clear the internal cache.
   @visibleForTesting

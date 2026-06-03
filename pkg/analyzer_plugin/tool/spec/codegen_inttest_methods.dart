@@ -49,6 +49,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     codeGeneratorSettings.languageName = 'dart';
   }
 
+  @override
+  String get regenScript => 'pkg/analyzer_plugin/tool/spec/generate_all.dart';
+
   /// Generate a function argument for the given parameter field.
   String formatArgument(TypeObjectField field) =>
       '${fieldDartType(field)} ${field.name}';

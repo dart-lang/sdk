@@ -22,5 +22,5 @@ class NotificationData {
 
   /// Initialize a newly create data holder for notifications with the given
   /// [method].
-  NotificationData(this.method);
+  new(this.method);
 }

@@ -204,7 +204,7 @@ class Test {
   final String? inequivalence;
   final EquivalenceStrategy strategy;
 
-  Test(
+  new(
     this.a,
     this.b, {
     this.inequivalence,
@@ -215,7 +215,7 @@ class Test {
 }
 
 class IgnoreIntLiteralValue extends EquivalenceStrategy {
-  const IgnoreIntLiteralValue();
+  const new();
 
   @override
   bool checkIntLiteral_value(

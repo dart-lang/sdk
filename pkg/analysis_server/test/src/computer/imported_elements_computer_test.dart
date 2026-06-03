@@ -176,6 +176,19 @@ blankLine() {
     expect(importedElements, hasLength(0));
   }
 
+  Future<void> test_none_constructorDeclaration_withNew() async {
+    var content = '''
+[!
+class A {
+  new ();
+  new named();
+}
+!]
+''';
+    await _computeElements(content);
+    expect(importedElements, hasLength(0));
+  }
+
   Future<void> test_none_constructorDeclarationReturnType() async {
     var content = '''
 [!

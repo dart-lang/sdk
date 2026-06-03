@@ -247,6 +247,17 @@ String generateCfeFile(Uri repoDir) {
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
+''');
+  // This code generator generates Dart 3.12-style constructor declarations, so
+  // ignore the `unnecessary_type_name_in_constructor` lint.
+  // TODO(paulberry): switch the code generator to Dart 3.13-style constructor
+  // declarations, and remove this ignore comment.
+  sb.write('''
+
+// ignore_for_file: unnecessary_type_name_in_constructor
+''');
+
+  sb.write('''
 
 part of 'experimental_flags.dart';
 ''');

@@ -120,12 +120,15 @@ class LiteralElementVerifier {
         }
       case NullAwareElementImpl():
         if (forList || forSet) {
-          if (elementType is! VoidType &&
-              _errorVerifier.checkForUseOfVoidResult(element.value)) {
+          var valueType = element.value.typeOrThrow;
+          // A null-aware marker tests this expression for `null`, so a `void`
+          // value is used even when the stored element type is also `void`.
+          if (valueType is VoidType) {
+            _errorVerifier.checkForUseOfVoidResult(element.value);
             return;
           }
           _checkAssignableToElementType(
-            typeSystem.promoteToNonNull(element.value.typeOrThrow),
+            typeSystem.promoteToNonNull(valueType),
             element,
           );
         } else {
@@ -140,18 +143,35 @@ class LiteralElementVerifier {
   /// and [mapValueType].
   void _verifyMapLiteralEntry(MapLiteralEntry entry) {
     var mapKeyType = this.mapKeyType!;
+    var keyType = entry.key.typeOrThrow;
+
+    // A null-aware marker tests this expression for `null`, so a `void` value
+    // is used even when the stored key type is also `void`.
+    if (entry.keyQuestion != null && keyType is VoidType) {
+      _errorVerifier.checkForUseOfVoidResult(entry.key);
+      return;
+    }
+
     if (mapKeyType is! VoidType &&
         _errorVerifier.checkForUseOfVoidResult(entry.key)) {
       return;
     }
 
     var mapValueType = this.mapValueType!;
+    var valueType = entry.value.typeOrThrow;
+
+    // A null-aware marker tests this expression for `null`, so a `void` value
+    // is used even when the stored value type is also `void`.
+    if (entry.valueQuestion != null && valueType is VoidType) {
+      _errorVerifier.checkForUseOfVoidResult(entry.value);
+      return;
+    }
+
     if (mapValueType is! VoidType &&
         _errorVerifier.checkForUseOfVoidResult(entry.value)) {
       return;
     }
 
-    var keyType = entry.key.typeOrThrow;
     // If the key is null-aware, the entry is only added when the key is not
     // `null`, so the key type to check should be promoted to non-null.
     if (entry.keyQuestion != null) {
@@ -182,7 +202,6 @@ class LiteralElementVerifier {
       }
     }
 
-    var valueType = entry.value.typeOrThrow;
     // If the value is null-aware, the entry is only added when the value is not
     // `null`, so the value type to check should be promoted to non-null.
     if (entry.valueQuestion != null) {

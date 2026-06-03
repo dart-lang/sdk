@@ -17,7 +17,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Annotate redeclared members.';
 
 class AnnotateRedeclares extends AnalysisRule {
-  AnnotateRedeclares()
+  new()
     : super(
         name: LintNames.annotate_redeclares,
         description: _desc,
@@ -40,7 +40,7 @@ class AnnotateRedeclares extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {

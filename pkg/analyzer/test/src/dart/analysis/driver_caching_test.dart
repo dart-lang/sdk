@@ -136,8 +136,8 @@ class A {
 }
 ''');
 
-    await resolveTestFile();
-    assertType(findElement2.field('f').type, 'Set<int>');
+    var result = await resolveTestFile();
+    assertType(result.findElement.field('f').type, 'Set<int>');
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);
@@ -156,8 +156,8 @@ class A {
 }
 ''');
 
-    await resolveTestFile();
-    assertType(findElement2.field('f').type, 'Set<int>');
+    result = await resolveTestFile();
+    assertType(result.findElement.field('f').type, 'Set<int>');
 
     // We changed the initializer of the final field. But it is static, so
     // even though the class hsa a constant constructor, we don't need its
@@ -174,8 +174,8 @@ void f() {
 }
 ''');
 
-    await resolveTestFile();
-    expect(findNode.integerLiteral('0'), isNotNull);
+    var result = await resolveTestFile();
+    expect(result.findNode.integerLiteral('0'), isNotNull);
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);
@@ -191,8 +191,8 @@ void f() {
 }
 ''');
 
-    await resolveTestFile();
-    expect(findNode.integerLiteral('1'), isNotNull);
+    result = await resolveTestFile();
+    expect(result.findNode.integerLiteral('1'), isNotNull);
 
     // We changed only the function body, nothing should be linked.
     _assertNoLinkedCycles();
@@ -311,8 +311,8 @@ void f() {
 ''');
 
     // We don't have any lints configured, so no errors.
-    await resolveTestFile();
-    assertErrorsInResult([]);
+    var result = await resolveTestFile();
+    expect(result.diagnostics, isEmpty);
 
     // The summary for the library was linked.
     _assertContainsLinkedCycle({testFile}, andClear: true);
@@ -327,7 +327,7 @@ void f() {
     );
 
     // Check that the lint was run, and reported.
-    await resolveTestFile();
+    result = await resolveTestFile();
     _assertHasLintReported(result.diagnostics, 'prefer_is_not_empty');
 
     // Lints don't affect summaries, nothing should be linked.

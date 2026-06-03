@@ -33,4 +33,16 @@ void logical(bool x, bool Function() y, bool z) {
   print(!(x && (y() || z)));
 }
 
+void recordLiterals<T>(int a, String b, T c) {
+  print((a,));
+  print((a, bbb: b));
+  print((a, b, c));
+}
+
+void recordFields<T>((int, String) r1, (int, {T foo, T bar}) r2) {
+  print(r1.$2);
+  print(r2.$1);
+  print(r2.bar);
+}
+
 void main() {}

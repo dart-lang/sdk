@@ -16,8 +16,7 @@ import '../extensions.dart';
 const _desc = r"Don't explicitly catch `Error` or types that implement it.";
 
 class AvoidCatchingErrors extends MultiAnalysisRule {
-  AvoidCatchingErrors()
-    : super(name: LintNames.avoid_catching_errors, description: _desc);
+  new() : super(name: LintNames.avoid_catching_errors, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -38,7 +37,7 @@ class AvoidCatchingErrors extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCatchClause(CatchClause node) {

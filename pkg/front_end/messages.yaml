@@ -1641,14 +1641,12 @@ privateNamedNonFieldParameter:
   pseudoSharedCode: PRIVATE_NAMED_NON_FIELD_PARAMETER
   parameters: none
   problemMessage: "A named parameter that doesn't refer to an instance variable can't start with an underscore ('_')."
-  experiments: private-named-parameters
   script: |
     void foo({int? _hello}) {}
 
 privateNamedParameterWithoutPublicName:
   parameters: none
   problemMessage: "A private named parameter must have a corresponding public name."
-  experiments: private-named-parameters
   script: |
     class C {
       int? _123;
@@ -1659,7 +1657,6 @@ privateNamedParameterDuplicatePublicName:
   parameters:
     String name: the corresponding public name of private named parameter
   problemMessage: "The corresponding public name '#name' is already the name of another parameter."
-  experiments: private-named-parameters
   script: |
     class C {
       int? _x;
@@ -7767,6 +7764,11 @@ anonymousMethodWrongParameterTypeCfe:
   experiments: anonymous-methods
   statement:
     - '"".(int i) => 1;'
+
+nonIdentifierForInElement:
+  parameters: none
+  problemMessage: "The element in a for-in loop must be an identifier or a local variable declaration."
+  correctionMessage: "Try using an existing variable or a variable declaration."
 
 dartExternalEffectNotMethod:
   parameters: none

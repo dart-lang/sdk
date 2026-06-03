@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart' show IterableExtension;
 
@@ -19,7 +18,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
 class PreferConstConstructorsInImmutables extends AnalysisRule {
-  PreferConstConstructorsInImmutables()
+  new()
     : super(
         name: LintNames.prefer_const_constructors_in_immutables,
         description: _desc,
@@ -42,7 +41,7 @@ class PreferConstConstructorsInImmutables extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

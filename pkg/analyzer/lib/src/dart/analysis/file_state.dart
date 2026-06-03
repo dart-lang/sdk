@@ -561,6 +561,11 @@ class FileState {
   @override
   int get hashCode => uri.hashCode;
 
+  /// Whether this file is in a "test" directory of its workspace package.
+  bool get isInTestDirectory {
+    return workspacePackage?.isInTestDirectory(resource) ?? false;
+  }
+
   FileKind get kind => _kind!;
 
   /// Return information about line in the file.
@@ -627,7 +632,7 @@ class FileState {
               featureSet: featureSet.restrictToVersion(packageLanguageVersion),
             );
       scanner.preserveComments = scanComments;
-      Token token = scanner.tokenize(reportScannerErrors: false);
+      Token token = scanner.tokenize();
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
       var languageVersion = LibraryLanguageVersion(
         package: packageLanguageVersion,
@@ -1025,9 +1030,7 @@ class FileState {
           topLevelDeclarations.add(name.lexeme);
         }
       } else if (declaration is ExtensionTypeDeclaration) {
-        topLevelDeclarations.add(
-          declaration.primaryConstructor.typeName.lexeme,
-        );
+        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
       } else if (declaration is FunctionDeclaration) {
         topLevelDeclarations.add(declaration.name.lexeme);
       } else if (declaration is MixinDeclaration) {

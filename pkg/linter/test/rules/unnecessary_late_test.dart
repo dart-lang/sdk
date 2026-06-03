@@ -28,13 +28,10 @@ class C {
   }
 
   test_multipleVariables_eachHasInitializer() async {
-    await assertDiagnostics(
-      r'''
-late String a = '',
+    await assertDiagnosticsFromMarkdown(r'''
+[!late!] String a = '',
     b = '';
-''',
-      [lint(0, 4)],
-    );
+''');
   }
 
   test_multipleVariables_oneHasInitializer_oneHasNoInitializer() async {
@@ -44,14 +41,11 @@ late String a, b = '';
   }
 
   test_static_initializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  static late String a = '';
+  static [!late!] String a = '';
 }
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   test_static_noInitializer() async {
@@ -71,12 +65,9 @@ class C {
   }
 
   test_topLevel_initializer() async {
-    await assertDiagnostics(
-      r'''
-late String a = '';
-''',
-      [lint(0, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!late!] String a = '';
+''');
   }
 
   test_topLevel_noInitializer() async {

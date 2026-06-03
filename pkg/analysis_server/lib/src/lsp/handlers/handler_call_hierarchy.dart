@@ -23,7 +23,7 @@ typedef StaticOptions =
 
 class CallHierarchyRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  CallHierarchyRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options =>
@@ -49,7 +49,7 @@ class IncomingCallHierarchyHandler
           CallHierarchyIncomingCall
         >
     with _CallHierarchyUtils {
-  IncomingCallHierarchyHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.callHierarchy_incomingCalls;
 
@@ -121,7 +121,7 @@ class OutgoingCallHierarchyHandler
           CallHierarchyOutgoingCall
         >
     with _CallHierarchyUtils {
-  OutgoingCallHierarchyHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.callHierarchy_outgoingCalls;
 
@@ -200,7 +200,7 @@ class PrepareCallHierarchyHandler
           TextDocumentPrepareCallHierarchyResult
         >
     with _CallHierarchyUtils {
-  PrepareCallHierarchyHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareCallHierarchy;
 
@@ -277,7 +277,7 @@ class PrepareCallHierarchyHandler
 abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
     extends SharedMessageHandler<P, R>
     with _CallHierarchyUtils {
-  _AbstractCallHierarchyCallsHandler(super.server);
+  new(super.server);
 
   /// Gets the appropriate types of calls for this handler.
   Future<List<call_hierarchy.CallHierarchyCalls>> getCalls(

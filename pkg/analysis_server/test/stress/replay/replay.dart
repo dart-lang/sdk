@@ -113,7 +113,7 @@ class Driver {
   /// The logger to which verbose logging data will be written.
   late Logger _logger;
 
-  Driver._({
+  new _({
     required this._overlayStyle,
     required this._repositoryPath,
     required this._analysisRoots,
@@ -503,7 +503,7 @@ class FileEdit {
 
   /// Initialize a collection of edits to be associated with the file at the
   /// given [filePath].
-  FileEdit(this.overlayStyle, DiffRecord record) {
+  new(this.overlayStyle, DiffRecord record) {
     filePath = record.srcPath!;
     if (record.isAddition) {
       content = '';
@@ -576,7 +576,7 @@ class Statistics {
   int editCount = 0;
 
   /// Initialize a newly created set of statistics.
-  Statistics(this.driver);
+  new(this.driver);
 
   /// Print the statistics to [stdout].
   void print() {

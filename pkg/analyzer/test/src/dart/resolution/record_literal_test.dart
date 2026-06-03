@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecordLiteralResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecordLiteralResolutionTest extends PubPackageResolutionTest {
   test_field_rewrite_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   (f1: r.$1, );
 }
 ''');
 
-    var node = findNode.recordLiteral('(f1');
+    var node = result.findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -47,13 +48,13 @@ RecordLiteral
   }
 
   test_field_rewrite_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
   (r.$1, );
 }
 ''');
 
-    var node = findNode.recordLiteral('(r');
+    var node = result.findNode.recordLiteral('(r');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -75,12 +76,12 @@ RecordLiteral
   }
 
   test_hasContext_functionReference_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}
 final ({void Function() f1}) x = (f1: f);
 ''');
 
-    var node = findNode.singleRecordLiteral;
+    var node = result.findNode.singleRecordLiteral;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -102,12 +103,12 @@ RecordLiteral
   }
 
   test_hasContext_functionReference_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}
 final (void Function(), ) x = (f, );
 ''');
 
-    var node = findNode.singleRecordLiteral;
+    var node = result.findNode.singleRecordLiteral;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -126,13 +127,13 @@ RecordLiteral
   }
 
   test_hasContext_greatestClosure() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>((List<T>, List<T>) x) {}
 
 test(dynamic d) => f((d, d));
 ''');
 
-    var node = findNode.recordLiteral('(d,');
+    var node = result.findNode.recordLiteral('(d,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -151,7 +152,7 @@ RecordLiteral
   }
 
   test_hasContext_implicitCallReference_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void call() {}
 }
@@ -160,7 +161,7 @@ final a = A();
 final ({void Function() f1}) x = (f1: a);
 ''');
 
-    var node = findNode.recordLiteral('(f1');
+    var node = result.findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -181,7 +182,7 @@ RecordLiteral
   }
 
   test_hasContext_implicitCallReference_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void call() {}
 }
@@ -190,7 +191,7 @@ final a = A();
 final (void Function(), ) x = (a, );
 ''');
 
-    var node = findNode.recordLiteral('(a');
+    var node = result.findNode.recordLiteral('(a');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -208,12 +209,12 @@ RecordLiteral
   }
 
   test_hasContext_implicitCast_fromDynamic_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 final ({int f1}) x = (f1: a);
 ''');
 
-    var node = findNode.recordLiteral('(f1');
+    var node = result.findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -231,12 +232,12 @@ RecordLiteral
   }
 
   test_hasContext_implicitCast_fromDynamic_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 final (int, ) x = (a, );
 ''');
 
-    var node = findNode.recordLiteral('(a');
+    var node = result.findNode.recordLiteral('(a');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -251,7 +252,7 @@ RecordLiteral
   }
 
   test_hasContext_mismatchedTypes() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   if (o is (int,)) {
     o = ('',);
@@ -259,7 +260,7 @@ f(Object o) {
 }
 ''');
 
-    var node = findNode.recordLiteral("('',");
+    var node = result.findNode.recordLiteral("('',");
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -272,7 +273,7 @@ RecordLiteral
   }
 
   test_hasContext_mixed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A1 {}
 class A2 {}
 class A3 {}
@@ -284,7 +285,7 @@ final (A1, A2, A3, {A4 f1, A5 f2}) x = (g(), f1: g(), g(), f2: g(), g());
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -361,7 +362,7 @@ RecordLiteral
   }
 
   test_hasContext_mixed_namedWherePositionalExpected() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   if (o is (int,)) {
     o = (f1: g());
@@ -371,7 +372,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(f1:');
+    var node = result.findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -397,7 +398,7 @@ RecordLiteral
   }
 
   test_hasContext_mixed_nameMismatch() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   if (o is (int, {String f1})) {
     o = (g(), f2: g());
@@ -407,7 +408,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -445,7 +446,7 @@ RecordLiteral
   }
 
   test_hasContext_mixed_positionalWhereNamedExpected() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Object o) {
   if (o is ({int f1})) {
     o = (g(),);
@@ -455,7 +456,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -478,13 +479,13 @@ RecordLiteral
   }
 
   test_hasContext_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final ({int f1, String f2}) x = (f1: g(), f2: g());
 
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(f1:');
+    var node = result.findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -525,13 +526,13 @@ RecordLiteral
   }
 
   test_hasContext_named_differentOrder() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final ({int f1, String f2}) x = (f2: g(), f1: g());
 
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(f2:');
+    var node = result.findNode.recordLiteral('(f2:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -572,7 +573,7 @@ RecordLiteral
   }
 
   test_hasContext_named_extraInContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(Object o) {
   if (o is ({int f1, String f2})) {
     o = (f1: g());
@@ -582,7 +583,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(f1:');
+    var node = result.findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -608,7 +609,7 @@ RecordLiteral
   }
 
   test_hasContext_named_extraInLiteral() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(Object o) {
   if (o is ({int f1})) {
     o = (f1: g(), f2: g());
@@ -618,7 +619,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(f1:');
+    var node = result.findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -659,12 +660,12 @@ RecordLiteral
   }
 
   test_hasContext_noImplicitCast_fromDynamicToTop_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 final ({Object? f1}) x = (f1: a);
 ''');
 
-    var node = findNode.recordLiteral('(f1');
+    var node = result.findNode.recordLiteral('(f1');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -682,12 +683,12 @@ RecordLiteral
   }
 
   test_hasContext_noImplicitCast_fromDynamicToTop_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final dynamic a = 0;
 final (Object?, ) x = (a, );
 ''');
 
-    var node = findNode.recordLiteral('(a');
+    var node = result.findNode.recordLiteral('(a');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -702,13 +703,13 @@ RecordLiteral
   }
 
   test_hasContext_notRecordType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final Object x = (g(), g());
 
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -743,13 +744,13 @@ RecordLiteral
   }
 
   test_hasContext_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final (int, String) x = (g(), g());
 
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -784,7 +785,7 @@ RecordLiteral
   }
 
   test_hasContext_positional_extraInContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(Object o) {
   if (o is (int, String)) {
     o = (g(),);
@@ -794,7 +795,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -817,7 +818,7 @@ RecordLiteral
   }
 
   test_hasContext_positional_extraInLiteral() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 f(Object o) {
   if (o is (int,)) {
     o = (g(), g());
@@ -827,7 +828,7 @@ f(Object o) {
 T g<T>() => throw 0;
 ''');
 
-    var node = findNode.recordLiteral('(g(),');
+    var node = result.findNode.recordLiteral('(g(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -862,13 +863,13 @@ RecordLiteral
   }
 
   test_hasContext_unknownFieldType_noDowncast() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>((T, T) x) {}
 
 test(dynamic d) => f((d, d));
 ''');
 
-    var node = findNode.recordLiteral('(d,');
+    var node = result.findNode.recordLiteral('(d,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -887,12 +888,12 @@ RecordLiteral
   }
 
   test_language219_singleField_noComma() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 final x = (0);
 ''');
 
-    var node = findNode.singleVariableDeclaration;
+    var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -909,18 +910,16 @@ VariableDeclaration
   }
 
   test_language219_singleField_noComma_const() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 final x = const (0);
-''',
-      [
-        error(diag.experimentNotEnabled, 32, 1),
-        error(diag.recordLiteralOnePositionalNoTrailingComma, 34, 1),
-      ],
-    );
+//              ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+//                ^
+// [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
+''');
 
-    var node = findNode.singleVariableDeclaration;
+    var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -937,15 +936,14 @@ VariableDeclaration
   }
 
   test_language219_singleField_withComma() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 final x = (0,);
-''',
-      [error(diag.experimentNotEnabled, 26, 1)],
-    );
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
 
-    var node = findNode.singleVariableDeclaration;
+    var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -962,15 +960,14 @@ VariableDeclaration
   }
 
   test_language219_twoFields() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 final x = (0, 1);
-''',
-      [error(diag.experimentNotEnabled, 26, 1)],
-    );
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
 
-    var node = findNode.singleVariableDeclaration;
+    var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -987,15 +984,14 @@ VariableDeclaration
   }
 
   test_language219_zeroFields() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 final x = ();
-''',
-      [error(diag.experimentNotEnabled, 26, 1)],
-    );
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
 
-    var node = findNode.singleVariableDeclaration;
+    var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
 VariableDeclaration
   name: x
@@ -1013,11 +1009,11 @@ VariableDeclaration
   }
 
   test_noContext_empty() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = ();
 ''');
 
-    var node = findNode.recordLiteral('()');
+    var node = result.findNode.recordLiteral('()');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1027,11 +1023,11 @@ RecordLiteral
   }
 
   test_noContext_mixed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = (0, f1: 1, 2, f2: 3, 4);
 ''');
 
-    var node = findNode.recordLiteral('(0,');
+    var node = result.findNode.recordLiteral('(0,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1063,11 +1059,11 @@ RecordLiteral
   }
 
   test_noContext_named() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = (f1: 0, f2: true);
 ''');
 
-    var node = findNode.recordLiteral('(f1:');
+    var node = result.findNode.recordLiteral('(f1:');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1090,11 +1086,11 @@ RecordLiteral
   }
 
   test_noContext_positional() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = (0, true);
 ''');
 
-    var node = findNode.recordLiteral('(0,');
+    var node = result.findNode.recordLiteral('(0,');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
@@ -1111,16 +1107,15 @@ RecordLiteral
   }
 
   test_void_field() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {}
 
 g() => (f(),);
-''',
-      [error(diag.useOfVoidResult, 21, 3)],
-    );
+//      ^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+''');
 
-    var node = findNode.recordLiteral('(f(),');
+    var node = result.findNode.recordLiteral('(f(),');
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (

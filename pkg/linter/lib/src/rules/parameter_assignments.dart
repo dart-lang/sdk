@@ -27,8 +27,7 @@ bool _isFormalParameterReassigned(
 }
 
 class ParameterAssignments extends AnalysisRule {
-  ParameterAssignments()
-    : super(name: LintNames.parameter_assignments, description: _desc);
+  new() : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.parameterAssignments;
@@ -53,7 +52,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 
   bool hasBeenAssigned = false;
 
-  _DeclarationVisitor(this._parameter, this.rule);
+  new(this._parameter, this.rule);
 
   Element? get parameterElement => _parameter.declaredFragment?.element;
 
@@ -155,7 +154,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

@@ -956,11 +956,11 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPositionalParameters:
-      helper_->SkipListOfVariableDeclarations();  // read positionals.
+      helper_->SkipListOfVariables();  // read positionals.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNamedParameters:
-      helper_->SkipListOfVariableDeclarations();  // read named.
+      helper_->SkipListOfVariables();  // read named.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kReturnType:
@@ -1030,11 +1030,15 @@ void TypeParameterHelper::ReadUntilExcluding(Field field) {
   }
 }
 
-void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
+void VariableHelper::ReadUntilExcluding(Field field) {
   if (field <= next_read_) return;
 
   // Ordered with fall-through.
   switch (next_read_) {
+    case kTag:
+      helper_->ReadTag();  // read tag.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
@@ -2325,7 +2329,7 @@ void KernelReaderHelper::ReadUntilFunctionNode() {
     case kFunctionDeclaration:
       ReadTag();
       ReadPosition();
-      SkipVariableDeclaration();
+      SkipVariable();
       ReadUInt();
       break;
     case kFunctionExpression:
@@ -2496,6 +2500,13 @@ void KernelReaderHelper::SkipListOfVariableDeclarations() {
   }
 }
 
+void KernelReaderHelper::SkipListOfVariables() {
+  intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipVariable();  // read ith variable.
+  }
+}
+
 void KernelReaderHelper::SkipListOfCanonicalNameReferences() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -2537,8 +2548,8 @@ void KernelReaderHelper::SkipInitializer() {
       SkipArguments();               // read arguments.
       return;
     case kLocalInitializer:
-      ReadPosition();             // read position.
-      SkipVariableDeclaration();  // read variable.
+      ReadPosition();  // read position.
+      SkipVariable();  // read variable.
       return;
     case kAssertInitializer:
       ReadPosition();  // read position.
@@ -2816,9 +2827,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipFunctionNode();  // read function node.
       return;
     case kLet:
-      ReadPosition();             // read position.
-      SkipVariableDeclaration();  // read variable declaration.
-      SkipExpression();           // read expression.
+      ReadPosition();    // read position.
+      SkipVariable();    // read variable declaration.
+      SkipExpression();  // read expression.
       return;
     case kBlockExpression:
       ReadPosition();  // read position.
@@ -3011,11 +3022,11 @@ void KernelReaderHelper::SkipStatement() {
         SkipDartType();   // read guard.
         tag = ReadTag();  // read first part of exception.
         if (tag == kSomething) {
-          SkipVariableDeclaration();  // read exception.
+          SkipVariable();  // read exception.
         }
         tag = ReadTag();  // read first part of stack trace.
         if (tag == kSomething) {
-          SkipVariableDeclaration();  // read stack trace.
+          SkipVariable();  // read stack trace.
         }
         SkipStatement();  // read body.
       }
@@ -3032,14 +3043,15 @@ void KernelReaderHelper::SkipStatement() {
       SkipExpression();  // read expression.
       return;
     }
-    case kVariableDeclaration:
+    case kVariableStatement:
+      ReadPosition();             // read position.
       SkipVariableDeclaration();  // read variable declaration.
       return;
     case kFunctionDeclaration:
-      ReadPosition();             // read position.
-      SkipVariableDeclaration();  // read variable.
-      ReadUInt();                 // read id.
-      SkipFunctionNode();         // read function node.
+      ReadPosition();      // read position.
+      SkipVariable();      // read variable.
+      ReadUInt();          // read id.
+      SkipFunctionNode();  // read function node.
       return;
     case kForInStatement:
     case kAsyncForInStatement:
@@ -3075,8 +3087,14 @@ void KernelReaderHelper::SkipArguments() {
 }
 
 void KernelReaderHelper::SkipVariableDeclaration() {
-  VariableDeclarationHelper helper(this);
-  helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
+  ReadTag();       // read tag.
+  ReadPosition();  // read position.
+  SkipVariable();  // read variable.
+}
+
+void KernelReaderHelper::SkipVariable() {
+  VariableHelper helper(this);
+  helper.ReadUntilExcluding(VariableHelper::kEnd);
 }
 
 void KernelReaderHelper::SkipLibraryCombinator() {
@@ -3204,9 +3222,7 @@ TypedDataViewPtr KernelReaderHelper::GetConstantCoverageFor(intptr_t index) {
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   ASSERT(member != nullptr);
-  if (member->IsFactory()) {
-    return klass->NumTypeParameters();
-  } else if (member->IsMethodExtractor()) {
+  if (member->IsMethodExtractor()) {
     Function& extracted =
         Function::Handle(zone, member->extracted_method_closure());
     return extracted.NumTypeParameters();
@@ -3601,35 +3617,8 @@ void TypeTranslator::BuildTypeParameterType() {
     parameter_index -= class_type_parameter_count;
 
     if (active_class_->HasMember()) {
-      if (active_class_->MemberIsFactoryProcedure()) {
-        //
-        // WARNING: This is a little hackish:
-        //
-        // We have a static factory constructor. The kernel IR gives the factory
-        // constructor function its own type parameters (which are equal in name
-        // and number to the ones of the enclosing class). I.e.,
-        //
-        //   class A<T> {
-        //     factory A.x() { return new B<T>(); }
-        //   }
-        //
-        //  is basically translated to this:
-        //
-        //   class A<T> {
-        //     static A.x<T'>() { return new B<T'>(); }
-        //   }
-        //
-        if (class_type_parameter_count > parameter_index) {
-          result_ = active_class_->klass->TypeParameterAt(parameter_index,
-                                                          nullability);
-          return;
-        }
-        parameter_index -= class_type_parameter_count;
-      }
-      // Factory function should not be considered as procedure.
       const intptr_t procedure_type_parameter_count =
-          (active_class_->MemberIsProcedure() &&
-           !active_class_->MemberIsFactoryProcedure())
+          active_class_->MemberIsProcedure()
               ? active_class_->MemberTypeParameterCount(Z)
               : 0;
       if (procedure_type_parameter_count > 0) {
@@ -3937,26 +3926,20 @@ void TypeTranslator::SetupFunctionParameters(
     bool is_closure,
     FunctionNodeHelper* function_node_helper) {
   ASSERT(!(is_method && is_closure));
-  bool is_factory = function.IsFactory();
-  intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
+  intptr_t extra_parameters = (is_method || is_closure) ? 1 : 0;
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   ASSERT(!signature.IsNull());
-  intptr_t type_parameter_count = 0;
-  if (!is_factory) {
-    type_parameter_count = helper_->ReadListLength();
-    LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
-                               signature, type_parameter_count);
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
-  }
+  intptr_t type_parameter_count = helper_->ReadListLength();
+  LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
+                             signature, type_parameter_count);
+  function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
 
   ActiveTypeParametersScope scope(active_class_, function, &signature, Z);
 
-  if (!is_factory) {
-    LoadAndSetupBounds(active_class_, function, Class::Handle(Z), signature,
-                       type_parameter_count);
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
-  }
+  LoadAndSetupBounds(active_class_, function, Class::Handle(Z), signature,
+                     type_parameter_count);
+  function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
@@ -3996,20 +3979,16 @@ void TypeTranslator::SetupFunctionParameters(
       signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
       function.SetParameterNameAt(pos, Symbols::ClosureParameter());
       pos++;
-    } else if (is_factory) {
-      signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-      function.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
-      pos++;
     }
   } else {
-    ASSERT(!is_method && !is_closure && !is_factory);
+    ASSERT(!is_method && !is_closure);
   }
 
   const Library& lib = Library::Handle(Z, active_class_->klass->library());
   for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
     // Read ith variable declaration.
-    VariableDeclarationHelper helper(helper_);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    VariableHelper helper(helper_);
+    helper.ReadUntilExcluding(VariableHelper::kType);
     // The required flag should only be set on named parameters.
     ASSERT(!helper.IsRequired());
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
@@ -4027,8 +4006,8 @@ void TypeTranslator::SetupFunctionParameters(
   ASSERT(named_parameter_count_check == named_parameter_count);
   for (intptr_t i = 0; i < named_parameter_count; ++i, ++pos) {
     // Read ith variable declaration.
-    VariableDeclarationHelper helper(helper_);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    VariableHelper helper(helper_);
+    helper.ReadUntilExcluding(VariableHelper::kType);
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
     Tag tag = helper_->ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {

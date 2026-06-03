@@ -33,27 +33,23 @@ void f(C c) {
   }
 
   test_assignmentThenMethodCall() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
   list = [];
-  list.clear();
+  [!list.clear();!]
 }
-''',
-      [lint(40, 13)],
-    );
+''');
   }
 
   test_consecutiveMethodCalls_thenDifferentTarget() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   late D parent;
   late D d;
 
   void m() {
     d.toString();
-    d.toString();
+    [!d.toString();!]
     parent.c.m();
   }
 }
@@ -61,9 +57,7 @@ class C {
 abstract class D {
   C get c;
 }
-''',
-      [lint(75, 13)],
-    );
+''');
   }
 
   test_constInstantiation() async {
@@ -200,28 +194,22 @@ class C {
   }
 
   test_multipleConsecutiveMethodCalls() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
   list.clear();
-  list.clear();
+  [!list.clear();!]
 }
-''',
-      [lint(43, 13)],
-    );
+''');
   }
 
   test_multipleConsecutiveMethodCalls_cascaded() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
   list.clear();
-  list.clear();
-  list..clear();
+  [!list.clear();
+  list..clear();!]
 }
-''',
-      [lint(43, 13), lint(59, 14)],
-    );
+''');
   }
 
   test_nonConsecutiveReferences() async {
@@ -240,19 +228,16 @@ class Foo {
   }
 
   test_nullAwareAccessThenConsecutiveAccess() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C c) {
   c?.m(); // ignore: invalid_null_aware_operator
   c.m();
-  c.m();
+  [!c.m();!]
 }
 class C {
   void m() {}
 }
-''',
-      [lint(74, 6)],
-    );
+''');
   }
 
   test_nullAwareAccessThenMethodCall() async {
@@ -268,20 +253,17 @@ class C {
   }
 
   test_nullAwareAssignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C? c) {
   c ??= C();
   c.foo = 1;
-  c.bar = 2;
+  [!c.bar = 2;!]
 }
 class C {
   int foo = 0;
   int bar = 0;
 }
-''',
-      [lint(43, 10)],
-    );
+''');
   }
 
   test_oneCallIsAwaited() async {
@@ -352,46 +334,37 @@ class C {
   }
 
   test_switchCase() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x, List<int> list) {
   switch (x) {
     case 1:
       list.clear();
-      list.clear();
+      [!list.clear();!]
       break;
   }
 }
-''',
-      [lint(85, 13)],
-    );
+''');
   }
 
   test_switchDefault() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(int x, List<int> list) {
   switch (x) {
     default:
       list.clear();
-      list.clear();
+      [!list.clear();!]
       break;
   }
 }
-''',
-      [lint(86, 13)],
-    );
+''');
   }
 
   test_twoConsecutiveMethodCalls() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(List<int> list) {
   list.clear();
-  list.clear();
+  [!list.clear();!]
 }
-''',
-      [lint(43, 13)],
-    );
+''');
   }
 }

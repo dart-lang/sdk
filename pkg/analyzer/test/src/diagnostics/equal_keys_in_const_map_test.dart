@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,117 +18,87 @@ class EqualKeysInConstMapTest extends PubPackageResolutionTest
 
 mixin EqualKeysInConstMapTestCases on PubPackageResolutionTest {
   test_const_entry() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1: null, 2: null, 1: null};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          33,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first key with this value.
+//                               ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_const_entry_extensionType_typeValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {int: 0, E: 0};
+//         ^^^
+// [context 1] The first key with this value.
+//                 ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
 extension type E(int it) {}
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          19,
-          1,
-          contextMessages: [message(testFile, 11, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1: null, if (1 < 0) 2: null else 1: null};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          48,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first key with this value.
+//                                              ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {if (0 < 1) 1: null else 1: null};
 ''');
   }
 
   test_const_ifElement_thenElseTrue() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1: null, if (0 < 1) 2: null else 1: null};
 ''');
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {if (0 < 1) 1: null else 1: null};
 ''');
   }
 
   test_const_ifElement_thenFalse() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {2: null, if (1 < 0) 2: 2};
 ''');
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1: null, if (0 < 1) 1: null};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          35,
-          1,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first key with this value.
+//                                 ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
 }
 
 var c = const {const A<int>(): null, const A<int>(): null};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          66,
-          14,
-          contextMessages: [message(testFile, 44, 14)],
-        ),
-      ],
-    );
+//             ^^^^^^^^^^^^^^
+// [context 1] The first key with this value.
+//                                   ^^^^^^^^^^^^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_const_instanceCreation_notEqualTypeArgs() async {
     // No error because A<int> and A<num> are different types.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
 }
@@ -139,78 +108,59 @@ var c = const {const A<int>(): null, const A<num>(): null};
   }
 
   test_const_list_hasEqual() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {[0]: null, [0]: null};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          22,
-          3,
-          contextMessages: [message(testFile, 11, 3)],
-        ),
-      ],
-    );
+//         ^^^
+// [context 1] The first key with this value.
+//                    ^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_const_list_noEqual() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {[0]: null, [1]: null};
 ''');
   }
 
   test_const_record_hasEqual() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {(0, 1): null, (0, 1): null};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          25,
-          6,
-          contextMessages: [message(testFile, 11, 6)],
-        ),
-      ],
-    );
+//         ^^^^^^
+// [context 1] The first key with this value.
+//                       ^^^^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_const_record_noEqual() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = {(0, 1): null, (0, 2): null};
 ''');
   }
 
   test_const_spread__noDuplicate() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1: null, ...{2: null}};
 ''');
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = const {1: null, ...{1: null}};
-''',
-      [
-        error(
-          diag.equalKeysInConstMap,
-          27,
-          9,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+//             ^
+// [context 1] The first key with this value.
+//                         ^^^^^^^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
   }
 
   test_nonConst_entry() async {
     // No error, but there is a hint.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var c = {1: null, 2: null, 1: null};
-''',
-      [error(diag.equalKeysInMap, 27, 1)],
-    );
+//                         ^
+// [diag.equalKeysInMap] Two keys in a map literal shouldn't be equal.
+''');
   }
 }

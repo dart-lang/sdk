@@ -2,133 +2,125 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NullableTypeInImplementsClauseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NullableTypeInImplementsClauseTest extends PubPackageResolutionTest {
   test_class_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B implements A {}
 ''');
   }
 
   test_class_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 class B implements A? {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 30, 2)],
-    );
+//                 ^^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_class_nullable_alias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A;
 class C implements B? {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 45, 2)],
-    );
+//                 ^^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_class_nullable_alias2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A?;
 class C implements B {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 46, 1)],
-    );
+//                 ^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_extensionType_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 extension type E(A _) implements A {}
 ''');
   }
 
   test_extensionType_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 extension type E(A _) implements A? {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 44, 2)],
-    );
+//                               ^^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_extensionType_nullable_alias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A;
 extension type E(A _) implements B? {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 59, 2)],
-    );
+//                               ^^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_extensionType_nullable_alias2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A?;
 extension type E(A _) implements B {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 60, 1)],
-    );
+//                               ^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_mixin_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin B implements A {}
 ''');
   }
 
   test_mixin_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 mixin B implements A? {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 30, 2)],
-    );
+//                 ^^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_mixin_nullable_alias() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A;
 mixin C implements B? {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 45, 2)],
-    );
+//                 ^^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 
   test_mixin_nullable_alias2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 typedef B = A?;
 mixin C implements B {}
-''',
-      [error(diag.nullableTypeInImplementsClause, 46, 1)],
-    );
+//                 ^
+// [diag.nullableTypeInImplementsClause] Nullable types can't be implemented.
+''');
   }
 }

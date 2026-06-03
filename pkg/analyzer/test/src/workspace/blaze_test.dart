@@ -181,11 +181,16 @@ language = struct(
 )
 ''');
 
-    await resolveFileCode('$myPackageRootPath/lib/a.dart', '');
-    _assertLanguageVersion(package: Version.parse('3.1.0'), override: null);
+    var result = await resolveFileCode('$myPackageRootPath/lib/a.dart', '');
+    _assertLanguageVersion(
+      result,
+      package: Version.parse('3.1.0'),
+      override: null,
+    );
   }
 
-  void _assertLanguageVersion({
+  void _assertLanguageVersion(
+    TestResolvedUnitResult result, {
     required Version package,
     required Version? override,
   }) {
@@ -793,6 +798,119 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       package.isInTestDirectory(getFile('/ws/some/code/test/a.dart')),
       isTrue,
     );
+
+    // lib/src/testing is considered in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/some/code/lib/src/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // lib/src/test is NOT considered in a test directory
+    expect(
+      package.isInTestDirectory(getFile('/ws/some/code/lib/src/test/a.dart')),
+      isFalse,
+    );
+
+    // lib/testing is NOT considered in a test directory
+    expect(
+      package.isInTestDirectory(getFile('/ws/some/code/lib/testing/a.dart')),
+      isFalse,
+    );
+
+    // Generated lib/src/testing under blaze-bin is in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-bin/some/code/lib/src/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Generated lib/src/testing under blaze-genfiles is in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-genfiles/some/code/lib/src/testing/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Generated lib/src/test under blaze-bin is NOT in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-bin/some/code/lib/src/test/a.dart'),
+      ),
+      isFalse,
+    );
+
+    // lib/test_driver is considered in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/some/code/lib/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Generated lib/test_driver under blaze-bin is in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-bin/some/code/lib/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Generated lib/test_driver under blaze-genfiles is in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-genfiles/some/code/lib/test_driver/a.dart'),
+      ),
+      isTrue,
+    );
+
+    // Generated test/a_test.0.dart under blaze-bin is in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-bin/some/code/test/a_test.0.dart'),
+      ),
+      isTrue,
+    );
+
+    // Generated test/a_test.0.dart under blaze-genfiles is in a test directory
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/blaze-genfiles/some/code/test/a_test.0.dart'),
+      ),
+      isTrue,
+    );
+  }
+
+  void test_isInTestDirectory_packageIntegrationTest() {
+    _setUpPackageWithPath('/ws/some/integration_test/code');
+
+    expect(
+      package.isInTestDirectory(
+        getFile('/ws/some/integration_test/code/lib/a.dart'),
+      ),
+      isTrue,
+    );
+  }
+
+  void test_isInTestDirectory_packageSubFolderTest() {
+    _setUpPackageWithPath('/ws/some/code/test/foo');
+
+    expect(
+      package.isInTestDirectory(getFile('/ws/some/code/test/foo/lib/a.dart')),
+      isTrue,
+    );
+  }
+
+  void test_isInTestDirectory_packageTesting() {
+    _setUpPackageWithPath('/ws/some/testing/code');
+
+    expect(
+      package.isInTestDirectory(getFile('/ws/some/testing/code/lib/a.dart')),
+      isTrue,
+    );
   }
 
   void test_packagesAvailableTo() {
@@ -836,6 +954,23 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     )!;
     package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
+    )!;
+  }
+
+  void _setUpPackageWithPath(String packagePath) {
+    _addResources([
+      '/ws/${file_paths.blazeWorkspaceMarker}',
+      '/ws/blaze-genfiles/',
+      '$packagePath/BUILD',
+      '$packagePath/lib/code.dart',
+    ]);
+
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath(packagePath),
+    )!;
+    package = workspace.findPackageFor(
+      convertPath('$packagePath/lib/code.dart'),
     )!;
   }
 

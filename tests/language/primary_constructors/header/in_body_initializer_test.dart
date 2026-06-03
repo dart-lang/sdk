@@ -6,8 +6,6 @@
 // These elements are placed in the class body in a declaration that provides
 // "the rest" of the constructor declaration which is given in the header.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 class C1(final int x) {

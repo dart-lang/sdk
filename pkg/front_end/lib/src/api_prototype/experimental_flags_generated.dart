@@ -7,6 +7,8 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
 
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 part of 'experimental_flags.dart';
 
 /// An experiment flag including its fixed properties.
@@ -294,7 +296,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag privateNamedParameters = const ExperimentalFlag(
     name: 'private-named-parameters',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 12),
     experimentReleasedVersion: const Version(3, 12),
   );

@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateOperator extends ResolvedCorrectionProducer {
   String _operator = '';
 
-  CreateOperator({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability {

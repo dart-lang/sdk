@@ -281,21 +281,22 @@ class TypesBuilder {
   }
 
   void _functionDeclaration(FunctionDeclarationImpl node) {
-    var returnType = node.returnType?.type;
-    if (returnType == null) {
-      if (node.isSetter) {
-        returnType = _voidType;
-      } else {
-        returnType = _dynamicType;
-      }
-    }
-
     var fragment = node.declaredFragment!;
     var element = fragment.element;
+
     if (fragment.previousFragment == null) {
+      var returnType = node.returnType?.type;
+      if (returnType == null) {
+        if (node.isSetter) {
+          returnType = _voidType;
+        } else {
+          returnType = _dynamicType;
+        }
+      }
+
       element.returnType = returnType;
+      _setSyntheticVariableType(element);
     }
-    _setSyntheticVariableType(element);
   }
 
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
@@ -346,21 +347,24 @@ class TypesBuilder {
   }
 
   void _methodDeclaration(MethodDeclarationImpl node) {
-    var returnType = node.returnType?.type;
-    if (returnType == null) {
-      if (node.isSetter) {
-        returnType = _voidType;
-      } else if (node.isOperator && node.name.lexeme == '[]=') {
-        returnType = _voidType;
-      } else {
-        returnType = _dynamicType;
-      }
-    }
-
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    element.returnType = returnType;
-    _setSyntheticVariableType(element);
+
+    if (fragment.previousFragment == null) {
+      var returnType = node.returnType?.type;
+      if (returnType == null) {
+        if (node.isSetter) {
+          returnType = _voidType;
+        } else if (node.isOperator && node.name.lexeme == '[]=') {
+          returnType = _voidType;
+        } else {
+          returnType = _dynamicType;
+        }
+      }
+
+      element.returnType = returnType;
+      _setSyntheticVariableType(element);
+    }
   }
 
   void _mixinDeclaration(MixinDeclarationImpl node) {

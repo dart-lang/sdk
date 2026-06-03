@@ -31,10 +31,6 @@ struct ArrayStorageTraits {
     return Array::New(length, space);
   }
 
-  static bool IsImmutable(const ArrayHandle& handle) {
-    return handle.ptr()->untag()->InVMIsolateHeap();
-  }
-
   static ObjectPtr At(ArrayHandle* array, intptr_t index) {
     return array->At(index);
   }
@@ -63,10 +59,6 @@ struct WeakArrayStorageTraits {
 
   static ArrayPtr New(Zone* zone, intptr_t length, Heap::Space space) {
     return WeakArray::New(length, space);
-  }
-
-  static bool IsImmutable(const ArrayHandle& handle) {
-    return handle.ptr()->untag()->InVMIsolateHeap();
   }
 
   static ObjectPtr At(ArrayHandle* array, intptr_t index) {
@@ -401,9 +393,6 @@ class HashTable : public HashTableBase {
   }
   void UpdateCollisions(intptr_t collisions) const {
     if (KeyTraits::ReportStats()) {
-      if (Storage::IsImmutable(*data_)) {
-        return;
-      }
       AdjustSmiValueAt(kNumProbesIndex, collisions + 1);
       if (collisions < 5) {
         AdjustSmiValueAt(kNumLT5LookupsIndex, 1);

@@ -49,12 +49,12 @@ class StatusFile {
 
   int _lineCount = 0;
 
-  StatusFile(this.path);
+  new(this.path);
 
   /// Parses the status file at [path].
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.
-  StatusFile.read(this.path) {
+  new read(this.path) {
     var lines = File(path).readAsLinesSync();
     _comments.length = lines.length + 1;
 
@@ -114,8 +114,9 @@ class StatusFile {
           sections.add(StatusSection(Expression.always, -1));
         }
 
-        sections.last.entries
-            .add(StatusEntry(path, _lineCount, expectations, issue));
+        sections.last.entries.add(
+          StatusEntry(path, _lineCount, expectations, issue),
+        );
         continue;
       }
 
@@ -138,8 +139,13 @@ class StatusFile {
 
       if (errors.isNotEmpty) {
         var s = errors.length > 1 ? "s" : "";
-        throw SyntaxError(_shortPath, section.lineNumber,
-            "[ ${section.condition} ]", 'Validation error$s', errors);
+        throw SyntaxError(
+          _shortPath,
+          section.lineNumber,
+          "[ ${section.condition} ]",
+          'Validation error$s',
+          errors,
+        );
       }
     }
   }
@@ -223,8 +229,10 @@ class StatusFile {
       }
 
       for (var entry in section.entries) {
-        writeText("${entry.path}: ${entry.expectations.join(', ')}",
-            entry.lineNumber);
+        writeText(
+          "${entry.path}: ${entry.expectations.join(', ')}",
+          entry.lineNumber,
+        );
       }
 
       needBlankLine = true;
@@ -258,7 +266,7 @@ class StatusSection {
   /// Returns true if this section should apply in the given [environment].
   bool isEnabled(Environment environment) => condition.evaluate(environment);
 
-  StatusSection(this.condition, this.lineNumber);
+  new(this.condition, this.lineNumber);
 }
 
 /// Describes the test status of the file or files at a given path.
@@ -271,7 +279,7 @@ class StatusEntry {
   final List<Expectation> expectations;
   final int? issue;
 
-  StatusEntry(this.path, this.lineNumber, this.expectations, this.issue);
+  new(this.path, this.lineNumber, this.expectations, this.issue);
 }
 
 /// Error thrown when a parse or validation error occurs in a [StatusFile].
@@ -282,7 +290,7 @@ class SyntaxError implements Exception {
   final String message;
   final List<String>? errors;
 
-  SyntaxError(this.file, this.lineNumber, this.line, this.message, this.errors);
+  new(this.file, this.lineNumber, this.line, this.message, this.errors);
 
   @override
   String toString() {

@@ -39,7 +39,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertGetterToMethodRefactoring(
+  factory(
     RefactoringWorkspace workspace,
     ResolvedUnitResult resolvedUnit,
     GetterElement element,
@@ -66,7 +66,7 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
 abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertMethodToGetterRefactoring(
+  factory(
     RefactoringWorkspace workspace,
     ResolvedUnitResult resolvedUnit,
     ExecutableElement element,
@@ -92,7 +92,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
 /// [Refactoring] to extract an expression into a local variable declaration.
 abstract class ExtractLocalRefactoring implements Refactoring {
   /// Returns a new [ExtractLocalRefactoring] instance.
-  factory ExtractLocalRefactoring(
+  factory(
     ResolvedUnitResult resolveResult,
     int selectionOffset,
     int selectionLength,
@@ -153,7 +153,7 @@ abstract class ExtractLocalRefactoring implements Refactoring {
 /// [Refactoring] to extract an [Expression] or [Statement]s into a new method.
 abstract class ExtractMethodRefactoring implements Refactoring {
   /// Returns a new [ExtractMethodRefactoring] instance.
-  factory ExtractMethodRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int selectionOffset,
@@ -233,7 +233,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
 /// a widget, into a new stateless or stateful widget.
 abstract class ExtractWidgetRefactoring implements Refactoring {
   /// Returns a new [ExtractWidgetRefactoring] instance.
-  factory ExtractWidgetRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int offset,
@@ -273,7 +273,7 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
 /// [Refactoring] to inline a local variable.
 abstract class InlineLocalRefactoring implements Refactoring {
   /// Returns a new [InlineLocalRefactoring] instance.
-  factory InlineLocalRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int offset,
@@ -301,7 +301,7 @@ abstract class InlineLocalRefactoring implements Refactoring {
 /// [Refactoring] to inline an executable element.
 abstract class InlineMethodRefactoring implements Refactoring {
   /// Returns a new [InlineMethodRefactoring] instance.
-  factory InlineMethodRefactoring(
+  factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
     int offset,
@@ -342,7 +342,7 @@ abstract class InlineMethodRefactoring implements Refactoring {
 /// [Refactoring] to move/rename a file or folder.
 abstract class MoveFileRefactoring implements Refactoring {
   /// Returns a new [MoveFileRefactoring] instance.
-  factory MoveFileRefactoring(
+  factory(
     ResourceProvider resourceProvider,
     RefactoringWorkspace workspace,
     String oldFilePath,
@@ -408,7 +408,7 @@ class RefactoringWorkspace {
   final Iterable<AnalysisDriver> drivers;
   final SearchEngine searchEngine;
 
-  RefactoringWorkspace(this.drivers, this.searchEngine);
+  new(this.drivers, this.searchEngine);
 
   /// Whether the [element] is defined in a file that is in a context root.
   bool containsElement(Element element) {
@@ -622,7 +622,7 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is EnumDeclaration) {
       nameNode = node.namePart.typeName;
     } else if (node is ExtensionTypeDeclaration) {
-      nameNode = node.primaryConstructor.typeName;
+      nameNode = node.namePart.typeName;
     } else if (node is FunctionDeclaration) {
       nameNode = node.name;
     } else if (node is MixinDeclaration) {
@@ -686,5 +686,5 @@ class RenameRefactoringElement {
   final int offset;
   final int length;
 
-  RenameRefactoringElement(this.element, this.offset, this.length);
+  new(this.element, this.offset, this.length);
 }

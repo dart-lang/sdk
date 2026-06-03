@@ -39,7 +39,7 @@ class Tags {
 }
 
 class ScopeDataComputer extends CfeDataComputer<Features> {
-  const ScopeDataComputer();
+  const new();
 
   @override
   void computeMemberData(
@@ -67,12 +67,7 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
   final Library library;
   final Class? cls;
 
-  ScopeDataExtractor(
-    this.library,
-    this.cls,
-    super.compilerResult,
-    super.actualMap,
-  );
+  new(this.library, this.cls, super.compilerResult, super.actualMap);
 
   Component get component => compilerResult.component!;
 

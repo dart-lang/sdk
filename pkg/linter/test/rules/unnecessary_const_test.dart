@@ -88,66 +88,48 @@ void f(Object o) {
   }
 
   test_constConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   const C();
 }
-const c = const C();
-''',
-      [lint(35, 5)],
-    );
+const c = [!const!] C();
+''');
   }
 
   test_constConstructor_dotShorthand() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   const C();
 }
-const C c = const .new();
-''',
-      [lint(37, 5)],
-    );
+const C c = [!const!] .new();
+''');
   }
 
   test_constConstructor_dotShorthand_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   const C.named();
 }
-const C c = const .named();
-''',
-      [lint(43, 5)],
-    );
+const C c = [!const!] .named();
+''');
   }
 
   test_listLiteral() async {
-    await assertDiagnostics(
-      r'''
-const l = const [];
-''',
-      [lint(10, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const l = [!const!] [];
+''');
   }
 
   test_mapLiteral() async {
-    await assertDiagnostics(
-      r'''
-const m = const {1: 1};
-''',
-      [lint(10, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const m = [!const!] {1: 1};
+''');
   }
 
   test_setLiteral() async {
-    await assertDiagnostics(
-      r'''
-const s = const {1};
-''',
-      [lint(10, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const s = [!const!] {1};
+''');
   }
 }
 
@@ -166,39 +148,30 @@ class A {
   }
 
   test_constVariable_constCall() async {
-    await assertDiagnostics(
-      r'''
-const x = const A();
+    await assertDiagnosticsFromMarkdown(r'''
+const x = [!const!] A();
 class A {
   const A();
 }
-''',
-      [lint(10, 5)],
-    );
+''');
   }
 
   test_constVariable_constCall_newName_noArgument() async {
-    await assertDiagnostics(
-      r'''
-const x = const A.new();
+    await assertDiagnosticsFromMarkdown(r'''
+const x = [!const!] A.new();
 class A {
   const A();
 }
-''',
-      [lint(10, 5)],
-    );
+''');
   }
 
   test_constVariable_constCall_nonConstArgument() async {
-    await assertDiagnostics(
-      r'''
-const x = const A([]);
+    await assertDiagnosticsFromMarkdown(r'''
+const x = [!const!] A([]);
 class A {
   const A(Object o);
 }
-''',
-      [lint(10, 5)],
-    );
+''');
   }
 
   test_constVariable_nonConstCall() async {
@@ -330,12 +303,9 @@ class A {
   }
 
   test_recordLiteral() async {
-    await assertDiagnostics(
-      r'''
-const r = const (a: 1);
-''',
-      [lint(10, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+const r = [!const!] (a: 1);
+''');
   }
 
   test_recordLiteral_ok() async {
@@ -345,39 +315,30 @@ const r = (a: 1);
   }
 
   test_variable_constCall_constListArgument() async {
-    await assertDiagnostics(
-      r'''
-var x = const A(const []);
+    await assertDiagnosticsFromMarkdown(r'''
+var x = const A([!const!] []);
 class A {
   const A(Object o);
 }
-''',
-      [lint(16, 5)],
-    );
+''');
   }
 
   test_variable_constCall_constSetArgument() async {
-    await assertDiagnostics(
-      r'''
-var x = const A(const {});
+    await assertDiagnosticsFromMarkdown(r'''
+var x = const A([!const!] {});
 class A {
   const A(Object o);
 }
-''',
-      [lint(16, 5)],
-    );
+''');
   }
 
   test_variable_constCall_newName_constArgument() async {
-    await assertDiagnostics(
-      r'''
-var x = const A.new(const []);
+    await assertDiagnosticsFromMarkdown(r'''
+var x = const A.new([!const!] []);
 class A {
   const A(Object o);
 }
-''',
-      [lint(20, 5)],
-    );
+''');
   }
 
   test_variable_constCall_nonConstArgument() async {

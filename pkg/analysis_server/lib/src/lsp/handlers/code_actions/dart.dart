@@ -40,7 +40,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   final CodeActionTriggerKind? triggerKind;
   final bool willBeDeduplicated;
 
-  DartCodeActionsProducer(
+  new(
     super.server,
     super.file,
     super.lineInfo,

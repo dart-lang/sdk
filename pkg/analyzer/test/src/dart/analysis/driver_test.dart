@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -34,7 +33,6 @@ import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
-import '../resolution/resolution.dart';
 import 'result_printer.dart';
 
 void main() {
@@ -120,7 +118,7 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
 
   test_getResolvedUnit_lint_existingFile() async {
     addTestFile('');
-    await resolveTestFile();
+    var result = await resolveTestFile();
 
     // Existing/empty file triggers the lint.
     _assertHasLintReported(
@@ -130,10 +128,10 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   }
 
   test_getResolvedUnit_lint_notExistingFile() async {
-    await resolveTestFile();
+    var result = await resolveTestFile();
 
     // No errors for a file that doesn't exist.
-    assertErrorsInResult([]);
+    expect(result.diagnostics, isEmpty);
   }
 
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
@@ -2066,8 +2064,8 @@ void f() {
 [future] getIndex A1
   strings
     --nullString--
+    /home/test/lib/a.dart
     foo
-    package:test/a.dart
 ''');
   }
 
@@ -3069,13 +3067,12 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.uriDoesNotExist, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'package:test/a.dart'.
+''');
   }
 
   test_getResolvedUnit_part_empty_lints() async {
@@ -3087,13 +3084,12 @@ linter:
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.partOfNonPart, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfNonPart] The included part 'package:test/a.dart' must have a part-of directive.
+''');
   }
 
   test_getResolvedUnit_part_hasPartOfName_notThisLibrary_lints() async {
@@ -3107,13 +3103,12 @@ linter:
 part of other.lib;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.partOfDifferentLibrary, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfDifferentLibrary] Expected this library to be part of 'my.lib', not 'other.lib'.
+''');
   }
 
   test_getResolvedUnit_part_hasPartOfUri_notThisLibrary_lints() async {
@@ -3127,13 +3122,12 @@ linter:
 part of 'not_test.dart';
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library my.lib;
 part 'a.dart';
-''',
-      [error(diag.partOfDifferentLibrary, 21, 8)],
-    );
+//   ^^^^^^^^
+// [diag.partOfDifferentLibrary] Expected this library to be part of 'package:test/test.dart', not 'package:test/a.dart'.
+''');
   }
 
   test_getResolvedUnit_part_library() async {
@@ -85277,6 +85271,198 @@ int get a => 0;
     );
   }
 
+  test_manifest_metadata_genericFunctionType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(T)>[])
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(T)>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    exportMapId: #M3
+    exportMap
+      A: #M0
+      foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(T)>[])
+void foo() {}
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredGetters
+      b: #M4
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(T)>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    declaredVariables
+      b: #M5
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+    exportMapId: #M6
+    exportMap
+      A: #M0
+      b: #M4
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_metadata_genericFunctionType_nested() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(void Function<U extends T>(T, U))>[])
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(voidFunction<UextendsT>(T,U))>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 4, 8, 1, 1, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              0 = null
+              22 = typeParameter 1
+              22 = typeParameter 1
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    exportMapId: #M3
+    exportMap
+      A: #M0
+      foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  const A(a);
+}
+@A(<void Function<T>(void Function<U extends T>(T, U))>[])
+void foo() {}
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        interface: #M1
+    declaredGetters
+      b: #M4
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredFunctions
+      foo: #M2
+        flags: isOriginDeclaration isSimplyBounded isStatic
+        metadata
+          [0]
+            tokenBuffer: @A(<voidFunction<T>(voidFunction<UextendsT>(T,U))>[])
+            tokenLengthList: [1, 1, 1, 1, 4, 8, 1, 1, 1, 1, 4, 8, 1, 1, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            elements
+              [0] (package:test/test.dart, class_, A) <null>
+              [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
+            elementIndexList
+              7 = element 0
+              0 = null
+              0 = null
+              22 = typeParameter 1
+              22 = typeParameter 1
+              6 = typeParameter 0
+              23 = element 1
+        functionType: FunctionType
+          returnType: void
+    declaredVariables
+      b: #M5
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+    exportMapId: #M6
+    exportMap
+      A: #M0
+      b: #M4
+      foo: #M2
+''',
+    );
+  }
+
   test_manifest_metadata_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -99923,8 +100109,8 @@ void f() {
 [future] getIndex T1
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
 
     modifyFile2(a, r'''
@@ -99958,8 +100144,8 @@ double get a => 0;
 [future] getIndex T2
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
   }
 
@@ -99998,8 +100184,8 @@ void f() {
 [future] getIndex T1
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
 
     modifyFile2(a, r'''
@@ -100020,8 +100206,8 @@ int get b => 0;
 [future] getIndex T2
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''');
   }
 
@@ -100148,8 +100334,8 @@ final x = a;
 [future] getIndex T1
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''',
       updatedA: r'''
 int get a => 0;
@@ -100180,8 +100366,8 @@ int get b => 0;
 [future] getIndex T2
   strings
     --nullString--
+    /home/test/lib/a.dart
     a
-    package:test/a.dart
 ''',
     );
   }

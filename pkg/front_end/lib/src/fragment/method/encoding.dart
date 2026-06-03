@@ -19,6 +19,8 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
+import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
@@ -31,6 +33,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
@@ -47,7 +50,7 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  InternalVariable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -91,19 +94,19 @@ sealed class MethodEncoding implements InferredTypeListener {
     ClassHierarchyBase hierarchy,
   );
 
-  VariableDeclaration? getTearOffParameter(int index);
+  Variable? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 }
 
 sealed class MethodEncodingStrategy {
-  factory MethodEncodingStrategy(
+  factory(
     DeclarationBuilder? declarationBuilder, {
     required bool isInstanceMember,
   }) {
@@ -159,7 +162,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -221,13 +224,12 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
   }) {
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -259,23 +261,22 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       _procedureKind,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            _procedureKind,
-            function,
-            reference: reference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = _fragment.modifiers.isStatic
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      _procedureKind,
+      function,
+      reference: reference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: _fragment.modifiers.isStatic,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -381,7 +382,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) => null;
+  Variable? getTearOffParameter(int index) => null;
 
   @override
   void onInferredType(DartType type) {
@@ -392,18 +393,18 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }
@@ -419,11 +420,8 @@ class _ExtensionInstanceMethodEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionInstanceMethodEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(!_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(!_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionMethod;
@@ -459,7 +457,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ///
   /// This map is used to set the default values on the closure parameters when
   /// these have been built.
-  Map<VariableDeclaration, VariableDeclaration>? _extensionTearOffParameterMap;
+  Map<Variable, Variable>? _extensionTearOffParameterMap;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -490,7 +488,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Procedure? get readTarget => _extensionTearOff;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable;
+  InternalVariable? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -586,15 +584,14 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
           // Coverage-ignore(suite): Not run.
           _thisFormal.kind == FormalParameterKind.optionalPositional,
     );
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            typeParameters: typeParameters,
-            positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      typeParameters: typeParameters,
+      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -626,23 +623,22 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       ProcedureKind.Method,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Method,
-            function,
-            reference: reference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = true
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Method,
+      function,
+      reference: reference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     if (!_isOperator) {
@@ -782,10 +778,11 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
-        .variable];
+        .variable
+        .astVariable];
   }
 
   @override
@@ -797,20 +794,18 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 
@@ -852,7 +847,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     Map<TypeParameter, DartType> substitutionMap = {};
     List<DartType> typeArguments = <DartType>[];
     for (TypeParameter typeParameter in procedure.function.typeParameters) {
-      TypeParameter newTypeParameter = new TypeParameter(typeParameter.name);
+      TypeParameter newTypeParameter = extern.createTypeParameter(
+        typeParameter.name,
+        fileOffset: typeParameter.fileOffset,
+      );
       typeParameters.add(newTypeParameter);
       typeArguments.add(
         substitutionMap[typeParameter] = new TypeParameterType(
@@ -879,11 +877,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       }
     }
 
-    VariableDeclaration copyParameter(
-      VariableDeclaration parameter,
-      DartType type,
-    ) {
-      VariableDeclaration newParameter;
+    Variable copyParameter(Variable parameter, DartType type) {
+      Variable newParameter;
       switch (parameter) {
         case PositionalParameter():
           // Coverage-ignore(suite): Not run.
@@ -903,20 +898,21 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
             isLowered: parameter.isLowered,
             isRequired: parameter.isRequired,
           )..fileOffset = parameter.fileOffset;
-        case VariableDeclaration():
-          newParameter = new VariableDeclaration(
+        case Variable():
+          newParameter = extern.createParameterVariable(
             parameter.name,
             type: type,
             isFinal: parameter.isFinal,
             isLowered: parameter.isLowered,
             isRequired: parameter.isRequired,
-          )..fileOffset = parameter.fileOffset;
+            fileOffset: parameter.fileOffset,
+          );
       }
       _extensionTearOffParameterMap![parameter] = newParameter;
       return newParameter;
     }
 
-    VariableDeclaration extensionThis = copyParameter(
+    Variable extensionThis = copyParameter(
       procedure.function.positionalParameters.first,
       substitution.substituteType(
         procedure.function.positionalParameters.first.type,
@@ -926,7 +922,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     DartType closureReturnType = substitution.substituteType(
       procedure.function.returnType,
     );
-    List<VariableDeclaration> closurePositionalParameters = [];
+    List<Variable> closurePositionalParameters = [];
     List<Expression> closurePositionalArguments = [];
 
     for (
@@ -934,109 +930,104 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       position < procedure.function.positionalParameters.length;
       position++
     ) {
-      VariableDeclaration parameter =
-          procedure.function.positionalParameters[position];
+      Variable parameter = procedure.function.positionalParameters[position];
       if (position == 0) {
         /// Pass `this` as a captured variable.
         closurePositionalArguments.add(
-          new VariableGet(extensionThis)..fileOffset = fileOffset,
+          extern.createVariableGet(extensionThis, fileOffset: fileOffset),
         );
       } else {
         DartType type = substitution.substituteType(parameter.type);
-        VariableDeclaration newParameter = copyParameter(parameter, type);
+        Variable newParameter = copyParameter(parameter, type);
         closurePositionalParameters.add(newParameter);
         closurePositionalArguments.add(
-          new VariableGet(newParameter)..fileOffset = fileOffset,
+          extern.createVariableGet(newParameter, fileOffset: fileOffset),
         );
       }
     }
-    List<VariableDeclaration> closureNamedParameters = [];
+    List<Variable> closureNamedParameters = [];
     List<NamedExpression> closureNamedArguments = [];
-    for (VariableDeclaration parameter in procedure.function.namedParameters) {
+    for (Variable parameter in procedure.function.namedParameters) {
       DartType type = substitution.substituteType(parameter.type);
-      VariableDeclaration newParameter = copyParameter(parameter, type);
+      Variable newParameter = copyParameter(parameter, type);
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(
-        new NamedExpression(
+        extern.createNamedExpression(
           parameter.name!,
-          new VariableGet(newParameter)..fileOffset = fileOffset,
+          extern.createVariableGet(newParameter, fileOffset: fileOffset),
         ),
       );
     }
 
-    Statement closureBody = new ReturnStatement(
-      new StaticInvocation(
-          procedure,
-          new Arguments(
-            closurePositionalArguments,
-            types: typeArguments,
-            named: closureNamedArguments,
-          ),
-        )
+    Statement closureBody = extern.createReturnStatement(
+      extern.createStaticInvocation(
+        procedure,
+        extern.createArguments(
+          closurePositionalArguments,
+          types: typeArguments,
+          named: closureNamedArguments,
+          fileOffset: fileOffset,
+        ),
         // We need to use the fileStartOffset on the StaticInvocation to
         // avoid a possible "fake coverage miss" on the name of the
         // extension method.
-        ..fileOffset = fileStartOffset,
-    )..fileOffset = fileOffset;
+        fileOffset: fileStartOffset,
+      ),
+      fileOffset: fileOffset,
+    );
 
-    FunctionExpression closure =
-        new FunctionExpression(
-            new FunctionNode(
-                closureBody,
-                typeParameters: closureTypeParameters,
-                positionalParameters: closurePositionalParameters,
-                namedParameters: closureNamedParameters,
-                requiredParameterCount:
-                    procedure.function.requiredParameterCount - 1,
-                returnType: closureReturnType,
-              )
-              ..fileOffset = fileOffset
-              ..fileEndOffset = fileEndOffset,
-          )
-          // We need to use the fileStartOffset on the FunctionExpression to
-          // avoid a possible "fake coverage miss" on the name of the
-          // extension method.
-          ..fileOffset = fileStartOffset;
+    FunctionExpression closure = extern.createFunctionExpression(
+      extern.createFunctionNode(
+        closureBody,
+        typeParameters: closureTypeParameters,
+        positionalParameters: closurePositionalParameters,
+        namedParameters: closureNamedParameters,
+        requiredParameterCount: procedure.function.requiredParameterCount - 1,
+        returnType: closureReturnType,
+        fileOffset: fileOffset,
+        fileEndOffset: fileEndOffset,
+      ),
 
-    FunctionNode function =
-        new FunctionNode(
-            new ReturnStatement(closure)..fileOffset = fileOffset,
-            typeParameters: tearOffTypeParameters,
-            positionalParameters: [extensionThis],
-            requiredParameterCount: 1,
-            returnType: closure.function.computeFunctionType(
-              Nullability.nonNullable,
-            ),
-          )
-          ..fileOffset = fileOffset
-          ..fileEndOffset = fileEndOffset;
+      // We need to use the fileStartOffset on the FunctionExpression to
+      // avoid a possible "fake coverage miss" on the name of the
+      // extension method.
+      fileOffset: fileStartOffset,
+    );
+
+    FunctionNode function = extern.createFunctionNode(
+      extern.createReturnStatement(closure, fileOffset: fileOffset),
+      typeParameters: tearOffTypeParameters,
+      positionalParameters: [extensionThis],
+      requiredParameterCount: 1,
+      returnType: closure.function.computeFunctionType(Nullability.nonNullable),
+      fileOffset: fileOffset,
+      fileEndOffset: fileEndOffset,
+    );
 
     MemberName tearOffName = nameScheme.getProcedureMemberName(
       ProcedureKind.Getter,
       _fragment.name,
     );
-    Procedure tearOff =
-        new Procedure(
-            tearOffName.name,
-            ProcedureKind.Method,
-            function,
-            isStatic: true,
-            isExtensionMember: _isExtensionMember,
-            isExtensionTypeMember: _isExtensionTypeMember,
-            reference: tearOffReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileUri = _fragment.fileUri
-          ..fileOffset = fileOffset
-          ..fileStartOffset = _fragment.startOffset
-          ..fileEndOffset = fileEndOffset;
+    Procedure tearOff = extern.createProcedure(
+      tearOffName.name,
+      ProcedureKind.Method,
+      function,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+      reference: tearOffReference,
+      fileUri: _fragment.fileUri,
+      fileOffset: fileOffset,
+      fileStartOffset: _fragment.startOffset,
+      fileEndOffset: fileEndOffset,
+    );
     tearOffName.attachMember(tearOff);
     return tearOff;
   }
 }
 
 class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionInstanceMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1054,13 +1045,8 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
-      isClosureContextLoweringEnabled: builder
-          .libraryBuilder
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled:
+          builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
     return fragment.isOperator
         ? new _ExtensionInstanceOperatorEncoding(
@@ -1087,11 +1073,8 @@ class _ExtensionInstanceOperatorEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionInstanceOperatorEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionOperator;
@@ -1111,8 +1094,7 @@ class _ExtensionStaticMethodEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _ExtensionStaticMethodEncoding(this._fragment)
-    : assert(!_fragment.isOperator);
+  new(this._fragment) : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -1131,7 +1113,7 @@ class _ExtensionStaticMethodEncoding extends MethodEncoding
 }
 
 class _ExtensionStaticMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionStaticMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1154,11 +1136,8 @@ class _ExtensionTypeInstanceMethodEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionTypeInstanceMethodEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(!_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(!_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeMethod;
@@ -1174,7 +1153,7 @@ class _ExtensionTypeInstanceMethodEncoding extends MethodEncoding
 }
 
 class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionTypeInstanceMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1192,13 +1171,8 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
-          isClosureContextLoweringEnabled: builder
-              .libraryBuilder
-              .loader
-              .target
-              .backendTarget
-              .flags
-              .isClosureContextLoweringEnabled,
+          isClosureContextLoweringEnabled:
+              builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );
     return fragment.isOperator
         ? new _ExtensionTypeInstanceOperatorEncoding(
@@ -1225,11 +1199,8 @@ class _ExtensionTypeInstanceOperatorEncoding extends MethodEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  _ExtensionTypeInstanceOperatorEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  ) : assert(_fragment.isOperator);
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
+    : assert(_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeOperator;
@@ -1249,8 +1220,7 @@ class _ExtensionTypeStaticMethodEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _ExtensionTypeStaticMethodEncoding(this._fragment)
-    : assert(!_fragment.isOperator);
+  new(this._fragment) : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -1269,7 +1239,7 @@ class _ExtensionTypeStaticMethodEncoding extends MethodEncoding
 }
 
 class _ExtensionTypeStaticMethodStrategy implements MethodEncodingStrategy {
-  const _ExtensionTypeStaticMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1286,7 +1256,7 @@ class _RegularMethodEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _RegularMethodEncoding(this._fragment) : assert(!_fragment.isOperator);
+  new(this._fragment) : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -1305,7 +1275,7 @@ class _RegularMethodEncoding extends MethodEncoding
 }
 
 class _RegularMethodStrategy implements MethodEncodingStrategy {
-  const _RegularMethodStrategy();
+  const new();
 
   @override
   MethodEncoding createMethodEncoding(
@@ -1324,7 +1294,7 @@ class _RegularOperatorEncoding extends MethodEncoding
   @override
   final MethodFragment _fragment;
 
-  _RegularOperatorEncoding(this._fragment) : assert(_fragment.isOperator);
+  new(this._fragment) : assert(_fragment.isOperator);
 
   @override
   Procedure? get readTarget => null;

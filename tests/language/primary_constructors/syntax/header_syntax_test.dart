@@ -4,8 +4,6 @@
 
 // A basic declaring header constructor.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 class Point(var int x, var int y);
@@ -34,14 +32,17 @@ class CSuperParameters(final int x, super.y) extends C1;
 class CNamedParameters({final int x = 1, required var int y});
 
 enum EnumNamedParameters({final int x = 1, required final int y}) {
-  e(x: 2, y: 3), f(y: 3);
+  e(x: 2, y: 3),
+  f(y: 3);
 }
 
 // Optional parameters.
 class COptionalParameters([final int x = 1, var int y = 2]);
 
 enum EnumOptionalParameters([final int x = 1, final int y = 2]) {
-  e(3, 4), f(3), g();
+  e(3, 4),
+  f(3),
+  g();
 }
 
 void main() {

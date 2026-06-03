@@ -215,7 +215,7 @@ class InvocationVisitor extends RecursiveVisitor {
     Arguments arguments,
     InvocationExpression invocation,
   ) {
-    List<VariableDeclaration> positionalParameters;
+    List<Variable> positionalParameters;
     if (node is Procedure) {
       positionalParameters = node.function.positionalParameters;
     } else if (node is Constructor) {
@@ -288,7 +288,7 @@ Map<Uri, Token> cache = {};
 
 void check(
   Expression argumentExpression,
-  VariableDeclaration parameter,
+  Variable parameter,
   NamedNode targetNode,
   String expectedComment,
 ) {
@@ -371,10 +371,10 @@ class Edit implements Comparable<Edit> {
   final int? length;
   final String? insertData;
   final EditType editType;
-  Edit.insert(this.offset, this.insertData)
+  new insert(this.offset, this.insertData)
     : editType = EditType.Insert,
       length = null;
-  Edit.delete(this.offset, this.length)
+  new delete(this.offset, this.length)
     : editType = EditType.Delete,
       insertData = null;
 
@@ -393,7 +393,7 @@ class Edit implements Comparable<Edit> {
 }
 
 class TestIncrementalCompiler extends IncrementalCompiler {
-  TestIncrementalCompiler(CompilerContext context) : super(context);
+  new(CompilerContext context) : super(context);
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
@@ -413,7 +413,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 }
 
 class TestIncrementalKernelTarget extends IncrementalKernelTarget {
-  TestIncrementalKernelTarget(
+  new(
     CompilerContext compilerContext,
     api.FileSystem fileSystem,
     bool includeComments,
@@ -438,11 +438,8 @@ class TestIncrementalKernelTarget extends IncrementalKernelTarget {
 }
 
 class TestSourceLoader extends SourceLoader {
-  TestSourceLoader(
-    api.FileSystem fileSystem,
-    bool includeComments,
-    KernelTarget target,
-  ) : super(fileSystem, includeComments, target);
+  new(api.FileSystem fileSystem, bool includeComments, KernelTarget target)
+    : super(fileSystem, includeComments, target);
 
   @override
   Future<Token> tokenize(

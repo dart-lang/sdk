@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
@@ -24,10 +25,73 @@ void _checkError(
 
 void main() {
   // TODO(55202): Add general testing of CFE and analyzer error parsing.
+  testAnalyzerErrors();
   testCfeErrors();
   testDart2jsCompilerErrors();
   testDart2WasmCompilerErrors();
   testDevCompilerErrors();
+}
+
+void testAnalyzerErrors() {
+  var errors = <StaticError>[];
+  AnalysisCommandOutput.parseErrors(
+    jsonEncode({
+      'version': 1,
+      'diagnostics': [
+        {
+          'severity': 'ERROR',
+          'type': 'COMPILE_TIME_ERROR',
+          'code': 'bad',
+          'problemMessage': 'Primary message.',
+          'location': _location('main_test.dart', 1, 3, 2, 10),
+          'contextMessages': [
+            {
+              'message': 'Context message.',
+              'location': _location('helper.dart', 5, 7, 20, 4),
+            },
+          ],
+        },
+      ],
+    }),
+    errors,
+  );
+
+  Expect.equals(1, errors.length);
+  _checkError(
+    errors.single,
+    path: 'main_test.dart',
+    line: 1,
+    column: 3,
+    message: 'COMPILE_TIME_ERROR.BAD',
+  );
+  Expect.equals(1, errors.single.contextMessages.length);
+  _checkError(
+    errors.single.contextMessages.single,
+    path: 'helper.dart',
+    line: 5,
+    column: 7,
+    message: 'Context message.',
+  );
+}
+
+Map<String, Object> _location(
+  String file,
+  int line,
+  int column,
+  int offset,
+  int length,
+) {
+  return {
+    'file': file,
+    'range': {
+      'start': {'line': line, 'column': column, 'offset': offset},
+      'end': {
+        'line': line,
+        'column': column + length,
+        'offset': offset + length,
+      },
+    },
+  };
 }
 
 void testCfeErrors() {

@@ -32,7 +32,7 @@ class ExpectedCompletion {
 
   final protocol.ElementKind? _elementKind;
 
-  ExpectedCompletion(
+  new(
     this._filePath,
     this._entity,
     this._lineNumber,
@@ -42,7 +42,7 @@ class ExpectedCompletion {
   ) : _completionString = null;
 
   /// Return an instance extracted from the decoded JSON [map].
-  factory ExpectedCompletion.fromJson(Map<String, dynamic> map) {
+  factory fromJson(Map<String, dynamic> map) {
     var jsonDecoder = ResponseDecoder(null);
     var filePath = map['filePath'] as String;
     var offset = map['offset'] as int;
@@ -74,7 +74,7 @@ class ExpectedCompletion {
     );
   }
 
-  ExpectedCompletion.specialCompletionString(
+  new specialCompletionString(
     this._filePath,
     this._entity,
     this._lineNumber,
@@ -169,7 +169,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// comment don't yield an error like Dart syntax mistakes would yield.
   final bool _doExpectCommentRefs = false;
 
-  ExpectedCompletionsVisitor(this.result, {required this._caretOffset});
+  new(this.result, {required this._caretOffset});
 
   /// Return the path of the file that is being visited.
   String get filePath => result.path;
@@ -882,7 +882,7 @@ class _SyntacticEntity extends SyntacticEntity {
   @override
   final int offset;
 
-  _SyntacticEntity(this.offset);
+  new(this.offset);
 
   @override
   int get end => offset + length;

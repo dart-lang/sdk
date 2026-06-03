@@ -61,6 +61,7 @@ void transformLibraries(
 }
 
 class WasmFfiNativeTransformer extends FfiNativeTransformer {
+  final Class wasmVoidClass;
   final Class wasmI32Class;
   final Class wasmI64Class;
   final Class wasmF32Class;
@@ -90,7 +91,8 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     super.hierarchy,
     super.diagnosticReporter,
     super.referenceFromIndex,
-  ) : wasmI32Class = index.getClass('dart:_wasm', 'WasmI32'),
+  ) : wasmVoidClass = index.getClass('dart:_wasm', 'WasmVoid'),
+      wasmI32Class = index.getClass('dart:_wasm', 'WasmI32'),
       wasmI64Class = index.getClass('dart:_wasm', 'WasmI64'),
       wasmF32Class = index.getClass('dart:_wasm', 'WasmF32'),
       wasmF64Class = index.getClass('dart:_wasm', 'WasmF64'),
@@ -148,6 +150,11 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         '_fromAddressI32',
       ),
       pointerAddressField = index.getField('dart:ffi', 'Pointer', '_address');
+
+  late final wasmVoidType = InterfaceType(
+    wasmVoidClass,
+    Nullability.nonNullable,
+  );
 
   @override
   visitProcedure(Procedure node) {
@@ -212,14 +219,14 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
 
     // For the imported function arguments, use names in the Dart function but
     // types in the FFI declaration
-    final List<VariableDeclaration> wasmImportProcedureArgs = [];
+    final List<Variable> wasmImportProcedureArgs = [];
     for (int i = 0; i < ffiFunctionType.positionalParameters.length; i += 1) {
       final argWasmType = _convertFfiTypeToWasmType(
         ffiFunctionType.positionalParameters[i],
       );
       if (argWasmType != null) {
         wasmImportProcedureArgs.add(
-          VariableDeclaration(
+          Variable(
             node.function.positionalParameters[i].name!,
             type: argWasmType,
             isSynthesized: true,
@@ -229,7 +236,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     }
 
     final retWasmType = _convertFfiTypeToWasmType(ffiFunctionType.returnType);
-    final retWasmType_ = retWasmType ?? VoidType();
+    final isVoidReturn = retWasmType == null;
 
     final wasmImportProcedure = Procedure(
       wasmImportName,
@@ -237,7 +244,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       FunctionNode(
         null,
         positionalParameters: wasmImportProcedureArgs,
-        returnType: retWasmType_,
+        returnType: isVoidReturn ? wasmVoidType : retWasmType,
       ),
       fileUri: node.fileUri,
       isExternal: true,
@@ -274,12 +281,19 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     }
 
     // Convert return value
-    node.function.body = ReturnStatement(
-      _ffiValueToDartValue(
-        ffiFunctionType.returnType,
-        StaticInvocation(wasmImportProcedure, Arguments(ffiCallArgs)),
-      ),
+    final resultExpression = _ffiValueToDartValue(
+      ffiFunctionType.returnType,
+      StaticInvocation(wasmImportProcedure, Arguments(ffiCallArgs)),
     );
+    if (isVoidReturn) {
+      node.function.body = Block([
+        ExpressionStatement(resultExpression),
+        ReturnStatement(NullLiteral()),
+      ])..parent = node.function.body;
+    } else {
+      node.function.body = ReturnStatement(resultExpression)
+        ..parent = node.function.body;
+    }
 
     return node;
   }

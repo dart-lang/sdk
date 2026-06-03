@@ -9,17 +9,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../ast.dart';
 import '../diagnostic.dart' as diag;
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
 class UnnecessaryThis extends AnalysisRule {
-  UnnecessaryThis()
-    : super(name: LintNames.unnecessary_this, description: _desc);
+  new() : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryThis;
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
@@ -56,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Element? element;
     if (parent is PropertyAccess && !parent.isNullAware) {
-      element = getWriteOrReadElement(parent.propertyName);
+      element = parent.propertyName.writeOrReadElement;
     } else if (parent is MethodInvocation && !parent.isNullAware) {
       element = parent.methodName.element;
     } else {

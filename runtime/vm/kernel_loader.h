@@ -243,6 +243,10 @@ class KernelLoader : public ValueObject {
       BitField<uint32_t, bool, DynModuleImplicitlyExtendablePragma::kNextBit>;
   using DynModuleCanBeOverriddenImplicitlyPragma =
       BitField<uint32_t, bool, DynModuleCanBeOverriddenPragma::kNextBit>;
+  using DynModuleDynamicallyCallablePragma =
+      BitField<uint32_t,
+               bool,
+               DynModuleCanBeOverriddenImplicitlyPragma::kNextBit>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,

@@ -43,12 +43,12 @@ template("win_toolchains") {
     environment = "environment." + toolchain_arch
     prefix = rebase_path("$clang_base_path/bin", root_build_dir)
     cl = "${compiler_prefix}$prefix/clang-cl.exe"
-    if (use_rbe) {
-      if (toolchain_arch == "x86") {
-        cl = "${cl} --target=i686-pc-windows-msvc"
-      } else if (toolchain_arch == "x64") {
-        cl = "${cl} --target=x86_64-pc-windows-msvc"
-      }
+    if (toolchain_arch == "x86") {
+      cl = "${cl} --target=i686-pc-windows-msvc"
+    } else if (toolchain_arch == "x64") {
+      cl = "${cl} --target=x86_64-pc-windows-msvc"
+    } else if (toolchain_arch == "arm64") {
+      cl = "${cl} --target=aarch64-pc-windows-msvc"
     }
     toolchain_args = {
       if (defined(invoker.toolchain_args)) {

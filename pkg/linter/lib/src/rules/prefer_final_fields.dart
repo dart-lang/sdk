@@ -18,8 +18,7 @@ import '../extensions.dart';
 const _desc = r'Private field could be `final`.';
 
 class PreferFinalFields extends AnalysisRule {
-  PreferFinalFields()
-    : super(name: LintNames.prefer_final_fields, description: _desc);
+  new() : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferFinalFields;
@@ -103,7 +102,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   /// This visitor removes a field when it finds that it is assigned anywhere.
   final Map<FieldElement, FormalParameter> _fieldsFromParameters;
 
-  _FieldMutationFinder(this._fields, this._fieldsFromParameters);
+  new(this._fields, this._fieldsFromParameters);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -143,7 +142,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

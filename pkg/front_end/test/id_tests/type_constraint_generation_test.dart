@@ -34,7 +34,7 @@ Future<void> main(List<String> args) async {
 
 class InferredTypeArgumentDataComputer
     extends CfeDataComputer<List<GeneratedTypeConstraint>> {
-  const InferredTypeArgumentDataComputer();
+  const new();
 
   @override
   DataInterpreter<List<GeneratedTypeConstraint>> get dataValidator =>
@@ -72,7 +72,7 @@ class TypeConstraintGenerationDataExtractor
   final Map<Node, Node> externalToInternalNodeMap;
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  TypeConstraintGenerationDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     this.externalToInternalNodeMap,
     this.typeInferenceResult,
@@ -94,7 +94,7 @@ class TypeConstraintGenerationDataExtractor
 
 class _InferredTypeArgumentsDataInterpreter
     implements DataInterpreter<List<GeneratedTypeConstraint>> {
-  const _InferredTypeArgumentsDataInterpreter();
+  const new();
 
   @override
   String getText(

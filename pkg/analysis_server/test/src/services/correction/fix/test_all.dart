@@ -61,6 +61,8 @@ import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
 import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
+import 'convert_default_to_primary_constructor_test.dart'
+    as convert_default_to_primary_constructor;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
@@ -73,7 +75,6 @@ import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
     as convert_null_check_to_null_aware_element_or_entry;
 import 'convert_quotes_test.dart' as convert_quotes;
-import 'convert_related_to_cascade_test.dart' as convert_related_to_cascade;
 import 'convert_to_block_function_body_test.dart'
     as convert_to_block_function_body;
 import 'convert_to_boolean_expression_test.dart'
@@ -81,6 +82,8 @@ import 'convert_to_boolean_expression_test.dart'
 import 'convert_to_cascade_test.dart' as convert_to_cascade;
 import 'convert_to_constant_pattern_test.dart' as convert_to_constant_pattern;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_declaring_parameter_test.dart'
+    as convert_to_declaring_parameter;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_flutter_style_todo_test.dart'
@@ -108,6 +111,8 @@ import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_primary_constructor_test.dart'
+    as convert_to_primary_constructor;
 import 'convert_to_raw_string_test.dart' as convert_to_raw_string;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
@@ -174,6 +179,8 @@ import 'move_annotation_to_library_directive_test.dart'
     as move_annotation_to_library_directive;
 import 'move_doc_comment_to_library_directive_test.dart'
     as move_doc_comment_to_library_directive;
+import 'move_initialization_to_field_declaration_test.dart'
+    as move_initialization_to_field_declaration;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'pubspec/test_all.dart' as pubspec;
@@ -199,6 +206,7 @@ import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
+import 'remove_empty_container_body_test.dart' as remove_empty_container_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_extends_clause_test.dart' as remove_extends_clause;
@@ -381,6 +389,7 @@ void main() {
     change_type_annotation.main();
     convert_class_to_enum.main();
     convert_documentation_into_line.main();
+    convert_default_to_primary_constructor.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
@@ -390,12 +399,12 @@ void main() {
     convert_into_is_not.main();
     convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();
-    convert_related_to_cascade.main();
     convert_to_block_function_body.main();
     convert_to_boolean_expression.main();
     convert_to_cascade.main();
     convert_to_constant_pattern.main();
     convert_to_contains.main();
+    convert_to_declaring_parameter.main();
     convert_to_double_quoted_string.main();
     convert_to_flutter_style_todo.main();
     convert_to_for_element.main();
@@ -415,6 +424,7 @@ void main() {
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
+    convert_to_primary_constructor.main();
     convert_to_raw_string.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
@@ -475,6 +485,7 @@ void main() {
     merge_combinators.main();
     move_annotation_to_library_directive.main();
     move_doc_comment_to_library_directive.main();
+    move_initialization_to_field_declaration.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
     pubspec.main();
@@ -498,6 +509,7 @@ void main() {
     remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
+    remove_empty_container_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
     remove_extends_clause.main();

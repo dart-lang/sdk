@@ -146,7 +146,6 @@ class InformativeDataApplier {
     );
   }
 
-  /// This calls `withOriginDeclaration` on [fragmentList].
   void _applyToAccessors(
     List<PropertyAccessorFragmentImpl> fragmentList,
     List<_InfoExecutableDeclaration> infoList,
@@ -244,7 +243,10 @@ class InformativeDataApplier {
     List<ConstructorFragmentImpl> fragmentList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
-    forCorrespondingPairs(fragmentList, infoList, (fragment, info) {
+    forCorrespondingPairs(fragmentList.withOriginDeclaration, infoList, (
+      fragment,
+      info,
+    ) {
       fragment.setCodeRange(info.codeOffset, info.codeLength);
       fragment.newKeywordOffset = info.newKeywordOffset;
       fragment.factoryKeywordOffset = info.factoryKeywordOffset;
@@ -842,9 +844,9 @@ class _InfoBuilder {
     return _InfoExtensionTypeDeclaration(
       data: _buildInterfaceData(
         node,
-        name: node.primaryConstructor.typeName,
-        typeParameters: node.primaryConstructor.typeParameters,
-        primaryConstructor: node.primaryConstructor,
+        name: node.namePart.typeName,
+        typeParameters: node.namePart.typeParameters,
+        primaryConstructor: node.namePart.tryCast(),
         members: node.body.members,
       ),
     );
@@ -2291,6 +2293,12 @@ extension on DeferredResolutionReadingMixin {
       var applier = _OffsetsApplier(_SafeListIterator(constantOffsets));
       callback(applier);
     });
+  }
+}
+
+extension on List<ConstructorFragmentImpl> {
+  Iterable<ConstructorFragmentImpl> get withOriginDeclaration {
+    return where((e) => e.isOriginDeclaration);
   }
 }
 

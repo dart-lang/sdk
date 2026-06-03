@@ -34,7 +34,7 @@ Future<void> main(List<String> args) async {
 }
 
 class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
-  const AssignedVariablesDataComputer();
+  const new();
 
   @override
   DataInterpreter<_Data> get dataValidator =>
@@ -53,12 +53,12 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
-    assignedVariables = memberBuilder
-        .dataForTesting!
-        .inferenceData
-        .flowAnalysisResult
-        .assignedVariables;
+    AssignedVariablesForTesting<TreeNode, Variable>? assignedVariables =
+        memberBuilder
+            .dataForTesting!
+            .inferenceData
+            .flowAnalysisResult
+            .assignedVariables;
     if (assignedVariables == null) return;
     member.accept(
       new AssignedVariablesDataExtractor(
@@ -72,10 +72,9 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, VariableDeclaration>
-  _assignedVariables;
+  final AssignedVariablesForTesting<TreeNode, Variable> _assignedVariables;
 
-  AssignedVariablesDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<_Data>> actualMap,
     this._assignedVariables,
@@ -119,7 +118,7 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
 }
 
 class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
-  const _AssignedVariablesDataInterpreter();
+  const new();
 
   @override
   String getText(_Data actualData, [String? indentation]) {
@@ -174,7 +173,7 @@ class _Data {
 
   final Set<String> captured;
 
-  _Data(
+  new(
     this.declared,
     this.read,
     this.readCaptured,

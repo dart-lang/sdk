@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,24 +15,20 @@ main() {
 @reflectiveTest
 class InstantiateTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
-  DiagnosticCode get _errorCode =>
-      diag.instantiateTypeAliasExpandsToTypeParameter;
-
   test_const_generic_noArguments_unnamed_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = T;
 
 void f() {
   const A();
+//      ^
+// [diag.instantiateTypeAliasExpandsToTypeParameter] Type aliases that expand to a type parameter can't be instantiated.
 }
-''',
-      [error(_errorCode, 38, 1)],
-    );
+''');
   }
 
   test_const_notGeneric_unnamed_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -48,21 +42,19 @@ void f() {
   }
 
   test_new_generic_noArguments_unnamed_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = T;
 
 void f() {
   new A();
+//    ^
+// [diag.instantiateTypeAliasExpandsToTypeParameter] Type aliases that expand to a type parameter can't be instantiated.
 }
-''',
-      [error(_errorCode, 36, 1)],
-    );
+''');
   }
 
   test_new_generic_withArgument_named_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.named();
 }
@@ -71,29 +63,28 @@ typedef B<T> = T;
 
 void f() {
   new B<A>.named();
+//    ^
+// [diag.instantiateTypeAliasExpandsToTypeParameter] Type aliases that expand to a type parameter can't be instantiated.
 }
-''',
-      [error(_errorCode, 62, 1)],
-    );
+''');
   }
 
   test_new_generic_withArgument_unnamed_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 typedef B<T> = T;
 
 void f() {
   new B<A>();
+//    ^
+// [diag.instantiateTypeAliasExpandsToTypeParameter] Type aliases that expand to a type parameter can't be instantiated.
 }
-''',
-      [error(_errorCode, 48, 1)],
-    );
+''');
   }
 
   test_new_notGeneric_unnamed_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 typedef X = A;
@@ -105,19 +96,18 @@ void f() {
   }
 
   test_new_notGeneric_unnamed_typeParameter2() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A<T> = T;
 typedef B<T> = A<T>;
 
 void f() {
   new B();
+//    ^
+// [diag.instantiateTypeAliasExpandsToTypeParameter] Type aliases that expand to a type parameter can't be instantiated.
 }
-''',
-      [error(_errorCode, 57, 1)],
-    );
+''');
 
-    var node = findNode.instanceCreation('new B()');
+    var node = result.findNode.instanceCreation('new B()');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

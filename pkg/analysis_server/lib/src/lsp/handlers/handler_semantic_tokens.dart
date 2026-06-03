@@ -24,7 +24,7 @@ typedef StaticOptions =
 abstract class AbstractSemanticTokensHandler<T>
     extends LspMessageHandler<T, SemanticTokens?>
     with LspPluginRequestHandlerMixin {
-  AbstractSemanticTokensHandler(super.server);
+  new(super.server);
 
   List<List<HighlightRegion>> getPluginResults(String path) {
     var notificationManager = server.notificationManager;
@@ -128,7 +128,7 @@ abstract class AbstractSemanticTokensHandler<T>
 
 class SemanticTokensFullHandler
     extends AbstractSemanticTokensHandler<SemanticTokensParams> {
-  SemanticTokensFullHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_semanticTokens_full;
@@ -147,7 +147,7 @@ class SemanticTokensFullHandler
 
 class SemanticTokensRangeHandler
     extends AbstractSemanticTokensHandler<SemanticTokensRangeParams> {
-  SemanticTokensRangeHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.textDocument_semanticTokens_range;
@@ -166,7 +166,7 @@ class SemanticTokensRangeHandler
 
 class SemanticTokensRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  SemanticTokensRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => SemanticTokensRegistrationOptions(

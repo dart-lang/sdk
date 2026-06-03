@@ -332,6 +332,7 @@ extension type const Modifiers(int _mask) implements Object {
   /// ```
   static const Modifiers Required = const Modifiers(_requiredMask);
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the set of modifiers contains `required'.
   bool get isRequired => (_mask & _requiredMask) != 0;
 

@@ -46,6 +46,29 @@ void testStatement(
   );
 }
 
+void testVariableDeclaration(
+  Variable node,
+  String normal, {
+  String? verbose,
+  String? limited,
+}) {
+  Expect.stringEquals(
+    normal,
+    node.toText(normalStrategy),
+    "Unexpected normal strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    verbose ?? normal,
+    node.toText(verboseStrategy),
+    "Unexpected verbose strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    limited ?? normal,
+    node.toText(limitedStrategy),
+    "Unexpected limited strategy text for ${node.runtimeType}",
+  );
+}
+
 void testExpression(
   Expression node,
   String normal, {
@@ -123,7 +146,7 @@ void main() {
   ) async {
     _testVariableDeclarations();
     _testTryStatement();
-    _testForInStatementWithSynthesizedVariable();
+    _testInternalForInStatement();
     _testSwitchCaseImpl();
     _testBreakStatementImpl();
     _testCascade();
@@ -201,16 +224,18 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration('a'),
-      new VariableDeclaration('b'),
+      new VariableDeclaration(new Variable('a')),
+      new VariableDeclaration(new Variable('b')),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration('a', type: const VoidType()),
-      new VariableDeclaration('b', initializer: new NullLiteral()),
+      new VariableDeclaration(new Variable('a', type: const VoidType())),
+      new VariableDeclaration(
+        new Variable('b', initializer: new NullLiteral()),
+      ),
     ], dummyUri),
     '''
 void a, b = null;''',
@@ -222,21 +247,18 @@ void _testTryStatement() {
   Block emptyBlock2 = new Block([]);
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
-  Catch emptyCatchBlock = new Catch(
-    new VariableDeclaration('e'),
-    new Block([]),
-  );
+  Catch emptyCatchBlock = new Catch(new Variable('e'), new Block([]));
   Catch emptyCatchBlockOnVoid = new Catch(
-    new VariableDeclaration('e'),
+    new Variable('e'),
     new Block([]),
     guard: const VoidType(),
   );
   Catch returnCatchBlock = new Catch(
-    new VariableDeclaration('e'),
+    new Variable('e'),
     new Block([new ReturnStatement()]),
   );
   Catch returnCatchBlockOnVoid = new Catch(
-    new VariableDeclaration('e'),
+    new Variable('e'),
     new Block([new ReturnStatement()]),
     guard: const VoidType(),
   );
@@ -344,8 +366,228 @@ try { return; } on void catch (e) { return; } catch (e) { return; } finally { re
   );
 }
 
-void _testForInStatementWithSynthesizedVariable() {
-  // TODO(johnniwinther): Test ForInStatementWithSynthesizedVariable
+void _testInternalForInStatement() {
+  testStatement(
+    new InternalForInStatement(
+      new SingleVariableDeclarationForInElement(
+        variableDeclaration: new VariableDeclaration(
+          new VariableDeclarationImpl('e', fileOffset: -1),
+        ),
+        error: null,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var e in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new SingleVariableDeclarationForInElement(
+        variableDeclaration: new VariableDeclaration(
+          new VariableDeclarationImpl(
+            'e',
+            type: const VoidType(),
+            fileOffset: -1,
+          ),
+        ),
+        error: null,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (void e in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new PatternForInElement(
+        pattern: new RecordPattern([
+          new VariablePattern(const VoidType(), new LegacyVariable('a')),
+          new VariablePattern(null, new LegacyVariable('b')),
+        ]),
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var (void a, var b) in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new ExistingVariableForInElement(
+        variable: new VariableDeclarationImpl('a', fileOffset: -1),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  // TODO(johnniwinther,cstefantsova): Test toTextInternal for
+  //  [VariableInitializationForInElement].
+
+  testStatement(
+    new InternalForInStatement(
+      new InvalidForInElement(
+        error: new InvalidExpression('error'),
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (<invalid:error> in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new StaticForInElement(
+        target: new Field.mutable(new Name('a'), fileUri: dummyUri),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new PropertyForInElement(
+        receiver: new ThisExpression(),
+        name: new Name('a'),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new UnassignableForInElement(
+        expression: new NullLiteral(),
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (null in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new MultiVariableDeclarationForInElement(
+        variableDeclarations: [
+          new VariableDeclaration(
+            new VariableDeclarationImpl('a', fileOffset: -1),
+          ),
+          new VariableDeclaration(
+            new VariableDeclarationImpl('b', fileOffset: -1),
+          ),
+        ],
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var a, b in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new MultiVariableDeclarationForInElement(
+        variableDeclarations: [
+          new VariableDeclaration(
+            new VariableDeclarationImpl(
+              'a',
+              type: const VoidType(),
+              fileOffset: -1,
+            ),
+          ),
+          new VariableDeclaration(
+            new VariableDeclarationImpl('b', fileOffset: -1),
+          ),
+        ],
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (void a, b in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new ExtensionForInElement(
+        extension: new Extension(name: 'Extension', fileUri: dummyUri),
+        thisTypeArguments: null,
+        thisAccess: new ThisExpression(),
+        name: new Name('a'),
+        setter: new Procedure(
+          new Name('Extension|a'),
+          ProcedureKind.Method,
+          new FunctionNode(null),
+          fileUri: dummyUri,
+        ),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
 }
 
 void _testSwitchCaseImpl() {
@@ -574,9 +816,11 @@ continue label0;''',
 }
 
 void _testCascade() {
-  VariableDeclaration variable = new VariableDeclaration.forValue(
+  // TODO(johnniwinther): Add better text representation support for internal
+  //  synthetic variables.
+  InternalVariable variable = new VariableDeclarationImpl.forValue(
     new IntLiteral(0),
-  );
+  )..name = '#0';
   Cascade cascade = new Cascade(variable, isNullAware: false);
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
@@ -584,7 +828,7 @@ let final dynamic #0 = 0 in cascade {} => #0''');
   cascade.addCascadeExpression(
     new DynamicSet(
       DynamicAccessKind.Dynamic,
-      new VariableGet(variable),
+      new InternalVariableGet(variable),
       new Name('foo'),
       new IntLiteral(1),
     ),
@@ -593,16 +837,16 @@ let final dynamic #0 = 0 in cascade {} => #0''');
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  #0.foo = 1;
+  (#0).foo = 1;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
+let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
   );
 
   cascade.addCascadeExpression(
     new DynamicSet(
       DynamicAccessKind.Dynamic,
-      new VariableGet(variable),
+      new InternalVariableGet(variable),
       new Name('bar'),
       new IntLiteral(2),
     ),
@@ -611,11 +855,11 @@ let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  #0.foo = 1;
-  #0.bar = 2;
+  (#0).foo = 1;
+  (#0).bar = 2;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''',
+let final dynamic #0 = 0 in cascade { (#0).foo = 1; (#0).bar = 2; } => #0''',
   );
 }
 
@@ -625,11 +869,14 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  VariableDeclaration check = new VariableDeclaration.forValue(
+  InternalVariable check = new VariableDeclarationImpl.forValue(
     new CheckLibraryIsLoaded(dependency),
   );
-  testExpression(new DeferredCheck(check, new IntLiteral(0)), '''
-let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
+  testExpression(
+    new DeferredCheck(check, new IntLiteral(0), fileOffset: TreeNode.noOffset),
+    '''
+let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''',
+  );
 }
 
 void _testFactoryConstructorInvocation() {
@@ -955,10 +1202,24 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 
 void _testFunctionDeclarationImpl() {
   testStatement(
-    new FunctionDeclarationImpl(
-      new VariableDeclarationImpl('foo'),
-      new FunctionNode(new Block([])),
-    ),
+    new InternalFunctionDeclaration(
+        variable: new VariableDeclarationImpl(
+          'foo',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      )
+      ..function = new InternalFunctionNode(
+        returnType: const DynamicType(),
+        typeParameters: [],
+        positionalParameters: [],
+        namedParameters: [],
+        requiredParameterCount: 0,
+        asyncMarker: AsyncMarker.Sync,
+        body: new Block([]),
+        fileOffset: TreeNode.noOffset,
+        fileEndOffset: TreeNode.noOffset,
+      ),
     '''
 dynamic foo() {}''',
   );
@@ -970,10 +1231,16 @@ void _testIfNullExpression() {
 }
 
 void _testIntLiterals() {
-  testExpression(new IntJudgment(0, null), '0');
-  testExpression(new IntJudgment(0, 'foo'), 'foo');
   testExpression(
-    new ShadowLargeIntLiteral('bar', 'bar', TreeNode.noOffset),
+    new InternalIntLiteral(0, null, fileOffset: TreeNode.noOffset),
+    '0',
+  );
+  testExpression(
+    new InternalIntLiteral(0, 'foo', fileOffset: TreeNode.noOffset),
+    'foo',
+  );
+  testExpression(
+    new LargeIntLiteral('bar', 'bar', fileOffset: TreeNode.noOffset),
     'bar',
   );
 }
@@ -1172,53 +1439,71 @@ return 0;''');
 }
 
 void _testVariableDeclarationImpl() {
-  testStatement(new VariableDeclarationImpl('foo'), '''
-dynamic foo;''');
-  testStatement(
-    new VariableDeclarationImpl('foo', initializer: new IntLiteral(0)),
+  testVariableDeclaration(
+    new VariableDeclarationImpl('foo', fileOffset: TreeNode.noOffset),
     '''
-dynamic foo = 0;''',
+dynamic foo''',
   );
-  testStatement(
+  testVariableDeclaration(
+    new VariableDeclarationImpl(
+      'foo',
+      initializer: new IntLiteral(0),
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+dynamic foo = 0''',
+  );
+  testVariableDeclaration(
     new VariableDeclarationImpl(
       'foo',
       type: const VoidType(),
       initializer: new IntLiteral(0),
       isFinal: true,
       isRequired: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
-required final void foo;''',
+required final void foo''',
   );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
       'foo',
       type: const VoidType(),
       initializer: new IntLiteral(0),
       isLate: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
-late void foo = 0;''',
+late void foo = 0''',
   );
-  testStatement(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-    )..lateGetter = new VariableDeclarationImpl('foo#getter'),
-    '''
-late void foo = 0;''',
-  );
-  testStatement(
+  testVariableDeclaration(
     new VariableDeclarationImpl(
         'foo',
         type: const VoidType(),
         initializer: new IntLiteral(0),
+        fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new VariableDeclarationImpl('foo#getter')
+      ..lateGetter = new VariableDeclarationImpl(
+        'foo#getter',
+        fileOffset: TreeNode.noOffset,
+      ),
+    '''
+late void foo = 0''',
+  );
+  testVariableDeclaration(
+    new VariableDeclarationImpl(
+        'foo',
+        type: const VoidType(),
+        initializer: new IntLiteral(0),
+        fileOffset: TreeNode.noOffset,
+      )
+      ..lateGetter = new VariableDeclarationImpl(
+        'foo#getter',
+        fileOffset: TreeNode.noOffset,
+      )
       ..lateType = const DynamicType(),
     '''
-late dynamic foo = 0;''',
+late dynamic foo = 0''',
   );
 }
 
@@ -1321,7 +1606,7 @@ void _testIfNullPropertySet() {
 }
 
 void _testIfNullSet() {
-  VariableDeclaration variable = new VariableDeclaration('foo');
+  Variable variable = new Variable('foo');
   testExpression(
     new IfNullSet(
       new VariableGet(variable),
@@ -1632,7 +1917,10 @@ void _testPropertyIncDec() {
 }
 
 void _testLocalIncDec() {
-  VariableDeclarationImpl variable = new VariableDeclarationImpl('foo');
+  VariableDeclarationImpl variable = new VariableDeclarationImpl(
+    'foo',
+    fileOffset: TreeNode.noOffset,
+  );
 
   testExpression(
     new LocalIncDec(

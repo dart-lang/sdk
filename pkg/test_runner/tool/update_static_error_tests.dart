@@ -165,15 +165,19 @@ Future<void> main(List<String> args) async {
   }
 
   print('Updating test files...');
+  var pendingUpdates = <Path, _PendingUpdate>{};
   for (var testFile in testFiles) {
-    _updateErrors(
-      testFile,
-      [
-        if (insertSources.contains(ErrorSource.analyzer))
-          ...?analyzerErrors[testFile],
-        if (insertSources.contains(ErrorSource.cfe)) ...?cfeErrors[testFile],
-        if (insertSources.contains(ErrorSource.web)) ...?webErrors[testFile],
-      ],
+    _collectUpdate(pendingUpdates, testFile, [
+      if (insertSources.contains(ErrorSource.analyzer))
+        ...?analyzerErrors[testFile],
+      if (insertSources.contains(ErrorSource.cfe)) ...?cfeErrors[testFile],
+      if (insertSources.contains(ErrorSource.web)) ...?webErrors[testFile],
+    ], includeContext: includeContext);
+  }
+
+  for (var update in pendingUpdates.values) {
+    _writeUpdate(
+      update,
       remove: removeSources,
       includeContext: includeContext,
       dryRun: dryRun,
@@ -223,8 +227,7 @@ List<TestFile> _listFiles(
 
       if (!file.path.endsWith(".dart")) continue;
 
-      // Canonicalize the path in the same way StaticError does, so it matches.
-      var f = p.relative(file.path, from: Directory.current.path);
+      var f = StaticError.normalizePath(file.path);
       var testFile = TestFile.read(Path("."), f);
 
       if (testFile.isMultitest) {
@@ -531,43 +534,87 @@ Future<List<StaticError>> _runDart2jsOnFile(
   return errors;
 }
 
-/// Update the static error expectations in [testFile].
+/// Collect the files that need to be updated for [testFile].
 ///
-/// Adds [errors] to the file and removes any existing errors that are in from
-/// the sources in [remove].
-///
-/// If [includeContext] is `true`, then includes context messages in the
-/// resulting test. If [dryRun] is `false`, then writes the result to disk.
-/// Otherwise, prints the resulting test file.
-void _updateErrors(
+/// Each selected root test owns a slice of any shared helper files it touches.
+/// The updater analyzes all roots before rewriting, so each touched file must
+/// be written once using all selected owners; otherwise newly inserted comments
+/// shift the line numbers for diagnostics collected from later roots.
+void _collectUpdate(
+  Map<Path, _PendingUpdate> pendingUpdates,
   TestFile testFile,
   List<StaticError> errors, {
-  required Set<ErrorSource> remove,
   required bool includeContext,
-  required bool dryRun,
 }) {
   // Error expectations can be in imported libraries or part files. Iterate
   // over the set of paths that is the main file path plus all paths mentioned
   // in expectations, updating them.
-  var paths = {testFile.path, for (var error in errors) Path(error.path)};
+  var paths = {
+    testFile.path,
+    for (var error in errors) Path(error.path),
+    if (includeContext)
+      for (var error in errors)
+        for (var context in error.contextMessages) Path(context.path),
+  };
 
   for (var path in paths) {
-    var nativePath = path.toNativePath();
-    var file = File(nativePath);
-    var pathErrors = errors.where((e) => Path(e.path) == path).toList();
-    var result = updateErrorExpectations(
-      nativePath,
-      file.readAsStringSync(),
-      pathErrors,
-      remove: remove,
-      includeContext: includeContext,
-    );
+    var update = pendingUpdates.putIfAbsent(path, () => _PendingUpdate(path));
+    update.contextOwnerPaths.add(testFile.path.toNativePath());
+    update.addErrors(errors);
+  }
+}
 
-    if (dryRun) {
-      print(result);
-    } else {
-      file.writeAsString(result);
-      print('- $nativePath (${_plural(pathErrors, 'error')})');
+/// Update the static error expectations in [update].
+///
+/// Adds the collected errors to the file and removes any existing errors that
+/// are in from the sources in [remove].
+///
+/// If [includeContext] is `true`, then includes context messages in the
+/// resulting test. If [dryRun] is `false`, then writes the result to disk.
+/// Otherwise, prints the resulting test file.
+void _writeUpdate(
+  _PendingUpdate update, {
+  required Set<ErrorSource> remove,
+  required bool includeContext,
+  required bool dryRun,
+}) {
+  var path = update.path;
+  var nativePath = path.toNativePath();
+  var file = File(nativePath);
+  var pathErrors = update.errors
+      .where(
+        (error) =>
+            Path(error.path) == path ||
+            error.contextMessages.any((context) => Path(context.path) == path),
+      )
+      .toList();
+  var result = updateErrorExpectations(
+    nativePath,
+    file.readAsStringSync(),
+    update.errors,
+    remove: remove,
+    includeContext: includeContext,
+    contextOwnerPaths: update.contextOwnerPaths,
+  );
+
+  if (dryRun) {
+    print(result);
+  } else {
+    file.writeAsStringSync(result);
+    print('- $nativePath (${_plural(pathErrors, 'error')})');
+  }
+}
+
+class _PendingUpdate {
+  final Path path;
+  final List<StaticError> errors = [];
+  final Set<String> contextOwnerPaths = {};
+
+  _PendingUpdate(this.path);
+
+  void addErrors(List<StaticError> errors) {
+    for (var error in errors) {
+      if (!this.errors.contains(error)) this.errors.add(error);
     }
   }
 }

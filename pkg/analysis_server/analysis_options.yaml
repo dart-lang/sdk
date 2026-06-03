@@ -30,9 +30,10 @@ linter:
     - unawaited_futures
     - unnecessary_async
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_final
     - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis
+    - unnecessary_type_name_in_constructor
     - unreachable_from_main
-    - use_null_aware_elements

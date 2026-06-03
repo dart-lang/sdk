@@ -55,7 +55,7 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        var typeParameters = node.primaryConstructor.typeParameters;
+        var typeParameters = node.namePart.typeParameters;
         _breakSelfCycles(typeParameters);
         _breakRawTypeCycles(element, typeParameters);
         _computeBounds(element, typeParameters);
@@ -101,7 +101,7 @@ class DefaultTypesBuilder {
       } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
-        _build(node.primaryConstructor.typeParameters);
+        _build(node.namePart.typeParameters);
       } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is GenericTypeAliasImpl) {

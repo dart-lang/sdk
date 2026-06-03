@@ -243,7 +243,7 @@ B29 = TargetBlock() idom:B20
 B31 = JoinBlock(B29, B28) idom:B20
   Goto(B22)
 B22 = JoinBlock(B31, B19) idom:B0
-  v42 = InterfaceCall tear-off A.foo1(v1)
+  v42 = InterfaceCall method-extractor A.foo1(v1)
   DirectCall print(v42)
   Return(v17)
 
@@ -298,14 +298,40 @@ B0 = EntryBlock()
   DynamicCall call(v1, v4, v5)
   ClosureCall(v7, v2, v9, v10)
   v12 = AllocateClosure()
-  DirectCall closure FunctionDeclarationImpl(void func3(int x) => print(x);) at closureCalls(v12, v15)
+  DirectCall closure FunctionDeclaration(void func3(int x) => print(x);) at closureCalls(v12, v15)
   v17 = AllocateClosure()
-  DirectCall closure FunctionDeclarationImpl(void func4<T extends Object?>(T% x) => print(x);) at closureCalls(v19, v17, v21)
+  DirectCall closure FunctionDeclaration(void func4<T extends Object?>(T% x) => print(x);) at closureCalls(v19, v17, v21)
   v23 = AllocateClosure()
   DirectCall closure FunctionExpression(Null () {
   print("hey");
 }) at closureCalls(v23)
   Return(v25)
+
+--- closure FunctionDeclaration(void func3(int x) => print(x);) at closureCalls
+B0 = EntryBlock()
+  Parameter(#closure)
+  v2 = Parameter(x)
+  v4 = DirectCall print(v2)
+  Return(v4)
+
+--- closure FunctionDeclaration(void func4<T extends Object?>(T% x) => print(x);) at closureCalls
+B0 = EntryBlock()
+  v1 = Parameter(#functionTypeParameters)
+  Parameter(#closure)
+  v3 = Parameter(x)
+  TypeParameters(v1)
+  v7 = DirectCall print(v3)
+  Return(v7)
+
+--- closure FunctionExpression(Null () {
+  print("hey");
+}) at closureCalls
+B0 = EntryBlock()
+  v2 = Constant("hey")
+  v4 = Constant(null)
+  Parameter(#closure)
+  DirectCall print(v2)
+  Return(v4)
 
 --- objectAllocation
 B0 = EntryBlock()

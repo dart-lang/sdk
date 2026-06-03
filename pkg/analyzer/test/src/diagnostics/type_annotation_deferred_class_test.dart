@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAnnotationDeferredClassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,96 +20,84 @@ class TypeAnnotationDeferredClassTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib1.dart', '''
 class D {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<T> { const C(); }
 @C<a.D>() main () {}
-''',
-      [
-        error(
-          diag.typeAnnotationDeferredClass,
-          77,
-          3,
-          messageContains: ["'a.D'"],
-        ),
-      ],
-    );
+// ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.D' can't be used in a declaration, cast, or type test.
+''');
   }
 
   test_asExpression() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 f(v) {
   v as a.A;
-}''',
-      [error(diag.typeAnnotationDeferredClass, 62, 3)],
-    );
+//     ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+}''');
   }
 
   test_catchClause() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 f(v) {
   try {
   } on a.A {
+//     ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
   }
-}''',
-      [error(diag.typeAnnotationDeferredClass, 70, 3)],
-    );
+}''');
   }
 
   test_fieldFormalParameter() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C {
   var v;
   C(a.A this.v);
-}''',
-      [error(diag.typeAnnotationDeferredClass, 71, 3)],
-    );
+//  ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+}''');
   }
 
   test_functionDeclaration_returnType() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 a.A? f() { return null; }
-''',
-      [error(diag.typeAnnotationDeferredClass, 48, 4)],
-    );
+// [diag.typeAnnotationDeferredClass][column 1][length 4] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+''');
   }
 
   test_functionTypedFormalParameter_returnType() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 library root;
 import 'lib1.dart' deferred as a;
-f(a.A g()) {}''',
-      [error(diag.typeAnnotationDeferredClass, 50, 3)],
+f(a.A g()) {}
+//^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.''',
     );
   }
 
@@ -116,45 +105,43 @@ f(a.A g()) {}''',
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 f(v) {
   bool b = v is a.A;
-}''',
-      [
-        error(diag.unusedLocalVariable, 62, 1),
-        error(diag.typeAnnotationDeferredClass, 71, 3),
-      ],
-    );
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
+//              ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+}''');
   }
 
   test_methodDeclaration_returnType() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C {
   a.A? m() { return null; }
-}''',
-      [error(diag.typeAnnotationDeferredClass, 60, 4)],
-    );
+//^^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+}''');
   }
 
   test_simpleFormalParameter() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 library root;
 import 'lib1.dart' deferred as a;
-f(a.A v) {}''',
-      [error(diag.typeAnnotationDeferredClass, 50, 3)],
+f(a.A v) {}
+//^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.''',
     );
   }
 
@@ -162,45 +149,43 @@ f(a.A v) {}''',
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<E> {}
 C<a.A> c = C();
-''',
-      [error(diag.typeAnnotationDeferredClass, 64, 3)],
-    );
+//^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+''');
   }
 
   test_typeArgumentList2() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C<E, F> {}
 C<a.A, a.A> c = C();
-''',
-      [
-        error(diag.typeAnnotationDeferredClass, 67, 3),
-        error(diag.typeAnnotationDeferredClass, 72, 3),
-      ],
-    );
+//^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+//     ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+''');
   }
 
   test_typeParameter_bound() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(
+      r'''
 library root;
 import 'lib1.dart' deferred as a;
-class C<E extends a.A> {}''',
-      [error(diag.typeAnnotationDeferredClass, 66, 3)],
+class C<E extends a.A> {}
+//                ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.''',
     );
   }
 
@@ -208,13 +193,11 @@ class C<E extends a.A> {}''',
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 a.A v = a.A();
-''',
-      [error(diag.typeAnnotationDeferredClass, 48, 3)],
-    );
+// [diag.typeAnnotationDeferredClass][column 1][length 3] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+''');
   }
 }

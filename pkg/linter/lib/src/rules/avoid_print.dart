@@ -18,7 +18,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Avoid `print` calls in production code.';
 
 class AvoidPrint extends AnalysisRule {
-  AvoidPrint() : super(name: LintNames.avoid_print, description: _desc);
+  new() : super(name: LintNames.avoid_print, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.avoidPrint;
@@ -36,7 +36,7 @@ class AvoidPrint extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

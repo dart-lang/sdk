@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 [222]class E extends core::_Enum /*isEnum*/  {
-[226]  enum-element static const field self::E a = [226] [226] const self::E::• [-1]([-1] 0, [-1] "a");
-[229]  enum-element static const field self::E b = [229] [229] const self::E::• [-1]([-1] 1, [-1] "b");
-[232]  enum-element static const field self::E c = [232] [232] const self::E::• [-1]([-1] 2, [-1] "c");
+[226]  enum-element static const field self::E a = [226] [226] const self::E::• [-1]([226] 0, [226] "a");
+[229]  enum-element static const field self::E b = [229] [229] const self::E::• [-1]([229] 1, [229] "b");
+[232]  enum-element static const field self::E c = [232] [232] const self::E::• [-1]([232] 2, [232] "c");
 [222]  static const field core::List<self::E> values = [-1] [-1] const <self::E>[[-1] self::E::a, [-1] self::E::b, [-1] self::E::c];
 [222]  const synthetic constructor [222] [222] •([222] core::int #index, [222] core::String #name) → self::E
-    : [222] super core::_Enum::• [222]([-1] #index, [-1] #name)
+    : [222] super core::_Enum::• [222]([222] #index, [222] #name)
 [-1]    ;
 [222]  method [222] [222] core::_enumToString() → core::String
 [-1]    return [-1] [-1] "E.${[-1] [-1] [-1] [-1] this.{core::_Enum::_name}{core::String}}";

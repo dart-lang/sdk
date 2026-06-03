@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cfg/front_end/computed_scopes.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:front_end/src/api_unstable/vm.dart'
     show
@@ -46,7 +47,7 @@ const kUpdateExpectations = 'updateExpectations';
 final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 
 Future<void> runTestCase(Uri source) async {
-  final target = VmTarget(TargetFlags());
+  final target = VmTarget(TargetFlags(isClosureContextLoweringEnabled: false));
   Component component = await compileTestCaseToKernelProgram(
     source,
     target: target,
@@ -149,12 +150,15 @@ class CompileAndDumpIr extends RecursiveVisitor {
   }
 
   void compileAndDumpFunction(CFunction function) {
+    final closures = <CFunction>[];
     final graph = AstToIr(
       function,
       functionRegistry,
       recognizedMethods,
+      onLocalFunction: closures.add,
       enableAsserts: true,
       typeParametersStyle: .separateFunctionAndClassTypeParameters,
+      scopes: ComputedScopes(function.member, enableAsserts: true),
     ).buildFlowGraph();
     final backEndState = BackEndState();
     final constraints = Arm64Constraints();
@@ -189,6 +193,9 @@ class CompileAndDumpIr extends RecursiveVisitor {
         annotator: RegisterAllocationPrinter(backEndState, constraints).print,
       ).toString(),
     );
+    for (final closure in closures) {
+      compileAndDumpFunction(closure);
+    }
   }
 }
 

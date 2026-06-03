@@ -53,15 +53,25 @@ main(List<String> args) async {
     // Run the AOT compiler to generate stripped and unstripped ELF snapshots.
     final unstrippedSnapshot = path.join(tempDir, 'whole.so');
     await run(genSnapshot, <String>[
-      '--snapshot-kind=app-aot-elf',
-      '--elf=$unstrippedSnapshot',
+      if (Platform.isMacOS) ...[
+        '--snapshot-kind=app-aot-macho-dylib',
+        '--macho=$unstrippedSnapshot',
+      ] else ...[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$unstrippedSnapshot',
+      ],
       scriptDill,
     ]);
 
     final strippedSnapshot = path.join(tempDir, 'stripped.so');
     await run(genSnapshot, <String>[
-      '--snapshot-kind=app-aot-elf',
-      '--elf=$strippedSnapshot',
+      if (Platform.isMacOS) ...[
+        '--snapshot-kind=app-aot-macho-dylib',
+        '--macho=$strippedSnapshot',
+      ] else ...[
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$strippedSnapshot',
+      ],
       '--strip',
       scriptDill,
     ]);

@@ -6,6 +6,7 @@
 // VMOptions=--stacktrace-every=100
 // VMOptions=--deterministic --optimization-counter-threshold=500
 // VMOptions=--deterministic --optimization-counter-threshold=-1
+// VMOptions=--write_protect_code=true
 //
 // Dart test program for stress-testing boxing and GC in return paths from FFI
 // trampolines.

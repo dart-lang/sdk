@@ -45,7 +45,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   @override
   final List<Export> exporters = <Export>[];
 
-  DillCompilationUnitImpl(this._dillLibraryBuilder);
+  new(this._dillLibraryBuilder);
 
   @override
   void addExporter(
@@ -163,7 +163,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   final List<NamedBuilder> _memberBuilders = [];
 
-  DillLibraryBuilder(this.library, this.loader) : super(library.fileUri);
+  new(this.library, this.loader) : super(library.fileUri);
 
   @override
   NameSpace get libraryNameSpace {

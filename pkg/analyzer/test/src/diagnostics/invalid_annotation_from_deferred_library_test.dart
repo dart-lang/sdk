@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,29 +20,26 @@ class InvalidAnnotationFromDeferredLibraryTest
 library lib1;
 class C { const C(); }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 @a.C() main () {}
-''',
-      [error(diag.invalidAnnotationFromDeferredLibrary, 49, 3)],
-    );
+// [diag.invalidAnnotationFromDeferredLibrary][column 2][length 3] Constant values from a deferred library can't be used as annotations.
+''');
   }
 
   test_constructor_argument() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 const x = 0;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 class C { const C(int i); }
 @C(a.x) main () {}
-''',
-      [error(diag.invalidAnnotationConstantValueFromDeferredLibrary, 81, 1)],
-    );
+//   ^
+// [diag.invalidAnnotationConstantValueFromDeferredLibrary] Constant values from a deferred library can't be used in annotations.
+''');
   }
 
   test_from_deferred_library() async {
@@ -52,14 +48,12 @@ library lib1;
 class V { const V(); }
 const v = const V();
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 @a.v main () {}
-''',
-      [error(diag.invalidAnnotationFromDeferredLibrary, 49, 3)],
-    );
+// [diag.invalidAnnotationFromDeferredLibrary][column 2][length 3] Constant values from a deferred library can't be used as annotations.
+''');
   }
 
   test_namedConstructor() async {
@@ -67,13 +61,11 @@ import 'lib1.dart' deferred as a;
 library lib1;
 class C { const C.name(); }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as a;
 @a.C.name() main () {}
-''',
-      [error(diag.invalidAnnotationFromDeferredLibrary, 49, 3)],
-    );
+// [diag.invalidAnnotationFromDeferredLibrary][column 2][length 3] Constant values from a deferred library can't be used as annotations.
+''');
   }
 }

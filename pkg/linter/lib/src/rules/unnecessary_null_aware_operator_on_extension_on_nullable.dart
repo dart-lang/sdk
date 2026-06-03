@@ -19,7 +19,7 @@ const _desc =
     r'Unnecessary null aware operator on extension on a nullable type.';
 
 class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends AnalysisRule {
-  UnnecessaryNullAwareOperatorOnExtensionOnNullable()
+  new()
     : super(
         name:
             LintNames.unnecessary_null_aware_operator_on_extension_on_nullable,
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitIndexExpression(IndexExpression node) {

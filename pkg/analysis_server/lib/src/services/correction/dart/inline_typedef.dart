@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class InlineTypedef extends ResolvedCorrectionProducer {
   String _name = '';
 
-  InlineTypedef({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -149,7 +149,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   int count = 0;
 
-  _ReferenceFinder(this.typeName);
+  new(this.typeName);
 
   @override
   void visitNamedType(NamedType node) {

@@ -11,7 +11,7 @@ import 'uris.dart' show getPartUri;
 class LibraryGraph implements Graph<Uri> {
   final Map<Uri, Library> libraries;
 
-  LibraryGraph(this.libraries);
+  new(this.libraries);
 
   @override
   // Coverage-ignore(suite): Not run.

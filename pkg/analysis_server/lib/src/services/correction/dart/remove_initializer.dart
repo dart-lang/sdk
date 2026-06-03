@@ -18,18 +18,18 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveInitializer({required super.context})
+  new({required super.context})
     : applicability = CorrectionApplicability.singleLocation,
       _removeLate = true;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  RemoveInitializer.bulkFixable({required super.context})
+  new bulkFixable({required super.context})
     : applicability = CorrectionApplicability.automatically,
       _removeLate = true;
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes and will not remove the `late` keyword if present.
-  RemoveInitializer.notLate({required super.context})
+  new notLate({required super.context})
     : applicability = CorrectionApplicability.singleLocation,
       _removeLate = false;
 

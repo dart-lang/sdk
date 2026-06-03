@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseDifferentDivisionOperator extends MultiCorrectionProducer {
-  UseDifferentDivisionOperator({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -63,10 +63,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
 
-  _UseDifferentDivisionOperator({
-    required super.context,
-    required this.fixKind,
-  });
+  new({required super.context, required this.fixKind});
 
   @override
   CorrectionApplicability get applicability =>

@@ -20,7 +20,7 @@ class TypeParameterFragment {
 
   SourceNominalParameterBuilder? _builder;
 
-  TypeParameterFragment({
+  new({
     required this.metadata,
     required this.name,
     required this.nameOffset,

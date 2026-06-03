@@ -139,7 +139,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   final ClassDeclaration _introductory;
   List<ClassDeclaration> _augmentations;
 
-  SourceClassBuilder({
+  new({
     required Modifiers modifiers,
     required this.name,
     required this.typeParameters,
@@ -655,7 +655,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     for (SourceMemberBuilder memberBuilder in _constructorBuilders) {
       if (memberBuilder is SourceConstructorBuilder &&
-          memberBuilder.isPrimaryConstructor &&
+          memberBuilder.shouldTakeFieldInitializers &&
           memberBuilder.isConst) {
         memberBuilder.buildPrimaryConstructorFieldInitializers();
       }
@@ -1336,10 +1336,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   ) {
     List<TypeParameter> functionTypeParameters =
         procedure.function.typeParameters;
-    List<VariableDeclaration> positionalParameters =
+    List<Variable> positionalParameters =
         procedure.function.positionalParameters;
-    List<VariableDeclaration> namedParameters =
-        procedure.function.namedParameters;
+    List<Variable> namedParameters = procedure.function.namedParameters;
     DartType returnType = procedure.function.returnType;
 
     for (TypeParameter functionParameter in functionTypeParameters) {
@@ -1355,7 +1354,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         );
       }
     }
-    for (VariableDeclaration formal in positionalParameters) {
+    for (Variable formal in positionalParameters) {
       if (!formal.isCovariantByDeclaration) {
         for (TypeParameter typeParameter in typeParameters) {
           Variance formalVariance = Variance.contravariant.combine(
@@ -1370,7 +1369,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
-    for (VariableDeclaration named in namedParameters) {
+    for (Variable named in namedParameters) {
       for (TypeParameter typeParameter in typeParameters) {
         Variance namedVariance = Variance.contravariant.combine(
           computeVariance(typeParameter, named.type),
@@ -1874,7 +1873,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType declaredType,
     DartType interfaceType,
     bool isCovariantByDeclaration,
-    VariableDeclaration? declaredParameter,
+    Variable? declaredParameter,
     bool isInterfaceCheck, {
     bool asIfDeclaredParameter = false,
     required Member? localMember,
@@ -2075,10 +2074,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           i < interfaceFunction.positionalParameters.length;
       i++
     ) {
-      VariableDeclaration declaredParameter =
-          declaredFunction.positionalParameters[i];
-      VariableDeclaration interfaceParameter =
-          interfaceFunction.positionalParameters[i];
+      Variable declaredParameter = declaredFunction.positionalParameters[i];
+      Variable interfaceParameter = interfaceFunction.positionalParameters[i];
       DartType declaredParameterType = declaredParameter.type;
       if (declaredSignatureType != null) {
         declaredParameterType = declaredSignatureType.positionalParameters[i];
@@ -2137,20 +2134,18 @@ class SourceClassBuilder extends ClassBuilderImpl
       );
     }
 
-    int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
+    int compareNamedParameters(Variable p0, Variable p1) {
       return p0.name!.compareTo(p1.name!);
     }
 
-    List<VariableDeclaration> sortedFromDeclared = new List.of(
+    List<Variable> sortedFromDeclared = new List.of(
       declaredFunction.namedParameters,
     )..sort(compareNamedParameters);
-    List<VariableDeclaration> sortedFromInterface = new List.of(
+    List<Variable> sortedFromInterface = new List.of(
       interfaceFunction.namedParameters,
     )..sort(compareNamedParameters);
-    Iterator<VariableDeclaration> declaredNamedParameters =
-        sortedFromDeclared.iterator;
-    Iterator<VariableDeclaration> interfaceNamedParameters =
-        sortedFromInterface.iterator;
+    Iterator<Variable> declaredNamedParameters = sortedFromDeclared.iterator;
+    Iterator<Variable> interfaceNamedParameters = sortedFromInterface.iterator;
     outer:
     while (declaredNamedParameters.moveNext() &&
         interfaceNamedParameters.moveNext()) {
@@ -2185,7 +2180,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           break outer;
         }
       }
-      VariableDeclaration declaredParameter = declaredNamedParameters.current;
+      Variable declaredParameter = declaredNamedParameters.current;
       _checkTypes(
         types,
         interfaceSubstitution,
@@ -2318,9 +2313,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     );
     DartType declaredType = declaredMember.setterType;
     DartType interfaceType = interfaceMember.setterType;
-    VariableDeclaration? declaredParameter = declaredMember
-        .function
-        ?.positionalParameters
+    Variable? declaredParameter = declaredMember.function?.positionalParameters
         .elementAt(0);
     bool isCovariantByDeclaration =
         declaredParameter?.isCovariantByDeclaration ?? false;

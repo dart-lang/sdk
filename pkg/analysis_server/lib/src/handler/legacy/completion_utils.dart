@@ -800,7 +800,7 @@ class _ParameterData {
   bool? hasNamedParameters;
   CompletionDefaultArgumentList? defaultArgumentList;
 
-  _ParameterData(
+  new(
     this.parameterNames,
     this.parameterTypes,
     this.requiredParameterCount,

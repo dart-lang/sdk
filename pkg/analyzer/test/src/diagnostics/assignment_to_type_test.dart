@@ -2,89 +2,84 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToTypeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AssignmentToTypeTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 main() {
   C = null;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 22, 1)],
-    );
+''');
   }
 
   test_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   dynamic = 1;
+//^^^^^^^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 13, 7)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { e }
 main() {
   E = null;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 24, 1)],
-    );
+''');
   }
 
   test_typedef_functionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef void F();
 main() {
   F = null;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 29, 1)],
-    );
+''');
   }
 
   test_typedef_interfaceType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = List<int>;
 
 void f() {
   F = null;
+//^
+// [diag.assignmentToType] Types can't be assigned a value.
 }
-''',
-      [error(diag.assignmentToType, 37, 1)],
-    );
+''');
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   f() {
     T = null;
+//  ^
+// [diag.assignmentToType] Types can't be assigned a value.
   }
 }
-''',
-      [error(diag.assignmentToType, 25, 1)],
-    );
+''');
   }
 }

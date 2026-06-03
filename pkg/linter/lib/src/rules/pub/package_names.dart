@@ -13,7 +13,7 @@ import '../../utils.dart';
 const _desc = r'Use `lowercase_with_underscores` for package names.';
 
 class PackageNames extends AnalysisRule {
-  PackageNames() : super(name: LintNames.package_names, description: _desc);
+  new() : super(name: LintNames.package_names, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.packageNames;
@@ -25,7 +25,7 @@ class PackageNames extends AnalysisRule {
 class Visitor extends PubspecVisitor<void> {
   final AnalysisRule rule;
 
-  Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitPackageName(PubspecEntry name) {

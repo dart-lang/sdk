@@ -22,7 +22,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
-    show AsyncMarker, InvalidType, Nullability, ProcedureKind, TreeNode;
+    show InvalidType, Nullability, ProcedureKind, TreeNode;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
@@ -516,7 +516,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   OffsetMap _offsetMap;
 
-  OutlineBuilder(
+  new(
     this._problemReporting,
     this._compilationUnit,
     this._builderFactory,
@@ -2027,14 +2027,14 @@ class OutlineBuilder extends StackListenerImpl {
 
     Token methodBodyToken = pop() as Token;
     MethodBody methodBody = pop() as MethodBody;
-    pop() as AsyncMarker;
+    pop() as AsyncModifier;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     _builderFactory.addPrimaryConstructorBody(
       offsetMap: _offsetMap,
       metadata: metadata,
       beginToken: beginToken,
       endOffset: endToken.charOffset,
-      beginInitializers: beginInitializers,
+      initializersStartToken: beginInitializers,
       hasBody: methodBody != MethodBody.Abstract,
       bodyOffset: methodBodyToken.charOffset,
     );
@@ -2062,7 +2062,7 @@ class OutlineBuilder extends StackListenerImpl {
       checkState(beginToken, [
         /* method body token */ ValueKinds.Token,
         ValueKinds.MethodBody,
-        ValueKinds.AsyncMarker,
+        ValueKinds.AsyncModifier,
         ValueKinds.FormalListOrNull,
         /* formalsOffset */ ValueKinds.Integer,
         ValueKinds.NominalTypeParametersOrNull,
@@ -2075,7 +2075,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     pop() as Token; // Method body token
     MethodBody kind = pop() as MethodBody;
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -2406,7 +2406,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -2517,7 +2517,7 @@ class OutlineBuilder extends StackListenerImpl {
     bool isAbstract = bodyKind == MethodBody.Abstract;
     if (isAbstract) {
       // An error has been reported if this wasn't already sync.
-      asyncModifier = AsyncMarker.Sync;
+      asyncModifier = AsyncModifier.implicitSync;
     }
     if (getOrSet != null && getOrSet.isA(Keyword.SET)) {
       if (formals == null || formals.length != 1) {
@@ -2624,7 +2624,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    pop() as AsyncMarker;
+    pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -2717,7 +2717,7 @@ class OutlineBuilder extends StackListenerImpl {
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       nativeMethodName: nativeMethodName,
-      beginInitializers: beginInitializers,
+      initializersStartToken: beginInitializers,
       hasNewKeyword: newToken != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
     );
@@ -4475,6 +4475,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
@@ -4502,7 +4503,13 @@ class OutlineBuilder extends StackListenerImpl {
 
     pushDeclarationContext(declarationContext);
     _builderFactory.beginFactoryMethod();
-    push(Modifiers.from(externalToken: externalToken, constToken: constToken));
+    push(
+      Modifiers.from(
+        augmentToken: augmentToken,
+        externalToken: externalToken,
+        constToken: constToken,
+      ),
+    );
   }
 
   void _endFactoryMethod(
@@ -4527,7 +4534,7 @@ class OutlineBuilder extends StackListenerImpl {
             ValueKinds.ConstructorReferenceBuilderOrNull,
             ValueKinds.ParserRecovery,
           ]),
-        ValueKinds.AsyncMarker,
+        ValueKinds.AsyncModifier,
         ValueKinds.FormalListOrNull,
         /* formals offset */ ValueKinds.Integer,
         ValueKinds.NominalTypeParametersOrNull,
@@ -4542,7 +4549,7 @@ class OutlineBuilder extends StackListenerImpl {
       redirectionTarget =
           nullIfParserRecovery(pop()) as ConstructorReferenceBuilder?;
     }
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
@@ -4895,7 +4902,7 @@ class EnumConstantInfo {
   final String name;
   final int nameOffset;
 
-  EnumConstantInfo(this.metadata, this.name, this.nameOffset);
+  new(this.metadata, this.name, this.nameOffset);
 }
 
 class NominalParameters {
@@ -4903,7 +4910,7 @@ class NominalParameters {
   final Token endToken;
   final List<TypeParameterFragment>? fragments;
 
-  NominalParameters({
+  new({
     required this.beginToken,
     required this.endToken,
     required this.fragments,
@@ -4919,7 +4926,7 @@ class StructuralParameters {
   final Token endToken;
   final List<SourceStructuralParameterBuilder>? builders;
 
-  StructuralParameters({
+  new({
     required this.beginToken,
     required this.endToken,
     required this.builders,

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SharedDeferredPrefixTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -24,14 +25,13 @@ f1() {}
 library lib2;
 f2() {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 library root;
 import 'lib1.dart' deferred as lib;
+//                 ^^^^^^^^
+// [diag.sharedDeferredPrefix] The prefix of a deferred import can't be used in other import directives.
 import 'lib2.dart' as lib;
 main() { lib.f1(); lib.f2(); }
-''',
-      [error(diag.sharedDeferredPrefix, 33, 8)],
-    );
+''');
   }
 }

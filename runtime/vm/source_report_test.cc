@@ -937,7 +937,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47021_StaticOnlyClasses) {
   // WARNING: This MUST be big enough for the serialized JSON string.
-  const int kBufferSize = 2048;
+  const int kBufferSize = 4096;
   char buffer[kBufferSize];
   const char* kScript =
       "abstract class AllStatic {\n"

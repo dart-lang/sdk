@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../dart/resolution/node_text_expectations.dart';
@@ -18,10 +17,11 @@ main() {
 @reflectiveTest
 class ForEachStatementTest extends ParserDiagnosticsTest {
   void test_forEach_statement_await_in_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in assert (true); }
+//                                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 45, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -64,14 +64,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in {} }
+//                             ^
+// [diag.expectedToken] Expected to find ';'.
+//                               ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.missingIdentifier, 33, 1),
-      error(diag.expectedToken, 31, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -111,13 +111,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in break; }
+//                            ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.missingIdentifier, 30, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -154,13 +154,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in continue; }
+//                            ^^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.missingIdentifier, 30, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -197,13 +197,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in do {} while (true); }
+//                            ^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 50, 1),
-      error(diag.missingIdentifier, 30, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -248,14 +248,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in }
+//                         ^^
+// [diag.expectedToken] Expected to find ';'.
+//                            ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.missingIdentifier, 30, 1),
-      error(diag.expectedToken, 27, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -293,13 +293,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in for (var x in y) {} }
+//                            ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 50, 1),
-      error(diag.missingIdentifier, 30, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -347,13 +347,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in if (true) {} }
+//                            ^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 43, 1),
-      error(diag.missingIdentifier, 30, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -396,15 +396,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in l: {} }
+//                            ^
+// [diag.expectedToken] Expected to find ';'.
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.missingIdentifier, 31, 1),
-      error(diag.expectedToken, 30, 1),
-      error(diag.unexpectedToken, 31, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -449,15 +449,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in int f() {} }
+//                                ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                                     ^
+// [diag.expectedToken] Expected to find ';'.
+//                                       ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
-      error(diag.namedFunctionExpression, 34, 1),
-      error(diag.missingIdentifier, 41, 1),
-      error(diag.expectedToken, 39, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -501,15 +502,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in void f() {} }
+//                                 ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                                      ^
+// [diag.expectedToken] Expected to find ';'.
+//                                        ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
-      error(diag.namedFunctionExpression, 35, 1),
-      error(diag.missingIdentifier, 42, 1),
-      error(diag.expectedToken, 40, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -553,13 +555,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in var x; }
+//                            ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.missingIdentifier, 30, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -600,14 +602,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in return; }
+//                            ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                                  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.unexpectedToken, 30, 6),
-      error(diag.missingIdentifier, 36, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -643,14 +645,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in switch (x) {} }
+//                                        ^
+// [diag.expectedToken] Expected to find ';'.
+//                                          ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 44, 1),
-      error(diag.missingIdentifier, 44, 1),
-      error(diag.expectedToken, 42, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -694,13 +696,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in try {} finally {} }
+//                            ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 48, 1),
-      error(diag.missingIdentifier, 30, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -743,13 +745,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_in_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in while (true) {} }
+//                            ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                            ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 46, 1),
-      error(diag.missingIdentifier, 30, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -792,10 +794,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for assert (true); }
+//                    ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -838,10 +841,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for {} }
+//                    ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -880,13 +884,12 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for break; }
+//                    ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.breakOutsideOfLoop] A break statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 5),
-      error(diag.breakOutsideOfLoop, 22, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -925,13 +928,12 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for continue; }
+//                    ^^^^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.continueOutsideOfLoop] A continue statement can't be used outside of a loop or switch statement.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 8),
-      error(diag.continueOutsideOfLoop, 22, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -970,10 +972,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for do {} while (true); }
+//                    ^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1020,10 +1023,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for }
+//                    ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1059,10 +1063,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for for (var x in y) {} }
+//                    ^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1112,10 +1117,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for if (true) {} }
+//                    ^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 2)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1160,10 +1166,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for l: {} }
+//                    ^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1207,10 +1214,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for int f() {} }
+//                    ^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1259,10 +1267,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for void f() {} }
+//                    ^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 4)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1311,10 +1320,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for var x; }
+//                    ^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1357,10 +1367,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for return; }
+//                    ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1399,10 +1410,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for switch (x) {} }
+//                    ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 6)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1446,10 +1458,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for try {} finally {} }
+//                    ^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 3)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1494,10 +1507,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_keyword_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for while (true) {} }
+//                    ^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 5)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1542,15 +1556,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( assert (true); }
+//          ^^^^^
+// [diag.invalidAwaitInFor] The keyword 'await' isn't allowed for a normal 'for' statement.
+//                                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                                     ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
-      error(diag.invalidAwaitInFor, 12, 5),
-      error(diag.missingIdentifier, 39, 1),
-      error(diag.expectedToken, 37, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1593,16 +1608,17 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( {} }
+//                      ^
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ';'.
+//                         ^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 24, 1),
-      error(diag.missingIdentifier, 27, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1638,14 +1654,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( break; }
+//                      ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.missingIdentifier, 24, 5),
-      error(diag.expectedToken, 24, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1680,14 +1696,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( continue; }
+//                      ^^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.missingIdentifier, 24, 8),
-      error(diag.expectedToken, 24, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1722,14 +1738,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( do {} while (true); }
+//                      ^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 44, 1),
-      error(diag.missingIdentifier, 24, 2),
-      error(diag.expectedToken, 24, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1772,15 +1788,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( }
+//                    ^
+// [diag.expectedToken] Expected to find ';'.
+//                      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
-      error(diag.missingIdentifier, 24, 1),
-      error(diag.expectedToken, 24, 1),
-      error(diag.expectedToken, 22, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1816,14 +1832,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( for (var x in y) {} }
+//                      ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 44, 1),
-      error(diag.missingIdentifier, 24, 3),
-      error(diag.expectedToken, 24, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1869,14 +1885,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( if (true) {} }
+//                      ^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.missingIdentifier, 24, 2),
-      error(diag.expectedToken, 24, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1917,15 +1933,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( l: {} }
+//                       ^
+// [diag.colonInPlaceOfIn] For-in loops use 'in' rather than a colon.
+//                          ^
+// [diag.expectedToken] Expected to find ';'.
+//                            ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.colonInPlaceOfIn, 25, 1),
-      error(diag.missingIdentifier, 30, 1),
-      error(diag.expectedToken, 28, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1963,15 +1980,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( int f() {} }
+//                           ^
+// [diag.expectedToken] Expected to find 'in'.
+//                               ^
+// [diag.expectedToken] Expected to find ';'.
+//                                 ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedToken, 29, 1),
-      error(diag.missingIdentifier, 35, 1),
-      error(diag.expectedToken, 33, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2015,15 +2033,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( void f() {} }
+//                            ^
+// [diag.expectedToken] Expected to find 'in'.
+//                                ^
+// [diag.expectedToken] Expected to find ';'.
+//                                  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedToken, 30, 1),
-      error(diag.missingIdentifier, 36, 1),
-      error(diag.expectedToken, 34, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2067,15 +2086,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( var x; }
+//          ^^^^^
+// [diag.invalidAwaitInFor] The keyword 'await' isn't allowed for a normal 'for' statement.
+//                           ^
+// [diag.expectedToken] Expected to find ';'.
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.invalidAwaitInFor, 12, 5),
-      error(diag.missingIdentifier, 31, 1),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2114,17 +2134,19 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( return; }
+//          ^^^^^
+// [diag.invalidAwaitInFor] The keyword 'await' isn't allowed for a normal 'for' statement.
+//                      ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                            ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
+//                              ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.unexpectedToken, 24, 6),
-      error(diag.missingIdentifier, 30, 1),
-      error(diag.invalidAwaitInFor, 12, 5),
-      error(diag.missingIdentifier, 32, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2160,16 +2182,17 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( switch (x) {} }
+//                      ^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                                    ^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedToken, 38, 1),
-      error(diag.missingIdentifier, 24, 6),
-      error(diag.missingIdentifier, 38, 1),
-      error(diag.expectedToken, 36, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2205,14 +2228,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( try {} finally {} }
+//                      ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
-      error(diag.missingIdentifier, 24, 3),
-      error(diag.expectedToken, 24, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2253,14 +2276,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_leftParen_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for ( while (true) {} }
+//                      ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find 'in'.
+//                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.missingIdentifier, 24, 5),
-      error(diag.expectedToken, 24, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2301,10 +2324,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b assert (true); }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 47, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2345,10 +2369,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2385,10 +2410,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b break; }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2425,10 +2451,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b continue; }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 42, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2465,10 +2492,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b do {} while (true); }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 52, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2513,14 +2541,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b }
+//                            ^
+// [diag.expectedToken] Expected to find ';'.
+//                              ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.missingIdentifier, 32, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2558,10 +2586,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b for (var x in y) {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 52, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2609,10 +2638,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b if (true) {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 45, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2655,10 +2685,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b l: {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 38, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2700,10 +2731,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b int f() {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 43, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2750,10 +2782,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b void f() {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 44, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2800,10 +2833,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b var x; }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2844,10 +2878,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b return; }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 40, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2884,10 +2919,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b switch (x) {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 46, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2929,10 +2965,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b try {} finally {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 50, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2975,10 +3012,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_stream_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a in b while (true) {} }
+//                              ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 48, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3021,13 +3059,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a assert (true); }
+//                         ^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                                      ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
-      error(diag.expectedToken, 27, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3070,15 +3108,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a {} }
+//                         ^
+// [diag.expectedToken] Expected to find 'in'.
+//                          ^
+// [diag.expectedToken] Expected to find ';'.
+//                            ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 30, 1),
-      error(diag.expectedToken, 28, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3118,14 +3157,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a break; }
+//                         ^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedToken, 27, 5),
-      error(diag.missingIdentifier, 27, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3162,14 +3201,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a continue; }
+//                         ^^^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedToken, 27, 8),
-      error(diag.missingIdentifier, 27, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3206,14 +3245,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a do {} while (true); }
+//                         ^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 47, 1),
-      error(diag.expectedToken, 27, 2),
-      error(diag.missingIdentifier, 27, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3258,15 +3297,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a }
+//                       ^
+// [diag.expectedToken] Expected to find ';'.
+//                         ^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 27, 1),
-      error(diag.expectedToken, 25, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3304,14 +3343,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a for (var x in y) {} }
+//                         ^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 47, 1),
-      error(diag.expectedToken, 27, 3),
-      error(diag.missingIdentifier, 27, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3359,14 +3398,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a if (true) {} }
+//                         ^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.expectedToken, 27, 2),
-      error(diag.missingIdentifier, 27, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3409,16 +3448,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a l: {} }
+//                         ^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.expectedToken] Expected to find ';'.
+//                          ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 28, 1),
-      error(diag.expectedToken, 27, 1),
-      error(diag.unexpectedToken, 28, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3463,16 +3502,18 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a int f() {} }
+//                         ^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                             ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                                    ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedToken, 27, 3),
-      error(diag.namedFunctionExpression, 31, 1),
-      error(diag.missingIdentifier, 38, 1),
-      error(diag.expectedToken, 36, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3516,16 +3557,18 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a void f() {} }
+//                         ^^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                              ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                                     ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
-      error(diag.expectedToken, 27, 4),
-      error(diag.namedFunctionExpression, 32, 1),
-      error(diag.missingIdentifier, 39, 1),
-      error(diag.expectedToken, 37, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3569,14 +3612,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a var x; }
+//                         ^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedToken, 27, 3),
-      error(diag.missingIdentifier, 27, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3617,15 +3660,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a return; }
+//                         ^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                               ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedToken, 27, 6),
-      error(diag.unexpectedToken, 27, 6),
-      error(diag.missingIdentifier, 33, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3661,15 +3704,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a switch (x) {} }
+//                         ^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                                     ^
+// [diag.expectedToken] Expected to find ';'.
+//                                       ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
-      error(diag.expectedToken, 27, 6),
-      error(diag.missingIdentifier, 41, 1),
-      error(diag.expectedToken, 39, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3713,14 +3757,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a try {} finally {} }
+//                         ^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 45, 1),
-      error(diag.expectedToken, 27, 3),
-      error(diag.missingIdentifier, 27, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3763,14 +3807,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_typeAndVariableName_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (A a while (true) {} }
+//                         ^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                         ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 43, 1),
-      error(diag.expectedToken, 27, 5),
-      error(diag.missingIdentifier, 27, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3813,13 +3857,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a assert (true); }
+//                       ^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.expectedToken, 25, 6),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3860,15 +3904,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a {} }
+//                       ^
+// [diag.expectedToken] Expected to find 'in'.
+//                        ^
+// [diag.expectedToken] Expected to find ';'.
+//                          ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.expectedToken, 25, 1),
-      error(diag.missingIdentifier, 28, 1),
-      error(diag.expectedToken, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3906,14 +3951,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a break; }
+//                       ^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.expectedToken, 25, 5),
-      error(diag.missingIdentifier, 25, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3948,14 +3993,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a continue; }
+//                       ^^^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedToken, 25, 8),
-      error(diag.missingIdentifier, 25, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3990,14 +4035,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a do {} while (true); }
+//                       ^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 45, 1),
-      error(diag.expectedToken, 25, 2),
-      error(diag.missingIdentifier, 25, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4040,15 +4085,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a }
+//                     ^
+// [diag.expectedToken] Expected to find ';'.
+//                       ^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 25, 1),
-      error(diag.expectedToken, 25, 1),
-      error(diag.missingIdentifier, 25, 1),
-      error(diag.expectedToken, 23, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4084,14 +4129,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a for (var x in y) {} }
+//                       ^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 45, 1),
-      error(diag.expectedToken, 25, 3),
-      error(diag.missingIdentifier, 25, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4137,14 +4182,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a if (true) {} }
+//                       ^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedToken, 25, 2),
-      error(diag.missingIdentifier, 25, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4185,15 +4230,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a l: {} }
+//                        ^
+// [diag.colonInPlaceOfIn] For-in loops use 'in' rather than a colon.
+//                           ^
+// [diag.expectedToken] Expected to find ';'.
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.colonInPlaceOfIn, 26, 1),
-      error(diag.missingIdentifier, 31, 1),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4233,16 +4279,17 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a int f() {} }
+//                           ^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                                ^
+// [diag.expectedToken] Expected to find ';'.
+//                                  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedToken, 29, 1),
-      error(diag.namedFunctionExpression, 29, 1),
-      error(diag.missingIdentifier, 36, 1),
-      error(diag.expectedToken, 34, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4286,16 +4333,18 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a void f() {} }
+//                       ^^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                            ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                                 ^
+// [diag.expectedToken] Expected to find ';'.
+//                                   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedToken, 25, 4),
-      error(diag.namedFunctionExpression, 30, 1),
-      error(diag.missingIdentifier, 37, 1),
-      error(diag.expectedToken, 35, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4337,14 +4386,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a var x; }
+//                       ^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.expectedToken, 25, 3),
-      error(diag.missingIdentifier, 25, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4383,15 +4432,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a return; }
+//                       ^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedToken, 25, 6),
-      error(diag.unexpectedToken, 25, 6),
-      error(diag.missingIdentifier, 31, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4425,15 +4474,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a switch (x) {} }
+//                       ^^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+//                                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                                     ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
-      error(diag.expectedToken, 25, 6),
-      error(diag.missingIdentifier, 39, 1),
-      error(diag.expectedToken, 37, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4475,14 +4525,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a try {} finally {} }
+//                       ^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 43, 1),
-      error(diag.expectedToken, 25, 3),
-      error(diag.missingIdentifier, 25, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4523,14 +4573,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_await_variableName_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() async { await for (a while (true) {} }
+//                       ^^^^^
+// [diag.expectedToken] Expected to find 'in'.
+// [diag.missingIdentifier] Expected an identifier.
+//                       ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
-      error(diag.expectedToken, 25, 5),
-      error(diag.missingIdentifier, 25, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4571,10 +4621,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in assert (true); }
+//                               ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4614,14 +4665,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in {} }
+//                   ^
+// [diag.expectedToken] Expected to find ';'.
+//                     ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
-      error(diag.missingIdentifier, 23, 1),
-      error(diag.expectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4658,13 +4709,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in break; }
+//                  ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 20, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4698,13 +4749,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in continue; }
+//                  ^^^^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
-      error(diag.missingIdentifier, 20, 8),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4738,13 +4789,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in do {} while (true); }
+//                  ^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.missingIdentifier, 20, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4786,14 +4837,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in }
+//               ^^
+// [diag.expectedToken] Expected to find ';'.
+//                  ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
-      error(diag.missingIdentifier, 20, 1),
-      error(diag.expectedToken, 17, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4828,13 +4879,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in for (var x in y) {} }
+//                  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.missingIdentifier, 20, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4879,13 +4930,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in if (true) {} }
+//                  ^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.missingIdentifier, 20, 2),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4925,15 +4976,15 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in l: {} }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.missingIdentifier, 21, 1),
-      error(diag.expectedToken, 20, 1),
-      error(diag.unexpectedToken, 21, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4975,15 +5026,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in int f() {} }
+//                      ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                           ^
+// [diag.expectedToken] Expected to find ';'.
+//                             ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
-      error(diag.namedFunctionExpression, 24, 1),
-      error(diag.missingIdentifier, 31, 1),
-      error(diag.expectedToken, 29, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5024,15 +5076,16 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in void f() {} }
+//                       ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+//                            ^
+// [diag.expectedToken] Expected to find ';'.
+//                              ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.namedFunctionExpression, 25, 1),
-      error(diag.missingIdentifier, 32, 1),
-      error(diag.expectedToken, 30, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5073,13 +5126,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in var x; }
+//                  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
-      error(diag.missingIdentifier, 20, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5117,14 +5170,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in return; }
+//                  ^^^^^^
+// [diag.unexpectedToken] Unexpected text 'return'.
+//                        ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
-      error(diag.unexpectedToken, 20, 6),
-      error(diag.missingIdentifier, 26, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5157,14 +5210,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in switch (x) {} }
+//                              ^
+// [diag.expectedToken] Expected to find ';'.
+//                                ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.missingIdentifier, 34, 1),
-      error(diag.expectedToken, 32, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5205,13 +5258,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in try {} finally {} }
+//                  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.missingIdentifier, 20, 3),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5251,13 +5304,13 @@ CompilationUnit
   }
 
   void test_forEach_statement_in_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in while (true) {} }
+//                  ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+//                  ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.missingIdentifier, 20, 5),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5297,10 +5350,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b assert (true); }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 37, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5338,10 +5392,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_block() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 25, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5375,10 +5430,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_break() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b break; }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5412,10 +5468,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_continue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b continue; }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5449,10 +5506,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_do() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b do {} while (true); }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 42, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5494,14 +5552,14 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_eof() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b }
+//                  ^
+// [diag.expectedToken] Expected to find ';'.
+//                    ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
-      error(diag.missingIdentifier, 22, 1),
-      error(diag.expectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5536,10 +5594,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_for() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b for (var x in y) {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 42, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5584,10 +5643,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_if() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b if (true) {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5627,10 +5687,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_labeled() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b l: {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 28, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5669,10 +5730,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_localFunctionNonVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b int f() {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 33, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5716,10 +5778,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_localFunctionVoid() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b void f() {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 34, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5763,10 +5826,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_localVariable() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b var x; }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 29, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5804,10 +5868,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_return() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b return; }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 30, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5841,10 +5906,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_switch() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b switch (x) {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 36, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5883,10 +5949,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_try() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b try {} finally {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 40, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5926,10 +5993,11 @@ CompilationUnit
   }
 
   void test_forEach_statement_iterator_while() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 f() { for (var a in b while (true) {} }
+//                    ^
+// [diag.expectedToken] Expected to find ')'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 38, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

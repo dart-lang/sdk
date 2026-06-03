@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
@@ -18,15 +17,17 @@ main() {
 @reflectiveTest
 class ExtensionMethodsParserTest extends ParserDiagnosticsTest {
   void test_complex_extends() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E extends A with B, C implements D { }
+//          ^^^^^^^
+// [diag.expectedInstead] Expected 'on' instead of this.
+//                    ^^^^
+// [diag.unexpectedToken] Unexpected text 'with'.
+//                          ^
+// [diag.unexpectedToken] Unexpected text ','.
+//                              ^^^^^^^^^^
+// [diag.unexpectedToken] Unexpected text 'implements'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedInstead, 12, 7),
-      error(diag.unexpectedToken, 22, 4),
-      error(diag.unexpectedToken, 28, 1),
-      error(diag.unexpectedToken, 32, 10),
-    ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -44,13 +45,13 @@ ExtensionDeclaration
   }
 
   void test_complex_implements() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E implements C, D { }
+//          ^^^^^^^^^^
+// [diag.expectedInstead] Expected 'on' instead of this.
+//                      ^
+// [diag.unexpectedToken] Unexpected text ','.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedInstead, 12, 10),
-      error(diag.unexpectedToken, 24, 1),
-    ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -68,10 +69,9 @@ ExtensionDeclaration
   }
 
   void test_complex_type() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on C<T> {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -95,10 +95,9 @@ ExtensionDeclaration
   }
 
   void test_complex_type2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E<T> on C<T> {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -128,10 +127,9 @@ ExtensionDeclaration
   }
 
   void test_complex_type2_no_name() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension<T> on C<T> {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -160,13 +158,14 @@ ExtensionDeclaration
   }
 
   void test_constructor_named() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 extension E on C {
   E.named();
+//^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
 }
 class C {}
 ''');
-    parseResult.assertErrors([error(diag.extensionDeclaresConstructor, 21, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -184,13 +183,14 @@ ExtensionDeclaration
   }
 
   void test_constructor_unnamed() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 extension E on C {
   E();
+//^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
 }
 class C {}
 ''');
-    parseResult.assertErrors([error(diag.extensionDeclaresConstructor, 21, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -208,14 +208,14 @@ ExtensionDeclaration
   }
 
   void test_missing_on() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//         ^
+// [diag.expectedTypeName][column 12][length 0] Expected a type name.
+// [diag.expectedExtensionBody][column 12][length 0] An extension declaration must have a body, even if it is empty.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 0),
-      error(diag.expectedExtensionBody, 12, 0),
-    ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -233,13 +233,13 @@ ExtensionDeclaration
   }
 
   void test_missing_on_withBlock() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 10, 1),
-      error(diag.expectedTypeName, 12, 1),
-    ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -257,10 +257,11 @@ ExtensionDeclaration
   }
 
   void test_missing_on_withClassAndBlock() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E C {}
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -278,12 +279,11 @@ ExtensionDeclaration
   }
 
   void test_parse_toplevel_member_called_late_calling_self() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void late() {
   late();
 }
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -312,10 +312,9 @@ FunctionDeclaration
   }
 
   void test_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on C {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -333,10 +332,11 @@ ExtensionDeclaration
   }
 
   void test_simple_extends() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E extends C { }
+//          ^^^^^^^
+// [diag.expectedInstead] Expected 'on' instead of this.
 ''');
-    parseResult.assertErrors([error(diag.expectedInstead, 12, 7)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -354,10 +354,11 @@ ExtensionDeclaration
   }
 
   void test_simple_implements() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E implements C { }
+//          ^^^^^^^^^^
+// [diag.expectedInstead] Expected 'on' instead of this.
 ''');
-    parseResult.assertErrors([error(diag.expectedInstead, 12, 10)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -375,10 +376,9 @@ ExtensionDeclaration
   }
 
   void test_simple_no_name() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension on C {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -395,10 +395,11 @@ ExtensionDeclaration
   }
 
   void test_simple_with() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E with C { }
+//          ^^^^
+// [diag.expectedInstead] Expected 'on' instead of this.
 ''');
-    parseResult.assertErrors([error(diag.expectedInstead, 12, 4)]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
@@ -416,10 +417,9 @@ ExtensionDeclaration
   }
 
   void test_void_type() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 extension E on void {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''

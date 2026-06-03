@@ -4,11 +4,10 @@
 
 // Allow the modifier `covariant` in declaring parameters.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 class A {}
+
 class B extends A {}
 
 class C1(covariant var A x);

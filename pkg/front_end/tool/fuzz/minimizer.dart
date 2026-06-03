@@ -53,7 +53,7 @@ class Visitor extends RecursiveParserAstVisitorWithDefaultNodeAsync {
   final String initialSource;
   List<(int, int)> removeable = [];
 
-  Visitor(this.helper, this.wantedCategorizedCrash, this.initialSource) {
+  new(this.helper, this.wantedCategorizedCrash, this.initialSource) {
     prevBraceInfo = initialSource.getBraceCountString();
     print("Initial source brace info: $prevBraceInfo");
   }

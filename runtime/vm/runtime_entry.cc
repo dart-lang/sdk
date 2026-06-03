@@ -390,9 +390,7 @@ void ReportImpossibleNullError(intptr_t cid,
     buffer.Printf("%s[sp+%" Pd "] %" Pp "", comma ? ", " : "", i,
                   static_cast<uword>(ptr));
     if (ptr->IsHeapObject() &&
-        (Dart::vm_isolate_group()->heap()->Contains(
-             UntaggedObject::ToAddr(ptr)) ||
-         thread->heap()->Contains(UntaggedObject::ToAddr(ptr)))) {
+        thread->heap()->Contains(UntaggedObject::ToAddr(ptr))) {
       buffer.Printf("(%" Pp ")", static_cast<uword>(ptr->untag()->tags_));
     }
     comma = true;
@@ -1064,13 +1062,8 @@ DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
   intptr_t num_arguments = args_desc.Count();
 
   if (target.is_static()) {
-    if (target.IsFactory()) {
-      // Factory always takes type arguments via a positional parameter.
-      type_args_len = 0;
-    } else {
-      // Drop closure receiver.
-      --num_arguments;
-    }
+    // Drop closure receiver.
+    --num_arguments;
   } else {
     if (target.IsGenerativeConstructor()) {
       // Type arguments are not passed to a generative constructor.
@@ -2298,7 +2291,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           dispatcher_name, arguments_descriptor,
-          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent));
+          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent,
+          getter.is_dynamically_callable()));
   ASSERT(!create_if_absent || !target_function.IsNull());
   if (FLAG_trace_ic) {
     OS::PrintErr(
@@ -2338,7 +2332,8 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
             *demangled, args_descriptor,
-            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent));
+            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent,
+            /* is_dynamically_callable = */ true));
     if (FLAG_trace_ic) {
       OS::PrintErr(
           "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -2496,7 +2491,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   const Instance& arg = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
   // IC data for static call is prepopulated with the statically known target.
-  ASSERT(ic_data.NumberOfChecksIs(1));
+  ASSERT(!ic_data.NumberOfChecksIs(0));
   const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
   target.EnsureHasCode();
   ASSERT(!target.IsNull() && target.HasCode());
@@ -3590,19 +3585,23 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
       // If there is a function with the target name but mismatched arguments
-      // we need to call `receiver.noSuchMethod()`.
+      // we need to call `receiver.noSuchMethod()`. Similarly, if there is a
+      // function that we aren't allowed to invoke because the target function
+      // was not dynamically-callable from a dynamic module.
       if (cls.EnsureIsFinalized(thread) == Error::null()) {
         function = Resolver::ResolveDynamicFunction(zone, cls, target_name);
       }
       if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(args_desc, nullptr));
+        ASSERT(!function.is_dynamically_callable() ||
+               !function.AreValidArguments(args_desc, nullptr));
         break;  // mismatch, invoke noSuchMethod
       }
       if (is_dynamic_call) {
         function =
             Resolver::ResolveDynamicFunction(zone, cls, demangled_target_name);
         if (!function.IsNull()) {
-          ASSERT(!function.AreValidArguments(args_desc, nullptr));
+          ASSERT(!function.is_dynamically_callable() ||
+                 !function.AreValidArguments(args_desc, nullptr));
           break;  // mismatch, invoke noSuchMethod
         }
       }
@@ -4901,13 +4900,6 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
   const Instance& stack_trace =
       Instance::CheckedHandle(zone, arguments.ArgAt(2));
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const auto& resume_stub = Code::Handle(
-      zone, thread->isolate_group()->object_store()->resume_stub());
-#else
-  const auto& resume_stub = StubCode::Resume();
-#endif
-
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -4915,7 +4907,7 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
   while (frame->IsExitFrame() ||
          (frame->IsStubFrame() &&
           !StubCode::ResumeInterpreter().ContainsInstructionAt(frame->pc()) &&
-          !resume_stub.ContainsInstructionAt(frame->pc()))) {
+          !StubCode::Resume().ContainsInstructionAt(frame->pc()))) {
     frame = iterator.NextFrame();
     ASSERT(frame != nullptr);
   }
@@ -4941,6 +4933,22 @@ DEFINE_RUNTIME_ENTRY(ResumeInterpreter, 3) {
 #else
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+// Lazily allocates a coverage array for bytecode prior to recording coverage.
+//
+// Arg0: Bytecode object that needs an allocated coverage array.
+DEFINE_RUNTIME_ENTRY(AllocateBytecodeCoverageArray, 1) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& bytecode = Bytecode::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& coverage_array =
+      TypedData::Handle(zone, bytecode.EnsureCoverageArray(thread));
+  arguments.SetReturn(coverage_array);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&
+        // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DEFINE_RUNTIME_ENTRY(FatalError, 1) {
@@ -5136,9 +5144,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   // have a use-after-free scenario here and therefore undefined behavior.
   // We make some best effort to `FATAL()` in obvious cases of undefined
   // behavior, but not all cases will be caught.
-  auto metadata =
-      FfiCallbackMetadata::Instance()->LookupMetadataForTrampolineUnlocked(
-          trampoline);
+  auto metadata = FfiCallbackMetadata::Instance(trampoline)
+                      ->LookupMetadataForTrampolineUnlocked(trampoline);
 
   if (!metadata.IsLive()) {
     FATAL("Callback invoked after it has been deleted.");

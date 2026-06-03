@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
@@ -1216,16 +1218,23 @@ class TestParser extends Parser {
   Token parsePrimaryConstructorOpt(
     DeclarationKind kind,
     Token token,
-    Token? constKeyword,
-  ) {
+    Token? constKeyword, {
+    bool allowExtensionTypeRepresentation = true,
+  }) {
     doPrint(
       'parsePrimaryConstructorOpt('
       '$kind, '
       '$token, '
-      '$constKeyword)',
+      '$constKeyword, '
+      'allowExtensionTypeRepresentation: $allowExtensionTypeRepresentation)',
     );
     indent++;
-    var result = super.parsePrimaryConstructorOpt(kind, token, constKeyword);
+    var result = super.parsePrimaryConstructorOpt(
+      kind,
+      token,
+      constKeyword,
+      allowExtensionTypeRepresentation: allowExtensionTypeRepresentation,
+    );
     indent--;
     return result;
   }
@@ -1941,6 +1950,7 @@ class TestParser extends Parser {
     Token token,
     DeclarationKind kind,
     Token beforeStart,
+    Token? augmentToken,
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
@@ -1951,6 +1961,7 @@ class TestParser extends Parser {
       '$token, '
       '$kind, '
       '$beforeStart, '
+      '$augmentToken, '
       '$externalToken, '
       '$staticOrCovariant, '
       '$varFinalOrConst, '
@@ -1961,6 +1972,7 @@ class TestParser extends Parser {
       token,
       kind,
       beforeStart,
+      augmentToken,
       externalToken,
       staticOrCovariant,
       varFinalOrConst,

@@ -18,6 +18,10 @@ import 'type_schema.dart' show UnknownType;
 
 /// Keeps track of information about the innermost function body being inferred.
 abstract class BodyInferenceContext implements SharedBodyInferenceContext {
+  /// Returns `true` if this the root body context, i.e. the method or
+  /// constructor itself and _not_ a nested local function.
+  final bool isRoot;
+
   @override
   bool get isAsync;
 
@@ -44,12 +48,13 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
 
   DartType? get emittedValueType;
 
-  factory BodyInferenceContext(
+  factory(
     InferenceVisitorBase inferrer,
     AsyncMarker asyncMarker,
-    DartType returnContext,
-    bool needToInferReturnType,
-  ) {
+    DartType returnContext, {
+    required bool needToInferReturnType,
+    required bool isRoot,
+  }) {
     DartType declaredReturnType = inferrer.computeGreatestClosure(
       returnContext,
     );
@@ -70,6 +75,7 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
           yieldContext,
           declaredReturnType,
           needToInferReturnType,
+          isRoot,
         );
       } else {
         DartType yieldContext = inferrer.getTypeArgumentOf(
@@ -81,6 +87,7 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
           yieldContext,
           declaredReturnType,
           needToInferReturnType,
+          isRoot,
         );
       }
     } else if (isAsync) {
@@ -100,6 +107,7 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
         declaredReturnType,
         needToInferReturnType,
         futureValueType,
+        isRoot,
       );
     } else {
       return new _SyncContext(
@@ -107,11 +115,12 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
         returnContext,
         declaredReturnType,
         needToInferReturnType,
+        isRoot,
       );
     }
   }
 
-  BodyInferenceContext._();
+  new _(this.isRoot);
 
   @override
   SharedTypeSchemaView get sharedYieldContext =>
@@ -200,11 +209,12 @@ class _SyncContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
 
-  _SyncContext(
+  new(
     this.inferrer,
     this._returnContext,
     this._declaredReturnType,
     this._needToInferReturnType,
+    super.isRoot,
   ) : super._() {
     if (_needToInferReturnType) {
       _returnStatements = [];
@@ -480,12 +490,13 @@ class _AsyncContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
 
-  _AsyncContext(
+  new(
     this.inferrer,
     this._returnContext,
     this._declaredReturnType,
     this._needToInferReturnType,
     this.emittedValueType,
+    super.isRoot,
   ) : super._() {
     if (_needToInferReturnType) {
       _returnStatements = [];
@@ -782,11 +793,12 @@ class _SyncStarContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _yieldElementTypes;
 
-  _SyncStarContext(
+  new(
     this.inferrer,
     this._yieldElementContext,
     this._declaredReturnType,
     this._needToInferReturnType,
+    super.isRoot,
   ) : super._() {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
@@ -942,11 +954,12 @@ class _AsyncStarContext extends BodyInferenceContext {
   /// being inferred.
   List<DartType>? _yieldElementTypes;
 
-  _AsyncStarContext(
+  new(
     this.inferrer,
     this._yieldElementContext,
     this._declaredReturnType,
     this._needToInferReturnType,
+    super.isRoot,
   ) : super._() {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];

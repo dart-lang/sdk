@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +15,7 @@ main() {
 @reflectiveTest
 class FfiAddressOfCast extends PubPackageResolutionTest {
   test_struct_error_1() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -26,6 +24,8 @@ external void myNonLeafNative(Pointer<Void> buffer);
 main() {
   final myStruct = Struct.create<MyStruct>();
   myNonLeafNative(myStruct.arr.address.cast());
+//                             ^^^^^^^
+// [diag.addressPosition] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 final class MyStruct extends Struct {
@@ -34,14 +34,11 @@ final class MyStruct extends Struct {
   @Array(2)
   external Array<Int8> arr;
 }
-''',
-      [error(diag.addressPosition, 200, 7)],
-    );
+''');
   }
 
   test_struct_error_2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -50,6 +47,8 @@ external void myNonLeafNative(Pointer<Void> buffer);
 main() {
   final myStruct = Struct.create<MyStruct>();
   myNonLeafNative(myStruct.value.address.cast());
+//                               ^^^^^^^
+// [diag.addressPosition] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 final class MyStruct extends Struct {
@@ -58,13 +57,11 @@ final class MyStruct extends Struct {
   @Array(2)
   external Array<Int8> arr;
 }
-''',
-      [error(diag.addressPosition, 202, 7)],
-    );
+''');
   }
 
   test_struct_no_error() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>(isLeaf: true)
@@ -86,8 +83,7 @@ final class MyStruct extends Struct {
   }
 
   test_typed_data_error() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -97,14 +93,14 @@ external void myNonLeafNative(Pointer<Void> buffer);
 main() {
   final buffer = Int8List(2);
   myNonLeafNative(buffer.address.cast());
+//                       ^^^^^^^
+// [diag.addressPosition] The '.address' expression can only be used as argument to a leaf native external call.
 }
-''',
-      [error(diag.addressPosition, 204, 7)],
-    );
+''');
   }
 
   test_typed_data_no_error() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -119,8 +115,7 @@ main() {
   }
 
   test_union_error_1() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -129,6 +124,8 @@ external void myNonLeafNative(Pointer<Void> buffer);
 main() {
   final myUnion = Union.create<MyUnion>();
   myNonLeafNative(myUnion.arr.address.cast());
+//                            ^^^^^^^
+// [diag.addressPosition] The '.address' expression can only be used as argument to a leaf native external call.
 }
 
 final class MyUnion extends Union {
@@ -137,14 +134,11 @@ final class MyUnion extends Union {
   @Array(2)
   external Array<Int8> arr;
 }
-''',
-      [error(diag.addressPosition, 196, 7)],
-    );
+''');
   }
 
   test_union_error_2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>()
@@ -153,20 +147,20 @@ external void myNonLeafNative(Pointer<Void> buffer);
 main() {
   final myUnion = Union.create<MyUnion>();
   myNonLeafNative(myUnion.value.address.cast());
+//                              ^^^^^^^
+// [diag.addressPosition] The '.address' expression can only be used as argument to a leaf native external call.
 }
 final class MyUnion extends Union {
   @Int8()
   external int value;
   @Array(2)
   external Array<Int8> arr;
-      }
-''',
-      [error(diag.addressPosition, 198, 7)],
-    );
+}
+''');
   }
 
   test_union_no_error() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
 
 @Native<Void Function(Pointer<Void>)>(isLeaf: true)

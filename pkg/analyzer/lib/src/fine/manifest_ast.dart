@@ -215,6 +215,7 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
   bool isValid = true;
   final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
+  final List<TypeParameterElement> _localTypeParameters = [];
   final Map<Element, int> map = Map.identity();
   final List<int> elementIndexList = [];
 
@@ -289,7 +290,22 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    node.visitChildren(this);
+    var localTypeParameters = <TypeParameterElement>[];
+    if (node.typeParameters case var typeParameters?) {
+      for (var typeParameter in typeParameters.typeParameters) {
+        var element = typeParameter.declaredFragment!.element;
+        localTypeParameters.add(element);
+      }
+    }
+
+    _localTypeParameters.addAll(localTypeParameters);
+    try {
+      node.visitChildren(this);
+    } finally {
+      for (var i = 0; i < localTypeParameters.length; i++) {
+        _localTypeParameters.removeLast();
+      }
+    }
   }
 
   @override
@@ -433,6 +449,16 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
     node.visitChildren(this);
   }
 
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeParameterList(TypeParameterList node) {
+    node.visitChildren(this);
+  }
+
   void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
@@ -454,7 +480,13 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
         rawIndex = indexOfFormalParameter(element);
       case TypeParameterElementImpl():
         kind = ManifestAstElementKind.typeParameter;
-        rawIndex = indexOfTypeParameter(element);
+        var localIndex = _localTypeParameters.lastIndexOf(element);
+        if (localIndex != -1) {
+          rawIndex = _localTypeParameters.length - 1 - localIndex;
+        } else {
+          rawIndex =
+              _localTypeParameters.length + indexOfTypeParameter(element);
+        }
       case PrefixElement():
         kind = ManifestAstElementKind.importPrefix;
         rawIndex = 0;

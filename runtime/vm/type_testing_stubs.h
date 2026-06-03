@@ -264,7 +264,8 @@ class TypeUsageInfo : public ThreadStackResource {
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
-                              Definition* type_arguments);
+                              Definition* type_arguments,
+                              bool convert_to_instance_type_arguments = false);
 #endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

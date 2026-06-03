@@ -2023,8 +2023,7 @@ class TypeFlowAnalysis
 
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
-  final Map<VariableDeclaration, _SharedVariableImpl> _sharedCapturedVariables =
-      {};
+  final Map<Variable, _SharedVariableImpl> _sharedCapturedVariables = {};
   final Map<Member, _SharedVariableImpl> _sharedCapturedThisVariables = {};
   final Map<Member, Closure> _closureByCallMethod = {};
   final Map<Closure, Procedure> _callMethodByClosure = {};
@@ -2177,16 +2176,15 @@ class TypeFlowAnalysis
 
   Type? fieldType(Field field) => _fieldValues[field]?.value;
 
-  Type? capturedVariableType(VariableDeclaration v) =>
-      _sharedCapturedVariables[v]?.value;
+  Type? capturedVariableType(Variable v) => _sharedCapturedVariables[v]?.value;
 
   Args<Type>? argumentTypes(Member member) => _summaries[member]?.argumentTypes;
 
-  Type? argumentType(Member member, VariableDeclaration memberParam) {
+  Type? argumentType(Member member, Variable memberParam) {
     return _summaries[member]?.argumentType(member, memberParam);
   }
 
-  List<VariableDeclaration>? uncheckedParameters(Member member) =>
+  List<Variable>? uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
 
   Type? resultType(Member member) => _summaries[member]?.resultType;
@@ -2368,7 +2366,7 @@ class TypeFlowAnalysis
   /// ---- Implementation of [SharedVariableBuilder] interface. ----
 
   @override
-  SharedVariable getSharedVariable(VariableDeclaration variable) =>
+  SharedVariable getSharedVariable(Variable variable) =>
       _sharedCapturedVariables[variable] ??= _SharedVariableImpl(
         variable.name ?? '__tmp',
       );

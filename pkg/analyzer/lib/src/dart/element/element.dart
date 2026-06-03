@@ -145,6 +145,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     reference.element = this;
     _firstFragment.element = this;
 
+    isAbstract = _firstFragment.isAbstract || _firstFragment.isSealed;
     isBase = _firstFragment.isBase;
     isFinal = _firstFragment.isFinal;
     isInterface = _firstFragment.isInterface;
@@ -315,7 +316,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIncludedInId
   bool get isAbstract {
-    return _firstFragment.isAbstract;
+    return hasFlag(_ElementStorageFlag.classElement_isAbstract);
+  }
+
+  @generated
+  set isAbstract(bool value) {
+    setFlag(_ElementStorageFlag.classElement_isAbstract, value);
   }
 
   @generated
@@ -515,8 +521,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         .where((constructor) => constructor.isGenerative)
         .toList(growable: false);
 
-    bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
-        type.element.fields.any((e) => e.isOriginDeclaration);
+    bool typeHasInstanceVariables(InterfaceTypeImpl type) {
+      return type.element.fields.any(
+        (field) => field.isInstanceField && field.isOriginDeclaration,
+      );
+    }
 
     _constructors = superConstructors.map((superConstructor) {
       var constructorFragment = ConstructorFragmentImpl(
@@ -731,6 +740,18 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   }
 
   @override
+  List<ClassFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
+  }
+
+  @override
   ClassFragmentImpl? get previousFragment {
     return super.previousFragment as ClassFragmentImpl?;
   }
@@ -850,6 +871,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       'isConst': isConst,
       'isFactory': isFactory,
       'isOriginDeclaration': isOriginDeclaration,
+      'isOriginExtensionTypeRecovery': isOriginExtensionTypeRecovery,
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
@@ -894,6 +916,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   bool get isOriginDeclaration {
     return _firstFragment.isOriginDeclaration;
+  }
+
+  @generated
+  @override
+  @trackedIncludedInId
+  bool get isOriginExtensionTypeRecovery {
+    return _firstFragment.isOriginExtensionTypeRecovery;
   }
 
   @generated
@@ -1149,6 +1178,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       'isConst': isConst,
       'isFactory': isFactory,
       'isOriginDeclaration': isOriginDeclaration,
+      'isOriginExtensionTypeRecovery': isOriginExtensionTypeRecovery,
       'isOriginImplicitDefault': isOriginImplicitDefault,
       'isOriginMixinApplication': isOriginMixinApplication,
       'isPrimary': isPrimary,
@@ -1208,6 +1238,22 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   set isOriginDeclaration(bool value) {
     setFlag(
       _FragmentStorageFlag.constructorFragment_isOriginDeclaration,
+      value,
+    );
+  }
+
+  @generated
+  @override
+  bool get isOriginExtensionTypeRecovery {
+    return hasFlag(
+      _FragmentStorageFlag.constructorFragment_isOriginExtensionTypeRecovery,
+    );
+  }
+
+  @generated
+  set isOriginExtensionTypeRecovery(bool value) {
+    setFlag(
+      _FragmentStorageFlag.constructorFragment_isOriginExtensionTypeRecovery,
       value,
     );
   }
@@ -1543,6 +1589,10 @@ class ElementAnnotationImpl
   /// factory.
   static const String _factoryVariableName = 'factory';
 
+  /// The name of the class used to mark a class and its subclasses as being
+  /// immutable.
+  static const String _immutableClassName = 'Immutable';
+
   /// The name of the top-level variable used to mark a class and its subclasses
   /// as being immutable.
   static const String _immutableVariableName = 'immutable';
@@ -1772,7 +1822,9 @@ class ElementAnnotationImpl
   bool get isFactory => _isPackageMetaGetter(_factoryVariableName);
 
   @override
-  bool get isImmutable => _isPackageMetaGetter(_immutableVariableName);
+  bool get isImmutable =>
+      _isPackageMetaGetter(_immutableVariableName) ||
+      _isPackageMetaConstructor(_immutableClassName);
 
   @override
   bool get isInternal => _isPackageMetaGetter(_internalVariableName);
@@ -1926,6 +1978,10 @@ class ElementAnnotationImpl
 
   bool _isDartCoreGetter(String name) {
     return _isTopGetter(libraryName: 'dart.core', name: name);
+  }
+
+  bool _isPackageMetaConstructor(String className) {
+    return _isConstructor(libraryName: _metaLibName, className: className);
   }
 
   bool _isPackageMetaGetter(String name) {
@@ -2085,6 +2141,14 @@ abstract class ElementImpl implements Element {
   @generated
   set hasSinceSdkVersionValue(bool value) {
     setFlag(_ElementStorageFlag.element_hasSinceSdkVersionValue, value);
+  }
+
+  /// Whether this element was created for an `augment` declaration that did
+  /// not have a same-kind declaration to augment.
+  @trackedIncludedInId
+  bool get isAugmentationWithoutAugmentedDeclaration {
+    return _firstFragment.isAugmentation &&
+        _firstFragment.previousFragment == null;
   }
 
   @override
@@ -2681,6 +2745,18 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   }
 
   @override
+  List<ExecutableFragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
+  }
+
+  @override
   List<FormalParameterFragmentImpl> get formalParameters {
     _ensureReadResolution();
     return _formalParameters;
@@ -2799,6 +2875,18 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
 
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  List<ExecutableFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
+  }
 
   @override
   ExecutableFragmentImpl? get previousFragment;
@@ -3749,17 +3837,18 @@ class FormalParameterElementImpl extends PromotableElementImpl
     this._firstFragment, {
     FormalParameterElementImpl? baseFormalParameter,
   }) : _baseFormalParameter = baseFormalParameter {
-    FormalParameterFragmentImpl? fragment = _firstFragment;
-    while (fragment != null) {
+    for (var fragment in _fragments) {
       fragment._element = this;
-      fragment = fragment.nextFragment;
-    }
-
-    for (var typeParameter in _firstFragment._typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
-    for (var formalParameter in _firstFragment._formalParameters) {
-      formalParameter.initElement();
+      for (var typeParameter in fragment._typeParameters) {
+        if (typeParameter.previousFragment == null) {
+          TypeParameterElementImpl(firstFragment: typeParameter);
+        }
+      }
+      for (var formalParameter in fragment._formalParameters) {
+        if (formalParameter.previousFragment == null) {
+          formalParameter.initElement();
+        }
+      }
     }
   }
 
@@ -4017,6 +4106,18 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     };
   }
 
+  @override
+  List<FormalParameterFragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
+  }
+
   /// The parameters defined by this parameter.
   ///
   /// A parameter will only define other parameters if it is a function typed
@@ -4162,12 +4263,15 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
-  Iterable<FormalParameterFragmentImpl> get precedingFragments sync* {
-    var current = previousFragment;
-    while (current != null) {
-      yield current;
-      current = current.previousFragment;
-    }
+  List<FormalParameterFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   /// The type parameters defined by this parameter.
@@ -4376,12 +4480,15 @@ abstract class FragmentImpl implements Fragment {
 
   /// The fragments in the augmentation chain that follow this fragment,
   /// in order from the immediate next fragment to the last fragment.
-  Iterable<FragmentImpl> get followingFragments sync* {
-    var current = nextFragment;
-    while (current != null) {
-      yield current;
-      current = current.nextFragment;
-    }
+  List<FragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
   }
 
   @generated
@@ -4440,17 +4547,27 @@ abstract class FragmentImpl implements Fragment {
     return null;
   }
 
+  /// The nearest preceding fragment in the augmentation chain that is complete.
+  FragmentImpl? get nearestPrecedingCompleteFragment {
+    return precedingFragments.firstWhereOrNull((fragment) {
+      return fragment.isCompleteDeclaration;
+    });
+  }
+
   @override
   FragmentImpl? get nextFragment;
 
   /// The fragments in the augmentation chain that precede this fragment,
   /// in order from the immediate previous fragment to the first fragment.
-  Iterable<FragmentImpl> get precedingFragments sync* {
-    var current = previousFragment;
-    while (current != null) {
-      yield current;
-      current = current.previousFragment;
-    }
+  List<FragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   @override
@@ -9799,6 +9916,8 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   @override
   int? nameOffset;
 
+  PropertyInducingFragmentImpl? _inducingVariable;
+
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
   PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
@@ -9818,6 +9937,9 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       'isOriginVariable': isOriginVariable,
     };
   }
+
+  @override
+  PropertyInducingFragmentImpl? get inducingVariable => _inducingVariable;
 
   @generated
   bool get isOriginDeclaration {
@@ -9879,8 +10001,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       return nameOffset;
     }
     if (isOriginVariable) {
-      var variable = element.variable;
-      return variable._firstFragment.offset;
+      return inducingVariable!.offset;
     }
     return firstTokenOffset!;
   }
@@ -9912,6 +10033,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   @trackedIncludedInId
   TopLevelInferenceError? typeInferenceError;
+
+  @trackedInternal
+  late final PropertyInducingElementImplInternal internal =
+      PropertyInducingElementImplInternal(this);
 
   PropertyInducingElementImpl();
 
@@ -10054,6 +10179,16 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   }
 }
 
+/// Exposes [PropertyInducingElementImpl] properties needed while building or
+/// loading the element model, without recording opaque API requirements.
+class PropertyInducingElementImplInternal {
+  final PropertyInducingElementImpl _element;
+
+  PropertyInducingElementImplInternal(this._element);
+
+  List<PropertyInducingFragmentImpl> get fragments => _element._fragments;
+}
+
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
 abstract class PropertyInducingElementTypeInference {
@@ -10070,6 +10205,10 @@ abstract class PropertyInducingFragmentImpl
 
   @override
   int? nameOffset;
+
+  GetterFragmentImpl? _inducedGetter;
+
+  SetterFragmentImpl? _inducedSetter;
 
   @override
   PropertyInducingFragmentImpl? previousFragment;
@@ -10110,6 +10249,26 @@ abstract class PropertyInducingFragmentImpl
     }
 
     return !isFinal;
+  }
+
+  @override
+  GetterFragmentImpl? get inducedGetter => _inducedGetter;
+
+  set inducedGetter(GetterFragmentImpl value) {
+    assert(_inducedGetter == null);
+    assert(value._inducingVariable == null);
+    _inducedGetter = value;
+    value._inducingVariable = this;
+  }
+
+  @override
+  SetterFragmentImpl? get inducedSetter => _inducedSetter;
+
+  set inducedSetter(SetterFragmentImpl value) {
+    assert(_inducedSetter == null);
+    assert(value._inducingVariable == null);
+    _inducedSetter = value;
+    value._inducingVariable = this;
   }
 
   @generated
@@ -11761,7 +11920,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
 enum _ClassElementFlags {
   hasExtendsClause(fragment: true),
-  isAbstract(fragment: true, element: _ElementFlagSource.firstFragment),
+  isAbstract(fragment: true, element: _ElementFlagSource.stored),
   isBase(fragment: true, element: _ElementFlagSource.stored),
   isFinal(fragment: true, element: _ElementFlagSource.stored),
   isInterface(fragment: true, element: _ElementFlagSource.stored),
@@ -11782,6 +11941,10 @@ enum _ConstructorElementFlags {
   isConst(fragment: true, element: _ElementFlagSource.firstFragment),
   isFactory(fragment: true, element: _ElementFlagSource.firstFragment),
   isOriginDeclaration(
+    fragment: true,
+    element: _ElementFlagSource.firstFragment,
+  ),
+  isOriginExtensionTypeRecovery(
     fragment: true,
     element: _ElementFlagSource.firstFragment,
   ),
@@ -11819,6 +11982,7 @@ enum _ElementFlagSource { none, firstFragment, stored, computed }
 
 @generated
 enum _ElementStorageFlag {
+  classElement_isAbstract,
   classElement_isBase,
   classElement_isFinal,
   classElement_isInterface,
@@ -11929,6 +12093,7 @@ enum _FragmentStorageFlag {
   constructorFragment_isConst,
   constructorFragment_isFactory,
   constructorFragment_isOriginDeclaration,
+  constructorFragment_isOriginExtensionTypeRecovery,
   constructorFragment_isOriginImplicitDefault,
   constructorFragment_isOriginMixinApplication,
   constructorFragment_isPrimary,

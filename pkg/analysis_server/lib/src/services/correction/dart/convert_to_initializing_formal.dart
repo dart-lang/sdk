@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -15,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
-  ConvertToInitializingFormal({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -336,6 +337,36 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         field,
         assignment: statement,
       );
+    } else if (parameter is RegularFormalParameter &&
+        parameterElement is FieldFormalParameterElement) {
+      // This is a declaring parameter in a primary constructor.
+      var keyword = parameter.constFinalOrVarKeyword;
+      if (keyword == null) return;
+      var parameterName = parameter.name;
+      if (parameterName == null) return;
+      var container = node.thisOrAncestorOfType<CompilationUnitMember>();
+      if (container == null) return;
+
+      await builder.addDartFileEdit(file, (builder) {
+        // Remove the `var` or `final` keyword, and add `this.`.
+        builder.addSimpleReplacement(
+          range.startStart(keyword, parameterName),
+          'this.',
+        );
+        // Remove the function parameters, if there are any.
+        var suffix = parameter.functionTypedSuffix;
+        if (suffix != null) {
+          builder.addDeletion(range.node(suffix));
+        }
+        // Add the field.
+        builder.insertField(container, (builder) {
+          builder.writeFieldDeclaration(
+            parameterName.lexeme,
+            isFinal: keyword.keyword == Keyword.FINAL,
+            type: parameter.declaredFragment?.element.type,
+          );
+        });
+      });
     }
   }
 

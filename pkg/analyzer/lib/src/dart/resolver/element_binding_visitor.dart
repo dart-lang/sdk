@@ -5,16 +5,13 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   final LibraryFragmentImpl _libraryFragment;
-  final DiagnosticReporter? _errorReporter;
 
   /// This index is incremented every time we visit a [LibraryDirective].
   /// There is just one [LibraryElement], so we can support only one node.
@@ -32,19 +29,15 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   ElementBindingVisitor.forAnalysis({
     required LibraryFragmentImpl fragment,
-    required DiagnosticReporter reporter,
     required ElementWalker walker,
-  }) : this._(fragment, reporter, walker);
+  }) : this._(fragment, walker);
 
   ElementBindingVisitor.forPartialResolution({
     required LibraryFragmentImpl fragment,
-  }) : this._(fragment, null, null);
+  }) : this._(fragment, null);
 
-  ElementBindingVisitor._(
-    this._libraryFragment,
-    this._errorReporter,
-    this._elementWalker,
-  ) : _elementHolder = ElementHolder(_libraryFragment);
+  ElementBindingVisitor._(this._libraryFragment, this._elementWalker)
+    : _elementHolder = ElementHolder(_libraryFragment);
 
   void bindSubtree(FragmentImpl enclosingFragment, AstNode node) {
     _withElementHolder(ElementHolder(enclosingFragment), () {
@@ -148,12 +141,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     node.declaredFragment = fragment;
 
     _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _checkAndRewriteTypeParameters(
-      firstTypeParameters: fragment.element.firstFragment.typeParameters,
-      nameOrKeywordToken: node.namePart.typeName,
-      typeParameterList: node.namePart.typeParameters,
-    );
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
       super.visitClassDeclaration(node);
@@ -269,12 +256,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
-    _checkAndRewriteTypeParameters(
-      firstTypeParameters: fragment.element.firstFragment.typeParameters,
-      nameOrKeywordToken: node.namePart.typeName,
-      typeParameterList: node.namePart.typeParameters,
-    );
-
     _withElementWalker(ElementWalker.forEnum(fragment), () {
       super.visitEnumDeclaration(node);
     });
@@ -298,12 +279,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
-    _checkAndRewriteTypeParameters(
-      firstTypeParameters: fragment.element.firstFragment.typeParameters,
-      nameOrKeywordToken: node.name ?? node.extensionKeyword,
-      typeParameterList: node.typeParameters,
-    );
-
     _withElementWalker(ElementWalker.forExtension(fragment), () {
       super.visitExtensionDeclaration(node);
     });
@@ -317,12 +292,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     node.declaredFragment = fragment;
 
     _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _checkAndRewriteTypeParameters(
-      firstTypeParameters: fragment.element.firstFragment.typeParameters,
-      nameOrKeywordToken: node.primaryConstructor.typeName,
-      typeParameterList: node.primaryConstructor.typeParameters,
-    );
 
     _withElementWalker(ElementWalker.forExtensionType(fragment), () {
       super.visitExtensionTypeDeclaration(node);
@@ -371,6 +340,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
         fragment.isExternal = true;
       }
 
+      fragment.isCompleteDeclaration = node.isCompleteDeclaration;
       fragment.isAsynchronous = body.isAsynchronous;
       fragment.isGenerator = body.isGenerator;
       if (node.returnType == null) {
@@ -385,12 +355,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
       node.returnType?.accept(this);
 
       if (_elementWalker != null) {
-        _checkAndRewriteTypeParameters(
-          firstTypeParameters: fragment.element.firstFragment.typeParameters,
-          nameOrKeywordToken: node.name,
-          typeParameterList: node.functionExpression.typeParameters,
-        );
-
         _withElementWalker(ElementWalker.forExecutable(fragment), () {
           node.functionExpression.typeParameters?.accept(this);
           node.functionExpression.parameters?.accept(this);
@@ -581,12 +545,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
-    _checkAndRewriteTypeParameters(
-      firstTypeParameters: fragment.element.firstFragment.typeParameters,
-      nameOrKeywordToken: node.name,
-      typeParameterList: node.typeParameters,
-    );
-
     node.returnType?.accept(this);
     _withElementWalker(ElementWalker.forExecutable(fragment), () {
       node.typeParameters?.accept(this);
@@ -606,12 +564,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     node.declaredFragment = fragment;
 
     _setOrCreateMetadataElements(fragment, node.metadata);
-
-    _checkAndRewriteTypeParameters(
-      firstTypeParameters: fragment.element.firstFragment.typeParameters,
-      nameOrKeywordToken: node.name,
-      typeParameterList: node.typeParameters,
-    );
 
     _withElementWalker(ElementWalker.forMixin(fragment), () {
       super.visitMixinDeclaration(node);
@@ -792,51 +744,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
       );
       label.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
-    }
-  }
-
-  /// Checks that the number of type parameters in [typeParameterList] matches
-  /// the number of [firstTypeParameters] for this declaration.
-  ///
-  /// The number of fragments in [firstTypeParameters] is equal to the
-  /// number of type parameters in the introductory declaration.
-  ///
-  /// If they don't match, reports [diag.augmentationTypeParameterCount].
-  ///
-  /// If the augmentation has more type parameters, the extra ones are excised
-  /// from the AST and token stream, and added to the compilation unit's
-  /// `invalidNodes`.
-  void _checkAndRewriteTypeParameters({
-    required List<TypeParameterFragmentImpl> firstTypeParameters,
-    required Token nameOrKeywordToken,
-    required TypeParameterListImpl? typeParameterList,
-  }) {
-    var introductoryCount = firstTypeParameters
-        .takeWhile((p) => !p.isOriginOtherFragmentOfEnclosing)
-        .length;
-
-    // If no type parameter nodes, but introductory has type parameters.
-    if (typeParameterList == null) {
-      if (introductoryCount != 0) {
-        _errorReporter?.atToken(
-          nameOrKeywordToken,
-          diag.augmentationTypeParameterCount,
-        );
-      }
-      return;
-    }
-
-    // If the number of type parameters does not match, it is an error.
-    if (typeParameterList.typeParameters.length > introductoryCount) {
-      _errorReporter?.atToken(
-        typeParameterList.typeParameters[introductoryCount].name,
-        diag.augmentationTypeParameterCount,
-      );
-    } else if (typeParameterList.typeParameters.length < introductoryCount) {
-      _errorReporter?.atToken(
-        typeParameterList.rightBracket,
-        diag.augmentationTypeParameterCount,
-      );
     }
   }
 

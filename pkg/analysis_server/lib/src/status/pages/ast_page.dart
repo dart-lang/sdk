@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 class AstPage extends DiagnosticPageWithNav {
   String? _description;
 
-  AstPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(site, 'ast', 'AST', description: 'The AST for a file.');
 
   @override

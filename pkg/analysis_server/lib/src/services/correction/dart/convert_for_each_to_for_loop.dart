@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
-  ConvertForEachToForLoop({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -125,7 +125,7 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
 class _ReturnVisitor extends RecursiveAstVisitor<void> {
   final DartFileEditBuilder builder;
 
-  _ReturnVisitor(this.builder);
+  new(this.builder);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {

@@ -199,66 +199,66 @@ sealed class SealedExtend extends BaseMixinClass {}
 
 class SimpleSealedExtendExtend extends SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 1 see shared_library_definitions.dart] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleSealedExtendExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
 
 interface class InterfaceSealedExtendExtend extends SealedExtend {}
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 2 see shared_library_definitions.dart] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'InterfaceSealedExtendExtend' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
 
 // Implementing through a sealed class.
 
 class SimpleSealedExtendImplement implements SealedExtend {}
 //                                           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 3 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseSealedExtendImplement implements SealedExtend {}
 //                                              ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 4 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceSealedExtendImplement implements SealedExtend {}
 //                                                        ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 5 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalSealedExtendImplement implements SealedExtend {}
 //                                                ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 6 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedSealedExtendImplement implements SealedExtend {}
 //                                                  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 7 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 mixin class MixinClassSealedExtendImplement implements SealedExtend {}
 //                                                     ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 8 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassSealedExtendImplement implements SealedExtend {}
 //                                                              ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 9 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 mixin MixinSealedExtendImplement implements SealedExtend {}
 //                                          ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 10 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinSealedExtendImplement implements SealedExtend {}
 //                                                   ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 11 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 // Using a sealed class as an `on` type
 
 mixin MixinSealedExtendOn on SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 12 see shared_library_definitions.dart] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The mixin 'MixinSealedExtendOn' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 // Implementing via an on type (valid).
@@ -645,43 +645,43 @@ sealed class SealedMixinClassApply extends Object with BaseMixinClass {}
 
 class SimpleSealedMixinClassApplyImplement implements SealedMixinClassApply {}
 //                                                    ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 13 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseSealedMixinClassApplyImplement
     implements SealedMixinClassApply {}
 //             ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 14 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceSealedMixinClassApplyImplement
     implements SealedMixinClassApply {}
 //             ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 15 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalSealedMixinClassApplyImplement
     implements SealedMixinClassApply {}
 //             ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 16 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedSealedMixinClassApplyImplement
     implements SealedMixinClassApply {}
 //             ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 17 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassSealedMixinClassApplyImplement
     implements SealedMixinClassApply {}
 //             ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 18 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinSealedMixinClassApplyImplement
     implements SealedMixinClassApply {}
 //             ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 19 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 /// It is an error to use BaseMixinClass as a mixin application, if the result
@@ -740,41 +740,41 @@ sealed class SealedMixinApplication = Object with BaseMixinClass;
 
 class SimpleSealedMixinApplicationImplement implements SealedMixinApplication {}
 //                                                     ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 20 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base class BaseSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 21 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 interface class InterfaceSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 22 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 final class FinalSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 23 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 sealed class SealedSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 24 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base mixin class BaseMixinClassSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 25 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.
 
 base mixin BaseMixinSealedMixinApplicationImplement
     implements SealedMixinApplication {}
 //             ^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [analyzer 26 see shared_library_definitions.dart] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [cfe] The class 'BaseMixinClass' can't be implemented outside of its library because it's a base class.

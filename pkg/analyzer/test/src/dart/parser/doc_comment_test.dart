@@ -2,28 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DocCommentParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class DocCommentParserTest extends ParserDiagnosticsTest {
   test_animationDirective_namedArgument_blankValue() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@animation 600 400 http://google.com arg=}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('animation');
     assertParsedNodeText(node, r'''
@@ -46,16 +46,14 @@ Comment
   }
 
   test_animationDirective_namedArgument_missingClosingBrace() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@animation 600 400 http://google.com arg=value
+// [diag.docDirectiveMissingClosingBrace][column 52][length 1] Doc directive is missing a closing curly brace ('}').
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingBrace, 73, 1),
-    ]);
 
     var node = parseResult.findNode.comment('animation');
     assertParsedNodeText(node, r'''
@@ -78,16 +76,14 @@ Comment
   }
 
   test_animationDirective_namedArgument_missingValueAndClosingBrace() async {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@animation 600 400 http://google.com arg=
+// [diag.docDirectiveMissingClosingBrace][column 47][length 1] Doc directive is missing a closing curly brace ('}').
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingBrace, 68, 1),
-    ]);
 
     var node = parseResult.findNode.comment('animation');
     assertParsedNodeText(node, r'''
@@ -110,11 +106,10 @@ Comment
   }
 
   test_codeSpan() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// `a[i]` and [b].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     // TODO(srawlins): Parse code into its own node.
@@ -131,11 +126,10 @@ Comment
 
   test_codeSpan_legacy_blockComment() {
     // TODO(srawlins): I believe we should drop support for `[:` `:]`.
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [:xxx [a] yyy:] [b] zzz */
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -150,11 +144,10 @@ Comment
   }
 
   test_codeSpan_unterminated_blockComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** `a[i] and [b] */
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[');
     assertParsedNodeText(node, r'''
@@ -171,12 +164,76 @@ Comment
 ''');
   }
 
+  void test_commentReference_beforeAbstractClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/** [String] */ abstract class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @5
+    tokens
+      /** [String] */ @0
+  abstractKeyword: abstract @16
+  classKeyword: class @25
+  namePart: NameWithTypeParameters
+    typeName: A @31
+  body: BlockClassBody
+    leftBracket: { @33
+    rightBracket: } @34
+''', withOffsets: true);
+  }
+
+  void test_commentReference_beforeAnnotatedClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// See [int] and [String]
+/// and [Object].
+@Annotation
+abstract class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @9
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @19
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @36
+    tokens
+      /// See [int] and [String] @0
+      /// and [Object]. @27
+  metadata
+    Annotation
+      atSign: @ @45
+      name: SimpleIdentifier
+        token: Annotation @46
+  abstractKeyword: abstract @57
+  classKeyword: class @66
+  namePart: NameWithTypeParameters
+    typeName: A @72
+  body: BlockClassBody
+    leftBracket: { @74
+    rightBracket: } @75
+''', withOffsets: true);
+  }
+
   test_commentReference_blockComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [a]. */
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -190,12 +247,78 @@ Comment
 ''');
   }
 
+  void test_commentReference_complexBeforeClass() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// This dartdoc comment [should] be ignored
+@Annotation
+/// This dartdoc comment is [included].
+// a non dartdoc comment [inbetween]
+/// See [int] and [String] but `not [a]`
+/// ```
+/// This [code] block should be ignored
+/// ```
+/// and [Object].
+abstract class A {}
+''');
+
+    var node = parseResult.findNode.classDeclaration('class A');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: included @86
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @143
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @153
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @240
+    tokens
+      /// This dartdoc comment is [included]. @57
+      /// See [int] and [String] but `not [a]` @134
+      /// ``` @175
+      /// This [code] block should be ignored @183
+      /// ``` @223
+      /// and [Object]. @231
+    codeBlocks
+      MdCodeBlock
+        infoString: <empty>
+        type: CodeBlockType.fenced
+        lines
+          MdCodeBlockLine
+            offset: 178
+            length: 4
+          MdCodeBlockLine
+            offset: 186
+            length: 36
+          MdCodeBlockLine
+            offset: 226
+            length: 4
+  metadata
+    Annotation
+      atSign: @ @45
+      name: SimpleIdentifier
+        token: Annotation @46
+  abstractKeyword: abstract @249
+  classKeyword: class @258
+  namePart: NameWithTypeParameters
+    typeName: A @264
+  body: BlockClassBody
+    leftBracket: { @266
+    rightBracket: } @267
+''', withOffsets: true);
+  }
+
   test_commentReference_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[]');
     assertParsedNodeText(node, r'''
@@ -210,11 +333,10 @@ Comment
   }
 
   test_commentReference_followedByColon() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Regarding [a]: it's an A.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -229,11 +351,10 @@ Comment
   }
 
   test_commentReference_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a] and [b].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -251,11 +372,10 @@ Comment
   }
 
   test_commentReference_multiple_blockComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [a] and [b]. */
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -273,11 +393,10 @@ Comment
   }
 
   test_commentReference_new_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [new a.A].
 class B {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('new');
     assertParsedNodeText(node, r'''
@@ -297,11 +416,10 @@ Comment
   }
 
   test_commentReference_new_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [new A].
 class B {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('new');
     assertParsedNodeText(node, r'''
@@ -317,11 +435,10 @@ Comment
   }
 
   test_commentReference_operator_withKeyword_notPrefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [operator ==].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('==');
     assertParsedNodeText(node, r'''
@@ -336,11 +453,10 @@ Comment
   }
 
   test_commentReference_operator_withKeyword_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [Object.operator ==].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('==');
     assertParsedNodeText(node, r'''
@@ -359,11 +475,10 @@ Comment
   }
 
   test_commentReference_operator_withoutKeyword_notPrefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [==].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('==');
     assertParsedNodeText(node, r'''
@@ -378,11 +493,10 @@ Comment
   }
 
   test_commentReference_operator_withoutKeyword_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [Object.==].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('==');
     assertParsedNodeText(node, r'''
@@ -401,11 +515,10 @@ Comment
   }
 
   test_commentReference_prefixedIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a.b].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a.b');
     assertParsedNodeText(node, r'''
@@ -424,11 +537,10 @@ Comment
   }
 
   test_commentReference_simpleIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -443,11 +555,10 @@ Comment
   }
 
   test_commentReference_this() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [this].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('this');
     // TODO(srawlins): I think there is an intention to parse this as a comment
@@ -460,11 +571,10 @@ Comment
   }
 
   test_docImport() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:html';
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -483,13 +593,12 @@ Comment
   }
 
   test_docImport_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// One.
 /// @docImport 'dart:html';
 /// @docImport 'dart:io';
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('dart:html');
     assertParsedNodeText(node, r'''
@@ -517,11 +626,12 @@ Comment
   }
 
   test_docImport_nonTerminated() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:html'
+//             ^^^^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
 class A {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 15, 11)]);
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -540,16 +650,16 @@ Comment
   }
 
   test_docImport_parseError() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// @docImport html
+//      ^^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//             ^^^^
+// [diag.expectedStringLiteral] Expected a string literal.
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 6),
-      error(diag.expectedStringLiteral, 15, 4),
-      error(diag.missingConstFinalVarOrType, 15, 4),
-      error(diag.expectedToken, 15, 4),
-    ]);
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -568,11 +678,10 @@ Comment
   }
 
   test_docImport_prefixed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:html' as html;
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -594,11 +703,10 @@ Comment
   }
 
   test_docImport_show() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:html' show Element, HtmlElement;
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -625,14 +733,14 @@ Comment
   }
 
   test_docImport_unterminatedString() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// @docImport 'dart:html;
+//             ^^^^^^^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 15, 11),
-      error(diag.unterminatedStringLiteral, 17, 1),
-    ]);
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -651,7 +759,7 @@ Comment
   }
 
   test_docImport_withOtherData() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// ```dart
 /// x;
 /// ```
@@ -661,7 +769,6 @@ Comment
 /// ```
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -713,17 +820,15 @@ Comment
   }
 
   test_endTemplate_missingOpeningTag() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@endtemplate}
+// [diag.docDirectiveMissingOpeningTag][column 5][length 15] Doc directive is missing an opening tag.
 /// More text.
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingOpeningTag, 26, 15),
-    ]);
 
     var node = parseResult.findNode.comment('endtemplate');
     assertParsedNodeText(node, r'''
@@ -741,7 +846,7 @@ Comment
   }
 
   test_fencedCodeBlock_blockComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
  * One.
  * ```
@@ -755,7 +860,6 @@ Comment
  */
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -803,13 +907,12 @@ Comment
   }
 
   test_fencedCodeBlock_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// ```
 /// ```
 /// Text.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text.');
     assertParsedNodeText(node, r'''
@@ -833,13 +936,12 @@ Comment
   }
 
   test_fencedCodeBlock_leadingSpaces() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 ///   ```
 ///   a[i] = b[i];
 ///   ```
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -866,7 +968,7 @@ Comment
   }
 
   test_fencedCodeBlock_moreThanThreeBackticks() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// ````dart
 /// A code block can contain multiple backticks, as long as it is fewer than
 /// the amount in the opening:
@@ -874,7 +976,6 @@ Comment
 /// `````
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('A code');
     assertParsedNodeText(node, r'''
@@ -909,13 +1010,12 @@ Comment
   }
 
   test_fencedCodeBlock_noLeadingSpaces() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 ///```
 ///a[i] = b[i];
 ///```
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -942,7 +1042,7 @@ Comment
   }
 
   test_fencedCodeBlock_nonDocCommentLines() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// One.
 /// ```
 // This is not part of the doc comment.
@@ -952,7 +1052,6 @@ Comment
 /// Two.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -981,13 +1080,12 @@ Comment
   }
 
   test_fencedCodeBlock_nonTerminating() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// One.
 /// ```
 /// a[i] = b[i];
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -1011,7 +1109,7 @@ Comment
   }
 
   test_fencedCodeBlock_nonZeroOffset() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// One.
@@ -1021,7 +1119,6 @@ int x = 0;
 /// Two.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -1050,14 +1147,13 @@ Comment
   }
 
   test_fencedCodeBlock_precededByText() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// One. ```
 /// Two.
 /// ```
 /// Three.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Two.');
     assertParsedNodeText(node, r'''
@@ -1082,7 +1178,7 @@ Comment
   }
 
   test_fencedCodeBlocks() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// One.
 /// ```
 /// a[i] = b[i];
@@ -1094,7 +1190,6 @@ Comment
 /// Three.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -1140,13 +1235,12 @@ Comment
   }
 
   test_indentedCodeBlock_afterBlankLine() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///
 ///    a[i] = b[i];
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text');
     assertParsedNodeText(node, r'''
@@ -1167,12 +1261,11 @@ Comment
   }
 
   test_indentedCodeBlock_afterTextLine_notCodeBlock() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///    a[i] = b[i];
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text');
     assertParsedNodeText(node, r'''
@@ -1191,11 +1284,10 @@ Comment
   }
 
   test_indentedCodeBlock_firstLine() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 ///    a[i] = b[i];
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -1214,7 +1306,7 @@ Comment
   }
 
   test_indentedCodeBlock_firstLine_blockComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
  *
  *     a[i] = b[i];
@@ -1222,7 +1314,6 @@ Comment
  */
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('a[i]');
     assertParsedNodeText(node, r'''
@@ -1249,7 +1340,7 @@ Comment
   }
 
   test_indentedCodeBlock_withFencedCodeBlock() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///     ```
 ///     a[i] = b[i];
@@ -1257,7 +1348,6 @@ Comment
 ///     More text.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text');
     assertParsedNodeText(node, r'''
@@ -1286,11 +1376,10 @@ Comment
   }
 
   test_inlineLink() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a](http://www.google.com) [b].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     assertParsedNodeText(node, r'''
@@ -1305,11 +1394,10 @@ Comment
   }
 
   test_linkReference() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a]: http://www.google.com Google [b]
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a]');
     // TODO(srawlins): Ideally this should not parse `[b]` as a comment
@@ -1326,13 +1414,12 @@ Comment
   }
 
   test_nodoc_eol() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///
 /// @nodoc
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text.');
     assertParsedNodeText(node, r'''
@@ -1346,13 +1433,12 @@ Comment
   }
 
   test_nodoc_more() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///
 /// @nodocxx
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text.');
     assertParsedNodeText(node, r'''
@@ -1365,13 +1451,12 @@ Comment
   }
 
   test_nodoc_space() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///
 /// @nodoc This is not super public.
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('Text.');
     assertParsedNodeText(node, r'''
@@ -1385,11 +1470,10 @@ Comment
   }
 
   test_onlyWhitespace() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 ///${"  "}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('  ');
     assertParsedNodeText(node, '''
@@ -1400,11 +1484,10 @@ Comment
   }
 
   test_referenceLink() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a link][c] [b].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a');
     assertParsedNodeText(node, r'''
@@ -1419,12 +1502,11 @@ Comment
   }
 
   test_referenceLink_multiline() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// [a link split across multiple
 /// lines][c] [b].
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('[a');
     assertParsedNodeText(node, r'''
@@ -1443,7 +1525,7 @@ Comment
   }
 
   test_template() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
@@ -1452,7 +1534,6 @@ int x = 0;
 /// {@endtemplate}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('template name');
     assertParsedNodeText(node, r'''
@@ -1476,7 +1557,7 @@ Comment
   }
 
   test_template_containingInnerTags() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
@@ -1486,7 +1567,6 @@ int x = 0;
 /// {@endtemplate}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('template name');
     assertParsedNodeText(node, r'''
@@ -1517,7 +1597,7 @@ Comment
   }
 
   test_template_containingInnerTemplate() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
@@ -1530,7 +1610,6 @@ int x = 0;
 /// {@endtemplate}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('template name2');
     assertParsedNodeText(node, r'''
@@ -1567,17 +1646,15 @@ Comment
   }
 
   test_template_missingClosingTag() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@template name}
+// [diag.docDirectiveMissingClosingTag][column 5][length 17] Doc directive is missing a closing tag.
 /// More text.
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingTag, 26, 17),
-    ]);
 
     var node = parseResult.findNode.comment('template name');
     assertParsedNodeText(node, r'''
@@ -1597,20 +1674,18 @@ Comment
   }
 
   test_template_missingClosingTag_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@template name}
+// [diag.docDirectiveMissingClosingTag][column 5][length 17] Doc directive is missing a closing tag.
 /// More text.
 /// {@template name2}
+// [diag.docDirectiveMissingClosingTag][column 5][length 18] Doc directive is missing a closing tag.
 /// More text.
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingTag, 26, 17),
-      error(diag.docDirectiveMissingClosingTag, 62, 18),
-    ]);
 
     var node = parseResult.findNode.comment('template name2');
     assertParsedNodeText(node, r'''
@@ -1638,18 +1713,16 @@ Comment
   }
 
   test_template_missingClosingTag_withInnerTag() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@template name}
+// [diag.docDirectiveMissingClosingTag][column 5][length 17] Doc directive is missing a closing tag.
 /// More text.
 /// {@animation 600 400 http://google.com}
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingTag, 26, 17),
-    ]);
 
     var node = parseResult.findNode.comment('template name');
     assertParsedNodeText(node, r'''
@@ -1678,22 +1751,20 @@ Comment
   }
 
   test_template_outOfOrderClosingTag() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@template name}
 /// More text.
 /// {@inject-html}
+// [diag.docDirectiveMissingClosingTag][column 5][length 15] Doc directive is missing a closing tag.
 /// HTML.
 /// {@endtemplate}
 /// {@end-inject-html}
+// [diag.docDirectiveMissingOpeningTag][column 5][length 19] Doc directive is missing an opening tag.
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingTag, 62, 15),
-      error(diag.docDirectiveMissingOpeningTag, 110, 19),
-    ]);
 
     var node = parseResult.findNode.comment('template name');
     assertParsedNodeText(node, r'''
@@ -1728,7 +1799,7 @@ Comment
   }
 
   test_tool_withRestArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
@@ -1737,7 +1808,6 @@ int x = 0;
 /// {@end-tool}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('tool snippets');
     assertParsedNodeText(node, r'''
@@ -1764,14 +1834,15 @@ Comment
   }
 
   test_unknownDocDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@yotube 123}
+//    ^^^^^^
+// [diag.docDirectiveUnknown] Doc directive 'yotube' is unknown.
 class A {}
 ''');
-    parseResult.assertErrors([error(diag.docDirectiveUnknown, 28, 6)]);
 
     var node = parseResult.findNode.comment('yotube');
     assertParsedNodeText(node, r'''
@@ -1783,14 +1854,13 @@ Comment
   }
 
   test_youTubeDirective() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int x = 0;
 
 /// Text.
 /// {@youtube 600 400 http://google.com}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('youtube');
     assertParsedNodeText(node, r'''
@@ -1811,13 +1881,11 @@ Comment
   }
 
   test_youTubeDirective_missingEndBrace() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// {@youtube 600 400 http://google.com
+// [diag.docDirectiveMissingClosingBrace][column 40][length 1] Doc directive is missing a closing curly brace ('}').
 class A {}
 ''');
-    parseResult.assertErrors([
-      error(diag.docDirectiveMissingClosingBrace, 39, 1),
-    ]);
 
     var node = parseResult.findNode.comment('youtube');
     assertParsedNodeText(node, r'''
@@ -1837,11 +1905,10 @@ Comment
   }
 
   test_youTubeDirective_missingUrl() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// {@youtube 600 400}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('youtube');
     assertParsedNodeText(node, r'''
@@ -1860,11 +1927,10 @@ Comment
   }
 
   test_youTubeDirective_missingUrlAndHeight() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// {@youtube 600}
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('youtube');
     assertParsedNodeText(node, r'''
@@ -1882,11 +1948,10 @@ Comment
   }
 
   test_youTubeDirective_missingUrlAndHeightAndWidth() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 /// {@youtube }
 class A {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.comment('youtube');
     assertParsedNodeText(node, r'''

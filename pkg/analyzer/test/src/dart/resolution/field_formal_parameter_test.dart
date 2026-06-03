@@ -5,24 +5,26 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldFormalParameterResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FieldFormalParameterResolutionTest extends PubPackageResolutionTest {
   test_class_functionTyped() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   Function f;
   A(void this.f(int a));
 }
 ''');
 
-    var node = findNode.singleFieldFormalParameter;
+    var node = result.findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -55,14 +57,14 @@ FieldFormalParameter
   /// There was a crash.
   /// https://github.com/dart-lang/sdk/issues/46968
   test_class_functionTyped_hasTypeParameters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   T Function<T>(T) f;
   A(U this.f<U>(U a));
 }
 ''');
 
-    var node = findNode.singleFieldFormalParameter;
+    var node = result.findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -101,14 +103,14 @@ FieldFormalParameter
   }
 
   test_class_functionTyped_hasTypeParameters2() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<V> {
   T Function<T, U>(U, V) f;
   A(T this.f<T, U>(U a, V b));
 }
 ''');
 
-    var node = findNode.singleFieldFormalParameter;
+    var node = result.findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -160,14 +162,14 @@ FieldFormalParameter
   }
 
   test_class_simple() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int f;
   A(this.f);
 }
 ''');
 
-    var node = findNode.singleFieldFormalParameter;
+    var node = result.findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   thisKeyword: this
@@ -181,14 +183,14 @@ FieldFormalParameter
   }
 
   test_class_simple_typed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   int f;
   A(int this.f);
 }
 ''');
 
-    var node = findNode.singleFieldFormalParameter;
+    var node = result.findNode.singleFieldFormalParameter;
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   type: NamedType
@@ -206,7 +208,7 @@ FieldFormalParameter
   }
 
   test_enum() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v(0);
   final int f;
@@ -214,7 +216,7 @@ enum E {
 }
 ''');
 
-    var node = findNode.fieldFormalParameter('this.f');
+    var node = result.findNode.fieldFormalParameter('this.f');
     assertResolvedNodeText(node, r'''
 FieldFormalParameter
   thisKeyword: this

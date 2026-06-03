@@ -21,7 +21,17 @@ Future<String> _getIsolateId(Uri serverUri) async {
 final httpGetIsolateRpcTests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final wsUri = Uri.parse(service.wsUri!);
-    final serverUri = Uri.parse('http://${wsUri.authority}');
+    final pathSegments = <String>[...wsUri.pathSegments]..removeWhere((e) => e.isEmpty);
+    if (pathSegments.isNotEmpty && pathSegments.last == 'ws') {
+      pathSegments.removeLast();
+    }
+    pathSegments.add('');
+    final serverUri = Uri(
+      scheme: 'http',
+      host: wsUri.host,
+      port: wsUri.port,
+      pathSegments: pathSegments,
+    );
 
     try {
       // Build the request.
@@ -47,7 +57,9 @@ final httpGetIsolateRpcTests = <IsolateTest>[
       Expect.isNotNull(result.rootLib);
       Expect.isTrue(result.libraries!.isNotEmpty, 'libraries was empty');
       Expect.isTrue(
-          result.breakpoints!.isEmpty, 'breakpoints was ${result.breakpoints}',);
+        result.breakpoints!.isEmpty,
+        'breakpoints was ${result.breakpoints}',
+      );
       Expect.equals(result.json!['_heaps']['new']['type'], 'HeapSpace');
       Expect.equals(result.json!['_heaps']['old']['type'], 'HeapSpace');
       Expect.equals(result.json!['isolate_group']['type'], '@IsolateGroup');

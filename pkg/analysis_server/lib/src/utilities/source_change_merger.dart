@@ -24,7 +24,7 @@ class SourceChangeMerger {
   /// This can be used in tests to provide more details about failures.
   final StringBuffer? debugBuffer;
 
-  SourceChangeMerger({this.debugBuffer});
+  new({this.debugBuffer});
 
   /// Merges a set of edits in-place.
   List<SourceFileEdit> merge(List<SourceFileEdit> edits) {

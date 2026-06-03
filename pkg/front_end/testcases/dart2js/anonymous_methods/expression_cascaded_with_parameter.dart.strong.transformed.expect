@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let final core::int #t1 = 1 in block {
+    {
+      core::int p = #t1;
+      core::int #t2;
+      #t2 = let dynamic #t3 = 1 in p;
+    }
+  } =>#t1;
+  let final core::int #t4 = 1 in block {
+    {
+      core::int p = #t4;
+      core::int #t5;
+      #t5 = let dynamic #t6 = p in p;
+    }
+  } =>#t4;
+  let final core::int #t7 = 1 in block {
+    {
+      core::int p = #t7;
+      core::int #t8;
+      #t8 = let dynamic #t9 = p.{core::int::isEven}{core::bool} in p;
+    }
+  } =>#t7;
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:6:3 -> DoubleConstant(1.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:6:3 -> DoubleConstant(1.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:7:3 -> DoubleConstant(1.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:7:3 -> DoubleConstant(1.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:8:3 -> DoubleConstant(1.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:8:3 -> DoubleConstant(1.0)
+Extra constant evaluation: evaluated: 24, effectively constant: 6

@@ -41,12 +41,16 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo1
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo1
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::value
@@ -56,12 +60,16 @@ library
           fields
             #F7 hasInitializer isOriginDeclaration foo2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: <testLibrary>::@mixin::A::@field::foo2
+              inducedGetter: #F8
+              inducedSetter: #F9
           getters
             #F8 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@mixin::A::@getter::foo2
+              inducingVariable: #F7
           setters
             #F9 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@mixin::A::@setter::foo2
+              inducingVariable: #F7
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
                   element: <testLibrary>::@mixin::A::@setter::foo2::@formalParameter::value
@@ -145,12 +153,16 @@ library
           fields
             #F5 isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@mixin::A::@field::foo1
+              inducedGetter: #F6
+              inducedSetter: #F7
           getters
             #F6 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@mixin::A::@getter::foo1
+              inducingVariable: #F5
           setters
             #F7 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@mixin::A::@setter::foo1
+              inducingVariable: #F5
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::value
@@ -164,12 +176,16 @@ library
           fields
             #F9 isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@mixin::A::@field::foo2
+              inducedGetter: #F10
+              inducedSetter: #F11
           getters
             #F10 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::A::@getter::foo2
+              inducingVariable: #F9
           setters
             #F11 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::A::@setter::foo2
+              inducingVariable: #F9
               formalParameters
                 #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@mixin::A::@setter::foo2::@formalParameter::value
@@ -252,23 +268,46 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F10
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+              previousFragment: #F5
   mixins
     hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -285,16 +324,16 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@mixin::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo
@@ -329,32 +368,55 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
-              nextFragment: #F4
-          getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-              element: <testLibrary>::@mixin::A::@getter::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
               nextFragment: #F6
+          getters
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
-          nextFragment: #F9
+          nextFragment: #F11
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
-              previousFragment: #F5
-        #F9 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+              previousFragment: #F4
+              nextFragment: #F12
+        #F11 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F12
+              inducedSetter: #F10
               previousFragment: #F3
+          getters
+            #F12 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F7
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+              previousFragment: #F5
   mixins
     hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -371,13 +433,13 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@mixin::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
@@ -415,37 +477,60 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-                  nextFragment: #F8
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
-          nextFragment: #F10
+          nextFragment: #F11
           setters
-            #F9 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+            #F10 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
-                #F8 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                #F9 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-                  previousFragment: #F7
-              previousFragment: #F6
-        #F10 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+                  previousFragment: #F8
+                  nextFragment: #F12
+              previousFragment: #F5
+              nextFragment: #F13
+        #F11 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F13
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F13 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F10
   mixins
     hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -462,16 +547,16 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@mixin::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo
@@ -502,23 +587,46 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F10
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+              previousFragment: #F5
   mixins
     hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -535,16 +643,16 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@mixin::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo
@@ -581,13 +689,28 @@ library
           getters
             #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo
+              nextFragment: #F6
         #F2 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F6
+              inducedSetter: #F7
               previousFragment: #F3
+          getters
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F4
+              previousFragment: #F5
+          setters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
   mixins
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -600,11 +723,22 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo
+          setter: <testLibrary>::@mixin::A::@setter::foo
       getters
         isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@getter::foo
           firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@mixin::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@mixin::A::@setter::foo
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F8
+              type: int
+          returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo
 ''');
   }
@@ -637,32 +771,74 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
-          nextFragment: #F8
+          nextFragment: #F11
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F6 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F10
               previousFragment: #F3
-              nextFragment: #F9
-        #F8 isAugmentation mixin A (nameOffset:86) (firstTokenOffset:72) (offset:86)
+              nextFragment: #F12
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+              nextFragment: #F13
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+                  nextFragment: #F14
+              previousFragment: #F5
+              nextFragment: #F15
+        #F11 isAugmentation mixin A (nameOffset:86) (firstTokenOffset:72) (offset:86)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F9 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
+            #F12 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
               element: <testLibrary>::@mixin::A::@field::foo
-              previousFragment: #F4
+              inducedGetter: #F13
+              inducedSetter: #F15
+              previousFragment: #F6
+          getters
+            #F13 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+              element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F12
+              previousFragment: #F7
+          setters
+            #F15 isAugmentation isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+              element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F12
+              formalParameters
+                #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
+                  element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F10
   mixins
     hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -679,16 +855,16 @@ library
       getters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@mixin::A::@field::foo
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo
@@ -696,7 +872,7 @@ library
   }
 
   test_field_inferredType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   var x = 0;
 }
@@ -713,12 +889,16 @@ library
           fields
             #F2 hasImplicitType hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::M::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           getters
             #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::M::@getter::x
+              inducingVariable: #F2
           setters
             #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::M::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::M::@setter::x::@formalParameter::value
@@ -755,10 +935,11 @@ library
   }
 
   test_field_inferredType_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   final x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -771,9 +952,11 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@mixin::M::@field::x
+              inducedGetter: #F3
           getters
             #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@mixin::M::@getter::x
+              inducingVariable: #F2
   mixins
     isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
@@ -1035,13 +1218,17 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
-              nextFragment: #F5
+              inducingVariable: #F3
+              nextFragment: #F6
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
@@ -1049,7 +1236,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           getters
-            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
   mixins
@@ -1074,7 +1261,7 @@ library
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -1112,13 +1299,17 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
-              nextFragment: #F5
+              inducingVariable: #F3
+              nextFragment: #F6
           setters
-            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
@@ -1127,7 +1318,7 @@ library
           previousFragment: #F1
           nextFragment: #F8
           getters
-            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F9
@@ -1137,7 +1328,7 @@ library
           getters
             #F9 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
               element: <testLibrary>::@mixin::A::@getter::foo
-              previousFragment: #F5
+              previousFragment: #F6
   mixins
     hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -1160,7 +1351,7 @@ library
       setters
         isOriginVariable foo
           reference: <testLibrary>::@mixin::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -2895,6 +3086,7 @@ library
   test_method_namedAsConstraint() async {
     var library = await buildLibrary(r'''
 class A {}
+
 mixin B on A {
   void A() {}
 }
@@ -2913,10 +3105,10 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        #F3 mixin B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 mixin B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@mixin::B
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration A (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F4 isCompleteDeclaration isOriginDeclaration A (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@mixin::B::@method::A
   classes
     isSimplyBounded class A
@@ -2941,7 +3133,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M<T> {
   void foo() {}
 }
@@ -2980,7 +3172,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M<T> {
   void foo(T _) {}
 }
@@ -3028,8 +3220,11 @@ library
   test_mixin() async {
     var library = await buildLibrary(r'''
 class A {}
+
 class B {}
+
 class C {}
+
 class D {}
 
 mixin M<T extends num, U> on A, B implements C, D {
@@ -3052,60 +3247,64 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F5 class C (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F7 class D (nameOffset:39) (firstTokenOffset:33) (offset:39)
+        #F7 class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::D
           constructors
-            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       mixins
-        #F9 mixin M (nameOffset:51) (firstTokenOffset:45) (offset:51)
+        #F9 mixin M (nameOffset:54) (firstTokenOffset:48) (offset:54)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F10 T (nameOffset:53) (firstTokenOffset:53) (offset:53)
+            #F10 T (nameOffset:56) (firstTokenOffset:56) (offset:56)
               element: #E0 T
-            #F11 U (nameOffset:68) (firstTokenOffset:68) (offset:68)
+            #F11 U (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: #E1 U
           fields
-            #F12 isOriginDeclaration f (nameOffset:101) (firstTokenOffset:101) (offset:101)
+            #F12 isOriginDeclaration f (nameOffset:104) (firstTokenOffset:104) (offset:104)
               element: <testLibrary>::@mixin::M::@field::f
-            #F13 isOriginGetterSetter g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+              inducedGetter: #F13
+              inducedSetter: #F14
+            #F15 isOriginGetterSetter g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@mixin::M::@field::g
-            #F14 isOriginGetterSetter s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F16 isOriginGetterSetter s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@mixin::M::@field::s
           getters
-            #F15 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+            #F13 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@mixin::M::@getter::f
-            #F16 isCompleteDeclaration isOriginDeclaration g (nameOffset:112) (firstTokenOffset:106) (offset:112)
+              inducingVariable: #F12
+            #F17 isCompleteDeclaration isOriginDeclaration g (nameOffset:115) (firstTokenOffset:109) (offset:115)
               element: <testLibrary>::@mixin::M::@getter::g
           setters
-            #F17 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+            #F14 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@mixin::M::@setter::f
+              inducingVariable: #F12
               formalParameters
-                #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+                #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
                   element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::value
-            #F19 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration s (nameOffset:126) (firstTokenOffset:122) (offset:126)
+            #F19 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration s (nameOffset:129) (firstTokenOffset:125) (offset:129)
               element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
-                #F20 requiredPositional isOriginDeclaration v (nameOffset:132) (firstTokenOffset:128) (offset:132)
+                #F20 requiredPositional isOriginDeclaration v (nameOffset:135) (firstTokenOffset:131) (offset:135)
                   element: <testLibrary>::@mixin::M::@setter::s::@formalParameter::v
           methods
-            #F21 isCompleteDeclaration isOriginDeclaration m (nameOffset:144) (firstTokenOffset:140) (offset:144)
+            #F21 isCompleteDeclaration isOriginDeclaration m (nameOffset:147) (firstTokenOffset:143) (offset:147)
               element: <testLibrary>::@mixin::M::@method::m
               formalParameters
-                #F22 requiredPositional isOriginDeclaration v (nameOffset:153) (firstTokenOffset:146) (offset:153)
+                #F22 requiredPositional isOriginDeclaration v (nameOffset:156) (firstTokenOffset:149) (offset:156)
                   element: <testLibrary>::@mixin::M::@method::m::@formalParameter::v
   classes
     isSimplyBounded class A
@@ -3161,29 +3360,29 @@ library
           setter: <testLibrary>::@mixin::M::@setter::f
         hasEnclosingTypeParameterReference isOriginGetterSetter g
           reference: <testLibrary>::@mixin::M::@field::g
-          firstFragment: #F13
+          firstFragment: #F15
           type: U
           getter: <testLibrary>::@mixin::M::@getter::g
         isOriginGetterSetter s
           reference: <testLibrary>::@mixin::M::@field::s
-          firstFragment: #F14
+          firstFragment: #F16
           type: int
           setter: <testLibrary>::@mixin::M::@setter::s
       getters
         hasEnclosingTypeParameterReference isOriginVariable f
           reference: <testLibrary>::@mixin::M::@getter::f
-          firstFragment: #F15
+          firstFragment: #F13
           returnType: T
           variable: <testLibrary>::@mixin::M::@field::f
         hasEnclosingTypeParameterReference isOriginDeclaration g
           reference: <testLibrary>::@mixin::M::@getter::g
-          firstFragment: #F16
+          firstFragment: #F17
           returnType: U
           variable: <testLibrary>::@mixin::M::@field::g
       setters
         hasEnclosingTypeParameterReference isOriginVariable f
           reference: <testLibrary>::@mixin::M::@setter::f
-          firstFragment: #F17
+          firstFragment: #F14
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F18
@@ -3214,6 +3413,7 @@ library
   test_mixin_allSupertypes() async {
     var library = await buildLibrary(r'''
 mixin M {}
+
 class A with M {}
 ''');
 
@@ -3227,7 +3427,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F1 class A (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::A
       mixins
         #F2 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -3256,9 +3456,11 @@ library
   test_mixin_allSupertypes_generic() async {
     var library = await buildLibrary(r'''
 class A<T, U> {}
+
 class B<T> extends A<int, T> {}
 
 mixin M1 on A<int, double> {}
+
 mixin M2 on B<String> {}
 ''');
 
@@ -3279,15 +3481,15 @@ library
               element: #E0 T
             #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
-        #F4 hasExtendsClause class B (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F4 hasExtendsClause class B (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B
           typeParameters
-            #F5 T (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F5 T (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: #E2 T
       mixins
-        #F6 mixin M1 (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F6 mixin M1 (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 (nameOffset:86) (firstTokenOffset:80) (offset:86)
+        #F7 mixin M2 (nameOffset:88) (firstTokenOffset:82) (offset:88)
           element: <testLibrary>::@mixin::M2
   classes
     isSimplyBounded class A
@@ -3334,7 +3536,9 @@ library
   test_mixin_allSupertypes_hasInterfaces() async {
     var library = await buildLibrary(r'''
 class A {}
+
 class B {}
+
 class C {}
 
 mixin M on A implements B, C {}
@@ -3352,12 +3556,12 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F2 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
-        #F3 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F3 class C (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::C
       mixins
-        #F4 mixin M (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F4 mixin M (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -3395,7 +3599,9 @@ library
   test_mixin_allSupertypes_hasSuperclassConstraints() async {
     var library = await buildLibrary(r'''
 class A {}
+
 mixin M on A {}
+
 class B with M {}
 ''');
 
@@ -3411,10 +3617,10 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class B (nameOffset:33) (firstTokenOffset:27) (offset:33)
+        #F2 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
       mixins
-        #F3 mixin M (nameOffset:17) (firstTokenOffset:11) (offset:17)
+        #F3 mixin M (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -3698,6 +3904,7 @@ library
   test_mixin_cycle_interfaces() async {
     var library = await buildLibrary(r'''
 mixin A implements B {}
+
 mixin B implements A {}
 ''');
     checkElementText(library, r'''
@@ -3709,7 +3916,7 @@ library
       mixins
         #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
-        #F2 mixin B (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F2 mixin B (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@mixin::B
   mixins
     isSimplyBounded mixin A
@@ -3728,6 +3935,7 @@ library
   test_mixin_cycle_superclassConstraints() async {
     var library = await buildLibrary(r'''
 mixin A on B {}
+
 mixin B on A {}
 ''');
     checkElementText(library, r'''
@@ -3739,7 +3947,7 @@ library
       mixins
         #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
-        #F2 mixin B (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F2 mixin B (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@mixin::B
   mixins
     isSimplyBounded mixin A
@@ -3837,7 +4045,9 @@ library
   test_mixin_inference() async {
     var library = await buildLibrary(r'''
 class A<T> {}
+
 mixin M<U> on A<U> {}
+
 class B extends A<int> with M {}
 ''');
     checkElementText(library, r'''
@@ -3856,17 +4066,17 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F4 hasExtendsClause class B (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F6 mixin M (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F7 U (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E1 U
   classes
     isSimplyBounded class A
@@ -3911,6 +4121,7 @@ library
     // "with B" is interpreted as "with B<dynamic>".
     var library = await buildLibrary(r'''
 class A<T> {}
+
 class B<T> = Object with A<T>;
 class C = A<int> with B;
 ''');
@@ -3930,19 +4141,19 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 isMixinApplication class B (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F4 isMixinApplication class B (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::B
           typeParameters
-            #F5 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F5 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E1 T
           constructors
-            #F6 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F6 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F7 isMixinApplication class C (nameOffset:51) (firstTokenOffset:45) (offset:51)
+        #F7 isMixinApplication class C (nameOffset:52) (firstTokenOffset:46) (offset:52)
           element: <testLibrary>::@class::C
           constructors
-            #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -4007,9 +4218,13 @@ library
     // "with B<int>".
     var library = await buildLibrary(r'''
 class A1<T> {}
+
 class A2<T> {}
+
 class B<T> = Object with A1<T>, A2<T>;
+
 class Base implements A1<int> {}
+
 class C = Base with B;
 ''');
     checkElementText(library, r'''
@@ -4028,34 +4243,34 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A1::@constructor::new
               typeName: A1
-        #F4 class A2 (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F4 class A2 (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::A2
           typeParameters
-            #F5 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
+            #F5 T (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E1 T
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
-        #F7 isMixinApplication class B (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F7 isMixinApplication class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::B
           typeParameters
-            #F8 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
+            #F8 T (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: #E2 T
           constructors
-            #F9 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F9 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F10 class Base (nameOffset:75) (firstTokenOffset:69) (offset:75)
+        #F10 class Base (nameOffset:78) (firstTokenOffset:72) (offset:78)
           element: <testLibrary>::@class::Base
           constructors
-            #F11 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F11 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@class::Base::@constructor::new
               typeName: Base
-        #F12 isMixinApplication class C (nameOffset:108) (firstTokenOffset:102) (offset:108)
+        #F12 isMixinApplication class C (nameOffset:112) (firstTokenOffset:106) (offset:112)
           element: <testLibrary>::@class::C
           constructors
-            #F13 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
+            #F13 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -4133,7 +4348,9 @@ library
   test_mixin_inference_nested_functionType() async {
     var library = await buildLibrary(r'''
 class A<T> {}
+
 mixin M<T, U> on A<T Function(U)> {}
+
 class C extends A<int Function(String)> with M {}
 ''');
     checkElementText(library, r'''
@@ -4152,19 +4369,19 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
+        #F4 hasExtendsClause class C (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F6 mixin M (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F6 mixin M (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
+            #F7 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E1 T
-            #F8 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F8 U (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: #E2 U
   classes
     isSimplyBounded class A
@@ -4207,7 +4424,9 @@ library
   test_mixin_inference_nested_interfaceType() async {
     var library = await buildLibrary(r'''
 abstract class A<T> {}
+
 mixin M<T> on A<List<T>> {}
+
 class C extends A<List<int>> with M {}
 ''');
     checkElementText(library, r'''
@@ -4226,17 +4445,17 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
+        #F4 hasExtendsClause class C (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@class::C
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F6 mixin M (nameOffset:29) (firstTokenOffset:23) (offset:29)
+        #F6 mixin M (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
+            #F7 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: #E1 T
   classes
     isAbstract isSimplyBounded class A
@@ -4278,8 +4497,11 @@ library
     // Both `M1` and `M2` have their type arguments inferred.
     var library = await buildLibrary(r'''
 class I<X> {}
+
 mixin M1<T> on I<T> {}
+
 mixin M2<T> on I<T> {}
+
 class A = I<int> with M1, M2;
 ''');
     checkElementText(library, r'''
@@ -4298,22 +4520,22 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
-        #F4 isMixinApplication class A (nameOffset:66) (firstTokenOffset:60) (offset:66)
+        #F4 isMixinApplication class A (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::A
           constructors
-            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+            #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        #F6 mixin M1 (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F6 mixin M1 (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@mixin::M1
           typeParameters
-            #F7 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F7 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: #E1 T
-        #F8 mixin M2 (nameOffset:43) (firstTokenOffset:37) (offset:43)
+        #F8 mixin M2 (nameOffset:45) (firstTokenOffset:39) (offset:45)
           element: <testLibrary>::@mixin::M2
           typeParameters
-            #F9 T (nameOffset:46) (firstTokenOffset:46) (offset:46)
+            #F9 T (nameOffset:48) (firstTokenOffset:48) (offset:48)
               element: #E2 T
   classes
     isSimplyBounded class I
@@ -4577,6 +4799,7 @@ library
   test_mixin_interfaces() async {
     var library = await buildLibrary(r'''
 mixin A implements I {}
+
 class I {}
 ''');
 
@@ -4587,10 +4810,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class I (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F1 class I (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::I
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       mixins
@@ -4763,8 +4986,11 @@ library
   test_mixin_interfaces_extensionType() async {
     var library = await buildLibrary(r'''
 class A {}
+
 extension type B(int it) {}
+
 class C {}
+
 mixin M implements A, B, C {}
 ''');
     configuration.withConstructors = false;
@@ -4777,19 +5003,21 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F2 class C (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@class::C
       extensionTypes
-        #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
+        #F3 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
+              inducedGetter: #F5
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
+              inducingVariable: #F4
       mixins
-        #F6 mixin M (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F6 mixin M (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -4831,7 +5059,7 @@ library
   }
 
   test_mixin_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4842,7 +5070,7 @@ mixin M {
   }
 
   test_mixin_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4853,7 +5081,7 @@ mixin M {
   }
 
   test_mixin_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   void foo() {}
 }
@@ -4864,7 +5092,7 @@ mixin M {
   }
 
   test_mixin_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4875,7 +5103,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4887,7 +5115,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4899,7 +5127,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   void foo() {}
 }
@@ -4911,7 +5139,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -5038,6 +5266,7 @@ library
   test_mixin_superclassConstraints() async {
     var library = await buildLibrary(r'''
 mixin A on B {}
+
 class B {}
 ''');
 
@@ -5048,10 +5277,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class B (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class B (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::B
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
@@ -5340,8 +5569,11 @@ library
   test_mixin_superclassConstraints_extensionType() async {
     var library = await buildLibrary(r'''
 class A {}
+
 extension type B(int it) {}
+
 class C {}
+
 mixin M on A, B, C {}
 ''');
     configuration.withConstructors = false;
@@ -5354,19 +5586,21 @@ library
       classes
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
+        #F2 class C (nameOffset:47) (firstTokenOffset:41) (offset:47)
           element: <testLibrary>::@class::C
       extensionTypes
-        #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
+        #F3 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@field::it
+              inducedGetter: #F5
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::B::@getter::it
+              inducingVariable: #F4
       mixins
-        #F6 mixin M (nameOffset:56) (firstTokenOffset:50) (offset:56)
+        #F6 mixin M (nameOffset:59) (firstTokenOffset:53) (offset:59)
           element: <testLibrary>::@mixin::M
   classes
     isSimplyBounded class A
@@ -5941,7 +6175,9 @@ library
   }
 
   test_mixin_typeParameters_variance_contravariant() async {
-    var library = await buildLibrary('mixin M<in T> {}');
+    var library = await buildLibrary(r'''
+mixin M<in T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5967,7 +6203,9 @@ library
   }
 
   test_mixin_typeParameters_variance_covariant() async {
-    var library = await buildLibrary('mixin M<out T> {}');
+    var library = await buildLibrary(r'''
+mixin M<out T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5993,7 +6231,9 @@ library
   }
 
   test_mixin_typeParameters_variance_invariant() async {
-    var library = await buildLibrary('mixin M<inout T> {}');
+    var library = await buildLibrary(r'''
+mixin M<inout T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6019,7 +6259,9 @@ library
   }
 
   test_mixin_typeParameters_variance_multiple() async {
-    var library = await buildLibrary('mixin M<inout T, in U, out V> {}');
+    var library = await buildLibrary(r'''
+mixin M<inout T, in U, out V> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6247,12 +6489,16 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value

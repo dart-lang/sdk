@@ -30,12 +30,13 @@ class AstToIrTypes
       .doubleType => DoubleType(node),
       .boolType => BoolType(node),
       .stringType => StringType(node),
+      .recordType => RecordType(node as ast.RecordType),
       .objectType => ObjectType(node),
       .nullType => const NullType(),
       .neverType => const NeverType(),
       .top => TopType(node),
       .otherDartType => StaticType(node),
-      .nothing || .lateValue || .typeParameters || .typeArguments =>
+      .nothing || .lateValue || .typeParameters || .typeArguments || .context =>
         throw 'Unexpected $kind when translating ${node.runtimeType} $node',
     };
     if (kind != TypeKind.otherDartType) {
@@ -107,7 +108,10 @@ class AstToIrTypes
       node.extensionTypeErasure.accept(this);
 
   @override
-  TypeKind visitRecordType(ast.RecordType node) => TypeKind.otherDartType;
+  TypeKind visitRecordType(ast.RecordType node) =>
+      node.nullability == .nonNullable
+      ? TypeKind.recordType
+      : TypeKind.otherDartType;
 
   @override
   TypeKind visitFutureOrType(ast.FutureOrType node) {

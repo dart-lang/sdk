@@ -141,18 +141,15 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_cascadeSection() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
-  var _ = 0..g();
+  var _ = 0..[!g!]();
 }
 
 extension on int {
   Future<int> g() async => this;
 }
-''',
-      [lint(26, 1)],
-    );
+''');
   }
 
   Future<void> test_conditionalOperator_assignment_future() async {
@@ -188,18 +185,15 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_constructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A() {
-    g();
+    [!g!]();
   }
 }
 
 Future<int> g() async => 0;
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   Future<void> test_constructor_assignment_named_ok_future() async {
@@ -297,31 +291,25 @@ class C {
   }
 
   Future<void> test_field_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   var a = () {
-    g();
+    [!g!]();
   };
 }
 
 Future<int> g() async => 0;
-''',
-      [lint(29, 1)],
-    );
+''');
   }
 
   Future<void> test_function() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g();
+  [!g!]();
 }
 
 Future<int> g() async => 7;
-''',
-      [lint(13, 1)],
-    );
+''');
   }
 
   Future<void> test_function_awaitNotRequired() async {
@@ -337,33 +325,27 @@ Future<int> g() async => 7;
   }
 
   Future<void> test_function_closure() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   () {
-    createDir('.');
+    [!createDir!]('.');
   }();
 }
 
 Future<void> createDir(String path) async {}
-''',
-      [lint(22, 9)],
-    );
+''');
   }
 
   Future<void> test_function_closure2() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 Future<void> f() async {
   () {
-    createDir('.');
+    [!createDir!]('.');
   }();
 }
 
 Future<void> createDir(String path) async {}
-''',
-      [lint(36, 9)],
-    );
+''');
   }
 
   Future<void> test_function_expression() async {
@@ -380,18 +362,15 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_function_futureOr() async {
-    await assertDiagnostics(
-      '''
+    await assertDiagnosticsFromMarkdown('''
 import 'dart:async';
 
 void f() {
-  g();
+  [!g!]();
 }
 
 FutureOr<int> g() async => 0;
-''',
-      [lint(35, 1)],
-    );
+''');
   }
 
   Future<void> test_function_ok_async() async {
@@ -417,24 +396,21 @@ Future<int> g() async => 0;
 
   Future<void> test_function_unawaited() async {
     // https://github.com/dart-lang/sdk/issues/59204
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 
 void baz(String path) {
-  foo(() {                // This should trigger
+  /*[0*/foo/*0]*/(() {                // This should trigger
     unawaited(foo(() {    // This should _not_ trigger
       unawaited(bar());   // This should _not_ trigger
-      bar();              // This should trigger
+      /*[1*/bar/*1]*/();              // This should trigger
     }));
   });
 }
 
 Future<void> foo(void Function() f) async {}
 Future<void> bar() async {}
-''',
-      [lint(48, 3), lint(211, 3)],
-    );
+''');
   }
 
   Future<void> test_ifNull_ok_future() async {
@@ -462,18 +438,15 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_method() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   void m() {
-    g();
+    [!g!]();
   }
 
   Future<void> g() async {}
 }
-''',
-      [lint(27, 1)],
-    );
+''');
   }
 
   Future<void> test_method_assignment_named_ok_future() async {
@@ -591,16 +564,13 @@ void bar((FutureOr<int>,) r) {}
   }
 
   Future<void> test_newMethod_invocation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void foo() {
-  g().then((_) {});
+  g().[!then!]((_) {});
 }
 
 Future<int> g() async => 0;
-''',
-      [lint(19, 4)],
-    );
+''');
   }
 
   Future<void> test_parenthesized_ok_future() async {
@@ -709,16 +679,13 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_topLevel_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var a = () {
-  g();
+  [!g!]();
 };
 
 Future<int> g() async => 0;
-''',
-      [lint(15, 1)],
-    );
+''');
   }
 
   Future<void> test_topLevel_assignment_expression_body() async {
@@ -748,20 +715,17 @@ Future<int> g() async => 0;
   }
 
   Future<void> test_variable_assignment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var handler = <String, Function>{};
 
 void ff(String command) {
   handler[command] = () {
-    g();
+    [!g!]();
   };
 }
 
 Future<int> g() async => 0;
-''',
-      [lint(93, 1)],
-    );
+''');
   }
 
   Future<void> test_variable_assignment_ok_future() async {

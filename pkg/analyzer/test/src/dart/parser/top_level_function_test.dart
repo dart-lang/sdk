@@ -2,24 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelFunctionParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TopLevelFunctionParserTest extends ParserDiagnosticsTest {
   test_function_abstract() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 abstract void foo() {}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -39,11 +40,11 @@ FunctionDeclaration
   }
 
   test_function_abstract_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 abstract void foo() {}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 15, 8)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -63,10 +64,9 @@ FunctionDeclaration
   }
 
   test_function_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment void foo() {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -87,10 +87,9 @@ FunctionDeclaration
   }
 
   test_function_augment_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment void foo();
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -109,14 +108,12 @@ FunctionDeclaration
   }
 
   test_function_augment_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 augment void foo() {}
+// [diag.missingConstFinalVarOrType][column 1][length 7] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 7] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingConstFinalVarOrType, 15, 7),
-      error(diag.expectedToken, 15, 7),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -136,10 +133,9 @@ FunctionDeclaration
   }
 
   test_function_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void foo();
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -157,11 +153,12 @@ FunctionDeclaration
   }
 
   test_function_body_empty_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 void foo();
+//        ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 25, 1)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -179,10 +176,10 @@ FunctionDeclaration
   }
 
   test_getter_abstract() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 abstract int get foo {}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -200,11 +197,11 @@ FunctionDeclaration
   }
 
   test_getter_abstract_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 abstract int get foo {}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 15, 8)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -222,10 +219,9 @@ FunctionDeclaration
   }
 
   test_getter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment int get foo => 0;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -245,10 +241,9 @@ FunctionDeclaration
   }
 
   test_getter_augment_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment int get foo;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -265,11 +260,12 @@ FunctionDeclaration
   }
 
   test_getter_augment_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 augment int get foo => 0;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 23, 3)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -286,10 +282,9 @@ FunctionDeclaration
   }
 
   test_getter_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 int get foo;
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -305,11 +300,12 @@ FunctionDeclaration
   }
 
   test_getter_body_empty_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 int get foo;
+//         ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 26, 1)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -326,9 +322,11 @@ FunctionDeclaration
 
   test_recovery_body_issue56355() {
     // https://github.com/dart-lang/sdk/issues/56355
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void get() {
   http.Response response = http2
+//                         ^^^^^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
 
@@ -384,10 +382,10 @@ FunctionDeclaration
   }
 
   test_setter_abstract() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 abstract set foo(int _) {}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -410,11 +408,11 @@ FunctionDeclaration
   }
 
   test_setter_abstract_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 abstract set foo(int _) {}
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 15, 8)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -437,10 +435,9 @@ FunctionDeclaration
   }
 
   test_setter_augment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment set foo(int _) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -464,10 +461,9 @@ FunctionDeclaration
   }
 
   test_setter_augment_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 augment set foo(int _);
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -489,11 +485,10 @@ FunctionDeclaration
   }
 
   test_setter_augment_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 augment set foo(int _) {}
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -518,10 +513,9 @@ FunctionDeclaration
   }
 
   test_setter_body_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 set foo(int _);
 ''');
-    parseResult.assertNoErrors();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -542,11 +536,12 @@ FunctionDeclaration
   }
 
   test_setter_body_empty_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
 set foo(int _);
+//            ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 29, 1)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
@@ -567,10 +562,11 @@ FunctionDeclaration
   }
 
   test_setter_formalParameters_absent() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 set foo {}
+//  ^^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionParameters, 4, 3)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -591,12 +587,11 @@ FunctionDeclaration
   }
 
   test_setter_formalParameters_optionalNamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 set foo({a}) {}
+//  ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 4, 3),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -617,12 +612,11 @@ FunctionDeclaration
   }
 
   test_setter_formalParameters_optionalPositional() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 set foo([a]) {}
+//  ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 4, 3),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -643,12 +637,11 @@ FunctionDeclaration
   }
 
   test_setter_formalParameters_requiredPositional_three() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 set foo(a, b, c) {}
+//  ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 4, 3),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -669,12 +662,11 @@ FunctionDeclaration
   }
 
   test_setter_formalParameters_zero() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 set foo() {}
+//  ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 4, 3),
-    ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''

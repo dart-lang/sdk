@@ -17,12 +17,23 @@ TestFile createTestFile({
   required String source,
   String path = "some_test.dart",
   String suite = "language",
+  Map<String, String> additionalFiles = const {},
+  void Function(String rootPath, Map<String, String> additionalPaths)? onPaths,
 }) {
   var suitePath = Path(tempDir.path).append(suite);
+  var additionalPaths = <String, String>{};
+  for (var entry in additionalFiles.entries) {
+    var additionalPath = suitePath.append(entry.key).toNativePath();
+    additionalPaths[entry.key] = additionalPath;
+    File(additionalPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(entry.value);
+  }
   path = suitePath.append(path).toNativePath();
   File(path)
     ..parent.createSync(recursive: true)
     ..writeAsStringSync(source);
+  onPaths?.call(path, additionalPaths);
   return TestFile.read(suitePath.absolute, path);
 }
 

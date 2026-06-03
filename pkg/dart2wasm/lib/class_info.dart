@@ -366,7 +366,7 @@ class ClassInfoCollector {
       translator.coreTypes.recordClass,
       translator.index.getClass("dart:core", "_Type"),
       translator.index.getClass("dart:_list", "WasmListBase"),
-      translator.index.getClass("dart:_string", "JSStringImpl"),
+      translator.stringImplClass,
     };
     for (final name in const <String>[
       "ByteBuffer",
@@ -408,13 +408,20 @@ class ClassInfoCollector {
   TranslatorOptions get options => translator.options;
 
   void _createStructForClassTop() {
-    final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
+    final w.StructType struct = translator.typesBuilder.defineStruct(
+      "#Top",
+      brand: true,
+    );
     topInfo = ClassInfo(null, 0, 0, struct, null);
     topInfo._repr = w.RefType.def(struct, nullable: false);
     translator.classForHeapType[struct] = topInfo;
   }
 
-  void _createStructForClass(Map<Class, int> classIds, Class cls) {
+  void _createStructForClass(
+    Map<Class, int> classIds,
+    Class cls, {
+    bool? brand,
+  }) {
     ClassInfo? info = translator.classInfo[cls];
     if (info != null) return;
 
@@ -425,6 +432,7 @@ class ClassInfoCollector {
       final w.StructType struct = translator.typesBuilder.defineStruct(
         cls.name,
         superType: superInfo.struct,
+        brand: brand ?? translator.options.uniqueTypes,
       );
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
@@ -479,6 +487,7 @@ class ClassInfoCollector {
           ? translator.typesBuilder.defineStruct(
               cls.name,
               superType: superInfo.struct,
+              brand: translator.options.uniqueTypes,
             )
           : superInfo.struct;
       info = ClassInfo(
@@ -506,6 +515,7 @@ class ClassInfoCollector {
       () => translator.typesBuilder.defineStruct(
         'Record$numFields',
         superType: translator.recordInfo.struct,
+        brand: translator.options.uniqueTypes,
       ),
     );
 
@@ -675,7 +685,7 @@ class ClassInfoCollector {
     // Subclasses of the `_Closure` class are generated on the fly as fields
     // with function types are encountered. Therefore, `_Closure` class must be
     // early in the initialization order.
-    _createStructForClass(classIds, translator.closureClass);
+    _createStructForClass(classIds, translator.closureClass, brand: true);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
     // needs to be initialized before we encounter a class with type parameters.
@@ -901,7 +911,7 @@ class ClassIdNumbering {
     final fixedOrder = <Class, int>{
       translator.coreTypes.boolClass: -9,
       translator.coreTypes.numClass: -8,
-      translator.jsStringClass: -7,
+      translator.stringImplClass: -7,
       translator.typeClass: -6,
       translator.listBaseClass: -5,
       translator.hashFieldBaseClass: -4,

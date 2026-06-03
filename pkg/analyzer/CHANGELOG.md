@@ -3,6 +3,7 @@
 * Deprecate `PackageConfigFileBuilder` in `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
 * Deprecate `isInitializingFormal` in `FormalParameterElement`. Use type checks (`element is FieldFormalParameterElement`) instead.
 * Deprecate `isSuperFormal` in `FormalParameterElement`. Use type checks (`element is SuperFormalParameterElement`) instead.
+* Deprecate `ExtensionTypeDeclaration.primaryConstructor`. Use `ExtensionTypeDeclaration.namePart` instead.
 
 ## 13.0.0
 
@@ -337,7 +338,7 @@
 * Deprecate `InterfaceType.lookUpGetter3`, use `lookUpGetter` instead.
 * Deprecate `InterfaceType.lookUpMethod3`, use `lookUpMethod` instead.
 * Deprecate `InterfaceType.lookUpSetter3`, use `lookUpSetter` instead.
-* Remove `PropertyAccessorFragmentImplImplicitGetter`, `PropertyAccessorFragmentImplImplicitSetter`, 
+* Remove `PropertyAccessorFragmentImplImplicitGetter`, `PropertyAccessorFragmentImplImplicitSetter`,
   and `FormalParameterFragmentImplOfImplicitSetter`, replace with `GetterFragmentImpl`, and `SetterFragmentImpl`.
 * Deprecate `ExtensionTypeFragment.representation2`, use `representation` instead.
 * Deprecate `DartType.element3`, use `element` instead.

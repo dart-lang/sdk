@@ -18,11 +18,15 @@ class GitCloneProjectGenerator implements ProjectGenerator {
   /// The ref (commit sha, tag, or branch) to check out.
   final String ref;
 
-  /// Relative paths to the sub-directories of the repo to open in the
-  /// workspace.
+  /// Relative paths (using the current platforms separators) to the
+  /// sub-directories of the repo to open in the workspace.
   final Iterable<String>? openSubdirs;
 
-  GitCloneProjectGenerator(this.repo, this.ref, {this.openSubdirs});
+  new(this.repo, this.ref, {Iterable<String>? openSubdirs})
+    : // Normalize any path separators to match the current platform.
+      openSubdirs = openSubdirs?.map(
+        (openSubdir) => openSubdir.replaceAll(RegExp(r'\/'), p.separator),
+      );
 
   @override
   String get description => 'Cloning git repo "$repo" at ref "$ref"';

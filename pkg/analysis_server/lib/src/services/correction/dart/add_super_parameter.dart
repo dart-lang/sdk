@@ -17,7 +17,7 @@ import 'package:collection/collection.dart';
 class AddSuperParameter extends ResolvedCorrectionProducer {
   int _missingCount = 0;
 
-  AddSuperParameter({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

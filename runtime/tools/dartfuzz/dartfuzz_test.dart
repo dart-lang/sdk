@@ -116,7 +116,7 @@ class TestRunnerJIT implements TestRunner {
     List<String> extraFlags,
   ) {
     description = '$prefix-$tag';
-    dart = '$top/out/$tag/dart';
+    dart = '$top/out/$tag/dartvm';
     cmd = [dart, ...extraFlags, '--old_gen_heap_size=$dartHeapSize', fileName];
   }
 

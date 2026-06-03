@@ -7,7 +7,8 @@ import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
-) implements LocalStack<Info> {
+)
+    implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
   ) {
@@ -36,9 +37,9 @@ class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
 
   Scope? scope;
-  VariableDeclaration? thisVariable;
+  Variable? thisVariable;
 
-  ScopeProviderInfo({required this.kind});
+  new({required this.kind});
 }
 
 abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
@@ -150,18 +151,17 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   }
 
   void handleDeclarationOfVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required CaptureKind captureKind,
   });
 
-  void handleVariablesCapturedByNode(
-    ContextConsumer node,
+  List<VariableContext> computeCapturedVariableContexts(
     List<VariableBase> variables,
   ) {
-    Set<VariableContext> contexts = {
-      for (VariableBase variable in variables) variable.context,
-    };
-    (node.capturedContexts ??= []).addAll(contexts);
+    if (variables.isEmpty) {
+      return [];
+    }
+    return {for (VariableBase variable in variables) variable.context}.toList();
   }
 
   ThisVariable get thisVariable {
@@ -186,7 +186,7 @@ class TrivialContextAllocationStrategy
     extends ContextAllocationStrategy<ScopeProviderInfo> {
   @override
   void handleDeclarationOfVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
@@ -210,7 +210,7 @@ class CollectorScopeProviderInfo extends ScopeProviderInfo {
   /// case the current scope doesn't contain captured variables yet.
   CollectorScopeProviderInfo? capturedVariableCollector;
 
-  CollectorScopeProviderInfo({required super.kind});
+  new({required super.kind});
 }
 
 class LoopDepthAllocationStrategy
@@ -236,7 +236,6 @@ class LoopDepthAllocationStrategy
       case ScopeProviderInfoKind.FunctionNode:
       case ScopeProviderInfoKind.FunctionNodeWithThis:
       case ScopeProviderInfoKind.InstanceField:
-      // Coverage-ignore(suite): Not run.
       case ScopeProviderInfoKind.StaticField:
         return true;
     }
@@ -264,7 +263,7 @@ class LoopDepthAllocationStrategy
 
   @override
   void handleDeclarationOfVariable(
-    VariableDeclaration variable, {
+    Variable variable, {
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;

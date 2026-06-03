@@ -27,7 +27,7 @@ class ConstructorReferenceBuilder {
 
   MemberLookupResult? target;
 
-  ConstructorReferenceBuilder(
+  new(
     this.typeName,
     this.typeArguments,
     this.suffix,

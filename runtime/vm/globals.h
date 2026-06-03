@@ -149,6 +149,10 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define TARGET_HAS_FAST_WRITE_WRITE_FENCE 1
 #define HOST_HAS_FAST_WRITE_WRITE_FENCE 1
 
+#if defined(DEBUG)
+#define SNAPSHOT_BACKTRACE
+#endif
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

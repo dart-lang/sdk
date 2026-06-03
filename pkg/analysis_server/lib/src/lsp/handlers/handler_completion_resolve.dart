@@ -24,7 +24,7 @@ class CompletionResolveHandler
   /// cancel events).
   CompletionItem? _latestCompletionItem;
 
-  CompletionResolveHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => Method.completionItem_resolve;

@@ -2,53 +2,50 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriWithInterpolationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UriWithInterpolationTest extends PubPackageResolutionTest {
   test_library_docImport() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 /// @docImport '${'foo'}.dart';
+//             ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
 library;
-''',
-      [error(diag.uriWithInterpolation, 15, 15)],
-    );
+''');
   }
 
   test_library_export() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 export '${'foo'}.dart';
-''',
-      [error(diag.uriWithInterpolation, 7, 15)],
-    );
+//     ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''');
   }
 
   test_library_import() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import '${'foo'}.dart';
-''',
-      [error(diag.uriWithInterpolation, 7, 15)],
-    );
+//     ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''');
   }
 
   test_part() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 part '${'foo'}.dart';
-''',
-      [error(diag.uriWithInterpolation, 5, 15)],
-    );
+//   ^^^^^^^^^^^^^^^
+// [diag.uriWithInterpolation] URIs can't use string interpolation.
+''');
   }
 }

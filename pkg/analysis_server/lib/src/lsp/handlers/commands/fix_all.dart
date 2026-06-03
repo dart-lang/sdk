@@ -18,7 +18,7 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
 
 class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
-  FixAllCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Fix All';
@@ -96,7 +96,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
   final String path;
   final bool autoTriggered;
 
-  _FixAllOperation({
+  new({
     required AnalysisServer server,
     required this.message,
     required this.path,

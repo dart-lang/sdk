@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,114 +18,100 @@ main() {
 class ConstWithTypeParametersConstructorTearoffTest
     extends PubPackageResolutionTest {
   test_asExpression_functionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 void g() {
   const [f as void Function<T>(T, [int])];
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.listElementTypeNotAssignable] The element type 'void Function<T>(T)' can't be assigned to the list type 'void Function<T>(T, [int])'.
 }
-''',
-      [error(diag.listElementTypeNotAssignable, 38, 31)],
-    );
+''');
   }
 
   test_defaultValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void m([fn = A<T>.new]) {}
+//               ^
+// [diag.constWithTypeParametersConstructorTearoff] A constant constructor tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersConstructorTearoff, 30, 1)],
-    );
+''');
   }
 
   test_defaultValue_fieldFormalParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A<T> Function() fn;
   A([this.fn = A<T>.new]);
+//               ^
+// [diag.constWithTypeParametersConstructorTearoff] A constant constructor tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersConstructorTearoff, 52, 1)],
-    );
+''');
   }
 
   test_defaultValue_noTypeVariableInferredFromParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void m([A<T> Function() fn = A.new]) {}
+//                             ^^^^^
+// [diag.invalidAssignment] A value of type 'A<dynamic> Function()' can't be assigned to a variable of type 'A<T> Function()'.
 }
-''',
-      [
-        // `A<dynamic> Function()` cannot be assigned to `A<T> Function()`, but
-        // there should not be any other error reported here.
-        error(diag.invalidAssignment, 44, 5),
-      ],
-    );
+''');
   }
 
   test_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void m() {
     const c = A<T>.new;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//              ^
+// [diag.constWithTypeParametersConstructorTearoff] A constant constructor tearoff can't use a type parameter as a type argument.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 36, 1),
-        error(diag.constWithTypeParametersConstructorTearoff, 42, 1),
-      ],
-    );
+''');
   }
 
   test_fieldValue_constClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   final x = A<T>.new;
+//            ^
+// [diag.constWithTypeParametersConstructorTearoff] A constant constructor tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersConstructorTearoff, 40, 1)],
-    );
+''');
   }
 
   test_indirect() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void m() {
     const c = A<List<T>>.new;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//                   ^
+// [diag.constWithTypeParametersConstructorTearoff] A constant constructor tearoff can't use a type parameter as a type argument.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 36, 1),
-        error(diag.constWithTypeParametersConstructorTearoff, 47, 1),
-      ],
-    );
+''');
   }
 
   test_isExpression_functionType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void m() {
     const [false is void Function(T)];
+//                                ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
   }
 }
-''',
-      [error(diag.constWithTypeParameters, 60, 1)],
-    );
+''');
   }
 
   test_nonConst() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   void m() {
     A<T>.new;
@@ -140,129 +125,114 @@ class A<T> {
 class ConstWithTypeParametersFunctionTearoffTest
     extends PubPackageResolutionTest {
   test_appliedTypeParameter_defaultConstructorValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) => t;
 
 class C<T> {
   final void Function(T) p;
   const C({this.p = f});
+//                  ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 83, 1)],
-    );
+''');
   }
 
   test_appliedTypeParameter_defaultFunctionValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) => t;
 
 void bar<T>([void Function(T) p = f]) {}
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 56, 1)],
-    );
+//                                ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
+''');
   }
 
   test_appliedTypeParameter_defaultMethodValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) => t;
 
 class C<T> {
   void foo([void Function(T) p = f]) {}
+//                               ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 68, 1)],
-    );
+''');
   }
 
   test_appliedTypeParameter_nested() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) => t;
 
 void bar<T>([void Function(List<T>) p = f]) {}
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 62, 1)],
-    );
+//                                      ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
+''');
   }
 
   test_appliedTypeParameter_nestedFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T t) => t;
 
 void bar<T>([void Function(T Function()) p = f]) {}
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 67, 1)],
-    );
+//                                           ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
+''');
   }
 
   test_defaultValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {
   void m([void Function(U) fn = f<U>]) {}
+//                                ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
 }
-''',
-      [error(diag.constWithTypeParametersFunctionTearoff, 65, 1)],
-    );
+''');
   }
 
   test_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {
   void m() {
     const c = f<U>;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//              ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 54, 1),
-        error(diag.constWithTypeParametersFunctionTearoff, 60, 1),
-      ],
-    );
+''');
   }
 
   test_fieldValue_constClass() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {
   const A();
+//^^^^^
+// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'x' is initialized with a non-constant value.
   final x = f<U>;
+//            ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
 }
-''',
-      [
-        error(diag.constConstructorWithFieldInitializedByNonConst, 33, 5),
-        error(diag.constWithTypeParametersFunctionTearoff, 58, 1),
-      ],
-    );
+''');
   }
 
   test_fieldValue_extension() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {}
 extension<U> on A<U> {
   final x = f<U>;
+//      ^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
-''',
-      [
-        // An instance field is illegal, but we should not also report an
-        // additional error for the type variable.
-        error(diag.extensionDeclaresInstanceField, 63, 1),
-      ],
-    );
+''');
   }
 
   test_fieldValue_nonConstClass() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {
   final x = f<U>;
@@ -271,24 +241,22 @@ class A<U> {
   }
 
   test_indirect() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {
   void m() {
     const c = f<List<U>>;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
+//                   ^
+// [diag.constWithTypeParametersFunctionTearoff] A constant function tearoff can't use a type parameter as a type argument.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 54, 1),
-        error(diag.constWithTypeParametersFunctionTearoff, 65, 1),
-      ],
-    );
+''');
   }
 
   test_nonConst() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T a) {}
 class A<U> {
   void m() {
@@ -302,63 +270,59 @@ class A<U> {
 @reflectiveTest
 class ConstWithTypeParametersTest extends PubPackageResolutionTest {
   test_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
     const A<T>();
+//          ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
   }
 }
-''',
-      [error(diag.constWithTypeParameters, 51, 1)],
-    );
+''');
   }
 
   test_indirect() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
     const A<List<T>>();
+//               ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
   }
 }
-''',
-      [error(diag.constWithTypeParameters, 56, 1)],
-    );
+''');
   }
 
   test_indirect_functionType_returnType() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
     const A<T Function()>();
+//          ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
   }
 }
-''',
-      [error(diag.constWithTypeParameters, 51, 1)],
-    );
+''');
   }
 
   test_indirect_functionType_simpleParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
     const A<void Function(T)>();
+//                        ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
   }
 }
-''',
-      [error(diag.constWithTypeParameters, 65, 1)],
-    );
+''');
   }
 
   test_indirect_functionType_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
@@ -369,7 +333,7 @@ class A<T> {
   }
 
   test_indirect_functionType_typeParameter_nestedFunctionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
@@ -380,7 +344,7 @@ class A<T> {
   }
 
   test_indirect_functionType_typeParameter_referencedDirectly() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
@@ -391,7 +355,7 @@ class A<T> {
   }
 
   test_indirect_functionType_typeParameter_typeArgumentOfReturnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
@@ -402,21 +366,20 @@ class A<T> {
   }
 
   test_indirect_functionType_typeParameter_typeParameterBound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {
     const A<void Function<U extends T>()>();
+//                                  ^
+// [diag.constWithTypeParameters] A constant creation can't use a type parameter as a type argument.
   }
 }
-''',
-      [error(diag.constWithTypeParameters, 75, 1)],
-    );
+''');
   }
 
   test_nonConstContext() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   const A();
   void m() {

@@ -145,5 +145,5 @@ class VersionAndPackageUri {
   final Version version;
   final Uri packageUri;
 
-  VersionAndPackageUri(this.version, this.packageUri);
+  new(this.version, this.packageUri);
 }

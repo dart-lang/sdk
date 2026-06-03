@@ -19,7 +19,7 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
 
   final bool _canBeBulkApplied;
 
-  factory ReplaceFinalWithVar({required CorrectionProducerContext context}) {
+  factory({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ReplaceFinalWithVar._(
         context: context,
@@ -51,7 +51,7 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
     );
   }
 
-  ReplaceFinalWithVar._({
+  new _({
     required super.context,
     required this._finalKeyword,
     required this._removeFinal,

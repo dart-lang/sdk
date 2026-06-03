@@ -49,7 +49,7 @@ class MatchingCache {
   bool _isClosed = false;
 
   /// The declarations need for the cached expressions.
-  List<Statement> _declarations = [];
+  List<VariableDeclaration> _declarations = [];
 
   /// Map for the known cached keys and their corresponding expressions.
   Map<CacheKey, Cache> _cacheKeyMap = {};
@@ -65,13 +65,9 @@ class MatchingCache {
   ///   if (o case [int a, _] || [_, int a]) { ... }
   ///
   /// where a joint variable is used instead of the two declared 'a' variables.
-  Map<VariableDeclaration, VariableDeclaration> _variableAliases = {};
+  Map<Variable, Variable> _variableAliases = {};
 
-  MatchingCache(
-    this._matchingCacheIndex,
-    this._coreTypes, {
-    required this.useLowering,
-  });
+  new(this._matchingCacheIndex, this._coreTypes, {required this.useLowering});
 
   /// Declares that [jointVariables] should be used as aliases of the variables
   /// of the same name in [variables1] and [variables2].
@@ -82,33 +78,33 @@ class MatchingCache {
   ///
   /// where a joint variable is used instead of the two declared 'a' variables.
   void declareJointVariables(
-    List<VariableDeclaration> jointVariables,
-    List<VariableDeclaration> variables1,
-    List<VariableDeclaration> variables2,
+    List<Variable> jointVariables,
+    List<Variable> variables1,
+    List<Variable> variables2,
   ) {
-    Map<String, VariableDeclaration> jointVariablesMap = {};
-    for (VariableDeclaration variable in jointVariables) {
+    Map<String, Variable> jointVariablesMap = {};
+    for (Variable variable in jointVariables) {
       jointVariablesMap[variable.name!] = variable;
     }
-    for (VariableDeclaration variable in variables1) {
-      VariableDeclaration? jointVariable = jointVariablesMap[variable.name!];
+    for (Variable variable in variables1) {
+      Variable? jointVariable = jointVariablesMap[variable.name!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
         // Coverage-ignore-block(suite): Not run.
         // Error case. This variable is only declared one of the branches and
         // therefore not joint. Include the variable in the declarations.
-        registerDeclaration(variable);
+        registerDeclaration(createVariableDeclaration(variable));
       }
     }
-    for (VariableDeclaration variable in variables2) {
-      VariableDeclaration? jointVariable = jointVariablesMap[variable.name!];
+    for (Variable variable in variables2) {
+      Variable? jointVariable = jointVariablesMap[variable.name!];
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
         // Error case. This variable is only declared one of the branches and
         // therefore not joint. Include the variable in the declarations.
-        registerDeclaration(variable);
+        registerDeclaration(createVariableDeclaration(variable));
       }
     }
   }
@@ -122,8 +118,8 @@ class MatchingCache {
   ///
   /// where a joint variable is the unaliased variable for  of the two
   /// declared 'a' variables.
-  VariableDeclaration getUnaliasedVariable(VariableDeclaration variable) {
-    VariableDeclaration? unalias = _variableAliases[variable];
+  Variable getUnaliasedVariable(Variable variable) {
+    Variable? unalias = _variableAliases[variable];
     if (unalias != null) {
       // Joint variables might themselves be joint, for instance in nested
       // or patterns.
@@ -166,7 +162,7 @@ class MatchingCache {
 
   /// Registers that the variable or local function [declaration] is need for
   /// the cached expressions.
-  void registerDeclaration(Statement declaration) {
+  void registerDeclaration(VariableDeclaration declaration) {
     assert(!_isClosed);
     _declarations.add(declaration);
   }
@@ -176,23 +172,20 @@ class MatchingCache {
   ///
   /// Once called, the matching cache is closed and no new cacheable expressions
   /// can be created.
-  Iterable<Statement> get declarations {
+  Iterable<VariableDeclaration> get declarations {
     _isClosed = true;
     return _declarations;
   }
 
-  /// Creates a [VariableDeclaration] for a temporary variable of the given
+  /// Creates a [Variable] for a temporary variable of the given
   /// [type] and registers it with [registerDeclaration].
-  VariableDeclaration createTemporaryVariable(
-    DartType type, {
-    required int fileOffset,
-  }) {
-    VariableDeclaration variable = createUninitializedVariable(
-      type,
+  Variable createTemporaryVariable(DartType type, {required int fileOffset}) {
+    VariableDeclaration declaration = createUninitializedVariableDeclaration(
+      type: type,
       fileOffset: fileOffset,
     );
-    registerDeclaration(variable);
-    return variable;
+    registerDeclaration(declaration);
+    return declaration.variable;
   }
 
   /// Creates the cacheable expression for the scrutinee [expression] of the
@@ -751,7 +744,7 @@ abstract class CacheKey implements AccessKey {
 class ExpressionKey extends CacheKey {
   final Expression expression;
 
-  ExpressionKey(this.expression);
+  new(this.expression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -771,7 +764,7 @@ class ExpressionKey extends CacheKey {
 class ConstantKey extends CacheKey {
   final Constant constant;
 
-  ConstantKey(this.constant);
+  new(this.constant);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -791,7 +784,7 @@ class ConstantKey extends CacheKey {
 class IntegerKey extends CacheKey {
   final int value;
 
-  IntegerKey(this.value);
+  new(this.value);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -812,7 +805,7 @@ class IsKey extends CacheKey {
   final CacheKey receiver;
   final DartType type;
 
-  IsKey(this.receiver, this.type);
+  new(this.receiver, this.type);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -834,7 +827,7 @@ class AsKey extends CacheKey {
   final CacheKey receiver;
   final DartType type;
 
-  AsKey(this.receiver, this.type);
+  new(this.receiver, this.type);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -854,7 +847,7 @@ class AsKey extends CacheKey {
 class NullCheckKey extends CacheKey {
   final CacheKey operand;
 
-  NullCheckKey(this.operand);
+  new(this.operand);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -874,7 +867,7 @@ class NullCheckKey extends CacheKey {
 class NullAssertKey extends CacheKey {
   final CacheKey operand;
 
-  NullAssertKey(this.operand);
+  new(this.operand);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -897,7 +890,7 @@ class DynamicAccessKey extends CacheKey {
   final String propertyName;
   final List<CacheKey>? arguments;
 
-  DynamicAccessKey(this.receiver, this.propertyName, [this.arguments]);
+  new(this.receiver, this.propertyName, [this.arguments]);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -938,7 +931,7 @@ class StaticAccessKey extends CacheKey {
   final String propertyName;
   final List<CacheKey>? arguments;
 
-  StaticAccessKey(
+  new(
     this.receiver,
     this.target,
     this.typeArguments,
@@ -985,7 +978,7 @@ class AndKey extends CacheKey {
   final CacheKey left;
   final CacheKey right;
 
-  AndKey(this.left, this.right);
+  new(this.left, this.right);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1049,7 +1042,7 @@ class PromotedCacheableExpression
   @override
   final AccessKey accessKey;
 
-  PromotedCacheableExpression(this._expression, this._promotedType)
+  new(this._expression, this._promotedType)
     : accessKey = new PromotedAccessKey(_expression.accessKey, _promotedType);
 
   @override
@@ -1080,7 +1073,6 @@ class PromotedCacheableExpression
         result = createAsExpression(
           result,
           _promotedType,
-          forNonNullableByDefault: true,
           isUnchecked: true,
           fileOffset: result.fileOffset,
         );
@@ -1123,11 +1115,7 @@ class CovariantCheckCacheableExpression
 
   final int fileOffset;
 
-  CovariantCheckCacheableExpression(
-    this._expression,
-    this._checkedType, {
-    required this.fileOffset,
-  });
+  new(this._expression, this._checkedType, {required this.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1150,7 +1138,6 @@ class CovariantCheckCacheableExpression
     return createAsExpression(
       result,
       _checkedType,
-      forNonNullableByDefault: true,
       fileOffset: fileOffset,
       isCovarianceCheck: true,
     );
@@ -1193,7 +1180,7 @@ class CacheExpression
   final Cache _cache;
   final DelayedExpression expression;
 
-  CacheExpression(this.cacheKey, this.accessKey, this._cache, this.expression);
+  new(this.cacheKey, this.accessKey, this._cache, this.expression);
 
   @override
   Expression createExpression(
@@ -1254,13 +1241,13 @@ class Cache {
   /// non-late variable.
   ///
   /// Otherwise [_variable] is unused.
-  VariableDeclaration? _variable;
+  Variable? _variable;
 
   /// If cached using late lowering, this will be the boolean variable that
   /// tracks whether [_variable] as been initialized.
   ///
   /// Otherwise [_isSetVariable] is unused.
-  VariableDeclaration? _isSetVariable;
+  Variable? _isSetVariable;
 
   /// The name used to name [_variable], [_isSetVariable] and [_getVariable].
   final String _name;
@@ -1286,7 +1273,7 @@ class Cache {
   /// will have their own offsets.
   Map<AccessKey, CacheExpression> _accesses = {};
 
-  Cache(
+  new(
     this.cacheKey,
     this._matchingCache,
     this._name, {
@@ -1354,7 +1341,7 @@ class Cache {
       if (!_isLate) {
         // To avoid closurizing initializers we always inline the initializer
         // unless it is not a late variable.
-        VariableDeclaration? variable = _variable;
+        Variable? variable = _variable;
         if (variable == null) {
           variable = _variable =
               createVariableCache(
@@ -1374,14 +1361,16 @@ class Cache {
             // offsets for better step debugging.
             variable.fileOffset = TreeNode.noOffset;
           }
-          _matchingCache.registerDeclaration(variable);
+          _matchingCache.registerDeclaration(
+            createVariableDeclaration(variable),
+          );
         }
         result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
       } else {
         assert(_isLate, "Unexpected non-late cache ${cacheKey.name}");
 
-        VariableDeclaration? variable = _variable;
-        VariableDeclaration? isSetVariable = _isSetVariable;
+        Variable? variable = _variable;
+        Variable? isSetVariable = _isSetVariable;
         if (variable == null) {
           DartType? cacheType;
           for (CacheExpression expression in _accesses.values) {
@@ -1392,24 +1381,31 @@ class Cache {
               break;
             }
           }
-          variable = _variable =
-              createUninitializedVariable(cacheType!, fileOffset: _fileOffset)
-                ..name = _name
+
+          VariableDeclaration variableDeclaration =
+              createUninitializedVariableDeclaration(
+                type: cacheType!,
+                name: _name,
                 // Avoid step debugging on the declaration of caching variables.
                 // TODO(johnniwinther): Find a more systematic way of omitting
                 // offsets for better step debugging.
-                ..fileOffset = TreeNode.noOffset;
+                fileOffset: TreeNode.noOffset,
+              );
+          variable = _variable = variableDeclaration.variable;
+          _matchingCache.registerDeclaration(variableDeclaration);
 
-          _matchingCache.registerDeclaration(variable);
-          isSetVariable = _isSetVariable = createInitializedVariable(
-            createBoolLiteral(false, fileOffset: _fileOffset),
-            typeEnvironment.coreTypes.boolNonNullableRawType,
-            // Avoid step debugging on the declaration of caching variables.
-            // TODO(johnniwinther): Find a more systematic way of omitting
-            // offsets for better step debugging.
-            fileOffset: TreeNode.noOffset,
-          )..name = '$_name#isSet';
-          _matchingCache.registerDeclaration(isSetVariable);
+          VariableDeclaration isSetVariableDeclaration =
+              createInitializedVariableDeclaration(
+                expression: createBoolLiteral(false, fileOffset: _fileOffset),
+                type: typeEnvironment.coreTypes.boolNonNullableRawType,
+                name: '$_name#isSet',
+                // Avoid step debugging on the declaration of caching variables.
+                // TODO(johnniwinther): Find a more systematic way of omitting
+                // offsets for better step debugging.
+                fileOffset: TreeNode.noOffset,
+              );
+          isSetVariable = _isSetVariable = isSetVariableDeclaration.variable;
+          _matchingCache.registerDeclaration(isSetVariableDeclaration);
         }
         result = createConditionalExpression(
           createVariableGet(isSetVariable!),
@@ -1465,7 +1461,7 @@ class PromotedAccessKey implements AccessKey {
   final AccessKey accessKey;
   final DartType type;
 
-  PromotedAccessKey(this.accessKey, this.type);
+  new(this.accessKey, this.type);
 
   @override
   int get hashCode => Object.hash(accessKey, type);
@@ -1484,7 +1480,7 @@ class JointAccessKey implements AccessKey {
   final AccessKey leftAccessKey;
   final AccessKey rightAccessKey;
 
-  JointAccessKey(this.leftAccessKey, this.rightAccessKey);
+  new(this.leftAccessKey, this.rightAccessKey);
 
   @override
   int get hashCode => Object.hash(leftAccessKey, rightAccessKey);

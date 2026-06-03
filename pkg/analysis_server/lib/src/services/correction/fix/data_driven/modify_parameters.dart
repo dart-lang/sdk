@@ -37,7 +37,7 @@ class AddParameter extends ParameterModification {
   /// Initialize a newly created parameter modification to represent the
   /// addition of a parameter. If provided, the [argumentValue] will be used as
   /// the value of the new argument in invocations of the function.
-  AddParameter(
+  new(
     this.index,
     this.name,
     this.isRequired,
@@ -61,7 +61,7 @@ class ChangeParameterType extends ParameterModification {
   /// preexisting optional positional parameters after the ones being added.
   final CodeTemplate? argumentValue;
 
-  ChangeParameterType({
+  new({
     required this.reference,
     required this.nullability,
     required this.argumentValue,
@@ -76,8 +76,7 @@ class ModifyParameters extends Change<_Data> {
 
   /// Initialize a newly created transform to modifications to the parameter
   /// list of a function.
-  ModifyParameters({required this.modifications})
-    : assert(modifications.isNotEmpty);
+  new({required this.modifications}) : assert(modifications.isNotEmpty);
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -405,7 +404,7 @@ class RemoveParameter extends ParameterModification {
 
   /// Initialize a newly created parameter modification to represent the removal
   /// of an existing [parameter].
-  RemoveParameter(this.parameter);
+  new(this.parameter);
 }
 
 /// The data returned when updating an invocation site.
@@ -415,5 +414,5 @@ class _Data {
 
   /// Initialize a newly created data object with the data needed to update an
   /// invocation site.
-  _Data(this.argumentList);
+  new(this.argumentList);
 }

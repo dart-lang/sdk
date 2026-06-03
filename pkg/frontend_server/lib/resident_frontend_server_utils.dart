@@ -43,11 +43,7 @@ final class ResidentCompilerInfo {
     );
   }
 
-  ResidentCompilerInfo._({
-    required this.sdkHash,
-    required this.port,
-    required this.address,
-  });
+  new _({required this.sdkHash, required this.port, required this.address});
 }
 
 typedef CachedDillAndCompilerOptionsPaths = ({
@@ -152,7 +148,7 @@ final class CompileResult {
   /// The output lines produced by the compiler, if any.
   final List<String> compilerOutputLines;
 
-  CompileResult({
+  new({
     required this.outputDill,
     required this.errorCount,
     this.compilerOutputLines = const [],
@@ -171,7 +167,7 @@ final class CompileExpressionResult {
   /// The output lines produced by the compiler, if any.
   final List<String> compilerOutputLines;
 
-  CompileExpressionResult({
+  new({
     required this.kernelBytes,
     required this.errorCount,
     this.compilerOutputLines = const [],
@@ -184,7 +180,7 @@ final class CompileException implements Exception {
   /// The error message from the compiler.
   final String message;
 
-  CompileException(this.message);
+  new(this.message);
 
   @override
   String toString() => 'CompileException: $message';
@@ -247,6 +243,7 @@ Future<CompileExpressionResult> invokeCompileExpression({
   required int offset,
   required String? scriptUri,
   required bool isStatic,
+  String? rootLibraryUri,
   required File serverInfoFile,
 }) async {
   final Map<String, Object?> response = await sendAndReceiveResponse(
@@ -264,6 +261,7 @@ Future<CompileExpressionResult> invokeCompileExpression({
       'offset': offset,
       if (scriptUri != null) 'scriptUri': scriptUri,
       'isStatic': isStatic,
+      if (rootLibraryUri != null) 'rootLibraryUri': rootLibraryUri,
       'useCachedCompilerOptionsAsBase': true,
     }),
     serverInfoFile,

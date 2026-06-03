@@ -1415,9 +1415,9 @@ class _Element {
   final List<String> components;
   final String declaration;
 
-  _Element(this.kind, this.components, this.declaration);
+  new(this.kind, this.components, this.declaration);
 
-  factory _Element.class_({bool isDeprecated = false, bool isOld = false}) {
+  factory class_({bool isDeprecated = false, bool isOld = false}) {
     var name = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
     return _Element(
@@ -1428,7 +1428,7 @@ ${annotation}class $name {}''',
     );
   }
 
-  factory _Element.constant({bool isDeprecated = false, bool isOld = false}) {
+  factory constant({bool isDeprecated = false, bool isOld = false}) {
     var enumName = isOld ? 'E_old' : 'E_new';
     var constantName = isOld ? 'c_old' : 'c_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1442,10 +1442,7 @@ enum $enumName {
     );
   }
 
-  factory _Element.defaultConstructor({
-    bool isDeprecated = false,
-    bool isOld = false,
-  }) {
+  factory defaultConstructor({bool isDeprecated = false, bool isOld = false}) {
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
@@ -1458,7 +1455,7 @@ class $className {
     );
   }
 
-  factory _Element.enum_({bool isDeprecated = false, bool isOld = false}) {
+  factory enum_({bool isDeprecated = false, bool isOld = false}) {
     var enumName = isOld ? 'E_old' : 'E_new';
     var constantName = isOld ? 'c_old' : 'c_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
@@ -1470,7 +1467,7 @@ ${annotation}enum $enumName { $constantName }''',
     );
   }
 
-  factory _Element.extensionType({
+  factory extensionType({
     bool isDeprecated = false,
     bool isOld = false,
     String representationType = 'int',
@@ -1492,7 +1489,7 @@ ${annotation}extension type $constPrefix$name$constructorPart {}''',
     );
   }
 
-  factory _Element.field({
+  factory field({
     bool isDeprecated = false,
     bool isOld = false,
     bool isStatic = false,
@@ -1511,7 +1508,7 @@ class $className {
     );
   }
 
-  factory _Element.getter({
+  factory getter({
     bool isDeprecated = false,
     bool isOld = false,
     bool isStatic = false,
@@ -1530,7 +1527,7 @@ class $className {
     );
   }
 
-  factory _Element.method({
+  factory method({
     bool isDeprecated = false,
     bool isOld = false,
     bool isStatic = false,
@@ -1549,7 +1546,7 @@ class $className {
     );
   }
 
-  factory _Element.mixin({bool isDeprecated = false, bool isOld = false}) {
+  factory mixin({bool isDeprecated = false, bool isOld = false}) {
     var name = isOld ? 'M_old' : 'M_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
     return _Element(
@@ -1560,10 +1557,7 @@ ${annotation}mixin $name {}''',
     );
   }
 
-  factory _Element.namedConstructor({
-    bool isDeprecated = false,
-    bool isOld = false,
-  }) {
+  factory namedConstructor({bool isDeprecated = false, bool isOld = false}) {
     var constructorName = isOld ? 'c_old' : 'c_new';
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1577,7 +1571,7 @@ class $className {
     );
   }
 
-  factory _Element.setter({
+  factory setter({
     bool isDeprecated = false,
     bool isOld = false,
     bool isStatic = false,
@@ -1596,10 +1590,7 @@ class $className {
     );
   }
 
-  factory _Element.topLevelFunction({
-    bool isDeprecated = false,
-    bool isOld = false,
-  }) {
+  factory topLevelFunction({bool isDeprecated = false, bool isOld = false}) {
     var name = isOld ? 'f_old' : 'f_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
     return _Element(
@@ -1610,10 +1601,7 @@ ${annotation}int $name() => 0;''',
     );
   }
 
-  factory _Element.topLevelGetter({
-    bool isDeprecated = false,
-    bool isOld = false,
-  }) {
+  factory topLevelGetter({bool isDeprecated = false, bool isOld = false}) {
     var getterName = isOld ? 'g_old' : 'g_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
@@ -1624,10 +1612,7 @@ ${annotation}int get $getterName => 0;''',
     );
   }
 
-  factory _Element.topLevelSetter({
-    bool isDeprecated = false,
-    bool isOld = false,
-  }) {
+  factory topLevelSetter({bool isDeprecated = false, bool isOld = false}) {
     var setterName = isOld ? 's_old' : 's_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
@@ -1638,10 +1623,7 @@ ${annotation}set $setterName(int v) {}''',
     );
   }
 
-  factory _Element.topLevelVariable({
-    bool isDeprecated = false,
-    bool isOld = false,
-  }) {
+  factory topLevelVariable({bool isDeprecated = false, bool isOld = false}) {
     var name = isOld ? 'v_old' : 'v_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
     return _Element(
@@ -1652,7 +1634,7 @@ ${annotation}int $name = 0;''',
     );
   }
 
-  factory _Element.typedef({
+  factory typedef({
     bool isDeprecated = false,
     bool isOld = false,
     String aliasedType = 'int Function()',

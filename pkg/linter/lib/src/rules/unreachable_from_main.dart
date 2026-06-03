@@ -24,7 +24,7 @@ import '../extensions.dart';
 const _desc = 'Unreachable top-level members in executable libraries.';
 
 class UnreachableFromMain extends AnalysisRule {
-  UnreachableFromMain()
+  new()
     : super(
         name: LintNames.unreachable_from_main,
         description: _desc,
@@ -51,7 +51,7 @@ class _DeclarationGatherer {
   /// All declarations which we may wish to report on.
   final Set<Declaration> declarations = {};
 
-  _DeclarationGatherer({required this.linterContext});
+  new({required this.linterContext});
 
   void addDeclarations(CompilationUnit node) {
     for (var declaration in node.declarations) {
@@ -169,7 +169,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   /// References from patterns should not be counted.
   int _patternLevel = 0;
 
-  _ReferenceVisitor(this.declarationMap);
+  new(this.declarationMap);
 
   @override
   void visitAnnotation(Annotation node) {
@@ -502,7 +502,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -705,8 +705,11 @@ extension on Declaration {
         return self.namePart.typeName.lexeme;
       case ConstructorDeclaration():
         var name = self.name?.lexeme ?? 'new';
-        // TODO(scheglov): support primary constructors
-        return '${self.typeName!.name}.$name';
+        var typeName =
+            self.typeName ??
+            self.declaredFragment?.element.enclosingElement.name ??
+            'unknown';
+        return '$typeName.$name';
       case EnumConstantDeclaration():
         return self.name.lexeme;
       case EnumDeclaration():
@@ -715,7 +718,7 @@ extension on Declaration {
         var name = self.name;
         return name?.lexeme ?? 'the unnamed extension';
       case ExtensionTypeDeclaration():
-        return self.primaryConstructor.typeName.lexeme;
+        return self.namePart.typeName.lexeme;
       case FunctionDeclaration():
         return self.name.lexeme;
       case MethodDeclaration():

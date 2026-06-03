@@ -27,7 +27,7 @@ class TextIterator implements Iterator<Object? /* String? | TextIterator? */> {
   final String input;
   int index;
 
-  TextIterator(this.input, this.index);
+  new(this.input, this.index);
 
   // Consume spaces.
   void skipWhitespace() {

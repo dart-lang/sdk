@@ -49,7 +49,7 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 }
 
 class PreferConditionalAssignment extends AnalysisRule {
-  PreferConditionalAssignment()
+  new()
     : super(name: LintNames.prefer_conditional_assignment, description: _desc);
 
   @override
@@ -68,7 +68,7 @@ class PreferConditionalAssignment extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitIfStatement(IfStatement node) {

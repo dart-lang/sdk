@@ -43,7 +43,7 @@ class TestCase {
   final Map<String, TypeBound> bounds;
   final String expected;
 
-  TestCase(this.type, this.bounds, this.expected);
+  new(this.type, this.bounds, this.expected);
 
   @override
   String toString() {
@@ -60,7 +60,7 @@ class TestCase {
 class TypeBound {
   final String lower, upper;
 
-  TypeBound(this.lower, this.upper);
+  new(this.lower, this.upper);
 }
 
 TypeBound bound(String lower, String upper) => new TypeBound(lower, upper);

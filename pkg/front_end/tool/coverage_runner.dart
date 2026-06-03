@@ -33,7 +33,7 @@ class MyLaunchingVMServiceHelper extends LaunchingVMServiceHelper {
   final List<String> args;
   final Completer<int> exitCompleter = new Completer<int>();
 
-  MyLaunchingVMServiceHelper(this.args);
+  new(this.args);
 
   @override
   void processExited(int code) {

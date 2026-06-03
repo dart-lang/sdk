@@ -18,7 +18,7 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
 
   final CorrectionUtils utils;
 
-  RenameLibraryRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,

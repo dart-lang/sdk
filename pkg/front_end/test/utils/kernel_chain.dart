@@ -139,7 +139,7 @@ $actual""", autoFixCommand: updateExpectationsOption);
 class ErrorCommentChecker
     extends Step<ComponentResult, ComponentResult, ChainContext> {
   final CompileMode compileMode;
-  const ErrorCommentChecker(this.compileMode);
+  const new(this.compileMode);
   static const bool throwOnNoMatch = false;
 
   @override
@@ -406,7 +406,7 @@ class ErrorCommentChecker
 }
 
 class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const Print();
+  const new();
 
   @override
   String get name => "print";
@@ -436,7 +436,7 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
 }
 
 class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const TypeCheck();
+  const new();
 
   @override
   String get name => "typeCheck";
@@ -480,7 +480,7 @@ class MatchExpectation
   /// located at [suffix]. If [serializeFirst] is true, the input component will
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
-  const MatchExpectation(
+  const new(
     this.suffix, {
     this.serializeFirst = false,
     required this.isLastMatchStep,
@@ -627,7 +627,7 @@ class MatchExpectation
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   final bool skipVm;
 
-  const WriteDill({required this.skipVm});
+  const new({required this.skipVm});
 
   @override
   String get name => "write .dill";
@@ -727,7 +727,7 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
 }
 
 class ReadDill extends Step<Uri, Uri, ChainContext> {
-  const ReadDill();
+  const new();
 
   @override
   String get name => "read .dill";
@@ -791,7 +791,7 @@ class ComponentResult {
   final KernelTarget sourceTarget;
   final List<String> extraConstantStrings = [];
 
-  ComponentResult(
+  new(
     this.description,
     this.component,
     this.userLibraries,

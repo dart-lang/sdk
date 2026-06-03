@@ -56,38 +56,29 @@ class A {}
   }
 
   test_missingLanguage() async {
-    await assertDiagnostics(
-      r'''
-/// ```
+    await assertDiagnosticsFromMarkdown(r'''
+///[! ```!]
 /// test
 /// ```
 class A {}
-''',
-      [lint(3, 4)],
-    );
+''');
   }
 
   test_missingLanguage_leadingWhitespace() async {
-    await assertDiagnostics(
-      r'''
-///   ```
+    await assertDiagnosticsFromMarkdown(r'''
+///[!   ```!]
 /// test
 /// ```
 class A {}
-''',
-      [lint(3, 6)],
-    );
+''');
   }
 
   test_missingLanguage_noEndingFence() async {
-    await assertDiagnostics(
-      r'''
-/// ```
+    await assertDiagnosticsFromMarkdown(r'''
+///[! ```!]
 /// test
 /// more test
 class A {}
-''',
-      [lint(3, 4)],
-    );
+''');
   }
 }

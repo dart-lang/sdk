@@ -11,7 +11,7 @@ const N = 5;
 main() async {
   if (!currentVmSupportsReload) return;
 
-  await withTempDir((String tempDir) async {
+  await withTempDir("reload-no-active-stack", (String tempDir) async {
     final dills = await generateDills(tempDir, dartTestFile(N));
     final reloader = await launchOn(dills[0]);
 

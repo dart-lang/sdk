@@ -86,7 +86,7 @@ class ClosedWorldClassHierarchyTest {
 
   ClassHierarchy? _hierarchy;
 
-  ClosedWorldClassHierarchyTest() {
+  new() {
     coreTypes = new CoreTypes(component);
     Uri uri = Uri.parse('org-dartlang:///test.dart');
     library = new Library(uri, fileUri: uri, name: 'test');
@@ -507,7 +507,7 @@ class H extends self::G implements self::C, self::A {}
       new FunctionNode(
         body,
         returnType: const VoidType(),
-        positionalParameters: [new VariableDeclaration('_', type: type)],
+        positionalParameters: [new Variable('_', type: type)],
       ),
       fileUri: library.fileUri,
     );

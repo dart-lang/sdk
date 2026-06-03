@@ -8,8 +8,6 @@
 // primary constructor were not resolved within the body scope of the
 // enclosing declaration.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 extension type ET(int x) {
   static const String int = 'not a type';
 }

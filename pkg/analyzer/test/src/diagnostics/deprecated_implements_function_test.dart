@@ -2,105 +2,96 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedImplementsFunctionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class DeprecatedImplementsFunctionTest extends PubPackageResolutionTest {
   test_class_core() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements Function {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 19, 8)],
-    );
+//                 ^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_class_core2() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A implements Function, Function {}
-''',
-      [
-        error(diag.finalClassImplementedOutsideOfLibrary, 19, 8),
-        error(diag.implementsRepeated, 29, 8),
-        error(diag.finalClassImplementedOutsideOfLibrary, 29, 8),
-      ],
-    );
+//                 ^^^^^^^^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
+//                           ^^^^^^^^
+// [diag.implementsRepeated] 'Function' can only be implemented once.
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_class_core2_language219() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A implements Function, Function {}
-''',
-      [
-        error(diag.deprecatedImplementsFunction, 35, 8),
-        error(diag.implementsRepeated, 45, 8),
-      ],
-    );
+//                 ^^^^^^^^
+// [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
+//                           ^^^^^^^^
+// [diag.implementsRepeated] 'Function' can only be implemented once.
+''');
   }
 
   test_class_core_language219() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A implements Function {}
-''',
-      [error(diag.deprecatedImplementsFunction, 35, 8)],
-    );
+//                 ^^^^^^^^
+// [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
+''');
   }
 
   test_class_core_language219_viaTypedef() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 typedef F = Function;
 class A implements F {}
-''',
-      [error(diag.deprecatedImplementsFunction, 57, 1)],
-    );
+//                 ^
+// [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
+''');
   }
 
   test_class_local() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class Function {}
+//    ^^^^^^^^
+// [diag.builtInIdentifierAsTypeName] The built-in identifier 'Function' can't be used as a type name.
 class A implements Function {}
-''',
-      [error(diag.builtInIdentifierAsTypeName, 6, 8)],
-    );
+''');
   }
 
   test_classAlias_core_language219() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 mixin M {}
 class A = Object with M implements Function;
-''',
-      [error(diag.deprecatedImplementsFunction, 62, 8)],
-    );
+//                                 ^^^^^^^^
+// [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
+''');
   }
 
   test_classAlias_core_language219_viaTypedef() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 mixin M {}
 typedef F = Function;
 class A = Object with M implements F;
-''',
-      [error(diag.deprecatedImplementsFunction, 84, 1)],
-    );
+//                                 ^
+// [diag.deprecatedImplementsFunction] Implementing 'Function' has no effect.
+''');
   }
 }

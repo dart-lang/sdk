@@ -245,7 +245,7 @@ enum ExperimentalFlag {
   privateNamedParameters(
     name: 'private-named-parameters',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 12),
     experimentReleasedVersion: const Version(3, 12),
   ),

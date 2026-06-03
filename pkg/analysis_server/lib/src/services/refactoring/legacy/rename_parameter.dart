@@ -25,7 +25,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   List<analyzer.FormalParameterElement> elements = [];
   bool _renameAllPositionalOccurrences = false;
 
-  RenameParameterRefactoringImpl(
+  new(
     super.workspace,
     super.sessionHelper,
     this.resolvedUnit,

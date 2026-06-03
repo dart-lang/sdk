@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfElementResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class IfElementResolutionTest extends PubPackageResolutionTest {
   test_caseClause() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   [if (x case 0) 1 else 2];
 }
 ''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -51,12 +52,12 @@ IfElement
   }
 
   test_caseClause_topLevelVariableInitializer() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 final x = 0;
 final y = [ if (x case var a) a ];
 ''');
 
-    var node = findNode.singleIfElement;
+    var node = result.findNode.singleIfElement;
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -90,30 +91,24 @@ IfElement
     // but they are considered initialized after the entire case pattern,
     // before the guard expression if there is one. However, all pattern
     // variables are in scope in the entire pattern.
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 0;
 void f(Object x) {
   [
     if (x case [int a, == a] when a > 0)
+//                  ^
+// [context 1] The declaration of 'a' is here.
+//                        ^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'a' can't be referenced before it is declared.
       a
     else
       a
   ];
 }
-''',
-      [
-        error(diag.nonConstantRelationalPatternExpression, 62, 1),
-        error(
-          diag.referencedBeforeDeclaration,
-          62,
-          1,
-          contextMessages: [message(testFile, 56, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -178,21 +173,20 @@ IfElement
   }
 
   test_caseClause_variables_single() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   [
     if (x case int a when a > 0)
       a
     else
       a // error
+//    ^
+// [diag.undefinedIdentifier] Undefined name 'a'.
   ];
 }
-''',
-      [error(diag.undefinedIdentifier, 79, 1)],
-    );
+''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if (x');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -243,21 +237,18 @@ IfElement
   }
 
   test_expression_super() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   void f() {
     [if (super) 0 else 1];
+//       ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
-''',
-      [
-        error(diag.missingAssignableSelector, 32, 5),
-        error(diag.nonBoolCondition, 32, 5),
-      ],
-    );
+''');
 
-    var node = findNode.singleIfElement;
+    var node = result.findNode.singleIfElement;
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -277,7 +268,7 @@ IfElement
   }
 
   test_rewrite_caseClause_pattern() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   [if (x case const A()) 0];
 }
@@ -287,7 +278,7 @@ class A {
 }
 ''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -321,13 +312,13 @@ IfElement
   }
 
   test_rewrite_expression() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool Function() a) {
   [if (a()) 0];
 }
 ''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -351,13 +342,13 @@ IfElement
   }
 
   test_rewrite_expression_caseClause() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int Function() a) {
   [if (a() case 0) 1];
 }
 ''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -389,13 +380,13 @@ IfElement
   }
 
   test_rewrite_whenClause() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x, bool Function() a) {
   [if (x case 0 when a()) 1];
 }
 ''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if
@@ -433,13 +424,13 @@ IfElement
   }
 
   test_whenClause() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object x) {
   [if (x case 0 when true) 1 else 2];
 }
 ''');
 
-    var node = findNode.ifElement('if');
+    var node = result.findNode.ifElement('if');
     assertResolvedNodeText(node, r'''
 IfElement
   ifKeyword: if

@@ -76,187 +76,203 @@ parser/patterns/const_patterns_binary:37:12: The binary operator + is not suppor
     case 1 + 2 + 3: // Error
            ^
 
-parser/patterns/const_patterns_binary:40:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:40:16: The binary operator + is not supported as a constant pattern.
+    case value + 1: // Error
+               ^
+
+parser/patterns/const_patterns_binary:41:22: The binary operator + is not supported as a constant pattern.
+    case Class.value + 1: // Error
+                     ^
+
+parser/patterns/const_patterns_binary:42:23: The binary operator + is not supported as a constant pattern.
+    case prefix.value + 1: // Error
+                      ^
+
+parser/patterns/const_patterns_binary:43:29: The binary operator + is not supported as a constant pattern.
+    case prefix.Class.value + 1: // Error
+                            ^
+
+parser/patterns/const_patterns_binary:44:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 as int: // Error
                ^
 
-parser/patterns/const_patterns_binary:41:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:45:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 + 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:41:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:45:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 + 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:42:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:46:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 - 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:42:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:46:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 - 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:43:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:47:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 * 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:43:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:47:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 * 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:44:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:48:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 / 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:44:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:48:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 / 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:45:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:49:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 ~/ 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:45:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:49:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 ~/ 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:46:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:50:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 % 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:46:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:50:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 % 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:47:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:51:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 == 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:47:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:51:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 == 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:48:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:52:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 != 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:48:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:52:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 != 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:49:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:53:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 ^ 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:49:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:53:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 ^ 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:50:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:54:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 & 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:50:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:54:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 & 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:51:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:55:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 | 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:51:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:55:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 | 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:52:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:56:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 < 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:52:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:56:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 < 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:53:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:57:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 <= 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:53:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:57:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 <= 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:54:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:58:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 > 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:54:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:58:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 > 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:55:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:59:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 >= 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:55:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:59:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 >= 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:56:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:60:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 << 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:56:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:60:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 << 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:57:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:61:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 >> 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:57:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:61:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 >> 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:58:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:62:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 >>> 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:58:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:62:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 >>> 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:59:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:63:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 + 2 + 3: // Error
                ^
 
-parser/patterns/const_patterns_binary:59:16: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:63:16: The expression can't be prefixed by 'const' to form a constant pattern.
     case const 1 + 2 + 3: // Error
                ^
 
-parser/patterns/const_patterns_binary:60:23: The expression can't be prefixed by 'const' to form a constant pattern.
+parser/patterns/const_patterns_binary:64:23: The expression can't be prefixed by 'const' to form a constant pattern.
     case const Object() == 2: // Error
                       ^
 
-parser/patterns/const_patterns_binary:81:12: Expected ':' before this.
+parser/patterns/const_patterns_binary:85:12: Expected ':' before this.
     case 1 ?? 2: // Error
            ^^
 
-parser/patterns/const_patterns_binary:81:12: Expected an identifier, but got '??'.
+parser/patterns/const_patterns_binary:85:12: Expected an identifier, but got '??'.
     case 1 ?? 2: // Error
            ^^
 
-parser/patterns/const_patterns_binary:81:15: Expected ';' after this.
+parser/patterns/const_patterns_binary:85:15: Expected ';' after this.
     case 1 ?? 2: // Error
               ^
 
-parser/patterns/const_patterns_binary:81:16: Expected an identifier, but got ':'.
+parser/patterns/const_patterns_binary:85:16: Expected an identifier, but got ':'.
     case 1 ?? 2: // Error
                ^
 
-parser/patterns/const_patterns_binary:81:15: Expected ';' after this.
+parser/patterns/const_patterns_binary:85:15: Expected ';' after this.
     case 1 ?? 2: // Error
               ^
 
-parser/patterns/const_patterns_binary:81:16: Unexpected token ':'.
+parser/patterns/const_patterns_binary:85:16: Unexpected token ':'.
     case 1 ?? 2: // Error
                ^
 
@@ -681,6 +697,86 @@ beginCompilationUnit(import)
                 handleCastPattern(as)
               endPattern(T)
               handleSwitchCaseNoWhenClause(T)
+            endCaseExpression(case, null, :)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  handleIdentifier(value, expression)
+                  handleNoTypeArguments(+)
+                  handleNoArguments(+)
+                  handleSend(value, value)
+                  handleRecoverableError(Message[Template(InvalidConstantPatternBinary), The binary operator + is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {operatorName: +}], +, +)
+                  beginBinaryExpression(+)
+                    handleLiteralInt(1)
+                  endBinaryExpression(+, 1)
+                endConstantPattern(null)
+              endPattern(1)
+              handleSwitchCaseNoWhenClause(1)
+            endCaseExpression(case, null, :)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  handleIdentifier(Class, expression)
+                  handleNoTypeArguments(.)
+                  handleNoArguments(.)
+                  handleSend(Class, Class)
+                  handleIdentifier(value, expressionContinuation)
+                  handleNoTypeArguments(+)
+                  handleNoArguments(+)
+                  handleSend(value, value)
+                  handleDotAccess(., value, false)
+                  handleRecoverableError(Message[Template(InvalidConstantPatternBinary), The binary operator + is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {operatorName: +}], +, +)
+                  beginBinaryExpression(+)
+                    handleLiteralInt(1)
+                  endBinaryExpression(+, 1)
+                endConstantPattern(null)
+              endPattern(1)
+              handleSwitchCaseNoWhenClause(1)
+            endCaseExpression(case, null, :)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  handleIdentifier(prefix, expression)
+                  handleNoTypeArguments(.)
+                  handleNoArguments(.)
+                  handleSend(prefix, prefix)
+                  handleIdentifier(value, expressionContinuation)
+                  handleNoTypeArguments(+)
+                  handleNoArguments(+)
+                  handleSend(value, value)
+                  handleDotAccess(., value, false)
+                  handleRecoverableError(Message[Template(InvalidConstantPatternBinary), The binary operator + is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {operatorName: +}], +, +)
+                  beginBinaryExpression(+)
+                    handleLiteralInt(1)
+                  endBinaryExpression(+, 1)
+                endConstantPattern(null)
+              endPattern(1)
+              handleSwitchCaseNoWhenClause(1)
+            endCaseExpression(case, null, :)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  handleIdentifier(prefix, expression)
+                  handleNoTypeArguments(.)
+                  handleNoArguments(.)
+                  handleSend(prefix, prefix)
+                  handleIdentifier(Class, expressionContinuation)
+                  handleNoTypeArguments(.)
+                  handleNoArguments(.)
+                  handleSend(Class, Class)
+                  handleDotAccess(., Class, false)
+                  handleIdentifier(value, expressionContinuation)
+                  handleNoTypeArguments(+)
+                  handleNoArguments(+)
+                  handleSend(value, value)
+                  handleDotAccess(., value, false)
+                  handleRecoverableError(Message[Template(InvalidConstantPatternBinary), The binary operator + is not supported as a constant pattern., Try wrapping the expression in 'const ( ... )'., {operatorName: +}], +, +)
+                  beginBinaryExpression(+)
+                    handleLiteralInt(1)
+                  endBinaryExpression(+, 1)
+                endConstantPattern(null)
+              endPattern(1)
+              handleSwitchCaseNoWhenClause(1)
             endCaseExpression(case, null, :)
             beginCaseExpression(case)
               beginPattern(case)
@@ -1264,7 +1360,7 @@ beginCompilationUnit(import)
               handleSwitchCaseNoWhenClause(1)
               handleRecoverableError(Message[Template(ExpectedButGot), Expected ':' before this., null, {expected: :}], ??, ??)
             endCaseExpression(case, null, :)
-            beginSwitchCase(0, 67, case)
+            beginSwitchCase(0, 71, case)
               handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got '??'., Try inserting an identifier before '??'., {lexeme: ??}], ??, ??)
               handleIdentifier(, expression)
               handleNoTypeArguments(??)
@@ -1283,7 +1379,7 @@ beginCompilationUnit(import)
               handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], 2, 2)
               handleExpressionStatement(:, ;)
               handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ':'., null, {lexeme: :}], :, :)
-            endSwitchCase(0, 67, null, null, 2, case, :)
+            endSwitchCase(0, 71, null, null, 2, case, :)
             beginCaseExpression(case)
               beginPattern(case)
                 beginConstantPattern(null)

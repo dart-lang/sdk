@@ -233,11 +233,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     else:
         gn_args['dart_snapshot_kind'] = 'app-jit'
 
-    # We only want the fallback root certs in the standalone VM on
-    # Linux and Windows.
-    if gn_args['target_os'] in ['linux', 'win']:
-        gn_args['dart_use_fallback_root_certificates'] = True
-
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
@@ -557,7 +552,7 @@ def AddCommonGnOptionArgs(parser):
                         action='store_true')
     parser.add_argument('--codesigning-identity',
                         help='Sign executables using the given identity.',
-                        default='',
+                        default='-',
                         type=str)
     parser.add_argument(
         '--include-experimental-vm-service',

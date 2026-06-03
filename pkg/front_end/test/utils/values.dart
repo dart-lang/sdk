@@ -4,7 +4,7 @@
 
 /// A value of type [T] read from a yaml/json-like structure.
 abstract class Value<T> {
-  const Value();
+  const new();
 
   /// Reads the [T] value from [value].
   ///
@@ -15,7 +15,7 @@ abstract class Value<T> {
 
 /// A `bool` value encoded as a bool.
 class BoolValue extends Value<bool> {
-  const BoolValue();
+  const new();
 
   @override
   bool read(dynamic value, {String context = ''}) {
@@ -33,7 +33,7 @@ class BoolValue extends Value<bool> {
 class StringValue extends Value<String> {
   final Set<String>? options;
 
-  const StringValue({this.options});
+  const new({this.options});
 
   @override
   String read(dynamic value, {String context = ''}) {
@@ -53,7 +53,7 @@ class StringValue extends Value<String> {
 
 /// An `int` value encoded as an integer.
 class IntValue extends Value<int> {
-  const IntValue();
+  const new();
 
   @override
   int read(dynamic value, {String context = ''}) {
@@ -73,7 +73,7 @@ class ListValue<E> extends Value<List<E>> {
   final Value<E> elementReader;
   final bool supportSingleton;
 
-  const ListValue(this.elementReader, {this.supportSingleton = false});
+  const new(this.elementReader, {this.supportSingleton = false});
 
   @override
   List<E> read(dynamic value, {String context = ''}) {
@@ -98,7 +98,7 @@ class ListValue<E> extends Value<List<E>> {
 class MapValue<V> extends Value<Map<String, V>> {
   final Value<V> valueReader;
 
-  const MapValue(this.valueReader);
+  const new(this.valueReader);
 
   @override
   Map<String, V> read(dynamic value, {String context = ''}) {
@@ -118,7 +118,7 @@ class MapValue<V> extends Value<Map<String, V>> {
 class EnumValue<E extends Enum> extends Value<E> {
   final List<E> enumValues;
 
-  const EnumValue(this.enumValues);
+  const new(this.enumValues);
 
   @override
   E read(dynamic value, {String context = ''}) {
@@ -143,7 +143,7 @@ class EnumValue<E extends Enum> extends Value<E> {
 class CustomValue<I, O> extends Value<O> {
   final O Function(I) valueReader;
 
-  const CustomValue(this.valueReader);
+  const new(this.valueReader);
 
   @override
   O read(dynamic value, {String context = ''}) {
@@ -174,14 +174,14 @@ class Property<T> {
 
   /// Creates a required property with given [name] that uses [valueReader] to
   /// decode its value.
-  const Property.required(this.name, this.valueReader)
+  const new required(this.name, this.valueReader)
     : required = true,
       defaultValue = null,
       assert(null is! T);
 
   /// Creates an optional property with given [name] that uses [valueReader] to
   /// decode its value when present and [defaultValue] if omitted.
-  const Property.optional(this.name, this.valueReader, {this.defaultValue})
+  const new optional(this.name, this.valueReader, {this.defaultValue})
     : required = false,
       assert(defaultValue is T);
 

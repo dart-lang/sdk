@@ -517,10 +517,27 @@ class JsInteropChecks extends RecursiveVisitor {
   }
 
   @override
-  void visitStaticTearOffConstantReference(StaticTearOffConstant node) {
+  void visitStaticTearOffConstantReference(StaticTearOffConstant node) =>
+      handleTearOffConstant(node);
+
+  @override
+  void visitRedirectingFactoryTearOffConstantReference(
+    RedirectingFactoryTearOffConstant node,
+  ) => handleTearOffConstant(node);
+
+  @override
+  void visitConstructorTearOffConstantReference(
+    ConstructorTearOffConstant node,
+  ) => handleTearOffConstant(node);
+
+  void handleTearOffConstant(TearOffConstant node) {
     if (_constantCache.contains(node)) return;
+
+    final target = node.target;
     if (_checkDisallowedTearoff(
-      _getTornOffFromGeneratedTearOff(node.target) ?? node.target,
+      target is Procedure
+          ? _getTornOffFromGeneratedTearOff(target) ?? target
+          : target,
       _lastConstantExpression,
     )) {
       return;

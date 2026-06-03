@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -205,11 +206,17 @@ void main() {
       asm.loadConstant(R1, ConstantValue(UnboxedIntConstant(42)));
       asm.loadConstant(R2, ConstantValue.fromInt(42));
       asm.loadConstant(R3, ConstantValue.fromInt(0x7fffffff_ffffffff));
+      asm.loadConstant(R4, ConstantValue.fromNull());
+      asm.loadConstant(R5, ConstantValue.fromBool(true));
+      asm.loadConstant(R6, ConstantValue.fromBool(false));
       expectDisassembly(
         'ldr r0, [pp, #${objectPoolBase}]\n'
         'movz r1, #0x2a\n'
         'movz r2, #0x54\n'
-        'ldr r3, [pp, #${objectPoolBase + 8}]\n',
+        'ldr r3, [pp, #${objectPoolBase + 8}]\n'
+        'mov r4, null\n'
+        'add r5, null, #0x${trueOffsetFromNull(wordSize).toRadixString(16)}\n'
+        'add r6, null, #0x${falseOffsetFromNull(wordSize).toRadixString(16)}\n',
       );
     });
     test('loadImmediate', () {
@@ -251,6 +258,20 @@ void main() {
         'movk r3, #0xfefe lsl 16\n'
         'mov r4, 0xfefefefefefefefe\n'
         'mov r5, 0xff00ff00ff00ff00\n',
+      );
+    });
+    test('loadDoubleImmediate', () {
+      asm.loadDoubleImmediate(V0, 1.0);
+      asm.loadDoubleImmediate(V31, -3.5);
+      asm.loadDoubleImmediate(V1, 0.0);
+      asm.loadDoubleImmediate(V2, 0.123456789);
+      asm.loadDoubleImmediate(V3, double.nan);
+      expectDisassembly(
+        'fmovd v0, 1.0\n'
+        'fmovd v31, -3.5\n'
+        'fmovdr v1, zr\n'
+        'fldrd v2, [pp, #${objectPoolBase}]\n'
+        'fldrd v3, [pp, #${objectPoolBase + 8}]\n',
       );
     });
     test('addImmediate', () {
@@ -376,6 +397,10 @@ void main() {
         'ldr lr, [code, #${vmOffsets.Code_entry_point_offset.first - heapObjectTag}]\n'
         'blr lr\n',
       );
+    });
+    test('breakpoint', () {
+      asm.breakpoint();
+      expectDisassembly('brk #0x0\n');
     });
     test('inlineAllocation - object size 16', () {
       final slowPath = Label();
@@ -682,6 +707,86 @@ void main() {
       });
       expectThrows(() {
         asm.mul(R1, R2, SP);
+      });
+    });
+
+    test('csel', () {
+      asm.csel(R0, R1, R2, .greater);
+      asm.csel(R1, ZR, R0, .unsignedLessOrEqual);
+      asm.csel(R1, R1, R3, .notEqual, .s32);
+      expectDisassembly(
+        'csel r0, r1, r2, gt\n'
+        'csel r1, zr, r0, ls\n'
+        'cselw r1, r1, r3, ne\n',
+      );
+      expectThrows(() {
+        asm.csel(SP, R1, R2, .greater);
+      });
+      expectThrows(() {
+        asm.csel(R0, SP, R2, .greater);
+      });
+      expectThrows(() {
+        asm.csel(R0, R1, SP, .greater);
+      });
+    });
+
+    test('csinc', () {
+      asm.csinc(R0, R1, R2, .less);
+      asm.csinc(R1, ZR, R0, .noOverflow);
+      asm.csinc(R1, R1, R3, .unsignedGreater, .s32);
+      expectDisassembly(
+        'csinc r0, r1, r2, lt\n'
+        'csinc r1, zr, r0, vc\n'
+        'csincw r1, r1, r3, hi\n',
+      );
+      expectThrows(() {
+        asm.csinc(SP, R1, R2, .less);
+      });
+      expectThrows(() {
+        asm.csinc(R0, SP, R2, .less);
+      });
+      expectThrows(() {
+        asm.csinc(R0, R1, SP, .less);
+      });
+    });
+
+    test('csinv', () {
+      asm.csinv(R5, R6, R7, .negative);
+      asm.csinv(R1, ZR, R0, .equal);
+      asm.csinv(R1, R1, R3, .lessOrEqual, .s32);
+      expectDisassembly(
+        'csinv r5, r6, r7, mi\n'
+        'csinv r1, zr, r0, eq\n'
+        'csinvw r1, r1, r3, le\n',
+      );
+      expectThrows(() {
+        asm.csinv(SP, R1, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csinv(R0, SP, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csinv(R0, R1, SP, .negative);
+      });
+    });
+
+    test('csneg', () {
+      asm.csneg(R5, R6, R7, .greaterOrEqual);
+      asm.csneg(R1, ZR, R0, .unsignedLess);
+      asm.csneg(R1, R1, R3, .positiveOrZero, .s32);
+      expectDisassembly(
+        'csneg r5, r6, r7, ge\n'
+        'csneg r1, zr, r0, cc\n'
+        'csnegw r1, r1, r3, pl\n',
+      );
+      expectThrows(() {
+        asm.csneg(SP, R1, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csneg(R0, SP, R2, .negative);
+      });
+      expectThrows(() {
+        asm.csneg(R0, R1, SP, .negative);
       });
     });
 
@@ -1535,6 +1640,61 @@ void main() {
         'ret\n'
         'ret r1\n',
       );
+    });
+    test('brk', () {
+      asm.brk(0x1234);
+      expectDisassembly('brk #0x1234\n');
+      expectThrows(() {
+        asm.brk(-1);
+      });
+      expectThrows(() {
+        asm.brk(0x10000);
+      });
+    });
+    test('scvtf', () {
+      asm.scvtf(V0, R0);
+      asm.scvtf(V1, R2, .s32);
+      asm.scvtf(V3, ZR);
+      expectDisassembly(
+        'scvtfd v0, r0\n'
+        'scvtfdw v1, r2\n'
+        'scvtfd v3, zr\n',
+      );
+      expectThrows(() {
+        asm.scvtf(V0, R0, .s16);
+      });
+      expectThrows(() {
+        asm.scvtf(V0, R0, .s64, .s8);
+      });
+      expectThrows(() {
+        asm.scvtf(V0, R0, .s64, .simd128);
+      });
+      expectThrows(() {
+        asm.scvtf(V0, SP);
+      });
+    });
+
+    test('fmov', () {
+      asm.fmov(V0, R0);
+      asm.fmov(V2, ZR);
+      asm.fmov(V3, R2, .s32);
+      asm.fmov(V0, Immediate(doubleToIntBits(1.0)));
+      asm.fmov(V1, Immediate(doubleToIntBits(2.0)));
+      asm.fmov(V31, Immediate(doubleToIntBits(-0.25)));
+      expectDisassembly(
+        'fmovdr v0, r0\n'
+        'fmovdr v2, zr\n'
+        'fmovsrw v3, r2\n'
+        'fmovd v0, 1.0\n'
+        'fmovd v1, 2.0\n'
+        'fmovd v31, -0.25\n',
+      );
+      expectThrows(() {
+        asm.fmov(V0, Immediate(doubleToIntBits(0.0)));
+      });
+      expectThrows(() {
+        asm.fmov(V1, Immediate(doubleToIntBits(1.23456789)));
+      });
     });
   });
 }

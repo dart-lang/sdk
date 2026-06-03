@@ -17,7 +17,7 @@ main() {
 
 abstract class TypeAliasElementTest extends ElementsBaseTest {
   test_codeRange_functionTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef Raw();
 
 /// Comment 1.
@@ -187,7 +187,7 @@ library
   }
 
   test_codeRange_genericTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef Raw = Function();
 
 /// Comment 1.
@@ -792,7 +792,7 @@ library
   }
 
   test_genericTypeAlias_recursive() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<X extends F> = Function(F);
 ''');
     checkElementText(library, r'''
@@ -820,7 +820,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = G Function();
 typedef G = F Function();
 ''');
@@ -848,7 +848,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = List<F> Function();
 ''');
     checkElementText(library, r'''
@@ -869,7 +869,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
@@ -897,7 +897,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_no_bounds() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function();
 ''');
     checkElementText(library, r'''
@@ -924,7 +924,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_non_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
@@ -945,7 +945,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends F> = List<int>;
 ''');
     checkElementText(library, r'''
@@ -973,7 +973,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = List<F>;
 ''');
     checkElementText(library, r'''
@@ -1258,6 +1258,7 @@ library
   test_typeAlias_typeParameters_variance_function_invalid() async {
     var library = await buildLibrary(r'''
 class A {}
+
 typedef F<T> = void Function(A<int>);
 ''');
     checkElementText(library, r'''
@@ -1274,10 +1275,10 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 F (nameOffset:19) (firstTokenOffset:11) (offset:19)
+        #F3 F (nameOffset:20) (firstTokenOffset:12) (offset:20)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+            #F4 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E0 T
   classes
     isSimplyBounded class A
@@ -1709,9 +1710,9 @@ library
   }
 
   test_typedef_function_generic() async {
-    var library = await buildLibrary(
-      'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);',
-    );
+    var library = await buildLibrary(r'''
+typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1738,6 +1739,7 @@ library
   test_typedef_function_generic_asFieldType() async {
     var library = await buildLibrary(r'''
 typedef Foo<S> = S Function<T>(T x);
+
 class A {
   Foo<int> f;
 }
@@ -1749,23 +1751,27 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:43) (firstTokenOffset:37) (offset:43)
+        #F1 class A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::A
           fields
-            #F2 isOriginDeclaration f (nameOffset:58) (firstTokenOffset:58) (offset:58)
+            #F2 isOriginDeclaration f (nameOffset:59) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@class::A::@field::f
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F3 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@getter::f
+              inducingVariable: #F2
           setters
-            #F5 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F4 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
               element: <testLibrary>::@class::A::@setter::f
+              inducingVariable: #F2
               formalParameters
-                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+                #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
                   element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
       typeAliases
         #F7 Foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -1790,11 +1796,11 @@ library
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F3
+          firstFragment: #F5
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
-          firstFragment: #F4
+          firstFragment: #F3
           returnType: int Function<T>(T)
             alias: <testLibrary>::@typeAlias::Foo
               typeArguments
@@ -1803,7 +1809,7 @@ library
       setters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@setter::f
-          firstFragment: #F5
+          firstFragment: #F4
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F6
@@ -1827,8 +1833,9 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_included() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function(C c);
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -1838,13 +1845,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F1 class C (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:40) (firstTokenOffset:40) (offset:40)
+            #F2 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -1873,8 +1880,9 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_omitted() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function(C);
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -1884,13 +1892,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F1 class C (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
+            #F2 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -1919,8 +1927,9 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = C Function();
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -1930,13 +1939,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class C (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -1963,9 +1972,9 @@ library
   }
 
   test_typedef_function_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary(
-      'typedef F<T extends U, U> = U Function(T t);',
-    );
+    var library = await buildLibrary(r'''
+typedef F<T extends U, U> = U Function(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1995,12 +2004,13 @@ library
   }
 
   test_typedef_legacy_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-typedef F();''');
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2023,8 +2033,9 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_param_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F(C c);
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -2034,13 +2045,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -2069,8 +2080,9 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef C F();
+
 class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
@@ -2080,13 +2092,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F1 class C (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F2 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -2113,7 +2125,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
@@ -2141,7 +2153,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_because_non_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F();
 ''');
     checkElementText(library, r'''
@@ -2162,7 +2174,9 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_no_bounds() async {
-    var library = await buildLibrary('typedef void F<T>();');
+    var library = await buildLibrary(r'''
+typedef void F<T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2208,7 +2222,9 @@ library
   }
 
   test_typedef_legacy_parameter_parameters() async {
-    var library = await buildLibrary('typedef F(g(x, y));');
+    var library = await buildLibrary(r'''
+typedef F(g(x, y));
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2227,7 +2243,9 @@ library
   }
 
   test_typedef_legacy_parameter_parameters_in_generic_class() async {
-    var library = await buildLibrary('typedef F<A, B>(A g(B x));');
+    var library = await buildLibrary(r'''
+typedef F<A, B>(A g(B x));
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2256,7 +2274,9 @@ library
   }
 
   test_typedef_legacy_parameter_return_type() async {
-    var library = await buildLibrary('typedef F(int g());');
+    var library = await buildLibrary(r'''
+typedef F(int g());
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2275,7 +2295,9 @@ library
   }
 
   test_typedef_legacy_parameter_type() async {
-    var library = await buildLibrary('typedef F(int i);');
+    var library = await buildLibrary(r'''
+typedef F(int i);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2294,7 +2316,9 @@ library
   }
 
   test_typedef_legacy_parameter_type_generic() async {
-    var library = await buildLibrary('typedef F<T>(T t);');
+    var library = await buildLibrary(r'''
+typedef F<T>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2319,7 +2343,9 @@ library
   }
 
   test_typedef_legacy_parameters() async {
-    var library = await buildLibrary('typedef F(x, y);');
+    var library = await buildLibrary(r'''
+typedef F(x, y);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2338,7 +2364,9 @@ library
   }
 
   test_typedef_legacy_parameters_named() async {
-    var library = await buildLibrary('typedef F({y, z, x});');
+    var library = await buildLibrary(r'''
+typedef F({y, z, x});
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2357,7 +2385,9 @@ library
   }
 
   test_typedef_legacy_return_type() async {
-    var library = await buildLibrary('typedef int F();');
+    var library = await buildLibrary(r'''
+typedef int F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2376,7 +2406,9 @@ library
   }
 
   test_typedef_legacy_return_type_generic() async {
-    var library = await buildLibrary('typedef T F<T>();');
+    var library = await buildLibrary(r'''
+typedef T F<T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2401,7 +2433,9 @@ library
   }
 
   test_typedef_legacy_return_type_implicit() async {
-    var library = await buildLibrary('typedef F();');
+    var library = await buildLibrary(r'''
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2420,7 +2454,9 @@ library
   }
 
   test_typedef_legacy_return_type_void() async {
-    var library = await buildLibrary('typedef void F();');
+    var library = await buildLibrary(r'''
+typedef void F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2439,7 +2475,9 @@ library
   }
 
   test_typedef_legacy_typeParameters() async {
-    var library = await buildLibrary('typedef U F<T, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2468,9 +2506,11 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound() async {
-    var library = await buildLibrary(
-      'typedef U F<T extends Object, U extends D>(T t); class D {}',
-    );
+    var library = await buildLibrary(r'''
+typedef U F<T extends Object, U extends D>(T t);
+
+class D {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2478,10 +2518,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class D (nameOffset:55) (firstTokenOffset:49) (offset:55)
+        #F1 class D (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@class::D
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -2516,7 +2556,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive() async {
-    var library = await buildLibrary('typedef void F<T extends F>();');
+    var library = await buildLibrary(r'''
+typedef void F<T extends F>();
+''');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -2543,7 +2585,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive2() async {
-    var library = await buildLibrary('typedef void F<T extends List<F>>();');
+    var library = await buildLibrary(r'''
+typedef void F<T extends List<F>>();
+''');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -2570,7 +2614,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_complex() async {
-    var library = await buildLibrary('typedef U F<T extends List<U>, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T extends List<U>, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2600,7 +2646,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary('typedef U F<T extends U, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T extends U, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3027,7 +3075,9 @@ library
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
     var library = await buildLibrary(r'''
 typedef X<T> = A<int, T>;
+
 class A<T, U> {}
+
 class B implements X<String> {}
 ''');
     checkElementText(library, r'''
@@ -3037,21 +3087,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:32) (firstTokenOffset:26) (offset:32)
+        #F1 class A (nameOffset:33) (firstTokenOffset:27) (offset:33)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F2 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
-            #F3 U (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F3 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F5 class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
+        #F5 class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::B
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3099,9 +3149,13 @@ library
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
     var library = await buildLibrary(r'''
 typedef X<T> = A<T>?;
+
 class A<T> {}
+
 class B {}
+
 class C {}
+
 class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
@@ -3111,31 +3165,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F1 class A (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F2 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F4 class B (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F6 class C (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@class::C
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F8 class D (nameOffset:68) (firstTokenOffset:62) (offset:68)
           element: <testLibrary>::@class::D
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3193,9 +3247,13 @@ library
   test_typedef_nonFunction_asInterfaceType_interfaceType_question2() async {
     var library = await buildLibrary(r'''
 typedef X<T> = A<T?>;
+
 class A<T> {}
+
 class B {}
+
 class C {}
+
 class D implements B, X<int>, C {}
 ''');
     checkElementText(library, r'''
@@ -3205,31 +3263,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+        #F1 class A (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F2 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F4 class B (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F6 class C (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@class::C
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
+        #F8 class D (nameOffset:68) (firstTokenOffset:62) (offset:68)
           element: <testLibrary>::@class::D
           constructors
-            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3291,6 +3349,45 @@ library
   test_typedef_nonFunction_asInterfaceType_Never_none() async {
     var library = await buildLibrary(r'''
 typedef X = Never;
+
+class A implements X {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      typeAliases
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::X
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+  typeAliases
+    isSimplyBounded X
+      reference: <testLibrary>::@typeAlias::X
+      firstFragment: #F3
+      aliasedType: Never
+''');
+  }
+
+  test_typedef_nonFunction_asInterfaceType_Null_none() async {
+    var library = await buildLibrary(r'''
+typedef X = Null;
+
 class A implements X {}
 ''');
     checkElementText(library, r'''
@@ -3321,43 +3418,6 @@ library
     isSimplyBounded X
       reference: <testLibrary>::@typeAlias::X
       firstFragment: #F3
-      aliasedType: Never
-''');
-  }
-
-  test_typedef_nonFunction_asInterfaceType_Null_none() async {
-    var library = await buildLibrary(r'''
-typedef X = Null;
-class A implements X {}
-''');
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
-          element: <testLibrary>::@class::A
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
-              element: <testLibrary>::@class::A::@constructor::new
-              typeName: A
-      typeAliases
-        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
-          element: <testLibrary>::@typeAlias::X
-  classes
-    isSimplyBounded class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F2
-  typeAliases
-    isSimplyBounded X
-      reference: <testLibrary>::@typeAlias::X
-      firstFragment: #F3
       aliasedType: Null
 ''');
   }
@@ -3365,8 +3425,11 @@ library
   test_typedef_nonFunction_asInterfaceType_typeParameterType() async {
     var library = await buildLibrary(r'''
 typedef X<T> = T;
+
 class A {}
+
 class B {}
+
 class C<U> implements A, X<U>, B {}
 ''');
     checkElementText(library, r'''
@@ -3376,25 +3439,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
+        #F3 class B (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
+        #F5 class C (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::C
           typeParameters
-            #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
+            #F6 U (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: #E0 U
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -3445,8 +3508,11 @@ library
   test_typedef_nonFunction_asInterfaceType_void() async {
     var library = await buildLibrary(r'''
 typedef X = void;
+
 class A {}
+
 class B {}
+
 class C implements A, X, B {}
 ''');
     checkElementText(library, r'''
@@ -3456,22 +3522,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
+        #F3 class B (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::B
           constructors
-            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
+        #F5 class C (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::C
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -3513,7 +3579,9 @@ library
   test_typedef_nonFunction_asMixinType_none() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>;
+
 class A<T> {}
+
 class B with X {}
 ''');
     checkElementText(library, r'''
@@ -3523,19 +3591,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3574,9 +3642,13 @@ library
   test_typedef_nonFunction_asMixinType_question() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>?;
+
 class A<T> {}
+
 mixin M1 {}
+
 mixin M2 {}
+
 class B with M1, X, M2 {}
 ''');
     checkElementText(library, r'''
@@ -3586,25 +3658,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
+        #F4 class B (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M1 (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F6 mixin M1 (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F7 mixin M2 (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M2
       typeAliases
         #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -3653,9 +3725,13 @@ library
   test_typedef_nonFunction_asMixinType_question2() async {
     var library = await buildLibrary(r'''
 typedef X = A<int?>;
+
 class A<T> {}
+
 mixin M1 {}
+
 mixin M2 {}
+
 class B with M1, X, M2 {}
 ''');
     checkElementText(library, r'''
@@ -3665,25 +3741,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
+        #F4 class B (nameOffset:69) (firstTokenOffset:63) (offset:69)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M1 (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F6 mixin M1 (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 (nameOffset:53) (firstTokenOffset:47) (offset:53)
+        #F7 mixin M2 (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M2
       typeAliases
         #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -3734,6 +3810,7 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_Never_none() async {
     var library = await buildLibrary(r'''
 typedef X = Never;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -3743,10 +3820,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3771,7 +3848,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_none() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>;
+
 class A<T> {}
+
 class B extends X {}
 ''');
     checkElementText(library, r'''
@@ -3781,19 +3860,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
+        #F4 hasExtendsClause class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3833,7 +3912,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_none_viaTypeParameter() async {
     var library = await buildLibrary(r'''
 typedef X<T> = T;
+
 class A<T> {}
+
 class B extends X<A<int>> {}
 ''');
     checkElementText(library, r'''
@@ -3843,19 +3924,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:26) (firstTokenOffset:26) (offset:26)
+            #F2 T (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+        #F4 hasExtendsClause class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
@@ -3903,6 +3984,7 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_Null_none() async {
     var library = await buildLibrary(r'''
 typedef X = Null;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -3912,10 +3994,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 hasExtendsClause class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -3940,7 +4022,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_question() async {
     var library = await buildLibrary(r'''
 typedef X = A<int>?;
+
 class A<T> {}
+
 class D extends X {}
 ''');
     checkElementText(library, r'''
@@ -3950,19 +4034,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F4 hasExtendsClause class D (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -3997,7 +4081,9 @@ library
   test_typedef_nonFunction_asSuperType_interfaceType_question2() async {
     var library = await buildLibrary(r'''
 typedef X = A<int?>;
+
 class A<T> {}
+
 class D extends X {}
 ''');
     checkElementText(library, r'''
@@ -4007,19 +4093,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 hasExtendsClause class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
+        #F4 hasExtendsClause class D (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::D
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -4059,6 +4145,7 @@ library
   test_typedef_nonFunction_asSuperType_Never_none() async {
     var library = await buildLibrary(r'''
 typedef X = Never;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -4068,10 +4155,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -4096,6 +4183,7 @@ library
   test_typedef_nonFunction_asSuperType_Null_none() async {
     var library = await buildLibrary(r'''
 typedef X = Null;
+
 class A extends X {}
 ''');
     checkElementText(library, r'''
@@ -4105,10 +4193,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 hasExtendsClause class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
+        #F1 hasExtendsClause class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
@@ -4724,7 +4812,10 @@ library
   }
 
   test_typedefs() async {
-    var library = await buildLibrary('f() {} g() {}');
+    var library = await buildLibrary(r'''
+f() {}
+g() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

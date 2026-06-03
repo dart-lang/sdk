@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -21,11 +22,25 @@ sealed class ComputeStatus {}
 class ComputeStatusFailure extends ComputeStatus {
   final String? reason;
 
-  ComputeStatusFailure({this.reason});
+  new({this.reason});
 }
 
 /// The result that signals the success.
 class ComputeStatusSuccess extends ComputeStatus {}
+
+/// A version of [RefactoringProducer] that has parameters, allowing the user
+/// to provide additional values (such as a name or target file) when executed.
+abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
+  new(super.refactoringContext);
+
+  /// Return a list of the parameters to send to the client.
+  List<CommandParameter> get parameters;
+
+  /// A convenience wrapper around [RefactoringProcessor.buildCommandArguments].
+  List<Object?> buildCommandArguments(List<Object?> args) {
+    return RefactoringProcessor.buildCommandArguments(refactoringContext, args);
+  }
+}
 
 /// An object that can compute a refactoring in a Dart file.
 abstract class RefactoringProducer {
@@ -33,7 +48,7 @@ abstract class RefactoringProducer {
   final RefactoringContext refactoringContext;
 
   /// Initialize a newly created refactoring producer.
-  RefactoringProducer(this.refactoringContext);
+  new(this.refactoringContext);
 
   /// The most deeply nested node whose range completely includes the range of
   /// characters described by [selectionOffset] and [selectionLength].
@@ -54,9 +69,6 @@ abstract class RefactoringProducer {
   ResolvedLibraryResult get libraryResult {
     return refactoringContext.resolvedLibraryResult;
   }
-
-  /// Return a list of the parameters to send to the client.
-  List<CommandParameter> get parameters;
 
   /// Return the search engine used to search outside the resolved library.
   SearchEngine get searchEngine => refactoringContext.searchEngine;

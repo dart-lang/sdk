@@ -137,7 +137,7 @@ Source:
 class HighlightingPrinter extends Printer {
   final Node highlight;
 
-  HighlightingPrinter(this.highlight)
+  new(this.highlight)
     : super(new StringBuffer(), syntheticNames: globalDebuggingNames);
 
   @override

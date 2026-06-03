@@ -16,7 +16,7 @@ compileAndRunMinimalDillTest(List<String> extraCompilationArgs) async {
   final testScriptUri = Platform.script.resolve('minimal_kernel_script.dart');
   final message = 'Round_trip_message';
 
-  await withTempDir((String temp) async {
+  await withTempDir("minimal-kernel", (String temp) async {
     final minimalDillPath = path.join(temp, 'minimal.dill');
     await runGenKernel('BUILD MINIMAL DILL FILE', [
       '--minimal-kernel',

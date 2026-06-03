@@ -37,6 +37,7 @@ final class DartRuntimeServiceVmRpcs {
   static const _kUserTags = 'userTags';
   static const _kRootLibUri = 'rootLibUri';
   static const _kForce = 'force';
+  static const _kPause = 'pause';
   static const _kKernelFilePath = 'kernelFilePath';
 
   late final rpcs = UnmodifiableListView<ServiceRpcHandler>([
@@ -154,7 +155,7 @@ final class DartRuntimeServiceVmRpcs {
       final outputDill = tempDir.childFile('for_hot_reload.dill');
       try {
         await frontend_server.invokeCompile(
-          executable: Uri.parse(rootLibUri).toFilePath(),
+          executable: _maybeUriToFilename(rootLibUri),
           outputDill: outputDill.path,
           serverInfoFile: residentCompilerInfoFile,
         );
@@ -171,10 +172,26 @@ final class DartRuntimeServiceVmRpcs {
           _kIsolateId: isolateId,
           _kKernelFilePath: outputDill.uri.toFilePath(),
           _kForce: parameters[_kForce].asBoolOr(false),
+          _kPause: parameters[_kPause].asBoolOr(false),
         },
       );
     } finally {
       tempDir.deleteSync(recursive: true);
     }
   }
+}
+
+/// Safely converts [maybeUri] to a local file path.
+///
+/// Returns [maybeUri] as-is if it is already a raw path (e.g. `C:\foo.dart`
+/// or `/foo.dart`) or a non-file URI. This avoids crashes on Windows where
+/// drive letters (like `C:`) are mistaken for URI schemes by [Uri.parse].
+String _maybeUriToFilename(String maybeUri) {
+  final uri = Uri.tryParse(maybeUri);
+  if (uri != null && (uri.scheme == 'file' || uri.scheme == '')) {
+    try {
+      return uri.toFilePath();
+    } catch (_) {}
+  }
+  return maybeUri;
 }

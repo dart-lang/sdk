@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedPrefixedNameTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,38 +18,35 @@ main() {
 class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
   test_getterContext() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 f() => p.c;
-''',
-      [error(diag.undefinedPrefixedName, 33, 1)],
-    );
+//       ^
+// [diag.undefinedPrefixedName] The name 'c' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+''');
   }
 
   test_new() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 void f() {
   p.new;
+//  ^^^
+// [diag.undefinedPrefixedName] The name 'new' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 }
-''',
-      [error(diag.undefinedPrefixedName, 39, 3)],
-    );
+''');
   }
 
   test_setterContext() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 f() {
   p.c = 0;
+//  ^
+// [diag.undefinedPrefixedName] The name 'c' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 }
-''',
-      [error(diag.undefinedPrefixedName, 34, 1)],
-    );
+''');
   }
 }

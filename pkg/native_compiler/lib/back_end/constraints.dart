@@ -153,6 +153,11 @@ abstract base class Constraints
       throw 'Unexpected AllocateMapLiteral (should be lowered)';
 
   @override
+  InstructionConstraints? visitAllocateRecordLiteral(
+    AllocateRecordLiteral instr,
+  ) => throw 'Unexpected AllocateRecordLiteral (should be lowered)';
+
+  @override
   InstructionConstraints? visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
 }

@@ -43,7 +43,7 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
 }
 
 class CheckCoverageData extends Step<TestDescription, void, Context> {
-  const CheckCoverageData();
+  const new();
 
   @override
   String get name => "CheckCoverageData";
@@ -176,7 +176,7 @@ class CheckCoverageData extends Step<TestDescription, void, Context> {
 class CollectingCoverageHelper extends CoverageHelper {
   Completer<Coverage> completer = new Completer();
 
-  CollectingCoverageHelper() : super(doPrint: false, forceCompilation: true);
+  new() : super(doPrint: false, forceCompilation: true);
 
   @override
   void gotCoverage(Coverage coverage) {
@@ -198,7 +198,7 @@ class Context extends ChainContext with MatchContext {
     EXPECTATIONS,
   );
 
-  Context(this.suiteName, Map<String, String> environment)
+  new(this.suiteName, Map<String, String> environment)
     : updateExpectations =
           environment[EnvironmentKeys.updateExpectations] == "true";
 

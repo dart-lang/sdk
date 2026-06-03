@@ -27,14 +27,11 @@ class A {
   }
 
   test_constructorDeclaration_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A.new();
+  A.[!new!]();
 }
-''',
-      [lint(14, 3)],
-    );
+''');
   }
 
   test_constructorDeclaration_new_alreadyDefined() async {
@@ -74,23 +71,17 @@ extension type E(int i) {
   }
 
   test_extensionTypeDeclaration_primaryNamed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E.a(int i) {
-  E.new(this.i);
+  E.[!new!](this.i);
 }
-''',
-      [lint(32, 3)],
-    );
+''');
   }
 
   test_extensionTypeDeclaration_primaryNamedNew() async {
-    await assertDiagnostics(
-      r'''
-extension type E.new(int i) { }
-''',
-      [lint(17, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+extension type E.[!new!](int i) { }
+''');
   }
 
   test_instanceCreation_named() async {
@@ -103,13 +94,10 @@ var aaa = A.ok();
   }
 
   test_instanceCreation_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {}
-var a = A.new();
-''',
-      [lint(21, 3)],
-    );
+var a = A.[!new!]();
+''');
   }
 
   test_instanceCreation_unnamed() async {
@@ -128,11 +116,8 @@ class A {
   }
 
   test_primaryConstructorDeclaration_new() async {
-    await assertDiagnostics(
-      r'''
-class A.new();
-''',
-      [lint(8, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class A.[!new!]();
+''');
   }
 }

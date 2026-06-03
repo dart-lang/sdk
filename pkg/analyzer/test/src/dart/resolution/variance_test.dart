@@ -6,17 +6,19 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VarianceResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class VarianceResolutionTest extends PubPackageResolutionTest {
   test_inference_in_parameter() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class Contravariant<in T> {}
 
 class Exactly<inout T> {}
@@ -32,7 +34,7 @@ main() {
 }
     ''');
 
-    var node = findNode.methodInvocation('inferContraContra(');
+    var node = result.findNode.methodInvocation('inferContraContra(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -48,8 +50,7 @@ MethodInvocation
   }
 
   test_inference_in_parameter_downwards() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B<in T> {
   B(List<T> x);
   void set x(T val) {}
@@ -57,12 +58,12 @@ class B<in T> {
 
 main() {
   B<int> b = B(<num>[])..x=2.2;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 76, 1)],
-    );
+''');
 
-    var node = findNode.instanceCreation('B(<num>');
+    var node = result.findNode.instanceCreation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -79,7 +80,7 @@ InstanceCreationExpression
   }
 
   test_inference_inout_parameter() async {
-    await assertErrorsInCode(
+    var result = await assertErrorsInCode(
       '''
 class Invariant<inout T> {}
 
@@ -98,7 +99,7 @@ main() {
       ],
     );
 
-    var node = findNode.methodInvocation('inferInvInv(');
+    var node = result.findNode.methodInvocation('inferInvInv(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 MethodInvocation
@@ -114,7 +115,7 @@ MethodInvocation
   }
 
   test_inference_out_parameter() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class Covariant<out T> {}
 
 class Exactly<inout T> {}
@@ -129,7 +130,7 @@ main() {
 }
 ''');
 
-    var node = findNode.methodInvocation('inferCovCov(');
+    var node = result.findNode.methodInvocation('inferCovCov(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
 MethodInvocation

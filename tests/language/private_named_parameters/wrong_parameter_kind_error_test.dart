@@ -5,8 +5,6 @@
 /// You can only use private named parameters on parameters that refer to
 /// instance fields.
 
-// SharedOptions=--enable-experiment=private-named-parameters
-
 class C {
   // In a generative constructor, but not an initializing formal.
   C({int? _notInitializingFormal});

@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class SurroundWith extends MultiCorrectionProducer {
-  SurroundWith({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -141,7 +141,7 @@ abstract class _SurroundWith extends ResolvedCorrectionProducer {
 
   final String indentedCode;
 
-  _SurroundWith(
+  new(
     this.statementsRange,
     this.indentOld,
     this.indentNew,
@@ -158,7 +158,7 @@ abstract class _SurroundWith extends ResolvedCorrectionProducer {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithBlock extends _SurroundWith {
-  _SurroundWithBlock(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -192,7 +192,7 @@ class _SurroundWithBlock extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithDoWhile extends _SurroundWith {
-  _SurroundWithDoWhile(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -225,7 +225,7 @@ class _SurroundWithDoWhile extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithFor extends _SurroundWith {
-  _SurroundWithFor(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -264,7 +264,7 @@ class _SurroundWithFor extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithForIn extends _SurroundWith {
-  _SurroundWithForIn(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -299,7 +299,7 @@ class _SurroundWithForIn extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithIf extends _SurroundWith {
-  _SurroundWithIf(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -332,7 +332,7 @@ class _SurroundWithIf extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithSetState extends _SurroundWith {
-  _SurroundWithSetState(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -367,7 +367,7 @@ class _SurroundWithSetState extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithTryCatch extends _SurroundWith {
-  _SurroundWithTryCatch(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -410,7 +410,7 @@ class _SurroundWithTryCatch extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithTryFinally extends _SurroundWith {
-  _SurroundWithTryFinally(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,
@@ -451,7 +451,7 @@ class _SurroundWithTryFinally extends _SurroundWith {
 /// A correction processor that can make one of the possible changes computed by
 /// the [SurroundWith] producer.
 class _SurroundWithWhile extends _SurroundWith {
-  _SurroundWithWhile(
+  new(
     super.statementsRange,
     super.indentOld,
     super.indentNew,

@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AugmentationOfDifferentDeclarationKindTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,143 +18,87 @@ main() {
 class AugmentationOfDifferentDeclarationKindTest
     extends PubPackageResolutionTest {
   test_class_augments_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A {v}
+//   ^
+// [context 1] The declaration being augmented.
 augment class A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 5, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a enum with a class.
+''');
   }
 
   test_class_augments_extension() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
+//        ^
+// [context 1] The declaration being augmented.
 augment class A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          22,
-          7,
-          contextMessages: [message(testFile, 10, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a extension with a class.
+''');
   }
 
   test_class_augments_extensionType() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
+//             ^
+// [context 1] The declaration being augmented.
 augment class A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          28,
-          7,
-          contextMessages: [message(testFile, 15, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a extension type with a class.
+''');
   }
 
   test_class_augments_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
+//   ^^^
+// [context 1] The declaration being augmented.
 augment class foo {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          14,
-          7,
-          contextMessages: [message(testFile, 5, 3)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a function with a class.
+''');
   }
 
   test_class_augments_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
+//      ^^^
+// [context 1] The declaration being augmented.
 augment class foo {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          18,
-          7,
-          contextMessages: [message(testFile, 8, 3)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a getter with a class.
+''');
   }
 
   test_class_augments_mixin() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment class A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a mixin with a class.
+''');
   }
 
   test_class_augments_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 set foo(int _) {}
+//  ^^^
+// [context 1] The declaration being augmented.
 augment class foo {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          18,
-          7,
-          contextMessages: [message(testFile, 4, 3)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a setter with a class.
+''');
   }
 
   test_class_augments_variable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 int foo = 0;
+//  ^^^
+// [context 1] The declaration being augmented.
 augment class foo {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          13,
-          7,
-          contextMessages: [message(testFile, 4, 3)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a top level variable with a class.
+''');
   }
 
   test_class_constructor_augments_constructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.foo();
 }
@@ -164,459 +109,331 @@ augment class A {
   }
 
   test_class_constructor_augments_staticField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int foo = 0;
+//           ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment A.foo();
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a field with a constructor.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          54,
-          7,
-          contextMessages: [message(testFile, 23, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_constructor_augments_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+//            ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment A.foo();
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a constructor.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          55,
-          7,
-          contextMessages: [message(testFile, 24, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_instanceField_augments_instanceField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
 augment class A {
-  augment int foo = 1;
+  augment abstract int foo;
 }
 ''');
   }
 
   test_class_instanceField_augments_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
+//     ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment int foo = 0;
+//            ^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a field.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          48,
-          7,
-          contextMessages: [message(testFile, 17, 3)],
-        ),
-        error(
-          diag.duplicateDefinition,
-          60,
-          3,
-          contextMessages: [message(testFile, 17, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_instanceGetter_augments_instanceField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
 augment class A {
-  augment int get foo => 0;
+  augment int get foo;
 }
 ''');
   }
 
   test_class_instanceGetter_augments_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
+//     ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment int get foo => 0;
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a getter.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          48,
-          7,
-          contextMessages: [message(testFile, 17, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_instanceMethod_augments_instanceField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
+//    ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a field with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          47,
-          7,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_instanceMethod_augments_instanceGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo => 0;
+//        ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a getter with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          52,
-          7,
-          contextMessages: [message(testFile, 20, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_instanceMethod_augments_instanceMethod() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 augment class A {
-  augment void foo() {}
+  augment void foo();
 }
 ''');
   }
 
   test_class_instanceMethod_augments_instanceSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int _) {}
+//    ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a setter with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          52,
-          7,
-          contextMessages: [message(testFile, 16, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_instanceSetter_augments_instanceField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
 }
 augment class A {
-  augment set foo(int _) {}
+  augment set foo(int _);
 }
 ''');
   }
 
   test_class_instanceSetter_augments_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
+//     ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment set foo(int _) {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a setter.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          48,
-          7,
-          contextMessages: [message(testFile, 17, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticField_augments_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.foo();
+//  ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a constructor with a field.
 }
-''',
-      [
-        error(diag.conflictingConstructorAndStaticField, 14, 3),
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          43,
-          7,
-          contextMessages: [message(testFile, 14, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticField_augments_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+//            ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static int foo = 0;
+//                   ^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a field.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          55,
-          7,
-          contextMessages: [message(testFile, 24, 3)],
-        ),
-        error(
-          diag.duplicateDefinition,
-          74,
-          3,
-          contextMessages: [message(testFile, 24, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticGetter_augments_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.foo();
+//  ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static int get foo => 0;
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a constructor with a getter.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          43,
-          7,
-          contextMessages: [message(testFile, 14, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticGetter_augments_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+//            ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static int get foo => 0;
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a getter.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          55,
-          7,
-          contextMessages: [message(testFile, 24, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticMethod_augments_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.foo();
+//  ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a constructor with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          43,
-          7,
-          contextMessages: [message(testFile, 14, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticMethod_augments_staticField() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int foo = 0;
+//           ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a field with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          54,
-          7,
-          contextMessages: [message(testFile, 23, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticMethod_augments_staticGetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo => 0;
+//               ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a getter with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          59,
-          7,
-          contextMessages: [message(testFile, 27, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticMethod_augments_staticSetter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _) {}
+//           ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a setter with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          59,
-          7,
-          contextMessages: [message(testFile, 23, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticSetter_augments_constructor() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.foo();
+//  ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static set foo(int _) {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a constructor with a setter.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          43,
-          7,
-          contextMessages: [message(testFile, 14, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_staticSetter_augments_staticMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+//            ^^^
+// [context 1] The declaration being augmented.
 }
 augment class A {
   augment static set foo(int _) {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a method with a setter.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          55,
-          7,
-          contextMessages: [message(testFile, 24, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_enum_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment enum A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a class with a enum.
+''');
   }
 
   test_enum_constant_augments_constant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A {
   foo
 }
@@ -627,153 +444,103 @@ augment enum A {
   }
 
   test_enum_constant_augments_instanceMethod() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A {
   v;
   void foo() {}
 }
 augment enum A {
   augment foo(),
+//^^^^^^^
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+//        ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [
-        error(diag.augmentationWithoutDeclaration, 51, 7),
-        error(diag.conflictingStaticAndInstance, 59, 3),
-      ],
-    );
+''');
   }
 
   test_enum_staticMethod_augments_constant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum A {
   foo
+//^^^
+// [context 1] The declaration being augmented.
 }
 augment enum A {;
   augment static void foo() {}
+//^^^^^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a field with a method.
 }
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          37,
-          7,
-          contextMessages: [message(testFile, 11, 3)],
-        ),
-      ],
-    );
+''');
   }
 
   test_extension_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment extension A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a class with a extension.
+''');
   }
 
   test_extensionType_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
-augment extension type A(int it) {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+//    ^
+// [context 1] The declaration being augmented.
+augment extension type A {}
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a class with a extension type.
+''');
   }
 
   test_function_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment void A() {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a class with a function.
+''');
   }
 
   test_mixin_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment mixin A {}
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+// [diag.augmentationOfDifferentDeclarationKind][column 1][length 7][context 1] Can't augment a class with a mixin.
+''');
   }
 
   test_typedef_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 augment typedef A = int;
-''',
-      [error(diag.typedefAugmentation, 11, 7)],
-    );
+// [diag.typedefAugmentation][column 1][length 7] Type aliases can't be augmented.
+''');
   }
 
   test_variable_augments_class() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
+//    ^
+// [context 1] The declaration being augmented.
 augment int A = 0;
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          11,
-          7,
-          contextMessages: [message(testFile, 6, 1)],
-        ),
-      ],
-    );
+//          ^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a class with a top level variable.
+''');
   }
 
   test_variable_augments_function() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
+//   ^^^
+// [context 1] The declaration being augmented.
 augment int foo = 0;
-''',
-      [
-        error(
-          diag.augmentationOfDifferentDeclarationKind,
-          14,
-          7,
-          contextMessages: [message(testFile, 5, 3)],
-        ),
-      ],
-    );
+//          ^^^
+// [diag.augmentationOfDifferentDeclarationKind][context 1] Can't augment a function with a top level variable.
+''');
   }
 }

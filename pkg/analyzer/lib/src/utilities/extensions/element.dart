@@ -8,7 +8,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element {
@@ -264,18 +265,30 @@ extension FormalParameterElementImplExtension on FormalParameterElementImpl {
 extension FragmentImplExtension on FragmentImpl {
   DiagnosticMessageImpl? contextMessageAt(String message) {
     var libraryFragment = this.libraryFragment;
-    var nameOffset = this.nameOffset;
-    var name = this.name;
-    if (libraryFragment != null && nameOffset != null && name != null) {
-      return DiagnosticMessageImpl(
-        filePath: libraryFragment.source.fullName,
-        message: message,
-        offset: nameOffset,
-        length: name.length,
-        url: null,
-      );
+    if (libraryFragment == null) {
+      return null;
     }
-    return null;
+
+    var (:offset, :length) = switch (this) {
+      ConstructorFragmentImpl fragment => (
+        offset: fragment.nameOffset ?? fragment.typeNameOffset,
+        length: fragment.nameOffset != null
+            ? fragment.name.length
+            : fragment.typeName?.length,
+      ),
+      _ => (offset: nameOffset, length: name?.length),
+    };
+    if (offset == null || length == null) {
+      return null;
+    }
+
+    return DiagnosticMessageImpl(
+      filePath: libraryFragment.source.fullName,
+      message: message,
+      offset: offset,
+      length: length,
+      url: null,
+    );
   }
 }
 

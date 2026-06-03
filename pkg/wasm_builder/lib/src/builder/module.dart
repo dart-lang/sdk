@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import '../ir/ir.dart' as ir;
+import '../serialize/sections.dart';
 import 'builder.dart';
 
 /// A Wasm module builder.
@@ -34,6 +37,7 @@ class ModuleBuilder with Builder<ir.Module> {
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();
   FunctionBuilder? _startFunction;
+  final List<ExtraCustomSection> _extraCustomSections = [];
 
   /// Create a new, initially empty, module.
   ///
@@ -48,6 +52,10 @@ class ModuleBuilder with Builder<ir.Module> {
     this.watchPoints = const [],
   }) {
     types = TypesBuilder(this, parent: parent?.types);
+  }
+
+  void addCustomSection(String name, Uint8List data) {
+    _extraCustomSections.add(ExtraCustomSection(name, data));
   }
 
   /// Whether loading the module would have no effect.
@@ -106,6 +114,7 @@ class ModuleBuilder with Builder<ir.Module> {
       imports,
       watchPoints,
       sourceMapUrl,
+      _extraCustomSections,
     );
   }
 }

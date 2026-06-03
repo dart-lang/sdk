@@ -113,7 +113,7 @@ class BenchmarkResult {
   final double warmupUs;
   final List<int> runsUs;
 
-  BenchmarkResult(this.name, this.coldRunUs, this.warmupUs, this.runsUs);
+  new(this.name, this.coldRunUs, this.warmupUs, this.runsUs);
 
   static T add<T extends num>(T x, T y) => x + y as T;
 

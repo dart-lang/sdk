@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 
 class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
-  OrganizeImportsCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Organize Imports';

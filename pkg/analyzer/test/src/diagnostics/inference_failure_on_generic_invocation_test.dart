@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,7 +27,7 @@ class InferenceFailureOnGenericInvocationTest extends PubPackageResolutionTest {
   }
 
   test_genericFunctionExpression_downwardsInference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 int f(T Function<T>()? m, T Function<T>() n) {
   return (m ?? n)();
 }
@@ -36,7 +35,7 @@ int f(T Function<T>()? m, T Function<T>() n) {
   }
 
   test_genericFunctionExpression_explicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)<int>();
 }
@@ -44,18 +43,17 @@ void f(void Function<T>()? m, void Function<T>() n) {
   }
 
   test_genericFunctionExpression_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)();
+//^^^^^^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'void Function<T>()' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnGenericInvocation, 56, 8)],
-    );
+''');
   }
 
   test_genericFunctionExpression_upwardsInference() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>(T a)? m, void Function<T>(T a) n) {
   (m ?? n)(1);
 }
@@ -63,13 +61,12 @@ void f(void Function<T>(T a)? m, void Function<T>(T a) n) {
   }
 
   test_genericFunctionExpressionLiteral_noInference() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   (<T>() {})();
+//^^^^^^^^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'Null Function<T>()' can't be inferred.
 }
-''',
-      [error(diag.inferenceFailureOnGenericInvocation, 13, 10)],
-    );
+''');
   }
 }

@@ -74,10 +74,6 @@ class AbstractContextTest
 
   Future<AnalysisSession> get session => sessionFor(testFile);
 
-  /// The path for `analysis_options.yaml` in [testPackageRootPath].
-  String get testAnalysisOptionsPath =>
-      convertPath('$testPackageRootPath/analysis_options.yaml');
-
   File get testFile => getFile(testFilePath);
 
   String get testPackageLibPath => '$testPackageRootPath/lib';

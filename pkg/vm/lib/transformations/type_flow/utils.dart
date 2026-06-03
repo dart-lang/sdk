@@ -139,7 +139,7 @@ bool isSorted(List list) {
   return true;
 }
 
-VariableDeclaration? findNamedParameter(FunctionNode function, String name) {
+Variable? findNamedParameter(FunctionNode function, String name) {
   return function.namedParameters.firstWhereOrNull((p) => p.name == name);
 }
 

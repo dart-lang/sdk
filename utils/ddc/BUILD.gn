@@ -41,12 +41,12 @@ application_snapshot("dartdevc") {
 
   training_args = [
     "--packages",
-    rebase_path("../../.dart_tool/package_config.json"),
+    rebase_path("../../.dart_tool/package_config.json", root_build_dir),
     "--dart-sdk-summary",
-    rebase_path(sdk_outline_dill),
+    rebase_path(sdk_outline_dill, root_build_dir),
     "-o",
     "dartdevc.js",
-    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart", root_build_dir),
   ]
 
   training_deps = [ ":ddc_platform" ]
@@ -58,10 +58,11 @@ template("dart2js_compile") {
   main = invoker.main
   assert(defined(invoker.out), "Must specify the out file")
   out = invoker.out
-  abs_main = rebase_path(main)
-  abs_output = rebase_path(out)
+  rebased_main = rebase_path(main, root_build_dir)
+  rebased_output = rebase_path(out, root_build_dir)
 
   prebuilt_dart_action(target_name) {
+    mnemonic = "DART2JS"
     deps = invoker.deps + [ "../compiler:compile_dart2js_platform" ]
 
     inputs = [
@@ -77,12 +78,12 @@ template("dart2js_compile") {
     vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 
     args = [
-      "$abs_main",
+      "$rebased_main",
       "-m",
       "--invoker=gn_build",
-      "-o$abs_output",
+      "-o$rebased_output",
       "--no-source-maps",
-      "--platform-binaries=" + rebase_path("$root_out_dir"),
+      "--platform-binaries=" + rebase_path("$root_out_dir", root_build_dir),
     ]
   }
 }
@@ -201,6 +202,7 @@ template("ddc_compile") {
   #   * args: additional args to pass to dartdevc
 
   prebuilt_dart_action(target_name) {
+    mnemonic = "DDC"
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
     package_name = invoker.package
     out_dir = rebase_path("$js_gen_dir")
@@ -407,7 +409,7 @@ ddc_compile("meta_canary_ddc_js") {
 
 compile_platform("ddc_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("$sdk_root/")
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
 
   args = [
@@ -439,6 +441,7 @@ template("ddc_compile_sdk") {
   }
 
   prebuilt_dart_action(target_name) {
+    mnemonic = "DDC"
     deps = [
       ":ddc_files_stamp",
       ":ddc_platform",

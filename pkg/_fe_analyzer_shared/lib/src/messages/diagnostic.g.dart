@@ -1065,6 +1065,16 @@ const MessageCode extensionPrimaryConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+extensionTypeAugmentationSpecifiesRepresentationField = const MessageCode(
+  "ExtensionTypeAugmentationSpecifiesRepresentationField",
+  sharedCode: SharedCode.extensionTypeAugmentationSpecifiesRepresentationField,
+  problemMessage:
+      """An extension type augmentation can't specify a representation field.""",
+  correctionMessage: """Try removing the representation field.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeDeclaresAbstractMember = const MessageCode(
   "ExtensionTypeDeclaresAbstractMember",
   pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
@@ -3149,6 +3159,7 @@ enum SharedCode {
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
   extensionPrimaryConstructor,
+  extensionTypeAugmentationSpecifiesRepresentationField,
   extensionTypeExtends,
   extensionTypeWith,
   externalClass,

@@ -102,11 +102,11 @@ class FakeSharedVariable implements SharedVariable {
 }
 
 class FakeSharedVariableBuilder implements SharedVariableBuilder {
-  final Map<VariableDeclaration, SharedVariable> _sharedVariables = {};
+  final Map<Variable, SharedVariable> _sharedVariables = {};
   final Map<Member, SharedVariable> _sharedCapturedThisVariables = {};
 
   @override
-  SharedVariable getSharedVariable(VariableDeclaration variable) =>
+  SharedVariable getSharedVariable(Variable variable) =>
       _sharedVariables[variable] ??= FakeSharedVariable(
         variable.name ?? '__tmp',
       );

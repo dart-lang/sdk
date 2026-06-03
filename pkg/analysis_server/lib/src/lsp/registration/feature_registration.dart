@@ -43,7 +43,7 @@ typedef LspDynamicRegistration = (Method, ToJsonable?);
 abstract class FeatureRegistration {
   final RegistrationContext _context;
 
-  FeatureRegistration(this._context);
+  new(this._context);
 
   /// The capabilities of the client.
   LspClientCapabilities get clientCapabilities => _context.clientCapabilities;
@@ -114,7 +114,7 @@ class LspFeatures {
   workspaceDidChangeConfiguration;
   final WorkspaceSymbolRegistrations workspaceSymbol;
 
-  LspFeatures(RegistrationContext context)
+  new(RegistrationContext context)
     : callHierarchy = CallHierarchyRegistrations(context),
       changeNotifications = ChangeWorkspaceFoldersRegistrations(context),
       codeActions = CodeActionRegistrations(context),
@@ -203,7 +203,7 @@ class RegistrationContext {
   /// 'file' is implied and not included.
   final Set<String> customDartSchemes;
 
-  RegistrationContext({
+  new({
     required this.clientCapabilities,
     required this.clientConfiguration,
     required this.customDartSchemes,

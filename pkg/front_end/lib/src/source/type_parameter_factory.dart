@@ -163,7 +163,7 @@ class NominalParameterCopy {
   final Map<SourceNominalParameterBuilder, NominalParameterBuilder>
   newToOldParameterMap;
 
-  NominalParameterCopy(
+  new(
     this.newParameterBuilders,
     this.newTypeArguments,
     this.substitutionMap,

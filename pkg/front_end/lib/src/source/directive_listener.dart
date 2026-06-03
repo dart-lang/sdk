@@ -34,7 +34,7 @@ class DirectiveListener extends Listener {
   List<NamespaceCombinator>? _combinators;
   List<String>? _combinatorNames;
 
-  DirectiveListener();
+  new();
 
   @override
   void beginExport(Token export) {
@@ -123,13 +123,9 @@ class NamespaceCombinator {
   final bool isShow;
   final Set<String> names;
 
-  NamespaceCombinator.hide(List<String> names)
-    : isShow = false,
-      names = names.toSet();
+  new hide(List<String> names) : isShow = false, names = names.toSet();
 
-  NamespaceCombinator.show(List<String> names)
-    : isShow = true,
-      names = names.toSet();
+  new show(List<String> names) : isShow = true, names = names.toSet();
 }
 
 class NamespaceDirective {
@@ -137,7 +133,7 @@ class NamespaceDirective {
   final String? uri;
   final List<NamespaceCombinator>? combinators;
 
-  NamespaceDirective.export(this.uri, this.combinators) : isImport = false;
+  new export(this.uri, this.combinators) : isImport = false;
 
-  NamespaceDirective.import(this.uri, this.combinators) : isImport = true;
+  new import(this.uri, this.combinators) : isImport = true;
 }

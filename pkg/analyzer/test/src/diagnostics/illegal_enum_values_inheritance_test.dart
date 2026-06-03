@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,207 +15,192 @@ main() {
 @reflectiveTest
 class IllegalEnumValuesInheritanceTest extends PubPackageResolutionTest {
   test_class_field_fromExtends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int values = 0;
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 46, 1)],
-    );
+//             ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_class_field_fromImplements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int values = 0;
 }
 
 abstract class B implements A, Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 46, 1)],
-    );
+//             ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_class_field_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int values = 0;
 }
 
 abstract class B with M implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 46, 1)],
-    );
+//             ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'M' in a class that implements 'Enum'.
+''');
   }
 
   test_class_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get values => 0;
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 51, 1)],
-    );
+//             ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_class_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void values() {}
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 47, 1)],
-    );
+//             ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_class_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set values(int _) {}
 }
 
 abstract class B extends A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 51, 1)],
-    );
+//             ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_enum_getter_fromImplements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get values => 0;
 }
 
 enum E implements A {
+//   ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
   v
 }
-''',
-      [error(diag.illegalEnumValuesInheritance, 41, 1)],
-    );
+''');
   }
 
   test_enum_method_fromImplements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int values() => 0;
 }
 
 enum E implements A {
+//   ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
   v
 }
-''',
-      [error(diag.illegalEnumValuesInheritance, 39, 1)],
-    );
+''');
   }
 
   test_enum_method_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int values() => 0;
 }
 
 enum E with M {
+//   ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'M' in a class that implements 'Enum'.
   v
 }
-''',
-      [error(diag.illegalEnumValuesInheritance, 39, 1)],
-    );
+''');
   }
 
   test_enum_setter_fromImplements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set values(int _) {}
 }
 
 enum E implements A {
+//   ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
   v
 }
-''',
-      [error(diag.illegalEnumValuesInheritance, 41, 1)],
-    );
+''');
   }
 
   test_enum_setter_fromWith() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set values(int _) {}
 }
 
 enum E with M {
+//   ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'M' in a class that implements 'Enum'.
   v
 }
-''',
-      [error(diag.illegalEnumValuesInheritance, 41, 1)],
-    );
+''');
   }
 
   test_mixin_field() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int values = 0;
 }
 
 mixin M on A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 37, 1)],
-    );
+//    ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_mixin_getter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get values => 0;
 }
 
 mixin M on A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 42, 1)],
-    );
+//    ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_mixin_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int values() => 0;
 }
 
 mixin M on A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 40, 1)],
-    );
+//    ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 
   test_mixin_setter() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set values(int _) {}
 }
 
 mixin M on A implements Enum {}
-''',
-      [error(diag.illegalEnumValuesInheritance, 42, 1)],
-    );
+//    ^
+// [diag.illegalEnumValuesInheritance] An instance member named 'values' can't be inherited from 'A' in a class that implements 'Enum'.
+''');
   }
 }

@@ -32,10 +32,8 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   final bool _isClosureContextLoweringEnabled;
 
-  ClassMembersBuilder(
-    this.hierarchyBuilder, {
-    required bool isClosureContextLoweringEnabled,
-  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
+  new(this.hierarchyBuilder, {required bool isClosureContextLoweringEnabled})
+    : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   void clear() {
     classNodes.clear();
@@ -310,6 +308,6 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 }
 
-int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
+int compareNamedParameters(Variable a, Variable b) {
   return a.name!.compareTo(b.name!);
 }

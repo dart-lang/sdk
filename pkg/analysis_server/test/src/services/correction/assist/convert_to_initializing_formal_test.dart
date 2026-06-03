@@ -279,7 +279,41 @@ class A {
 ''');
   }
 
-  Future<void> test_parameterDeclaration_primary() async {
+  Future<void> test_parameterDeclaration_primary_declaring_final() async {
+    await resolveTestCode('''
+class C(final int ^test);
+''');
+    await assertHasAssist('''
+class C(this.test) {
+  final int test;
+}
+''');
+  }
+
+  Future<void>
+  test_parameterDeclaration_primary_declaring_functionTyped() async {
+    await resolveTestCode('''
+class C(var int ^test(String));
+''');
+    await assertHasAssist('''
+class C(this.test) {
+  int Function(String) test;
+}
+''');
+  }
+
+  Future<void> test_parameterDeclaration_primary_declaring_var() async {
+    await resolveTestCode('''
+class C(var int ^test);
+''');
+    await assertHasAssist('''
+class C(this.test) {
+  int test;
+}
+''');
+  }
+
+  Future<void> test_parameterDeclaration_primary_regular() async {
     await resolveTestCode('''
 class C(int ^test) {
   int test;

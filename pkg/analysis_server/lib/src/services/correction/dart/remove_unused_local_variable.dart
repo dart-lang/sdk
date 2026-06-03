@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   final List<_Command> _commands = [];
 
-  RemoveUnusedLocalVariable({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -389,10 +389,7 @@ class _AddExplicitFieldNameCommand extends _Command {
   final DeclaredVariablePattern declaredVariable;
   final PatternFieldName nameNode;
 
-  _AddExplicitFieldNameCommand({
-    required this.declaredVariable,
-    required this.nameNode,
-  });
+  new({required this.declaredVariable, required this.nameNode});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -411,7 +408,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
   final NodeList<T> nodes;
   final T node;
 
-  _DeleteNodeInListCommand({required this.nodes, required this.node});
+  new({required this.nodes, required this.node});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -423,7 +420,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
 class _DeleteSourceRangeCommand extends _Command {
   final SourceRange sourceRange;
 
-  _DeleteSourceRangeCommand({required this.sourceRange});
+  new({required this.sourceRange});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -435,7 +432,7 @@ class _DeleteStatementCommand extends _Command {
   final CorrectionUtils utils;
   final Statement statement;
 
-  _DeleteStatementCommand({required this.utils, required this.statement});
+  new({required this.utils, required this.statement});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -448,7 +445,7 @@ class _DeleteStatementCommand extends _Command {
 class _MakeItWildcardCommand extends _Command {
   final DeclaredVariablePattern declaredVariable;
 
-  _MakeItWildcardCommand({required this.declaredVariable});
+  new({required this.declaredVariable});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -461,10 +458,7 @@ class _ReplaceSourceRangeCommand extends _Command {
   final SourceRange sourceRange;
   final String replacement;
 
-  _ReplaceSourceRangeCommand({
-    required this.sourceRange,
-    required this.replacement,
-  });
+  new({required this.sourceRange, required this.replacement});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -476,7 +470,7 @@ class _SideEffectVisitor extends RecursiveAstVisitor<void> {
   final LocalVariableElement element;
   bool hasSideEffect = false;
 
-  _SideEffectVisitor(this.element);
+  new(this.element);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {

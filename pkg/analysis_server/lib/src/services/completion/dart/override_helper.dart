@@ -20,7 +20,7 @@ class OverrideHelper {
   final SuggestionCollector collector;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  OverrideHelper({required this.state, required this.collector});
+  new({required this.state, required this.collector});
 
   void computeOverridesFor({
     required InterfaceElement interfaceElement,

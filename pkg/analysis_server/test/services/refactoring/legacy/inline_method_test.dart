@@ -1601,6 +1601,27 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_getter_classMember_instance_propertyAccess_target() async {
+    await indexTestUnit(r'''
+class A {
+  int f = 0;
+  int get ^result => f + 1;
+}
+void f(A a) {
+  print(a.result.isEven);
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+class A {
+  int f = 0;
+}
+void f(A a) {
+  print((a.f + 1).isEven);
+}
+''');
+  }
+
   Future<void> test_getter_classMember_static() async {
     await indexTestUnit(r'''
 class A {
@@ -2462,6 +2483,27 @@ void f() {
     verifyNoTestUnitErrors = false;
     await indexTestUnit(r'''
 test(a) {
+  print(a);
+}
+void f() {
+  ^[!test()!];
+}
+''');
+    _createRefactoring();
+    // error
+    var status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'No argument for the parameter "a".',
+      rangeIndex: 0,
+    );
+  }
+
+  Future<void> test_noArgument_requiredNamed() async {
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit(r'''
+test({ required a }) {
   print(a);
 }
 void f() {

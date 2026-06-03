@@ -713,7 +713,7 @@ class ProtocolConverter {
         result = await service.getObject(thread.isolate.id!, result.id!);
       }
 
-      return convertVmResponseToDisplayString(
+      return await convertVmResponseToDisplayString(
         thread,
         result,
         allowCallingToString: false, // Don't allow recursing.

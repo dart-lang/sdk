@@ -26,6 +26,7 @@ import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart';
 import '../../source/type_parameter_factory.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -116,7 +117,7 @@ class FactoryDeclarationImpl
   late final TypeBuilder _returnType;
   late final FactoryEncoding _encoding;
 
-  FactoryDeclarationImpl(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -337,7 +338,7 @@ class FactoryDeclarationImpl
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
+  Variable? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
 
@@ -371,14 +372,14 @@ class FactoryDeclarationImpl
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     _encoding.registerFunctionBody(
       body: body,
       scope: scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
       thisVariable: thisVariable,
     );
@@ -416,14 +417,14 @@ abstract class FactoryFragmentDeclaration {
   ///
   /// This is used to update the default value for the closure parameter when
   /// it has been computed for the original parameter.
-  VariableDeclaration? getTearOffParameter(int index);
+  Variable? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 
   DartType get returnTypeContext;

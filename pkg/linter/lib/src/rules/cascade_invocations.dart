@@ -73,8 +73,7 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 /// reference that could be done with the cascade operator.
 class CascadeInvocations extends AnalysisRule {
   /// Default constructor.
-  CascadeInvocations()
-    : super(name: LintNames.cascade_invocations, description: _desc);
+  new() : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.cascadeInvocations;
@@ -137,9 +136,7 @@ class _CascadableExpression {
   final Element? element;
   final List<AstNode> criticalNodes;
 
-  factory _CascadableExpression.fromExpressionStatement(
-    ExpressionStatement statement,
-  ) {
+  factory fromExpressionStatement(ExpressionStatement statement) {
     var expression = statement.expression.unParenthesized;
     if (expression is AssignmentExpression) {
       return _CascadableExpression._fromAssignmentExpression(expression);
@@ -160,9 +157,7 @@ class _CascadableExpression {
     return nullCascadableExpression;
   }
 
-  factory _CascadableExpression.fromVariableDeclarationStatement(
-    VariableDeclarationStatement node,
-  ) {
+  factory fromVariableDeclarationStatement(VariableDeclarationStatement node) {
     var element = _getElementFromVariableDeclarationStatement(node);
     return _CascadableExpression._(
       element,
@@ -172,7 +167,7 @@ class _CascadableExpression {
     );
   }
 
-  _CascadableExpression._(
+  new _(
     this.element,
     this.criticalNodes, {
     this.canJoin = false,
@@ -181,9 +176,7 @@ class _CascadableExpression {
     this.isCritical = false,
   });
 
-  factory _CascadableExpression._fromAssignmentExpression(
-    AssignmentExpression node,
-  ) {
+  factory _fromAssignmentExpression(AssignmentExpression node) {
     var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
       return _CascadableExpression._(
@@ -208,7 +201,7 @@ class _CascadableExpression {
     );
   }
 
-  factory _CascadableExpression._fromCascadeExpression(CascadeExpression node) {
+  factory _fromCascadeExpression(CascadeExpression node) {
     var targetIsSimple = node.target is SimpleIdentifier;
     return _CascadableExpression._(
       _getTargetElementFromCascadeExpression(node),
@@ -219,7 +212,7 @@ class _CascadableExpression {
     );
   }
 
-  factory _CascadableExpression._fromMethodInvocation(MethodInvocation node) {
+  factory _fromMethodInvocation(MethodInvocation node) {
     var executableElement = _getExecutableElementFromMethodInvocation(node);
     var isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
@@ -235,17 +228,16 @@ class _CascadableExpression {
     return nullCascadableExpression;
   }
 
-  factory _CascadableExpression._fromPrefixedIdentifier(
-    PrefixedIdentifier node,
-  ) => _CascadableExpression._(
-    node.prefix.canonicalElement,
-    [node.identifier],
-    canJoin: true,
-    canReceive: true,
-    canBeCascaded: true,
-  );
+  factory _fromPrefixedIdentifier(PrefixedIdentifier node) =>
+      _CascadableExpression._(
+        node.prefix.canonicalElement,
+        [node.identifier],
+        canJoin: true,
+        canReceive: true,
+        canBeCascaded: true,
+      );
 
-  factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
+  factory _fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
     return _CascadableExpression._(
       node.target.canonicalElement,
@@ -283,7 +275,7 @@ class _CriticalDependencyVisitor extends UnifyingAstVisitor<void> {
 
   bool foundCriticalNode = false;
 
-  _CriticalDependencyVisitor(this.expressionBox);
+  new(this.expressionBox);
 
   bool isOrHasCriticalNode(AstNode node) {
     node.accept(this);
@@ -335,7 +327,7 @@ class _CriticalDependencyVisitor extends UnifyingAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBlock(Block node) {
@@ -362,6 +354,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
+    Statement? previousStatement;
+    Statement? firstStatementInCascade;
+
     for (var statement in statements) {
       var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
       if (statement is VariableDeclarationStatement) {
@@ -374,9 +369,23 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
       }
       if (currentExpressionBox.compatibleWith(previousExpressionBox)) {
-        rule.reportAtNode(statement);
+        firstStatementInCascade ??= statement;
+      } else {
+        if (firstStatementInCascade != null && previousStatement != null) {
+          var offset = firstStatementInCascade.offset;
+          var length = previousStatement.end - offset;
+          rule.reportAtOffset(offset, length);
+          firstStatementInCascade = null;
+        }
       }
       previousExpressionBox = currentExpressionBox;
+      previousStatement = statement;
+    }
+
+    if (firstStatementInCascade != null && previousStatement != null) {
+      var offset = firstStatementInCascade.offset;
+      var length = previousStatement.end - offset;
+      rule.reportAtOffset(offset, length);
     }
   }
 }

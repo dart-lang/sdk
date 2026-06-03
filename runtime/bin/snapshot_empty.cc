@@ -8,8 +8,6 @@
 #include <stdint.h>
 
 extern "C" {
-const uint8_t* kDartVmSnapshotData = nullptr;
-const uint8_t* kDartVmSnapshotInstructions = nullptr;
-const uint8_t* kDartCoreIsolateSnapshotData = nullptr;
-const uint8_t* kDartCoreIsolateSnapshotInstructions = nullptr;
+const uint8_t* kDartCoreSnapshotData = nullptr;
+const uint8_t* kDartCoreSnapshotText = nullptr;
 }

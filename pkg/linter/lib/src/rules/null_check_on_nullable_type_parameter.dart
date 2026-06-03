@@ -19,7 +19,7 @@ const _desc =
     r"Don't use `null` check on a potentially nullable type parameter.";
 
 class NullCheckOnNullableTypeParameter extends AnalysisRule {
-  NullCheckOnNullableTypeParameter()
+  new()
     : super(
         name: LintNames.null_check_on_nullable_type_parameter,
         description: _desc,
@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   bool isNullableTypeParameterType(DartType? type) =>
       type is TypeParameterType && context.typeSystem.isNullable(type);

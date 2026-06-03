@@ -118,7 +118,7 @@ class AnnotatedTest {
   final String testName;
   final Uri issueUri;
 
-  AnnotatedTest(this.file, this.testName, this.issueUri);
+  new(this.file, this.testName, this.issueUri);
 }
 
 /// A [RecursiveAstVisitor] that tracks nodes annotated with [FailingTest] or
@@ -127,7 +127,7 @@ class FailingTestAnnotationTracker extends RecursiveAstVisitor<void> {
   final annotatedTests = <AnnotatedTest>[];
   final File file;
 
-  FailingTestAnnotationTracker(this.file);
+  new(this.file);
 
   @override
   void visitAnnotation(Annotation node) {

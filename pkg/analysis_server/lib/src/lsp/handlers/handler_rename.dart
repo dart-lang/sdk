@@ -25,7 +25,7 @@ class PrepareRenameHandler
           TextDocumentPositionParams,
           TextDocumentPrepareRenameResult
         > {
-  PrepareRenameHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
 
@@ -100,7 +100,7 @@ class PrepareRenameHandler
 }
 
 class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
-  RenameHandler(super.server);
+  new(super.server);
 
   LspGlobalClientConfiguration get config =>
       server.lspClientConfiguration.global;
@@ -341,7 +341,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
 class RenameRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
-  RenameRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => RenameRegistrationOptions(

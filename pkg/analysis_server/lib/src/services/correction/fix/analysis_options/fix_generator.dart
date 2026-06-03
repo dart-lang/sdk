@@ -56,12 +56,8 @@ class AnalysisOptionsFixGenerator {
 
   final List<Fix> fixes = <Fix>[];
 
-  AnalysisOptionsFixGenerator(
-    this.resourceProvider,
-    this.diagnostic,
-    this.content,
-    this.options,
-  ) : diagnosticOffset = diagnostic.offset,
+  new(this.resourceProvider, this.diagnostic, this.content, this.options)
+    : diagnosticOffset = diagnostic.offset,
       diagnosticLength = diagnostic.length,
       lineInfo = LineInfo.fromContent(content);
 
@@ -376,7 +372,7 @@ class _NonDartChangeWorkspace implements ChangeWorkspace {
   @override
   ResourceProvider resourceProvider;
 
-  _NonDartChangeWorkspace(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   bool containsFile(String path) {

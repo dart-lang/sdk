@@ -222,6 +222,14 @@ uint32_t Utils::StringHash(const void* data, int length) {
 
 #undef MIX
 
+// TODO(63370): Proper 64-bit hash.
+uint64_t Utils::StringHash64(const void* data, int length) {
+  uint64_t hi = StringHash(data, length / 2);
+  uint64_t lo = StringHash(reinterpret_cast<const uint8_t*>(data) + length / 2,
+                           length / 2);
+  return hi << 32 | lo;
+}
+
 uint32_t Utils::WordHash(intptr_t key) {
   // TODO(iposva): Need to check hash spreading.
   // This example is from http://www.concentric.net/~Ttwang/tech/inthash.htm

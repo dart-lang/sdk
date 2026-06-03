@@ -32,7 +32,7 @@ class CompletionState {
   final CompletionMatcher matcher;
 
   /// Initialize a newly created completion state.
-  CompletionState(this.request, this.selection, this.budget, this.matcher)
+  new(this.request, this.selection, this.budget, this.matcher)
     : assert(selection.length == 0);
 
   /// The [CodeStyleOptions] used to format the completion text.

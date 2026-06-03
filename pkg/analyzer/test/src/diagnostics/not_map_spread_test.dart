@@ -2,35 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotMapSpreadTest);
     defineReflectiveTests(NotMapSpreadWithStrictCastsTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NotMapSpreadTest extends PubPackageResolutionTest {
   test_map() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var a = {0: 0};
 var v = <int, int>{...a};
 ''');
   }
 
   test_map_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 var v = <int, int>{...?null};
 ''');
   }
 
   test_map_typeParameter_bound_map() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Map<int, String>>(T a) {
   var v = <int, String>{...a};
   v;
@@ -39,7 +40,7 @@ void f<T extends Map<int, String>>(T a) {
   }
 
   test_map_typeParameter_bound_mapQuestion() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends Map<int, String>?>(T a) {
   var v = <int, String>{...?a};
   v;
@@ -48,55 +49,52 @@ void f<T extends Map<int, String>?>(T a) {
   }
 
   test_notMap_direct() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = <int, int>{...a};
-''',
-      [error(diag.notMapSpread, 33, 1)],
-    );
+//                    ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
   }
 
   test_notMap_forElement() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = <int, int>{for (var i in []) ...a};
-''',
-      [error(diag.unusedLocalVariable, 39, 1), error(diag.notMapSpread, 51, 1)],
-    );
+//                          ^
+// [diag.unusedLocalVariable] The value of the local variable 'i' isn't used.
+//                                      ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
   }
 
   test_notMap_ifElement_else() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = <int, int>{if (1 > 0) ...<int, int>{} else ...a};
-''',
-      [error(diag.notMapSpread, 65, 1)],
-    );
+//                                                    ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
   }
 
   test_notMap_ifElement_then() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 var a = 0;
 var v = <int, int>{if (1 > 0) ...a};
-''',
-      [error(diag.notMapSpread, 44, 1)],
-    );
+//                               ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
+''');
   }
 
   test_notMap_typeParameter_bound() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f<T extends num>(T a) {
   var v = <int, int>{...a};
+//                      ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
   v;
 }
-''',
-      [error(diag.notMapSpread, 53, 1)],
-    );
+''');
   }
 }
 
@@ -104,13 +102,12 @@ void f<T extends num>(T a) {
 class NotMapSpreadWithStrictCastsTest extends PubPackageResolutionTest
     with WithStrictCastsMixin {
   test_map() async {
-    await assertErrorsWithStrictCasts(
-      '''
+    await assertTestCodeWithStrictCastsDiagnostics('''
 void f(dynamic a) {
   <int, String>{...a};
+//                 ^
+// [diag.notMapSpread] Spread elements in map literals must implement 'Map'.
 }
-''',
-      [error(diag.notMapSpread, 39, 1)],
-    );
+''');
   }
 }

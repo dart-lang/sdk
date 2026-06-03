@@ -78,5 +78,5 @@ class StackTraceLine {
   final int column;
   final String orgLine;
 
-  StackTraceLine(this.method, this.uri, this.line, this.column, this.orgLine);
+  new(this.method, this.uri, this.line, this.column, this.orgLine);
 }

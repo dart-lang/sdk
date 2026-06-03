@@ -430,7 +430,8 @@ void FlowGraphCompiler::EmitPrologue() {
 void FlowGraphCompiler::EmitCallToStub(
     const Code& stub,
     ObjectPool::SnapshotBehavior snapshot_behavior) {
-  if (stub.InVMIsolateHeap()) {
+  if (stub.IsStubCode()) {
+    // Assumes the stub's Code object will not move.
     __ CallVmStub(stub);
   } else {
     // Ignore snapshot_behavior, ia32 doesn't do snapshots.

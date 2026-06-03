@@ -2,32 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FunctionDeclarationResolutionTest extends PubPackageResolutionTest {
   test_asyncGenerator_blockBody_return() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 Stream<int> f() async* {
   return 0;
+//^^^^^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 }
-''',
-      [error(diag.returnInGenerator, 49, 6)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -71,16 +71,15 @@ FunctionDeclaration
   }
 
   test_asyncGenerator_expressionBody() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 Stream<int> f() async* => 0;
-''',
-      [error(diag.returnInGenerator, 45, 2)],
-    );
+//                     ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -119,14 +118,14 @@ FunctionDeclaration
   }
 
   test_formalParameterScope_defaultValue() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 const foo = 0;
 
 void bar([int foo = foo + 1]) {
 }
 ''');
 
-    var node = findNode.simple('foo + 1');
+    var node = result.findNode.simple('foo + 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
@@ -136,7 +135,7 @@ SimpleIdentifier
   }
 
   test_formalParameterScope_type() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class a {}
 
 void bar(a a) {
@@ -144,16 +143,16 @@ void bar(a a) {
 }
 ''');
 
-    var node_1 = findNode.namedType('a a');
-    assertResolvedNodeText(node_1, r'''
+    var node1 = result.findNode.namedType('a a');
+    assertResolvedNodeText(node1, r'''
 NamedType
   name: a
   element: <testLibrary>::@class::a
   type: a
 ''');
 
-    var node_2 = findNode.simple('a;');
-    assertResolvedNodeText(node_2, r'''
+    var node2 = result.findNode.simple('a;');
+    assertResolvedNodeText(node2, r'''
 SimpleIdentifier
   token: a
   element: <testLibrary>::@function::bar::@formalParameter::a
@@ -162,11 +161,11 @@ SimpleIdentifier
   }
 
   test_genericFunction_fBoundedDefaultType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void m<T extends List<T>>() {}
 ''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -214,11 +213,11 @@ FunctionDeclaration
   }
 
   test_genericFunction_simpleDefaultType() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void m<T extends num>() {}
 ''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -258,16 +257,16 @@ FunctionDeclaration
   }
 
   test_genericLocalFunction_fBoundedDefaultType() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   void m<T extends List<T>>() {}
+//     ^
+// [diag.unusedElement] The declaration 'm' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    var node =
+        result.findNode.singleFunctionDeclarationStatement.functionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -315,16 +314,16 @@ FunctionDeclaration
   }
 
   test_genericLocalFunction_simpleDefaultType() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   void m<T extends num>() {}
+//     ^
+// [diag.unusedElement] The declaration 'm' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 18, 1)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    var node =
+        result.findNode.singleFunctionDeclarationStatement.functionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -364,14 +363,13 @@ FunctionDeclaration
   }
 
   test_getter_formalParameters() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 int get foo(double a) => 0;
-''',
-      [error(diag.getterWithParameters, 11, 1)],
-    );
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -410,16 +408,15 @@ FunctionDeclaration
   }
 
   test_syncGenerator_blockBody_return() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
   return 0;
+//^^^^^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 }
-''',
-      [error(diag.returnInGenerator, 28, 6)],
-    );
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -463,14 +460,13 @@ FunctionDeclaration
   }
 
   test_syncGenerator_expressionBody() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* => 0;
-''',
-      [error(diag.returnInGenerator, 24, 2)],
-    );
+//                      ^^
+// [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   returnType: NamedType
@@ -509,14 +505,12 @@ FunctionDeclaration
   }
 
   test_wildCardFunction() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 _() {}
-''',
-      [error(diag.unusedElement, 0, 1)],
-    );
+// [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   name: _
@@ -539,17 +533,15 @@ FunctionDeclaration
   }
 
   test_wildCardFunction_preWildCards() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 _() {}
-''',
-      [error(diag.unusedElement, 44, 1)],
-    );
+// [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
+''');
 
-    var node = findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 FunctionDeclaration
   name: _
@@ -575,14 +567,15 @@ FunctionDeclaration
     // Corresponding language test:
     // language/wildcard_variables/multiple/local_declaration_type_parameter_error_test
 
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<_ extends void Function<_>(_, _), _>() {}
-''',
-      [error(diag.undefinedClass, 34, 1), error(diag.undefinedClass, 37, 1)],
-    );
+//                                ^
+// [diag.undefinedClass] Undefined class '_'.
+//                                   ^
+// [diag.undefinedClass] Undefined class '_'.
+''');
 
-    var node = findNode.typeParameter('<_>');
+    var node = result.findNode.typeParameter('<_>');
     assertResolvedNodeText(node, r'''
 TypeParameter
   name: _

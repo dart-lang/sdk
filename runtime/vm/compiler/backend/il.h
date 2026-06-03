@@ -1984,8 +1984,8 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(GraphEntry)
 
-  virtual intptr_t PredecessorCount() const { return 0; }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  intptr_t PredecessorCount() const final { return 0; }
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     UNREACHABLE();
     return nullptr;
   }
@@ -2082,8 +2082,8 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   DECLARE_INSTRUCTION(JoinEntry)
 
-  virtual intptr_t PredecessorCount() const { return predecessors_.length(); }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  intptr_t PredecessorCount() const final { return predecessors_.length(); }
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     return predecessors_[index];
   }
 
@@ -2167,10 +2167,10 @@ class TargetEntryInstr : public BlockEntryInstr {
   void set_edge_weight(double weight) { edge_weight_ = weight; }
   void adjust_edge_weight(double scale_factor) { edge_weight_ *= scale_factor; }
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (predecessor_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
@@ -2221,10 +2221,10 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(FunctionEntry)
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (graph_entry_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT(index == 0 && graph_entry_ != nullptr);
     return graph_entry_;
   }
@@ -2295,10 +2295,10 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(OsrEntry)
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (graph_entry_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT(index == 0 && graph_entry_ != nullptr);
     return graph_entry_;
   }
@@ -2430,10 +2430,10 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
-  virtual intptr_t PredecessorCount() const {
+  intptr_t PredecessorCount() const final {
     return (predecessor_ == nullptr) ? 0 : 1;
   }
-  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+  BlockEntryInstr* PredecessorAt(intptr_t index) const final {
     ASSERT((index == 0) && (predecessor_ != nullptr));
     return predecessor_;
   }
@@ -7253,7 +7253,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
 class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  RecordCoverageInstr(const Array& coverage_array,
+  RecordCoverageInstr(const TypedData& coverage_array,
                       intptr_t coverage_index,
                       const InstructionSource& source)
       : TemplateInstruction(source),
@@ -7270,7 +7270,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
 #define FIELD_LIST(F)                                                          \
-  F(const Array&, coverage_array_)                                             \
+  F(const TypedData&, coverage_array_)                                         \
   F(const intptr_t, coverage_index_)                                           \
   F(const TokenPosition, token_pos_)
 

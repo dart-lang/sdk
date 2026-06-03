@@ -86,19 +86,16 @@ augment class A { }
   }
 
   test_mutableClass() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   final String key;
   const A(this.key);
   @override
-  operator ==(other) => other is A && other.key == key;
+  /*[0*/operator/*0]*/ ==(other) => other is A && other.key == key;
   @override
-  int get hashCode => key.hashCode;
+  /*[1*/int/*1]*/ get hashCode => key.hashCode;
 }
-''',
-      [lint(65, 8), lint(133, 3)],
-    );
+''');
   }
 
   test_mutableClass_augmentationMethod() async {
@@ -115,7 +112,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment int get hashCode => 0;
+  augment int get hashCode;
 }
 ''');
   }
@@ -127,17 +124,14 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
   @override
-  int get hashCode => 0;
+  [!int!] get hashCode => 0;
 }
-''',
-      [lint(51, 3)],
-    );
+''');
   }
 
   test_subtypeOfImmutableClass() async {

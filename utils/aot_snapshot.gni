@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../build/dart/dart_action.gni")
+import("../build/toolchain/signing.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
@@ -43,11 +44,15 @@ template("aot_snapshot") {
     output = invoker.output
   }
 
-  dill = "$target_gen_dir/$name.dart.dill"
+  dill = "$target_out_dir/$name.dart.dill"
+  unsigned_snapshot = "$target_out_dir/$name.dart.snapshot.unsigned"
+  signed_snapshot = output
 
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
-  prebuilt_dart_action(target_name + "_dill") {
+  kernel_label = target_name + "_dill"
+  prebuilt_dart_action(kernel_label) {
+    mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
     }
@@ -73,7 +78,8 @@ template("aot_snapshot") {
     depfile = "$output.d"
 
     vm_args = [
-      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
+      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
+      # kernel.
       "-Dsdk_hash=$sdk_hash",
     ]
 
@@ -104,104 +110,66 @@ template("aot_snapshot") {
     }
   }
 
-  # Whether to build an AOT snapshot, which can be opened by dlopen.
-  # Ignore this option on Linux, as the default app-aot-elf AOT
-  # snapshot already can be used with dlopen on Linux.
-  as_shared_library = defined(invoker.as_shared_library) &&
-                      invoker.as_shared_library && !is_linux
+  # Create a snapshot from kernel built above.
+  gen_snapshot_label = "${target_name}_gen_snapshot"
+  gen_snapshot_action(gen_snapshot_label) {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
+    deps = extra_deps + [ ":$kernel_label" ]
 
-  assert(!(as_shared_library && is_win),
-         "AOT Snapshots as shared libraries are not supported on Windows")
+    inputs = [ dill ] + extra_inputs
 
-  if (!as_shared_library) {
-    # Create a snapshot from kernel built above.
-    gen_snapshot_action(target_name) {
-      if (defined(invoker.pool)) {
-        pool = invoker.pool
-      }
-      deps = extra_deps + [ ":${target_name}_dill" ]
+    outputs = [ unsigned_snapshot ]
 
-      inputs = extra_inputs
+    rebased_output = rebase_path(unsigned_snapshot, root_build_dir)
 
-      outputs = [ output ]
-
-      abs_output = rebase_path(output)
-
+    # TODO(60813): Generate PE DLL on Windows.
+    if (is_mac) {
+      vm_args = [
+                  "--deterministic",
+                  "--snapshot-kind=app-aot-macho-dylib",
+                  "--macho=$rebased_output",
+                ] + gen_snapshot_args
+    } else {
       vm_args = [
                   "--deterministic",
                   "--snapshot-kind=app-aot-elf",
-                  "--elf=$abs_output",
+                  "--elf=$rebased_output",
                 ] + gen_snapshot_args
-      if (defined(invoker.vm_args)) {
-        vm_args += invoker.vm_args
-      }
+    }
+    if (defined(invoker.vm_args)) {
+      vm_args += invoker.vm_args
+    }
 
-      args = [ rebase_path(dill) ]
+    args = [ rebase_path(dill, root_build_dir) ]
 
-      force_product_mode = product_mode
+    force_product_mode = product_mode
+  }
+
+  if (is_mac && codesigning_identity != "") {
+    action(target_name) {
+      mnemonic = "CODESIGN"
+
+      deps = [ ":$gen_snapshot_label" ]
+      inputs = [ unsigned_snapshot ]
+      outputs = [ signed_snapshot ]
+
+      script = "$_dart_root/runtime/tools/dart_copy_and_codesign.py"
+      args = [
+        "--identity",
+        codesigning_identity,
+        "--input",
+        rebase_path(unsigned_snapshot, root_build_dir),
+        "--output",
+        rebase_path(signed_snapshot, root_build_dir),
+      ]
     }
   } else {
-    assembly = "$target_gen_dir/$name.S"
-    dill_target_name = ":${target_name}_dill"
-
-    # Create an assembly snapshot from kernel built above.
-    assembly_target_name = target_name + "_assembly"
-    gen_snapshot_action(assembly_target_name) {
-      if (defined(invoker.pool)) {
-        pool = invoker.pool
-      }
-      deps = extra_deps + [ dill_target_name ]
-
-      inputs = extra_inputs
-
-      outputs = [ assembly ]
-
-      abs_output = rebase_path(assembly)
-      vm_args = [
-                  "--deterministic",
-                  "--snapshot-kind=app-aot-assembly",
-                  "--assembly=$abs_output",
-                ] + gen_snapshot_args
-
-      args = [ rebase_path(dill) ]
-
-      force_product_mode = product_mode
-    }
-
-    # build a shared library from assembly.
-    shared_library_target_name = target_name + "_shared_library"
-    shared_library(shared_library_target_name) {
-      sources = [ assembly ]
-      deps = [ ":${assembly_target_name}" ]
-    }
-
-    output_prefix = "lib"
-    output_extension = ""
-
-    if (current_os == "mac" || current_os == "ios" || current_os == "watchos") {
-      output_extension = "dylib"
-    } else if (current_os == "win") {
-      output_extension = "dll"
-      output_prefix = ""
-    } else if (current_os == "unknown" && current_cpu == "wasm32") {
-      output_extension = "wasm"
-    } else {
-      output_extension = "so"
-    }
-
-    shared_library_output_file_name =
-        "$output_prefix$shared_library_target_name"
-    if (output_extension != "") {
-      shared_library_output_file_name += ".$output_extension"
-    }
-
-    # copy shared library to the same output, as when
-    # `as_shared_library` is False.
     copy(target_name) {
-      sources = [ "$root_out_dir/$shared_library_output_file_name" ]
-      outputs = [ output ]
-
-      deps = [ ":${shared_library_target_name}" ]
+      deps = [ ":$gen_snapshot_label" ]
+      sources = [ unsigned_snapshot ]
+      outputs = [ signed_snapshot ]
     }
   }
 }

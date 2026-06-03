@@ -119,9 +119,6 @@ _TestClass? takeWeakUnreachableTarget() {
   return tmp;
 }
 
-@pragma('vm:entry-point') // Prevent obfuscation
-bool getTrue() => true;
-
 Future<InstanceRef> invoke(String selector) async {
   return await rootService.invoke(
     isolateId,
@@ -231,19 +228,6 @@ final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final target = await invoke('takeWeakUnreachableTarget');
     final result = await service.getRetainingPath(isolateId, target.id!, 100);
-    final elements = result.elements!;
-    expect(elements.length, 0);
-  },
-
-  // object store
-  (VmService service, IsolateRef isolateRef) async {
-    final target = await invoke('getTrue');
-    final result = await service.getRetainingPath(isolateId, target.id!, 100);
-    expect(
-      result.gcRootType == 'isolate_object store' ||
-          result.gcRootType == 'class table',
-      true,
-    );
     final elements = result.elements!;
     expect(elements.length, 0);
   },

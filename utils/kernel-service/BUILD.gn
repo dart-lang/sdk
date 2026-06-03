@@ -29,11 +29,7 @@ application_snapshot("kernel-service_snapshot") {
   main_dart = "../../$_kernel_service_script"
   training_args = [
     "--train",
-
-    # Force triple-slashes both on Windows and otherwise.
-    # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
-    # Without the ', "/"' part, on Linux it would get four slashes.
-    "file:///" + rebase_path("../../$_kernel_service_script", "/"),
+    rebase_path("../../$_kernel_service_script", root_build_dir),
   ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
@@ -179,7 +175,7 @@ template("kernel_service_dill") {
                "--packages=" + scheme + ":///.dart_tool/package_config.json",
                "--platform=" + rebase_path("$root_out_dir/vm_platform.dill",
                                            root_build_dir),
-               "--filesystem-root=" + rebase_path("../../"),
+               "--filesystem-root=" + rebase_path("../../", root_build_dir),
                "--filesystem-scheme=" + scheme,
                "--no-aot",
                "--no-embed-sources",

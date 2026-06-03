@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:code_assets/code_assets.dart';
+import 'package:code_assets/code_assets.dart' hide Sanitizer;
 import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
@@ -64,6 +64,15 @@ class BuildCliSubcommand extends CompileSubcommandCommand {
 
   final bool dataAssetsExperimentEnabled;
 
+  @override
+  String get invocation {
+    // We don't take rest/positional arguments, so remove '<dart entry point>'
+    // (inherited from CompileSubcommandCommand) and '[arguments]' from the help.
+    return super.invocation
+        .replaceAll(' <dart entry point>', '')
+        .replaceAll(' [arguments]', '');
+  }
+
   BuildCliSubcommand({
     bool verbose = false,
     required this.recordUseEnabled,
@@ -115,7 +124,7 @@ bundle/
         'target',
         abbr: 't',
         help: '''The main entry-point file of the command-line application.
-Must be a Dart file in the bin/ directory.
+Must be a Dart file.
 If the "--target" option is omitted, and there is a single Dart file in bin/,
 then that is used instead.''',
         valueHelp: 'path',
@@ -125,6 +134,12 @@ then that is used instead.''',
                 from: Directory.current.path,
               )
             : null,
+      )
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
       )
       ..addOption(
         'verbosity',
@@ -139,14 +154,33 @@ then that is used instead.''',
         valueHelp: 'path',
         help: 'Path to output Ninja depfile',
       )
+      ..addOption(
+        'target-sanitizer',
+        help: 'Build with a specific target sanitizer.',
+        allowed: Sanitizer.available().map((s) => s.name).toList(),
+        defaultsTo: 'none',
+      )
+      ..addOption(
+        'root-package',
+        help:
+            'The package for which hooks are run (including its transitive '
+            'dependencies). Must be provided if the entry point(s) are outside '
+            'the packages in the packages argument.',
+        valueHelp: 'name',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
   @override
   Future<int> run() async {
+    final args = argResults!;
+    final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
+    final targetDartAotRuntime = sdk.dartAotRuntimeFor(
+      sanitizer: sanitizer.name,
+    );
     if (!checkArtifactExists(sdk.genKernelSnapshot) ||
         !checkArtifactExists(sdk.genSnapshot) ||
-        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(targetDartAotRuntime) ||
         !checkArtifactExists(sdk.dart)) {
       return 255;
     }
@@ -156,14 +190,23 @@ then that is used instead.''',
       stderr.writeln("'dart build' is not supported on x86 architectures.");
       return 64;
     }
-    final args = argResults!;
 
-    var target = args.option('target');
+    if (args.rest.isNotEmpty) {
+      usageException('Unexpected arguments: ${args.rest.join(' ')}');
+    }
+    final target = args.option('target');
+
     if (target == null) {
-      stderr.writeln(
-        'There are multiple possible targets in the `bin/` directory, '
-        "and the 'target' argument wasn't specified.",
-      );
+      if (entryPoints.isEmpty) {
+        stderr.writeln(
+          "No entry point was specified. Use '--target <path>'.",
+        );
+      } else {
+        stderr.writeln(
+          'There are multiple possible targets in the `bin/` directory, '
+          "and the target wasn't specified.",
+        );
+      }
       return 255;
     }
     final sourceUri = File.fromUri(
@@ -186,25 +229,41 @@ then that is used instead.''',
     final depFile = args.option('depfile');
     final enabledExperiments = args.enabledExperiments;
 
-    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
-      sourceUri,
-    );
-    final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
-      packageConfigUri,
-    );
+    Uri? packageConfigUri;
+    final packages = args.option(packagesOption.flag);
+    if (packages != null) {
+      packageConfigUri = File(packages).absolute.uri;
+    } else {
+      packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
+        sourceUri,
+      );
+    }
+    if (packageConfigUri == null) {
+      stderr.writeln(
+        'Error: Could not find or generate a package config mapping.',
+      );
+      return 255;
+    }
+    final pubspecUri =
+        await DartNativeAssetsBuilder.findWorkspacePubspec(
+          packageConfigUri,
+        ) ??
+        await DartNativeAssetsBuilder.findPubspec(sourceUri);
     final executableName = path.basenameWithoutExtension(sourceUri.path);
 
     return await doBuild(
       executables: [(name: executableName, sourceEntryPoint: sourceUri)],
       enabledExperiments: enabledExperiments,
       outputUri: outputUri,
-      packageConfigUri: packageConfigUri!,
+      packageConfigUri: packageConfigUri,
       pubspecUri: pubspecUri,
       recordUseEnabled: recordUseEnabled,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       verbose: verbose,
       verbosity: verbosity,
       depFile: depFile,
+      sanitizer: sanitizer,
+      runPackageName: args.option('root-package'),
     );
   }
 
@@ -218,8 +277,10 @@ then that is used instead.''',
     required List<String> enabledExperiments,
     required bool verbose,
     required String verbosity,
+    Sanitizer sanitizer = Sanitizer.none,
     bool progressUpdatesOnStderr = false,
     String? depFile,
+    String? runPackageName,
   }) async {
     if (executables.length >= 2) {
       if (recordUseEnabled) {
@@ -267,21 +328,48 @@ then that is used instead.''',
     if (packageConfig == null) {
       return compileErrorExitCode;
     }
-    final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
-      executables.first.sourceEntryPoint,
-    );
-    pubspecUri ??= await DartNativeAssetsBuilder.findWorkspacePubspec(
-      packageConfigUri,
-    );
+    String? resolvedRunPackageName = runPackageName;
+    if (resolvedRunPackageName == null) {
+      final entrypointPackage = packageConfig.packageOf(
+        executables.first.sourceEntryPoint,
+      );
+      if (entrypointPackage == null) {
+        stderr.writeln(
+          "Error: The entrypoint '${executables.first.sourceEntryPoint.toFilePath()}' "
+          "does not reside in any package defined in the package config at '${packageConfigUri.toFilePath()}'.",
+        );
+        return 255;
+      }
+      resolvedRunPackageName = entrypointPackage.name;
+
+      for (final executable in executables.skip(1)) {
+        final exePackage = packageConfig.packageOf(executable.sourceEntryPoint);
+        if (exePackage == null || exePackage.name != resolvedRunPackageName) {
+          stderr.writeln(
+            'Error: All entrypoints must reside in the same package. '
+            "'${executable.sourceEntryPoint.toFilePath()}' does not belong to package '$resolvedRunPackageName'.",
+          );
+          return 255;
+        }
+      }
+    }
+    pubspecUri ??=
+        await DartNativeAssetsBuilder.findWorkspacePubspec(
+          packageConfigUri,
+        ) ??
+        await DartNativeAssetsBuilder.findPubspec(
+          executables.first.sourceEntryPoint,
+        );
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
       packageConfigUri: packageConfigUri,
       packageConfig: packageConfig,
-      runPackageName: runPackageName!,
+      runPackageName: resolvedRunPackageName,
       includeDevDependencies: false,
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       progressUpdatesOnStderr: progressUpdatesOnStderr,
+      sanitizer: sanitizer,
     );
     final showProgress = verbosity != Verbosity.error.name;
     BuildResult? buildResult;
@@ -308,20 +396,28 @@ then that is used instead.''',
       for (final e in executables) {
         String? recordedUsagesPath;
         if (recordUseEnabled) {
-          recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
+          final stableDirUri =
+              pubspecUri?.resolve('.dart_tool/native_assets/') ?? tempDir.uri;
+          final stableDir = Directory.fromUri(stableDirUri);
+          await stableDir.create(recursive: true);
+          recordedUsagesPath = stableDir.uri
+              .resolve('recorded_usages.json')
+              .toFilePath();
         }
         final outputExeUri = binDirectory.uri.resolve(
           targetOS.executableFileName(e.name),
         );
         final generator = KernelGenerator(
           genSnapshot: sdk.genSnapshot,
-          targetDartAotRuntime: sdk.dartAotRuntime,
+          targetDartAotRuntime: sdk.dartAotRuntimeFor(
+            sanitizer: sanitizer.name,
+          ),
           kind: Kind.exe,
           sourceFile: e.sourceEntryPoint.toFilePath(),
           outputFile: outputExeUri.toFilePath(),
           verbose: verbose,
           verbosity: verbosity,
-          defines: [],
+          defines: [...sanitizer.defines],
           packages: packageConfigUri.toFilePath(),
           targetOS: targetOS,
           enableExperiment: enabledExperiments.join(','),
@@ -338,17 +434,22 @@ then that is used instead.''',
           // Multiple executables are only supported with recorded uses
           // disabled, so don't re-invoke link hooks.
           if (hasHooks) {
+            final entryPoints = executables
+                .map((e) => e.sourceEntryPoint)
+                .toList();
             linkResult = await (showProgress
                 ? progress(
                     'Running link hooks',
                     () => builder.linkNativeAssetsAOT(
                       recordedUsagesPath: recordedUsagesPath,
+                      entryPoints: entryPoints,
                       buildResult: buildResult!,
                     ),
                     progressUpdatesOnStderr: progressUpdatesOnStderr,
                   )
                 : builder.linkNativeAssetsAOT(
                     recordedUsagesPath: recordedUsagesPath,
+                    entryPoints: entryPoints,
                     buildResult: buildResult!,
                   ));
             if (linkResult == null) {
@@ -395,6 +496,9 @@ Use linkMode as dynamic library instead.""",
 
         await snapshotGenerator.generate(
           nativeAssets: nativeAssetsYamlUri?.toFilePath(),
+          extraOptions: [
+            ...sanitizer.genSnapshotFlags,
+          ],
         );
 
         if (targetOS == OS.macOS) {

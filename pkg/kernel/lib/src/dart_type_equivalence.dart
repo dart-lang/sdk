@@ -15,7 +15,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   bool _atTopLevel = true;
   List<Map<StructuralParameter, StructuralParameter>> _alphaRenamingStack = [];
 
-  DartTypeEquivalence(
+  new(
     this.coreTypes, {
     this.equateTopTypes = false,
     this.ignoreAllNullabilities = false,

@@ -7,7 +7,7 @@
 
 import "flag_fuzzer.dart";
 
-main() => flagFuzz(
+Future<void> main() => flagFuzz(
   (String output) => [
     "pkg/dart2wasm/bin/dart2wasm.dart",
     "--platform=out/ReleaseX64/dart2wasm_platform.dill",

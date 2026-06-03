@@ -241,10 +241,16 @@ final class Simplification extends Pass
   Instruction visitAllocateClosure(AllocateClosure instr) => instr;
 
   @override
+  Instruction visitAllocateContext(AllocateContext instr) => instr;
+
+  @override
   Instruction visitAllocateListLiteral(AllocateListLiteral instr) => instr;
 
   @override
   Instruction visitAllocateMapLiteral(AllocateMapLiteral instr) => instr;
+
+  @override
+  Instruction visitAllocateRecordLiteral(AllocateRecordLiteral instr) => instr;
 
   @override
   Instruction visitStringInterpolation(StringInterpolation instr) {
@@ -288,6 +294,9 @@ final class Simplification extends Pass
 
   @override
   Instruction visitSetListElement(SetListElement instr) => instr;
+
+  @override
+  Instruction visitAllocateRecord(AllocateRecord instr) => instr;
 
   @override
   Instruction visitBoxInt(BoxInt instr) => instr;

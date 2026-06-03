@@ -19,7 +19,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class RemoveConst extends _RemoveConst {
-  RemoveConst({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -31,7 +31,7 @@ class RemoveConst extends _RemoveConst {
 }
 
 class RemoveUnnecessaryConst extends _RemoveConst {
-  RemoveUnnecessaryConst({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -50,7 +50,7 @@ class _ChildrenVisitor extends GeneralizingAstVisitor<AstNode?> {
   final int offset;
   final int end;
 
-  _ChildrenVisitor(this.offset, this.end);
+  new(this.offset, this.end);
 
   AstNode get selectedNode => _selectedNode!;
 
@@ -73,7 +73,7 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
   final DartFileEditBuilder builder;
   final List<AstNode> excluded;
 
-  _PushConstVisitor(this.builder, this.excluded);
+  new(this.builder, this.excluded);
 
   @override
   void visitDotShorthandConstructorInvocation(
@@ -148,7 +148,7 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
 }
 
 abstract class _RemoveConst extends ParsedCorrectionProducer {
-  _RemoveConst({required super.context});
+  new({required super.context});
 
   /// A map of all the error codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.

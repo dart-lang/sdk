@@ -53,16 +53,10 @@ class C {}
   }
 
   test_codeSpan_backSlashEscaped() async {
-    await assertDiagnostics(
-      r'''
-/// \\\`List<int> <tag>`
+    await assertDiagnosticsFromMarkdown(r'''
+/// \\\`List/*[0*/<int>/*0]*/ /*[1*/<tag>/*1]*/`
 class C {}
-''',
-      [
-        lint(12, 5), // <int>
-        lint(18, 5), // <tag>
-      ],
-    );
+''');
   }
 
   test_codeSpan_longQuote() async {
@@ -81,15 +75,10 @@ class C {}
 
   test_codeSpan_unterminated() async {
     // An unterminated long code span has no effect.
-    await assertDiagnostics(
-      r'''
-/// A ```List<int> and quoted `<tag>` example
+    await assertDiagnosticsFromMarkdown(r'''
+/// A ```List[!<int>!] and quoted `<tag>` example
 class C {}
-''',
-      [
-        lint(13, 5), // <int>
-      ],
-    );
+''');
   }
 
   test_hangingAngleBracket_left() async {
@@ -180,27 +169,17 @@ class C {}
   }
 
   test_unintendedHtml() async {
-    await assertDiagnostics(
-      r'''
-/// Text List<int>.
+    await assertDiagnosticsFromMarkdown(r'''
+/// Text List[!<int>!].
 class C {}
-''',
-      [
-        lint(13, 5), // <int>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_javaDoc() async {
-    await assertDiagnostics(
-      r'''
-/** Text List<int>. */
+    await assertDiagnosticsFromMarkdown(r'''
+/** Text List[!<int>!]. */
 class C {}
-''',
-      [
-        lint(13, 5), // <int>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_javaDoc_codeSpan() async {
@@ -211,59 +190,37 @@ class C {}
   }
 
   test_unintendedHtml_javaDoc_multiline() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /**
- *  Text List<int>.
+ *  Text List[!<int>!].
  */
 class C {}
-''',
-      [
-        lint(17, 5), // <int>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_multipleDocComments() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /// Text List.
 class A {}
 
-/// Text List<int>.
+/// Text List[!<int>!].
 class C {}
-''',
-      [
-        lint(40, 5), // <int>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_multipleLines() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 /// Text List.
-/// Text List<int>.
+/// Text List[!<int>!].
 class C {}
-''',
-      [
-        lint(28, 5), // <int>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_nested() async {
-    await assertDiagnostics(
-      r'''
-/// Text List<List<int>>.
+    await assertDiagnosticsFromMarkdown(r'''
+/// Text List[!<List<int>!]>.
 class C {}
-''',
-      [
-        // This is how HTML parses the tag, from the first opening angle bracket
-        // to the first closing angle bracket.
-        lint(13, 10), // <List<int>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_reference_withTypeArgument() async {
@@ -274,28 +231,17 @@ class C {}
   }
 
   test_unintendedHtml_spaces() async {
-    await assertDiagnostics(
-      r'''
-/// Text <your name here>.
+    await assertDiagnosticsFromMarkdown(r'''
+/// Text [!<your name here>!].
 class C {}
-''',
-      [
-        lint(9, 16), // <your name here>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_tags_slash() async {
-    await assertDiagnostics(
-      r'''
-/// </bad> <bad/>
+    await assertDiagnosticsFromMarkdown(r'''
+/// /*[0*/</bad>/*0]*/ /*[1*/<bad/>/*1]*/
 class C {}
-''',
-      [
-        lint(4, 6), // </bad>
-        lint(11, 6), // <bad/>
-      ],
-    );
+''');
   }
 
   test_unintendedHtml_tagsEntity() async {
@@ -313,16 +259,9 @@ class C {}
   }
 
   test_unintendedHtml_tagsMultiple() async {
-    await assertDiagnostics(
-      r'''
-/// <assignment> -> <variable> = <expression>
+    await assertDiagnosticsFromMarkdown(r'''
+/// /*[0*/<assignment>/*0]*/ -> /*[1*/<variable>/*1]*/ = /*[2*/<expression>/*2]*/
 class C {}
-''',
-      [
-        lint(4, 12), // <assignment>
-        lint(20, 10), // <variable>
-        lint(33, 12), // <expression>
-      ],
-    );
+''');
   }
 }

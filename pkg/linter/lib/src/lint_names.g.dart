@@ -57,6 +57,8 @@ abstract final class LintNames {
 
   static const String annotate_redeclares = 'annotate_redeclares';
 
+  static const String async_return_with_no_await = 'async_return_with_no_await';
+
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
 
@@ -229,6 +231,8 @@ abstract final class LintNames {
 
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
 
+  static const String empty_container_bodies = 'empty_container_bodies';
+
   static const String empty_statements = 'empty_statements';
 
   static const String enable_null_safety = 'enable_null_safety';
@@ -251,6 +255,9 @@ abstract final class LintNames {
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
 
   static const String implicit_reopen = 'implicit_reopen';
+
+  static const String initialize_in_field_declaration =
+      'initialize_in_field_declaration';
 
   static const String invalid_case_patterns = 'invalid_case_patterns';
 
@@ -606,6 +613,8 @@ abstract final class LintNames {
 
   static const String use_colored_box = 'use_colored_box';
 
+  static const String use_declaring_parameters = 'use_declaring_parameters';
+
   static const String use_decorated_box = 'use_decorated_box';
 
   static const String use_enums = 'use_enums';
@@ -631,6 +640,8 @@ abstract final class LintNames {
   static const String use_named_constants = 'use_named_constants';
 
   static const String use_null_aware_elements = 'use_null_aware_elements';
+
+  static const String use_primary_constructors = 'use_primary_constructors';
 
   static const String use_raw_strings = 'use_raw_strings';
 

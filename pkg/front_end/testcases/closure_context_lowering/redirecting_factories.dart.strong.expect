@@ -10,14 +10,19 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     ]),
   ] */
     ;
-  static factory foo<X extends core::Object? = dynamic>(positional-parameter x) → self::A<self::A::foo::X%> /* redirection-target: self::B::•<self::A::foo::X%>*/
+  static factory foo<X extends core::Object? = dynamic>(positional-parameter x) → self::A<self::A::foo::X%> /* redirection-target: self::B::•<self::A::foo::X%>*//* scope=[
+    #ctx2: not-captured VariableContext([
+      positional-parameter x;
+    ]),
+  ] */
     return new self::B::•<self::A::foo::X%>(x);
 }
 class B<X extends core::Object? = dynamic> extends self::A<self::B::X%> {
   constructor •(positional-parameter x) → self::B<self::B::X%>
     : super self::A::•()/* scope=[
-    #ctx2: not-captured VariableContext([
+    #ctx3: not-captured VariableContext([
       this-variable final this-variable;
+      positional-parameter x;
     ]),
   ] */
     ;
@@ -25,19 +30,24 @@ class B<X extends core::Object? = dynamic> extends self::A<self::B::X%> {
 class C<Y extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::C<self::C::Y%>
     : super core::Object::•()/* scope=[
-    #ctx3: not-captured VariableContext([
+    #ctx4: not-captured VariableContext([
       this-variable final this-variable;
     ]),
   ] */
     ;
-  static factory bar<Y extends core::Object? = dynamic>({named-parameter required y}) → self::C<self::C::bar::Y%> /* redirection-target: self::D::•<self::C::bar::Y%>*/
+  static factory bar<Y extends core::Object? = dynamic>({named-parameter required y}) → self::C<self::C::bar::Y%> /* redirection-target: self::D::•<self::C::bar::Y%>*//* scope=[
+    #ctx5: not-captured VariableContext([
+      named-parameter required y;
+    ]),
+  ] */
     return new self::D::•<self::C::bar::Y%>(y: y);
 }
 class D<Y extends core::Object? = dynamic> extends self::C<self::D::Y%> {
   constructor •({named-parameter required y}) → self::D<self::D::Y%>
     : super self::C::•()/* scope=[
-    #ctx4: not-captured VariableContext([
+    #ctx6: not-captured VariableContext([
       this-variable final this-variable;
+      named-parameter required y;
     ]),
   ] */
     ;

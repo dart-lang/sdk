@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Code, Message;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -360,7 +361,8 @@ class FastaErrorReporter {
       // Reported by [ErrorVerifier].
       if (sharedCode == SharedCode.externalFactoryWithBody ||
           sharedCode == SharedCode.redirectingConstructorWithBody ||
-          sharedCode == SharedCode.externalMethodWithBody) {
+          sharedCode == SharedCode.externalMethodWithBody ||
+          sharedCode == SharedCode.extensionDeclaresAbstractMember) {
         return;
       }
       var diagnosticCode = sharedAnalyzerCodes[sharedCode.index];
@@ -378,7 +380,7 @@ class FastaErrorReporter {
     reportByCode(code.pseudoSharedCode, offset, length, message);
   }
 
-  void reportScannerError(LocatedDiagnostic locatedDiagnostic) {
+  void reportScannerError(diag.LocatedDiagnostic locatedDiagnostic) {
     diagnosticReporter?.report(locatedDiagnostic);
   }
 

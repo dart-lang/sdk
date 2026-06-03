@@ -60,7 +60,7 @@ class DdcResult {
   late final Set<Library> librariesFromDill = _computeLibrariesFromDill();
   late final Component compiledLibraries = _computeCompiledLibraries();
 
-  DdcResult(
+  new(
     this.component,
     this.sdkSummary,
     this.additionalDillModules,

@@ -106,7 +106,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   /// Set to `true` if the type was resolved through a deferred import prefix.
   bool _isDeferred = false;
 
-  factory NamedTypeBuilderImpl(
+  factory(
     TypeName name,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
@@ -144,7 +144,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
   }
 
-  NamedTypeBuilderImpl._({
+  new _({
     required this.typeName,
     required this.nullabilityBuilder,
     this.typeArguments,
@@ -156,7 +156,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
        this.hasExplicitTypeArguments = typeArguments != null,
        this._declaration = declaration;
 
-  factory NamedTypeBuilderImpl.forDartType(
+  factory forDartType(
     DartType type,
     TypeDeclarationBuilder _declaration,
     NullabilityBuilder nullabilityBuilder, {
@@ -165,7 +165,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     int? charOffset,
   }) = _ExplicitNamedTypeBuilder.forDartType;
 
-  factory NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+  factory fromTypeDeclarationBuilder(
     TypeDeclarationBuilder declaration,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
@@ -175,7 +175,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     DartType? type,
   }) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
 
-  factory NamedTypeBuilderImpl.forInvalidType(
+  factory forInvalidType(
     String name,
     NullabilityBuilder nullabilityBuilder,
     LocatedMessage message, {
@@ -1279,7 +1279,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
   DartType? _type;
 
-  _ExplicitNamedTypeBuilder(
+  new(
     TypeName name,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
@@ -1295,7 +1295,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
          instanceTypeParameterAccess: instanceTypeParameterAccess,
        );
 
-  _ExplicitNamedTypeBuilder.forDartType(
+  new forDartType(
     DartType type,
     TypeDeclarationBuilder declaration,
     NullabilityBuilder nullabilityBuilder, {
@@ -1314,7 +1314,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
          charOffset: charOffset,
        );
 
-  _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder(
+  new fromTypeDeclarationBuilder(
     TypeDeclarationBuilder declaration,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
@@ -1333,7 +1333,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
          instanceTypeParameterAccess: instanceTypeParameterAccess,
        );
 
-  _ExplicitNamedTypeBuilder.forInvalidType(
+  new forInvalidType(
     String name,
     NullabilityBuilder nullabilityBuilder,
     LocatedMessage message, {
@@ -1369,7 +1369,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
 /// inferred types, making this type indirectly depend on type inference.
 class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
     with InferableTypeBuilderMixin {
-  _InferredNamedTypeBuilder(
+  new(
     TypeName name,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,

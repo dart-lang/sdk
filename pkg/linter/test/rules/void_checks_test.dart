@@ -29,18 +29,15 @@ void f() {
   }
 
   test_constructorArgument_genericParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(dynamic p) {
-  A<void>.c(p);
+  A<void>.c([!p!]);
 }
 class A<T> {
   T value;
   A.c(this.value);
 }
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 
   test_emptyFunctionExpressionReturningFutureOrVoid() async {
@@ -109,39 +106,30 @@ void m(FutureOr<void> arg) {}
   }
 
   test_functionArgument_voidParameter_dynamicArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(dynamic p) {
-  m(p);
+  m([!p!]);
 }
 void m(void arg) {}
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_functionArgument_voidParameter_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(dynamic p) {
-  m(p: p);
+  m(p: [!p!]);
 }
 void m({required void p}) {}
-''',
-      [lint(27, 1)],
-    );
+''');
   }
 
   test_functionArgument_voidParameter_optional() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(dynamic p) {
-  m(p);
+  m([!p!]);
 }
 void m([void v]) {}
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_functionExpression_blockBody_returnStatement_genericContext() async {
@@ -248,19 +236,16 @@ class A {
   }
 
   test_futureOrVoidField_assignInt() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 void f(A a) {
-  a.x = 1;
+  [!a.x = 1!];
 }
 class A {
   FutureOr<void> x;
   A(this.x);
 }
-''',
-      [lint(37, 7)],
-    );
+''');
   }
 
   test_futureOrVoidField_assignNull() async {
@@ -286,39 +271,30 @@ FutureOr<void> f() {
   }
 
   test_futureOrVoidFunction_blockBody_returnStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:async';
 FutureOr<void> f() {
-  return 1;
+  [!return 1;!]
 }
-''',
-      [lint(44, 9)],
-    );
+''');
   }
 
   test_listPattern_local() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   void p;
-  [p] = <int>[7];
+  [[!p!]] = <int>[7];
   return p;
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_listPattern_param() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(void p) {
-  [p] = <int>[7];
+  [[!p!]] = <int>[7];
 }
-''',
-      [lint(20, 1)],
-    );
+''');
   }
 
   test_localFunction_emptyBlockBody_matchingFutureOrVoidSignature() async {
@@ -354,14 +330,11 @@ void f(void Function() p) {
   }
 
   test_recordPattern() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(void p) {
-  (p, ) = (7, );
+  ([!p!], ) = (7, );
 }
-''',
-      [lint(20, 1)],
-    );
+''');
   }
 
   test_returnOfInvalidType() async {
@@ -402,28 +375,22 @@ void f(Future<int> p) {
   }
 
   test_setterArgument_genericParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(A<void> a, dynamic p) {
-  a.f = p;
+  [!a.f = p!];
 }
 class A<T> {
   set f(T value) {}
 }
-''',
-      [lint(33, 7)],
-    );
+''');
   }
 
   test_voidFunction_blockBody_returnStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(dynamic p) {
-  return p;
+  [!return p;!]
 }
-''',
-      [lint(22, 9)],
-    );
+''');
   }
 
   test_voidFunction_blockBody_returnStatement_empty() async {

@@ -27,14 +27,11 @@ int f() {
   }
 
   test_function_returnStatement() async {
-    await assertDiagnostics(
-      r'''
-int f() {
+    await assertDiagnosticsFromMarkdown(r'''
+int f() [!{
   return 1;
-}
-''',
-      [lint(8, 15)],
-    );
+}!]
+''');
   }
 
   test_getter_expressionFunctionBody() async {
@@ -46,16 +43,13 @@ class A {
   }
 
   test_getter_returnStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  get f {
+  get f [!{
     return 7 - 6;
-  }
+  }!]
 }
-''',
-      [lint(18, 23)],
-    );
+''');
   }
 
   test_method_multipleStatements() async {
@@ -72,16 +66,13 @@ class A {
   }
 
   test_method_returnStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  int m() {
+  int m() [!{
     return 1;
-  }
+  }!]
 }
-''',
-      [lint(20, 19)],
-    );
+''');
   }
 
   test_setter_expressionFunctionBody() async {

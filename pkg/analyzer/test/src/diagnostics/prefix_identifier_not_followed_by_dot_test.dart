@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixIdentifierNotFollowedByDotTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,54 +20,50 @@ class PrefixIdentifierNotFollowedByDotTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 class C {
   f() {
     p += 1;
+//  ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
   }
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 46, 1)],
-    );
+''');
   }
 
   test_assignment_compound_not_in_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   p += 1;
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
-    );
+''');
   }
 
   test_assignment_in_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 class C {
   f() {
     p = 1;
+//  ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
   }
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 46, 1)],
-    );
+''');
   }
 
   test_assignment_in_method_hasSuperField() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as p;
 
 class A {
@@ -76,41 +73,39 @@ class A {
 class B extends A {
   void f() {
     p = 1;
+//  ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
   }
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 85, 1)],
-    );
+''');
   }
 
   test_assignment_not_in_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   p = 1;
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
-    );
+''');
   }
 
   test_compoundAssignment() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   p += 1;
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
-    );
+''');
   }
 
   test_conditionalMethodInvocation() async {
@@ -118,30 +113,28 @@ f() {
 library lib;
 g() {}
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   p?.g();
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
-    );
+''');
   }
 
   test_conditionalPropertyAccess_call_loadLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary();
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 41, 1)],
-    );
+''');
   }
 
   test_conditionalPropertyAccess_get() async {
@@ -149,30 +142,28 @@ f() {
 library lib;
 var x;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   return p?.x;
+//       ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 39, 1)],
-    );
+''');
   }
 
   test_conditionalPropertyAccess_get_loadLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' deferred as p;
 f() {
   return p?.loadLibrary;
+//       ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 48, 1)],
-    );
+''');
   }
 
   test_conditionalPropertyAccess_set() async {
@@ -180,44 +171,41 @@ f() {
 library lib;
 var x;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   p?.x = null;
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
-    );
+''');
   }
 
   test_conditionalPropertyAccess_set_loadLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary = null;
+//^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 41, 1)],
-    );
+''');
   }
 
   test_prefix_not_followed_by_dot() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f() {
   return p;
+//       ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
-''',
-      [error(diag.prefixIdentifierNotFollowedByDot, 39, 1)],
-    );
+''');
   }
 }

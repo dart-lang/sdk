@@ -166,7 +166,7 @@ class _LoadedData {
   final Component component;
   final List<CanonicalName> linkTable;
 
-  _LoadedData(this.data, this.component, this.linkTable);
+  new(this.data, this.component, this.linkTable);
 }
 
 /// Calculate the "Adler-32" checksum.

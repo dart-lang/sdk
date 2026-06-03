@@ -43,10 +43,8 @@ class IncludesTypeParametersNonCovariantly
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
-  IncludesTypeParametersNonCovariantly(
-    this._typeParametersToSearchFor, {
-    required Variance initialVariance,
-  }) : _variance = initialVariance;
+  new(this._typeParametersToSearchFor, {required Variance initialVariance})
+    : _variance = initialVariance;
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) {
@@ -366,7 +364,7 @@ abstract class TypeInferenceEngine {
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
 
-  TypeInferenceEngineImpl({this.benchmarker});
+  new({this.benchmarker});
 
   @override
   TypeInferrer createTypeInferrer({
@@ -376,23 +374,19 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     InferenceDataForTesting? dataForTesting,
   }) {
     AssignedVariablesImpl assignedVariables;
-    bool isClosureContextLoweringEnabled = libraryBuilder
-        .loader
-        .target
-        .backendTarget
-        .flags
-        .isClosureContextLoweringEnabled;
+    bool isClosureContextLoweringEnabled =
+        libraryBuilder.loader.isClosureContextLoweringEnabled;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       dataForTesting.flowAnalysisResult.assignedVariables =
-          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
+          new AssignedVariablesForTesting<TreeNode, Variable>();
       assignedVariables = new AssignedVariablesImpl(
         dataForTesting.flowAnalysisResult.assignedVariables!,
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     } else {
       assignedVariables = new AssignedVariablesImpl(
-        new AssignedVariables<TreeNode, VariableDeclaration>(),
+        new AssignedVariables<TreeNode, Variable>(),
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     }
@@ -421,11 +415,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
 // TODO(cstefantsova): Merge with [TypeInferenceResultForTesting].
 class InferenceDataForTesting
-    extends
-        shared.TypeConstraintGenerationDataForTesting<
-          VariableDeclaration,
-          TreeNode
-        > {
+    extends shared.TypeConstraintGenerationDataForTesting<Variable, TreeNode> {
   final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
 
   final TypeInferenceResultForTesting typeInferenceResult =
@@ -456,7 +446,7 @@ class FlowAnalysisResult {
   final List<TreeNode> definitelyUnassignedNodes = [];
 
   /// The assigned variables information that computed for the member.
-  AssignedVariablesForTesting<TreeNode, VariableDeclaration>? assignedVariables;
+  AssignedVariablesForTesting<TreeNode, Variable>? assignedVariables;
 
   /// For each expression that led to an error because it was not promoted, a
   /// string describing the reason it was not promoted.
@@ -471,14 +461,14 @@ class FlowAnalysisResult {
 class OperationsCfe
     with
         TypeAnalyzerOperationsMixin<
-          VariableDeclaration,
+          Variable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
         >
     implements
         TypeAnalyzerOperations<
-          VariableDeclaration,
+          Variable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
@@ -500,7 +490,7 @@ class OperationsCfe
   final Map<DartType, DartType> typeCacheNullable;
   final Map<DartType, DartType> typeCacheLegacy;
 
-  OperationsCfe(
+  new(
     this.typeEnvironment, {
     required this.fieldNonPromotabilityInfo,
     required this.typeCacheNonNullable,
@@ -605,7 +595,7 @@ class OperationsCfe
   bool isExtensionTypeInternal(DartType type) => type is ExtensionType;
 
   @override
-  bool isFinal(VariableDeclaration variable) {
+  bool isFinal(Variable variable) {
     return variable.isFinal;
   }
 
@@ -693,7 +683,7 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView variableType(VariableDeclaration variable) {
+  SharedTypeView variableType(Variable variable) {
     // When late variables get lowered, their type is changed, but the
     // original type is stored in `VariableDeclarationImpl.lateType`, so we
     // use that if it exists.
@@ -782,7 +772,7 @@ class OperationsCfe
   }
 
   @override
-  bool isVariableFinal(VariableDeclaration node) {
+  bool isVariableFinal(Variable node) {
     return node.isFinal;
   }
 
@@ -1107,7 +1097,7 @@ class OperationsCfe
 
   @override
   TypeConstraintGenerator<
-    VariableDeclaration,
+    Variable,
     TypeDeclarationType,
     TypeDeclaration,
     TreeNode
@@ -1194,11 +1184,7 @@ class OperationsCfe
 
 /// Type inference results used for testing.
 class TypeInferenceResultForTesting
-    extends
-        shared.TypeConstraintGenerationDataForTesting<
-          VariableDeclaration,
-          TreeNode
-        > {
+    extends shared.TypeConstraintGenerationDataForTesting<Variable, TreeNode> {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

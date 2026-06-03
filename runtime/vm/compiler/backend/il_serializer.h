@@ -117,6 +117,7 @@ class NativeCallingConvention;
   V(TokenPosition)                                                             \
   V(const TypeArguments&)                                                      \
   V(const TypeParameters&)                                                     \
+  V(const TypedData&)                                                          \
   V(uint8_t)                                                                   \
   V(uint16_t)                                                                  \
   V(uint32_t)                                                                  \

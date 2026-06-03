@@ -490,8 +490,6 @@ static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
-  // Should only be run by the vm isolate.
-  ASSERT(isolate_group == Dart::vm_isolate_group());
   Thread* thread = Thread::Current();
   auto heap = isolate_group->heap();
 
@@ -584,6 +582,28 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   ASSERT((null_ & kBoolVsNullMask) == 0);
   ASSERT((true_ & kBoolVsNullMask) != 0);
   ASSERT((false_ & kBoolVsNullMask) != 0);
+  // And prevent the compactor from disrupting these patterns.
+  Page::Of(Roots::null_obj())->set_never_evacuate(true);
+
+  Roots::null_object().initRO(Object::null());
+  Roots::null_class().initRO(Class::null());
+  Roots::null_array().initRO(Array::null());
+  Roots::null_string().initRO(String::null());
+  Roots::null_instance().initRO(Instance::null());
+  Roots::null_function().initRO(Function::null());
+  Roots::null_function_type().initRO(FunctionType::null());
+  Roots::null_record_type().initRO(RecordType::null());
+  Roots::null_type_arguments().initRO(TypeArguments::null());
+  Roots::null_closure().initRO(Closure::null());
+  Roots::empty_type_arguments().initRO(TypeArguments::null());
+  Roots::null_abstract_type().initRO(AbstractType::null());
+  Roots::null_compressed_stackmaps().initRO(CompressedStackMaps::null());
+  Roots::bool_true().initRO(Roots::true_obj());
+  Roots::bool_false().initRO(Roots::false_obj());
+  Roots::sentinel().initRO(Roots::sentinel_obj());
+  Roots::unknown_constant().initRO(Roots::unknown_constant_obj());
+  Roots::non_constant().initRO(Roots::non_constant_obj());
+  Roots::optimized_out().initRO(Roots::optimized_out_obj());
 }
 
 void Object::InitVtables() {
@@ -698,36 +718,11 @@ void Object::InitVtables() {
 }
 
 void Object::Init(IsolateGroup* isolate_group) {
-  // Should only be run by the vm isolate.
-  ASSERT(isolate_group == Dart::vm_isolate_group());
   Heap* heap = isolate_group->heap();
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   // Ensure lock checks in setters are happy.
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
-
-  InitVtables();
-
-  // Allocate the read only object handles here.
-  Roots::null_object().initRO(Object::null());
-  Roots::null_class().initRO(Class::null());
-  Roots::null_array().initRO(Array::null());
-  Roots::null_string().initRO(String::null());
-  Roots::null_instance().initRO(Instance::null());
-  Roots::null_function().initRO(Function::null());
-  Roots::null_function_type().initRO(FunctionType::null());
-  Roots::null_record_type().initRO(RecordType::null());
-  Roots::null_type_arguments().initRO(TypeArguments::null());
-  Roots::null_closure().initRO(Closure::null());
-  Roots::empty_type_arguments().initRO(TypeArguments::null());
-  Roots::null_abstract_type().initRO(AbstractType::null());
-  Roots::null_compressed_stackmaps().initRO(CompressedStackMaps::null());
-  Roots::bool_true().initRO(Roots::true_obj());
-  Roots::bool_false().initRO(Roots::false_obj());
-  Roots::sentinel().initRO(Roots::sentinel_obj());
-  Roots::unknown_constant().initRO(Roots::unknown_constant_obj());
-  Roots::non_constant().initRO(Roots::non_constant_obj());
-  Roots::optimized_out().initRO(Roots::optimized_out_obj());
 
   // Initialize the empty array and empty instantiations cache array handles to
   // null_ in order to be able to check if the empty and zero arrays were
@@ -1058,10 +1053,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     Roots::empty_type_arguments().SetCanonical();
   }
 
-  // The VM isolate snapshot object table is initialized to an empty array
-  // as we do not have any VM isolate snapshot at this time.
-  Roots::vm_isolate_snapshot_object_table().initRO(Object::empty_array().ptr());
-
   cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate_group);
   cls.set_is_abstract();
   cls.set_num_type_arguments_unsafe(0);
@@ -1218,6 +1209,8 @@ void Object::Init(IsolateGroup* isolate_group) {
       TypedData::New(kTypedDataUint32ArrayCid,
                      LinkedHashBase::kUninitializedIndexSize, Heap::kOld));
   Roots::uninitialized_data().initRO(Array::New(0, Heap::kOld));
+  Roots::empty_coverage_array().initRO(
+      TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
@@ -1292,8 +1285,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::out_of_memory_error().IsLanguageError());
   ASSERT(!Roots::unhandled_oom_exception().IsSmi());
   ASSERT(Roots::unhandled_oom_exception().IsUnhandledException());
-  ASSERT(!Roots::vm_isolate_snapshot_object_table().IsSmi());
-  ASSERT(Roots::vm_isolate_snapshot_object_table().IsArray());
   ASSERT(!Roots::synthetic_getter_parameter_types().IsSmi());
   ASSERT(Roots::synthetic_getter_parameter_types().IsArray());
   ASSERT(!Roots::synthetic_getter_parameter_names().IsSmi());
@@ -1328,86 +1319,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::uninitialized_index().IsTypedData());
   ASSERT(!Roots::uninitialized_data().IsSmi());
   ASSERT(Roots::uninitialized_data().IsArray());
+  ASSERT(!Roots::empty_coverage_array().IsSmi());
+  ASSERT(Roots::empty_coverage_array().IsTypedData());
 }
 
 void Object::FinishInit(IsolateGroup* isolate_group) {
-  // The type testing stubs we initialize in AbstractType objects for the
-  // canonical type of kDynamicCid/kVoidCid need to be set in this
-  // method, which is called after StubCode::InitOnce().
-  Code& code = Code::Handle();
-
-  code = TypeTestingStubGenerator::DefaultCodeForType(Roots::dynamic_type());
-  Roots::dynamic_type().InitializeTypeTestingStubNonAtomic(code);
-
-  code = TypeTestingStubGenerator::DefaultCodeForType(Roots::void_type());
-  Roots::void_type().InitializeTypeTestingStubNonAtomic(code);
-}
-
-void Object::Cleanup() {}
-
-// An object visitor which will mark all visited objects. This is used to
-// premark all objects in the vm_isolate_ heap.  Also precalculates hash
-// codes so that we can get the identity hash code of objects in the read-
-// only VM isolate.
-class FinalizeVMIsolateVisitor : public ObjectVisitor {
- public:
-  FinalizeVMIsolateVisitor()
-#if defined(HASH_IN_OBJECT_HEADER)
-      : counter_(1337)
-#endif
-  {
-  }
-
-  void VisitObject(ObjectPtr obj) {
-    // Free list elements should never be marked.
-    ASSERT(!obj->untag()->IsMarked());
-    // No forwarding corpses in the VM isolate.
-    ASSERT(!obj->IsForwardingCorpse());
-    if (!obj->IsFreeListElement()) {
-      obj->untag()->SetMarkBitUnsynchronized();
-      Object::FinalizeReadOnlyObject(obj);
-#if defined(HASH_IN_OBJECT_HEADER)
-      // These objects end up in the read-only VM isolate which is shared
-      // between isolates, so we have to prepopulate them with identity hash
-      // codes, since we can't add hash codes later.
-      if (Object::GetCachedHash(obj) == 0) {
-        // Some classes have identity hash codes that depend on their contents,
-        // not per object.
-        ASSERT(!obj->IsStringInstance());
-        if (!obj->IsMint() && !obj->IsDouble()) {
-          counter_ += 2011;  // The year Dart was announced and a prime.
-          counter_ &= 0x3fffffff;
-          if (counter_ == 0) counter_++;
-          Object::SetCachedHashIfNotSet(obj, counter_);
-        }
-      }
-#endif
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      if (obj->IsClass()) {
-        // Won't be able to update read-only VM isolate classes if implementors
-        // are discovered later. We use kVoidCid instead of kDynamicCid here to
-        // be able to distinguish read-only VM isolate classes during reload.
-        // See ProgramReloadContext::RestoreClassHierarchyInvariants.
-        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kVoidCid;
-      }
-#endif
-    }
-  }
-
- private:
-#if defined(HASH_IN_OBJECT_HEADER)
-  int32_t counter_;
-#endif
-};
-
-#define SET_CLASS_NAME(class_name, name)                                       \
-  cls = table->At(class_name);                                                 \
-  cls.set_name(Symbols::name());
-
-void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
-  // Should only be run by the vm isolate.
-  ASSERT(isolate_group == Dart::vm_isolate_group());
-
   // Finish initialization of synthetic_getter_parameter_names_ which was
   // Started in Object::InitOnce()
   Roots::synthetic_getter_parameter_names().SetAt(0, Symbols::This());
@@ -1415,6 +1331,10 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
   ClassTable* table = isolate_group->class_table();
+
+#define SET_CLASS_NAME(class_name, name)                                       \
+  cls = table->At(class_name);                                                 \
+  cls.set_name(Symbols::name());
 
   SET_CLASS_NAME(kClassCid, Class);
   SET_CLASS_NAME(kDynamicCid, Dynamic);
@@ -1468,23 +1388,24 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(kFreeListElement, FreeListElement);
   SET_CLASS_NAME(kForwardingCorpse, ForwardingCorpse);
 
+#undef SET_CLASS_NAME
+
 #if defined(DART_PRECOMPILER)
   const auto& function =
       Function::Handle(StubCode::UnknownDartCode().function());
   function.set_name(Symbols::OptimizedOut());
 #endif  // defined(DART_PRECOMPILER)
 
-  {
-    ASSERT(isolate_group == Dart::vm_isolate_group());
-    Thread* thread = Thread::Current();
-    WritableVMIsolateScope scope(thread);
-    HeapIterationScope iteration(thread);
-    FinalizeVMIsolateVisitor premarker;
-    ASSERT(isolate_group->heap()->UsedInWords(Heap::kNew) == 0);
-    iteration.IterateOldObjectsNoImagePages(&premarker);
-    // Make the VM isolate read-only again after setting all objects as marked.
-    // Note objects in image pages are already pre-marked.
-  }
+  // The type testing stubs we initialize in AbstractType objects for the
+  // canonical type of kDynamicCid/kVoidCid need to be set in this
+  // method, which is called after StubCode::InitOnce().
+  Code& code = Code::Handle();
+
+  code = TypeTestingStubGenerator::DefaultCodeForType(Roots::dynamic_type());
+  Roots::dynamic_type().InitializeTypeTestingStubNonAtomic(code);
+
+  code = TypeTestingStubGenerator::DefaultCodeForType(Roots::void_type());
+  Roots::void_type().InitializeTypeTestingStubNonAtomic(code);
 }
 
 void Object::FinalizeReadOnlyObject(ObjectPtr object) {
@@ -1530,11 +1451,6 @@ void Object::FinalizeReadOnlyObject(ObjectPtr object) {
     memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(desc) + size), 0,
            desc->untag()->HeapSize() - size);
   }
-}
-
-void Object::set_vm_isolate_snapshot_object_table(const Array& table) {
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  Roots::vm_isolate_snapshot_object_table().initRO(table.ptr());
 }
 
 // Make unused space in an object whose type has been transformed safe
@@ -1599,9 +1515,9 @@ void Object::RegisterPrivateClass(const Class& cls,
   lib.AddClass(cls);
 }
 
-class WorkSet : public StackResource {
+class VerificationWorkSet : public StackResource {
  public:
-  explicit WorkSet(Thread* thread, Zone* zone)
+  explicit VerificationWorkSet(Thread* thread, Zone* zone)
       : StackResource(thread),
         thread_(thread),
         list_(GrowableObjectArray::Handle(zone)),
@@ -1613,7 +1529,7 @@ class WorkSet : public StackResource {
     thread->set_forward_table_new(set_);
   }
 
-  ~WorkSet() {
+  ~VerificationWorkSet() {
     thread_->set_forward_table_new(nullptr);
     set_ = nullptr;
   }
@@ -1667,7 +1583,7 @@ class WorkSet : public StackResource {
 
 void Object::EnsureDeeplyImmutable(Zone* zone) const {
   auto thread = Thread::Current();
-  WorkSet workset(thread, zone);
+  VerificationWorkSet workset(thread, zone);
   workset.Add(*this);
 
   Object& current = Object::Handle(zone);
@@ -1738,16 +1654,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                       const uint8_t* kernel_buffer,
                       intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
   ASSERT(isolate_group == thread->isolate_group());
   TIMELINE_DURATION(thread, Isolate, "Object::Init");
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool bootstrapping = false;
 #else
+  Zone* zone = thread->zone();
   const bool is_kernel = (kernel_buffer != nullptr);
-  const bool bootstrapping =
-      (Dart::vm_snapshot_kind() == Snapshot::kNone) || is_kernel;
+  const bool bootstrapping = is_kernel;
 #endif  // defined(DART_PRECOMPILED_RUNTIME).
 
   if (bootstrapping) {
@@ -1769,7 +1684,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
     cls = Class::New<Array, RTN::Array>(isolate_group);
-    ASSERT(object_store->array_class() == Class::null());
     object_store->set_array_class(cls);
 
     // VM classes that are parameterized (Array, ImmutableArray,
@@ -1847,9 +1761,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // Pre-allocate the TwoByteString class needed by the symbol table.
     cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
     object_store->set_two_byte_string_class(cls);
-
-    // Setup the symbol table for the symbols created in the isolate.
-    Symbols::SetupSymbolTable(isolate_group);
 
     // Set up the libraries array before initializing the core library.
     const GrowableObjectArray& libraries =
@@ -2538,173 +2449,9 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // Set up recognized state of all functions (core, math and typed data).
     MethodRecognizer::InitializeState();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else {
-    // Object::Init version when we are running in a version of dart that has a
-    // full snapshot linked in and an isolate is initialized using the full
-    // snapshot.
-    ObjectStore* object_store = isolate_group->object_store();
-    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
-
-    Class& cls = Class::Handle(zone);
-
-    // Set up empty classes in the object store, these will get initialized
-    // correctly when we read from the snapshot.  This is done to allow
-    // bootstrapping of reading classes from the snapshot.  Some classes are not
-    // stored in the object store. Yet we still need to create their Class
-    // object so that they get put into the class_table (as a side effect of
-    // Class::New()).
-    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate_group);
-    object_store->set_object_class(cls);
-
-    cls = Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate_group);
-    cls = Class::New<Type, RTN::Type>(isolate_group);
-    cls = Class::New<FunctionType, RTN::FunctionType>(isolate_group);
-    cls = Class::New<RecordType, RTN::RecordType>(isolate_group);
-    cls = Class::New<TypeParameter, RTN::TypeParameter>(isolate_group);
-
-    cls = Class::New<Array, RTN::Array>(isolate_group);
-    object_store->set_array_class(cls);
-
-    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
-    object_store->set_immutable_array_class(cls);
-
-    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(
-        isolate_group);
-    object_store->set_growable_object_array_class(cls);
-
-    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
-        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
-        /*is_abstract=*/true);
-
-    cls = Class::New<Map, RTN::Map>(isolate_group);
-    object_store->set_map_impl_class(cls);
-
-    cls = Class::New<Map, RTN::Map>(kConstMapCid, isolate_group);
-    object_store->set_const_map_impl_class(cls);
-
-    cls = Class::New<Set, RTN::Set>(isolate_group);
-    object_store->set_set_impl_class(cls);
-
-    cls = Class::New<Set, RTN::Set>(kConstSetCid, isolate_group);
-    object_store->set_const_set_impl_class(cls);
-
-    cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
-    object_store->set_float32x4_class(cls);
-
-    cls = Class::New<Int32x4, RTN::Int32x4>(isolate_group);
-    object_store->set_int32x4_class(cls);
-
-    cls = Class::New<Float64x2, RTN::Float64x2>(isolate_group);
-    object_store->set_float64x2_class(cls);
-
-#define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
-  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid, isolate_group);
-    CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
-#undef REGISTER_TYPED_DATA_CLASS
-#define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
-  cls =                                                                        \
-      Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group); \
-  cls = Class::NewUnmodifiableTypedDataViewClass(                              \
-      kUnmodifiableTypedData##clazz##ViewCid, isolate_group);
-    CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
-#undef REGISTER_TYPED_DATA_VIEW_CLASS
-    cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
-    cls = Class::NewUnmodifiableTypedDataViewClass(kUnmodifiableByteDataViewCid,
-                                                   isolate_group);
-#define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
-  cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid,       \
-                                         isolate_group);
-    CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
-#undef REGISTER_EXT_TYPED_DATA_CLASS
-
-    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate_group);
-    object_store->set_ffi_native_type_class(cls);
-
-#define REGISTER_FFI_CLASS(clazz)                                              \
-  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate_group);
-    CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
-#undef REGISTER_FFI_CLASS
-
-    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid,
-                                              isolate_group);
-
-    cls = Class::NewPointerClass(kPointerCid, isolate_group);
-    object_store->set_ffi_pointer_class(cls);
-
-    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kDynamicLibraryCid,
-                                                          isolate_group);
-
-    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate_group,
-                                              /*register_class=*/false);
-    cls.set_instance_size_in_words(0, 0);
-    isolate_group->class_table()->Register(cls);
-
-    cls = Class::New<Integer, RTN::Integer>(isolate_group);
-    object_store->set_integer_implementation_class(cls);
-
-    cls = Class::New<Smi, RTN::Smi>(isolate_group);
-    object_store->set_smi_class(cls);
-
-    cls = Class::New<Mint, RTN::Mint>(isolate_group);
-    object_store->set_mint_class(cls);
-
-    cls = Class::New<Double, RTN::Double>(isolate_group);
-    object_store->set_double_class(cls);
-
-    cls = Class::New<Closure, RTN::Closure>(isolate_group);
-    object_store->set_closure_class(cls);
-
-    cls = Class::New<Record, RTN::Record>(isolate_group);
-
-    cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
-    object_store->set_one_byte_string_class(cls);
-
-    cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
-    object_store->set_two_byte_string_class(cls);
-
-    cls = Class::New<Bool, RTN::Bool>(isolate_group);
-    object_store->set_bool_class(cls);
-
-    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
-    object_store->set_null_class(cls);
-
-    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
-    object_store->set_never_class(cls);
-
-    cls = Class::New<Capability, RTN::Capability>(isolate_group);
-    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
-    cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
-    cls = Class::New<StackTrace, RTN::StackTrace>(isolate_group);
-    cls = Class::New<SuspendState, RTN::SuspendState>(isolate_group);
-    cls = Class::New<RegExp, RTN::RegExp>(isolate_group);
-    cls = Class::New<Number, RTN::Number>(isolate_group);
-
-    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
-    object_store->set_weak_property_class(cls);
-    cls = Class::New<WeakReference, RTN::WeakReference>(isolate_group);
-    object_store->set_weak_reference_class(cls);
-    cls = Class::New<Finalizer, RTN::Finalizer>(isolate_group);
-    object_store->set_finalizer_class(cls);
-    cls = Class::New<NativeFinalizer, RTN::NativeFinalizer>(isolate_group);
-    object_store->set_native_finalizer_class(cls);
-    cls = Class::New<FinalizerEntry, RTN::FinalizerEntry>(isolate_group);
-    object_store->set_finalizer_entry_class(cls);
-
-    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
-    cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
-    cls = Class::New<FutureOr, RTN::FutureOr>(isolate_group);
-    object_store->set_future_or_class(cls);
-    cls = Class::New<TransferableTypedData, RTN::TransferableTypedData>(
-        isolate_group);
   }
   return Error::null();
 }
-
-#if defined(DEBUG)
-bool Object::InVMIsolateHeap() const {
-  return ptr()->untag()->InVMIsolateHeap();
-}
-#endif  // DEBUG
 
 void Object::Print() const {
   THR_Print("%s\n", ToCString());
@@ -3920,7 +3667,8 @@ void Class::AddInvocationDispatcher(const String& target_name,
 FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
                                            const Array& args_desc,
                                            UntaggedFunction::Kind kind,
-                                           bool create_if_absent) const {
+                                           bool create_if_absent,
+                                           bool is_dynamically_callable) const {
   ASSERT(kind == UntaggedFunction::kNoSuchMethodDispatcher ||
          kind == UntaggedFunction::kInvokeFieldDispatcher ||
          kind == UntaggedFunction::kDynamicInvocationForwarder);
@@ -3951,7 +3699,8 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
   if (!function.IsNull()) return function.ptr();
 
   // Otherwise create it & add it.
-  function = CreateInvocationDispatcher(target_name, args_desc, kind);
+  function = CreateInvocationDispatcher(target_name, args_desc, kind,
+                                        is_dynamically_callable);
   AddInvocationDispatcher(target_name, args_desc, function);
   return function.ptr();
 }
@@ -3959,7 +3708,8 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
 FunctionPtr Class::CreateInvocationDispatcher(
     const String& target_name,
     const Array& args_desc,
-    UntaggedFunction::Kind kind) const {
+    UntaggedFunction::Kind kind,
+    bool is_dynamically_callable) const {
   ASSERT(target_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -4026,6 +3776,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
   invocation.set_is_visible(false);
   invocation.set_is_reflectable(false);
   invocation.set_saved_args_desc(args_desc);
+  invocation.set_is_dynamically_callable(is_dynamically_callable);
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   invocation.SetSignature(signature);
@@ -4613,7 +4364,6 @@ class CHACodeArray : public WeakCodeReferences {
         cls_(cls) {}
 
   virtual void UpdateArrayTo(const WeakArray& value) {
-    // TODO(fschneider): Fails for classes in the VM isolate.
     cls_.set_dependent_code(value);
   }
 
@@ -8389,9 +8139,7 @@ void Function::AttachBytecode(const Bytecode& value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
-  if (!value.InVMIsolateHeap()) {
-    value.set_function(*this);
-  }
+  value.set_function(*this);
   ASSERT(untag()->ic_data_array_or_bytecode() == Object::null());
   untag()->set_ic_data_array_or_bytecode(value.ptr());
 
@@ -9713,10 +9461,6 @@ bool Function::CanBeInlined() const {
 
 intptr_t Function::NumImplicitParameters() const {
   const UntaggedFunction::Kind k = kind();
-  if (k == UntaggedFunction::kConstructor) {
-    // Type arguments for factory; instance for generative constructor.
-    return 1;
-  }
   if ((k == UntaggedFunction::kClosureFunction) ||
       (k == UntaggedFunction::kImplicitClosureFunction) ||
       (k == UntaggedFunction::kFfiTrampoline)) {
@@ -10910,7 +10654,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   }
 
   const intptr_t num_type_params =
-      IsConstructor() ? cls.NumTypeParameters() : NumTypeParameters();
+      IsGenerativeConstructor() ? cls.NumTypeParameters() : NumTypeParameters();
 
   TypeArguments& instantiator_type_arguments = TypeArguments::Handle(zone);
   TypeArguments& function_type_arguments = TypeArguments::Handle(zone);
@@ -10922,7 +10666,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   auto transform_type = [&](AbstractType& type) {
     if (num_type_params > 0) {
-      if (IsConstructor()) {
+      if (IsGenerativeConstructor()) {
         type = type.UpdateFunctionTypes(num_type_params, kAllFree, Heap::kOld,
                                         nullptr);
         if (!type.IsInstantiated(kCurrentClass)) {
@@ -10940,7 +10684,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   auto transform_type_args = [&](TypeArguments& type_args) {
     ASSERT(num_type_params > 0);
     if (!type_args.IsNull()) {
-      if (IsConstructor()) {
+      if (IsGenerativeConstructor()) {
         type_args = type_args.UpdateFunctionTypes(num_type_params, kAllFree,
                                                   Heap::kOld, nullptr);
         if (!type_args.IsInstantiated(kCurrentClass)) {
@@ -10958,7 +10702,8 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // Set closure function's type parameters.
   if (num_type_params > 0) {
     const TypeParameters& old_type_params = TypeParameters::Handle(
-        zone, IsConstructor() ? cls.type_parameters() : type_parameters());
+        zone,
+        IsGenerativeConstructor() ? cls.type_parameters() : type_parameters());
     const TypeParameters& new_type_params =
         TypeParameters::Handle(zone, TypeParameters::New());
     // No need to set names that are ignored in a signature, however, the
@@ -10977,7 +10722,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       type_args.SetTypeAt(i, type_param);
     }
 
-    if (IsConstructor()) {
+    if (IsGenerativeConstructor()) {
       instantiator_type_arguments =
           type_args.ToInstantiatorTypeArguments(thread, cls);
     } else {
@@ -10996,7 +10741,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   // Set closure function's result type.
   AbstractType& result_type = AbstractType::Handle(zone);
-  if (IsConstructor()) {
+  if (IsGenerativeConstructor()) {
     result_type = cls.DeclarationType();
   } else {
     result_type = this->result_type();
@@ -11726,7 +11471,7 @@ int32_t Function::SourceFingerprint() const {
 void Function::SaveICDataMap(
     const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
     const Array& edge_counters_array,
-    const Array& coverage_array) const {
+    const TypedData& coverage_array) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Already installed nothing to do.
   if (ic_data_array() != Array::null()) {
@@ -11805,12 +11550,23 @@ void Function::RestoreICDataMap(
 #endif  // DART_PRECOMPILED_RUNTIME
 }
 
-ArrayPtr Function::GetCoverageArray() const {
+TypedDataPtr Function::GetCoverageArray() const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasBytecode()) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    const auto& bytecode = Bytecode::Handle(GetBytecode());
+    if (bytecode.HasRecordedCoverage()) {
+      return bytecode.EnsureCoverageArray(Thread::Current());
+    }
+#endif
+    return TypedData::null();
+  }
+#endif
   const Array& arr = Array::Handle(ic_data_array());
   if (arr.IsNull()) {
-    return Array::null();
+    return TypedData::null();
   }
-  return Array::RawCast(arr.At(ICDataArrayIndices::kCoverageData));
+  return TypedData::RawCast(arr.At(ICDataArrayIndices::kCoverageData));
 }
 
 void Function::set_ic_data_array(const Array& value) const {
@@ -11875,8 +11631,7 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
   }
 #endif
 
-  if (IsolateGroup::Current()->obfuscate() || FLAG_precompiled_mode ||
-      (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
+  if (IsolateGroup::Current()->obfuscate() || FLAG_precompiled_mode) {
     return true;  // The kernel structure has been altered, skip checking.
   }
 
@@ -17166,7 +16921,6 @@ const char* ICData::ToCString() const {
 FunctionPtr ICData::Owner() const {
   Object& obj = Object::Handle(untag()->owner());
   if (obj.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Function::null();
   } else if (obj.IsFunction()) {
     return Function::Cast(obj).ptr();
@@ -17976,8 +17730,6 @@ void ICData::Init() {
                                  ICData::NewNonCachedEmptyICDataArray(1, true));
 }
 
-void ICData::Cleanup() {}
-
 ArrayPtr ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,
                                               bool tracking_exactness) {
   // IC data array must be null terminated (sentinel entry).
@@ -18123,14 +17875,13 @@ ICDataPtr ICData::NewForStaticCall(const Function& owner,
                                    intptr_t num_args_tested,
                                    RebindRule rebind_rule) {
   // See `MethodRecognizer::NumArgsCheckedForStaticCall`.
-  ASSERT(num_args_tested == 0 || num_args_tested == 2);
+  ASSERT(num_args_tested == 0 || num_args_tested == 1 || num_args_tested == 2);
   ASSERT(!target.IsNull());
 
   Zone* zone = Thread::Current()->zone();
   const auto& target_name = String::Handle(zone, target.name());
   GrowableArray<intptr_t> cids(num_args_tested);
-  if (num_args_tested == 2) {
-    cids.Add(kObjectCid);
+  for (intptr_t i = 0; i < num_args_tested; ++i) {
     cids.Add(kObjectCid);
   }
   return ICData::NewWithCheck(owner, target_name, arguments_descriptor,
@@ -18226,9 +17977,6 @@ ObjectPtr WeakSerializationReference::New(const Object& target,
   // Note that we _do_ wrap Smis if requested. Smis are serialized in the Mint
   // cluster, and so dropping them if not strongly referenced saves space in
   // the snapshot.
-  if (target.ptr()->IsHeapObject() && target.InVMIsolateHeap()) {
-    return target.ptr();
-  }
   // If the target is a WSR that already uses the replacement, then return it.
   if (target.IsWeakSerializationReference() &&
       WeakSerializationReference::Cast(target).replacement() ==
@@ -18458,7 +18206,6 @@ TypedDataPtr Code::GetDeoptInfoAtPc(uword pc,
                                     ICData::DeoptReasonId* deopt_reason,
                                     uint32_t* deopt_flags) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
   return TypedData::null();
 #else
   ASSERT(is_optimized());
@@ -18466,7 +18213,6 @@ TypedDataPtr Code::GetDeoptInfoAtPc(uword pc,
   uword code_entry = instrs.PayloadStart();
   const Array& table = Array::Handle(deopt_info_array());
   if (table.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return TypedData::null();
   }
   // Linear search for the PC offset matching the target PC.
@@ -18630,7 +18376,7 @@ void Code::set_comments(const CodeComments& comments) const {
   ASSERT(wrapper.comments_.IsOld());
   untag()->set_comments(wrapper.comments_.ptr());
 #else
-  if (FLAG_code_comments && comments.Length() > 0) {
+  if (IsolateGroup::Current()->code_comments() && comments.Length() > 0) {
     Thread::Current()->heap()->SetPeer(ptr(), new MallocCodeComments(comments));
   } else {
     Thread::Current()->heap()->SetPeer(ptr(), nullptr);
@@ -18930,7 +18676,6 @@ CodePtr Code::FindCode(uword pc, int64_t timestamp) {
 
   HeapIterationScope iteration(Thread::Current());
   SlowFindCodeVisitor visitor(pc, timestamp);
-  iteration.IterateVMIsolateObjects(&visitor);
   iteration.IterateOldObjectsNoImagePages(&visitor);
   return visitor.result();
 }
@@ -18961,7 +18706,6 @@ CodePtr Code::FindCodeUnsafe(uword pc) {
   old_space->MakeIterable();
   FindCodeUnsafeVisitor visitor(pc);
   old_space->VisitObjectsUnsafe(&visitor);
-  Dart::vm_isolate_group()->heap()->old_space()->VisitObjectsUnsafe(&visitor);
   return visitor.result();
 }
 
@@ -19094,8 +18838,8 @@ bool Code::IsFunctionCode() const {
 }
 
 bool Code::IsUnknownDartCode(CodePtr code) {
-  return StubCode::HasBeenInitialized() &&
-         (code == StubCode::UnknownDartCode().ptr());
+  ASSERT(StubCode::UnknownDartCode().ptr() != nullptr);
+  return code == StubCode::UnknownDartCode().ptr();
 }
 
 void Code::DisableDartCode() const {
@@ -19350,6 +19094,33 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
   UNREACHABLE();
 #endif
 }
+
+TypedDataPtr Bytecode::EnsureCoverageArray(Thread* thread) const {
+#if defined(DART_DYNAMIC_MODULES)
+  // Should only be called for bytecode with RecordCoverage instructions.
+  ASSERT(HasRecordedCoverage());
+  if (coverage_array() == TypedData::null()) {
+    Zone* const zone = thread->zone();
+    bytecode::BytecodeRecordedCoverageIterator it(zone, *this);
+    const auto& array = TypedData::Handle(
+        zone, TypedData::New(kTypedDataUint32ArrayCid, 2 * it.NumEntries(),
+                             Heap::kOld));
+    // The coverage array has two consecutive entries for each logical
+    // index: the encoded coverage position and the hit count.
+    for (intptr_t i = 0; it.MoveNext(); i += 2) {
+      array.SetUint32(i * kInt32Size, it.EncodedCoveragePosition());
+      array.SetUint32((i + 1) * kInt32Size, 0);
+    }
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (coverage_array() == TypedData::null()) {
+      untag()->set_coverage_array(array.ptr());
+    }
+  }
+  return coverage_array();
+#else
+  UNREACHABLE();
+#endif
+}
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Bytecode::ToCString() const {
@@ -19442,7 +19213,6 @@ BytecodePtr Bytecode::FindBytecode(uword pc) {
 
   HeapIterationScope iteration(Thread::Current());
   SlowFindBytecodeVisitor visitor(pc);
-  iteration.IterateVMIsolateObjects(&visitor);
   iteration.IterateOldObjectsNoImagePages(&visitor);
   return visitor.result();
 #else
@@ -21430,7 +21200,6 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
     return result.ptr();
   }
   if (IsNew()) {
-    ASSERT((thread->isolate() == Dart::vm_isolate()) || !InVMIsolateHeap());
     // Create a canonical object in old space.
     result ^= Object::Clone(*this, Heap::kOld);
   } else {
@@ -23177,8 +22946,6 @@ AbstractTypePtr Type::Canonicalize(Thread* thread) const {
     ASSERT(!cls.IsNullClass() || IsNullable());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
-      ASSERT(!cls.ptr()->untag()->InVMIsolateHeap() ||
-             (isolate_group == Dart::vm_isolate_group()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
       type_args = type_args.Canonicalize(thread);
@@ -23396,6 +23163,7 @@ void Type::set_type_class_id(intptr_t id) const {
   ASSERT(!ClassTable::IsTopLevelCid(id));
   ASSERT(id != kIllegalCid);
   ASSERT(!IsInternalOnlyClassId(id));
+  ASSERT(id >= kInstanceCid);
   untag()->set_type_class_id(id);
 }
 
@@ -25222,10 +24990,6 @@ OneByteStringPtr OneByteString::EscapeSpecialCharacters(const String& str) {
 }
 
 OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
-  ASSERT((IsolateGroup::Current() == Dart::vm_isolate_group()) ||
-         ((IsolateGroup::Current()->object_store() != nullptr) &&
-          (IsolateGroup::Current()->object_store()->one_byte_string_class() !=
-           Class::null())));
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
@@ -26217,13 +25981,14 @@ float Float32x4::w() const {
 }
 
 bool Float32x4::CanonicalizeEquals(const Instance& other) const {
+  NoSafepointScope no_safepoint;
   return memcmp(&untag()->value_, Float32x4::Cast(other).untag()->value_,
                 sizeof(simd128_value_t)) == 0;
 }
 
 uint32_t Float32x4::CanonicalizeHash() const {
-  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
-                   sizeof(simd128_value_t));
+  NoSafepointScope no_safepoint;
+  return HashBytes(&untag()->value_, sizeof(simd128_value_t), kHashBits);
 }
 
 const char* Float32x4::ToCString() const {
@@ -26301,13 +26066,14 @@ void Int32x4::set_value(simd128_value_t value) const {
 }
 
 bool Int32x4::CanonicalizeEquals(const Instance& other) const {
+  NoSafepointScope no_safepoint;
   return memcmp(&untag()->value_, Int32x4::Cast(other).untag()->value_,
                 sizeof(simd128_value_t)) == 0;
 }
 
 uint32_t Int32x4::CanonicalizeHash() const {
-  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
-                   sizeof(simd128_value_t));
+  NoSafepointScope no_safepoint;
+  return HashBytes(&untag()->value_, sizeof(simd128_value_t), kHashBits);
 }
 
 const char* Int32x4::ToCString() const {
@@ -26361,13 +26127,14 @@ void Float64x2::set_value(simd128_value_t value) const {
 }
 
 bool Float64x2::CanonicalizeEquals(const Instance& other) const {
+  NoSafepointScope no_safepoint;
   return memcmp(&untag()->value_, Float64x2::Cast(other).untag()->value_,
                 sizeof(simd128_value_t)) == 0;
 }
 
 uint32_t Float64x2::CanonicalizeHash() const {
-  return HashBytes(reinterpret_cast<const uint8_t*>(&untag()->value_),
-                   sizeof(simd128_value_t));
+  NoSafepointScope no_safepoint;
+  return HashBytes(&untag()->value_, sizeof(simd128_value_t), kHashBits);
 }
 
 const char* Float64x2::ToCString() const {
@@ -26420,15 +26187,20 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
 }
 
 uint32_t TypedData::CanonicalizeHash() const {
-  const intptr_t len = this->LengthInBytes();
-  if (len == 0) {
-    return 1;
+  uint32_t hash = kEmptyContainerHash;
+  const intptr_t len = LengthInBytes();
+  if (len != 0) {
+    auto* const thread = Thread::Current();
+    hash = thread->heap()->GetCanonicalHash(ptr());
+    if (hash == 0) {
+      {
+        NoSafepointScope no_safepoint;
+        hash = HashBytes(DataAddr(0), len, kHashBits);
+      }
+      thread->heap()->SetCanonicalHash(ptr(), hash);
+    }
   }
-  uint32_t hash = len;
-  for (intptr_t i = 0; i < len; i++) {
-    hash = CombineHashes(len, GetUint8(i));
-  }
-  return FinalizeHash(hash, kHashBits);
+  return hash;
 }
 
 TypedDataPtr TypedData::New(intptr_t class_id,
@@ -26999,8 +26771,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
   }
-  const char* symbol = vm ? kVmSnapshotInstructionsAsmSymbol
-                          : kIsolateSnapshotInstructionsAsmSymbol;
+  const char* symbol = kSnapshotTextAsmSymbol;
   buffer->Printf(" %s+0x%" Px "\n", symbol, offset);
   return true;
 }
@@ -27012,12 +26783,6 @@ static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword vm_instructions,
                                            const Array& loading_units,
                                            LoadingUnit* unit) {
-  if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                vm_instructions,
-                                                /*vm=*/true)) {
-    return;
-  }
-
   if (!loading_units.IsNull()) {
     // All non-VM stack frames should include the loading unit id.
     const intptr_t unit_count = loading_units.Length();
@@ -27164,15 +26929,15 @@ const char* StackTrace::ToCString() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   GrowableArray<void*> addresses(10);
   const bool have_footnote_callback =
-      FLAG_dwarf_stack_traces_mode &&
+      T->isolate_group()->dwarf_stack_traces() &&
       Dart::dwarf_stacktrace_footnote_callback() != nullptr;
 #endif
 
   ZoneTextBuffer buffer(zone, 1024);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto const isolate_instructions = reinterpret_cast<uword>(
-      T->isolate_group()->source()->snapshot_instructions);
+  auto const isolate_instructions =
+      reinterpret_cast<uword>(T->isolate_group()->source()->snapshot_text);
 #if defined(DEBUG)
   if (!loading_units.IsNull()) {
     *unit ^= loading_units.At(LoadingUnit::kRootId);
@@ -27182,9 +26947,7 @@ const char* StackTrace::ToCString() const {
            isolate_instructions);
   }
 #endif
-  auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate_group()->source()->snapshot_instructions);
-  if (FLAG_dwarf_stack_traces_mode) {
+  if (T->isolate_group()->dwarf_stack_traces()) {
     // This prologue imitates Android's debuggerd to make it possible to paste
     // the stack trace into ndk-stack.
     buffer.Printf(
@@ -27223,10 +26986,9 @@ const char* StackTrace::ToCString() const {
     // as the VM and isolate may be loaded from different snapshot images.
     const uword isolate_dso_base = OS::GetAppDSOBase(isolate_instructions);
     buffer.Printf("isolate_dso_base: %" Px "", isolate_dso_base);
-    const uword vm_dso_base = OS::GetAppDSOBase(vm_instructions);
-    buffer.Printf(", vm_dso_base: %" Px "\n", vm_dso_base);
+    buffer.Printf(", vm_dso_base: 0\n");
     buffer.Printf("isolate_instructions: %" Px "", isolate_instructions);
-    buffer.Printf(", vm_instructions: %" Px "\n", vm_instructions);
+    buffer.Printf(", vm_instructions: 0\n");
   }
 #endif
 
@@ -27306,7 +27068,7 @@ const char* StackTrace::ToCString() const {
       // pc_offset by 1 for such cases.
       const uword call_addr = pc - 1;
 
-      if (FLAG_dwarf_stack_traces_mode) {
+      if (T->isolate_group()->dwarf_stack_traces()) {
         if (have_footnote_callback) {
           addresses.Add(reinterpret_cast<void*>(call_addr));
         }
@@ -27315,7 +27077,8 @@ const char* StackTrace::ToCString() const {
         // prints call addresses instead of return addresses.
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       vm_instructions, loading_units, unit);
+                                       /*vm_instructions=*/0, loading_units,
+                                       unit);
         frame_index++;
         continue;
       }
@@ -27327,7 +27090,8 @@ const char* StackTrace::ToCString() const {
         // non-symbolic stack traces.
         PrintSymbolicStackFrameIndex(&buffer, frame_index);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       vm_instructions, loading_units, unit);
+                                       /*vm_instructions=*/0, loading_units,
+                                       unit);
         frame_index++;
         continue;
       }
@@ -28008,7 +27772,10 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
-        (pragma_name != Symbols::dyn_module_extendable().ptr())) {
+        (pragma_name != Symbols::dyn_module_extendable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_dynamically_callable().ptr()) &&
+        (pragma_name !=
+         Symbols::dyn_module_implicitly_dynamically_callable().ptr())) {
       continue;
     }
     *reusable_field_handle = IG->object_store()->pragma_options();

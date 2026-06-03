@@ -40,7 +40,7 @@ Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
 class _Norm extends ReplacementVisitor {
   final CoreTypes coreTypes;
 
-  _Norm(this.coreTypes);
+  new(this.coreTypes);
 
   @override
   DartType? visitInterfaceType(InterfaceType node, Variance variance) {

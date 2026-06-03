@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class AddKeyToConstructors extends ResolvedCorrectionProducer {
-  AddKeyToConstructors({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

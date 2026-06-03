@@ -237,7 +237,7 @@ class DuplicateDefinitionVerifier {
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
               definedGetters,
-              member.primaryConstructor.typeName,
+              member.namePart.typeName,
               fragment: declaredFragment,
             );
           }

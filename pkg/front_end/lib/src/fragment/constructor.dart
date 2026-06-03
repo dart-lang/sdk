@@ -26,6 +26,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
   final bool forAbstractClassOrEnumOrMixin;
+  final bool buildInitializersForOutline;
   Token? _beginInitializers;
 
   final DeclarationFragment enclosingDeclaration;
@@ -42,7 +43,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     constructorName.fullNameLength,
   );
 
-  ConstructorFragment({
+  new({
     required this.constructorName,
     required this.fileUri,
     required this.startOffset,
@@ -58,12 +59,13 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     required this.formals,
     required this.nativeMethodName,
     required this.forAbstractClassOrEnumOrMixin,
+    required this.buildInitializersForOutline,
     required Token? beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
   }) : _beginInitializers = beginInitializers;
 
-  Token? get beginInitializers {
+  Token? get initializersStartToken {
     Token? result = _beginInitializers;
     // Ensure that we don't hold onto the token.
     _beginInitializers = null;
@@ -122,7 +124,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
 class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
   final ConstructorFragment _fragment;
 
-  _ConstructorBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -146,7 +148,7 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   ExtensionScope get extensionScope {

@@ -74,7 +74,7 @@ class AstTextStrategy {
   /// printed. If exceeded, '...' is printed instead.
   final int? maxConstantDepth;
 
-  const AstTextStrategy({
+  const new({
     this.includeLibraryNamesInTypes = false,
     this.includeLibraryNamesInMembers = false,
     this.includeAuxiliaryProperties = false,
@@ -99,10 +99,10 @@ class AstPrinter {
   int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
-  late final Map<VariableDeclaration, String> _variableDeclarationNames = {};
+  late final Map<Variable, String> _variableDeclarationNames = {};
   late final Map<VariableBase, String> _variableNames = {};
 
-  AstPrinter(this._strategy);
+  new(this._strategy);
 
   bool get includeAuxiliaryProperties => _strategy.includeAuxiliaryProperties;
 
@@ -250,22 +250,23 @@ class AstPrinter {
       case PositionalParameter(cosmeticName: var name?):
       case TypeVariable(cosmeticName: var name?):
       case LocalVariable(cosmeticName: var name?):
+      case LateVariable(cosmeticName: var name?):
         return name;
       case ThisVariable():
         return 'this';
       case PositionalParameter(cosmeticName: null):
       case TypeVariable(cosmeticName: null):
       case LocalVariable(cosmeticName: null):
+      case LateVariable(cosmeticName: null):
       case SyntheticVariable():
         return _variableNames[node] ??= '#${_variableNames.length}';
       case CatchVariable(catchVariableName: var name):
         return name;
-      case LegacyVariableDeclaration(:var name):
-      case VariableInitialization(:var name):
+      case LegacyVariable(:var name):
         if (name != null) {
           return name;
         }
-        return _variableDeclarationNames[node as VariableDeclaration] ??=
+        return _variableDeclarationNames[node as Variable] ??=
             '#${_variableDeclarationNames.length}';
     }
   }
@@ -510,6 +511,32 @@ class AstPrinter {
     node.toTextInternal(this, includeTypeArguments: includeTypeArguments);
   }
 
+  /// Writes the [VariableDeclaration] [node] to the printer buffer.
+  ///
+  /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
+  /// the modifiers and declared type of the variable. Otherwise only the
+  /// name and the initializer, if present, are included.
+  ///
+  /// If [isLate] and [type] are provided, these values are used instead of
+  /// the corresponding properties on [node].
+  void writeVariableDeclaration(
+    VariableDeclaration node, {
+    bool includeModifiersAndType = true,
+    bool? isLate,
+    DartType? type,
+    bool includeInitializer = true,
+    bool isImplicitlyTyped = false,
+  }) {
+    writeVariableInitialization(
+      node.variable,
+      includeModifiersAndType: includeModifiersAndType,
+      isLate: isLate,
+      type: type,
+      includeInitializer: includeInitializer,
+      isImplicitlyTyped: isImplicitlyTyped,
+    );
+  }
+
   /// Writes the [VariableInitialization] [node] to the printer buffer.
   ///
   /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
@@ -519,11 +546,12 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeVariableInitialization(
-    VariableInitializationBase node, {
+    Variable node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,
     bool includeInitializer = true,
+    bool isImplicitlyTyped = false,
   }) {
     if (includeModifiersAndType) {
       if (node.isRequired) {
@@ -538,8 +566,12 @@ class AstPrinter {
       if (node.isConst) {
         _sb.write('const ');
       }
-      writeType(type ?? node.type);
-      _sb.write(' ');
+      if (isImplicitlyTyped) {
+        _sb.write('var ');
+      } else {
+        writeType(type ?? node.type);
+        _sb.write(' ');
+      }
     }
     _sb.write(getVariableName(node.variable));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
@@ -557,7 +589,7 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeExpressionVariable(
-    VariableDeclaration node, {
+    Variable node, {
     bool includeModifiersAndType = true,
     bool? isLate,
     DartType? type,
@@ -648,7 +680,7 @@ class AstPrinter {
 
 class MarkingAstPrinter extends AstPrinter {
   Set<TreeNode> markThis;
-  MarkingAstPrinter(super.strategy, this.markThis);
+  new(super.strategy, this.markThis);
 
   @override
   void writeStatement(Statement node) {

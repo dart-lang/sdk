@@ -12,7 +12,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
   @override
   LspAnalysisServer server;
 
-  LspCapabilitiesPage(DiagnosticsSite site, this.server)
+  new(DiagnosticsSite site, this.server)
     : super(
         site,
         'lsp-capabilities',

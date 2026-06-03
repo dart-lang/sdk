@@ -17,8 +17,7 @@ const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
 
 class PreferFinalInForEach extends MultiAnalysisRule {
-  PreferFinalInForEach()
-    : super(name: LintNames.prefer_final_in_for_each, description: _desc);
+  new() : super(name: LintNames.prefer_final_in_for_each, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -43,7 +42,7 @@ class PreferFinalInForEach extends MultiAnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {

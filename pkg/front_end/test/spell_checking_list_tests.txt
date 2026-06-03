@@ -68,6 +68,7 @@ authority
 autobianchi
 autofocus
 automatic
+availability
 averaged
 averages
 avg
@@ -235,6 +236,7 @@ days
 db
 dbenchmark
 ddart
+ddebug
 dds
 debugger
 declarative
@@ -350,6 +352,7 @@ filesize
 filesystem
 filler
 filters
+fin
 fisk
 five
 fixtures
@@ -503,6 +506,7 @@ launch
 launching
 law
 le
+leftovers
 legs
 lengths
 lightly
@@ -816,6 +820,7 @@ ss
 ssls
 sssp
 stacks
+standing
 stashed
 stat
 statistics
@@ -835,6 +840,7 @@ subcommand
 subdir
 subfolder
 subs
+subtest
 subtool
 subtools
 successes

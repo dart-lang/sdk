@@ -22,17 +22,14 @@ class UnawaitedFuturesTest extends LintRuleTest {
   String get lintRule => LintNames.unawaited_futures;
 
   test_binaryExpression_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C a, C b) async {
-  a + b;
+  [!a + b!];
 }
 class C {
   Future<int> operator +(C other) async => 7;
 }
-''',
-      [lint(27, 5)],
-    );
+''');
   }
 
   test_binaryExpression_unawaited_awaitNotRequired() async {
@@ -79,16 +76,13 @@ Future<int> g() => Future.value(0);
 
   test_functionCall_classImplementsFuture() async {
     // https://github.com/dart-lang/linter/issues/2211
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Future2 p) async {
-  g(p);
+  [!g!](p);
 }
 Future2 g(Future2 p) => p;
 abstract class Future2 implements Future {}
-''',
-      [lint(28, 1)],
-    );
+''');
   }
 
   test_functionCall_inListContext() async {
@@ -102,15 +96,12 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_interpolated_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() async {
-  '${g()}';
+  '${[!g!]()}';
 }
 Future<int> g() => Future.value(0);
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   test_functionCall_interpolated_unawaited_awaitNotRequired() async {
@@ -125,29 +116,23 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_interpolated_unawaited_classImplementsFuture() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() async {
-  '${g()}';
+  '${[!g!]()}';
 }
 Future2<int> g() => f2;
 abstract class Future2<T> implements Future<T> {}
 external Future2<int> f2;
-''',
-      [lint(22, 1)],
-    );
+''');
   }
 
   test_functionCall_nullableFuture_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() async {
-  g();
+  [!g!]();
 }
 Future<int>? g() => Future.value(0);
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_functionCall_returnedWithFutureType() async {
@@ -160,15 +145,12 @@ Future<int> g() => Future.value(0);
   }
 
   test_functionCall_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() async {
-  g();
+  [!g!]();
 }
 Future<int> g() => Future.value(0);
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_functionCall_unawaited_awaitNotRequired() async {
@@ -197,17 +179,14 @@ abstract class C {
   }
 
   test_functionCallInCascade() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() async {
-  C()..doAsync();
+  C()..[!doAsync!]();
 }
 class C {
   Future<void> doAsync() async {}
 }
-''',
-      [lint(24, 7)],
-    );
+''');
   }
 
   test_functionCallInCascade_assignment() async {
@@ -276,17 +255,14 @@ class C {
   }
 
   test_instanceProperty_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C c) async {
-  c.p;
+  c.[!p!];
 }
 abstract class C {
   Future<int> get p;
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_instanceProperty_unawaited_awaitNotRequired() async {
@@ -329,14 +305,11 @@ class D extends C {
   }
 
   test_parameter_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(Future<int> p) async {
-  p;
+  [!p!];
 }
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 
   test_parameter_unawaited_awaitNotRequiredOnTypedef() async {
@@ -353,17 +326,14 @@ void f(Td p) async {
   }
 
   test_prefixExpression_unawaited() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C a) async {
-  -a;
+  [!-a!];
 }
 class C {
   Future<int> operator -() async => 7;
 }
-''',
-      [lint(22, 2)],
-    );
+''');
   }
 
   test_prefixExpression_unawaited_awaitNotRequired() async {

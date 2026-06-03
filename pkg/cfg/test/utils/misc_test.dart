@@ -78,4 +78,37 @@ void main() {
       }
     }
   });
+
+  test('doubleToIntBits and intBitsToDouble', () {
+    List<(double, int)> values = [
+      (1.0, 0x3FF00000_00000000),
+      (-1.0, 0xBFF00000_00000000),
+      (2.0, 0x40000000_00000000),
+      (-0.25, 0xBFD00000_00000000),
+      (1e100, 0x54b249ad_2594c37d),
+      (0.0, 0x00000000_00000000),
+      (-0.0, 0x80000000_00000000),
+      (double.nan, canonicalNaNBits),
+      (double.infinity, 0x7ff00000_00000000),
+      (double.negativeInfinity, 0xFFF00000_00000000),
+    ];
+    for (var (d, i) in values) {
+      print('($d, ${doubleToIntBits(d).toRadixString(16)})');
+      expect(doubleToIntBits(d), equals(i));
+      expect(intBitsToDouble(i), same(d));
+    }
+    for (var d = -100.0; d < 100.0; d += 0.1) {
+      expect(intBitsToDouble(doubleToIntBits(d)), same(d));
+    }
+    // More NaNs.
+    expect(intBitsToDouble(0xFFF81234_56789abc), same(double.nan));
+    expect(intBitsToDouble(0xFFF00000_00000001), same(double.nan));
+    expect(intBitsToDouble(0xFFF01234_56789abc), same(double.nan));
+    expect(intBitsToDouble(0x7FF80000_00000000), same(double.nan));
+    expect(intBitsToDouble(0x7FF81234_56789abc), same(double.nan));
+    expect(intBitsToDouble(0x7FF00000_00000001), same(double.nan));
+    expect(intBitsToDouble(0x7FF01234_56789abc), same(double.nan));
+    expect(doubleToIntBits(-double.nan), equals(canonicalNaNBits));
+    expect(doubleToIntBits(double.nan + 1e100), equals(canonicalNaNBits));
+  });
 }

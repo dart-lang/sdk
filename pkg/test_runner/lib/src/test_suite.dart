@@ -69,10 +69,14 @@ abstract class TestSuite {
           'DART_CRASHPAD_HANDLER': Uri.base
               .resolve('${configuration.buildDirectory}/crashpad_handler.exe')
               .toFilePath(),
-        if (configuration.chromePath != null)
+        if (configuration.chromePath != null) ...{
           'CHROME_PATH': Uri.base
               .resolve(configuration.chromePath!)
               .toFilePath(),
+          'CHROME_EXECUTABLE': Uri.base
+              .resolve(configuration.chromePath!)
+              .toFilePath(),
+        },
         if (configuration.firefoxPath != null)
           'FIREFOX_PATH': Uri.base
               .resolve(configuration.firefoxPath!)
@@ -210,7 +214,8 @@ abstract class TestSuite {
 
     // Other static error tests are run on front-end-only configurations.
     return configuration.compiler == Compiler.dart2analyzer ||
-        configuration.compiler == Compiler.fasta;
+        configuration.compiler == Compiler.fasta ||
+        configuration.compiler == Compiler.specParser;
   }
 
   /// Whether a test with [expectations] should be skipped under the current
@@ -1077,13 +1082,15 @@ class StandardTestSuite extends TestSuite {
           Path('$outputDir/$nameNoExt.support.js'),
         );
 
-        content = dart2wasmHtml(
-          testFile.path.toNativePath(),
-          wasmPath,
-          mjsPath,
-          supportJsPath,
-          configuration.isDart2wasmStandalone,
-        );
+        final title = testFile.path.toNativePath();
+        content = configuration.isDart2wasmStandalone
+            ? dart2WasmStandaloneHtml(title, wasmPath)
+            : dart2wasmHtml(
+                testFile.path.toNativePath(),
+                wasmPath,
+                mjsPath,
+                supportJsPath,
+              );
       } else if (configuration.compiler == Compiler.ddc) {
         var ddcConfig =
             configuration.compilerConfiguration as DevCompilerConfiguration;

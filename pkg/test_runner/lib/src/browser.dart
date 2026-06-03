@@ -339,8 +339,12 @@ and `base64 -w 0`:
 (module
   (type $i8array (array (mut i8)))
   (type $i16array (array (mut i16)))
+  (type $externarray (array (mut externref)))
   (import "wasm:js-string" "fromCharCodeArray"
     (func $fromCharCodeArray (param (ref null $i16array) i32 i32) (result (ref extern)))
+  )
+  (import "wasm:js-string" "intoCharCodeArray"
+    (func $intoCharCodeArray (param (ref null extern) (ref null $i16array) i32) (result i32))
   )
 
   (func (export "stringFromAsciiBytes")
@@ -356,21 +360,24 @@ and `base64 -w 0`:
     (local.set $i (local.get $length))
     (local.set $expanded (array.new $i16array (i32.const 0) (local.get $length)))
 
-    ;; do { i--; expanded[i] = arr[i]; } while (i >= start);
+    ;; do { i--; expanded[i] = arr[i + start]; } while (i >= 0);
     (block $break
       (loop $loop
         (local.set $i (i32.add (local.get $i) (i32.const -1)))
         (br_if $break
           (i32.lt_s
             (local.get $i)
-            (local.get $start)
+            (i32.const 0)
           )
         )
 
         (array.set $i16array
           (local.get $expanded)
             (local.get $i)
-            (array.get_u $i8array (local.get $arr) (local.get $i))
+            (array.get_u $i8array
+              (local.get $arr)
+              (i32.add (local.get $i) (local.get $start))
+            )
           )
           br $loop
       )
@@ -398,18 +405,33 @@ and `base64 -w 0`:
       )
     )
   )
+
+  (func (export "stringToCharCodeArray")
+    (param $str externref)
+    (param $array (ref $i16array))
+    (param $start i32)
+
+    (drop (call $intoCharCodeArray
+      (local.get $str)
+      (local.get $array)
+      (local.get $start)
+    ))
+  )
+
+  (func (export "emptyExternRefArray")
+    (result (ref $externarray))
+    (array.new_default $externarray (i32.const 0))
+  )
 )
  */
 const _wasmStandaloneArrayHelper =
-    'AGFzbQEAAAABIgVedwFeeAFgA2MAf38BZG9gA2QBf38BZG9gA2QAf38BZG8CJAEOd2FzbTpqcy1zdHJpbmcRZnJvbUNoYXJDb2RlQXJyYXkAAgMDAgMEBzICFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAEXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAgpTAkMCAX8BZAAgAiEDQQAgAvsGACEEAkADQCADQX9qIQMgAyABSA0BIAQgAyAAIAP7DQH7DgAMAAsACyAEQQAgBPsPEAALDQAgACABIAEgAmoQAAs=';
+    'AGFzbQEAAAABOQledwFeeAFebwFgA2MAf38BZG9gA29jAH8Bf2ADZAF/fwFkb2ADZAB/fwFkb2ADb2QAfwBgAAFkAgJHAg53YXNtOmpzLXN0cmluZxFmcm9tQ2hhckNvZGVBcnJheQADDndhc206anMtc3RyaW5nEWludG9DaGFyQ29kZUFycmF5AAQDBQQFBgcIB2AEFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAIXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAxVzdHJpbmdUb0NoYXJDb2RlQXJyYXkABBNlbXB0eUV4dGVyblJlZkFycmF5AAUKagRGAgF/AWQAIAIhA0EAIAL7BgAhBAJAA0AgA0F/aiEDIANBAEgNASAEIAMgACADIAFq+w0B+w4ADAALAAsgBEEAIAT7DxAACw0AIAAgASABIAJqEAALCwAgACABIAIQARoLBwBBAPsHAgs=';
 
-String dart2wasmHtml(
-  String title,
-  String wasmPath,
-  String mjsPath,
-  String supportJsPath,
-  bool standalone,
-) {
+/*
+
+*/
+
+String dart2WasmStandaloneHtml(String title, String wasmPath) {
   const standaloneEmbedder =
       """
     const { instance: helperInstance } = await WebAssembly.instantiate(Uint8Array.fromBase64('$_wasmStandaloneArrayHelper'), {}, {
@@ -440,6 +462,27 @@ String dart2wasmHtml(
       stringFromCharCodeArray: (chars, start, length) => {
         const str = helperInstance.exports.stringFromCharCodeArray(chars, start, length);
         return str;
+      },
+      stringLength: (s) => s.length,
+      stringEquals: (a, b) => a === b,
+      stringCompare: (a, b) => a === b ? 0 : (a < b ? -1 : 1),
+      stringCodeUnitAt: (str, idx) => str.charCodeAt(idx),
+      stringIndexOfString: (a, b, start) => a.indexOf(b, start),
+      stringLastIndexOfString: (a, b, start) => a.lastIndexOf(b, start),
+      stringReplaceAllString: (str, needle, replace) => str.replaceAll(needle, () => replace),
+      stringReplaceAllRegExp: (str, regex, replace) => str.replaceAll(regex.regular, () => replace),
+      stringSubstring: (str, start, end) => str.substring(start, end),
+      stringToLowerCase: (str) => str.toLowerCase(),
+      stringToUpperCase: (str) => str.toUpperCase(),
+      stringConcat: (a, b) => a + b,
+      stringRepeat: (str, amount) => str.repeat(amount),
+      stringReplaceRange: (str, start, end, replacement) => {
+        const before = str.substring(0, start);
+        const after = str.substring(end);
+        return before + replacement + after;
+      },
+      stringToCodeUnits: (str, array, startIndex) => {
+        helperInstance.exports.stringToCharCodeArray(str, array, startIndex);
       },
       monotonicClockFrequency: () => 1_000_000,
       monotonicClockTicks: () => BigInt(Math.round(performance.now() * 1000)),
@@ -487,6 +530,7 @@ String dart2wasmHtml(
         }
       },
       tryParseResultGetDouble: ({result}) => result,
+      doubleParseInfallible: (str) => +str,
       i64ToString: (source, radix) => source.toString(radix),
       f64ToExponential: (source) => source.toExponential(),
       f64ToExponentialWithFractionDigits: (source, digits) => {
@@ -583,10 +627,95 @@ String dart2wasmHtml(
         // local time and UTC.
         return -date.getTimezoneOffset() * 60;
       },
+      mathPow: Math.pow,
+      mathAtan2: Math.atan2,
+      mathSin: Math.sin,
+      mathCos: Math.cos,
+      mathTan: Math.tan,
+      mathAcos: Math.acos,
+      mathAsin: Math.asin,
+      mathAtan: Math.atan,
+      mathExp: Math.exp,
+      mathLog: Math.log,
+      randomInt: () => {
+        const low = (Math.random() * 4294967295.0) | 0;
+        const high = (Math.random() * 4294967295.0) | 0;
+
+        return (BigInt(high) << 32n) | BigInt(low);
+      },
+      randomIntSecure: () => {
+        const typedArray = new BigUint64Array(1);
+        crypto.getRandomValues(typedArray);
+        return typedArray[0];
+      },
+      print: (line) => {
+        if (typeof dartPrint == "function") {
+          dartPrint(line);
+        } else {
+          console.log(line);
+        }
+      },
+      jsonEncodeString: JSON.stringify,
+      debugger: () => {
+        debugger;
+      },
+      inspect: (ref) => {},
+      timelineStreamEnabled: () => false,
+      reportTaskEvent: (taskId, flowId, type, name, jsonArgs) => {},
     };
 """;
-  final additionalImports = standalone ? '{ dart: dartEmbedder }' : '{}';
 
+  return """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="dart.unittest" content="full-stack-traces">
+  <title> Test $title </title>
+  <link rel="preload" href="$wasmPath" as="fetch" crossorigin>
+  <style>
+     .unittest-table { font-family:monospace; border:1px; }
+     .unittest-pass { background: #6b3;}
+     .unittest-fail { background: #d55;}
+     .unittest-error { background: #a11;}
+  </style>
+</head>
+<body>
+  <h1> Running $title</h1>
+  <script type="text/javascript"
+          src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
+  </script>
+  <script type="module">
+  $standaloneEmbedder
+
+  // Default stack trace limit in V8 is 10, which hides some of the stack frames
+  // we check in stack trace tests.
+  Error.stackTraceLimit = 20;
+  async function loadAndRun(wasmPath) {
+    const { instance } = await WebAssembly.instantiateStreaming(fetch(wasmPath), {dart: dartEmbedder});
+    window.loadData = async (relativeToWasmFileUri) => {
+      const path = '$wasmPath'.slice(0, wasmPath.lastIndexOf('/'));
+      const response = await fetch(`\${path}/\${relativeToWasmFileUri}`);
+      return response.arrayBuffer();
+    };
+
+    dartMainRunner(() => {
+      instance.exports.\$invokeMain(helperInstance.exports.emptyExternRefArray());
+    });
+  }
+
+  loadAndRun('$wasmPath');
+  </script>
+</body>
+</html>""";
+}
+
+String dart2wasmHtml(
+  String title,
+  String wasmPath,
+  String mjsPath,
+  String supportJsPath,
+) {
   return """
 <!DOCTYPE html>
 <html>
@@ -629,8 +758,7 @@ String dart2wasmHtml(
       const response = await fetch(`\${path}/\${relativeToWasmFileUri}`);
       return response.arrayBuffer();
     };
-${standalone ? standaloneEmbedder : ''}
-    const appInstance = await compiledApp.instantiate($additionalImports, {
+    const appInstance = await compiledApp.instantiate({}, {
       loadDeferredModules: (modules, handleWasmBytes) =>
         Promise.all(modules.map((m) => fetch(m).then((b) => handleWasmBytes(m, b)))),
     });

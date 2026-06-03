@@ -5,13 +5,16 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'package:dwds/expression_compiler.dart';
 import 'package:dwds_test_common/test_sdk_configuration.dart';
 import 'package:test/test.dart';
 
 import 'asset_handler_common.dart';
 
 void main() {
-  final provider = TestSdkConfigurationProvider();
+  final provider = TestSdkConfigurationProvider(
+    ddcModuleFormat: ModuleFormat.amd,
+  );
   tearDownAll(provider.dispose);
 
   testAll(provider: provider);

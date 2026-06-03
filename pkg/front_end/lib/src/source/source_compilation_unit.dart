@@ -181,7 +181,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final bool mayImplementRestrictedTypes;
 
-  factory SourceCompilationUnitImpl({
+  factory({
     required Uri importUri,
     required Uri fileUri,
     required Uri? packageUri,
@@ -229,7 +229,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     );
   }
 
-  SourceCompilationUnitImpl._(
+  new _(
     LibraryNameSpaceBuilder libraryNameSpaceBuilder, {
     required this.importUri,
     required this.fileUri,

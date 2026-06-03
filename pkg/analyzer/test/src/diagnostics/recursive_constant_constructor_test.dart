@@ -2,103 +2,94 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RecursiveConstantConstructorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class RecursiveConstantConstructorTest extends PubPackageResolutionTest {
   test_newHead_named_redirectingConstructorInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const new named() : this.named();
+//      ^^^^^^^^^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
+//                    ^^^^^^^^^^^^
+// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.recursiveConstantConstructor, 18, 9),
-        error(diag.recursiveConstructorRedirect, 32, 12),
-      ],
-    );
+''');
   }
 
   test_newHead_unnamed_redirectingConstructorInvocation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const new () : this();
+//      ^^^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
+//               ^^^^^^
+// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
 }
-''',
-      [
-        error(diag.recursiveConstantConstructor, 18, 3),
-        error(diag.recursiveConstructorRedirect, 27, 6),
-      ],
-    );
+''');
   }
 
   test_typeName_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
+//      ^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
   final m = const A();
 }
-''',
-      [error(diag.recursiveConstantConstructor, 18, 1)],
-    );
+''');
   }
 
   test_typeName_initializer_after_toplevel_var() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const y = const C();
+//    ^
+// [diag.recursiveCompileTimeConstant] The compile-time constant expression depends on itself.
 class C {
   const C() : x = y;
+//      ^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
   final x;
 }
-''',
-      [
-        error(diag.recursiveCompileTimeConstant, 6, 1),
-        error(diag.recursiveConstantConstructor, 39, 1),
-      ],
-    );
+''');
   }
 
   test_typeName_initializer_field() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final A a;
   const A() : a = const A();
+//      ^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 }
-''',
-      [error(diag.recursiveConstantConstructor, 31, 1)],
-    );
+''');
   }
 
   test_typeName_initializer_field_multipleClasses() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   final A a;
   const B() : a = const A();
+//      ^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 }
 class A {
   final B b;
   const A() : b = const B();
+//      ^
+// [diag.recursiveConstantConstructor] The constant constructor depends on itself.
 }
-''',
-      [
-        error(diag.recursiveConstantConstructor, 31, 1),
-        error(diag.recursiveConstantConstructor, 85, 1),
-      ],
-    );
+''');
   }
 }

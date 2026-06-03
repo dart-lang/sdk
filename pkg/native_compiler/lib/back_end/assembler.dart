@@ -21,9 +21,11 @@ enum OperandSize {
   s64,
   simd128;
 
+  bool get is16 => (this == u16) || (this == s16);
   bool get is32 => (this == u32) || (this == s32);
   bool get is64 => (this == u64) || (this == s64);
   bool get is32or64 => is32 || is64;
+  bool get is16or32or64 => is16 || is32 || is64;
   bool get is128 => (this == simd128);
 
   bool get isSigned =>
@@ -161,6 +163,9 @@ abstract base class Assembler {
   /// Load arbitrary integer [value] into register.
   void loadImmediate(Register reg, int value);
 
+  /// Load arbitrary double [value] into a floating-point register.
+  void loadDoubleImmediate(FPRegister reg, double v);
+
   /// [dst] = [src] + arbitrary integer [value].
   void addImmediate(
     Register dst,
@@ -197,6 +202,7 @@ abstract base class Assembler {
   void callStub(Code stub);
 
   void unimplemented(String message);
+  void breakpoint();
 }
 
 /// Assembler output buffer holding 32-bit instructions.

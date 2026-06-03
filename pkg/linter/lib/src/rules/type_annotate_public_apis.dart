@@ -6,6 +6,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -19,8 +20,7 @@ import '../util/ascii_utils.dart';
 const _desc = r'Type annotate public APIs.';
 
 class TypeAnnotatePublicApis extends AnalysisRule {
-  TypeAnnotatePublicApis()
-    : super(name: LintNames.type_annotate_public_apis, description: _desc);
+  new() : super(name: LintNames.type_annotate_public_apis, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.typeAnnotatePublicApis;
@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final _VisitorHelper v;
 
-  _Visitor(this.rule) : v = _VisitorHelper(rule);
+  new(this.rule) : v = _VisitorHelper(rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -100,14 +100,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAugmentation) return;
+    if (node.name.isPrivate) return;
 
-    if (!node.name.isPrivate) {
-      if (node.returnType == null && !node.isSetter) {
-        rule.reportAtToken(node.name);
-      } else {
-        node.parameters?.accept(v);
-      }
+    if (node.returnType == null &&
+        !node.isSetter &&
+        node.name.type != TokenType.INDEX_EQ) {
+      rule.reportAtToken(node.name);
     }
+
+    node.parameters?.accept(v);
   }
 
   @override
@@ -140,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 class _VisitorHelper extends RecursiveAstVisitor<void> {
   final AnalysisRule rule;
 
-  _VisitorHelper(this.rule);
+  new(this.rule);
 
   bool hasInferredType(VariableDeclaration node) {
     var staticType = node.initializer?.staticType;

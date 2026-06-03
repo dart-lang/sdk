@@ -414,12 +414,22 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitAllocateContext(AllocateContext instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
     _setNonConstant(instr);
   }
 
   @override
   void visitAllocateMapLiteral(AllocateMapLiteral instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) {
     _setNonConstant(instr);
   }
 
@@ -568,6 +578,11 @@ final class ConstantPropagation extends Pass
 
   @override
   void visitSetListElement(SetListElement instr) {}
+
+  @override
+  void visitAllocateRecord(AllocateRecord instr) {
+    _setNonConstant(instr);
+  }
 
   @override
   void visitBoxInt(BoxInt instr) {

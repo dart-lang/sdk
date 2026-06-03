@@ -162,8 +162,8 @@ final class MachoImageWriter extends ImageWriter {
 
   MachoImageWriter(this.targetCPU, this.libraryName) {
     header = Header(this);
-    symbolTable.addSymbol(isolateSnapshotInstructionsAsmSymbol, textSection, 0);
-    symbolTable.addSymbol(isolateSnapshotDataAsmSymbol, constSection, 0);
+    symbolTable.addSymbol(snapshotTextAsmSymbol, textSection, 0);
+    symbolTable.addSymbol(snapshotDataAsmSymbol, constSection, 0);
   }
 
   @override

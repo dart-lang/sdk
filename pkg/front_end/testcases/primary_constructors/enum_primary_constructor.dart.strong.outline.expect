@@ -71,7 +71,7 @@ class E5 extends core::_Enum /*isEnum*/  {
   final field core::int? b;
   static const field core::List<self::E5> values = const <self::E5>[self::E5::a];
   const constructor •(core::int #index, core::String #name) → self::E5
-    : super core::_Enum::•(#index, #name)
+    : self::E5::b = 0, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
@@ -81,7 +81,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   final field core::int? b;
   static const field core::List<self::E6> values = const <self::E6>[self::E6::a];
   const constructor •(core::int #index, core::String #name, final core::int? x) → self::E6
-    : super core::_Enum::•(#index, #name)
+    : self::E6::b = x, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
@@ -151,10 +151,10 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constru
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:13:12 -> ListConstant(const <E3>[const E3{E3.b: null, _Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:19:3 -> InstanceConstant(const E4{E4.b: null, _Enum.index: 0, _Enum._name: "a"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:18:12 -> ListConstant(const <E4>[const E4{E4.b: null, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:24:3 -> InstanceConstant(const E5{E5.b: null, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:23:6 -> ListConstant(const <E5>[const E5{E5.b: null, _Enum.index: 0, _Enum._name: "a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:30:3 -> InstanceConstant(const E6{E6.b: null, _Enum.index: 0, _Enum._name: "a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:29:6 -> ListConstant(const <E6>[const E6{E6.b: null, _Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:24:3 -> InstanceConstant(const E5{E5.b: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:23:6 -> ListConstant(const <E5>[const E5{E5.b: 0, _Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:30:3 -> InstanceConstant(const E6{E6.b: 0, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:29:6 -> ListConstant(const <E6>[const E6{E6.b: 0, _Enum.index: 0, _Enum._name: "a"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:36:3 -> InstanceConstant(const E7{E7.c: 0, _Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:37:5 -> InstanceConstant(const E7{E7.c: 1, _Enum.index: 1, _Enum._name: "b"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:35:6 -> ListConstant(const <E7>[const E7{E7.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E7{E7.c: 1, _Enum.index: 1, _Enum._name: "b"}])
@@ -164,4 +164,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:58:3 -> InstanceConstant(const E9{E9.c: 0, _Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_primary_constructor.dart:59:5 -> InstanceConstant(const E9{E9.c: 1, _Enum.index: 1, _Enum._name: "b"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_primary_constructor.dart:57:6 -> ListConstant(const <E9>[const E9{E9.c: 0, _Enum.index: 0, _Enum._name: "a"}, const E9{E9.c: 1, _Enum.index: 1, _Enum._name: "b"}])
-Extra constant evaluation: evaluated: 78, effectively constant: 21
+Extra constant evaluation: evaluated: 79, effectively constant: 21

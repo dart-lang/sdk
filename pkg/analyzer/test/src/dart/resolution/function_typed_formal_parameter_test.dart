@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionTypedFormalParameterResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -16,11 +18,11 @@ main() {
 class FunctionTypedFormalParameterResolutionTest
     extends PubPackageResolutionTest {
   test_hasTypeParameters() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f<V>(T p<T, U>(U a, V b)) {}
 ''');
 
-    var node = findNode.firstFormalParameter;
+    var node = result.findNode.firstFormalParameter;
     assertResolvedNodeText(node, r'''
 RegularFormalParameter
   type: NamedType
@@ -69,11 +71,11 @@ RegularFormalParameter
   }
 
   test_simple() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 void f(void p(int a)) {}
 ''');
 
-    var node = findNode.firstFormalParameter;
+    var node = result.findNode.firstFormalParameter;
     assertResolvedNodeText(node, r'''
 RegularFormalParameter
   type: NamedType

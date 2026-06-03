@@ -24,7 +24,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -67,8 +66,9 @@ import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessage, DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1904,6 +1904,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.visitChildren(this);
       var returnType = _finishFunctionBodyInference();
       flowAnalysis.flow?.anonymousBlockBody_end();
+
       return returnType;
     } finally {
       _bodyContext = oldBodyContext;
@@ -1916,11 +1917,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl? imposedType,
   }) {
     checkUnreachableNode(node);
+
     analyzeExpression(
       node.expression,
       SharedTypeSchemaView(imposedType ?? UnknownInferredType.instance),
     );
     popRewrite();
+
     return node.expression.staticType ?? typeProvider.dynamicType;
   }
 
@@ -1975,11 +1978,33 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var parameter in parameters.parameters) {
         var element = parameter.declaredFragment?.element;
         if (element != null) {
-          flow.declare(
-            element,
-            SharedTypeView(element.type),
-            initialized: true,
-          );
+          if (parameter == parameters.parameters.first) {
+            flow.declare(
+              element,
+              SharedTypeView(element.type),
+              initialized: false,
+            );
+            flow.initialize(
+              element,
+              SharedTypeView(element.type),
+              target != null
+                  ? flowAnalysis.flow?.getExpressionInfo(target)
+                  : null,
+              isFinal: false,
+              isLate: false,
+              isImplicitlyTyped: parameter.type == null,
+              inheritPromotableProperties: false,
+            );
+          } else {
+            // An error will occur because there are multiple parameters, but
+            // those extra parameters should still allow for meaningful analysis
+            // in the body of the anonymous method.
+            flow.declare(
+              element,
+              SharedTypeView(element.type),
+              initialized: true,
+            );
+          }
         }
       }
     }
@@ -1988,10 +2013,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (parameters == null) {
       var oldThisType = _thisType;
       _thisType = parameterType;
+      var target = node.target;
+      var targetInfo = target != null
+          ? flowAnalysis.flow?.getExpressionInfo(target)
+          : null;
+      var body = node.body;
+      flowAnalysis.flow?.thisBinding_begin(targetInfo);
       try {
-        returnedType = node.body.resolve(this, contextType);
+        returnedType = body.resolve(this, contextType);
       } finally {
+        flowAnalysis.flow?.thisBinding_end();
         _thisType = oldThisType;
+      }
+      if (body is AnonymousExpressionBodyImpl) {
+        flowAnalysis.flow?.storeExpressionInfo(
+          node,
+          flowAnalysis.flow?.getExpressionInfo(body.expression),
+        );
       }
     } else {
       returnedType = node.body.resolve(this, contextType);

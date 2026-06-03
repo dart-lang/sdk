@@ -28,7 +28,7 @@ class DartInlayHintComputer {
   final List<InlayHint> _hints = [];
   final LspClientInlayHintsConfiguration _config;
 
-  DartInlayHintComputer(
+  new(
     this.pathContext,
     ResolvedUnitResult result, [
     // This parameter is optional because this class is used internally
@@ -332,7 +332,7 @@ class DartInlayHintComputer {
 class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   final DartInlayHintComputer _computer;
 
-  _DartInlayHintComputerVisitor(this._computer);
+  new(this._computer);
 
   @override
   void visitArgumentList(ArgumentList node) {

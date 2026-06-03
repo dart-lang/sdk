@@ -536,6 +536,62 @@ int third = "boo";
 """,
   );
 
+  // Sorts context messages by their numeric context number.
+  expectUpdate(
+    """
+var bad;
+
+use1;
+
+use2;
+""",
+    errors: [
+      makeError(
+        line: 3,
+        column: 1,
+        length: 4,
+        analyzerError: "first.error",
+        context: [
+          makeError(
+            line: 1,
+            column: 5,
+            length: 3,
+            contextError: "zzz context.",
+          ),
+        ],
+      ),
+      makeError(
+        line: 5,
+        column: 1,
+        length: 4,
+        analyzerError: "second.error",
+        context: [
+          makeError(
+            line: 1,
+            column: 5,
+            length: 3,
+            contextError: "aaa context.",
+          ),
+        ],
+      ),
+    ],
+    includeContext: true,
+    expected: """
+var bad;
+/\/  ^^^
+/\/ [context 1] zzz context.
+/\/ [context 2] aaa context.
+
+use1;
+/\/ [error column 1, length 4]
+/\/ [analyzer 1] first.error
+
+use2;
+/\/ [error column 1, length 4]
+/\/ [analyzer 2] second.error
+""",
+  );
+
   // Removes context messages for removed errors.
   expectUpdate(
     """
@@ -674,6 +730,153 @@ int another = "wrong";
 int third = "boo";
 """,
   );
+
+  // Writes cross-file context markers with bidirectional references.
+  var errors = [
+    makeError(
+      path: 'main_test.dart',
+      line: 3,
+      column: 9,
+      length: 6,
+      analyzerError: "some.error",
+      context: [
+        makeError(
+          path: 'helper.dart',
+          line: 2,
+          column: 12,
+          length: 5,
+          contextError: "Helper context.",
+        ),
+      ],
+    ),
+  ];
+  var root = updateErrorExpectations(
+    'main_test.dart',
+    """
+import 'helper.dart';
+
+bad.use;
+""",
+    errors,
+    includeContext: true,
+    contextOwnerPath: 'main_test.dart',
+  );
+  Expect.stringEquals("""
+import 'helper.dart';
+
+bad.use;
+/\/      ^^^^^^
+/\/ [analyzer 1 see helper.dart] some.error
+""", root);
+  var helper = updateErrorExpectations(
+    'helper.dart',
+    """
+class C {
+  int? get value => 0;
+}
+""",
+    errors,
+    includeContext: true,
+    contextOwnerPath: 'main_test.dart',
+  );
+  Expect.stringEquals("""
+class C {
+  int? get value => 0;
+  /\/       ^^^^^
+  /\/ [context 1 for main_test.dart] Helper context.
+}
+""", helper);
+
+  // Keeps numbers scoped to the owning root when several roots share a helper.
+  errors = [
+    makeError(
+      path: 'a_test.dart',
+      line: 3,
+      column: 9,
+      length: 6,
+      analyzerError: "a.error",
+      context: [
+        makeError(
+          path: 'helper.dart',
+          line: 2,
+          column: 12,
+          length: 5,
+          contextError: "Context for a.",
+        ),
+      ],
+    ),
+    makeError(
+      path: 'b_test.dart',
+      line: 3,
+      column: 9,
+      length: 6,
+      analyzerError: "b.error",
+      context: [
+        makeError(
+          path: 'helper.dart',
+          line: 2,
+          column: 12,
+          length: 5,
+          contextError: "Context for b.",
+        ),
+      ],
+    ),
+  ];
+  root = updateErrorExpectations(
+    'a_test.dart',
+    """
+import 'helper.dart';
+
+bad.use;
+""",
+    errors,
+    includeContext: true,
+    contextOwnerPaths: {'a_test.dart', 'b_test.dart'},
+  );
+  Expect.stringEquals("""
+import 'helper.dart';
+
+bad.use;
+/\/      ^^^^^^
+/\/ [analyzer 1 see helper.dart] a.error
+""", root);
+  var otherRoot = updateErrorExpectations(
+    'b_test.dart',
+    """
+import 'helper.dart';
+
+bad.use;
+""",
+    errors,
+    includeContext: true,
+    contextOwnerPaths: {'a_test.dart', 'b_test.dart'},
+  );
+  Expect.stringEquals("""
+import 'helper.dart';
+
+bad.use;
+/\/      ^^^^^^
+/\/ [analyzer 1 see helper.dart] b.error
+""", otherRoot);
+  helper = updateErrorExpectations(
+    'helper.dart',
+    """
+class C {
+  int? get value => 0;
+}
+""",
+    errors,
+    includeContext: true,
+    contextOwnerPaths: {'a_test.dart', 'b_test.dart'},
+  );
+  Expect.stringEquals("""
+class C {
+  int? get value => 0;
+  /\/       ^^^^^
+  /\/ [context 1 for a_test.dart] Context for a.
+  /\/ [context 1 for b_test.dart] Context for b.
+}
+""", helper);
 }
 
 void regression() {

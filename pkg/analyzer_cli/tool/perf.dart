@@ -247,5 +247,5 @@ class ScannerResult {
   final List<int> lineStarts;
   final Version? overrideVersion;
 
-  ScannerResult(this.tokens, this.lineStarts, this.overrideVersion);
+  new(this.tokens, this.lineStarts, this.overrideVersion);
 }

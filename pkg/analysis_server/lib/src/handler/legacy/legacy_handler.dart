@@ -20,12 +20,7 @@ import 'package:pub_semver/pub_semver.dart';
 abstract class CompletionHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  CompletionHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   /// Return `true` if completion is disabled and the handler should return. If
   /// `true` is returned then a response will already have been returned, so
@@ -61,12 +56,7 @@ abstract class LegacyHandler {
 
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  LegacyHandler(
-    this.server,
-    this.request,
-    this.cancellationToken,
-    this.performance,
-  );
+  new(this.server, this.request, this.cancellationToken, this.performance);
 
   /// Whether this command records its own analytics and should be excluded from
   /// logging by the server.

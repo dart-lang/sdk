@@ -14,24 +14,24 @@ class RefactoringStatus {
   final List<RefactoringProblem> problems = [];
 
   /// Creates a new OK [RefactoringStatus].
-  RefactoringStatus();
+  new();
 
   /// Creates a new [RefactoringStatus] with the ERROR severity.
-  factory RefactoringStatus.error(String msg, [Location? location]) {
+  factory error(String msg, [Location? location]) {
     var status = RefactoringStatus();
     status.addError(msg, location);
     return status;
   }
 
   /// Creates a new [RefactoringStatus] with the FATAL severity.
-  factory RefactoringStatus.fatal(String msg, [Location? location]) {
+  factory fatal(String msg, [Location? location]) {
     var status = RefactoringStatus();
     status.addFatalError(msg, location);
     return status;
   }
 
   /// Creates a new [RefactoringStatus] with the WARNING severity.
-  factory RefactoringStatus.warning(String msg, [Location? location]) {
+  factory warning(String msg, [Location? location]) {
     var status = RefactoringStatus();
     status.addWarning(msg, location);
     return status;

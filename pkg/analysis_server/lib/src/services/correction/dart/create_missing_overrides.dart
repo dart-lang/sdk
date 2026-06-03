@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateMissingOverrides extends ResolvedCorrectionProducer {
   int _numElements = 0;
 
-  CreateMissingOverrides({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

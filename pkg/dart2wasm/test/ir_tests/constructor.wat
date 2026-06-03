@@ -116,7 +116,7 @@
     local.get $var0
     local.get $onlyUsedInSuper
     local.set $var3
-    i32.const 63
+    i32.const 85
     local.get $var3
     struct.new $BoxedInt
     call $"new _MixinApplication1&Base&SubMixin.named (initializer)"
@@ -248,7 +248,7 @@
     global.get $"\", \""
     local.get $onlyUsedInSubBody
     local.set $var4
-    i32.const 63
+    i32.const 85
     local.get $var4
     struct.new $BoxedInt
     array.new_fixed $Array<Object?> 6
@@ -273,7 +273,7 @@
     local.get $var0
     local.get $onlyUsedInSuper1
     local.set $var3
-    i32.const 63
+    i32.const 85
     local.get $var3
     struct.new $BoxedInt
     local.get $onlyUsedInSuper2
@@ -328,7 +328,7 @@
     local.get $var0
     local.get $onlyUsedInSuper1
     local.set $var3
-    i32.const 63
+    i32.const 85
     local.get $var3
     struct.new $BoxedInt
     call $"new _MixinApplication1&Base&SubMixin.sub2 (initializer)"

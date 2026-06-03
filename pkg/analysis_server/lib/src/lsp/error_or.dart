@@ -34,9 +34,9 @@ ErrorOr<R> success<R>(R t) => ErrorOr<R>.success(t);
 ///
 /// Contains a helpers to assist in chaining operations while propagating errors.
 class ErrorOr<T> extends Either2<ResponseError, T> {
-  ErrorOr.error(super.error) : super.t1();
+  new error(super.error) : super.t1();
 
-  ErrorOr.success(super.result) : super.t2();
+  new success(super.result) : super.t2();
 
   /// Returns the error or throws if object is not an error. Check [isError]
   /// before accessing [error].

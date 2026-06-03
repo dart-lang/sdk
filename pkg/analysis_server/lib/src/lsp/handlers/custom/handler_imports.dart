@@ -16,7 +16,7 @@ import 'package:analyzer/src/utilities/extensions/results.dart';
 
 class ImportsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>?> {
-  ImportsHandler(super.server);
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.imports;

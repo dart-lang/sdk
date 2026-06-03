@@ -12,12 +12,7 @@ import 'package:analysis_server/src/services/completion/postfix/postfix_completi
 class EditIsPostfixCompletionApplicableHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditIsPostfixCompletionApplicableHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

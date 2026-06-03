@@ -1,0 +1,2921 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/for_in.dart:16:14: Error: A for-in loop-variable can't be 'const'.
+// Try removing the 'const' modifier.
+//   for (const constLocal in [1]) { // Error
+//              ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:19:8: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+//   for (late int lateLocal in [1]) { // Error
+//        ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:29:16: Error: A for-in loop-variable can't be 'const'.
+// Try removing the 'const' modifier.
+//     for (const constLocal in [1]) constLocal // Error
+//                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:32:10: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+//     for (late int lateLocal in [1]) lateLocal // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:41:16: Error: A for-in loop-variable can't be 'const'.
+// Try removing the 'const' modifier.
+//     for (const constLocal in [1]) 0: constLocal // Error
+//                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:44:10: Error: Can't have modifier 'late' here.
+// Try removing 'late'.
+//     for (late int lateLocal in [1]) 0: lateLocal // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:52:24: Error: Unexpected token ','.
+//   for (int? multiLocal1, multiLocal2 in [1]) { // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/for_in.dart:52:8: Error: A for-in loop can't have more than one loop variable.
+//   for (int? multiLocal1, multiLocal2 in [1]) { // Error
+//        ^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:56:26: Error: Unexpected token ','.
+//   for (var varMultiLocal1, varMultiLocal2 in [1]) { // Error
+//                          ^
+//
+// pkg/front_end/testcases/general/for_in.dart:56:8: Error: A for-in loop can't have more than one loop variable.
+//   for (var varMultiLocal1, varMultiLocal2 in [1]) { // Error
+//        ^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:60:26: Error: Unexpected token ','.
+//   for (num numMultiLocal1, numMultiLocal2 in [1]) { // Error
+//                          ^
+//
+// pkg/front_end/testcases/general/for_in.dart:60:8: Error: A for-in loop can't have more than one loop variable.
+//   for (num numMultiLocal1, numMultiLocal2 in [1]) { // Error
+//        ^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:64:8: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
+//   for (1 in [1]) { // Error
+//        ^
+//
+// pkg/front_end/testcases/general/for_in.dart:64:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+//   for (1 in [1]) { // Error
+//        ^
+//
+// pkg/front_end/testcases/general/for_in.dart:67:12: Error: Unexpected token '('.
+//   for (main() in [1]) { // Error
+//            ^
+//
+// pkg/front_end/testcases/general/for_in.dart:67:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+//   for (main() in [1]) { // Error
+//        ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:71:8: Error: Can't assign to the final variable 'existingFinalLocal'.
+//   for (existingFinalLocal in [1]) { // Error
+//        ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:82:9: Error: Unexpected token '.'.
+//   for (c.intField in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:85:9: Error: Unexpected token '.'.
+//   for (c.numField in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:88:9: Error: Unexpected token '.'.
+//   for (c.lateField in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:91:9: Error: Unexpected token '?.'.
+//   for (c?.intField in [1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:94:9: Error: Unexpected token '?.'.
+//   for (c?.numField in [1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:97:9: Error: Unexpected token '?.'.
+//   for (c?.lateField in [1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:100:9: Error: Unexpected token '.'.
+//   for (c.stringField in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:103:9: Error: Unexpected token '.'.
+//   for (c.stringField in <int>[1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:106:9: Error: Unexpected token '?.'.
+//   for (c?.stringField in [1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:109:9: Error: Unexpected token '?.'.
+//   for (c?.stringField in <int>[1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:112:9: Error: Unexpected token '.'.
+//   for (c.finalField in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:115:9: Error: Unexpected token '?.'.
+//   for (c?.finalField in [1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:118:9: Error: Unexpected token '.'.
+//   for (c.lateFinalField in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:121:9: Error: Unexpected token '?.'.
+//   for (c?.lateFinalField in [1]) { // Error
+//         ^^
+//
+// pkg/front_end/testcases/general/for_in.dart:124:9: Error: Unexpected token '['.
+//   for (c[0] in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:127:9: Error: Unexpected token '?'.
+//   for (c?[0] in [1]) { // Error
+//         ^
+//
+// pkg/front_end/testcases/general/for_in.dart:130:8: Error: Setter not found: 'finalTopLevel'.
+//   for (finalTopLevel in [1]) { // Error
+//        ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:133:8: Error: Setter not found: 'constTopLevel'.
+//   for (constTopLevel in [1]) { // Error
+//        ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:142:13: Error: Unexpected token '.'.
+//   for (defer.intTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:145:13: Error: Unexpected token '.'.
+//   for (defer.numTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:148:13: Error: Unexpected token '.'.
+//   for (defer.lateTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:151:13: Error: Unexpected token '.'.
+//   for (defer.lateFinalTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:154:13: Error: Unexpected token '.'.
+//   for (defer.finalTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:157:13: Error: Unexpected token '.'.
+//   for (defer.constTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:160:13: Error: Unexpected token '.'.
+//   for (defer.stringTopLevel in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:163:13: Error: Unexpected token '.'.
+//   for (defer.stringTopLevel in <int>[1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:166:13: Error: Unexpected token '.'.
+//   for (Class.stringStaticField in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:169:13: Error: Unexpected token '.'.
+//   for (Class.stringStaticField in <int>[1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:172:13: Error: Unexpected token '.'.
+//   for (Class.finalStaticField in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:175:13: Error: Unexpected token '.'.
+//   for (Class.lateFinalStaticField in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:178:17: Error: Unexpected token '.'.
+//   for (Extension.stringStaticField in [1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:181:17: Error: Unexpected token '.'.
+//   for (Extension.stringStaticField in <int>[1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:184:17: Error: Unexpected token '.'.
+//   for (Extension.finalStaticField in [1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:187:17: Error: Unexpected token '.'.
+//   for (Extension.lateFinalStaticField in [1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:190:13: Error: Unexpected token '.'.
+//   for (Class.intStaticField in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:193:13: Error: Unexpected token '.'.
+//   for (Class.numStaticField in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:196:13: Error: Unexpected token '.'.
+//   for (Class.lateStaticField in [1]) { // Error
+//             ^
+//
+// pkg/front_end/testcases/general/for_in.dart:199:17: Error: Unexpected token '.'.
+//   for (Extension.intStaticField in [1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:202:17: Error: Unexpected token '.'.
+//   for (Extension.numStaticField in [1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:205:17: Error: Unexpected token '.'.
+//   for (Extension.lateStaticField in [1]) { // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:22:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   for (String stringLocal in [1]) { // Error
+//                               ^
+//
+// pkg/front_end/testcases/general/for_in.dart:25:15: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the variable.
+//   for (String stringLocal in <int>[1]) { // Error
+//               ^
+//
+// pkg/front_end/testcases/general/for_in.dart:35:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (String stringLocal in [1]) stringLocal // Error
+//                                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:38:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the variable.
+//     for (String stringLocal in <int>[1]) stringLocal // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:47:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (String stringLocal in [1]) 0: stringLocal // Error
+//                                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:50:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the variable.
+//     for (String stringLocal in <int>[1]) 0: stringLocal // Error
+//                 ^
+//
+// pkg/front_end/testcases/general/for_in.dart:61:11: Error: Non-nullable variable 'numMultiLocal1' must be assigned before it can be used.
+//     print(numMultiLocal1);
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:62:11: Error: Non-nullable variable 'numMultiLocal2' must be assigned before it can be used.
+//     print(numMultiLocal2);
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:72:11: Error: Final variable 'existingFinalLocal' must be assigned before it can be used.
+//     print(existingFinalLocal);
+//           ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:75:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   for (existingStringLocal in [1]) { // Error
+//                                ^
+//
+// pkg/front_end/testcases/general/for_in.dart:78:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   for (existingStringLocal in <int>[1]) { // Error
+//                            ^
+//
+// pkg/front_end/testcases/general/for_in.dart:136:27: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   for (stringTopLevel in [1]) { // Error
+//                           ^
+//
+// pkg/front_end/testcases/general/for_in.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   for (stringTopLevel in <int>[1]) { // Error
+//                       ^
+//
+// pkg/front_end/testcases/general/for_in.dart:296:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.intField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:299:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.intField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:302:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.numField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:305:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.numField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:308:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.lateField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:311:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.lateField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:320:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.stringField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:323:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.stringField in <int>[1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:326:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.stringField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:329:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.stringField in <int>[1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:332:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this[0] in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:335:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?[0] in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:344:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.finalField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:347:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.finalField in <int>[1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:350:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.finalField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:353:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.finalField in <int>[1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:359:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.lateFinalField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:362:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.lateFinalField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:365:10: Error: Setter not found: 'finalStaticField'.
+//     for (finalStaticField in [1]) { // Error
+//          ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:377:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionIntProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:380:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionIntProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:383:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionNumProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:386:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionNumProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:389:19: Error: Unexpected token '('.
+//     for (Extension(this).extensionIntProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:392:19: Error: Unexpected token '('.
+//     for (Extension(this)?.extensionIntProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:395:19: Error: Unexpected token '('.
+//     for (Extension(this).extensionNumProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:398:19: Error: Unexpected token '('.
+//     for (Extension(this)?.extensionNumProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:401:19: Error: Unexpected token '('.
+//     for (Extension(this).extensionStringProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:404:19: Error: Unexpected token '('.
+//     for (Extension(this)?.extensionStringProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:407:19: Error: Unexpected token '('.
+//     for (Extension(this).extensionStringProperty in <int>[1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:410:19: Error: Unexpected token '('.
+//     for (Extension(this)?.extensionStringProperty in <int>[1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:413:19: Error: Unexpected token '('.
+//     for (Extension(this).extensionReadOnlyProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:416:19: Error: Unexpected token '('.
+//     for (Extension(this)?.extensionReadOnlyProperty in [1]) { // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/for_in.dart:419:10: Error: Expected an identifier, but got '0'.
+// Try inserting an identifier before '0'.
+//     for (0[0] in [1]) { // Error
+//          ^
+//
+// pkg/front_end/testcases/general/for_in.dart:422:10: Error: Expected an identifier, but got '0'.
+// Try inserting an identifier before '0'.
+//     for (0?[0] in [1]) { // Error
+//          ^
+//
+// pkg/front_end/testcases/general/for_in.dart:425:24: Error: Unexpected token '('.
+//     for (IndexExtension(0)[0] in [1]) { // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/for_in.dart:428:24: Error: Unexpected token '('.
+//     for (IndexExtension(0)?[0] in [1]) { // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/for_in.dart:314:26: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (stringField in [1]) { // Error
+//                          ^
+//
+// pkg/front_end/testcases/general/for_in.dart:317:22: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (stringField in <int>[1]) { // Error
+//                      ^
+//
+// pkg/front_end/testcases/general/for_in.dart:338:10: Error: The setter 'finalField' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/for_in.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'finalField'.
+//     for (finalField in [1]) { // Error
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:341:10: Error: The setter 'finalField' isn't defined for the type 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/for_in.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'finalField'.
+//     for (finalField in <int>[1]) { // Error
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:368:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (stringStaticField in [1]) { // Error
+//                                ^
+//
+// pkg/front_end/testcases/general/for_in.dart:371:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (stringStaticField in <int>[1]) { // Error
+//                            ^
+//
+// pkg/front_end/testcases/general/for_in.dart:463:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super.stringField in [1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:466:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super.stringField in <int>[1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:469:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super.intField in [1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:472:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super.numField in [1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:475:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super.lateField in [1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:478:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super[0] in [1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:481:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
+//     for (super?[0] in [1]) { // Error
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:504:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.intField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:507:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.intField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:510:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.numField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:513:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.numField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:516:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.lateField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:519:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.lateField in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:522:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionIntProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:525:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionIntProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:528:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionNumProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:531:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionNumProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:537:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionStringProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:540:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionStringProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:546:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionStringProperty in <int>[1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:549:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionStringProperty in <int>[1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:552:10: Error: Setter not found: 'extensionReadOnlyProperty'.
+//     for (extensionReadOnlyProperty in [1]) { // Error
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:555:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this.extensionReadOnlyProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:558:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?.extensionReadOnlyProperty in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:561:10: Error: Setter not found: 'finalStaticField'.
+//     for (finalStaticField in [1]) { // Error
+//          ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:534:38: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (extensionStringProperty in [1]) { // Error
+//                                      ^
+//
+// pkg/front_end/testcases/general/for_in.dart:543:34: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (extensionStringProperty in <int>[1]) { // Error
+//                                  ^
+//
+// pkg/front_end/testcases/general/for_in.dart:564:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (stringStaticField in [1]) { // Error
+//                                ^
+//
+// pkg/front_end/testcases/general/for_in.dart:567:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     for (stringStaticField in <int>[1]) { // Error
+//                            ^
+//
+// pkg/front_end/testcases/general/for_in.dart:608:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this[0] in [1]) { // Error
+//          ^^^^
+//
+// pkg/front_end/testcases/general/for_in.dart:611:10: Error: Expected an identifier, but got 'this'.
+// Try inserting an identifier before 'this'.
+//     for (this?[0] in [1]) { // Error
+//          ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///for_in.dart" deferred as defer hide Extension, IndexExtension;
+
+class Class extends core::Object {
+  field core::int intField = 0;
+  field core::num numField = 0;
+  field core::String stringField = "";
+  final field core::int finalField = 0;
+  late field core::int lateField;
+  late final [setter] field core::int lateFinalField;
+  static field core::int intStaticField = 0;
+  static field core::num numStaticField = 0;
+  static field core::String stringStaticField = "";
+  static final field core::int finalStaticField = 0;
+  late static field core::int lateStaticField;
+  late static final [setter] field core::int lateFinalStaticField;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  operator []=(core::int index, core::int value) → void {}
+  operator [](core::int index) → core::int
+    return 0;
+  method test() → dynamic {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t1 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:296:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.intField in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::intField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t2 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:299:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.intField in [1]) { // Error
+               ^";
+          core::print(this.{self::Class::intField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t3 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:302:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.numField in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::numField}{core::num});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t4 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:305:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.numField in [1]) { // Error
+               ^";
+          core::print(this.{self::Class::numField}{core::num});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t5 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:308:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.lateField in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::lateField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t6 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:311:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.lateField in [1]) { // Error
+               ^";
+          core::print(this.{self::Class::lateField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:314:26: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (stringField in [1]) { // Error
+                         ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::String #t7 = :sync-for-iterator.{core::Iterator::current}{core::String};
+        {
+          this.{self::Class::stringField} = #t7;
+          core::print(this.{self::Class::stringField}{core::String});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t8 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          this.{self::Class::stringField} = invalid-expression "pkg/front_end/testcases/general/for_in.dart:317:22: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (stringField in <int>[1]) { // Error
+                     ^" in #t8 as{TypeError} core::String;
+          core::print(this.{self::Class::stringField}{core::String});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t9 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:320:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.stringField in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::stringField}{core::String});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t10 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:323:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.stringField in <int>[1]) { // Error
+              ^";
+          core::print(this.{self::Class::stringField}{core::String});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t11 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:326:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.stringField in [1]) { // Error
+               ^";
+          core::print(this.{self::Class::stringField}{core::String});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t12 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:329:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.stringField in <int>[1]) { // Error
+               ^";
+          core::print(this.{self::Class::stringField}{core::String});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t13 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:332:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this[0] in [1]) { // Error
+             ^";
+          core::print(this.{self::Class::[]}(0){(core::int) → core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t14 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:335:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?[0] in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::[]}(0){(core::int) → core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::_literal1<dynamic>(1).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:338:10: Error: The setter 'finalField' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/general/for_in.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'finalField'.
+    for (finalField in [1]) { // Error
+         ^^^^^^^^^^" in this.{<unresolved>}finalField = #t15;
+          core::print(this.{self::Class::finalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t16 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:341:10: Error: The setter 'finalField' isn't defined for the type 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/general/for_in.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'finalField'.
+    for (finalField in <int>[1]) { // Error
+         ^^^^^^^^^^" in this.{<unresolved>}finalField = #t16;
+          core::print(this.{self::Class::finalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t17 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:344:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.finalField in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::finalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t18 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:347:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.finalField in <int>[1]) { // Error
+              ^";
+          core::print(this.{self::Class::finalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t19 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:350:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.finalField in [1]) { // Error
+               ^";
+          core::print(this.{self::Class::finalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t20 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:353:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.finalField in <int>[1]) { // Error
+               ^";
+          core::print(this.{self::Class::finalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t21 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          this.{self::Class::lateFinalField} = #t21;
+          core::print(this.{self::Class::lateFinalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t22 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:359:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.lateFinalField in [1]) { // Error
+              ^";
+          core::print(this.{self::Class::lateFinalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t23 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:362:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.lateFinalField in [1]) { // Error
+               ^";
+          core::print(this.{self::Class::lateFinalField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t24 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:365:10: Error: Setter not found: 'finalStaticField'.
+    for (finalStaticField in [1]) { // Error
+         ^^^^^^^^^^^^^^^^";
+          core::print(self::Class::finalStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:368:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (stringStaticField in [1]) { // Error
+                               ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::String #t25 = :sync-for-iterator.{core::Iterator::current}{core::String};
+        {
+          self::Class::stringStaticField = #t25;
+          core::print(self::Class::stringStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t26 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          self::Class::stringStaticField = invalid-expression "pkg/front_end/testcases/general/for_in.dart:371:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (stringStaticField in <int>[1]) { // Error
+                           ^" in #t26 as{TypeError} core::String;
+          core::print(self::Class::stringStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t27 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          self::Class::lateFinalStaticField = #t27;
+          core::print(self::Class::lateFinalStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t28 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:377:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionIntProperty in [1]) { // Error
+              ^";
+          core::print(self::Extension|get#extensionIntProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t29 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:380:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionIntProperty in [1]) { // Error
+               ^";
+          core::print(self::Extension|get#extensionIntProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t30 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:383:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionNumProperty in [1]) { // Error
+              ^";
+          core::print(self::Extension|get#extensionNumProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t31 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:386:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionNumProperty in [1]) { // Error
+               ^";
+          core::print(self::Extension|get#extensionNumProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t32 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:389:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this).extensionIntProperty in [1]) { // Error
+                         ^";
+          core::print(self::Extension|get#extensionIntProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t33 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:392:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this)?.extensionIntProperty in [1]) { // Error
+                          ^";
+          core::print(self::Extension|get#extensionIntProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t34 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:395:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this).extensionNumProperty in [1]) { // Error
+                         ^";
+          core::print(self::Extension|get#extensionNumProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t35 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:398:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this)?.extensionNumProperty in [1]) { // Error
+                          ^";
+          core::print(self::Extension|get#extensionNumProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t36 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:401:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this).extensionStringProperty in [1]) { // Error
+                         ^";
+          core::print(self::Extension|get#extensionStringProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t37 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:404:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this)?.extensionStringProperty in [1]) { // Error
+                          ^";
+          core::print(self::Extension|get#extensionStringProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t38 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:407:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this).extensionStringProperty in <int>[1]) { // Error
+                         ^";
+          core::print(self::Extension|get#extensionStringProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t39 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:410:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this)?.extensionStringProperty in <int>[1]) { // Error
+                          ^";
+          core::print(self::Extension|get#extensionStringProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t40 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:413:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this).extensionReadOnlyProperty in [1]) { // Error
+                         ^";
+          core::print(self::Extension|get#extensionReadOnlyProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t41 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:416:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (Extension(this)?.extensionReadOnlyProperty in [1]) { // Error
+                          ^";
+          core::print(self::Extension|get#extensionReadOnlyProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t42 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:419:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (0[0] in [1]) { // Error
+          ^";
+          core::print(self::IndexExtension|[](0, 0));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t43 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:422:12: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (0?[0] in [1]) { // Error
+           ^";
+          core::print(let final core::int #t44 = 0 in #t44 == null ?{core::int?} null : self::IndexExtension|[](#t44, 0));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t45 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:425:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (IndexExtension(0)[0] in [1]) { // Error
+                          ^";
+          core::print(self::IndexExtension|[](0, 0));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t46 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:428:28: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (IndexExtension(0)?[0] in [1]) { // Error
+                           ^";
+          core::print(let final core::int #t47 = 0 in #t47 == null ?{core::int?} null : self::IndexExtension|[](#t47, 0));
+        }
+      }
+    }
+  }
+  method method() → dynamic {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t48 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          this.{self::Class::intField} = #t48;
+          core::print(this.{self::Class::intField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::num #t49 = :sync-for-iterator.{core::Iterator::current}{core::num};
+        {
+          this.{self::Class::numField} = #t49;
+          core::print(this.{self::Class::numField}{core::num});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t50 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          this.{self::Class::lateField} = #t50;
+          core::print(this.{self::Class::lateField}{core::int});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t51 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          self::Class::intStaticField = #t51;
+          core::print(self::Class::intStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::num #t52 = :sync-for-iterator.{core::Iterator::current}{core::num};
+        {
+          self::Class::numStaticField = #t52;
+          core::print(self::Class::numStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t53 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          self::Class::lateStaticField = #t53;
+          core::print(self::Class::lateStaticField);
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t54 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          self::Extension|set#extensionIntProperty(this, #t54);
+          core::print(self::Extension|get#extensionIntProperty(this));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::num #t55 = :sync-for-iterator.{core::Iterator::current}{core::num};
+        {
+          self::Extension|set#extensionNumProperty(this, #t55);
+          core::print(self::Extension|get#extensionNumProperty(this));
+        }
+      }
+    }
+  }
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    : super self::Class::•()
+    ;
+  method test() → dynamic {
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t56 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:463:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super.stringField in [1]) { // Error
+               ^";
+          core::print(super.{self::Class::stringField});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t57 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:466:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super.stringField in <int>[1]) { // Error
+               ^";
+          core::print(super.{self::Class::stringField});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t58 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:469:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super.intField in [1]) { // Error
+               ^";
+          core::print(super.{self::Class::intField});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t59 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:472:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super.numField in [1]) { // Error
+               ^";
+          core::print(super.{self::Class::numField});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t60 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:475:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super.lateField in [1]) { // Error
+               ^";
+          core::print(super.{self::Class::lateField});
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t61 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:478:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super[0] in [1]) { // Error
+              ^";
+          core::print(super.{self::Class::[]}(0));
+        }
+      }
+    }
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t62 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          invalid-expression "pkg/front_end/testcases/general/for_in.dart:481:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (super?[0] in [1]) { // Error
+               ^";
+          core::print(super.{self::Class::[]}(0));
+        }
+      }
+    }
+  }
+}
+extension Extension on self::Class {
+  get extensionIntProperty = self::Extension|get#extensionIntProperty;
+  set extensionIntProperty = self::Extension|set#extensionIntProperty;
+  get extensionNumProperty = self::Extension|get#extensionNumProperty;
+  set extensionNumProperty = self::Extension|set#extensionNumProperty;
+  get extensionStringProperty = self::Extension|get#extensionStringProperty;
+  set extensionStringProperty = self::Extension|set#extensionStringProperty;
+  get extensionReadOnlyProperty = self::Extension|get#extensionReadOnlyProperty;
+  static field intStaticField = self::Extension|intStaticField;
+  static field numStaticField = self::Extension|numStaticField;
+  static field stringStaticField = self::Extension|stringStaticField;
+  static field finalStaticField = self::Extension|finalStaticField;
+  static field lateStaticField = self::Extension|lateStaticField;
+  static field lateFinalStaticField = self::Extension|lateFinalStaticField;
+  method test = self::Extension|test;
+  method tearoff test = self::Extension|get#test;
+  method extensionMethod = self::Extension|extensionMethod;
+  method tearoff extensionMethod = self::Extension|get#extensionMethod;
+}
+extension IndexExtension on core::int {
+  operator []= = self::IndexExtension|[]=;
+  operator [] = self::IndexExtension|[];
+  method extensionMethod = self::IndexExtension|extensionMethod;
+  method tearoff extensionMethod = self::IndexExtension|get#extensionMethod;
+}
+static field core::int intTopLevel = 0;
+static final field core::int finalTopLevel = 0;
+static const field core::int constTopLevel = #C1;
+late static field core::int lateTopLevel;
+late static final [setter] field core::int lateFinalTopLevel;
+static field core::num numTopLevel = 0;
+static field core::String stringTopLevel = "";
+static field core::int Extension|intStaticField = 0;
+static field core::num Extension|numStaticField = 0;
+static field core::String Extension|stringStaticField = "";
+static final field core::int Extension|finalStaticField = 0;
+late static field core::int Extension|lateStaticField;
+late static final [setter] field core::int Extension|lateFinalStaticField;
+static method test() → dynamic {
+  {
+    invalid-expression "pkg/front_end/testcases/general/for_in.dart:16:14: Error: A for-in loop-variable can't be 'const'.
+Try removing the 'const' modifier.
+  for (const constLocal in [1]) { // Error
+             ^^^^^^^^^^";
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int constLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          core::print(constLocal);
+        }
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int lateLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::print(lateLocal);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:22:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  for (String stringLocal in [1]) { // Error
+                              ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::String stringLocal = :sync-for-iterator.{core::Iterator::current}{core::String};
+      {
+        core::print(stringLocal);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t63 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:25:15: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+Try changing the type of the variable.
+  for (String stringLocal in <int>[1]) { // Error
+              ^" in #t63 as{TypeError} core::String;
+        core::print(stringLocal);
+      }
+    }
+  }
+  core::print( block {
+    final core::List<core::int> #t64 = core::_GrowableList::•<core::int>(0);
+    {
+      invalid-expression "pkg/front_end/testcases/general/for_in.dart:29:16: Error: A for-in loop-variable can't be 'const'.
+Try removing the 'const' modifier.
+    for (const constLocal in [1]) constLocal // Error
+               ^^^^^^^^^^";
+      {
+        synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          core::int constLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+          #t64.{core::List::add}{Invariant}(constLocal){(core::int) → void};
+        }
+      }
+    }
+  } =>#t64);
+  core::print( block {
+    final core::List<core::int> #t65 = core::_GrowableList::•<core::int>(0);
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int lateLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t65.{core::List::add}{Invariant}(lateLocal){(core::int) → void};
+      }
+    }
+  } =>#t65);
+  core::print( block {
+    final core::List<core::String> #t66 = core::_GrowableList::•<core::String>(0);
+    {
+      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:35:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (String stringLocal in [1]) stringLocal // Error
+                                ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::String stringLocal = :sync-for-iterator.{core::Iterator::current}{core::String};
+        #t66.{core::List::add}{Invariant}(stringLocal){(core::String) → void};
+      }
+    }
+  } =>#t66);
+  core::print( block {
+    final core::List<core::String> #t67 = core::_GrowableList::•<core::String>(0);
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t68 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:38:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+Try changing the type of the variable.
+    for (String stringLocal in <int>[1]) stringLocal // Error
+                ^" in #t68 as{TypeError} core::String;
+          #t67.{core::List::add}{Invariant}(stringLocal){(core::String) → void};
+        }
+      }
+    }
+  } =>#t67);
+  core::print( block {
+    final core::Map<core::int, core::int> #t69 = <core::int, core::int>{};
+    {
+      invalid-expression "pkg/front_end/testcases/general/for_in.dart:41:16: Error: A for-in loop-variable can't be 'const'.
+Try removing the 'const' modifier.
+    for (const constLocal in [1]) 0: constLocal // Error
+               ^^^^^^^^^^";
+      {
+        synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          core::int constLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+          #t69.{core::Map::[]=}{Invariant}(0, constLocal){(core::int, core::int) → void};
+        }
+      }
+    }
+  } =>#t69);
+  core::print( block {
+    final core::Map<core::int, core::int> #t70 = <core::int, core::int>{};
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int lateLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t70.{core::Map::[]=}{Invariant}(0, lateLocal){(core::int, core::int) → void};
+      }
+    }
+  } =>#t70);
+  core::print( block {
+    final core::Map<core::int, core::String> #t71 = <core::int, core::String>{};
+    {
+      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:47:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (String stringLocal in [1]) 0: stringLocal // Error
+                                ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::String stringLocal = :sync-for-iterator.{core::Iterator::current}{core::String};
+        #t71.{core::Map::[]=}{Invariant}(0, stringLocal){(core::int, core::String) → void};
+      }
+    }
+  } =>#t71);
+  core::print( block {
+    final core::Map<core::int, core::String> #t72 = <core::int, core::String>{};
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t73 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:50:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+Try changing the type of the variable.
+    for (String stringLocal in <int>[1]) 0: stringLocal // Error
+                ^" in #t73 as{TypeError} core::String;
+          #t72.{core::Map::[]=}{Invariant}(0, stringLocal){(core::int, core::String) → void};
+        }
+      }
+    }
+  } =>#t72);
+  {
+    invalid-expression "pkg/front_end/testcases/general/for_in.dart:52:8: Error: A for-in loop can't have more than one loop variable.
+  for (int? multiLocal1, multiLocal2 in [1]) { // Error
+       ^^^";
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t74 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          core::int? multiLocal1;
+          core::int? multiLocal2;
+          core::print(multiLocal1);
+          core::print(multiLocal2);
+        }
+      }
+    }
+  }
+  {
+    invalid-expression "pkg/front_end/testcases/general/for_in.dart:56:8: Error: A for-in loop can't have more than one loop variable.
+  for (var varMultiLocal1, varMultiLocal2 in [1]) { // Error
+       ^^^";
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t75 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          dynamic varMultiLocal1;
+          dynamic varMultiLocal2;
+          core::print(varMultiLocal1);
+          core::print(varMultiLocal2);
+        }
+      }
+    }
+  }
+  {
+    invalid-expression "pkg/front_end/testcases/general/for_in.dart:60:8: Error: A for-in loop can't have more than one loop variable.
+  for (num numMultiLocal1, numMultiLocal2 in [1]) { // Error
+       ^^^";
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t76 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          core::num numMultiLocal1;
+          core::num numMultiLocal2;
+          core::print(invalid-expression "pkg/front_end/testcases/general/for_in.dart:61:11: Error: Non-nullable variable 'numMultiLocal1' must be assigned before it can be used.
+    print(numMultiLocal1);
+          ^^^^^^^^^^^^^^" in numMultiLocal1);
+          core::print(invalid-expression "pkg/front_end/testcases/general/for_in.dart:62:11: Error: Non-nullable variable 'numMultiLocal2' must be assigned before it can be used.
+    print(numMultiLocal2);
+          ^^^^^^^^^^^^^^" in numMultiLocal2);
+        }
+      }
+    }
+  }
+  {
+    invalid-expression "pkg/front_end/testcases/general/for_in.dart:64:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+  for (1 in [1]) { // Error
+       ^";
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t77 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          1;
+        }
+      }
+    }
+  }
+  {
+    invalid-expression "pkg/front_end/testcases/general/for_in.dart:67:8: Error: Can't assign to this, so it can't be used in a for-in loop.
+  for (main() in [1]) { // Error
+       ^^^^";
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t78 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          self::main();
+        }
+      }
+    }
+  }
+  final core::int existingFinalLocal;
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t79 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:71:8: Error: Can't assign to the final variable 'existingFinalLocal'.
+  for (existingFinalLocal in [1]) { // Error
+       ^^^^^^^^^^^^^^^^^^";
+        core::print(invalid-expression "pkg/front_end/testcases/general/for_in.dart:72:11: Error: Final variable 'existingFinalLocal' must be assigned before it can be used.
+    print(existingFinalLocal);
+          ^^^^^^^^^^^^^^^^^^" in existingFinalLocal);
+      }
+    }
+  }
+  core::String existingStringLocal;
+  {
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:75:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  for (existingStringLocal in [1]) { // Error
+                               ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t80 = :sync-for-iterator.{core::Iterator::current}{core::String};
+      {
+        existingStringLocal = #t80;
+        core::print(existingStringLocal);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t81 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        existingStringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:78:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  for (existingStringLocal in <int>[1]) { // Error
+                           ^" in #t81 as{TypeError} core::String;
+        core::print(existingStringLocal);
+      }
+    }
+  }
+  self::Class c = new self::Class::•();
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t82 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:82:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.intField in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::intField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t83 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:85:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.numField in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::numField}{core::num});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t84 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:88:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.lateField in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::lateField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t85 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:91:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.intField in [1]) { // Error
+          ^";
+        core::print(let final self::Class #t86 = c in #t86 == null ?{core::int?} null : #t86.{self::Class::intField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t87 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:94:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.numField in [1]) { // Error
+          ^";
+        core::print(let final self::Class #t88 = c in #t88 == null ?{core::num?} null : #t88.{self::Class::numField}{core::num});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t89 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:97:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.lateField in [1]) { // Error
+          ^";
+        core::print(let final self::Class #t90 = c in #t90 == null ?{core::int?} null : #t90.{self::Class::lateField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t91 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:100:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.stringField in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::stringField}{core::String});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t92 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:103:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.stringField in <int>[1]) { // Error
+         ^";
+        core::print(c.{self::Class::stringField}{core::String});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t93 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:106:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.stringField in [1]) { // Error
+          ^";
+        core::print(let final self::Class #t94 = c in #t94 == null ?{core::String?} null : #t94.{self::Class::stringField}{core::String});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t95 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:109:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.stringField in <int>[1]) { // Error
+          ^";
+        core::print(let final self::Class #t96 = c in #t96 == null ?{core::String?} null : #t96.{self::Class::stringField}{core::String});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t97 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:112:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.finalField in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::finalField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t98 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:115:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.finalField in [1]) { // Error
+          ^";
+        core::print(let final self::Class #t99 = c in #t99 == null ?{core::int?} null : #t99.{self::Class::finalField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t100 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:118:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c.lateFinalField in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::lateFinalField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t101 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:121:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?.lateFinalField in [1]) { // Error
+          ^";
+        core::print(let final self::Class #t102 = c in #t102 == null ?{core::int?} null : #t102.{self::Class::lateFinalField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t103 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:124:9: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c[0] in [1]) { // Error
+        ^";
+        core::print(c.{self::Class::[]}(0){(core::int) → core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t104 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:127:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (c?[0] in [1]) { // Error
+         ^";
+        core::print(c.{self::Class::[]}(0){(core::int) → core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t105 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:130:8: Error: Setter not found: 'finalTopLevel'.
+  for (finalTopLevel in [1]) { // Error
+       ^^^^^^^^^^^^^";
+        core::print(self::finalTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t106 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:133:8: Error: Setter not found: 'constTopLevel'.
+  for (constTopLevel in [1]) { // Error
+       ^^^^^^^^^^^^^";
+        core::print(#C1);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:136:27: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  for (stringTopLevel in [1]) { // Error
+                          ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t107 = :sync-for-iterator.{core::Iterator::current}{core::String};
+      {
+        self::stringTopLevel = #t107;
+        core::print(self::stringTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t108 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::stringTopLevel = invalid-expression "pkg/front_end/testcases/general/for_in.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  for (stringTopLevel in <int>[1]) { // Error
+                      ^" in #t108 as{TypeError} core::String;
+        core::print(self::stringTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t109 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:142:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.intTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t110 = CheckLibraryIsLoaded(defer) in self::intTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t111 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:145:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.numTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t112 = CheckLibraryIsLoaded(defer) in self::numTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t113 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:148:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.lateTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t114 = CheckLibraryIsLoaded(defer) in self::lateTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t115 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:151:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.lateFinalTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t116 = CheckLibraryIsLoaded(defer) in self::lateFinalTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t117 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:154:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.finalTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t118 = CheckLibraryIsLoaded(defer) in self::finalTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t119 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:157:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.constTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t120 = CheckLibraryIsLoaded(defer) in #C1);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t121 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:160:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.stringTopLevel in [1]) { // Error
+             ^";
+        core::print(let final dynamic #t122 = CheckLibraryIsLoaded(defer) in self::stringTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t123 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:163:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (defer.stringTopLevel in <int>[1]) { // Error
+             ^";
+        core::print(let final dynamic #t124 = CheckLibraryIsLoaded(defer) in self::stringTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t125 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:166:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.stringStaticField in [1]) { // Error
+             ^";
+        core::print(self::Class::stringStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t126 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:169:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.stringStaticField in <int>[1]) { // Error
+             ^";
+        core::print(self::Class::stringStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t127 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:172:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.finalStaticField in [1]) { // Error
+             ^";
+        core::print(self::Class::finalStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t128 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:175:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.lateFinalStaticField in [1]) { // Error
+             ^";
+        core::print(self::Class::lateFinalStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t129 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:178:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.stringStaticField in [1]) { // Error
+                 ^";
+        core::print(self::Extension|stringStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t130 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:181:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.stringStaticField in <int>[1]) { // Error
+                 ^";
+        core::print(self::Extension|stringStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t131 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:184:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.finalStaticField in [1]) { // Error
+                 ^";
+        core::print(self::Extension|finalStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t132 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:187:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.lateFinalStaticField in [1]) { // Error
+                 ^";
+        core::print(self::Extension|lateFinalStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t133 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:190:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.intStaticField in [1]) { // Error
+             ^";
+        core::print(self::Class::intStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t134 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:193:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.numStaticField in [1]) { // Error
+             ^";
+        core::print(self::Class::numStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t135 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:196:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Class.lateStaticField in [1]) { // Error
+             ^";
+        core::print(self::Class::lateStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t136 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:199:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.intStaticField in [1]) { // Error
+                 ^";
+        core::print(self::Extension|intStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t137 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:202:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.numStaticField in [1]) { // Error
+                 ^";
+        core::print(self::Extension|numStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t138 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:205:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+  for (Extension.lateStaticField in [1]) { // Error
+                 ^";
+        core::print(self::Extension|lateStaticField);
+      }
+    }
+  }
+}
+static method main() → dynamic {
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int intLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::print(intLocal);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::num numLocal = :sync-for-iterator.{core::Iterator::current}{core::num};
+      {
+        core::print(numLocal);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int varLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::print(varLocal);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int finalLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::print(finalLocal);
+      }
+    }
+  }
+  core::print( block {
+    final core::List<core::int> #t139 = core::_GrowableList::•<core::int>(0);
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int intLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t139.{core::List::add}{Invariant}(intLocal){(core::int) → void};
+      }
+    }
+  } =>#t139);
+  core::print( block {
+    final core::List<core::num> #t140 = core::_GrowableList::•<core::num>(0);
+    {
+      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::num numLocal = :sync-for-iterator.{core::Iterator::current}{core::num};
+        #t140.{core::List::add}{Invariant}(numLocal){(core::num) → void};
+      }
+    }
+  } =>#t140);
+  core::print( block {
+    final core::List<core::int> #t141 = core::_GrowableList::•<core::int>(0);
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int varLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t141.{core::List::add}{Invariant}(varLocal){(core::int) → void};
+      }
+    }
+  } =>#t141);
+  core::print( block {
+    final core::List<core::int> #t142 = core::_GrowableList::•<core::int>(0);
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int finalLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t142.{core::List::add}{Invariant}(finalLocal){(core::int) → void};
+      }
+    }
+  } =>#t142);
+  core::print( block {
+    final core::Map<core::int, core::int> #t143 = <core::int, core::int>{};
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int intLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t143.{core::Map::[]=}{Invariant}(0, intLocal){(core::int, core::int) → void};
+      }
+    }
+  } =>#t143);
+  core::print( block {
+    final core::Map<core::int, core::num> #t144 = <core::int, core::num>{};
+    {
+      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::num numLocal = :sync-for-iterator.{core::Iterator::current}{core::num};
+        #t144.{core::Map::[]=}{Invariant}(0, numLocal){(core::int, core::num) → void};
+      }
+    }
+  } =>#t144);
+  core::print( block {
+    final core::Map<core::int, core::int> #t145 = <core::int, core::int>{};
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int varLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t145.{core::Map::[]=}{Invariant}(0, varLocal){(core::int, core::int) → void};
+      }
+    }
+  } =>#t145);
+  core::print( block {
+    final core::Map<core::int, core::int> #t146 = <core::int, core::int>{};
+    {
+      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int finalLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+        #t146.{core::Map::[]=}{Invariant}(0, finalLocal){(core::int, core::int) → void};
+      }
+    }
+  } =>#t146);
+  {
+    synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator = core::_GrowableList::_literal1<(core::int, core::int)>((1, 2)).{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final(core::int, core::int) #t147 = :sync-for-iterator.{core::Iterator::current}{(core::int, core::int)};
+      {
+        hoisted core::int a;
+        hoisted core::int b;
+        {
+          final synthesized(core::int, core::int) #0#0 = #t147;
+          a = #0#0.$1{core::int};
+          b = #0#0.$2{core::int};
+        }
+        core::print(a);
+        core::print(b);
+      }
+    }
+  }
+  core::int existingIntLocal;
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t148 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        existingIntLocal = #t148;
+        core::print(existingIntLocal);
+      }
+    }
+  }
+  core::num existingNumLocal;
+  {
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t149 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      {
+        existingNumLocal = #t149;
+        core::print(existingNumLocal);
+      }
+    }
+  }
+  new self::Class::•().{self::Class::method}(){() → dynamic};
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t150 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::intTopLevel = #t150;
+        core::print(self::intTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t151 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      {
+        self::numTopLevel = #t151;
+        core::print(self::numTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t152 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::lateTopLevel = #t152;
+        core::print(self::lateTopLevel);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t153 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::lateFinalTopLevel = #t153;
+        core::print(self::lateFinalTopLevel);
+      }
+    }
+  }
+  self::Extension|extensionMethod(new self::Class::•());
+}
+static extension-member method Extension|get#extensionIntProperty(lowered final self::Class #this) → core::int
+  return 0;
+static extension-member method Extension|set#extensionIntProperty(lowered final self::Class #this, core::int value) → void {}
+static extension-member method Extension|get#extensionNumProperty(lowered final self::Class #this) → core::num
+  return 0;
+static extension-member method Extension|set#extensionNumProperty(lowered final self::Class #this, core::num value) → void {}
+static extension-member method Extension|get#extensionStringProperty(lowered final self::Class #this) → core::String
+  return "";
+static extension-member method Extension|set#extensionStringProperty(lowered final self::Class #this, core::String value) → void {}
+static extension-member method Extension|get#extensionReadOnlyProperty(lowered final self::Class #this) → core::int
+  return 0;
+static extension-member method Extension|test(lowered final self::Class #this) → dynamic {
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t154 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:504:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.intField in [1]) { // Error
+              ^";
+        core::print(#this.{self::Class::intField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t155 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:507:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.intField in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t156 = #this in #t156 == null ?{core::int?} null : #t156.{self::Class::intField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t157 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:510:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.numField in [1]) { // Error
+              ^";
+        core::print(#this.{self::Class::numField}{core::num});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t158 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:513:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.numField in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t159 = #this in #t159 == null ?{core::num?} null : #t159.{self::Class::numField}{core::num});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t160 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:516:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.lateField in [1]) { // Error
+              ^";
+        core::print(#this.{self::Class::lateField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t161 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:519:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.lateField in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t162 = #this in #t162 == null ?{core::int?} null : #t162.{self::Class::lateField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t163 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:522:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionIntProperty in [1]) { // Error
+              ^";
+        core::print(self::Extension|get#extensionIntProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t164 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:525:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionIntProperty in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t165 = #this in #t165 == null ?{core::int?} null : self::Extension|get#extensionIntProperty(#t165));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t166 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:528:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionNumProperty in [1]) { // Error
+              ^";
+        core::print(self::Extension|get#extensionNumProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t167 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:531:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionNumProperty in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t168 = #this in #t168 == null ?{core::num?} null : self::Extension|get#extensionNumProperty(#t168));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:534:38: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (extensionStringProperty in [1]) { // Error
+                                     ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t169 = :sync-for-iterator.{core::Iterator::current}{core::String};
+      {
+        self::Extension|set#extensionStringProperty(#this, #t169);
+        core::print(self::Extension|get#extensionStringProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t170 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:537:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionStringProperty in [1]) { // Error
+              ^";
+        core::print(self::Extension|get#extensionStringProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t171 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:540:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionStringProperty in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t172 = #this in #t172 == null ?{core::String?} null : self::Extension|get#extensionStringProperty(#t172));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t173 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Extension|set#extensionStringProperty(#this, invalid-expression "pkg/front_end/testcases/general/for_in.dart:543:34: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (extensionStringProperty in <int>[1]) { // Error
+                                 ^" in #t173 as{TypeError} core::String);
+        core::print(self::Extension|get#extensionStringProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t174 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:546:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionStringProperty in <int>[1]) { // Error
+              ^";
+        core::print(self::Extension|get#extensionStringProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t175 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:549:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionStringProperty in <int>[1]) { // Error
+               ^";
+        core::print(let final self::Class #t176 = #this in #t176 == null ?{core::String?} null : self::Extension|get#extensionStringProperty(#t176));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t177 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:552:10: Error: Setter not found: 'extensionReadOnlyProperty'.
+    for (extensionReadOnlyProperty in [1]) { // Error
+         ^^^^^^^^^^^^^^^^^^^^^^^^^";
+        core::print(self::Extension|get#extensionReadOnlyProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t178 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:555:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this.extensionReadOnlyProperty in [1]) { // Error
+              ^";
+        core::print(self::Extension|get#extensionReadOnlyProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t179 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:558:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?.extensionReadOnlyProperty in [1]) { // Error
+               ^";
+        core::print(let final self::Class #t180 = #this in #t180 == null ?{core::int?} null : self::Extension|get#extensionReadOnlyProperty(#t180));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t181 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:561:10: Error: Setter not found: 'finalStaticField'.
+    for (finalStaticField in [1]) { // Error
+         ^^^^^^^^^^^^^^^^";
+        core::print(self::Extension|finalStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:564:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (stringStaticField in [1]) { // Error
+                               ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t182 = :sync-for-iterator.{core::Iterator::current}{core::String};
+      {
+        self::Extension|stringStaticField = #t182;
+        core::print(self::Extension|stringStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t183 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Extension|stringStaticField = invalid-expression "pkg/front_end/testcases/general/for_in.dart:567:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (stringStaticField in <int>[1]) { // Error
+                           ^" in #t183 as{TypeError} core::String;
+        core::print(self::Extension|stringStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t184 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Extension|lateFinalStaticField = #t184;
+        core::print(self::Extension|lateFinalStaticField);
+      }
+    }
+  }
+}
+static extension-member method Extension|get#test(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|test(#this);
+static extension-member method Extension|extensionMethod(lowered final self::Class #this) → dynamic {
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t185 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        #this.{self::Class::intField} = #t185;
+        core::print(#this.{self::Class::intField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t186 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      {
+        #this.{self::Class::numField} = #t186;
+        core::print(#this.{self::Class::numField}{core::num});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t187 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        #this.{self::Class::lateField} = #t187;
+        core::print(#this.{self::Class::lateField}{core::int});
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t188 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Extension|set#extensionIntProperty(#this, #t188);
+        core::print(self::Extension|get#extensionIntProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t189 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      {
+        self::Extension|set#extensionNumProperty(#this, #t189);
+        core::print(self::Extension|get#extensionNumProperty(#this));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t190 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Extension|intStaticField = #t190;
+        core::print(self::Extension|intStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t191 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      {
+        self::Extension|numStaticField = #t191;
+        core::print(self::Extension|numStaticField);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t192 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Extension|lateStaticField = #t192;
+        core::print(self::Extension|lateStaticField);
+      }
+    }
+  }
+}
+static extension-member method Extension|get#extensionMethod(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|extensionMethod(#this);
+static extension-member method IndexExtension|[]=(lowered final core::int #this, core::int index, core::int value) → void {}
+static extension-member method IndexExtension|[](lowered final core::int #this, core::int index) → core::int
+  return 0;
+static extension-member method IndexExtension|extensionMethod(lowered final core::int #this) → dynamic {
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t193 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:608:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this[0] in [1]) { // Error
+             ^";
+        core::print(self::IndexExtension|[](#this, 0));
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t194 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        invalid-expression "pkg/front_end/testcases/general/for_in.dart:611:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
+Try using an existing variable or a variable declaration.
+    for (this?[0] in [1]) { // Error
+              ^";
+        core::print(let final core::int #t195 = #this in #t195 == null ?{core::int?} null : self::IndexExtension|[](#t195, 0));
+      }
+    }
+  }
+}
+static extension-member method IndexExtension|get#extensionMethod(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::IndexExtension|extensionMethod(#this);
+
+constants  {
+  #C1 = 0
+}
+
+Extra constant evaluation status:
+Evaluated: EqualsNull @ org-dartlang-testcase:///for_in.dart:423:13 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///for_in.dart:423:13 -> IntConstant(0)
+Evaluated: EqualsNull @ org-dartlang-testcase:///for_in.dart:429:28 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///for_in.dart:429:28 -> IntConstant(0)
+Evaluated: RecordLiteral @ org-dartlang-testcase:///for_in.dart:247:23 -> RecordConstant(const (1, 2))
+Extra constant evaluation: evaluated: 1772, effectively constant: 5

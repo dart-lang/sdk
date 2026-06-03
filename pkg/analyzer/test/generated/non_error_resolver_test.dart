@@ -10,10 +10,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
+import '../src/dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonErrorResolverTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -28,7 +30,7 @@ class M {}
 library lib2;
 class N {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib1.dart';
 export 'lib2.dart';
@@ -46,7 +48,7 @@ library L2;
 class B {}
 class C {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib1.dart';
 export 'lib2.dart' hide B;
@@ -64,7 +66,7 @@ library L2;
 class B {}
 class C {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib1.dart';
 export 'lib2.dart' show C;
@@ -76,14 +78,13 @@ export 'lib2.dart' show C;
 library lib;
 class N {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib.dart';
 export 'lib.dart';
-''',
-      [error(diag.duplicateExport, 37, 10)],
-    );
+//     ^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''');
   }
 
   test_ambiguousImport_dart_implicitHide() async {
@@ -92,7 +93,7 @@ class Future {
   static const zero = 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart';
 main() {
   print(Future.zero);
@@ -116,7 +117,7 @@ library lib3;
 class N {}
 class N3 {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 import 'lib2.dart';
 import 'lib3.dart' hide N;
@@ -139,17 +140,16 @@ library lib2;
 class N {}
 class N2 {}
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart';
 import 'lib2.dart' show N, N2;
+//                      ^
+// [diag.unusedShownName] The name N is shown, but isn't used.
 main() {
   new N1();
   new N2();
 }
-''',
-      [error(diag.unusedShownName, 44, 1)],
-    );
+''');
   }
 
   test_annotated_partOfDeclaration() async {
@@ -158,13 +158,13 @@ main() {
 part of 'test.dart';
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 part "part.dart";
 ''');
   }
 
   test_argumentTypeNotAssignable_classWithCall_Function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 caller(Function callee) {
   callee();
 }
@@ -180,7 +180,7 @@ main() {
   }
 
   test_argumentTypeNotAssignable_fieldFormalParameterElement_member() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class ObjectSink<T> {
   void sink(T object) {
     new TimestampedObject<T>(object);
@@ -194,7 +194,7 @@ class TimestampedObject<E> {
   }
 
   test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<K> {
   m(f(K k), K v) {
     f(v);
@@ -204,7 +204,7 @@ class A<K> {
   }
 
   test_argumentTypeNotAssignable_invocation_typedef_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A<T>(T p);
 f(A<int> a) {
   a(1);
@@ -213,7 +213,7 @@ f(A<int> a) {
   }
 
   test_argumentTypeNotAssignable_Object_Function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   process(() {});
 }
@@ -221,7 +221,7 @@ process(Object x) {}''');
   }
 
   test_argumentTypeNotAssignable_optionalNew() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Widget { }
 
 class MaterialPageRoute {
@@ -241,7 +241,7 @@ void main() {
   }
 
   test_argumentTypeNotAssignable_typedef_local() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A(int p1, String p2);
 A getA() => (int p1, String p2) {};
 f() {
@@ -252,7 +252,7 @@ f() {
   }
 
   test_argumentTypeNotAssignable_typedef_parameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A(int p1, String p2);
 f(A a) {
   a(1, '2');
@@ -261,7 +261,7 @@ f(A a) {
   }
 
   test_assert_with_message_await() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async {
   assert(false, await g());
 }
@@ -270,7 +270,7 @@ Future<String> g() => Future.value('');
   }
 
   test_assert_with_message_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   assert(false, g());
 }
@@ -279,7 +279,7 @@ g() => null;
   }
 
   test_assert_with_message_non_string() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   assert(false, 3);
 }
@@ -287,7 +287,7 @@ f() {
   }
 
   test_assert_with_message_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   assert(false, null);
 }
@@ -295,7 +295,7 @@ f() {
   }
 
   test_assert_with_message_string() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   assert(false, 'message');
 }
@@ -303,7 +303,7 @@ f() {
   }
 
   test_assert_with_message_suppresses_unused_var_hint() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   String message = 'msg';
   assert(true, message);
@@ -315,7 +315,7 @@ f() {
     // In the code below, the type of (() => f()) has a return type which is
     // a class, and that class is inferred from the return type of the typedef
     // F.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 typedef C F();
 F f = () => C();
@@ -330,7 +330,7 @@ main() {
     // In the code below, the type of (() => f()) has a return type which is
     // a typedef, and that typedef is inferred from the return type of the
     // typedef F.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef G F();
 typedef G();
 F f = () => () => {};
@@ -342,19 +342,18 @@ main() {
   }
 
   test_assignmentToFinal_prefixNegate() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   final x = 0;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
   -x;
 }
-''',
-      [error(diag.unusedLocalVariable, 14, 1)],
-    );
+''');
   }
 
   test_assignmentToFinalNoSetter_prefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(v) {}
@@ -367,7 +366,7 @@ main() {
   }
 
   test_assignmentToFinalNoSetter_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get x => 0;
   set x(v) {}
@@ -385,7 +384,7 @@ main() {
     newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 bool x = false;''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library lib;
 import 'lib1.dart' as foo;
 main() {
@@ -395,7 +394,7 @@ main() {
   }
 
   test_async_callback_in_with_unknown_return_type_context() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class C {
   R run<R>(R Function() action);
 }
@@ -406,7 +405,7 @@ f(C c) {
   }
 
   test_async_dynamic_with_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic f() async {
   return;
 }
@@ -414,7 +413,7 @@ dynamic f() async {
   }
 
   test_async_dynamic_with_return_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic f() async {
   return 5;
 }
@@ -422,25 +421,24 @@ dynamic f() async {
   }
 
   test_async_dynamic_without_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 dynamic f() async {}
 ''');
   }
 
   test_async_expression_function_type() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 typedef Future<int> F(int i);
 main() {
   F f = (int i) async => i;
+//  ^
+// [diag.unusedLocalVariable] The value of the local variable 'f' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 43, 1)],
-    );
+''');
   }
 
   test_async_flattened() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef Future<int> CreatesFutureInt();
 main() {
   CreatesFutureInt createFutureInt = () async => f();
@@ -452,7 +450,7 @@ Future<int> f() => Future.value(0);
   }
 
   test_async_future_dynamic_with_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<dynamic> f() async {
   return;
 }
@@ -460,7 +458,7 @@ Future<dynamic> f() async {
   }
 
   test_async_future_dynamic_with_return_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<dynamic> f() async {
   return 5;
 }
@@ -468,13 +466,13 @@ Future<dynamic> f() async {
   }
 
   test_async_future_dynamic_without_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<dynamic> f() async {}
 ''');
   }
 
   test_async_future_int_with_return_future_int() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> f() async {
   return new Future<int>.value(5);
 }
@@ -482,7 +480,7 @@ Future<int> f() async {
   }
 
   test_async_future_int_with_return_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> f() async {
   return 5;
 }
@@ -490,7 +488,7 @@ Future<int> f() async {
   }
 
   test_async_future_null_with_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<Null> f() async {
   return;
 }
@@ -498,13 +496,13 @@ Future<Null> f() async {
   }
 
   test_async_future_null_without_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<Null> f() async {}
 ''');
   }
 
   test_async_future_object_with_return_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<Object> f() async {
   return 5;
 }
@@ -512,7 +510,7 @@ Future<Object> f() async {
   }
 
   test_async_future_with_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future f() async {
   return;
 }
@@ -520,7 +518,7 @@ Future f() async {
   }
 
   test_async_future_with_return_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future f() async {
   return 5;
 }
@@ -528,13 +526,13 @@ Future f() async {
   }
 
   test_async_future_without_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future f() async {}
 ''');
   }
 
   test_async_with_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async {
   return;
 }
@@ -542,7 +540,7 @@ f() async {
   }
 
   test_async_with_return_value() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async {
   return 5;
 }
@@ -550,37 +548,35 @@ f() async {
   }
 
   test_async_without_return() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() async {}
 ''');
   }
 
   test_asyncForInWrongContext_async() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(list) async {
   await for (var e in list) {
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 33, 1)],
-    );
+''');
   }
 
   test_asyncForInWrongContext_asyncStar() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(list) async* {
   await for (var e in list) {
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'e' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 34, 1)],
-    );
+''');
   }
 
   test_await_flattened() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<Future<int>>? ffi() => null;
 f() async {
   Future<int>? b = await ffi();
@@ -590,7 +586,7 @@ f() async {
   }
 
   test_await_simple() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Future<int> fi() => Future.value(0);
 f() async {
   int a = await fi();
@@ -600,7 +596,7 @@ f() async {
   }
 
   test_awaitInWrongContext_async() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(x, y) async {
   return await x + await y;
 }
@@ -608,7 +604,7 @@ f(x, y) async {
   }
 
   test_awaitInWrongContext_asyncStar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(x, y) async* {
   yield await x + await y;
 }
@@ -616,7 +612,7 @@ f(x, y) async* {
   }
 
   test_breakWithoutLabelInSwitch() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void m(int i) {
     switch (i) {
@@ -629,7 +625,7 @@ class A {
   }
 
   test_breakWithoutLabelInSwitch_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A {
   void m(int i) {
@@ -643,7 +639,7 @@ class A {
   }
 
   test_bug_24539_getter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   List<Foo> get x => [];
 }
@@ -653,7 +649,7 @@ typedef Foo(param);
   }
 
   test_bug_24539_setter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   void set x(List<Foo> value) {}
 }
@@ -663,14 +659,13 @@ typedef Foo(param);
   }
 
   test_builtInIdentifierAsType_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   dynamic x;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 16, 1)],
-    );
+''');
   }
 
   test_castFrom() async {
@@ -678,22 +673,21 @@ f() {
     // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
     // a synthetic `ParameterMember` that belongs to no library.  We need to
     // make sure this doesn't lead to a crash.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {}
 
 void testNewSet(Set<C> setEls) {
   var customNewSet;
+//    ^^^^^^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'customNewSet' isn't used.
   Set.castFrom<C, Object>(setEls,
       newSet: <T>() => customNewSet = new Set<T>());
 }
-''',
-      [error(diag.unusedLocalVariable, 51, 12)],
-    );
+''');
   }
 
   test_class_type_alias_documentationComment() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 /**
  * Documentation
  */
@@ -711,14 +705,14 @@ mixin E {}
     newFile('$testPackageLibPath/other.dart', '''
 var y = (Object x) => x is int && x.isEven;
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'other.dart';
 var x = y;
 ''');
   }
 
   test_concreteClassWithAbstractMember() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   m();
 }
@@ -726,7 +720,7 @@ abstract class A {
   }
 
   test_concreteClassWithAbstractMember_inherited() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
@@ -737,7 +731,7 @@ class B extends A {
   }
 
   test_conflictingConstructorNameAndMember_setter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
 A.x() {}
 set x(_) {}
@@ -746,7 +740,7 @@ set x(_) {}
   }
 
   test_const_constructor_with_named_generic_parameter() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C({required T t});
 }
@@ -755,7 +749,7 @@ const c = const C(t: 1);
   }
 
   test_const_dynamic() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 const Type d = dynamic;
 ''');
   }
@@ -770,14 +764,14 @@ class B {
     newFile('$testPackageLibPath/c.dart', r'''
 const int value = 12345;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 const b = const B();
 ''');
   }
 
   test_constConstructorWithNonConstSuper_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -788,7 +782,7 @@ class B extends A {
   }
 
   test_constConstructorWithNonConstSuper_redirectingFactory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
@@ -802,21 +796,20 @@ class C extends A {
   }
 
   test_constConstructorWithNonConstSuper_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.a();
 }
 class B extends A {
   const B(): super();
+//           ^^^^^^^
+// [diag.undefinedConstructorInInitializerDefault] The class 'A' doesn't have an unnamed constructor.
 }
-''',
-      [error(diag.undefinedConstructorInInitializerDefault, 54, 7)],
-    );
+''');
   }
 
   test_constConstructorWithNonFinalField_finalInstanceVar() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int x = 0;
   const A();
@@ -825,7 +818,7 @@ class A {
   }
 
   test_constConstructorWithNonFinalField_static() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int x = 0;
   const A();
@@ -834,7 +827,7 @@ class A {
   }
 
   test_constConstructorWithNonFinalField_syntheticField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   set x(value) {}
@@ -849,7 +842,7 @@ class A {
   const A.b();
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' deferred as a;
 main() {
   new a.A.b();
@@ -858,7 +851,7 @@ main() {
   }
 
   test_constEval_functionTypeLiteral() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F();
 const C = F;
 ''');
@@ -869,14 +862,14 @@ const C = F;
 library math;
 const PI = 3.14;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'math.dart' as math;
 const C = math.PI;
 ''');
   }
 
   test_constEval_propertyExtraction_methodStatic_targetType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
   static m() {}
@@ -890,14 +883,14 @@ const C = A.m;
 library math;
 const PI = 3.14;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const C = #foo;
 foo() {}
 ''');
   }
 
   test_constEvalTypeBoolNumString_equal() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   final v;
   const B.a1(bool p) : v = p == true;
@@ -920,7 +913,7 @@ class B {
   }
 
   test_constEvalTypeBoolNumString_equal_null() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   final v;
   const B.n1(num? p) : v = p == null;
@@ -932,7 +925,7 @@ class B {
   }
 
   test_constEvalTypeBoolNumString_notEqual() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class B {
   final v;
   const B.a1(bool p) : v = p != true;
@@ -955,7 +948,7 @@ class B {
   }
 
   test_constEvalTypeBoolNumString_notEqual_null() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   final v;
   const B.n1(num? p) : v = p != null;
@@ -967,7 +960,7 @@ class B {
   }
 
   test_constEvAlTypeNum_String() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const String A = 'a';
 const String B = A + 'b';
 ''');
@@ -976,7 +969,7 @@ const String B = A + 'b';
   test_constRedirectSkipsSupertype() async {
     // Since C redirects to C.named, it doesn't implicitly refer to B's
     // unnamed constructor.  Therefore there is no cycle.
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class B {
   final x;
   const B() : x = y;
@@ -991,7 +984,7 @@ const y = const C();
   }
 
   test_constructorDeclaration_scope_signature() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const app = 0;
 class A {
   A(@app int app) {}
@@ -1000,7 +993,7 @@ class A {
   }
 
   test_constWithNonConstantArgument_constField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(x);
 }
@@ -1011,7 +1004,7 @@ main() {
   }
 
   test_constWithNonConstantArgument_literals() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(a, b, c, d);
 }
@@ -1020,7 +1013,7 @@ f() { return const A(true, 0, 1.0, '2'); }
   }
 
   test_constWithTypeParameters_direct() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   static const V = const A<int>();
   const A();
@@ -1029,7 +1022,7 @@ class A<T> {
   }
 
   test_constWithUndefinedConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A.name();
 }
@@ -1040,7 +1033,7 @@ f() {
   }
 
   test_constWithUndefinedConstructorDefault() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -1051,19 +1044,19 @@ f() {
   }
 
   test_defaultValueInFunctionTypeAlias() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef F([x]);
 ''');
   }
 
   test_defaultValueInFunctionTypedParameter_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(g({p})) {}
 ''');
   }
 
   test_defaultValueInFunctionTypedParameter_optional() async {
-    await assertNoErrorsInCode("f(g([p])) {}");
+    await resolveTestCodeWithDiagnostics("f(g([p])) {}");
   }
 
   test_deprecatedMemberUse_hide() async {
@@ -1073,7 +1066,7 @@ class A {}
 @deprecated
 class B {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library lib;
 import 'lib1.dart' hide B;
 A a = new A();
@@ -1081,32 +1074,31 @@ A a = new A();
   }
 
   test_dynamicIdentifier() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   var v = dynamic;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 15, 1)],
-    );
+''');
   }
 
   test_empty_generator_async() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Stream<int> f() async* {
 }
 ''');
   }
 
   test_empty_generator_sync() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
 }
 ''');
   }
 
   test_extraPositionalArguments_Function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(Function a) {
   a(1, 2);
 }
@@ -1114,7 +1106,7 @@ f(Function a) {
   }
 
   test_extraPositionalArguments_function() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(p1, p2) {}
 main() {
   f(1, 2);
@@ -1123,7 +1115,7 @@ main() {
   }
 
   test_extraPositionalArguments_typedef_local() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A(p1, p2);
 A getA() => (p1, p2) {};
 f() {
@@ -1134,7 +1126,7 @@ f() {
   }
 
   test_extraPositionalArguments_typedef_parameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef A(p1, p2);
 f(A a) {
   a(1, 2);
@@ -1143,7 +1135,7 @@ f(A a) {
   }
 
   test_fieldFormalParameter_functionTyped_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final Function field;
 
@@ -1154,7 +1146,7 @@ String f(int value) => '';
   }
 
   test_fieldFormalParameter_genericFunctionTyped() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final Object Function(int, double) field;
 
@@ -1164,7 +1156,7 @@ class C {
   }
 
   test_fieldFormalParameter_genericFunctionTyped_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   final Object Function(int, double) field;
 
@@ -1175,7 +1167,7 @@ String f(num a, Object b) => '';
   }
 
   test_fieldInitializerOutsideConstructor_defaultParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int x = 0;
   A([this.x = 1]) {}
@@ -1184,7 +1176,7 @@ class A {
   }
 
   test_fieldInitializerRedirectingConstructor_super() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {}
 }
@@ -1196,61 +1188,61 @@ class B extends A {
   }
 
   test_functionDeclaration_scope_returnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int f(int) { return 0; }
 ''');
   }
 
   test_functionDeclaration_scope_signature() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const app = 0;
 f(@app int app) {}
 ''');
   }
 
   test_functionTypeAlias_scope_returnType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef int f(int);
 ''');
   }
 
   test_functionTypeAlias_scope_signature() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const app = 0;
 typedef int f(@app int app);
 ''');
   }
 
   test_generic_staticParameterElement_annotation() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.named({arg});
 }
 @C<bool>.named(arg: true)
 test() {}
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_annotation_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.named({required T arg});
 }
 @C.named(arg: true)
 test() {}
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_functionCall_explicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void generic<T>({arg}) {}
 
 void test() {
@@ -1258,14 +1250,14 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_functionCall_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void generic<T>({arg}) {}
 
 void test() {
@@ -1273,92 +1265,92 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_explicitNew() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 test() => new C<bool>.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_explicitNew_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 C<bool> test() => new C.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 test() => C<bool>.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_instanceCreation_implicitNew_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.named({arg});
 }
 C<bool> test() => C.named(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   T method<T>({arg});
 }
 test(C c) => c.method<bool>(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class C {
   T method<T>({arg});
 }
 bool test(C c) => c.method(arg: true);
 ''');
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_staticMethodCall_explicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static void generic<T>({arg}) {}
 }
@@ -1368,14 +1360,14 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_staticMethodCall_implicitTypeArg() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static void generic<T>({arg}) {}
 }
@@ -1385,14 +1377,14 @@ void test() {
 }
 ''');
 
-    var x = findNode.namedArgument('arg: true');
+    var x = result.findNode.namedArgument('arg: true');
     var y = x.correspondingParameter!;
     expect(y.enclosingElement, isNotNull);
-    expect(y.baseElement, findElement2.parameter('arg'));
+    expect(y.baseElement, result.findElement.parameter('arg'));
   }
 
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Foo = int Function<T>(T x);
 int foo<T>(T x) => 3;
 Foo bar() => foo;
@@ -1410,7 +1402,7 @@ class A {
   }
 
   test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Foo<S> = S Function<T>(T x);
 int foo<T>(T x) => 3;
 Foo<int> bar() => foo;
@@ -1428,7 +1420,7 @@ class A {
   }
 
   test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Foo<S> = S Function<T>(T x);
 int foo<T>(T x) => 3;
 Foo bar() => foo;
@@ -1446,7 +1438,7 @@ class A {
   }
 
   test_genericTypeAlias_invalidGenericFunctionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 typedef F = int;
 main(p) {
   p is F;
@@ -1455,7 +1447,7 @@ main(p) {
   }
 
   test_genericTypeAlias_noTypeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Foo = int Function<T>(T x);
 int foo<T>(T x) => 3;
 void test1() {
@@ -1468,7 +1460,7 @@ void test1() {
   }
 
   test_genericTypeAlias_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Foo<S> = S Function<T>(T x);
 int foo<T>(T x) => 3;
 void test1() {
@@ -1485,7 +1477,7 @@ void test1() {
     // level type inference, which means it gets resolved twice.  We need to
     // make sure that on the second resolution pass, the resolver can handle the
     // ImplicitCallReference node
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef Object Func(Object x);
 
 class Bar {
@@ -1501,7 +1493,7 @@ var map = <String, Func>{'bar': new Bar()};
   }
 
   test_implicit_call_tearoff_assignment_rhs() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   void call() {}
 }
@@ -1511,37 +1503,36 @@ test() {
   return f;
 }
 ''');
-    assertType(findNode.assignment('f = C()'), 'void Function()');
+    assertType(result.findNode.assignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {
     newFile("$testPackageLibPath/lib.dart", "library lib;");
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library test;
 import 'lib.dart';
+//     ^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib.dart'.
 import 'lib.dart';
-''',
-      [
-        error(diag.unusedImport, 21, 10),
-        error(diag.unusedImport, 40, 10),
-        error(diag.duplicateImport, 40, 10),
-      ],
-    );
+//     ^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
+// [diag.unusedImport] Unused import: 'lib.dart'.
+''');
   }
 
   test_importDuplicatedLibraryUnnamed() async {
     newFile("$testPackageLibPath/lib1.dart", '');
     newFile("$testPackageLibPath/lib2.dart", '');
     // No warning on duplicate import (https://github.com/dart-lang/sdk/issues/24156)
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library test;
 import 'lib1.dart';
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib1.dart'.
 import 'lib2.dart';
-''',
-      [error(diag.unusedImport, 21, 11), error(diag.unusedImport, 41, 11)],
-    );
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib2.dart'.
+''');
   }
 
   test_importOfNonLibrary_libraryDeclared() async {
@@ -1549,7 +1540,7 @@ import 'lib2.dart';
 library lib1;
 class A {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library lib;
 import 'part.dart';
 A a = A();
@@ -1560,7 +1551,7 @@ A a = A();
     newFile("$testPackageLibPath/part.dart", '''
 class A {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library lib;
 import 'part.dart';
 A a = A();
@@ -1576,7 +1567,7 @@ test1() {}
 library lib2;
 test2() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 library L;
 import 'lib1.dart' as math;
 import 'lib2.dart' as path;
@@ -1588,7 +1579,7 @@ main() {
   }
 
   test_inconsistentMethodInheritance_accessors_typeParameters1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {
   E? get x;
 }
@@ -1602,7 +1593,7 @@ class C<E> implements A<E>, B<E> {
   }
 
   test_inconsistentMethodInheritance_accessors_typeParameters2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {
   E? get x {return null;}
 }
@@ -1614,7 +1605,7 @@ class C<E> extends A<E> implements B<E> {}
   }
 
   test_inconsistentMethodInheritance_accessors_typeParameters_diamond() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class F<E> extends B<E> {}
 class D<E> extends F<E> {
   external E? get g;
@@ -1631,7 +1622,7 @@ class A<E> extends B<E> implements D<E> {
   }
 
   test_inconsistentMethodInheritance_methods_typeParameter2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   x(E e) {}
 }
@@ -1645,7 +1636,7 @@ class C<E> extends A<E> implements B<E> {
   }
 
   test_inconsistentMethodInheritance_methods_typeParameters1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<E> {
   x(E e) {}
 }
@@ -1659,7 +1650,7 @@ class C<E> implements A<E>, B<E> {
   }
 
   test_inconsistentMethodInheritance_simple() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   x();
 }
@@ -1673,7 +1664,7 @@ class C implements A, B {
   }
 
   test_instance_creation_inside_annotation() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   const C();
 }
@@ -1687,7 +1678,7 @@ f() {}
   }
 
   test_instanceAccessToStaticMember_fromComment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static m() {}
 }
@@ -1698,7 +1689,7 @@ main() {
   }
 
   test_instanceAccessToStaticMember_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 m() {}
 main() {
   m();
@@ -1707,7 +1698,7 @@ main() {
   }
 
   test_instanceMemberAccessFromStatic_fromComment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
   /// [m]
@@ -1724,15 +1715,14 @@ class A {
   static var _m;
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
+//^^
+// [diag.unusedElement] The declaration '_m' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 41, 2)],
-    );
+''');
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
@@ -1742,21 +1732,20 @@ class A {
   static _m() {}
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
+//^^
+// [diag.unusedElement] The declaration '_m' isn't referenced.
 }
-''',
-      [error(diag.unusedElement, 41, 2)],
-    );
+''');
   }
 
   test_instantiateGenericFunctionWithNamedParameterAsGenericArg() async {
     // This test case reproduces the problem encountered in
     // https://dart-review.googlesource.com/c/sdk/+/402341/comment/b1669e20_15938fcd/.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class C<T> {
   S f<S>(S Function(C<T>) g);
 }
@@ -1768,43 +1757,43 @@ T test<T>(C<T> c) => c.f(h);
   }
 
   test_integerLiteralOutOfRange_negative_leadingZeros() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = -000923372036854775809;
 ''');
   }
 
   test_integerLiteralOutOfRange_negative_small() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = -42;
 ''');
   }
 
   test_integerLiteralOutOfRange_negative_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = -9223372036854775808;
 ''');
   }
 
   test_integerLiteralOutOfRange_positive_leadingZeros() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = 000923372036854775808;
 ''');
   }
 
   test_integerLiteralOutOfRange_positive_valid() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = 9223372036854775807;
 ''');
   }
 
   test_integerLiteralOutOfRange_positive_zero() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 int x = 0;
 ''');
   }
 
   test_intLiteralInDoubleContext() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void takeDouble(double x) {}
 void main() {
   takeDouble(0);
@@ -1816,7 +1805,7 @@ void main() {
   }
 
   test_invalidAnnotation_constantVariable_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @A.C
 class A {
   static const C = 0;
@@ -1831,7 +1820,7 @@ class A {
   static const C = 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 @p.A.C
 main() {
@@ -1840,7 +1829,7 @@ main() {
   }
 
   test_invalidAnnotation_constantVariable_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const C = 0;
 @C
 main() {
@@ -1853,7 +1842,7 @@ main() {
 library lib;
 const C = 0;
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 @p.C
 main() {
@@ -1868,7 +1857,7 @@ class A {
   const A(int p);
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 @p.A(42)
 main() {
@@ -1883,7 +1872,7 @@ class A {
   const A.named(int p);
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 @p.A.named(42)
 main() {
@@ -1892,26 +1881,25 @@ main() {
   }
 
   test_invalidIdentifierInAsync() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {
     int async;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'async' isn't used.
     int await;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'await' isn't used.
     int yield;
+//      ^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'yield' isn't used.
   }
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 26, 5),
-        error(diag.unusedLocalVariable, 41, 5),
-        error(diag.unusedLocalVariable, 56, 5),
-      ],
-    );
+''');
   }
 
   test_invalidMethodOverrideNamedParamType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m({int a = 1}) {}
 }
@@ -1922,7 +1910,7 @@ class B implements A {
   }
 
   test_invalidOverrideNamed_unorderedNamedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m({a, b}) {}
 }
@@ -1933,7 +1921,7 @@ class B extends A {
   }
 
   test_invalidOverrideRequired_less() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m(a, b) {}
 }
@@ -1944,7 +1932,7 @@ class B extends A {
   }
 
   test_invalidOverrideRequired_same() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m(a) {}
 }
@@ -1955,7 +1943,7 @@ class B extends A {
   }
 
   test_invalidOverrideReturnType_returnType_interface() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   num m();
 }
@@ -1966,7 +1954,7 @@ class B implements A {
   }
 
   test_invalidOverrideReturnType_returnType_interface2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   num m();
 }
@@ -1979,7 +1967,7 @@ class C implements B {
   }
 
   test_invalidOverrideReturnType_returnType_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   num m() { return 0; }
 }
@@ -1990,7 +1978,7 @@ class B extends Object with A {
   }
 
   test_invalidOverrideReturnType_returnType_parameterizedTypes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {
   List<E> m();
 }
@@ -2001,7 +1989,7 @@ class B extends A<dynamic> {
   }
 
   test_invalidOverrideReturnType_returnType_sameType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int m() { return 0; }
 }
@@ -2012,7 +2000,7 @@ class B extends A {
   }
 
   test_invalidOverrideReturnType_returnType_superclass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   num m() { return 0; }
 }
@@ -2023,7 +2011,7 @@ class B extends A {
   }
 
   test_invalidOverrideReturnType_returnType_superclass2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   num m() { return 0; }
 }
@@ -2036,7 +2024,7 @@ class C extends B {
   }
 
   test_invalidOverrideReturnType_returnType_void() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void m() {}
 }
@@ -2047,7 +2035,7 @@ class B extends A {
   }
 
   test_invalidTypeArgumentForKey() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {
     return const <int, int>{};
@@ -2070,7 +2058,7 @@ abstract class A<T extends O> {
   Func<T> get func;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'b.dart';
 
 class B extends A {
@@ -2080,7 +2068,7 @@ class B extends A {
   }
 
   test_issue_24191() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class S extends Stream {}
 f(S s) async {
   await for (var v in s) {
@@ -2091,21 +2079,19 @@ f(S s) async {
   }
 
   test_issue_32394() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
 
 void main() {
   String p = z;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'p' isn't used.
+//           ^
+// [diag.invalidAssignment] A value of type 'List<String>' can't be assigned to a variable of type 'String'.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 93, 1),
-        error(diag.invalidAssignment, 97, 1),
-      ],
-    );
+''');
     var z = result.unit.declaredFragment!.element.topLevelVariables
         .where((e) => e.name == 'z')
         .single;
@@ -2116,7 +2102,7 @@ void main() {
     newFile('$testPackageLibPath/lib.dart', '''
 const x = const <String>['a'];
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart';
 const y = const <String>['b'];
 int f(v) {
@@ -2136,7 +2122,7 @@ int f(v) {
     newFile('$testPackageLibPath/lib.dart', '''
 const x = const <String, String>{'a': 'b'};
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'lib.dart';
 const y = const <String, String>{'c': 'd'};
 int f(v) {
@@ -2153,17 +2139,16 @@ int f(v) {
   }
 
   test_librarySource_of_type_substituted_synthetic_parameter() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 Map<int, T> f<T>(T t) => throw '';
 Map<double, T> g<T>(T t) => throw '';
 h(bool b) {
   Map<num, String> m = (b ? f : g)('x');
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 104, 1)],
-    );
-    var parameter = findNode.stringLiteral("'x'").correspondingParameter;
+''');
+    var parameter = result.findNode.stringLiteral("'x'").correspondingParameter;
     expect(parameter!.library, isNull);
     expect(parameter.library?.firstFragment.source, isNull);
   }
@@ -2172,7 +2157,7 @@ h(bool b) {
     newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 foo() => 22;''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' deferred as other;
 main() {
   other.loadLibrary().then((_) => other.foo());
@@ -2181,7 +2166,7 @@ main() {
   }
 
   test_local_generator_async() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   return () async* { yield 0; };
 }
@@ -2189,7 +2174,7 @@ f() {
   }
 
   test_local_generator_sync() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   return () sync* { yield 0; };
 }
@@ -2197,7 +2182,7 @@ f() {
   }
 
   test_metadata_enumConstantDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = 1;
 enum E {
   aaa,
@@ -2208,7 +2193,7 @@ enum E {
   }
 
   test_methodDeclaration_scope_signature() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const app = 0;
 class A {
   foo(@app int app) {}
@@ -2217,7 +2202,7 @@ class A {
   }
 
   test_missingEnumConstantInSwitch_all() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { A, B, C }
 
 f(E e) {
@@ -2231,7 +2216,7 @@ f(E e) {
   }
 
   test_missingEnumConstantInSwitch_all_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 enum E { A, B, C }
 
@@ -2246,7 +2231,7 @@ f(E e) {
   }
 
   test_missingEnumConstantInSwitch_default() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E { A, B, C }
 
 f(E e) {
@@ -2259,7 +2244,7 @@ f(E e) {
   }
 
   test_missingEnumConstantInSwitch_default_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 enum E { A, B, C }
 
@@ -2273,7 +2258,7 @@ f(E e) {
   }
 
   test_mixedReturnTypes_differentScopes() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   m(int x) {
     f(int y) {
@@ -2287,7 +2272,7 @@ class C {
   }
 
   test_mixedReturnTypes_ignoreImplicit() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool p) {
   if (p) return 42;
   // implicit 'return;' is ignored
@@ -2296,7 +2281,7 @@ f(bool p) {
   }
 
   test_mixedReturnTypes_ignoreImplicit2() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool p) {
   if (p) {
     return 42;
@@ -2309,7 +2294,7 @@ f(bool p) {
   }
 
   test_mixedReturnTypes_sameKind() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   m(int x) {
     if (x < 0) {
@@ -2322,7 +2307,7 @@ class C {
   }
 
   test_mixinDeclaresConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class A {
   m() {}
 }
@@ -2331,7 +2316,7 @@ class B extends Object with A {}
   }
 
   test_mixinDeclaresConstructor_factory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin class A {
   factory A() => throw 0;
 }
@@ -2340,7 +2325,7 @@ class B extends Object with A {}
   }
 
   test_multipleSuperInitializers_no() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   B() {}
@@ -2349,7 +2334,7 @@ class B extends A {
   }
 
   test_multipleSuperInitializers_single() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B extends A {
   B() : super() {}
@@ -2358,7 +2343,7 @@ class B extends A {
   }
 
   test_newWithAbstractClass_factory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
   factory A() { return new B(); }
 }
@@ -2372,7 +2357,7 @@ A f() {
   }
 
   test_no_call_tearoff_on_promoted_var() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class B {
   Object call() => '';
 }
@@ -2383,13 +2368,13 @@ void test(Object x) {
   x; // demoted
 }
 ''');
-    assertType(findNode.simple('x; // promoted'), 'Object Function()');
-    assertType(findNode.assignment('x = B()'), 'B');
-    assertType(findNode.simple('x; // demoted'), 'Object');
+    assertType(result.findNode.simple('x; // promoted'), 'Object Function()');
+    assertType(result.findNode.assignment('x = B()'), 'B');
+    assertType(result.findNode.simple('x; // demoted'), 'Object');
   }
 
   test_nonBoolExpression_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   assert(true);
 }
@@ -2397,7 +2382,7 @@ f() {
   }
 
   test_nonBoolNegationExpression() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f(bool pb, pd) {
   !true;
   !false;
@@ -2408,22 +2393,21 @@ f(bool pb, pd) {
   }
 
   test_nonBoolNegationExpression_dynamic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f1(bool dynamic) {
   !dynamic;
 }
 f2() {
   bool dynamic = true;
+//     ^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'dynamic' isn't used.
   !dynamic;
 }
-''',
-      [error(diag.unusedLocalVariable, 47, 7)],
-    );
+''');
   }
 
   test_nonBoolOperand_and_bool() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(bool left, bool right) {
   return left && right;
 }
@@ -2431,7 +2415,7 @@ bool f(bool left, bool right) {
   }
 
   test_nonBoolOperand_and_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(left, dynamic right) {
   return left && right;
 }
@@ -2439,7 +2423,7 @@ bool f(left, dynamic right) {
   }
 
   test_nonBoolOperand_or_bool() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(bool left, bool right) {
   return left || right;
 }
@@ -2447,7 +2431,7 @@ bool f(bool left, bool right) {
   }
 
   test_nonBoolOperand_or_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool f(dynamic left, right) {
   return left || right;
 }
@@ -2455,26 +2439,26 @@ bool f(dynamic left, right) {
   }
 
   test_nonConstantDefaultValue_constField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f([a = double.infinity]) {
 }
 ''');
   }
 
   test_nonConstantDefaultValue_function_named() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f({x = 2 + 3}) {}
 ''');
   }
 
   test_nonConstantDefaultValue_function_positional() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f([x = 2 + 3]) {}
 ''');
   }
 
   test_nonConstantDefaultValue_inConstructor_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A({x = 2 + 3}) {}
 }
@@ -2482,7 +2466,7 @@ class A {
   }
 
   test_nonConstantDefaultValue_inConstructor_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([x = 2 + 3]) {}
 }
@@ -2490,7 +2474,7 @@ class A {
   }
 
   test_nonConstantDefaultValue_method_named() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m({x = 2 + 3}) {}
 }
@@ -2498,7 +2482,7 @@ class A {
   }
 
   test_nonConstantDefaultValue_method_positional() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m([x = 2 + 3]) {}
 }
@@ -2506,7 +2490,7 @@ class A {
   }
 
   test_nonConstantDefaultValue_typedConstList() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m([p111 = const <String>[]]) {}
 }
@@ -2517,7 +2501,7 @@ class B extends A {
   }
 
   test_nonConstantValueInInitializer_namedArgument() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final a;
   const A({this.a});
@@ -2529,7 +2513,7 @@ class B extends A {
   }
 
   test_nonConstListElement_constField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   const [double.infinity];
 }
@@ -2537,7 +2521,7 @@ main() {
   }
 
   test_nonConstMapAsExpressionStatement_const() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   const {'a' : 0, 'b' : 1};
 }
@@ -2545,18 +2529,17 @@ f() {
   }
 
   test_nonConstMapAsExpressionStatement_notExpressionStatement() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   var m = {'a' : 0, 'b' : 1};
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 12, 1)],
-    );
+''');
   }
 
   test_nonConstMapAsExpressionStatement_typeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   <String, int> {'a' : 0, 'b' : 1};
 }
@@ -2564,7 +2547,7 @@ f() {
   }
 
   test_nonConstMapValue_constField() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   const {0: double.infinity};
 }
@@ -2572,22 +2555,21 @@ main() {
   }
 
   test_nonConstValueInInitializer_binary_bool() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final v;
   const A.a1(bool p) : v = p && true;
   const A.a2(bool p) : v = true && p;
   const A.b1(bool p) : v = p || true;
   const A.b2(bool p) : v = true || p;
+//                              ^^^^
+// [diag.deadCode] Dead code.
 }
-''',
-      [error(diag.deadCode, 167, 4)],
-    );
+''');
   }
 
   test_nonConstValueInInitializer_binary_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final v;
   const A.a1(p) : v = p + 5;
@@ -2615,7 +2597,7 @@ class A {
   }
 
   test_nonConstValueInInitializer_binary_int() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final v;
   const A.a1(int p) : v = p ^ 5;
@@ -2633,7 +2615,7 @@ class A {
   }
 
   test_nonConstValueInInitializer_binary_num() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final v;
   const A.a1(num p) : v = p + 5;
@@ -2661,7 +2643,7 @@ class A {
   }
 
   test_nonConstValueInInitializer_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final int a;
   const A() : a = 5;
@@ -2670,7 +2652,7 @@ class A {
   }
 
   test_nonConstValueInInitializer_redirecting() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A.named(p);
   const A() : this.named(42);
@@ -2679,7 +2661,7 @@ class A {
   }
 
   test_nonConstValueInInitializer_super() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A(p);
 }
@@ -2690,7 +2672,7 @@ class B extends A {
   }
 
   test_nonConstValueInInitializer_unary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   final v;
   const A.a(bool p) : v = !p;
@@ -2739,7 +2721,7 @@ class B {
   final A a;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 main() {
   const B.named1();
@@ -2788,7 +2770,7 @@ class B {
   final Bounded? bounded;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'b.dart';
 
 @B.named1()
@@ -2823,23 +2805,22 @@ main() {}
   test_parameterScope_local() async {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   g(g) {
+//^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
     h(g);
   }
 }
 h(x) {}
-''',
-      [error(diag.unusedElement, 8, 1)],
-    );
+''');
   }
 
   test_parameterScope_method() async {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {
   g(g) {
     h(g);
@@ -2852,7 +2833,7 @@ h(x) {}
   test_parameterScope_topLevel() async {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 g(g) {
   h(g);
 }
@@ -2861,7 +2842,7 @@ h(x) {}
   }
 
   test_parametricCallFunction() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 f() {
   var c = new C();
   c<String>('').codeUnits;
@@ -2874,7 +2855,7 @@ class C {
   }
 
   test_propagateTypeArgs_intoBounds() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 abstract class A<E> {}
 abstract class B<F> implements A<F>{}
 abstract class C<G, H extends A<G>> {}
@@ -2883,7 +2864,7 @@ class D<I> extends C<I, B<I>> {}
   }
 
   test_propagateTypeArgs_intoSupertype() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
   A(T p);
   A.named(T p);
@@ -2896,56 +2877,53 @@ class B<S> extends A<S> {
   }
 
   test_referenceToDeclaredVariableInInitializer_constructorName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A.x() {}
 }
 f() {
   var x = new A.x();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 35, 1)],
-    );
+''');
   }
 
   test_referenceToDeclaredVariableInInitializer_methodName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   x() {}
 }
 f(A a) {
   var x = a.x();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 36, 1)],
-    );
+''');
   }
 
   test_referenceToDeclaredVariableInInitializer_propertyName() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var x;
 }
 f(A a) {
   var x = a.x;
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 36, 1)],
-    );
+''');
   }
 
   test_regress34906() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef G<X, Y extends Function(X)> = X Function(Function(Y));
 f(G<dynamic, Function(Null)> superBoundedG) {}
 ''');
   }
 
   test_reversedTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class Codec<S1, T1> {
   Codec<T1, S1> get inverted => new _InvertedCodec<T1, S1>(this);
 }
@@ -2965,7 +2943,7 @@ f2() {}
     newFile('$testPackageLibPath/lib3.dart', r'''
 f3() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib;
 import 'lib3.dart' as lib;
@@ -2974,7 +2952,7 @@ main() { lib1.f1(); lib.f2(); lib.f3(); }
   }
 
   test_type_parameter_extends_futureOr_of_extension_type() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 
 extension type E(int i) {}
@@ -2984,7 +2962,7 @@ void f<T extends FutureOr<E>>() {}
   }
 
   test_typeArgument_boundToFunctionType() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 class A<T extends void Function(T)>{}
 ''');
   }
@@ -2993,14 +2971,14 @@ class A<T extends void Function(T)>{}
     newFile('$testPackageLibPath/a.dart', '''
 typedef F = int;
 ''');
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 F f = 0;
 ''');
   }
 
   test_typePromotion_booleanAnd_useInRight() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p) {
   p is String && p.length != 0;
 }
@@ -3008,7 +2986,7 @@ main(Object p) {
   }
 
   test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 main(Object p) {
   (p is String) && callMe(() { p.length; });
@@ -3017,14 +2995,14 @@ main(Object p) {
   }
 
   test_typePromotion_conditional_useInThen() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p) {
   p is String ? p.length : 0;
 }''');
   }
 
   test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 main(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
@@ -3033,7 +3011,7 @@ main(Object p) {
   }
 
   test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef FuncB(B b);
 typedef FuncA(A a);
 class A {}
@@ -3047,7 +3025,7 @@ void f(FuncA f) {
   }
 
   test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 typedef FuncAtoDyn(A a);
 typedef FuncDynToDyn(x);
@@ -3060,7 +3038,7 @@ void f(FuncAtoDyn f, A a) {
   }
 
   test_typePromotion_functionType_return_voidToDynamic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef FuncDynToDyn(x);
 typedef void FuncDynToVoid(x);
 class A {}
@@ -3073,7 +3051,7 @@ void f(FuncDynToVoid? f, A a) {
   }
 
   test_typePromotion_if_accessedInClosure_noAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 callMe(f()) { f(); }
 main(Object p) {
   if (p is String) {
@@ -3086,7 +3064,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_extends_moreSpecific() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class V {}
 class VP extends V {}
 class A<T> {}
@@ -3103,7 +3081,7 @@ void f(A<V> p) {
   }
 
   test_typePromotion_if_hasAssignment_outsideAfter() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p) {
   if (p is String) {
     p.length;
@@ -3114,7 +3092,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_hasAssignment_outsideBefore() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p, Object p2) {
   p = p2;
   if (p is String) {
@@ -3124,7 +3102,7 @@ main(Object p, Object p2) {
   }
 
   test_typePromotion_if_implements_moreSpecific() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class V {}
 class VP extends V {}
 class A<T> {}
@@ -3141,23 +3119,22 @@ void f(A<V> p) {
   }
 
   test_typePromotion_if_inClosure_assignedAfter_inSameFunction() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main() {
   f(Object p) {
+//^
+// [diag.unusedElement] The declaration 'f' isn't referenced.
     if (p is String) {
       p.length;
     }
     p = 0;
   };
 }
-''',
-      [error(diag.unusedElement, 11, 1)],
-    );
+''');
   }
 
   test_typePromotion_if_is_and_left() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool tt() => true;
 main(Object p) {
   if (p is String && tt()) {
@@ -3168,7 +3145,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_and_right() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 bool tt() => true;
 main(Object p) {
   if (tt() && p is String) {
@@ -3179,7 +3156,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_parenthesized() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p) {
   if ((p is String)) {
     p.length;
@@ -3189,7 +3166,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_single() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p) {
   if (p is String) {
     p.length;
@@ -3199,7 +3176,7 @@ main(Object p) {
   }
 
   test_typePromotion_parentheses() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 main(Object p) {
   (p is String) ? p.length : 0;
   (p) is String ? p.length : 0;
@@ -3210,7 +3187,7 @@ main(Object p) {
   }
 
   test_typeType_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 f(Type t) {}
 main() {
@@ -3223,7 +3200,7 @@ main() {
     newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 class C {}''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f(Type t) {}
 main() {
@@ -3233,7 +3210,7 @@ main() {
   }
 
   test_typeType_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F();
 f(Type t) {}
 main() {
@@ -3246,7 +3223,7 @@ main() {
     newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 typedef F();''');
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib.dart' as p;
 f(Type t) {}
 main() {
@@ -3256,7 +3233,7 @@ main() {
   }
 
   test_undefinedSuperMethod_field() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var m;
 }
@@ -3269,7 +3246,7 @@ class B extends A {
   }
 
   test_undefinedSuperMethod_method() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   m() {}
 }
@@ -3282,7 +3259,7 @@ class B extends A {
   }
 
   Future test_useDynamicWithPrefix() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;
 
 core.dynamic dynamicVariable;
@@ -3290,7 +3267,7 @@ core.dynamic dynamicVariable;
   }
 
   test_yieldStar_inside_method_async() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   m() async* {
     yield* Stream.fromIterable([1]);
@@ -3299,7 +3276,7 @@ class A {
 ''');
 
     assertType(
-      findNode
+      result.findNode
           .yieldStatement('yield* Stream.fromIterable([1]);')
           .expression
           .staticType,
@@ -3308,7 +3285,7 @@ class A {
   }
 
   test_yieldStar_inside_method_sync() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   m() sync* {
     yield* [1];
@@ -3317,7 +3294,7 @@ class A {
 ''');
 
     assertType(
-      findNode.yieldStatement('yield* [1];').expression.staticType,
+      result.findNode.yieldStatement('yield* [1];').expression.staticType,
       'List<int>',
     );
   }

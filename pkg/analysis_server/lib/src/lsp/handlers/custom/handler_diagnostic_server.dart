@@ -8,14 +8,18 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class DiagnosticServerHandler
-    extends LspMessageHandler<void, DartDiagnosticServer> {
-  DiagnosticServerHandler(super.server);
+    extends SharedMessageHandler<void, DartDiagnosticServer> {
+  new(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.diagnosticServer;
 
   @override
   LspJsonHandler<void> get jsonHandler => nullJsonHandler;
+
+  @override
+  // Only allow the editors to call this, don't expose to DTD etc.
+  bool get requiresTrustedCaller => true;
 
   @override
   Future<ErrorOr<DartDiagnosticServer>> handle(

@@ -87,7 +87,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ///
   /// The flag [skipImports] is a temporary measure that will be removed after
   /// all of the suggestions are being produced by the various passes.
-  InScopeCompletionPass({
+  new({
     required this.state,
     required this.collector,
     required this.skipImports,
@@ -772,8 +772,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // TODO(scheglov): support primary constructors
-    if (offset <= node.typeName!.end) {
+    if (offset <=
+        (node.typeName?.end ??
+            node.newKeyword?.end ??
+            node.factoryKeyword?.end ??
+            node.beginToken.offset)) {
       collector.completionLocation = 'ClassDeclaration_member';
       var parent = node.parent?.parent;
       if (parent != null) {
@@ -1329,12 +1332,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
 
+    var namePart = node.namePart;
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
-    } else if (offset <= node.primaryConstructor.typeName.end) {
-      if (offset < node.primaryConstructor.typeName.offset &&
+    } else if (offset <= namePart.typeName.end) {
+      if (offset < namePart.typeName.offset &&
           featureSet.isEnabled(Feature.primary_constructors) &&
-          !node.primaryConstructor.hasConst) {
+          namePart is PrimaryConstructorDeclaration &&
+          !namePart.hasConst) {
         keywordHelper.addKeyword(Keyword.CONST);
       }
       var hasSyntheticBody =
@@ -1342,7 +1347,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       identifierHelper(
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: hasSyntheticBody);
-    } else if (offset >= node.primaryConstructor.end &&
+    } else if (offset >= namePart.end &&
         (offset <= body.leftBracket.offset || body.leftBracket.isSynthetic)) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
     } else if (offset >= body.leftBracket.end &&

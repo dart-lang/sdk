@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+[229]static method [236] [270] method0() → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
+[250]  yield [256] [256] 1;
+[261]  yield [267] [267] 2;
+}
+[286]static method [293] [406] method1() → asy::Future<void> async /* emittedValueType= void */ {
+[306]  [306] [306] core::print [311]([312] "helper");
+[325]  await for ([340] core::int i in [345] [345] self::method0 [352]()) {
+[362]    [362] [362] self::method2 [369]();
+[377]    [377] [377] core::print [382]([383] "loop");
+  }
+[398]  return;
+}
+[414]static method [421] [425] method2() → void {}

@@ -102,22 +102,16 @@ var x = 'longLineWithoutSpaceCouldBe' 'AnURL';
   }
 
   test_noSpacesBetweenStringParts() async {
-    await assertDiagnostics(
-      r'''
-var x = 'long line' 'is long';
-''',
-      [lint(8, 11)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [!'long line'!] 'is long';
+''');
   }
 
   test_noSpacesBetweenStringParts_leftHasInterpolation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 var f = 1;
-var x = 'long $f line' 'is long';
-''',
-      [lint(19, 14)],
-    );
+var x = [!'long $f line'!] 'is long';
+''');
   }
 
   test_rightPartStartsWithInterpolation() async {

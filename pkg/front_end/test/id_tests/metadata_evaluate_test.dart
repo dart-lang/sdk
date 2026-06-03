@@ -37,7 +37,7 @@ Future<void> main(List<String> args) async {
 }
 
 class MetadataDataComputer extends CfeDataComputer<String> {
-  const MetadataDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -62,7 +62,7 @@ class MetadataDataComputer extends CfeDataComputer<String> {
 }
 
 class MetadataDataExtractor extends CfeDataExtractor<String> {
-  MetadataDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
   ) : super(compilerResult, actualMap);

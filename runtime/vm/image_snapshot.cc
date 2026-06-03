@@ -450,7 +450,8 @@ void ImageWriter::DumpInstructionsSizes() {
     }
     owner = WeakSerializationReference::Unwrap(data.code_->owner());
     js.OpenObject();
-    if (owner.IsFunction()) {
+    if (owner.IsFunction() &&
+        (owner.ptr() != StubCode::UnknownDartCode().owner())) {
       cls = Function::Cast(owner).Owner();
       name = cls.ScrubbedName();
       lib = cls.library();
@@ -701,12 +702,11 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
 const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
   switch (section) {
     case ProgramSection::Text:
-      return vm ? kVmSnapshotInstructionsAsmSymbol
-                : kIsolateSnapshotInstructionsAsmSymbol;
+      return kSnapshotTextAsmSymbol;
     case ProgramSection::Data:
-      return vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
+      return kSnapshotDataAsmSymbol;
     case ProgramSection::Bss:
-      return vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
+      return kSnapshotBssAsmSymbol;
     case ProgramSection::BuildId:
       return kSnapshotBuildIdAsmSymbol;
   }
@@ -1288,10 +1288,8 @@ void AssemblyImageWriter::Finalize() {
 #if defined(DART_TARGET_OS_WINDOWS)
   // __declspec(dllexport)
   const char* const exported_symbols[] = {
-      kVmSnapshotDataCSymbol,
-      kVmSnapshotInstructionsCSymbol,
-      kIsolateSnapshotDataCSymbol,
-      kIsolateSnapshotInstructionsCSymbol,
+      kSnapshotDataCSymbol,
+      kSnapshotTextCSymbol,
   };
   assembly_stream_->WriteString(".section .drectve,\"yni\"\n");
   assembly_stream_->WriteString(".ascii \"");
@@ -2095,17 +2093,15 @@ ImageReader::ImageReader(const uint8_t* data_image,
     : data_image_(ASSERT_NOTNULL(data_image)),
       instructions_image_(ASSERT_NOTNULL(instructions_image)) {}
 
-ApiErrorPtr ImageReader::VerifyAlignment() const {
+char* ImageReader::VerifyAlignment() const {
   // If this changes, bin_to_assembly.py and bin_to_coff.py must also change.
   COMPILE_ASSERT(kObjectStartAlignment == 64);
 
   if (!Utils::IsAligned(data_image_, kObjectStartAlignment) ||
       !Utils::IsAligned(instructions_image_, kObjectStartAlignment)) {
-    return ApiError::New(
-        String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
-        Heap::kOld);
+    return Utils::StrDup("Snapshot is misaligned");
   }
-  return ApiError::null();
+  return nullptr;
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)

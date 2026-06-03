@@ -53,7 +53,7 @@ class GetterFragment implements Fragment, FunctionFragment {
   /// This is only non-null in erroneous cases since getters don't have formal
   /// parameters.
   final List<FormalParameterBuilder>? declaredFormals;
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
 
   final DeclarationFragment? enclosingDeclaration;
@@ -70,7 +70,7 @@ class GetterFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
-  GetterFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.startOffset,
@@ -128,7 +128,7 @@ class GetterFragment implements Fragment, FunctionFragment {
 class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
   GetterFragment _fragment;
 
-  _GetterBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -153,7 +153,7 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   ExtensionScope get extensionScope {

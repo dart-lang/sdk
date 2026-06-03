@@ -26,15 +26,12 @@ class AlwaysPutControlBodyOnNewLineTest extends LintRuleTest {
   String get lintRule => LintNames.always_put_control_body_on_new_line;
 
   test_doWhile_bodyAdjacent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  do print('');
+  do [!print!]('');
   while (true);
 }
-''',
-      [lint(16, 5)],
-    );
+''');
   }
 
   test_doWhile_bodyOnNewline() async {
@@ -56,14 +53,11 @@ void f() {
   }
 
   test_forEachLoop_bodyAdjacent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (var i in []) return;
+  for (var i in []) [!return!];
 }
-''',
-      [lint(31, 6)],
-    );
+''');
   }
 
   test_forEachLoop_bodyOnNewline() async {
@@ -84,14 +78,11 @@ void f() {
   }
 
   test_forLoop_bodyAdjacent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (;;) return;
+  for (;;) [!return!];
 }
-''',
-      [lint(22, 6)],
-    );
+''');
   }
 
   test_forLoop_bodyOnNewline() async {
@@ -135,16 +126,13 @@ void f() {
   }
 
   test_ifStatement_elseAdjacent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (false)
     return;
-  else return;
+  else [!return!];
 }
-''',
-      [lint(43, 6)],
-    );
+''');
   }
 
   test_ifStatement_elseOnNewline() async {
@@ -160,39 +148,30 @@ void f() {
   }
 
   test_ifStatement_thenAdjacent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (false) return;
+  if (false) [!return!];
 }
-''',
-      [lint(24, 6)],
-    );
+''');
   }
 
   test_ifStatement_thenAdjacent_multiline() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (false) print(
+  if (false) [!print!](
     'text'
     'text');
 }
-''',
-      [lint(24, 5)],
-    );
+''');
   }
 
   test_ifStatement_thenIsBlock_adjacentStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  if (false) { print('');
+  if (false) [!{!] print('');
   }
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_ifStatement_thenIsEmpty() async {
@@ -221,14 +200,11 @@ void f() {
   }
 
   test_whileLoop_bodyAdjacent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  while (true) return;
+  while (true) [!return!];
 }
-''',
-      [lint(26, 6)],
-    );
+''');
   }
 
   test_whileLoop_bodyOnNewline() async {

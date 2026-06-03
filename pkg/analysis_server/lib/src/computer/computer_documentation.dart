@@ -10,7 +10,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 class DartDocumentationComputer {
   final DartdocDirectiveInfo dartdocInfo;
 
-  DartDocumentationComputer(this.dartdocInfo);
+  new(this.dartdocInfo);
 
   Documentation? compute(
     Element elementBeingDocumented, {

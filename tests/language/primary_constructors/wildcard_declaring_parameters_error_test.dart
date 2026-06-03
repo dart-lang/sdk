@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 // --------------------
@@ -11,20 +9,19 @@ import 'package:expect/expect.dart';
 // constructor.
 
 class CMultiple(var int _, var int _);
-//                         ^
-// [cfe] unspecified
 //                                 ^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [cfe] '_' is already declared in this scope.
 
 class DMultiple(final int _, final int _);
 //                                     ^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [cfe] unspecified
+// [cfe] '_' is already declared in this scope.
 
 enum EnumMultiple(final int _, final int _) {
   //                                     ^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] '_' is already declared in this scope.
   e1(1, 2);
 }
 
@@ -37,36 +34,36 @@ class C(var int _) {
   int x = _;
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 
   this : assert(_ > 0);
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 }
 
 class D(final int _) {
   int x = _;
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 
   this : assert(_ > 0);
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 }
 
 class E(int _, int _) {
   int x = _;
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] unspecified
+  // [cfe] Undefined name '_'.
 
   this : assert(_ > 0);
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] unspecified
+  // [cfe] Undefined name '_'.
 }
 
 enum E1(final int _) {
@@ -77,18 +74,18 @@ enum E1(final int _) {
   final int x = _;
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 
   this : assert(_ > 0);
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 }
 
 extension type Ext(int _) {
   this : assert(_ > 0);
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-  // [cfe] unspecified
+  // [cfe] Can't access 'this' in a field initializer to read '_'.
 }

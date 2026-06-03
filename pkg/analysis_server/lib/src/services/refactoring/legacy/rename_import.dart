@@ -25,7 +25,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   final MockLibraryImportElement importElement;
 
-  factory RenameImportRefactoringImpl(
+  factory(
     RefactoringWorkspace workspace,
     AnalysisSessionHelper sessionHelper,
     ResolvedUnitResult resolvedUnit,
@@ -42,7 +42,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     );
   }
 
-  RenameImportRefactoringImpl._(
+  new _(
     super.workspace,
     super.sessionHelper,
     super.element,

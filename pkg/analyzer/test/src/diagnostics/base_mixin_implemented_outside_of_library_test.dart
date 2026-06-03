@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BaseMixinImplementedOutsideOfLibraryTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,7 +19,7 @@ main() {
 class BaseMixinImplementedOutsideOfLibraryTest
     extends PubPackageResolutionTest {
   test_class_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 base mixin Foo {}
 base class Bar implements Foo {}
 ''');
@@ -28,13 +30,12 @@ base class Bar implements Foo {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 base class Bar implements Foo {}
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 3)],
-    );
+//                        ^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_class_outside_viaExtends() async {
@@ -66,13 +67,12 @@ base mixin Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 base class Bar implements FooTypedef {}
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 10)],
-    );
+//                        ^^^^^^^^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_class_outside_viaTypedef_outside() async {
@@ -80,18 +80,17 @@ base class Bar implements FooTypedef {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 base class Bar implements FooTypedef {}
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 71, 10)],
-    );
+//                        ^^^^^^^^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_enum_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 base mixin Foo {}
 enum Bar implements Foo { bar }
 ''');
@@ -102,13 +101,12 @@ enum Bar implements Foo { bar }
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar implements Foo { bar }
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 39, 3)],
-    );
+//                  ^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_enum_outside_viaTypedef_inside() async {
@@ -117,13 +115,12 @@ base mixin Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 39, 10)],
-    );
+//                  ^^^^^^^^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_enum_outside_viaTypedef_outside() async {
@@ -131,18 +128,17 @@ enum Bar implements FooTypedef { bar }
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 65, 10)],
-    );
+//                  ^^^^^^^^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_mixin_inside() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 base mixin Foo {}
 base mixin Bar implements Foo {}
 ''');
@@ -153,13 +149,12 @@ base mixin Bar implements Foo {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 base mixin Bar implements Foo {}
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 3)],
-    );
+//                        ^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_mixin_outside_viaTypedef_inside() async {
@@ -168,13 +163,12 @@ base mixin Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 base mixin Bar implements FooTypedef {}
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 10)],
-    );
+//                        ^^^^^^^^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 
   test_mixin_outside_viaTypedef_outside() async {
@@ -182,13 +176,12 @@ base mixin Bar implements FooTypedef {}
 base mixin Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 base mixin Bar implements FooTypedef {}
-''',
-      [error(diag.baseMixinImplementedOutsideOfLibrary, 71, 10)],
-    );
+//                        ^^^^^^^^^^
+// [diag.baseMixinImplementedOutsideOfLibrary] The mixin 'Foo' can't be implemented outside of its library because it's a base mixin.
+''');
   }
 }

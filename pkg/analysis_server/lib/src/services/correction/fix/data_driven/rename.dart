@@ -17,7 +17,7 @@ class Rename extends Change<_Data> {
 
   /// Initialize a newly created transform to describe a renaming of an element
   /// to the [newName].
-  Rename({required this.newName});
+  new({required this.newName});
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -115,5 +115,5 @@ class _Data {
   final AstNode node;
   final Token? nameToken;
 
-  _Data(this.node, this.nameToken);
+  new(this.node, this.nameToken);
 }

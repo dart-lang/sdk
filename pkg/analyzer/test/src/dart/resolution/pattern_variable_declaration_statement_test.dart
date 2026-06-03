@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PatternVariableDeclarationStatementResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,13 +18,13 @@ main() {
 class PatternVariableDeclarationStatementResolutionTest
     extends PubPackageResolutionTest {
   test_final_typed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final (num a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -52,13 +53,13 @@ PatternVariableDeclarationStatement
   }
 
   test_final_untyped() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   final (a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -83,17 +84,16 @@ PatternVariableDeclarationStatement
   }
 
   test_rewrite_expression() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a) = A();
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 class A {}
-''',
-      [error(diag.unusedLocalVariable, 18, 1)],
-    );
-    var node = findNode.singlePatternVariableDeclarationStatement;
+''');
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -126,25 +126,19 @@ PatternVariableDeclarationStatement
   }
 
   test_scope_shadows_beforeDeclaration() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int a = 0;
 void f() {
   a;
+//^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'a' can't be referenced before it is declared.
   var (a) = 1;
+//     ^
+// [context 1] The declaration of 'a' is here.
 }
-''',
-      [
-        error(
-          diag.referencedBeforeDeclaration,
-          24,
-          1,
-          contextMessages: [message(testFile, 34, 1)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.simple('a;');
+    var node = result.findNode.simple('a;');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
@@ -154,18 +148,17 @@ SimpleIdentifier
   }
 
   test_scope_shadows_class() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 void f() {
   var (A) = <A>[];
+//           ^
+// [diag.nonTypeAsTypeArgument] The name 'A' isn't a type, so it can't be used as a type argument.
 }
-''',
-      [error(diag.nonTypeAsTypeArgument, 36, 1)],
-    );
+''');
 
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -199,13 +192,13 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (num a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -234,17 +227,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed_typeSchema() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (int a) = g();
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 T g<T>() => throw 0;
-''',
-      [error(diag.unusedLocalVariable, 22, 1)],
-    );
-    var node = findNode.singlePatternVariableDeclarationStatement;
+''');
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -282,13 +274,13 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a) = 0;
   a;
 }
 ''');
-    var node = findNode.singlePatternVariableDeclarationStatement;
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -313,18 +305,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_multiple() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) x) {
   var (a, b) = x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
 }
-''',
-      [
-        error(diag.unusedLocalVariable, 33, 1),
-        error(diag.unusedLocalVariable, 36, 1),
-      ],
-    );
-    var node = findNode.singlePatternVariableDeclarationStatement;
+''');
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -361,17 +351,16 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_recordPattern() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (a,) = g((0,));
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 
 T g<T>(T a) => throw 0;
-''',
-      [error(diag.unusedLocalVariable, 18, 1)],
-    );
-    var node = findNode.singlePatternVariableDeclarationStatement;
+''');
+    var node = result.findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
   declaration: PatternVariableDeclaration
@@ -417,26 +406,24 @@ PatternVariableDeclarationStatement
   }
 
   test_var_withKeyword_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (final a) = 0;
+//     ^^^^^
+// [diag.variablePatternKeywordInDeclarationContext] Variable patterns in declaration context can't specify 'var' or 'final' keyword.
   a;
 }
-''',
-      [error(diag.variablePatternKeywordInDeclarationContext, 18, 5)],
-    );
+''');
   }
 
   test_var_withKeyword_var() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   var (var a) = 0;
+//     ^^^
+// [diag.variablePatternKeywordInDeclarationContext] Variable patterns in declaration context can't specify 'var' or 'final' keyword.
   a;
 }
-''',
-      [error(diag.variablePatternKeywordInDeclarationContext, 18, 3)],
-    );
+''');
   }
 }

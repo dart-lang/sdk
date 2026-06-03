@@ -631,8 +631,6 @@ void ArgumentsDescriptor::Init() {
   ASSERT(cache_index == kCachedDescriptorCount);
 }
 
-void ArgumentsDescriptor::Cleanup() {}
-
 ObjectPtr DartLibraryCalls::InstanceCreate(const Library& lib,
                                            const String& class_name,
                                            const String& constructor_name,

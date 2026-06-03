@@ -1966,8 +1966,9 @@ ISOLATE_UNIT_TEST_CASE(IL_RecordCoverageSurvivesOptimizations) {
     {
       BlockBuilder builder(H.flow_graph(),
                            H.flow_graph()->graph_entry()->normal_entry());
-      const auto& coverage_array = Array::Handle(Array::New(1));
-      coverage_array.SetAt(0, Smi::Handle(Smi::New(0)));
+      const auto& coverage_array =
+          TypedData::Handle(TypedData::New(kTypedDataUint32ArrayCid, 1));
+      coverage_array.SetUint32(0, 0);
       builder.AddInstruction(
           new RecordCoverageInstr(coverage_array, 0, InstructionSource()));
       builder.AddReturn(new Value(H.flow_graph()->constant_null()));

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -74,11 +75,10 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     if (node.name case var name?) {
       _addOccurrence(node.declaredFragment!.element, name);
     } else {
-      _addOccurrence(
-        node.declaredFragment!.element,
-        // TODO(scheglov): support primary constructors
-        node.typeName!.beginToken,
-      );
+      var typeName = node.typeName;
+      if (typeName != null) {
+        _addOccurrence(node.declaredFragment!.element, typeName.beginToken);
+      }
     }
 
     super.visitConstructorDeclaration(node);
@@ -152,10 +152,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _addOccurrence(
-      node.declaredFragment!.element,
-      node.primaryConstructor.typeName,
-    );
+    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
 
     super.visitExtensionTypeDeclaration(node);
   }
@@ -262,7 +259,15 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   void visitRegularFormalParameter(RegularFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
-      _addOccurrence(node.declaredFragment!.element, nameToken);
+      var element = node.declaredFragment?.element;
+      if (element is FieldFormalParameterElement) {
+        var field = element.field;
+        if (field != null) {
+          _addOccurrence(field, nameToken);
+        }
+      } else if (element != null) {
+        _addOccurrence(element, nameToken);
+      }
     }
 
     super.visitRegularFormalParameter(node);
@@ -309,22 +314,10 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addOccurrence(Element element, Token token) {
-    var canonicalElement = _canonicalizeElement(element);
+    var canonicalElement = element.canonical;
     if (canonicalElement == null) {
       return;
     }
     (occurrences[canonicalElement] ??= []).add(token);
-  }
-
-  Element? _canonicalizeElement(Element element) {
-    Element? canonicalElement = element;
-    if (canonicalElement is FieldFormalParameterElement) {
-      canonicalElement = canonicalElement.field;
-    } else if (canonicalElement case PropertyAccessorElement(
-      :var variable,
-    ) when variable.isOriginDeclaration) {
-      canonicalElement = variable;
-    }
-    return canonicalElement?.baseElement;
   }
 }

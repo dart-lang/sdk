@@ -16,7 +16,7 @@ class Covariance {
   static const int Covariant = 2;
 
   /// Returns the covariance mask for [parameter].
-  static int covarianceFromParameter(VariableDeclaration parameter) =>
+  static int covarianceFromParameter(Variable parameter) =>
       (parameter.isCovariantByDeclaration ? Covariant : 0) |
       (parameter.isCovariantByClass ? GenericCovariantImpl : 0);
 
@@ -26,10 +26,7 @@ class Covariance {
       (field.isCovariantByClass ? GenericCovariantImpl : 0);
 
   /// Applies the [covariance] mask to [parameter].
-  static void covarianceToParameter(
-    int covariance,
-    VariableDeclaration parameter,
-  ) {
+  static void covarianceToParameter(int covariance, Variable parameter) {
     if ((covariance & Covariant) != 0) {
       parameter.isCovariantByDeclaration = true;
     }
@@ -63,7 +60,7 @@ class Covariance {
   /// If no type parameters are generic-covariant-impl, this is `null`.
   final List<bool>? _typeParameters;
 
-  Covariance.internal(
+  new internal(
     this._positionalParameters,
     this._namedParameters,
     this._typeParameters,
@@ -86,7 +83,7 @@ class Covariance {
   ///
   /// This is used for all members that do not use any covariance, regardless
   /// of parameter structure.
-  const Covariance.empty()
+  const new empty()
     : _positionalParameters = null,
       _namedParameters = null,
       _typeParameters = null;
@@ -94,7 +91,7 @@ class Covariance {
   /// Computes the covariance for the setter aspect of [field].
   ///
   /// The getter aspect of a field never uses covariance.
-  factory Covariance.fromField(Field field) {
+  factory fromField(Field field) {
     int covariance = covarianceFromField(field);
     if (covariance == 0) {
       return const Covariance.empty();
@@ -103,7 +100,7 @@ class Covariance {
   }
 
   /// Computes the covariance for the [setter].
-  factory Covariance.fromSetter(Procedure setter) {
+  factory fromSetter(Procedure setter) {
     int covariance = covarianceFromParameter(
       setter.function.positionalParameters.first,
     );
@@ -114,7 +111,7 @@ class Covariance {
   }
 
   /// Computes the covariance for the [procedure].
-  factory Covariance.fromMethod(Procedure procedure) {
+  factory fromMethod(Procedure procedure) {
     FunctionNode function = procedure.function;
     List<int>? positionalParameters;
     if (function.positionalParameters.isNotEmpty) {
@@ -138,7 +135,7 @@ class Covariance {
     Map<String, int>? namedParameters;
     if (function.namedParameters.isNotEmpty) {
       for (int index = 0; index < function.namedParameters.length; index++) {
-        VariableDeclaration parameter = function.namedParameters[index];
+        Variable parameter = function.namedParameters[index];
         int covariance = covarianceFromParameter(parameter);
         if (covariance != 0) {
           namedParameters ??= {};
@@ -175,7 +172,7 @@ class Covariance {
   /// If [forSetter] is `true`, the covariance is computed for the setter
   /// aspect of [member]. Otherwise, the covariance for the getter/method aspect
   /// of [member] is computed.
-  factory Covariance.fromMember(Member member, {required bool forSetter}) {
+  factory fromMember(Member member, {required bool forSetter}) {
     if (member is Procedure) {
       if (member.kind == ProcedureKind.Getter) {
         return const Covariance.empty();
@@ -309,7 +306,7 @@ class Covariance {
         }
       }
       if (_namedParameters != null) {
-        for (VariableDeclaration parameter in function.namedParameters) {
+        for (Variable parameter in function.namedParameters) {
           covarianceToParameter(getNamedVariance(parameter.name!), parameter);
         }
       }

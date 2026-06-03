@@ -1456,5 +1456,5 @@ class _CodeSelection {
   final TestCode testCode;
   final Selection selection;
 
-  _CodeSelection({required this.testCode, required this.selection});
+  new({required this.testCode, required this.selection});
 }

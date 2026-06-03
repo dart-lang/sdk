@@ -40,7 +40,7 @@ class SurveyManager {
   /// timer if cancellation occurred while it was running.
   bool _isShutdown = false;
 
-  SurveyManager(
+  new(
     this._server,
     this._instrumentationService,
     this._analytics, {

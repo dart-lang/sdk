@@ -18,27 +18,21 @@ class PreferIntLiteralsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_int_literals;
 
   test_argumentPassedToTypeVariableParameter_explicitlyTypedDouble_integer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:math';
 f(double d) {
-  double x = max(d, 7.0);
+  double x = max(d, [!7.0!]);
 }
-''',
-      [lint(54, 3)],
-    );
+''');
   }
 
   test_argumentPassedToTypeVariableParameter_inferredType_integer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:math';
 f(double d) {
-  var a = max(d, 7.0);
+  var a = max(d, [!7.0!]);
 }
-''',
-      [lint(51, 3)],
-    );
+''');
   }
 
   test_argumentToNamedParameter_implicitlyTyped() async {
@@ -50,14 +44,11 @@ void f({d}) {
   }
 
   test_argumentToNamedParameter_withDefaultValue_explicitlyTypedDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f({double d = 0.0}) {
-  f(d: 1.0);
+  f(d: [!1.0!]);
 }
-''',
-      [lint(34, 3)],
-    );
+''');
   }
 
   test_argumentToNamedParameter_withDefaultValue_implicitlyTyped() async {
@@ -69,14 +60,11 @@ void f({d = 0.0}) {
   }
 
   test_argumentToPositionalParameter_explicitlyTypedDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(double d) {
-  f(1.0);
+  f([!1.0!]);
 }
-''',
-      [lint(23, 3)],
-    );
+''');
   }
 
   test_argumentToSuperParameter_decimal() async {
@@ -102,17 +90,14 @@ class B extends A {
   }
 
   test_argumentToSuperParameter_integer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   A(double x);
 }
 class B extends A {
-  B() : super(1.0);
+  B() : super([!1.0!]);
 }
-''',
-      [lint(61, 3)],
-    );
+''');
   }
 
   test_binaryExpression_multipliedByInt_explicitlyTypedDouble() async {
@@ -151,12 +136,9 @@ void f() {
   }
 
   test_canBeInt_explicitlyTypedDouble_decimalWithExponent() async {
-    await assertDiagnostics(
-      r'''
-double a = 7.1e2;
-''',
-      [lint(11, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+double a = [!7.1e2!];
+''');
   }
 
   test_cannotBeInt_explicitlyTypedDouble_decimalWithExponent() async {
@@ -178,48 +160,33 @@ double a = 1_234.567_8;
   }
 
   test_explicitTypeDouble_integer() async {
-    await assertDiagnostics(
-      r'''
-double a = 8.0;
-''',
-      [lint(11, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+double a = [!8.0!];
+''');
   }
 
   test_explicitTypeDouble_integer_negative() async {
-    await assertDiagnostics(
-      r'''
-double a = -8.0;
-''',
-      [lint(12, 3)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+double a = -[!8.0!];
+''');
   }
 
   test_explicitTypeDouble_integerWithExponent() async {
-    await assertDiagnostics(
-      r'''
-double a = 7.0e2;
-''',
-      [lint(11, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+double a = [!7.0e2!];
+''');
   }
 
   test_explicitTypeDouble_integerWithExponentAndSeparators() async {
-    await assertDiagnostics(
-      r'''
-double a = 7_000.0e2;
-''',
-      [lint(11, 9)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+double a = [!7_000.0e2!];
+''');
   }
 
   test_explicitTypeDouble_integerWithSeparators() async {
-    await assertDiagnostics(
-      r'''
-double a = 8_000.000_0;
-''',
-      [lint(11, 11)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+double a = [!8_000.000_0!];
+''');
   }
 
   test_explicitTypeDynamic_integer() async {
@@ -235,14 +202,11 @@ Object a = 8.0;
   }
 
   test_functionExpressionBody_explicitlyTypedDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  double g() => 6.0;
+  double g() => [!6.0!];
 }
-''',
-      [lint(27, 3)],
-    );
+''');
   }
 
   test_functionExpressionBody_implicitlyTypedDynamic() async {
@@ -254,14 +218,11 @@ void f() {
   }
 
   test_functionExpressionBody_method_explicitlyTypedDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  double f() => 6.0;
+  double f() => [!6.0!];
 }
-''',
-      [lint(26, 3)],
-    );
+''');
   }
 
   test_inBinaryExpression_explicitlyTypedInt_integer() async {
@@ -290,12 +251,9 @@ var a = 7.0e2;
   }
 
   test_inListLiteral_explicitTypeDouble_integer() async {
-    await assertDiagnostics(
-      r'''
-var a = <double>[50.0];
-''',
-      [lint(17, 4)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var a = <double>[[!50.0!]];
+''');
   }
 
   test_inListLiteral_inferredType_integer() async {
@@ -305,14 +263,11 @@ var a = [50.0];
   }
 
   test_returnExpression_explicitlyTypedDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 double f() {
-  return 6.0;
+  return [!6.0!];
 }
-''',
-      [lint(22, 3)],
-    );
+''');
   }
 
   test_returnExpression_implicitlyTypedDynamic() async {
@@ -324,15 +279,12 @@ f() {
   }
 
   test_returnExpression_method_explicitlyTypedDouble() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   double f() {
-    return 6.0;
+    return [!6.0!];
   }
 }
-''',
-      [lint(36, 3)],
-    );
+''');
   }
 }

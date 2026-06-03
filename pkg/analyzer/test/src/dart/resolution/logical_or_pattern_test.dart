@@ -5,22 +5,24 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LogicalOrPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class LogicalOrPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   if (x case int _ || double _) {}
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: WildcardPattern
@@ -43,7 +45,7 @@ LogicalOrPattern
   }
 
   test_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
   switch (x) {
     case int _ || double _:
@@ -51,7 +53,7 @@ void f(x) {
   }
 }
 ''');
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: WildcardPattern
@@ -75,13 +77,25 @@ LogicalOrPattern
 
   test_switchCase_topLevel3() async {
     // https://github.com/dart-lang/sdk/issues/60168
-    await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 var _ = switch (0) {
+//  ^
+// [diag.unusedElement] The declaration '_' isn't referenced.
   var a || var a || var a => 0,
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//      ^^^^^^^^
+// [diag.deadCode] Dead code.
+//             ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//               ^^^^^^^^
+// [diag.deadCode] Dead code.
+//                      ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 };
 ''');
 
-    var node = findNode.singleGuardedPattern.pattern;
+    var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern

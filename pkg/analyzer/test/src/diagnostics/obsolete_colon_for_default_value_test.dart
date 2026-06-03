@@ -2,28 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ObsoleteColonForDefaultValueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ObsoleteColonForDefaultValueTest extends PubPackageResolutionTest {
   test_noDefault() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f({int? x}) {}
 ''');
   }
 
   test_superFormalParameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {
   String? a;
   A({this.a});
@@ -31,23 +31,22 @@ class A {
 
 class B extends A {
   B({super.a : ''});
+//           ^
+// [diag.obsoleteColonForDefaultValue] Using a colon as the separator before a default value is no longer supported.
 }
-''',
-      [error(diag.obsoleteColonForDefaultValue, 74, 1)],
-    );
+''');
   }
 
   test_usesColon() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f({int x : 0}) {}
-''',
-      [error(diag.obsoleteColonForDefaultValue, 14, 1)],
-    );
+//            ^
+// [diag.obsoleteColonForDefaultValue] Using a colon as the separator before a default value is no longer supported.
+''');
   }
 
   test_usesEqual() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 void f({int x = 0}) {}
 ''');
   }

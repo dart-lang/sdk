@@ -66,6 +66,7 @@ void main(List<String> args) async {
       final result = await Process.run('/usr/bin/env', [
         'bash',
         'pkg/dart2wasm/tool/compile_benchmark',
+        '--extra-compiler-option=--unique-types',
         for (final option in compilerOptions)
           if (option == '--standalone')
             '--standalone'

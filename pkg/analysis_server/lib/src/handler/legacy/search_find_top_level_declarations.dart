@@ -11,12 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 class SearchFindTopLevelDeclarationsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  SearchFindTopLevelDeclarationsHandler(
-    super.server,
-    super.request,
-    super.cancellationToken,
-    super.performance,
-  );
+  new(super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

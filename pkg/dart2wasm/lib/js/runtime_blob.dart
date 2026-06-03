@@ -4,7 +4,7 @@
 
 final jsRuntimeBlobTemplate = Template(r'''
 // Compiles a dart2wasm-generated main module from `source` which can then
-// instantiatable via the `instantiate` method.
+// be instantiated via the `instantiate` method.
 //
 // `source` needs to be a `Response` object (or promise thereof) e.g. created
 // via the `fetch()` JS API.
@@ -14,8 +14,8 @@ export async function compileStreaming(source) {
       await WebAssembly.compileStreaming(source, builtins), builtins);
 }
 
-// Compiles a dart2wasm-generated wasm modules from `bytes` which is then
-// instantiatable via the `instantiate` method.
+// Compiles a dart2wasm-generated wasm module from `bytes` which is then
+// instantiable via the `instantiate` method.
 export async function compile(bytes) {
   const builtins = {<<BUILTINS_MAP_BODY>>};
   return new CompiledApp(await WebAssembly.compile(bytes, builtins), builtins);
@@ -49,7 +49,7 @@ class CompiledApp {
   // The second argument is an options object containing:
   // `loadDeferredModules` is a JS function that takes an array of module names
   //   matching wasm files produced by the dart2wasm compiler. It also takes a
-  //   callback that should be invoked for each loaded module with 2 arugments:
+  //   callback that should be invoked for each loaded module with 2 arguments:
   //   (1) the module name, (2) the loaded module in a format supported by
   //   `WebAssembly.compile` or `WebAssembly.compileStreaming`. The callback
   //   returns a Promise that resolves when the module is instantiated.
@@ -59,11 +59,11 @@ class CompiledApp {
   //   compiler when the `use-load-ids` option is passed. Each load ID maps to
   //   one or more wasm files as specified in the emitted JSON file. It also
   //   takes a callback that should be invoked for each loaded module with 2
-  //   arugments: (1) the module name, (2) the loaded module in a format
+  //   arguments: (1) the module name, (2) the loaded module in a format
   //   supported by `WebAssembly.compile` or `WebAssembly.compileStreaming`.
   //   The callback returns a Promise that resolves when the module is
   //   instantiated.
-  //   loadDeferredModules should return a Promise that resolves when all the
+  //   loadDeferredId should return a Promise that resolves when all the
   //   modules have been loaded and the callback promises have resolved.
   async instantiate(additionalImports, {loadDeferredModules, loadDeferredId} = {}) {
     let dartInstance;

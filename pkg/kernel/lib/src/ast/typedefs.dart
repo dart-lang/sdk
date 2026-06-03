@@ -22,15 +22,15 @@ class Typedef extends NamedNode
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
-  Typedef(
+  new(
     this.name,
     this.type, {
     Reference? reference,
     required this.fileUri,
     List<TypeParameter>? typeParameters,
     List<TypeParameter>? typeParametersOfFunctionType,
-    List<VariableDeclaration>? positionalParameters,
-    List<VariableDeclaration>? namedParameters,
+    List<Variable>? positionalParameters,
+    List<Variable>? namedParameters,
   }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
        super(reference) {
     setParents(this.typeParameters, this);

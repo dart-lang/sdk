@@ -121,7 +121,7 @@ class DeclarationHelper {
   ///
   /// The flag [skipImports] is a temporary measure that will be removed after
   /// all of the suggestions are being produced by the various passes.
-  DeclarationHelper({
+  new({
     required this.request,
     required this.collector,
     required this.state,

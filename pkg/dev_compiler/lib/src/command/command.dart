@@ -914,7 +914,7 @@ ModuleSymbols _emitSymbols(
     for (var e in compiler.procedureIdentifiers.entries)
       e.key: lookupName(e.value),
   };
-  var variableJsNames = <VariableDeclaration, String>{
+  var variableJsNames = <Variable, String>{
     for (var e in compiler.variableIdentifiers.entries)
       e.key: lookupName(e.value),
   };

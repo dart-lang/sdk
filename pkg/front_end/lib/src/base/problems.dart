@@ -14,7 +14,7 @@ import 'messages.dart' show LocatedMessage, Message, noLength;
 class DebugAbort {
   final LocatedMessage message;
 
-  DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
+  new(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
     : message = uri != null
           ? diag.internalProblemDebugAbort
                 .withArguments(

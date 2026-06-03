@@ -178,7 +178,7 @@ class UnknownTypeTest {
 class _OrdinaryVisitor<R> extends VisitorDefault<R?> with VisitorNullMixin<R> {
   final _UnaryFunction<DartType, R>? _defaultDartType;
 
-  _OrdinaryVisitor({_UnaryFunction<DartType, R>? defaultDartType})
+  new({_UnaryFunction<DartType, R>? defaultDartType})
     : _defaultDartType = defaultDartType;
 
   @override
@@ -196,7 +196,7 @@ class _TypeSchemaVisitor<R> extends VisitorDefault<R?>
   final _UnaryFunction<DartType, R>? _defaultDartType;
   final _UnaryFunction<UnknownType, R>? _visitUnknownType;
 
-  _TypeSchemaVisitor({
+  new({
     _UnaryFunction<DartType, R>? defaultDartType,
     _UnaryFunction<UnknownType, R>? visitUnknownType,
   }) : _defaultDartType = defaultDartType,

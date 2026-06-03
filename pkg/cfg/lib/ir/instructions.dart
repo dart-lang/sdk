@@ -1141,13 +1141,15 @@ final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
 }
 
 enum TypeParametersKind {
+  /// All type parameters of the current function and all enclosing functions.
   functionTypeParameters,
+
+  /// All type parameters of the current class.
   classTypeParameters,
   // Add kinds for a single function/class type parameter.
 }
 
-/// Represents collection of type parameters corresponding to the
-/// given parameter.
+/// Represents collection of type parameters.
 /// Can be used as inputs in [TypeCast], [TypeTest], [TypeArguments] and
 /// [TypeLiteral] instructions.
 final class TypeParameters extends Definition with NoThrow, Pure {
@@ -1156,13 +1158,9 @@ final class TypeParameters extends Definition with NoThrow, Pure {
   TypeParameters(
     super.graph,
     super.sourcePosition,
-    this.kind,
-    Definition parameter,
-  ) : super(inputCount: 1) {
-    setInputAt(0, parameter);
-  }
-
-  Definition get parameter => inputDefAt(0);
+    this.kind, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
 
   @override
   CType get type => const TypeParametersType();
@@ -1301,13 +1299,11 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     Definition? typeArguments,
   ) : super(inputCount: typeArguments != null ? 1 : 0) {
     if (typeArguments != null) {
-      assert(
-        (type.dartType as ast.InterfaceType)
-            .classNode
-            .typeParameters
-            .isNotEmpty,
-      );
       setInputAt(0, typeArguments);
+    } else {
+      assert(
+        (type.dartType as ast.InterfaceType).classNode.typeParameters.isEmpty,
+      );
     }
   }
 
@@ -1319,10 +1315,9 @@ final class AllocateObject extends Definition with CanThrow, Pure {
 }
 
 /// Allocate a closure instance.
-///
-/// Takes captured values as inputs.
 final class AllocateClosure extends Definition with CanThrow, Pure {
   final ClosureFunction function;
+  final ClosureLayout closureLayout;
 
   @override
   final CType type;
@@ -1331,12 +1326,25 @@ final class AllocateClosure extends Definition with CanThrow, Pure {
     super.graph,
     super.sourcePosition,
     this.function,
-    this.type, {
-    required super.inputCount,
-  });
+    this.closureLayout,
+    this.type,
+  ) : super(inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateClosure(this);
+}
+
+/// Allocate a context instance to hold values of captured variables.
+final class AllocateContext extends Definition with CanThrow, Pure {
+  final int length;
+
+  AllocateContext(super.graph, super.sourcePosition, this.length)
+    : super(inputCount: 0);
+
+  CType get type => const ContextType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateContext(this);
 }
 
 /// Allocate a new List literal with given type arguments and elements.
@@ -1378,6 +1386,24 @@ final class AllocateMapLiteral extends Definition with CanThrow, Pure {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateMapLiteral(this);
+}
+
+/// Allocate a new Record literal with given elements.
+final class AllocateRecordLiteral extends Definition with CanThrow, Pure {
+  @override
+  final RecordType type;
+
+  AllocateRecordLiteral(
+    super.graph,
+    super.sourcePosition,
+    this.type, {
+    required super.inputCount,
+  }) : assert(inputCount == type.numFields);
+
+  Definition elementAt(int index) => inputDefAt(index);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateRecordLiteral(this);
 }
 
 /// Interpolate given objects into a String.
@@ -1741,6 +1767,19 @@ final class SetListElement extends Instruction
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
+}
+
+/// Allocate a Record instance of given type.
+final class AllocateRecord extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  @override
+  final RecordType type;
+
+  AllocateRecord(super.graph, super.sourcePosition, this.type)
+    : super(inputCount: 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateRecord(this);
 }
 
 /// Base class for boxing instructions.

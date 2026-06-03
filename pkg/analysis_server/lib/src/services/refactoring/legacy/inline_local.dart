@@ -29,7 +29,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   _InitialState? _initialState;
 
-  InlineLocalRefactoringImpl(this.searchEngine, this.resolveResult, this.offset)
+  new(this.searchEngine, this.resolveResult, this.offset)
     : utils = CorrectionUtils(resolveResult);
 
   @override
@@ -277,7 +277,7 @@ class _InitialState {
   final VariableDeclarationStatement declarationStatement;
   final List<SearchMatch> references;
 
-  _InitialState({
+  new({
     required this.element,
     required this.node,
     required this.initializer,

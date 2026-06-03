@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedTypeResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NamedTypeResolutionTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 f(A a) {}
 ''');
 
-    var node = findNode.namedType('A a');
+    var node = result.findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -32,13 +33,13 @@ NamedType
   }
 
   test_class_generic_toBounds() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {}
 
 f(A a) {}
 ''');
 
-    var node = findNode.namedType('A a');
+    var node = result.findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -48,13 +49,13 @@ NamedType
   }
 
   test_class_generic_toBounds_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 f(A a) {}
 ''');
 
-    var node = findNode.namedType('A a');
+    var node = result.findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -64,13 +65,13 @@ NamedType
   }
 
   test_class_generic_typeArguments() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 f(A<int> a) {}
 ''');
 
-    var node = findNode.namedType('A<int> a');
+    var node = result.findNode.namedType('A<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -88,13 +89,13 @@ NamedType
   }
 
   test_dynamic_explicitCore() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
 
 dynamic a;
 ''');
 
-    var node = findNode.namedType('dynamic a;');
+    var node = result.findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
@@ -104,13 +105,13 @@ NamedType
   }
 
   test_dynamic_explicitCore_withPrefix() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as myCore;
 
 myCore.dynamic a;
 ''');
 
-    var node = findNode.namedType('myCore.dynamic a;');
+    var node = result.findNode.namedType('myCore.dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -124,16 +125,14 @@ NamedType
   }
 
   test_dynamic_explicitCore_withPrefix_referenceWithout() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core' as myCore;
 
 dynamic a;
-''',
-      [error(diag.undefinedClass, 31, 7)],
-    );
+// [diag.undefinedClass][column 1][length 7] Undefined class 'dynamic'.
+''');
 
-    var node = findNode.namedType('dynamic a;');
+    var node = result.findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
@@ -143,11 +142,11 @@ NamedType
   }
 
   test_dynamic_implicitCore() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 dynamic a;
 ''');
 
-    var node = findNode.namedType('dynamic a;');
+    var node = result.findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
@@ -157,13 +156,13 @@ NamedType
   }
 
   test_extendsClause_genericClass() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 class B extends A<int> {}
 ''');
 
-    var node = findNode.namedType('A<int>');
+    var node = result.findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -181,16 +180,15 @@ NamedType
   }
 
   test_extendsClause_genericClass_tooFewArguments() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T, U> {}
 
 class B extends A<int> {}
-''',
-      [error(diag.wrongNumberOfTypeArguments, 34, 6)],
-    );
+//              ^^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'A' is declared with 2 type parameters, but 1 type arguments were given.
+''');
 
-    var node = findNode.namedType('A<int>');
+    var node = result.findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -208,16 +206,15 @@ NamedType
   }
 
   test_extendsClause_genericClass_tooManyArguments() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 class B extends A<int, String> {}
-''',
-      [error(diag.wrongNumberOfTypeArguments, 31, 14)],
-    );
+//              ^^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'A' is declared with 1 type parameters, but 2 type arguments were given.
+''');
 
-    var node = findNode.namedType('A<int, String>');
+    var node = result.findNode.namedType('A<int, String>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -239,17 +236,15 @@ NamedType
   }
 
   test_extendsClause_typeParameter() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> extends T<int> {}
-''',
-      [
-        error(diag.wrongNumberOfTypeArguments, 19, 6),
-        error(diag.extendsNonClass, 19, 1),
-      ],
-    );
+//                 ^^^^^^
+// [diag.wrongNumberOfTypeArguments] The type 'T' is declared with 0 type parameters, but 1 type arguments were given.
+//                 ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+''');
 
-    var node = findNode.namedType('T<int>');
+    var node = result.findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -267,12 +262,12 @@ NamedType
   }
 
   test_extensionType_generic_toBounds() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T extends num>(List<T> it) {}
 void f(A a) {}
 ''');
 
-    var node = findNode.namedType('A a');
+    var node = result.findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -282,12 +277,12 @@ NamedType
   }
 
   test_extensionType_generic_toBounds_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(List<T> it) {}
 void f(A a) {}
 ''');
 
-    var node = findNode.namedType('A a');
+    var node = result.findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -297,12 +292,12 @@ NamedType
   }
 
   test_extensionType_generic_typeParameters() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(List<T> it) {}
 void f(A<int> a) {}
 ''');
 
-    var node = findNode.namedType('A<int>');
+    var node = result.findNode.namedType('A<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -320,13 +315,13 @@ NamedType
   }
 
   test_functionTypeAlias() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = int Function();
 
 f(F a) {}
 ''');
 
-    var node = findNode.namedType('F a');
+    var node = result.findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -337,13 +332,13 @@ NamedType
   }
 
   test_functionTypeAlias_generic_toBounds() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F<T extends num> = T Function();
 
 f(F a) {}
 ''');
 
-    var node = findNode.namedType('F a');
+    var node = result.findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -356,13 +351,13 @@ NamedType
   }
 
   test_functionTypeAlias_generic_toBounds_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F<T> = T Function();
 
 f(F a) {}
 ''');
 
-    var node = findNode.namedType('F a');
+    var node = result.findNode.namedType('F a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -375,13 +370,13 @@ NamedType
   }
 
   test_functionTypeAlias_generic_typeArguments() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F<T> = T Function();
 
 f(F<int> a) {}
 ''');
 
-    var node = findNode.namedType('F<int> a');
+    var node = result.findNode.namedType('F<int> a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
@@ -402,13 +397,13 @@ NamedType
   }
 
   test_importPrefix_genericClass() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as async;
 
 void f(async.Future<int> a) {}
 ''');
 
-    var node = findNode.namedType('async.Future');
+    var node = result.findNode.namedType('async.Future');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -430,16 +425,15 @@ NamedType
   }
 
   test_importPrefix_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as math;
 
 void f(math.Unresolved<int> a) {}
-''',
-      [error(diag.undefinedClass, 36, 15)],
-    );
+//     ^^^^^^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
+''');
 
-    var node = findNode.namedType('math.Unresolved');
+    var node = result.findNode.namedType('math.Unresolved');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -461,18 +455,17 @@ NamedType
   }
 
   test_instanceCreation_explicitNew_prefix_unresolvedClass() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as math;
 
 main() {
   new math.A();
+//         ^
+// [diag.newWithNonType] The name 'A' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 49, 1)],
-    );
+''');
 
-    var node = findNode.namedType('A();');
+    var node = result.findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -486,7 +479,7 @@ NamedType
   }
 
   test_instanceCreation_explicitNew_resolvedClass() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 main() {
@@ -494,7 +487,7 @@ main() {
 }
 ''');
 
-    var node = findNode.namedType('A();');
+    var node = result.findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -504,16 +497,15 @@ NamedType
   }
 
   test_instanceCreation_explicitNew_unresolvedClass() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
   new A();
+//    ^
+// [diag.newWithNonType] The name 'A' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 15, 1)],
-    );
+''');
 
-    var node = findNode.namedType('A();');
+    var node = result.findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -523,21 +515,19 @@ NamedType
   }
 
   test_invalid_deferredImportPrefix_identifier() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' deferred as async;
 
 void f() {
   async.Future<int> v;
+//^^^^^^^^^^^^^^^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'async.Future' can't be used in a declaration, cast, or type test.
+//                  ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
-''',
-      [
-        error(diag.typeAnnotationDeferredClass, 53, 17),
-        error(diag.unusedLocalVariable, 71, 1),
-      ],
-    );
+''');
 
-    var node = findNode.namedType('async.Future');
+    var node = result.findNode.namedType('async.Future<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -559,23 +549,17 @@ NamedType
   }
 
   test_invalid_importPrefix() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
+//                    ^^^^^^
+// [context 1] The declaration of 'prefix' is here.
 
 void f(prefix a) {}
-''',
-      [
-        error(
-          diag.notAType,
-          38,
-          6,
-          contextMessages: [message(testFile, 22, 6)],
-        ),
-      ],
-    );
+//     ^^^^^^
+// [diag.notAType][context 1] prefix isn't a type.
+''');
 
-    var node = findNode.namedType('prefix a');
+    var node = result.findNode.namedType('prefix a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
@@ -585,23 +569,17 @@ NamedType
   }
 
   test_invalid_importPrefix_withTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' as prefix;
+//                    ^^^^^^
+// [context 1] The declaration of 'prefix' is here.
 
 void f(prefix<int> a) {}
-''',
-      [
-        error(
-          diag.notAType,
-          38,
-          6,
-          contextMessages: [message(testFile, 22, 6)],
-        ),
-      ],
-    );
+//     ^^^^^^
+// [diag.notAType][context 1] prefix isn't a type.
+''');
 
-    var node = findNode.namedType('prefix<int>');
+    var node = result.findNode.namedType('prefix<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
@@ -619,16 +597,15 @@ NamedType
   }
 
   test_invalid_prefixedIdentifier_instanceCreation() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new int.double.other();
+//    ^^^^^^^^^^
+// [diag.newWithNonType] The name 'double' isn't a class.
 }
-''',
-      [error(diag.newWithNonType, 17, 10)],
-    );
+''');
 
-    var node = findNode.namedType('int.double');
+    var node = result.findNode.namedType('int.double');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -642,16 +619,15 @@ NamedType
   }
 
   test_invalid_prefixedIdentifier_literal() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   0 as int.double;
+//     ^^^^^^^^^^
+// [diag.notAType] int.double isn't a type.
 }
-''',
-      [error(diag.notAType, 18, 10)],
-    );
+''');
 
-    var node = findNode.namedType('int.double');
+    var node = result.findNode.namedType('int.double;');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -665,18 +641,17 @@ NamedType
   }
 
   test_invalid_topLevelFunction() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(T a) {}
+//     ^
+// [diag.notAType][context 1] T isn't a type.
 
 void T() {}
-''',
-      [
-        error(diag.notAType, 7, 1, contextMessages: [message(testFile, 21, 1)]),
-      ],
-    );
+//   ^
+// [context 1] The declaration of 'T' is here.
+''');
 
-    var node = findNode.namedType('T a');
+    var node = result.findNode.namedType('T a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -686,18 +661,17 @@ NamedType
   }
 
   test_invalid_topLevelFunction_withTypeArguments() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(T<int> a) {}
+//     ^
+// [diag.notAType][context 1] T isn't a type.
 
 void T() {}
-''',
-      [
-        error(diag.notAType, 7, 1, contextMessages: [message(testFile, 26, 1)]),
-      ],
-    );
+//   ^
+// [context 1] The declaration of 'T' is here.
+''');
 
-    var node = findNode.namedType('T<int>');
+    var node = result.findNode.namedType('T<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
@@ -715,14 +689,13 @@ NamedType
   }
 
   test_invalid_typeParameter_identifier() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f<T>(T.name<int> a) {}
-''',
-      [error(diag.prefixShadowedByLocalDeclaration, 10, 1)],
-    );
+//        ^
+// [diag.prefixShadowedByLocalDeclaration] The prefix 'T' can't be used here because it's shadowed by a local declaration.
+''');
 
-    var node = findNode.namedType('T.name<int>');
+    var node = result.findNode.namedType('T.name<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference
@@ -752,17 +725,16 @@ class A {}
 class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 import 'b.dart';
 
 void f(A a) {}
-''',
-      [error(diag.ambiguousImport, 42, 1)],
-    );
+//     ^
+// [diag.ambiguousImport] The name 'A' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+''');
 
-    var node = findNode.namedType('A a');
+    var node = result.findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
@@ -774,11 +746,11 @@ NamedType
   }
 
   test_never() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 f(Never a) {}
 ''');
 
-    var node = findNode.namedType('Never a');
+    var node = result.findNode.namedType('Never a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: Never
@@ -788,7 +760,7 @@ NamedType
   }
 
   test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 typedef X<T> = A<T>;
@@ -798,7 +770,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.namedType('X<int>()');
+    var node = result.findNode.namedType('X<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -816,7 +788,7 @@ NamedType
   }
 
   test_typeAlias_asInstanceCreation_implicitNew_toBounds_noTypeParameters_interfaceType_none() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 typedef X = A<int>;
@@ -826,7 +798,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.namedType('X()');
+    var node = result.findNode.namedType('X()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -836,7 +808,7 @@ NamedType
   }
 
   test_typeAlias_asInstanceCreation_implicitNew_typeArguments_interfaceType_none() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 typedef X<T> = A<T>;
@@ -846,7 +818,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.namedType('X<int>()');
+    var node = result.findNode.namedType('X<int>()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -864,12 +836,12 @@ NamedType
   }
 
   test_typeAlias_asParameterType_interfaceType_none() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X<T> = Map<int, T>;
 void f(X<String> a, X<String?> b) {}
 ''');
 
-    var node1 = findNode.namedType('X<String>');
+    var node1 = result.findNode.namedType('X<String>');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -888,7 +860,7 @@ NamedType
         String
 ''');
 
-    var node2 = findNode.namedType('X<String?>');
+    var node2 = result.findNode.namedType('X<String?>');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -910,12 +882,12 @@ NamedType
   }
 
   test_typeAlias_asParameterType_interfaceType_question() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X<T> = List<T?>;
 void f(X<int> a, X<int?> b) {}
 ''');
 
-    var node1 = findNode.namedType('X<int>');
+    var node1 = result.findNode.namedType('X<int>');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -934,7 +906,7 @@ NamedType
         int
 ''');
 
-    var node2 = findNode.namedType('X<int?>');
+    var node2 = result.findNode.namedType('X<int?>');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -956,12 +928,12 @@ NamedType
   }
 
   test_typeAlias_asParameterType_Never_none() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X = Never;
 void f(X a, X? b) {}
 ''');
 
-    var node1 = findNode.namedType('X a');
+    var node1 = result.findNode.namedType('X a');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -970,7 +942,7 @@ NamedType
     alias: <testLibrary>::@typeAlias::X
 ''');
 
-    var node2 = findNode.namedType('X? b');
+    var node2 = result.findNode.namedType('X? b');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -983,12 +955,12 @@ NamedType
   }
 
   test_typeAlias_asParameterType_Never_question() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X = Never?;
 void f(X a, X? b) {}
 ''');
 
-    var node1 = findNode.namedType('X a');
+    var node1 = result.findNode.namedType('X a');
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
@@ -997,7 +969,7 @@ NamedType
     alias: <testLibrary>::@typeAlias::X
 ''');
 
-    var node2 = findNode.namedType('X? b');
+    var node2 = result.findNode.namedType('X? b');
     assertResolvedNodeText(node2, r'''
 NamedType
   name: X
@@ -1010,12 +982,12 @@ NamedType
   }
 
   test_typeAlias_asParameterType_question() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X<T> = T?;
 void f(X<int> a) {}
 ''');
 
-    var node = findNode.namedType('X<int>');
+    var node = result.findNode.namedType('X<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -1036,12 +1008,12 @@ NamedType
   }
 
   test_typeAlias_asReturnType_interfaceType() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef X<T> = Map<int, T>;
 X<String> f() => {};
 ''');
 
-    var node = findNode.namedType('X<String>');
+    var node = result.findNode.namedType('X<String>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
@@ -1062,12 +1034,12 @@ NamedType
   }
 
   test_typeAlias_asReturnType_void() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef Nothing = void;
 Nothing f() {}
 ''');
 
-    var node = findNode.namedType('Nothing f()');
+    var node = result.findNode.namedType('Nothing f()');
     assertResolvedNodeText(node, r'''
 NamedType
   name: Nothing
@@ -1078,14 +1050,13 @@ NamedType
   }
 
   test_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Unresolved<int> a) {}
-''',
-      [error(diag.undefinedClass, 7, 10)],
-    );
+//     ^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
+''');
 
-    var node = findNode.namedType('Unresolved');
+    var node = result.findNode.namedType('Unresolved<int>');
     assertResolvedNodeText(node, r'''
 NamedType
   name: Unresolved
@@ -1103,14 +1074,13 @@ NamedType
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(
-      r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f(unresolved.List<int> a) {}
-''',
-      [error(diag.undefinedClass, 7, 15)],
-    );
+//     ^^^^^^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'List'.
+''');
 
-    var node = findNode.namedType('unresolved.List');
+    var node = result.findNode.namedType('unresolved.List');
     assertResolvedNodeText(node, r'''
 NamedType
   importPrefix: ImportPrefixReference

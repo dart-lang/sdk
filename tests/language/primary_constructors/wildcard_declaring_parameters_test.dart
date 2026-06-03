@@ -7,8 +7,6 @@
 // instance members of C/D/E/Ext, if there is an instance variable with the
 // name `_`.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 class C(var int _) {
@@ -40,9 +38,11 @@ enum E1(final int _) {
 enum Enum1(final int _, int _) {
   e(1, 2);
 }
+
 enum Enum2(int _, final int _) {
   e(1, 2);
 }
+
 enum Enum3(int _, final int _, int _) {
   e(1, 2, 3);
 }

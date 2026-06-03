@@ -42,7 +42,20 @@ void main() {
   "".(int i) {};
 //    ^^^
 // [analyzer] COMPILE_TIME_ERROR.ANONYMOUS_METHOD_WRONG_PARAMETER_TYPE
-// [cfe] The receiver type 'String' must be assignable to the formal parameter type 'int' of an anonymous method.
+// [cfe] The receiver type 'String' must be assignable to the formal parameter type 'int' in an anonymous method.
+
+  // Using a void value as receiver.
+  StringBuffer('').{ return print('0'); }.toString();
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+//^
+// [cfe] This expression has type 'void' and can't be used.
+
+  StringBuffer('').{ return print('0'); }.{ print('1'); };
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+//^
+// [cfe] This expression has type 'void' and can't be used.
 
   // Break outside of loop/switch.
   1.{

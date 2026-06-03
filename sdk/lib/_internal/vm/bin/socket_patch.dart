@@ -1524,7 +1524,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       _BufferAndStart bufferAndStart = _ensureFastAndSerializableByteData(
         buffer,
         offset,
-        bytes,
+        offset + bytes,
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
@@ -1568,7 +1568,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       _BufferAndStart bufferAndStart = _ensureFastAndSerializableByteData(
         buffer,
         offset,
-        bytes,
+        offset + bytes,
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(

@@ -2,33 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TearOffTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class TearOffTest extends PubPackageResolutionTest {
   test_empty_contextNotInstantiated() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T x) => x;
 
 void test() {
   U Function<U>(U) context;
+//                 ^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'context' isn't used.
   context = f; // 1
 }
-''',
-      [error(diag.unusedLocalVariable, 52, 7)],
-    );
+''');
 
-    var node = findNode.simple('f; // 1');
+    var node = result.findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
@@ -39,19 +39,18 @@ SimpleIdentifier
   }
 
   test_empty_notGeneric() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 int f(int x) => x;
 
 void test() {
   int Function(int) context;
+//                  ^^^^^^^
+// [diag.unusedLocalVariable] The value of the local variable 'context' isn't used.
   context = f; // 1
 }
-''',
-      [error(diag.unusedLocalVariable, 54, 7)],
-    );
+''');
 
-    var node = findNode.simple('f; // 1');
+    var node = result.findNode.simple('f; // 1');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: f
@@ -62,7 +61,7 @@ SimpleIdentifier
   }
 
   test_notEmpty_instanceMethod() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   T f<T>(T x) => x;
 }
@@ -72,7 +71,7 @@ int Function(int) test() {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -101,14 +100,14 @@ FunctionReference
   }
 
   test_notEmpty_localFunction() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 int Function(int) test() {
   T f<T>(T x) => x;
   return f;
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
@@ -122,7 +121,7 @@ FunctionReference
   }
 
   test_notEmpty_staticMethod() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   static T f<T>(T x) => x;
 }
@@ -132,7 +131,7 @@ int Function(int) test() {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PrefixedIdentifier
@@ -154,7 +153,7 @@ FunctionReference
   }
 
   test_notEmpty_superMethod() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {
   T f<T>(T x) => x;
 }
@@ -166,7 +165,7 @@ class D extends C {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: PropertyAccess
@@ -186,7 +185,7 @@ FunctionReference
   }
 
   test_notEmpty_topLevelFunction() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T x) => x;
 
 int Function(int) test() {
@@ -194,7 +193,7 @@ int Function(int) test() {
 }
 ''');
 
-    var node = findNode.functionReference('f;');
+    var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
   function: SimpleIdentifier
@@ -208,7 +207,7 @@ FunctionReference
   }
 
   test_null_notTearOff() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T x) => x;
 
 void test() {
@@ -216,7 +215,7 @@ void test() {
 }
 ''');
 
-    var node = findNode.singleMethodInvocation;
+    var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
   methodName: SimpleIdentifier

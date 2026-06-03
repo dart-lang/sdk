@@ -57,12 +57,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   /// If [_flutterWidgetState] is set, this is the new name of it.
   String? _flutterWidgetStateNewName;
 
-  RenameUnitMemberRefactoringImpl(
-    super.workspace,
-    super.sessionHelper,
-    this.resolvedUnit,
-    super.element,
-  ) : utils = CorrectionUtils(resolvedUnit),
+  new(super.workspace, super.sessionHelper, this.resolvedUnit, super.element)
+    : utils = CorrectionUtils(resolvedUnit),
       super();
 
   @override
@@ -213,12 +209,7 @@ class _BaseUnitMemberValidator {
 
   final RefactoringStatus result = RefactoringStatus();
 
-  _BaseUnitMemberValidator(
-    this.searchEngine,
-    this.library,
-    this.elementKind,
-    this.name,
-  );
+  new(this.searchEngine, this.library, this.elementKind, this.name);
 
   /// Returns `true` if [element] is visible at the given [SearchMatch].
   bool _isVisibleAt(Element element, SearchMatch at) {
@@ -299,12 +290,7 @@ class _BaseUnitMemberValidator {
 
 /// Helper to check if the created element will cause any conflicts.
 class _CreateUnitMemberValidator extends _BaseUnitMemberValidator {
-  _CreateUnitMemberValidator(
-    super.searchEngine,
-    super.library,
-    super.elementKind,
-    super.name,
-  );
+  new(super.searchEngine, super.library, super.elementKind, super.name);
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();
@@ -318,11 +304,8 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   final Element element;
   List<SearchMatch> references = <SearchMatch>[];
 
-  _RenameUnitMemberValidator(
-    SearchEngine searchEngine,
-    this.element,
-    String name,
-  ) : super(searchEngine, element.library!, element.kind, name);
+  new(SearchEngine searchEngine, this.element, String name)
+    : super(searchEngine, element.library!, element.kind, name);
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();

@@ -862,7 +862,6 @@ class ProfileBuilder : public ValueObject {
                  Profile* profile)
       : thread_(thread),
         isolate_(isolate),
-        vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
         sample_buffer_(sample_buffer),
         profile_(profile),
@@ -1081,10 +1080,11 @@ class ProfileBuilder : public ValueObject {
     const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != nullptr);
 
+    Zone* const zone = Thread::Current()->zone();
     GrowableArray<const Function*>* inlined_functions = nullptr;
     GrowableArray<TokenPosition>* inlined_token_positions = nullptr;
     TokenPosition token_position = TokenPosition::kNoSource;
-    Code& code = Code::ZoneHandle();
+    Code& code = Code::ZoneHandle(zone);
     if (profile_code->code().IsCode()) {
       code ^= profile_code->code().ptr();
       inlined_functions_cache_->Get(pc, code, sample, frame_index,
@@ -1092,14 +1092,22 @@ class ProfileBuilder : public ValueObject {
                                     &inlined_token_positions, &token_position);
       if (FLAG_trace_profiler_verbose && (inlined_functions != nullptr)) {
         for (intptr_t i = 0; i < inlined_functions->length(); i++) {
-          const String& name =
-              String::Handle((*inlined_functions)[i]->QualifiedScrubbedName());
+          const String& name = String::Handle(
+              zone, (*inlined_functions)[i]->QualifiedScrubbedName());
           THR_Print("InlinedFunction[%" Pd "] = {%s, %s}\n", i,
                     name.ToCString(),
                     (*inlined_token_positions)[i].ToCString());
         }
       }
     }
+
+#if defined(DART_DYNAMIC_MODULES)
+    if (profile_code->code().IsBytecode()) {
+      const auto& bytecode =
+          Bytecode::CheckedHandle(zone, profile_code->code().ptr());
+      token_position = bytecode.GetTokenIndexOfPC(pc);
+    }
+#endif
 
     if (code.IsNull() || (inlined_functions == nullptr) ||
         (inlined_functions->length() <= 1)) {
@@ -1285,8 +1293,7 @@ class ProfileBuilder : public ValueObject {
   }
 
   bool IsPCInDartHeap(uword pc) {
-    return vm_isolate_->group()->heap()->CodeContains(pc) ||
-           thread_->isolate_group()->heap()->CodeContains(pc);
+    return thread_->isolate_group()->heap()->CodeContains(pc);
   }
 
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
@@ -1382,7 +1389,6 @@ class ProfileBuilder : public ValueObject {
 
   Thread* thread_;
   Isolate* isolate_;
-  Isolate* vm_isolate_;
   SampleFilter* filter_;
   SampleBlockBuffer* sample_buffer_;
   Profile* profile_;

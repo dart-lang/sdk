@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,14 +9,15 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:yaml/yaml.dart';
 
 typedef InvalidOverrideDiagnosticCode =
-    DiagnosticWithArguments<
-      LocatableDiagnostic Function({
+    diag.DiagnosticWithArguments<
+      diag.LocatableDiagnostic Function({
         required String memberName,
         required String declaringInterfaceName,
         required DartType typeInDeclaringInterface,
@@ -33,7 +33,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicate] uses the same [variable]
   /// as a previous [original] node in a pattern assignment.
-  LocatedDiagnostic duplicateAssignmentPatternVariable({
+  diag.LocatedDiagnostic duplicateAssignmentPatternVariable({
     required Source source,
     required PromotableElementImpl variable,
     required AssignedVariablePatternImpl original,
@@ -55,8 +55,8 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateFragment] reuses a name
   /// already used by [originalElement].
-  LocatedDiagnostic duplicateDefinition(
-    LocatableDiagnostic locatableDiagnostic,
+  diag.LocatedDiagnostic duplicateDefinition(
+    diag.LocatableDiagnostic locatableDiagnostic,
     FragmentImpl duplicateFragment,
     ElementImpl originalElement,
   ) {
@@ -81,9 +81,9 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateNode] reuses a name
   /// already used by [originalNode].
-  LocatedDiagnostic duplicateDefinitionForNodes(
+  diag.LocatedDiagnostic duplicateDefinitionForNodes(
     Source source,
-    LocatableDiagnostic locatableDiagnostic,
+    diag.LocatableDiagnostic locatableDiagnostic,
     SyntacticEntity duplicateNode,
     SyntacticEntity originalNode,
   ) {
@@ -102,7 +102,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  LocatedDiagnostic duplicateFieldDefinitionInLiteral(
+  diag.LocatedDiagnostic duplicateFieldDefinitionInLiteral(
     Source source,
     RecordLiteralNamedField duplicateField,
     RecordLiteralNamedField originalField,
@@ -128,7 +128,7 @@ class DiagnosticFactory {
   ///
   /// This method requires that both the [duplicateField] and [originalField]
   /// have a non-null `name`.
-  LocatedDiagnostic duplicateFieldDefinitionInType(
+  diag.LocatedDiagnostic duplicateFieldDefinitionInType(
     Source source,
     RecordTypeAnnotationField duplicateField,
     RecordTypeAnnotationField originalField,
@@ -151,7 +151,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateField] reuses a name
   /// already used by [originalField].
-  LocatedDiagnostic duplicatePatternField({
+  diag.LocatedDiagnostic duplicatePatternField({
     required Source source,
     required String name,
     required PatternField duplicateField,
@@ -177,7 +177,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
-  LocatedDiagnostic duplicateRestElementInPattern({
+  diag.LocatedDiagnostic duplicateRestElementInPattern({
     required Source source,
     required RestPatternElement originalElement,
     required RestPatternElement duplicateElement,
@@ -197,7 +197,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
-  LocatedDiagnostic equalElementsInConstSet(
+  diag.LocatedDiagnostic equalElementsInConstSet(
     Source source,
     Expression duplicateElement,
     Expression originalElement,
@@ -217,7 +217,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
   /// is a duplicate of the [originalKey].
-  LocatedDiagnostic equalKeysInConstMap(
+  diag.LocatedDiagnostic equalKeysInConstMap(
     Source source,
     Expression duplicateKey,
     Expression originalKey,
@@ -237,7 +237,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
   /// is a duplicate of the [originalKey].
-  LocatedDiagnostic equalKeysInMapPattern(
+  diag.LocatedDiagnostic equalKeysInMapPattern(
     Source source,
     Expression duplicateKey,
     Expression originalKey,
@@ -255,7 +255,7 @@ class DiagnosticFactory {
         .at(duplicateKey);
   }
 
-  LocatedDiagnostic incompatibleLint({
+  diag.LocatedDiagnostic incompatibleLint({
     required Source source,
     required YamlScalar reference,
     required Map<String, YamlScalar> incompatibleRules,
@@ -286,7 +286,7 @@ class DiagnosticFactory {
 
   /// Returns a diagnostic indicating that incompatible rules were found between
   /// the current list and one or more of the included files.
-  LocatedDiagnostic incompatibleLintFiles({
+  diag.LocatedDiagnostic incompatibleLintFiles({
     required Source source,
     required YamlScalar reference,
     required Map<String, YamlScalar> incompatibleRules,
@@ -318,7 +318,7 @@ class DiagnosticFactory {
 
   /// Returns a diagnostic indicating that incompatible rules were found between
   /// the included files.
-  LocatedDiagnostic incompatibleLintIncluded({
+  diag.LocatedDiagnostic incompatibleLintIncluded({
     required Source source,
     required YamlScalar reference,
     required Map<String, YamlScalar> incompatibleRules,
@@ -353,7 +353,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that [member] is not a correct override of
   /// [superMember].
-  LocatedDiagnostic invalidOverride(
+  diag.LocatedDiagnostic invalidOverride(
     Source source,
     InvalidOverrideDiagnosticCode code,
     SyntacticEntity errorNode,
@@ -403,7 +403,7 @@ class DiagnosticFactory {
 
   /// Return a diagnostic indicating that the given [nameToken] was referenced
   /// before it was declared.
-  LocatedDiagnostic referencedBeforeDeclaration(
+  diag.LocatedDiagnostic referencedBeforeDeclaration(
     Source source, {
     required Token nameToken,
     required Element element2,

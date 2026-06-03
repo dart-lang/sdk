@@ -71,7 +71,8 @@ class LoadingUnitSerializationData : public ZoneObject {
 // the VM has been initialized.
 class SnapshotHeaderReader {
  public:
-  static char* InitializeGlobalVMFlagsFromSnapshot(const Snapshot* snapshot);
+  static char* InitializeIsolateGroupFlagsFromSnapshot(
+      const Snapshot* snapshot);
 
   explicit SnapshotHeaderReader(const Snapshot* snapshot)
       : SnapshotHeaderReader(snapshot->kind(),
@@ -84,8 +85,6 @@ class SnapshotHeaderReader {
       : kind_(kind), stream_(buffer, size) {
     stream_.SetPosition(Snapshot::kHeaderSize);
   }
-
-  void SetCoverageFromSnapshotFeatures(IsolateGroup* isolate_group);
 
   // Verifies the version and features in the snapshot are compatible with the
   // current VM.  If isolate is non-null it validates isolate-specific features.
@@ -107,23 +106,19 @@ class SnapshotHeaderReader {
 
 class FullSnapshotWriter {
  public:
-  static constexpr intptr_t kInitialSize = 64 * KB;
+  static constexpr intptr_t kInitialSize = 2 * MB;
   FullSnapshotWriter(Snapshot::Kind kind,
-                     NonStreamingWriteStream* vm_snapshot_data,
-                     NonStreamingWriteStream* isolate_snapshot_data,
-                     ImageWriter* vm_image_writer,
-                     ImageWriter* iso_image_writer);
+                     NonStreamingWriteStream* snapshot_data,
+                     ImageWriter* image_writer);
   ~FullSnapshotWriter();
 
-  // Writes a full snapshot of the program(VM isolate, regular isolate group).
+  // Writes a full snapshot of the program.
   void WriteFullSnapshot(
       GrowableArray<LoadingUnitSerializationData*>* data = nullptr);
+  // Writes a snapshot for a deferred loading unit.
   void WriteUnitSnapshot(GrowableArray<LoadingUnitSerializationData*>* units,
                          LoadingUnitSerializationData* unit,
                          uint32_t program_hash);
-
-  intptr_t VmIsolateSnapshotSize() const { return vm_isolate_snapshot_size_; }
-  intptr_t IsolateSnapshotSize() const { return isolate_snapshot_size_; }
 
  private:
   Thread* thread() const { return thread_; }
@@ -131,21 +126,13 @@ class FullSnapshotWriter {
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return isolate_group()->heap(); }
 
-  // Writes a snapshot of the VM Isolate.
-  ZoneGrowableArray<Object*>* WriteVMSnapshot();
-
   // Writes a full snapshot of regular Dart isolate group.
-  void WriteProgramSnapshot(ZoneGrowableArray<Object*>* objects,
-                            GrowableArray<LoadingUnitSerializationData*>* data);
+  void WriteProgramSnapshot(GrowableArray<LoadingUnitSerializationData*>* data);
 
   Thread* thread_;
   Snapshot::Kind kind_;
-  NonStreamingWriteStream* const vm_snapshot_data_;
-  NonStreamingWriteStream* const isolate_snapshot_data_;
-  intptr_t vm_isolate_snapshot_size_;
-  intptr_t isolate_snapshot_size_;
-  ImageWriter* vm_image_writer_;
-  ImageWriter* isolate_image_writer_;
+  NonStreamingWriteStream* const snapshot_data_;
+  ImageWriter* image_writer_;
 
   // Stats for benchmarking.
   intptr_t clustered_vm_size_ = 0;
@@ -167,14 +154,14 @@ class FullSnapshotReader {
                      Thread* thread);
   ~FullSnapshotReader() {}
 
-  ApiErrorPtr ReadVMSnapshot();
-  ApiErrorPtr ReadProgramSnapshot();
-  ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
+  // On success, returns nullptr. On failure, returns an error message that the
+  // caller must free.
+  char* ReadProgramSnapshot();
+  char* ReadUnitSnapshot(const LoadingUnit& unit);
 
  private:
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
-  ApiErrorPtr ConvertToApiError(char* message);
   void InitializeBSS();
 
   Snapshot::Kind kind_;

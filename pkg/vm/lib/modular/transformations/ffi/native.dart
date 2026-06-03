@@ -257,7 +257,7 @@ class FfiNativeTransformer extends FfiTransformer {
         !env.isSubtypeOf(dartParameterType, pointerVoidType));
   }
 
-  VariableDeclaration _declareTemporary(
+  Variable _declareTemporary(
     Expression initializer,
     DartType dartParameterType,
     DartType ffiParameterType,
@@ -266,7 +266,7 @@ class FfiNativeTransformer extends FfiTransformer {
         (_requiresPointerConversion(dartParameterType, ffiParameterType)
         ? nativeFieldWrapperClass1Type
         : dartParameterType);
-    return VariableDeclaration(
+    return Variable(
       variableDeclarationTemporaryName,
       initializer: initializer,
       type: wrappedType,
@@ -276,7 +276,7 @@ class FfiNativeTransformer extends FfiTransformer {
   }
 
   Expression _getTemporary(
-    VariableDeclaration temporary,
+    Variable temporary,
     DartType dartParameterType,
     DartType ffiParameterType, {
     required bool checkForNullptr,
@@ -288,7 +288,7 @@ class FfiNativeTransformer extends FfiTransformer {
       );
 
       if (checkForNullptr) {
-        final pointerAddressVar = VariableDeclaration(
+        final pointerAddressVar = Variable(
           "#pointerAddress",
           initializer: pointerAddress,
           type: coreTypes.intNonNullableRawType,
@@ -296,7 +296,7 @@ class FfiNativeTransformer extends FfiTransformer {
         );
         pointerAddress = BlockExpression(
           Block([
-            pointerAddressVar,
+            VariableStatement(VariableDeclaration(pointerAddressVar)),
             IfStatement(
               InstanceInvocation(
                 InstanceAccessKind.Instance,
@@ -363,7 +363,7 @@ class FfiNativeTransformer extends FfiTransformer {
     List<DartType> dartParameters = dartFunctionType.positionalParameters;
     // Create lists of temporary variables for arguments potentially being
     // wrapped, and the (potentially) wrapped arguments to be passed.
-    final temporariesForArguments = [];
+    final temporariesForArguments = <Statement>[];
     final callArguments = <Expression>[];
     final fencedArguments = [];
     for (int i = 0; i < invocation.arguments.positional.length; i++) {
@@ -374,7 +374,9 @@ class FfiNativeTransformer extends FfiTransformer {
       );
       // Note: We also evaluate, and assign temporaries for, non-wrapped
       // arguments as we need to preserve the original evaluation order.
-      temporariesForArguments.add(temporary);
+      temporariesForArguments.add(
+        VariableStatement(VariableDeclaration(temporary)),
+      );
       callArguments.add(
         _getTemporary(
           temporary,
@@ -401,7 +403,7 @@ class FfiNativeTransformer extends FfiTransformer {
     }
 
     //   final T #t1 = foo(Pointer.fromAddress(_getNativeField(#t0)));
-    final result = VariableDeclaration(
+    final result = Variable(
       variableDeclarationTemporaryName,
       initializer: resultInitializer,
       type: dartFunctionType.returnType,
@@ -419,7 +421,7 @@ class FfiNativeTransformer extends FfiTransformer {
     final resultBlock = BlockExpression(
       Block(<Statement>[
         ...temporariesForArguments,
-        result,
+        VariableStatement(VariableDeclaration(result)),
         for (final argument in fencedArguments)
           ExpressionStatement(
             StaticInvocation(
@@ -613,10 +615,8 @@ class FfiNativeTransformer extends FfiTransformer {
         positionalParameters: [
           for (final positionalParameter
               in wrappedDartFunctionType.positionalParameters)
-            VariableDeclaration(
-              /*name=*/ '#t${varCounter++}',
-              type: positionalParameter,
-            )..fileOffset = node.fileOffset,
+            Variable(/*name=*/ '#t${varCounter++}', type: positionalParameter)
+              ..fileOffset = node.fileOffset,
         ],
         returnType: wrappedDartFunctionType.returnType,
       )..fileOffset = node.fileOffset,

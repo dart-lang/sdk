@@ -6,7 +6,7 @@ part of '../../ast.dart';
 
 /// Any type of node in the IR.
 abstract class Node {
-  const Node();
+  const new();
 
   R accept<R>(Visitor<R> v);
   R accept1<R, A>(Visitor1<R, A> v, A arg);
@@ -133,8 +133,7 @@ abstract class TreeNode extends Node {
 abstract class NamedNode extends TreeNode {
   final Reference reference;
 
-  NamedNode(Reference? reference)
-    : this.reference = reference ?? new Reference() {
+  new(Reference? reference) : this.reference = reference ?? new Reference() {
     this.reference.node = this;
   }
 
@@ -180,7 +179,7 @@ class Version extends Object {
   final int major;
   final int minor;
 
-  const Version(this.major, this.minor);
+  const new(this.major, this.minor);
 
   bool operator <(Version other) {
     if (major < other.major) return true;

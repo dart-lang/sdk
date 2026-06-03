@@ -17,7 +17,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final bool forAbstractClassOrEnumOrMixin;
-  Token? _beginInitializers;
+  final bool buildInitializersForOutline;
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
 
@@ -34,7 +34,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     constructorName.fullNameLength,
   );
 
-  PrimaryConstructorFragment({
+  new({
     required this.constructorName,
     required this.fileUri,
     required this.startOffset,
@@ -46,17 +46,10 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     required this.typeParameterScope,
     required this.formals,
     required this.forAbstractClassOrEnumOrMixin,
-    required Token? beginInitializers,
+    required this.buildInitializersForOutline,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  }) : _beginInitializers = beginInitializers;
-
-  Token? get beginInitializers {
-    Token? result = _beginInitializers;
-    // Ensure that we don't hold onto the token.
-    _beginInitializers = null;
-    return result;
-  }
+  });
 
   @override
   SourceConstructorBuilder get builder {
@@ -115,10 +108,7 @@ class _PrimaryConstructorBodyBuildingContext
   @override
   final bool shouldFinishFunction;
 
-  _PrimaryConstructorBodyBuildingContext(
-    this._fragment, {
-    required this.shouldFinishFunction,
-  });
+  new(this._fragment, {required this.shouldFinishFunction});
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -144,7 +134,7 @@ class _PrimaryConstructorBodyBuildingContext
       _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
+  InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
   LookupScope get typeParameterScope {

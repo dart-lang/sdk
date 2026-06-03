@@ -5,13 +5,12 @@
 // With the primary constructors feature, generative constructors in enums are
 // implicitly const and don't require the `const` keyword.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 import 'package:expect/expect.dart';
 
 enum E1 {
   e;
-  new ();
+
+  new();
 }
 
 enum E2(final int x) {
@@ -26,7 +25,7 @@ enum E3 {
   e2.named(2);
 
   final int x;
-  new () : this.named(1);
+  new() : this.named(1);
   new named(this.x);
 }
 

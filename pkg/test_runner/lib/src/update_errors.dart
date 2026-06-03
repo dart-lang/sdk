@@ -1,6 +1,8 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'package:path/path.dart' as p;
+
 import 'static_error.dart';
 
 /// Matches end of leading indentation in a line.
@@ -25,12 +27,27 @@ String updateErrorExpectations(
   List<StaticError> errors, {
   Set<ErrorSource> remove = const {},
   bool includeContext = false,
+  String? contextOwnerPath,
+  Iterable<String> contextOwnerPaths = const [],
 }) {
+  var currentPath = StaticError.normalizePath(path);
+  var normalizedContextOwnerPaths = {
+    if (contextOwnerPath != null) StaticError.normalizePath(contextOwnerPath),
+    for (var path in contextOwnerPaths) StaticError.normalizePath(path),
+  };
+  var inputErrors = errors;
+  var inputHasErrorsForCurrentPath = inputErrors.any(
+    (error) =>
+        error.path == currentPath ||
+        error.contextMessages.any((context) => context.path == currentPath),
+  );
+
   // Split the existing errors into kept and deleted lists.
-  var existingErrors = StaticError.parseExpectations(
+  var existingParsed = StaticError.parseExpectationsUnattached(
     source: source,
     path: path,
   );
+  var existingErrors = _attachLocalContexts(existingParsed);
   var keptErrors = <StaticError>[];
   var removedErrors = <StaticError>[];
   for (var error in existingErrors) {
@@ -67,31 +84,46 @@ String updateErrorExpectations(
     }
   }
 
-  // Merge the new errors with the preserved ones.
-  errors = [...errors, ...keptErrors];
-
-  // Group errors by the line where they appear.
-  var errorMap = <int, List<StaticError>>{};
-  for (var error in errors) {
-    // -1 to translate from one-based to zero-based index.
-    errorMap.putIfAbsent(error.line - 1, () => []).add(error);
-
-    // Flatten out and include context messages.
-    if (includeContext) {
-      for (var context in error.contextMessages) {
-        // -1 to translate from one-based to zero-based index.
-        errorMap.putIfAbsent(context.line - 1, () => []).add(context);
+  if (normalizedContextOwnerPaths.isNotEmpty) {
+    for (var context in existingParsed.contextMessages) {
+      if (normalizedContextOwnerPaths.contains(context.contextOwnerPath)) {
+        context.sourceLines.forEach(removeLine);
       }
     }
   }
 
-  // If there are multiple errors on the same line, order them
-  // deterministically.
-  for (var errorList in errorMap.values) {
-    errorList.sort();
+  // Merge the new errors with the preserved ones.
+  errors = [...inputErrors, ...keptErrors];
+
+  // Group errors by the line where they appear.
+  var errorMap = <int, List<StaticError>>{};
+  for (var error in errors) {
+    if (error.path == currentPath ||
+        (!inputHasErrorsForCurrentPath && inputErrors.contains(error))) {
+      // -1 to translate from one-based to zero-based index.
+      errorMap.putIfAbsent(error.line - 1, () => []).add(error);
+    }
+
+    // Flatten out and include context messages.
+    if (includeContext) {
+      for (var context in error.contextMessages) {
+        if (context.path == currentPath ||
+            (!inputHasErrorsForCurrentPath && inputErrors.contains(error))) {
+          // -1 to translate from one-based to zero-based index.
+          errorMap.putIfAbsent(context.line - 1, () => []).add(context);
+        }
+      }
+    }
   }
 
-  var errorNumbers = _numberErrors(errors);
+  var errorNumbers = _ErrorNumbers(errors);
+
+  // If there are multiple errors on the same line, order them
+  // deterministically. Context messages that share a location are ordered by
+  // their numeric context number, not by message text.
+  for (var errorList in errorMap.values) {
+    errorList.sort((a, b) => _compareErrors(a, b, errorNumbers));
+  }
 
   // Rebuild the source file a line at a time.
   var previousIndent = 0;
@@ -156,6 +188,23 @@ String updateErrorExpectations(
       var line = "$comment [${error.source.marker}";
       if (includeContext && errorNumbers.containsKey(error)) {
         line += " ${errorNumbers[error]}";
+        if (error.isContext) {
+          var owner = errorNumbers.ownerOf(error);
+          if (owner != null && owner.path != error.path) {
+            line += " for ${_markerPath(from: error.path, to: owner.path)}";
+          }
+        } else {
+          var contextPaths = {
+            for (var contextMessage in error.contextMessages)
+              if (contextMessage.path != error.path) contextMessage.path,
+          };
+          if (contextPaths.isNotEmpty) {
+            line +=
+                " see ${contextPaths.map((path) {
+                  return _markerPath(from: error.path, to: path);
+                }).join(', ')}";
+          }
+        }
       }
       line += "] ${errorLines[0]}";
       result.add(line);
@@ -177,27 +226,86 @@ String updateErrorExpectations(
   return result.join("\n");
 }
 
-/// Assigns unique numbers to all [errors] that have context messages, as well
-/// as their context messages.
-Map<StaticError, int> _numberErrors(List<StaticError> errors) {
-  // Note: if the same context message appears multiple times at the same
-  // location, there will be distinct (non-identical) StaticError instances
-  // that compare equal.  We use `Map.identity` to ensure that we can associate
-  // each with its own context number.
-  var result = Map<StaticError, int>.identity();
-  var number = 1;
-  for (var error in errors) {
-    if (error.contextMessages.isEmpty) continue;
-
-    result[error] = number;
-    for (var context in error.contextMessages) {
-      result[context] = number;
+int _compareErrors(StaticError a, StaticError b, _ErrorNumbers errorNumbers) {
+  if (a.isContext && b.isContext) {
+    var aNumber = errorNumbers[a];
+    var bNumber = errorNumbers[b];
+    if (aNumber != null && bNumber != null && aNumber != bNumber) {
+      return aNumber.compareTo(bNumber);
     }
-
-    number++;
   }
 
-  return result;
+  return a.compareTo(b);
+}
+
+List<StaticError> _attachLocalContexts(ParsedStaticErrorExpectations parsed) {
+  for (var error in parsed.errors) {
+    var number = parsed.numberOf(error);
+    if (number == null) continue;
+
+    for (var context in parsed.contextMessages) {
+      if (parsed.numberOf(context) == number &&
+          context.contextOwnerPath == error.path &&
+          context.path == error.path) {
+        error.contextMessages.add(context);
+      }
+    }
+  }
+
+  return parsed.errors;
+}
+
+String _markerPath({required String from, required String to}) {
+  return p.relative(to, from: p.dirname(from)).replaceAll(r'\', '/');
+}
+
+/// Manages the assignment of numeric IDs to errors and their context messages.
+///
+/// When updating error expectations, errors that have context messages
+/// are assigned numbers to link them together (e.g., `[analyzer 1]`). This
+/// class tracks those assignments.
+///
+/// Note: if the same context message appears multiple times at the same
+/// location, there will be distinct (non-identical) [StaticError] instances
+/// that compare equal. We use [Map.identity] to ensure that we can associate
+/// each with its own context number.
+class _ErrorNumbers {
+  final _numbers = Map<StaticError, int>.identity();
+  final _owners = Map<StaticError, StaticError>.identity();
+
+  /// Assigns unique numbers to all [errors] that have context messages, as well
+  /// as their context messages.
+  factory _ErrorNumbers(List<StaticError> errors) {
+    var result = _ErrorNumbers._();
+
+    var nextNumberByOwner = <String, int>{};
+    for (var error in errors) {
+      if (error.contextMessages.isEmpty) continue;
+
+      var number = nextNumberByOwner.update(
+        error.path,
+        (number) => number + 1,
+        ifAbsent: () => 1,
+      );
+
+      result._numbers[error] = number;
+
+      for (var context in error.contextMessages) {
+        result._numbers[context] = number;
+        result._owners[context] = error;
+      }
+    }
+
+    return result;
+  }
+
+  _ErrorNumbers._();
+
+  bool containsKey(StaticError error) => _numbers.containsKey(error);
+
+  int? operator [](StaticError error) => _numbers[error];
+
+  StaticError? ownerOf(StaticError context) => _owners[context];
 }
 
 /// Returns the number of characters of leading spaces in [line].

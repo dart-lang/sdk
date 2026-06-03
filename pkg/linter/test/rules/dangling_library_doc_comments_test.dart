@@ -18,14 +18,11 @@ class DanglingLibraryDocCommentsTest extends LintRuleTest {
   String get lintRule => LintNames.dangling_library_doc_comments;
 
   test_docComment_aboveDeclaration() async {
-    await assertDiagnostics(
-      r'''
-/// Doc comment.
+    await assertDiagnosticsFromMarkdown(r'''
+[!/// Doc comment.!]
 
 class C {}
-''',
-      [lint(0, 16)],
-    );
+''');
   }
 
   test_docComment_aboveDeclaration_endingInReference() async {
@@ -44,15 +41,12 @@ class C {}
   }
 
   test_docComment_aboveDeclarationWithDocComment() async {
-    await assertDiagnostics(
-      r'''
-/// Library comment.
+    await assertDiagnosticsFromMarkdown(r'''
+[!/// Library comment.!]
 
 /// Class comment.
 class C {}
-''',
-      [lint(0, 20)],
-    );
+''');
   }
 
   test_docComment_aboveDeclarationWithOtherComment1() async {
@@ -64,27 +58,21 @@ class C {}
   }
 
   test_docComment_aboveDeclarationWithOtherComment2() async {
-    await assertDiagnostics(
-      r'''
-/// Doc comment.
+    await assertDiagnosticsFromMarkdown(r'''
+[!/// Doc comment.!]
 
 // Comment.
 class C {}
-''',
-      [lint(0, 16)],
-    );
+''');
   }
 
   test_docComment_aboveDeclarationWithOtherComment3() async {
-    await assertDiagnostics(
-      r'''
-/// Doc comment.
+    await assertDiagnosticsFromMarkdown(r'''
+[!/// Doc comment.!]
 // Comment.
 
 class C {}
-''',
-      [lint(0, 16)],
-    );
+''');
   }
 
   test_docComment_aboveDeclarationWithOtherComment4() async {
@@ -97,23 +85,17 @@ class C {}
   }
 
   test_docComment_atEndOfFile() async {
-    await assertDiagnostics(
-      r'''
-/// Doc comment with [int].
-''',
-      [lint(0, 27)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!/// Doc comment with [int].!]
+''');
   }
 
   test_docComment_atEndOfFile_precededByComment() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // Copyright something.
 
-/// Doc comment with [int].
-''',
-      [lint(25, 27)],
-    );
+[!/// Doc comment with [int].!]
+''');
   }
 
   test_docComment_attachedToDeclaration() async {
@@ -124,13 +106,10 @@ class C {}
   }
 
   test_docComment_onFirstDirective() async {
-    await assertDiagnostics(
-      r'''
-/// Doc comment.
+    await assertDiagnosticsFromMarkdown(r'''
+[!/// Doc comment.!]
 export 'dart:math';
-''',
-      [lint(0, 16)],
-    );
+''');
   }
 
   test_docComment_onLaterDirective() async {

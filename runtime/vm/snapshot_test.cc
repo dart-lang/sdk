@@ -763,9 +763,8 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
-    FullSnapshotWriter writer(
-        Snapshot::kFull, /*vm_snapshot_data=*/nullptr, &isolate_snapshot_data,
-        /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
+    FullSnapshotWriter writer(Snapshot::kFull, &isolate_snapshot_data,
+                              /*image_writer=*/nullptr);
     writer.WriteFullSnapshot();
     // Take ownership so it doesn't get freed by the stream destructor.
     intptr_t unused;

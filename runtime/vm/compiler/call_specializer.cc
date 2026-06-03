@@ -1325,14 +1325,14 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
         if (call->HasICData() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
           if (binary_feedback.ArgumentIs(kSmiCid)) {
-            Definition* arg = call->ArgumentAt(1);
+            Definition* arg = call->ArgumentAt(0);
             AddCheckSmi(arg, call->deopt_id(), call->env(), call);
             ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
                                                        call->source()));
             return;
           } else if (binary_feedback.ArgumentIs(kMintCid) &&
                      CanConvertInt64ToDouble()) {
-            Definition* arg = call->ArgumentAt(1);
+            Definition* arg = call->ArgumentAt(0);
             ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
                                                          call->deopt_id()));
             return;
@@ -2688,24 +2688,24 @@ class SimdLowering : public ValueObject {
 
       // Mixed
       case MethodRecognizer::kFloat32x4ToFloat64x2: {
-        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4, 1);
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
         Float32x4ToFloat64x2();
         BoxVector(kUnboxedDouble, 2);
         return true;
       }
       case MethodRecognizer::kFloat64x2ToFloat32x4: {
-        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2, 1);
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
         Float64x2ToFloat32x4();
         BoxVector(kUnboxedFloat, 4);
         return true;
       }
       case MethodRecognizer::kInt32x4ToFloat32x4:
-        UnboxVector(0, kUnboxedInt32, kMintCid, 4, 1);
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
         Int32x4ToFloat32x4();
         BoxVector(kUnboxedFloat, 4);
         return true;
       case MethodRecognizer::kFloat32x4ToInt32x4:
-        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4, 1);
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
         Float32x4ToInt32x4();
         BoxVector(kUnboxedInt32, 4);
         return true;
@@ -2744,12 +2744,8 @@ class SimdLowering : public ValueObject {
     BoxVector(kUnboxedDouble, 2);
   }
 
-  void UnboxVector(intptr_t i,
-                   Representation rep,
-                   intptr_t cid,
-                   intptr_t n,
-                   intptr_t type_args = 0) {
-    Definition* arg = call_->ArgumentAt(i + type_args);
+  void UnboxVector(intptr_t i, Representation rep, intptr_t cid, intptr_t n) {
+    Definition* arg = call_->ArgumentAt(i);
     if (CompilerState::Current().is_aot()) {
       // Add null-checks in case of the arguments are known to be compatible
       // but they are possibly nullable.
@@ -2765,11 +2761,8 @@ class SimdLowering : public ValueObject {
     }
   }
 
-  void UnboxScalar(intptr_t i,
-                   Representation rep,
-                   intptr_t n,
-                   intptr_t type_args = 0) {
-    Definition* arg = call_->ArgumentAt(i + type_args);
+  void UnboxScalar(intptr_t i, Representation rep, intptr_t n) {
+    Definition* arg = call_->ArgumentAt(i);
     if (CompilerState::Current().is_aot()) {
       // Add null-checks in case of the arguments are known to be compatible
       // but they are possibly nullable.

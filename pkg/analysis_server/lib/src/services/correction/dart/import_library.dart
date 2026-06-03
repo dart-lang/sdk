@@ -39,33 +39,31 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   /// Initialize a newly created instance that will add an import for an
   /// extension.
-  ImportLibrary.forExtension({required super.context})
-    : _importKind = .forExtension;
+  new forExtension({required super.context}) : _importKind = .forExtension;
 
   /// Initialize a newly created instance that will add an import for a member
   /// of an extension.
-  ImportLibrary.forExtensionMember({required super.context})
+  new forExtensionMember({required super.context})
     : _importKind = .forExtensionMember;
 
   /// Initialize a newly created instance that will add an import for an
   /// extension type.
-  ImportLibrary.forExtensionType({required super.context})
+  new forExtensionType({required super.context})
     : _importKind = .forExtensionType;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level function.
-  ImportLibrary.forFunction({required super.context})
-    : _importKind = .forFunction;
+  new forFunction({required super.context}) : _importKind = .forFunction;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level variable.
-  ImportLibrary.forTopLevelVariable({required super.context})
+  new forTopLevelVariable({required super.context})
     : _importKind = .forTopLevelVariable;
 
   /// Initialize a newly created instance that will add an import for a
   /// type-like declaration (class, enum, mixin, typedef), a constructor, a
   /// static member of a declaration, or an enum value.
-  ImportLibrary.forType({required super.context}) : _importKind = .forType;
+  new forType({required super.context}) : _importKind = .forType;
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -773,7 +771,7 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
 
   String _uriText = '';
 
-  _ImportAbsoluteLibrary(
+  new(
     this._fixKind,
     this._library,
     this._prefix, {
@@ -820,13 +818,13 @@ enum _ImportKind {
 
   final ImportLibrary Function({required CorrectionProducerContext context}) fn;
 
-  const _ImportKind(this.fn);
+  new(this.fn);
 }
 
 /// A correction processor that can add/remove a name to/from the show/hide
 /// combinator of an existing import.
 class _ImportLibraryCombinator extends _ImportLibraryCombinatorMultiple {
-  _ImportLibraryCombinator(
+  new(
     String libraryName,
     List<NamespaceCombinator> combinators,
     String updatedName, {
@@ -852,7 +850,7 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
 
   final bool _removePrefix;
 
-  _ImportLibraryCombinatorMultiple(
+  new(
     this._libraryName,
     this._combinators,
     this._updatedNames, {
@@ -941,7 +939,7 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   final String? _nodePrefix;
   final _ImportLibraryCombinator? _editCombinator;
 
-  _ImportLibraryPrefix(
+  new(
     this._importedLibrary,
     this._importPrefix,
     this._editCombinator,
@@ -1012,7 +1010,7 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
 
   String _uriText = '';
 
-  _ImportRelativeLibrary(
+  new(
     this._fixKind,
     this._library,
     this._prefix, {
@@ -1064,7 +1062,7 @@ class _PrefixedName {
   final String name;
   final _ProducersGenerators _producerGenerators;
 
-  _PrefixedName({
+  new({
     required this.name,
     this.prefix,
     required this._producerGenerators,

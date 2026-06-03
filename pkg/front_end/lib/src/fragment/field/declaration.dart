@@ -180,7 +180,7 @@ class RegularFieldDeclaration
   @override
   bool hasBodyBeenBuilt = false;
 
-  RegularFieldDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -650,9 +650,6 @@ class RegularFieldDeclaration
             .builder
             .libraryBuilder
             .loader
-            .target
-            .backendTarget
-            .flags
             .isClosureContextLoweringEnabled,
       );
     } else {

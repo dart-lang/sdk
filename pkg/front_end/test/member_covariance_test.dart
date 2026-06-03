@@ -133,9 +133,7 @@ void main() {
     ProcedureKind.Method,
     new FunctionNode(
       null,
-      positionalParameters: [
-        new VariableDeclaration(null, isSynthesized: true),
-      ],
+      positionalParameters: [new Variable(null, isSynthesized: true)],
     ),
     fileUri: dummyUri,
   );
@@ -162,11 +160,11 @@ void main() {
     new FunctionNode(
       null,
       positionalParameters: [
-        new VariableDeclaration(null, isSynthesized: true),
-        new VariableDeclaration(null, isSynthesized: true),
-        new VariableDeclaration(null, isSynthesized: true),
-        new VariableDeclaration(null, isSynthesized: true),
-        new VariableDeclaration(null, isSynthesized: true),
+        new Variable(null, isSynthesized: true),
+        new Variable(null, isSynthesized: true),
+        new Variable(null, isSynthesized: true),
+        new Variable(null, isSynthesized: true),
+        new Variable(null, isSynthesized: true),
       ],
     ),
     fileUri: dummyUri,
@@ -204,11 +202,11 @@ void main() {
     new FunctionNode(
       null,
       namedParameters: [
-        new VariableDeclaration('a'),
-        new VariableDeclaration('b'),
-        new VariableDeclaration('c'),
-        new VariableDeclaration('d'),
-        new VariableDeclaration('e'),
+        new Variable('a'),
+        new Variable('b'),
+        new Variable('c'),
+        new Variable('d'),
+        new Variable('e'),
       ],
     ),
     fileUri: dummyUri,

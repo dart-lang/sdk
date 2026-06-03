@@ -8,8 +8,6 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -17,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Sort constructor declarations before other members.';
 
 class SortConstructorsFirst extends AnalysisRule {
-  SortConstructorsFirst()
-    : super(name: LintNames.sort_constructors_first, description: _desc);
+  new() : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.sortConstructorsFirst;
@@ -38,7 +35,7 @@ class SortConstructorsFirst extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   void check(NodeList<ClassMember> members) {
     var other = false;

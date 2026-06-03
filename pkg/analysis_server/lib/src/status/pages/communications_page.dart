@@ -9,7 +9,7 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 
 class CommunicationsPage extends DiagnosticPageWithNav {
-  CommunicationsPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'communications',

@@ -1181,9 +1181,10 @@ class LiveRange {
     assert(pos > start);
     assert(!isPhysical);
     assert(mergedTo == null);
-    assert(splitNext == null);
+    assert(splitNext == null || end <= splitNext!.start);
     final sibling = LiveRange(registerClass);
     sibling.splitFrom = splitParent;
+    sibling.splitNext = splitNext;
     sibling.intervals = intervals.splitAt(pos);
     _splitUsePositions(pos, uses, sibling.uses);
     currentUse = math.max(1, currentUse - sibling.uses.length);

@@ -20,6 +20,14 @@ final List<VariableDeclaration> emptyListOfVariableDeclaration = List.filled(
   growable: false,
 );
 
+/// Almost const <Variable>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Variable> emptyListOfVariable = List.filled(
+  0,
+  dummyVariable,
+  growable: false,
+);
+
 /// Almost const <Combinator>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Combinator> emptyListOfCombinator = List.filled(
@@ -472,15 +480,30 @@ final List<MapPatternEntry> emptyListOfMapPatternEntry = List.filled(
   growable: false,
 );
 
+/// Non-nullable [VariableStatement] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final VariableStatement dummyVariableStatement = new VariableStatement(
+  dummyVariableDeclaration,
+);
+
 /// Non-nullable [VariableDeclaration] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final VariableDeclaration dummyVariableDeclaration = new VariableDeclaration(
-  null,
-  isSynthesized: true,
+  dummyVariable,
 );
+
+/// Non-nullable [Variable] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final Variable dummyVariable = new Variable(null, isSynthesized: true);
 
 /// Non-nullable [CatchVariable] dummy value.
 ///

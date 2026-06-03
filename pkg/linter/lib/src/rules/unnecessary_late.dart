@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r"Don't specify the `late` modifier when it is not needed.";
 
 class UnnecessaryLate extends AnalysisRule {
-  UnnecessaryLate()
-    : super(name: LintNames.unnecessary_late, description: _desc);
+  new() : super(name: LintNames.unnecessary_late, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryLate;
@@ -35,7 +34,7 @@ class UnnecessaryLate extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {

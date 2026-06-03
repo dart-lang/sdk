@@ -953,6 +953,7 @@ display
 displayed
 displaying
 disregard
+disrupt
 distance
 distinct
 distinction
@@ -1629,6 +1630,7 @@ initializers
 initializes
 initializing
 initially
+initiates
 inject
 injected
 injection
@@ -3361,6 +3363,7 @@ unhelpful
 unicode
 unified
 uniformity
+uniformly
 unifying
 unimplemented
 uninitialized

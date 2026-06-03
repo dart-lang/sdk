@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,7 +15,7 @@ main() {
 @reflectiveTest
 class ConstEvalTypeBoolNumStringTest extends PubPackageResolutionTest {
   test_equal_double_object_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 const a = 0.1;
 const b = a == Object();
@@ -24,8 +23,7 @@ const b = a == Object();
   }
 
   test_equal_userClass_int_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A {
   const A();
@@ -33,13 +31,13 @@ class A {
 
 const a = A();
 const b = a == 0;
-''',
-      [error(diag.constEvalTypeBoolNumString, 67, 6)],
-    );
+//        ^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
   }
 
   test_notEqual_double_object_language219() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 const a = 0.1;
 const b = a != Object();
@@ -47,8 +45,7 @@ const b = a != Object();
   }
 
   test_notEqual_userClass_int_language219() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.19
 class A {
   const A();
@@ -56,17 +53,16 @@ class A {
 
 const a = A();
 const b = a != 0;
-''',
-      [error(diag.constEvalTypeBoolNumString, 67, 6)],
-    );
+//        ^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
   }
 
   test_stringInterpolation_list() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 const x = '${const [2]}';
-''',
-      [error(diag.constEvalTypeBoolNumString, 11, 12)],
-    );
+//         ^^^^^^^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
   }
 }

@@ -8,10 +8,10 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
+    show DiagnosticMessage, DiagnosticMessageImpl;
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -21,8 +21,7 @@ const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
 
 class PreferFinalLocals extends AnalysisRule {
-  PreferFinalLocals()
-    : super(name: LintNames.prefer_final_locals, description: _desc);
+  new() : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferFinalLocals;
@@ -61,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final String currentFilePath;
 
-  _Visitor(this.rule, {required this.currentFilePath});
+  new(this.rule, {required this.currentFilePath});
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {

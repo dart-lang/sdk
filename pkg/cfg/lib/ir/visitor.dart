@@ -40,8 +40,10 @@ abstract interface class InstructionVisitor<R> {
   R visitTypeLiteral(TypeLiteral instr);
   R visitAllocateObject(AllocateObject instr);
   R visitAllocateClosure(AllocateClosure instr);
+  R visitAllocateContext(AllocateContext instr);
   R visitAllocateListLiteral(AllocateListLiteral instr);
   R visitAllocateMapLiteral(AllocateMapLiteral instr);
+  R visitAllocateRecordLiteral(AllocateRecordLiteral instr);
   R visitStringInterpolation(StringInterpolation instr);
   R visitEnterSuspendableFunction(EnterSuspendableFunction instr);
   R visitSuspend(Suspend instr);
@@ -54,6 +56,7 @@ abstract interface class InstructionVisitor<R> {
   R visitCompareAndBranch(CompareAndBranch instr);
   R visitAllocateList(AllocateList instr);
   R visitSetListElement(SetListElement instr);
+  R visitAllocateRecord(AllocateRecord instr);
   R visitBoxInt(BoxInt instr);
   R visitBoxDouble(BoxDouble instr);
   R visitUnboxInt(UnboxInt instr);
@@ -111,9 +114,12 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitTypeLiteral(TypeLiteral instr) => defaultInstruction(instr);
   R visitAllocateObject(AllocateObject instr) => defaultInstruction(instr);
   R visitAllocateClosure(AllocateClosure instr) => defaultInstruction(instr);
+  R visitAllocateContext(AllocateContext instr) => defaultInstruction(instr);
   R visitAllocateListLiteral(AllocateListLiteral instr) =>
       defaultInstruction(instr);
   R visitAllocateMapLiteral(AllocateMapLiteral instr) =>
+      defaultInstruction(instr);
+  R visitAllocateRecordLiteral(AllocateRecordLiteral instr) =>
       defaultInstruction(instr);
   R visitStringInterpolation(StringInterpolation instr) =>
       defaultInstruction(instr);
@@ -130,6 +136,8 @@ abstract mixin class DefaultInstructionVisitor<R>
       defaultBackendInstruction(instr);
   R visitAllocateList(AllocateList instr) => defaultBackendInstruction(instr);
   R visitSetListElement(SetListElement instr) =>
+      defaultBackendInstruction(instr);
+  R visitAllocateRecord(AllocateRecord instr) =>
       defaultBackendInstruction(instr);
   R visitBoxInt(BoxInt instr) => defaultBackendInstruction(instr);
   R visitBoxDouble(BoxDouble instr) => defaultBackendInstruction(instr);

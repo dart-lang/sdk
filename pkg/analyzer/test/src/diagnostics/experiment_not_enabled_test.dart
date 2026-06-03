@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +15,7 @@ main() {
 @reflectiveTest
 class ExperimentNotEnabledTest extends PubPackageResolutionTest {
   test_constructor_tearoffs_disabled_grammar() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.12
 class Foo<X> {
   const Foo.bar();
@@ -25,58 +23,55 @@ class Foo<X> {
 }
 main() {
   Foo<int>.bar.baz();
+//   ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+//             ^^^
+// [diag.undefinedMethod] The method 'baz' isn't defined for the type 'Function'.
 }
-''',
-      [
-        error(diag.experimentNotEnabled, 86, 5),
-        error(diag.undefinedMethod, 96, 3),
-      ],
-    );
+''');
   }
 
   test_dotShorthands_disabled() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.8
 void main() {
   Object c = .hash(1, 2);
+//           ^
+// [diag.experimentNotEnabled] This requires the 'dot-shorthands' language feature to be enabled.
   print(c);
 }
-''',
-      [error(diag.experimentNotEnabled, 42, 1)],
-    );
+''');
   }
 
   test_nonFunctionTypeAliases_disabled() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.12
 typedef A = int;
-''',
-      [error(diag.experimentNotEnabled, 26, 1)],
-    );
+//        ^
+// [diag.experimentNotEnabled] This requires the 'nonfunction-type-aliases' language feature to be enabled.
+''');
   }
 
   test_nonFunctionTypeAliases_disabled_nullable() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 2.12
 typedef A = int?;
-''',
-      [error(diag.experimentNotEnabled, 26, 1)],
-    );
+//        ^
+// [diag.experimentNotEnabled] This requires the 'nonfunction-type-aliases' language feature to be enabled.
+''');
   }
 
   test_privateNamedParameters_disabled() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.8
 class C {
   int? _x;
+//     ^^
+// [diag.unusedField] The value of the field '_x' isn't used.
   C({this._x});
+//        ^^
+// [diag.experimentNotEnabled] This requires the 'private-named-parameters' language feature to be enabled.
 }
-''',
-      [error(diag.unusedField, 32, 2), error(diag.experimentNotEnabled, 46, 2)],
-    );
+''');
   }
 }

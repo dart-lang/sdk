@@ -49,6 +49,8 @@ import 'augmentation_of_different_declaration_kind_test.dart'
     as augmentation_of_different_declaration_kind;
 import 'augmentation_of_mixin_application_class_test.dart'
     as augmentation_of_mixin_application_class;
+import 'augmentation_return_type_mismatch_test.dart'
+    as augmentation_return_type_mismatch;
 import 'augmentation_type_parameter_bound_test.dart'
     as augmentation_type_parameter_bound;
 import 'augmentation_type_parameter_count_test.dart'
@@ -157,6 +159,7 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'const_type_parameter_test.dart' as const_type_parameter;
+import 'const_variable_augmentation_test.dart' as const_variable_augmentation;
 import 'const_with_non_const_test.dart' as const_with_non_const;
 import 'const_with_non_constant_argument_test.dart'
     as const_with_non_constant_argument;
@@ -175,6 +178,8 @@ import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'creation_with_non_type_test.dart' as creation_with_non_type;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
+import 'default_value_already_specified_in_augmentation_chain_test.dart'
+    as default_value_already_specified_in_augmentation_chain;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
@@ -256,6 +261,7 @@ import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'equal_keys_in_map_pattern_test.dart' as equal_keys_in_map_pattern;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
+import 'executable_body_test.dart' as executable_body;
 import 'expected_one_list_pattern_type_arguments_test.dart'
     as expected_one_list_pattern_type_arguments;
 import 'expected_one_list_type_arguments_test.dart'
@@ -279,8 +285,6 @@ import 'extends_type_alias_expands_to_type_parameter_test.dart'
 import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
     as extension_conflicting_static_and_instance;
-import 'extension_declares_abstract_method_test.dart'
-    as extension_declares_abstract_method;
 import 'extension_declares_constructor_test.dart'
     as extension_declares_constructor;
 import 'extension_declares_field_test.dart' as extension_declares_field;
@@ -316,11 +320,8 @@ import 'extension_type_representation_depends_on_itself_test.dart'
     as extension_type_representation_depends_on_itself;
 import 'extension_type_representation_type_bottom_test.dart'
     as extension_type_representation_type_bottom;
-import 'extension_type_with_abstract_member_test.dart'
-    as extension_type_with_abstract_member;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
-import 'external_method_with_body_test.dart' as external_method_with_body;
 import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
@@ -382,6 +383,8 @@ import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implements_repeated_test.dart' as implements_repeated;
+import 'implements_super_class_constraint_test.dart'
+    as implements_super_class_constraint;
 import 'implements_super_class_test.dart' as implements_super_class;
 import 'implements_type_alias_expands_to_type_parameter_test.dart'
     as implements_type_alias_expands_to_type_parameter;
@@ -863,6 +866,8 @@ import 'type_parameter_supertype_of_its_bound_test.dart'
 import 'type_test_with_non_type_test.dart' as type_test_with_non_type;
 import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
+import 'unawaited_return_in_try_block_test.dart'
+    as unawaited_return_in_try_block;
 import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
@@ -990,6 +995,7 @@ main() {
     augmentation_modifier_missing.main();
     augmentation_of_different_declaration_kind.main();
     augmentation_of_mixin_application_class.main();
+    augmentation_return_type_mismatch.main();
     augmentation_type_parameter_bound.main();
     augmentation_type_parameter_count.main();
     augmentation_type_parameter_name.main();
@@ -1057,6 +1063,7 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     const_type_parameter.main();
+    const_variable_augmentation.main();
     const_with_non_const.main();
     const_with_non_constant_argument.main();
     const_with_non_type.main();
@@ -1071,6 +1078,7 @@ main() {
     creation_with_non_type.main();
     dead_code.main();
     dead_null_aware_expression.main();
+    default_value_already_specified_in_augmentation_chain.main();
     default_value_in_function_type.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
@@ -1127,6 +1135,7 @@ main() {
     equal_keys_in_const_map.main();
     equal_keys_in_map_pattern.main();
     equal_keys_in_map.main();
+    executable_body.main();
     expected_one_list_pattern_type_arguments.main();
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
@@ -1143,7 +1152,6 @@ main() {
     extends_type_alias_expands_to_type_parameter.main();
     extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
-    extension_declares_abstract_method.main();
     extension_declares_constructor.main();
     extension_declares_field.main();
     extension_declares_member_of_object.main();
@@ -1162,9 +1170,7 @@ main() {
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
     extension_type_representation_type_bottom.main();
-    extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
-    external_method_with_body.main();
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
@@ -1204,6 +1210,7 @@ main() {
     implements_disallowed_class.main();
     implements_non_class.main();
     implements_repeated.main();
+    implements_super_class_constraint.main();
     implements_super_class.main();
     implements_type_alias_expands_to_type_parameter.main();
     implicit_this_reference_in_initializer.main();
@@ -1509,6 +1516,7 @@ main() {
     type_parameter_supertype_of_its_bound.main();
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
+    unawaited_return_in_try_block.main();
     undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();

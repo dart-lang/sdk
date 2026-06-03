@@ -297,7 +297,7 @@ class SnippetPlaceholder {
   final int? linkedGroupId;
   final bool isFinal;
 
-  SnippetPlaceholder(
+  new(
     this.offset,
     this.length, {
     this.suggestions,

@@ -28,7 +28,7 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
     name.length,
   );
 
-  ExtensionTypeFragment({
+  new({
     required this.name,
     required super.fileUri,
     required this.nameOffset,

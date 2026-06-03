@@ -60,14 +60,11 @@ class B extends A {
   }
 
   test_class_setter_noGetter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  set x(int value) {}
+  set [!x!](int value) {}
 }
-''',
-      [lint(16, 1)],
-    );
+''');
   }
 
   test_class_static_getter_setter() async {
@@ -80,25 +77,19 @@ class A {
   }
 
   test_enum() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum A {
   a,b,c;
-  set x(int x) {}
+  set [!x!](int x) {}
 }
-''',
-      [lint(24, 1)],
-    );
+''');
   }
 
   test_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type B(int a) {
-  set i(int i) {}
+  set [!i!](int i) {}
 }
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 }

@@ -50,7 +50,7 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         StringLiteral,
         TypeParameter,
-        VariableDeclaration,
+        Variable,
         VariableGet,
         defaultLanguageVersion;
 import 'package:kernel/class_hierarchy.dart';
@@ -82,10 +82,8 @@ Future<void> main() async {
       hasNamedBeforePositional: false,
       positionalCount: 1,
     );
-    Expression expression = new VariableGet(
-      new VariableDeclaration("expression"),
-    );
-    Expression index = new VariableGet(new VariableDeclaration("index"));
+    Expression expression = new VariableGet(new Variable("expression"));
+    Expression index = new VariableGet(new Variable("index"));
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(
       c,
@@ -179,9 +177,10 @@ Future<void> main() async {
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
     );
-    VariableDeclaration variable = new VariableDeclaration(
+    InternalVariable variable = new VariableDeclarationImpl(
       null,
       isSynthesized: true,
+      fileOffset: -1,
     );
 
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl();
@@ -247,7 +246,7 @@ Future<void> main() async {
       new DelayedPostfixIncrement(helper, token, generator, binaryOperator),
     );
     check(
-      "VariableUseGenerator(offset: 4, variable: dynamic #0;)",
+      "VariableUseGenerator(offset: 4, variable: dynamic #0)",
       new VariableUseGenerator(helper, token, variable),
     );
     check(
@@ -257,7 +256,12 @@ Future<void> main() async {
     );
     check(
       "ThisPropertyAccessGenerator(offset: 4, name: bar)",
-      new ThisPropertyAccessGenerator(helper, token, name),
+      new ThisPropertyAccessGenerator(
+        helper,
+        token,
+        name,
+        isThisExplicit: false,
+      ),
     );
     check(
       "NullAwarePropertyAccessGenerator(offset: 4,"
@@ -300,6 +304,7 @@ Future<void> main() async {
         getter,
         null,
         setter,
+        isQualifiedAccess: true,
       ),
     );
     check(

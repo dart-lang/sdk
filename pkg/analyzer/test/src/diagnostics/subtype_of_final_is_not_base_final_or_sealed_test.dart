@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SubtypeOfFinalIsNotBaseFinalOrSealedTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,21 +19,12 @@ main() {
 class SubtypeOfFinalIsNotBaseFinalOrSealedTest
     extends PubPackageResolutionTest {
   test_class_extends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 class B extends A {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          23,
-          1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -49,7 +41,7 @@ final class A {}
 class B {}
 ''',
       [
-        this.error(
+        error(
           diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           38,
           1,
@@ -67,17 +59,17 @@ class B {}
 final class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 class B extends A {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 33, 1)],
-    );
+//              ^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'A' can't be extended outside of its library because it's a final class.
+''');
   }
 
   test_class_extends_outside_viaLanguage219AndCore() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 // @dart=2.19
 import 'dart:core';
 class A implements MapEntry<int, int> {
@@ -86,45 +78,24 @@ class A implements MapEntry<int, int> {
 }
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 class B extends A {
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
   int get key => 0;
   int get value => 1;
 }
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          23,
-          1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.",
-        ),
-      ],
-    );
+''');
   }
 
   test_class_implements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 class B implements A {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          23,
-          1,
-          text:
-              "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_class_implements_outside() async {
@@ -134,20 +105,20 @@ class B implements A {}
 final class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 class B implements A {}
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 36, 1)],
-    );
+//                 ^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'A' can't be implemented outside of its library because it's a final class.
+''');
   }
 
   test_class_implements_outside_viaLanguage219AndCore() async {
     // No [SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED] reported outside of
     // library to avoid over-reporting when we have a
     // [FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY] error.
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFileWithDiagnostics(a, r'''
 // @dart=2.19
 import 'dart:core';
 class A implements MapEntry<int, int> {
@@ -156,19 +127,15 @@ class A implements MapEntry<int, int> {
 }
 ''');
 
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 class B implements A {
+//                 ^
+// [diag.finalClassImplementedOutsideOfLibrary] The class 'MapEntry' can't be implemented outside of its library because it's a final class.
   int get key => 0;
   int get value => 1;
 }
-''',
-      [error(diag.finalClassImplementedOutsideOfLibrary, 36, 1)],
-    );
+''');
   }
 
   test_class_on_outside() async {
@@ -178,72 +145,37 @@ class B implements A {
 final class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 mixin B on A {}
-''',
-      [error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 28, 1)],
-    );
+//         ^
+// [diag.finalClassUsedAsMixinConstraintOutsideOfLibrary] The class 'A' can't be used as a mixin superclass constraint outside of its library because it's a final class.
+''');
   }
 
   test_class_sealed_extends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
+//          ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
 sealed class B extends A {}
 class C extends B {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          51,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              12,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_class_sealed_extends_multiple() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
+//          ^
+// [context 1] The type 'C' is a subtype of 'A', and 'A' is defined here.
 sealed class B extends A {}
 sealed class C extends B {}
 class D extends C {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          79,
-          1,
-          text:
-              "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              12,
-              1,
-              textContains: [
-                "The type 'C' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_class_sealed_extends_outside() async {
@@ -253,199 +185,95 @@ class D extends C {}
 final class A {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 sealed class B extends A {}
+//                     ^
+// [diag.finalClassExtendedOutsideOfLibrary] The class 'A' can't be extended outside of its library because it's a final class.
 class C extends B {}
-''',
-      [error(diag.finalClassExtendedOutsideOfLibrary, 40, 1)],
-    );
+''');
   }
 
   test_class_sealed_extends_unordered() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C extends B {}
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
 sealed class B extends A {}
 final class A {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          6,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              61,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//          ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''');
   }
 
   test_class_sealed_implements() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
+//          ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
 sealed class B implements A {}
 class C implements B {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          54,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              12,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_class_sealed_with_extends() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 final class B {}
+//          ^
+// [context 1] The type 'C' is a subtype of 'B', and 'B' is defined here.
 sealed class C extends B with A {}
 class D extends C {}
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          69,
-          1,
-          text:
-              "The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'B' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              23,
-              1,
-              textContains: [
-                "The type 'C' is a subtype of 'B', and 'B' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'D' must be 'base', 'final' or 'sealed' because the supertype 'B' is 'final'.
+''');
   }
 
   test_classTypeAlias() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 mixin B {}
 class C = Object with B implements A;
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          34,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_classTypeAlias_interface() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 mixin B {}
 interface class C = Object with B implements A;
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          44,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-        ),
-      ],
-    );
+//              ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_classTypeAlias_sealed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
+//          ^
+// [context 1] The type 'AA' is a subtype of 'A', and 'A' is defined here.
 sealed class AA extends A {}
 mixin B {}
 class C = Object with B implements AA;
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          63,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              12,
-              1,
-              textContains: [
-                "The type 'AA' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//    ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 
   test_classTypeAlias_sealed_interface() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class A {}
+//          ^
+// [context 1] The type 'AA' is a subtype of 'A', and 'A' is defined here.
 sealed class AA extends A {}
 mixin B {}
 interface class C = Object with B implements AA;
-''',
-      [
-        this.error(
-          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
-          73,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.",
-          contextMessages: [
-            contextMessage(
-              testFile,
-              12,
-              1,
-              textContains: [
-                "The type 'AA' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+//              ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
+''');
   }
 }

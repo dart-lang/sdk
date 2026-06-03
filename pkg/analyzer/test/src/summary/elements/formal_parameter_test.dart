@@ -17,7 +17,9 @@ main() {
 
 abstract class FormalParameterElementTest extends ElementsBaseTest {
   test_parameter() async {
-    var library = await buildLibrary('void main(int p) {}');
+    var library = await buildLibrary(r'''
+void main(int p) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43,7 +45,7 @@ library
   }
 
   test_parameter_covariant_explicit_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m({covariant A a}) {}
 }
@@ -88,7 +90,7 @@ library
   }
 
   test_parameter_covariant_explicit_positional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m([covariant A a]) {}
 }
@@ -133,7 +135,7 @@ library
   }
 
   test_parameter_covariant_explicit_required() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m(covariant A a) {}
 }
@@ -182,6 +184,7 @@ library
 class A<T> {
   void f(covariant T t) {}
 }
+
 class B<T> extends A<T> {
   void f(T t) {}
 }
@@ -208,20 +211,20 @@ library
               formalParameters
                 #F5 requiredPositional isExplicitlyCovariant isOriginDeclaration t (nameOffset:34) (firstTokenOffset:22) (offset:34)
                   element: <testLibrary>::@class::A::@method::f::@formalParameter::t
-        #F6 hasExtendsClause class B (nameOffset:48) (firstTokenOffset:42) (offset:48)
+        #F6 hasExtendsClause class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::B
           typeParameters
-            #F7 T (nameOffset:50) (firstTokenOffset:50) (offset:50)
+            #F7 T (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: #E1 T
           constructors
-            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F9 isCompleteDeclaration isOriginDeclaration f (nameOffset:75) (firstTokenOffset:70) (offset:75)
+            #F9 isCompleteDeclaration isOriginDeclaration f (nameOffset:76) (firstTokenOffset:71) (offset:76)
               element: <testLibrary>::@class::B::@method::f
               formalParameters
-                #F10 requiredPositional isOriginDeclaration t (nameOffset:79) (firstTokenOffset:77) (offset:79)
+                #F10 requiredPositional isOriginDeclaration t (nameOffset:80) (firstTokenOffset:78) (offset:80)
                   element: <testLibrary>::@class::B::@method::f::@formalParameter::t
   classes
     isSimplyBounded class A
@@ -270,10 +273,11 @@ library
   }
 
   test_parameter_covariant_inherited_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m({covariant A a}) {}
 }
+
 class B extends A {
   void m({B a}) {}
 }
@@ -297,17 +301,17 @@ library
               formalParameters
                 #F4 optionalNamed isExplicitlyCovariant isOriginDeclaration a (nameOffset:32) (firstTokenOffset:20) (offset:32)
                   element: <testLibrary>::@class::A::@method::m::@formalParameter::a
-        #F5 hasExtendsClause class B (nameOffset:47) (firstTokenOffset:41) (offset:47)
+        #F5 hasExtendsClause class B (nameOffset:48) (firstTokenOffset:42) (offset:48)
           element: <testLibrary>::@class::B
           constructors
-            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F7 isCompleteDeclaration isOriginDeclaration m (nameOffset:68) (firstTokenOffset:63) (offset:68)
+            #F7 isCompleteDeclaration isOriginDeclaration m (nameOffset:69) (firstTokenOffset:64) (offset:69)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
-                #F8 optionalNamed isOriginDeclaration a (nameOffset:73) (firstTokenOffset:71) (offset:73)
+                #F8 optionalNamed isOriginDeclaration a (nameOffset:74) (firstTokenOffset:72) (offset:74)
                   element: <testLibrary>::@class::B::@method::m::@formalParameter::a
   classes
     isSimplyBounded class A
@@ -348,7 +352,11 @@ library
   }
 
   test_parameter_parameters() async {
-    var library = await buildLibrary('class C { f(g(x, y)) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  f(g(x, y)) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -363,16 +371,16 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 requiredPositional isOriginDeclaration g (nameOffset:12) (firstTokenOffset:12) (offset:12)
+                #F4 requiredPositional isOriginDeclaration g (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
                   parameters
-                    #F5 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:14) (firstTokenOffset:14) (offset:14)
-                      element: x@14
-                    #F6 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:17) (firstTokenOffset:17) (offset:17)
-                      element: y@17
+                    #F5 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
+                      element: x@16
+                    #F6 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:19) (firstTokenOffset:19) (offset:19)
+                      element: y@19
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -401,7 +409,11 @@ library
   }
 
   test_parameter_parameters_in_generic_class() async {
-    var library = await buildLibrary('class C<A, B> { f(A g(B x)) {} }');
+    var library = await buildLibrary(r'''
+class C<A, B> {
+  f(A g(B x)) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -421,14 +433,14 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F6 requiredPositional isOriginDeclaration g (nameOffset:20) (firstTokenOffset:18) (offset:20)
+                #F6 requiredPositional isOriginDeclaration g (nameOffset:22) (firstTokenOffset:20) (offset:22)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
                   parameters
-                    #F7 requiredPositional isOriginDeclaration x (nameOffset:24) (firstTokenOffset:22) (offset:24)
-                      element: x@24
+                    #F7 requiredPositional isOriginDeclaration x (nameOffset:26) (firstTokenOffset:24) (offset:26)
+                      element: x@26
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -459,7 +471,11 @@ library
   }
 
   test_parameter_return_type() async {
-    var library = await buildLibrary('class C { f(int g()) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  f(int g()) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -474,10 +490,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 requiredPositional isOriginDeclaration g (nameOffset:16) (firstTokenOffset:12) (offset:16)
+                #F4 requiredPositional isOriginDeclaration g (nameOffset:18) (firstTokenOffset:14) (offset:18)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
   classes
     isSimplyBounded class C
@@ -500,7 +516,11 @@ library
   }
 
   test_parameter_return_type_void() async {
-    var library = await buildLibrary('class C { f(void g()) {} }');
+    var library = await buildLibrary(r'''
+class C {
+  f(void g()) {}
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -515,10 +535,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:10) (firstTokenOffset:10) (offset:10)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration f (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 requiredPositional isOriginDeclaration g (nameOffset:17) (firstTokenOffset:12) (offset:17)
+                #F4 requiredPositional isOriginDeclaration g (nameOffset:19) (firstTokenOffset:14) (offset:19)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
   classes
     isSimplyBounded class C
@@ -588,7 +608,7 @@ library
   test_parameterTypeNotInferred_constructor() async {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C.positional([x = 1]);
   C.named({x: 1});
@@ -659,7 +679,7 @@ library
   test_parameterTypeNotInferred_initializingFormal() async {
     // Strong mode doesn't do type inference on initializing formals, so it's
     // ok that we don't store inferred type info for them in summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   var x;
   C.positional([this.x = 1]);
@@ -678,37 +698,41 @@ library
           fields
             #F2 hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::x
+              inducedGetter: #F3
+              inducedSetter: #F4
           constructors
-            #F3 isCompleteDeclaration isOriginDeclaration positional (nameOffset:23) (firstTokenOffset:21) (offset:23)
+            #F5 isCompleteDeclaration isOriginDeclaration positional (nameOffset:23) (firstTokenOffset:21) (offset:23)
               element: <testLibrary>::@class::C::@constructor::positional
               typeName: C
               typeNameOffset: 21
               periodOffset: 22
               formalParameters
-                #F4 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:35) (offset:40)
+                #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:35) (offset:40)
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
                   initializer: expression_0
                     IntegerLiteral
                       literal: 1 @44
                       staticType: int
-            #F5 isCompleteDeclaration isOriginDeclaration named (nameOffset:53) (firstTokenOffset:51) (offset:53)
+            #F7 isCompleteDeclaration isOriginDeclaration named (nameOffset:53) (firstTokenOffset:51) (offset:53)
               element: <testLibrary>::@class::C::@constructor::named
               typeName: C
               typeNameOffset: 51
               periodOffset: 52
               formalParameters
-                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:65) (firstTokenOffset:60) (offset:65)
+                #F8 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:65) (firstTokenOffset:60) (offset:65)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
                   initializer: expression_1
                     IntegerLiteral
                       literal: 1 @68
                       staticType: int
           getters
-            #F7 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
+              inducingVariable: #F2
           setters
-            #F8 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::x
+              inducingVariable: #F2
               formalParameters
                 #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
@@ -726,36 +750,36 @@ library
       constructors
         isOriginDeclaration positional
           reference: <testLibrary>::@class::C::@constructor::positional
-          firstFragment: #F3
-          formalParameters
-            #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
-              firstFragment: #F4
-              type: dynamic
-              constantInitializer
-                fragment: #F4
-                expression: expression_0
-              field: <testLibrary>::@class::C::@field::x
-        isOriginDeclaration named
-          reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F5
           formalParameters
-            #E1 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
+            #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F6
               type: dynamic
               constantInitializer
                 fragment: #F6
+                expression: expression_0
+              field: <testLibrary>::@class::C::@field::x
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F7
+          formalParameters
+            #E1 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
+              firstFragment: #F8
+              type: dynamic
+              constantInitializer
+                fragment: #F8
                 expression: expression_1
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
-          firstFragment: #F7
+          firstFragment: #F3
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::x
       setters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@setter::x
-          firstFragment: #F8
+          firstFragment: #F4
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F9
@@ -768,7 +792,7 @@ library
   test_parameterTypeNotInferred_staticMethod() async {
     // Strong mode doesn't do type inference on parameters of static methods,
     // so it's ok that we don't store inferred type info for them in summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static void positional([x = 1]) {}
   static void named({x: 1}) {}
@@ -844,7 +868,7 @@ library
     // Strong mode doesn't do type inference on parameters of top level
     // functions, so it's ok that we don't store inferred type info for them in
     // summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void positional([x = 1]) {}
 void named({x: 1}) {}
 ''');

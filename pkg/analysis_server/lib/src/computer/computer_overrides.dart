@@ -22,7 +22,7 @@ class DartUnitOverridesComputer {
   final CompilationUnit _unit;
   final List<proto.Override> _overrides = <proto.Override>[];
 
-  DartUnitOverridesComputer(this._unit);
+  new(this._unit);
 
   /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
@@ -105,7 +105,7 @@ class OverriddenElements {
   /// which is implemented by the class that defines [element].
   final List<Element> interfaceElements;
 
-  OverriddenElements(this.element, this.superElements, this.interfaceElements);
+  new(this.element, this.superElements, this.interfaceElements);
 }
 
 class _OverriddenElementsFinder {
@@ -119,7 +119,7 @@ class _OverriddenElementsFinder {
   final List<Element> _interfaceElements = <Element>[];
   final Set<InterfaceElement> _visited = {};
 
-  factory _OverriddenElementsFinder(Element seed) {
+  factory(Element seed) {
     var class_ = seed.enclosingElement as InterfaceElement;
     var library = class_.library;
     var name = seed.displayName;
@@ -138,13 +138,7 @@ class _OverriddenElementsFinder {
     return _OverriddenElementsFinder._(seed, library, class_, name, kinds);
   }
 
-  _OverriddenElementsFinder._(
-    this._seed,
-    this._library,
-    this._class,
-    this._name,
-    this._kinds,
-  );
+  new _(this._seed, this._library, this._class, this._name, this._kinds);
 
   /// Add the [OverriddenElements] for this element.
   OverriddenElements find() {

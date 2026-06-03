@@ -293,7 +293,7 @@ abstract class AnalysisServer {
   /// temporary content.
   bool suppressAnalysisResults = false;
 
-  AnalysisServer(
+  new(
     this.options,
     this.sdkManager,
     this.diagnosticServer,
@@ -1169,6 +1169,7 @@ abstract class AnalysisServer {
     await contextManager.dispose();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
+    await sessionLogger.shutdown();
   }
 
   ResolvedForCompletionResultImpl?
@@ -1210,7 +1211,7 @@ abstract class CommonServerContextManagerCallbacks
   /// The set of files for which notifications were sent.
   final Set<String> filesToFlush = {};
 
-  CommonServerContextManagerCallbacks(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   @mustCallSuper
@@ -1322,7 +1323,7 @@ enum MessageType {
   final lsp.MessageType forLsp;
   final legacy.MessageType forLegacy;
 
-  const MessageType(this.forLsp, this.forLegacy);
+  new(this.forLsp, this.forLegacy);
 }
 
 class ServerRecentPerformance {

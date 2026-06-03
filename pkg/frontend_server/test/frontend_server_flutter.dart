@@ -188,7 +188,7 @@ class _QueueEntry {
   final File packageConfig;
   final Directory testDir;
 
-  _QueueEntry(this.files, this.packageConfig, this.testDir);
+  new(this.files, this.packageConfig, this.testDir);
 }
 
 Future<void> _processFiles(
@@ -446,7 +446,7 @@ Future<List<String>> attemptStuff(
 // (expect can only be used in tests via the test framework).
 
 class OutputParser {
-  OutputParser(this._receivedResults);
+  new(this._receivedResults);
   bool expectSources = true;
 
   final StreamController<Result> _receivedResults;
@@ -500,7 +500,7 @@ class Result {
   String? status;
   List<String>? sources;
 
-  Result(this.status, this.sources);
+  new(this.status, this.sources);
 
   void expectNoErrors({String? filename}) {
     CompilationResult result = new CompilationResult.parse(status!);
@@ -519,7 +519,7 @@ class CompilationResult {
   late String filename;
   late int errorsCount;
 
-  CompilationResult.parse(String? filenameAndErrorCount) {
+  new parse(String? filenameAndErrorCount) {
     if (filenameAndErrorCount == null) {
       return;
     }
@@ -579,7 +579,7 @@ class _MockFile implements File {
   final File _f;
   _MockIOSink? writeSink;
 
-  _MockFile(this._f);
+  new(this._f);
 
   @override
   bool existsSync() {

@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddExtensionOverride extends MultiCorrectionProducer {
-  AddExtensionOverride({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -65,7 +65,7 @@ class _AddOverride extends ResolvedCorrectionProducer {
   /// The extension name to be inserted.
   final String _name;
 
-  _AddOverride(this._expression, this._name, {required super.context});
+  new(this._expression, this._name, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

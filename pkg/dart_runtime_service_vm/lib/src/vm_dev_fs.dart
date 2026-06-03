@@ -5,9 +5,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:file/local.dart';
+
+Future<List<int>> _collectBytes(Stream<List<int>> stream) async {
+  final builder = BytesBuilder(copy: false);
+  await for (final chunk in stream) {
+    builder.add(chunk);
+  }
+  return builder.takeBytes();
+}
 
 /// An outstanding write request managed by [_WriteLimiter].
 class _PendingWrite {
@@ -20,7 +29,7 @@ class _PendingWrite {
 
   final LocalFileSystem _localFs;
   final Uri uri;
-  final Stream<List<int>> bytes;
+  final List<int> bytes;
 
   Future<void> write() async {
     final file = _localFs.file(uri);
@@ -29,9 +38,7 @@ class _PendingWrite {
     if (await file.exists()) {
       await file.delete();
     }
-    final sink = file.openWrite();
-    await sink.addStream(bytes);
-    await sink.close();
+    await file.writeAsBytes(bytes, flush: true);
     completer.complete();
     _WriteLimiter._writeCompleted();
   }
@@ -51,19 +58,20 @@ abstract class _WriteLimiter {
     required LocalFileSystem localFs,
     required Uri uri,
     required List<int> bytes,
-  }) => scheduleWriteStream(
-    localFs: localFs,
-    uri: uri,
-    bytes: Stream.fromIterable([bytes]),
-  );
+  }) {
+    final pw = _PendingWrite(localFs: localFs, uri: uri, bytes: bytes);
+    pendingWrites.add(pw);
+    _maybeWriteFiles();
+    return pw.completer.future;
+  }
 
   static Future<void> scheduleWriteStream({
     required LocalFileSystem localFs,
     required Uri uri,
     required Stream<List<int>> bytes,
-  }) {
-    // Create a new pending write.
-    final pw = _PendingWrite(localFs: localFs, uri: uri, bytes: bytes);
+  }) async {
+    final collectedBytes = await _collectBytes(bytes);
+    final pw = _PendingWrite(localFs: localFs, uri: uri, bytes: collectedBytes);
     pendingWrites.add(pw);
     _maybeWriteFiles();
     return pw.completer.future;
@@ -150,7 +158,7 @@ final class VMDevelopmentFileSystem extends DevelopmentFileSystem {
   @override
   Future<RpcResponse> listFiles() async {
     final dir = _localFs.directory(rootUri);
-    final dirPathStr = dir.path;
+    final dirPathStr = Uri.file(dir.path).path;
     final stream = dir.list(recursive: true);
     final files = <Map<String, Object?>>[];
     await for (final fileEntity in stream) {
@@ -160,7 +168,7 @@ final class VMDevelopmentFileSystem extends DevelopmentFileSystem {
           filePath.startsWith(dirPathStr)) {
         files.add(<String, Object?>{
           // Remove any url-encoding in the filenames.
-          'name': Uri.decodeFull('/${filePath.substring(dirPathStr.length)}'),
+          'name': Uri.decodeFull(filePath.substring(dirPathStr.length)),
           'size': stat.size,
           'modified': stat.modified.millisecondsSinceEpoch,
         });

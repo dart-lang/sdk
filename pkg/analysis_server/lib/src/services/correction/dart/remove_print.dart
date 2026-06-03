@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 /// Generates corrections that remove print expression statements, but
 /// not other usages of print.
 class RemovePrint extends ResolvedCorrectionProducer {
-  RemovePrint({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

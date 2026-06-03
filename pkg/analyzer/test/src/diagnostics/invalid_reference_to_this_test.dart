@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,18 +15,17 @@ main() {
 @reflectiveTest
 class InvalidReferenceToThisTest extends PubPackageResolutionTest {
   test_class_instanceField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var f = this;
+//        ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 20, 4)],
-    );
+''');
   }
 
   test_class_instanceField_lateInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   late var f = this;
 }
@@ -35,7 +33,7 @@ class A {
   }
 
   test_class_instanceGetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   int get foo {
     this;
@@ -46,7 +44,7 @@ class A {
   }
 
   test_class_instanceMethod_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {
     this;
@@ -56,21 +54,18 @@ class A {
   }
 
   test_class_instanceMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo([Object p = this]) {}
+//                     ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 33, 4),
-        error(diag.invalidReferenceToThis, 33, 4),
-      ],
-    );
+''');
   }
 
   test_class_instanceSetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int _) {
     this;
@@ -80,18 +75,17 @@ class A {
   }
 
   test_class_primaryConstructor_assertInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A(int a) {
   this : assert(this.hashCode == 0);
+//              ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 33, 4)],
-    );
+''');
   }
 
   test_class_primaryConstructor_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A(num a) {
   num f = 0;
   this {
@@ -102,244 +96,217 @@ class A(num a) {
   }
 
   test_class_primaryConstructor_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A([int p = this]) {}
-''',
-      [
-        error(diag.nonConstantDefaultValue, 17, 4),
-        error(diag.invalidReferenceToThis, 17, 4),
-      ],
-    );
+//               ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+''');
   }
 
   test_class_primaryConstructor_fieldInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A() {
   var f;
   this : f = this;
+//           ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 34, 4)],
-    );
+''');
   }
 
   test_class_primaryConstructor_superInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A(Object x);
 class B() extends A {
   this : super(this);
+//             ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 56, 4)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_factory_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() { return this; }
+//                     ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 33, 4)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_factory_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A([Object p = this]) => throw 0;
+//                      ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 34, 4),
-        error(diag.invalidReferenceToThis, 34, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_assertInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() : assert(this.hashCode == 0);
+//             ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 25, 4)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A() {
     var v = this;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
   }
 }
-''',
-      [error(diag.unusedLocalVariable, 26, 1)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A([Object p = this]);
+//              ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 26, 4),
-        error(diag.invalidReferenceToThis, 26, 4),
-      ],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_fieldInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   var f;
   A() : f = this;
+//          ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 31, 4)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_redirectingInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(Object x);
   A.named() : this(this);
+//                 ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 44, 4)],
-    );
+''');
   }
 
   test_class_secondaryConstructor_generative_superInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   A(x) {}
 }
 class B extends A {
   B() : super(this);
+//            ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 56, 4)],
-    );
+''');
   }
 
   test_class_staticField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A f = this;
+//             ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 25, 4)],
-    );
+''');
   }
 
   test_class_staticField_lateInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static late var f = this;
+//                    ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 32, 4)],
-    );
+''');
   }
 
   test_class_staticGetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
     return 0;
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 37, 4)],
-    );
+''');
   }
 
   test_class_staticMethod_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 36, 4)],
-    );
+''');
   }
 
   test_class_staticMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo([Object p = this]) {}
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 40, 4),
-        error(diag.invalidReferenceToThis, 40, 4),
-      ],
-    );
+''');
   }
 
   test_class_staticSetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _) {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 40, 4)],
-    );
+''');
   }
 
   test_enum_instanceField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final f = this;
+//          ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 26, 4)],
-    );
+''');
   }
 
   test_enum_instanceField_lateInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   late final f = this;
+//^^^^
+// [diag.lateFinalFieldWithConstConstructor] Can't have a late final field in a class with a generative const constructor.
 }
-''',
-      [error(diag.lateFinalFieldWithConstConstructor, 16, 4)],
-    );
+''');
   }
 
   test_enum_instanceGetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   int get foo {
@@ -351,7 +318,7 @@ enum E {
   }
 
   test_enum_instanceMethod_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void foo() {
@@ -362,22 +329,19 @@ enum E {
   }
 
   test_enum_instanceMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   void foo([Object p = this]) {}
+//                     ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 37, 4),
-        error(diag.invalidReferenceToThis, 37, 4),
-      ],
-    );
+''');
   }
 
   test_enum_instanceSetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   set foo(int _) {
@@ -388,255 +352,224 @@ enum E {
   }
 
   test_enum_primaryConstructor_assertInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this : assert(this.hashCode == 0);
+//              ^^^^^^^^^^^^^
+// [diag.invalidConstant] Invalid constant value.
+//              ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.invalidConstant, 32, 13),
-        error(diag.invalidReferenceToThis, 32, 4),
-      ],
-    );
+''');
   }
 
   test_enum_primaryConstructor_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   this {
+//     ^
+// [diag.constPrimaryConstructorWithBlockBody] The body part of a constant primary constructor can't have a block body.
     this;
   }
 }
-''',
-      [error(diag.constPrimaryConstructorWithBlockBody, 23, 1)],
-    );
+''');
   }
 
   test_enum_primaryConstructor_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E([int p = this]) {
+//          ^
+// [diag.unusedElementParameter] A value for optional parameter 'p' isn't ever given.
+//              ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   v;
 }
-''',
-      [
-        error(diag.unusedElementParameter, 12, 1),
-        error(diag.nonConstantDefaultValue, 16, 4),
-        error(diag.invalidReferenceToThis, 16, 4),
-      ],
-    );
+''');
   }
 
   test_enum_primaryConstructor_fieldInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E() {
   v;
   final Object f;
   this : f = this;
+//           ^^^^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.invalidConstant, 47, 4),
-        error(diag.invalidReferenceToThis, 47, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_factory_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   factory E.named() {
     return this;
+//         ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 47, 4)],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_factory_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   factory E.named([Object p = this]) => throw 0;
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 44, 4),
-        error(diag.invalidReferenceToThis, 44, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_generative_assertInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
   const E.named() : assert(this.hashCode == 0);
+//                         ^^^^^^^^^^^^^
+// [diag.invalidConstant] Invalid constant value.
+//                         ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.invalidConstant, 49, 13),
-        error(diag.invalidReferenceToThis, 49, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_generative_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
   const E.named() {
+//                ^
+// [diag.constConstructorWithBody] Const constructors can't have a body.
     this;
   }
 }
-''',
-      [error(diag.constConstructorWithBody, 40, 1)],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_generative_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
   const E.named([Object p = this]);
+//                      ^
+// [diag.unusedElementParameter] A value for optional parameter 'p' isn't ever given.
+//                          ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.unusedElementParameter, 46, 1),
-        error(diag.nonConstantDefaultValue, 50, 4),
-        error(diag.invalidReferenceToThis, 50, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_generative_fieldInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   final Object f;
   const E() : f = this;
+//                ^^^^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.invalidConstant, 50, 4),
-        error(diag.invalidReferenceToThis, 50, 4),
-      ],
-    );
+''');
   }
 
   test_enum_secondaryConstructor_generative_redirectingInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
   const E.named() : this(this);
+//                       ^^^^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   const E(Object o);
 }
-''',
-      [
-        error(diag.invalidConstant, 47, 4),
-        error(diag.invalidReferenceToThis, 47, 4),
-      ],
-    );
+''');
   }
 
   test_enum_staticField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static var f = this;
+//               ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 31, 4)],
-    );
+''');
   }
 
   test_enum_staticField_lateInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static late final f = this;
+//                      ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 38, 4)],
-    );
+''');
   }
 
   test_enum_staticGetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int get foo {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
     return 0;
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 41, 4)],
-    );
+''');
   }
 
   test_enum_staticMethod_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 40, 4)],
-    );
+''');
   }
 
   test_enum_staticMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo([Object p = this]) {}
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 44, 4),
-        error(diag.invalidReferenceToThis, 44, 4),
-      ],
-    );
+''');
   }
 
   test_enum_staticSetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static set foo(int _) {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 44, 4)],
-    );
+''');
   }
 
   test_extension_instanceGetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo {
     this;
@@ -647,7 +580,7 @@ extension E on int {
   }
 
   test_extension_instanceMethod_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {
     this;
@@ -657,21 +590,18 @@ extension E on int {
   }
 
   test_extension_instanceMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo([Object p = this]) {}
+//                     ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 44, 4),
-        error(diag.invalidReferenceToThis, 44, 4),
-      ],
-    );
+''');
   }
 
   test_extension_instanceSetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set foo(int _) {
     this;
@@ -681,83 +611,75 @@ extension E on int {
   }
 
   test_extension_staticField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static var f = this;
+//               ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 38, 4)],
-    );
+''');
   }
 
   test_extension_staticField_lateInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static late var f = this;
+//                    ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 43, 4)],
-    );
+''');
   }
 
   test_extension_staticGetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int get foo {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
     return 0;
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 48, 4)],
-    );
+''');
   }
 
   test_extension_staticMethod_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo() {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 47, 4)],
-    );
+''');
   }
 
   test_extension_staticMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo([Object p = this]) {}
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 51, 4),
-        error(diag.invalidReferenceToThis, 51, 4),
-      ],
-    );
+''');
   }
 
   test_extension_staticSetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static set foo(int _) {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 51, 4)],
-    );
+''');
   }
 
   test_extensionType_instanceGetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   int get foo {
     this;
@@ -768,7 +690,7 @@ extension type E(int it) {
   }
 
   test_extensionType_instanceMethod_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   void foo() {
     this;
@@ -778,22 +700,19 @@ extension type E(int it) {
   }
 
   test_extensionType_instanceMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   void foo([Object p = this]) {}
+//                     ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 50, 4),
-        error(diag.invalidAssignment, 50, 4),
-        error(diag.invalidReferenceToThis, 50, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_instanceSetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   set foo(int _) {
     this;
@@ -803,18 +722,17 @@ extension type E(int it) {
   }
 
   test_extensionType_primaryConstructor_assertInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   this : assert(this.hashCode == 0);
+//              ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 43, 4)],
-    );
+''');
   }
 
   test_extensionType_primaryConstructor_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   this {
     this;
@@ -824,72 +742,62 @@ extension type E(int it) {
   }
 
   test_extensionType_primaryConstructor_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E([int it = this]) {}
-''',
-      [
-        error(diag.invalidReferenceToThis, 27, 4),
-        error(diag.nonConstantDefaultValue, 27, 4),
-      ],
-    );
+//                         ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+''');
   }
 
   test_extensionType_primaryConstructor_fieldInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   this : it = this.hashCode;
+//       ^^
+// [diag.fieldInitializedInParameterAndInitializer] Fields can't be initialized in both the parameter list and the initializers.
+//            ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.fieldInitializedInParameterAndInitializer, 36, 2),
-        error(diag.invalidReferenceToThis, 41, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_factory_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   factory E.named() {
     return this;
+//         ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 60, 4)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_factory_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 extension type E(int it) {
   factory E.named([Object p = this]) => throw 0;
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 57, 4),
-        error(diag.invalidAssignment, 57, 4),
-        error(diag.invalidReferenceToThis, 57, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_generative_assertInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics('''
 extension type E(int it) {
   E.named() : it = 0, assert(this.hashCode == 0);
+//                           ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 56, 4)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_generative_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named() : it = 0 {
     this;
@@ -899,132 +807,118 @@ extension type E(int it) {
   }
 
   test_extensionType_secondaryConstructor_generative_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named([Object p = this]) : it = 0;
+//                    ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 49, 4),
-        error(diag.invalidAssignment, 49, 4),
-        error(diag.invalidReferenceToThis, 49, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_generative_fieldInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named() : it = this.hashCode;
+//                 ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 46, 4)],
-    );
+''');
   }
 
   test_extensionType_secondaryConstructor_generative_redirectingInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   E.named() : this(this.hashCode);
+//                 ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 46, 4)],
-    );
+''');
   }
 
   test_extensionType_staticField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static var f = this;
+//               ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 44, 4)],
-    );
+''');
   }
 
   test_extensionType_staticField_lateInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static late var f = this;
+//                    ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 49, 4)],
-    );
+''');
   }
 
   test_extensionType_staticGetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static int get foo {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
     return 0;
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 54, 4)],
-    );
+''');
   }
 
   test_extensionType_staticMethod_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static void foo() {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 53, 4)],
-    );
+''');
   }
 
   test_extensionType_staticMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static void foo([Object p = this]) {}
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 57, 4),
-        error(diag.invalidAssignment, 57, 4),
-        error(diag.invalidReferenceToThis, 57, 4),
-      ],
-    );
+''');
   }
 
   test_extensionType_staticSetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {
   static set foo(int _) {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 57, 4)],
-    );
+''');
   }
 
   test_mixin_instanceField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   var f = this;
+//        ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 20, 4)],
-    );
+''');
   }
 
   test_mixin_instanceField_lateInitializer() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   late var f = this;
 }
@@ -1032,7 +926,7 @@ mixin A {
   }
 
   test_mixin_instanceGetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   int get foo {
     this;
@@ -1043,7 +937,7 @@ mixin M {
   }
 
   test_mixin_instanceMethod_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo() {
     this;
@@ -1053,21 +947,18 @@ mixin M {
   }
 
   test_mixin_instanceMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   void foo([Object p = this]) {}
+//                     ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 33, 4),
-        error(diag.invalidReferenceToThis, 33, 4),
-      ],
-    );
+''');
   }
 
   test_mixin_instanceSetter_body() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   set foo(int _) {
     this;
@@ -1077,142 +968,126 @@ mixin M {
   }
 
   test_mixin_staticField_initializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static var f = this;
+//               ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 27, 4)],
-    );
+''');
   }
 
   test_mixin_staticField_lateInitializer() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static late var f = this;
+//                    ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 32, 4)],
-    );
+''');
   }
 
   test_mixin_staticGetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
     return 0;
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 37, 4)],
-    );
+''');
   }
 
   test_mixin_staticMethod_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo() {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 36, 4)],
-    );
+''');
   }
 
   test_mixin_staticMethod_defaultValue() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo([Object p = this]) {}
+//                            ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [
-        error(diag.nonConstantDefaultValue, 40, 4),
-        error(diag.invalidReferenceToThis, 40, 4),
-      ],
-    );
+''');
   }
 
   test_mixin_staticSetter_body() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(int _) {
     this;
+//  ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   }
 }
-''',
-      [error(diag.invalidReferenceToThis, 40, 4)],
-    );
+''');
   }
 
   test_topLevelFunction__body() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f() {
   this;
+//^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 13, 4)],
-    );
+''');
   }
 
   test_topLevelFunction__defaultValue() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 void f([Object p = this]) {}
-''',
-      [
-        error(diag.nonConstantDefaultValue, 19, 4),
-        error(diag.invalidReferenceToThis, 19, 4),
-      ],
-    );
+//                 ^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+''');
   }
 
   test_topLevelGetter_body() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int get f {
   this;
+//^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   return 0;
 }
-''',
-      [error(diag.invalidReferenceToThis, 14, 4)],
-    );
+''');
   }
 
   test_topLevelSetter_body() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 set f(int _) {
   this;
+//^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
-''',
-      [error(diag.invalidReferenceToThis, 17, 4)],
-    );
+''');
   }
 
   test_topLevelVariable_initializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 int f = this;
-''',
-      [error(diag.invalidReferenceToThis, 8, 4)],
-    );
+//      ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+''');
   }
 
   test_topLevelVariable_lateInitializer() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 late var f = this;
-''',
-      [error(diag.invalidReferenceToThis, 13, 4)],
-    );
+//           ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+''');
   }
 }

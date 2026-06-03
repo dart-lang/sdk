@@ -229,6 +229,16 @@ B0 = EntryBlock()
 }) at closureCall(v1, v4)
   Return(v6)
 
+--- closure FunctionExpression(Null (int arg) {
+  print(arg);
+}) at closureCall
+B0 = EntryBlock()
+  v5 = Constant(null)
+  Parameter(#closure)
+  v2 = Parameter(arg)
+  DirectCall print(v2)
+  Return(v5)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

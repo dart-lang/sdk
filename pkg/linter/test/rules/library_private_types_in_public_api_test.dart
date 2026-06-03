@@ -46,18 +46,15 @@ abstract interface class E {
   }
 
   test_enum() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _O {}
 enum E {
   a, b, c;
-  final _O o = _O();
-  void oo(_O o) { }
-  _O get ooo => o;
+  final /*[0*/_O/*0]*/ o = _O();
+  void oo(/*[1*/_O/*1]*/ o) { }
+  /*[2*/_O/*2]*/ get ooo => o;
 }
-''',
-      [lint(40, 2), lint(63, 2), lint(75, 2)],
-    );
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/4470
@@ -92,25 +89,19 @@ class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
   String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_constructorParam() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
 extension type E(Object o) {
-  E.e(_C c) : o = c;
+  E.e([!_C!] c) : o = c;
 }
-''',
-      [lint(47, 2)],
-    );
+''');
   }
 
   test_extensionTypeDeclaration_representation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
-extension type E(_C c) {}
-''',
-      [lint(29, 2)],
-    );
+extension type E([!_C!] c) {}
+''');
   }
 
   test_extensionTypeDeclaration_representation_noType() async {
@@ -127,13 +118,10 @@ extension type E(_C _c) {}
   }
 
   test_extensionTypeDeclaration_typeParam() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
-extension type E<T extends _C>(Object o) {}
-''',
-      [lint(39, 2)],
-    );
+extension type E<T extends [!_C!]>(Object o) {}
+''');
   }
 
   test_field_instance() async {
@@ -152,27 +140,21 @@ extension type E(Object o) {
   }
 
   test_field_static() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
 extension type E(Object o) {
-  static _C? c;
+  static [!_C!]? c;
 }
-''',
-      [lint(50, 2)],
-    );
+''');
   }
 
   test_method_instance_param() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
 extension type E(Object o) {
-  m(_C c){}
+  m([!_C!] c){}
 }
-''',
-      [lint(45, 2)],
-    );
+''');
   }
 
   test_method_instance_private_param() async {
@@ -185,27 +167,21 @@ extension type E(Object o) {
   }
 
   test_method_instance_returnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
 extension type E(Object o) {
-  _C? m() => null;
+  [!_C!]? m() => null;
 }
-''',
-      [lint(43, 2)],
-    );
+''');
   }
 
   test_method_static_param() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
 extension type E(Object o) {
-  static m(_C c){}
+  static m([!_C!] c){}
 }
-''',
-      [lint(52, 2)],
-    );
+''');
   }
 
   test_method_static_private_returnType() async {
@@ -218,15 +194,12 @@ extension type E(Object o) {
   }
 
   test_method_static_returnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _C {}
 extension type E(Object o) {
-  static _C? m() => null;
+  static [!_C!]? m() => null;
 }
-''',
-      [lint(50, 2)],
-    );
+''');
   }
 }
 
@@ -236,39 +209,32 @@ class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
   String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_implicitTypeFieldFormalParam() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _O {}
 class C {
   _O _x;
 
-  C(this._x);
+  C(this.[!_x!]);
 
   Object get x => _x;
 }
-''',
-      [lint(41, 2)],
-    );
+''');
   }
 
   test_implicitTypeSuperFormalParam() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _O extends Object {}
 class _A {
   _A(_O o);
 }
 class B extends _A {
-  B(super.o);
+  B(super.[!o!]);
 }
-''',
-      [lint(83, 1)],
-    );
+''');
   }
 
   test_recursiveInterfaceInheritance() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class _O extends Object {}
 class A {
   Object o;
@@ -276,11 +242,9 @@ class A {
 }
 
 class B extends A {
-  B(_O super.o);
+  B([!_O!] super.o);
 }
-''',
-      [lint(89, 2)],
-    );
+''');
   }
 }
 
@@ -336,37 +300,28 @@ class _P {}
   }
 
   test_constructor_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C.named(_P p);
+  C.named([!_P!] p);
 }
 class _P {}
-''',
-      [lint(20, 2)],
-    );
+''');
   }
 
   test_constructor_unnamed_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  C(_P p);
+  C([!_P!] p);
 }
 class _P {}
-''',
-      [lint(14, 2)],
-    );
+''');
   }
 
   test_extension_onPrivateType() async {
-    await assertDiagnostics(
-      r'''
-extension E on _P {}
+    await assertDiagnosticsFromMarkdown(r'''
+extension E on [!_P!] {}
 class _P {}
-''',
-      [lint(15, 2)],
-    );
+''');
   }
 
   test_function_private_privateTypes() async {
@@ -377,23 +332,17 @@ class _P {}
   }
 
   test_function_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
-String f(_P p) => '';
+    await assertDiagnosticsFromMarkdown(r'''
+String f([!_P!] p) => '';
 class _P {}
-''',
-      [lint(9, 2)],
-    );
+''');
   }
 
   test_function_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
-_P f2(int i) => _P();
+    await assertDiagnosticsFromMarkdown(r'''
+[!_P!] f2(int i) => _P();
 class _P {}
-''',
-      [lint(0, 2)],
-    );
+''');
   }
 
   test_function_publicTypes() async {
@@ -421,27 +370,21 @@ class _P {}
   }
 
   test_instanceField_privateType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  _P f = _P();
+  [!_P!] f = _P();
 }
 class _P {}
-''',
-      [lint(12, 2)],
-    );
+''');
   }
 
   test_instanceField_privateTypeTypeArgument() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  List<_P> f = [];
+  List<[!_P!]> f = [];
 }
 class _P {}
-''',
-      [lint(17, 2)],
-    );
+''');
   }
 
   test_instanceGetter_private_privateReturnType() async {
@@ -454,15 +397,12 @@ class _P {}
   }
 
   test_instanceGetter_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  _P get g2 => _P();
+  [!_P!] get g2 => _P();
 }
 class _P {}
-''',
-      [lint(12, 2)],
-    );
+''');
   }
 
   test_instanceMethod_private_privateReturnType() async {
@@ -484,27 +424,21 @@ class _P {}
   }
 
   test_instanceMethod_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  String m(_P p) => '';
+  String m([!_P!] p) => '';
 }
 class _P {}
-''',
-      [lint(21, 2)],
-    );
+''');
   }
 
   test_instanceMethod_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  _P m(int i) => _P();
+  [!_P!] m(int i) => _P();
 }
 class _P {}
-''',
-      [lint(12, 2)],
-    );
+''');
   }
 
   test_instanceMethod_pulicTypes() async {
@@ -525,15 +459,12 @@ class _P {}
   }
 
   test_instanceSetter_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  set s(_P i) {}
+  set s([!_P!] i) {}
 }
 class _P {}
-''',
-      [lint(18, 2)],
-    );
+''');
   }
 
   test_mixin_implementsPrivateType() async {
@@ -544,13 +475,10 @@ class _P {}
   }
 
   test_mixin_onPrivateType() async {
-    await assertDiagnostics(
-      r'''
-mixin M on _P {}
+    await assertDiagnosticsFromMarkdown(r'''
+mixin M on [!_P!] {}
 class _P {}
-''',
-      [lint(11, 2)],
-    );
+''');
   }
 
   test_mixin_private_onPrivateType() async {
@@ -561,37 +489,28 @@ class _P {}
   }
 
   test_operator_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  int operator+(_P p) => 0;
+  int operator+([!_P!] p) => 0;
 }
 class _P {}
-''',
-      [lint(26, 2)],
-    );
+''');
   }
 
   test_operator_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  _P operator-(int i) => _P();
+  [!_P!] operator-(int i) => _P();
 }
 class _P {}
-''',
-      [lint(12, 2)],
-    );
+''');
   }
 
   test_primaryConstructor_declaring_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
-class C(_P p);
+    await assertDiagnosticsFromMarkdown(r'''
+class C([!_P!] p);
 class _P {}
-''',
-      [lint(8, 2)],
-    );
+''');
   }
 
   test_primaryConstructor_declaring_publicParameterType() async {
@@ -602,13 +521,10 @@ class P {}
   }
 
   test_primaryConstructor_named_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
-class C.named(_P p);
+    await assertDiagnosticsFromMarkdown(r'''
+class C.named([!_P!] p);
 class _P {}
-''',
-      [lint(14, 2)],
-    );
+''');
   }
 
   test_primaryConstructor_named_publicParameterType() async {
@@ -626,13 +542,10 @@ class _P {}
   }
 
   test_topLevelGetter_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
-_P get g => _P();
+    await assertDiagnosticsFromMarkdown(r'''
+[!_P!] get g => _P();
 class _P {}
-''',
-      [lint(0, 2)],
-    );
+''');
   }
 
   test_topLevelSetter_private_privateParameterType() async {
@@ -643,13 +556,10 @@ class _P {}
   }
 
   test_topLevelSetter_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
-set s(_P i) {}
+    await assertDiagnosticsFromMarkdown(r'''
+set s([!_P!] i) {}
 class _P {}
-''',
-      [lint(6, 2)],
-    );
+''');
   }
 
   test_topLevelVariable_private_privateType() async {
@@ -660,23 +570,17 @@ class _P {}
   }
 
   test_topLevelVariable_privateType() async {
-    await assertDiagnostics(
-      r'''
-_P? v;
+    await assertDiagnosticsFromMarkdown(r'''
+[!_P!]? v;
 class _P {}
-''',
-      [lint(0, 2)],
-    );
+''');
   }
 
   test_topLevelVariable_privateTypeTypeArgument() async {
-    await assertDiagnostics(
-      r'''
-List<_P> v = [];
+    await assertDiagnosticsFromMarkdown(r'''
+List<[!_P!]> v = [];
 class _P {}
-''',
-      [lint(5, 2)],
-    );
+''');
   }
 
   test_topLevelVariable_publicType() async {
@@ -686,43 +590,31 @@ String v = '';
   }
 
   test_typedef_legacy_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
-typedef void F(_P p);
+    await assertDiagnosticsFromMarkdown(r'''
+typedef void F([!_P!] p);
 class _P {}
-''',
-      [lint(15, 2)],
-    );
+''');
   }
 
   test_typedef_legacy_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
-typedef _P F();
+    await assertDiagnosticsFromMarkdown(r'''
+typedef [!_P!] F();
 class _P {}
-''',
-      [lint(8, 2)],
-    );
+''');
   }
 
   test_typedef_privateParameterType() async {
-    await assertDiagnostics(
-      r'''
-typedef F = void Function(_P);
+    await assertDiagnosticsFromMarkdown(r'''
+typedef F = void Function([!_P!]);
 class _P {}
-''',
-      [lint(26, 2)],
-    );
+''');
   }
 
   test_typedef_privateReturnType() async {
-    await assertDiagnostics(
-      r'''
-typedef F = _P Function();
+    await assertDiagnosticsFromMarkdown(r'''
+typedef F = [!_P!] Function();
 class _P {}
-''',
-      [lint(12, 2)],
-    );
+''');
   }
 
   test_typedef_publicParameterType() async {

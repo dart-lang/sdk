@@ -27,36 +27,27 @@ void f(Object o) {
   }
 
   test_binaryExpression() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  1 + 1;
+  [!1 + 1!];
 }
-''',
-      [lint(13, 5)],
-    );
+''');
   }
 
   test_binaryExpression_andAnd() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  true && 1 == 2;
+  true && [!1 == 2!];
 }
-''',
-      [lint(21, 6)],
-    );
+''');
   }
 
   test_binaryExpression_or() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  false || 1 == 2;
+  false || [!1 == 2!];
 }
-''',
-      [lint(22, 6)],
-    );
+''');
   }
 
   test_binaryExpression_or_rightSideHasEffect() async {
@@ -68,25 +59,19 @@ void f() {
   }
 
   test_construcorTearoff_new() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  ArgumentError.new;
+  [!ArgumentError.new!];
 }
-''',
-      [lint(13, 17)],
-    );
+''');
   }
 
   test_constructorTearoff_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  DateTime.now;
+  [!DateTime.now!];
 }
-''',
-      [lint(13, 12)],
-    );
+''');
   }
 
   test_doStatement() async {
@@ -106,14 +91,11 @@ void f() {
   }
 
   test_forLoopUpdaters_subsequent() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (; 1 == 2; print(7), []) {}
+  for (; 1 == 2; print(7), [![]!]) {}
 }
-''',
-      [lint(38, 2)],
-    );
+''');
   }
 
   test_forStatement() async {
@@ -125,26 +107,20 @@ void f() {
   }
 
   test_functionTearoff() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g;
+  [!g!];
 }
 void g() {}
-''',
-      [lint(13, 1)],
-    );
+''');
   }
 
   test_ifNull() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  null ?? 7;
+  null ?? [!7!];
 }
-''',
-      [lint(21, 1)],
-    );
+''');
   }
 
   test_ifNull_rightSideHasEffect() async {
@@ -166,64 +142,49 @@ void f() {
   }
 
   test_inDoWhile() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   do {
-    [];
+    [![]!];
   } while (1 == 2);
 }
-''',
-      [lint(22, 2)],
-    );
+''');
   }
 
   test_inForLoop() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   for (var i in []) {
-    ~1;
+    [!~1!];
   }
 }
-''',
-      [lint(37, 2)],
-    );
+''');
   }
 
   test_inForLoopInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (7; 1 == 2;) {}
+  for ([!7!]; 1 == 2;) {}
 }
-''',
-      [lint(18, 1)],
-    );
+''');
   }
 
   test_inForLoopUpdaters() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  for (; 1 == 2; []) {}
+  for (; 1 == 2; [![]!]) {}
 }
-''',
-      [lint(28, 2)],
-    );
+''');
   }
 
   test_inIfBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   if (1 == 2) {
-    [];
+    [![]!];
   }
 }
-''',
-      [lint(31, 2)],
-    );
+''');
   }
 
   test_instanceCreationExpression() async {
@@ -235,32 +196,26 @@ void f() {
   }
 
   test_instanceField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  C().g;
+  [!C().g!];
 }
 
 class C {
   int g = 1;
 }
-''',
-      [lint(13, 5)],
-    );
+''');
   }
 
   test_instanceField2() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f(C c) {
-  c.g;
+  [!c.g!];
 }
 class C {
   int g = 1;
 }
-''',
-      [lint(16, 3)],
-    );
+''');
   }
 
   test_instanceGetter() async {
@@ -280,17 +235,14 @@ void f(List<int> list) {
   }
 
   test_inSwitchStatement_case() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   switch (7) {
     case 6:
-      [];
+      [![]!];
   }
 }
-''',
-      [lint(44, 2)],
-    );
+''');
   }
 
   test_inSwitchStatement_case_break() async {
@@ -305,62 +257,47 @@ void f() {
   }
 
   test_inSwitchStatement_default() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   switch (7) {
     default:
-      [];
+      [![]!];
   }
 }
-''',
-      [lint(45, 2)],
-    );
+''');
   }
 
   test_intLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  1;
+  [!1!];
 }
-''',
-      [lint(13, 1)],
-    );
+''');
   }
 
   test_listLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  [];
+  [![]!];
 }
-''',
-      [lint(13, 2)],
-    );
+''');
   }
 
   test_localVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   var g = 1;
-  g;
+  [!g!];
 }
-''',
-      [lint(26, 1)],
-    );
+''');
   }
 
   test_mapLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  <dynamic, dynamic>{};
+  [!<dynamic, dynamic>{}!];
 }
-''',
-      [lint(13, 20)],
-    );
+''');
   }
 
   test_methodInvocation() async {
@@ -381,70 +318,52 @@ void f(List<int> list) {
   }
 
   test_methodTearoff() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  List.empty().where;
+  [!List.empty().where!];
 }
-''',
-      [lint(13, 18)],
-    );
+''');
   }
 
   test_methodTearoff_cascaded() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  List.empty()..where;
+  List.empty()[!..where!];
 }
-''',
-      [lint(25, 7)],
-    );
+''');
   }
 
   test_methodTearoff_cascaded_followOn() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
  List.empty()
     ..forEach((_) {})
-    ..where;
+    [!..where!];
 }
-''',
-      [lint(51, 7)],
-    );
+''');
   }
 
   test_methodTearoff_cascaded_returned_InLocalFunction() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   // ignore: unused_element
-  g() => List.empty()..where;
+  g() => List.empty()[!..where!];
 }
-''',
-      [lint(60, 7)],
-    );
+''');
   }
 
   test_methodTearoff_cascaded_returned_InTopLevelFunction() async {
-    await assertDiagnostics(
-      r'''
-List<int> f() => List.empty()..where;
-''',
-      [lint(29, 7)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+List<int> f() => List.empty()[!..where!];
+''');
   }
 
   test_methodTearoff_returned_inFunctionLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  () => List.empty().where;
+  [!() => List.empty().where!];
 }
-''',
-      [lint(13, 24)],
-    );
+''');
   }
 
   test_methodTearoff_returned_InLocalFunction() async {
@@ -492,25 +411,19 @@ int f() {
   }
 
   test_returnStatement_cascadedTearoff() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 List<int> f() {
-  return List.empty()..where;
+  return List.empty()[!..where!];
 }
-''',
-      [lint(37, 7)],
-    );
+''');
   }
 
   test_stringLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  "blah";
+  [!"blah"!];
 }
-''',
-      [lint(13, 6)],
-    );
+''');
   }
 
   test_switchStatement() async {
@@ -539,26 +452,20 @@ int get g => 1;
   }
 
   test_topLevelVariable() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g;
+  [!g!];
 }
 int g = 1;
-''',
-      [lint(13, 1)],
-    );
+''');
   }
 
   test_unaryOperation() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  ~1;
+  [!~1!];
 }
-''',
-      [lint(13, 2)],
-    );
+''');
   }
 
   test_unaryOperation_postfix() async {

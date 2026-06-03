@@ -112,7 +112,6 @@ extension A on int {}
 augment class A {}
 
 augment class A {}
-
 ''');
 
     configuration.withConstructors = false;
@@ -191,11 +190,12 @@ library
   }
 
   test_extension_documented_tripleSlash() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// aaa
 /// bbbb
 /// cc
-extension E on int {}''');
+extension E on int {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -261,7 +261,7 @@ library
   }
 
   test_extension_extendedType_recordType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on (int, String) {}
 ''');
     checkElementText(library, r'''
@@ -283,7 +283,7 @@ library
   }
 
   test_extension_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static int foo = 42;
 }
@@ -294,7 +294,7 @@ extension E on int {
   }
 
   test_extension_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   int get foo => 0;
 }
@@ -305,7 +305,7 @@ extension E on int {
   }
 
   test_extension_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   void foo() {}
 }
@@ -316,7 +316,7 @@ extension E on int {
   }
 
   test_extension_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   set foo(int _) {}
 }
@@ -327,7 +327,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static int foo = 42;
 }
@@ -339,7 +339,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   int get foo => 0;
 }
@@ -351,7 +351,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   void foo() {}
 }
@@ -363,7 +363,7 @@ extension E on int {
   }
 
   test_extension_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   set foo(int _) {}
 }
@@ -377,10 +377,13 @@ extension E on int {
   test_extension_metadata() async {
     var library = await buildLibrary(r'''
 const a = null;
+
 class A {}
+
 @a
 @Object()
-extension E on A {}''');
+extension E on A {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -388,14 +391,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:22) (firstTokenOffset:16) (offset:22)
+        #F1 class A (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:50) (firstTokenOffset:27) (offset:50)
+        #F3 extension E (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extension::E
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -404,9 +407,11 @@ library
             NullLiteral
               literal: null @10
               staticType: Null
+          inducedGetter: #F5
       getters
         #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
+          inducingVariable: #F4
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -477,9 +482,11 @@ library
                 IntegerLiteral
                   literal: 1 @71
                   staticType: int
+              inducedGetter: #F4
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@extension::E::@getter::foo
+              inducingVariable: #F3
           methods
             #F5 isCompleteDeclaration isOriginDeclaration bar (nameOffset:88) (firstTokenOffset:76) (offset:88)
               element: <testLibrary>::@extension::E::@method::bar
@@ -498,9 +505,11 @@ library
             IntegerLiteral
               literal: 0 @12
               staticType: int
+          inducedGetter: #F7
       getters
         #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
+          inducingVariable: #F6
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -599,8 +608,9 @@ library
   }
 
   test_extension_onDeclaration_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -617,7 +627,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F3 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
   classes
     isSimplyBounded class A
@@ -637,7 +647,7 @@ library
   }
 
   test_extension_onDeclaration_dynamic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on dynamic {}
 ''');
     checkElementText(library, r'''
@@ -659,8 +669,9 @@ library
   }
 
   test_extension_onDeclaration_enum() async {
-    var library = await buildLibrary('''
-enum A { foo; }
+    var library = await buildLibrary(r'''
+enum A { foo }
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -687,7 +698,8 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-            #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              inducedGetter: #F3
+            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
@@ -699,15 +711,18 @@ library
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
+              inducedGetter: #F5
           constructors
-            #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
+            #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::A::@getter::foo
-            #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              inducingVariable: #F2
+            #F5 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
+              inducingVariable: #F4
       extensions
         #F7 extension E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@extension::E
@@ -727,26 +742,26 @@ library
           getter: <testLibrary>::@enum::A::@getter::foo
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
-          firstFragment: #F3
+          firstFragment: #F4
           type: List<A>
           constantInitializer
-            fragment: #F3
+            fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F6
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@enum::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F3
           returnType: A
           variable: <testLibrary>::@enum::A::@field::foo
         isOriginVariable isStatic values
           reference: <testLibrary>::@enum::A::@getter::values
-          firstFragment: #F6
+          firstFragment: #F5
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
   extensions
@@ -759,8 +774,9 @@ library
   }
 
   test_extension_onDeclaration_extensionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type A(Object? it) {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -770,7 +786,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:42) (firstTokenOffset:32) (offset:42)
+        #F1 extension E (nameOffset:43) (firstTokenOffset:33) (offset:43)
           element: <testLibrary>::@extension::E
       extensionTypes
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
@@ -778,17 +794,19 @@ library
           fields
             #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::it
+              inducedGetter: #F4
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F5 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:25) (firstTokenOffset:17) (offset:25)
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:25) (firstTokenOffset:17) (offset:25)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
+              inducingVariable: #F3
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -812,24 +830,25 @@ library
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.it
-              firstFragment: #F5
+              firstFragment: #F6
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F6
+          firstFragment: #F4
           returnType: Object?
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
   }
 
   test_extension_onDeclaration_futureOr() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:async';
+
 extension E on FutureOr<int> {}
 ''');
     checkElementText(library, r'''
@@ -841,7 +860,7 @@ library
       libraryImports
         dart:async
       extensions
-        #F1 extension E (nameOffset:31) (firstTokenOffset:21) (offset:31)
+        #F1 extension E (nameOffset:32) (firstTokenOffset:22) (offset:32)
           element: <testLibrary>::@extension::E
   extensions
     extension E
@@ -853,8 +872,9 @@ library
   }
 
   test_extension_onDeclaration_mixin() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin A {}
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -864,7 +884,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:21) (firstTokenOffset:11) (offset:21)
+        #F1 extension E (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::E
       mixins
         #F2 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -885,7 +905,7 @@ library
   }
 
   test_extension_onDeclaration_Never() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on Never {}
 ''');
     checkElementText(library, r'''
@@ -907,7 +927,7 @@ library
   }
 
   test_extension_onDeclaration_nullable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int? {}
 ''');
     checkElementText(library, r'''
@@ -929,8 +949,9 @@ library
   }
 
   test_extension_onDeclaration_typedef() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef A = int;
+
 extension E on A {}
 ''');
     checkElementText(library, r'''
@@ -940,7 +961,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E (nameOffset:27) (firstTokenOffset:17) (offset:27)
+        #F1 extension E (nameOffset:28) (firstTokenOffset:18) (offset:28)
           element: <testLibrary>::@extension::E
       typeAliases
         #F2 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
@@ -961,7 +982,7 @@ library
   }
 
   test_extension_onDeclaration_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<X> on X {}
 ''');
     checkElementText(library, r'''
@@ -989,7 +1010,7 @@ library
   }
 
   test_extension_onDeclaration_void() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on void {}
 ''');
     checkElementText(library, r'''
@@ -1011,7 +1032,7 @@ library
   }
 
   test_extension_typeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on int {}
 ''');
     checkElementText(library, r'''
@@ -1411,7 +1432,7 @@ library
   }
 
   test_extension_typeParameters_bound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T extends num> on int {}
 ''');
     checkElementText(library, r'''
@@ -1440,7 +1461,7 @@ library
   }
 
   test_extension_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension on int {}
 ''');
     checkElementText(library, r'''
@@ -1485,12 +1506,16 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo1 (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo1
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo1
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable isStatic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo1
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo1::@formalParameter::value
@@ -1500,12 +1525,16 @@ library
           fields
             #F7 hasInitializer isOriginDeclaration isStatic foo2 (nameOffset:82) (firstTokenOffset:82) (offset:82)
               element: <testLibrary>::@extension::A::@field::foo2
+              inducedGetter: #F8
+              inducedSetter: #F9
           getters
             #F8 isCompleteDeclaration isOriginVariable isStatic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
               element: <testLibrary>::@extension::A::@getter::foo2
+              inducingVariable: #F7
           setters
             #F9 isCompleteDeclaration isOriginVariable isStatic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
               element: <testLibrary>::@extension::A::@setter::foo2
+              inducingVariable: #F7
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
                   element: <testLibrary>::@extension::A::@setter::foo2::@formalParameter::value
@@ -1585,23 +1614,46 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:89) (offset:89)
+            #F6 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:89) (offset:89)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F10
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -1618,16 +1670,16 @@ library
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extension::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo
@@ -1662,32 +1714,55 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
-              nextFragment: #F4
-          getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
-              element: <testLibrary>::@extension::A::@getter::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
               nextFragment: #F6
+          getters
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
-          nextFragment: #F9
+          nextFragment: #F11
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
+            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
               element: <testLibrary>::@extension::A::@getter::foo
-              previousFragment: #F5
-        #F9 isAugmentation extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
+              previousFragment: #F4
+              nextFragment: #F12
+        #F11 isAugmentation extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
           element: <testLibrary>::@extension::A
           previousFragment: #F2
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:149) (firstTokenOffset:149) (offset:149)
+            #F6 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:149) (firstTokenOffset:149) (offset:149)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F12
+              inducedSetter: #F10
               previousFragment: #F3
+          getters
+            #F12 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F7
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -1704,13 +1779,13 @@ library
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extension::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F7
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
@@ -1748,37 +1823,60 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
-                  nextFragment: #F8
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
-          nextFragment: #F10
+          nextFragment: #F11
           setters
-            #F9 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:70) (offset:89)
+            #F10 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:70) (offset:89)
               element: <testLibrary>::@extension::A::@setter::foo
               formalParameters
-                #F8 requiredPositional isOriginDeclaration _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
+                #F9 requiredPositional isOriginDeclaration _ (nameOffset:97) (firstTokenOffset:93) (offset:97)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
-                  previousFragment: #F7
-              previousFragment: #F6
-        #F10 isAugmentation extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
+                  previousFragment: #F8
+                  nextFragment: #F12
+              previousFragment: #F5
+              nextFragment: #F13
+        #F11 isAugmentation extension A (nameOffset:124) (firstTokenOffset:106) (offset:124)
           element: <testLibrary>::@extension::A
           previousFragment: #F2
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:149) (firstTokenOffset:149) (offset:149)
+            #F6 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:149) (firstTokenOffset:149) (offset:149)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F13
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F13 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F10
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -1795,16 +1893,16 @@ library
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extension::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo
@@ -1835,23 +1933,46 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
+            #F6 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F10
               previousFragment: #F3
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -1868,16 +1989,16 @@ library
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extension::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo
@@ -1912,13 +2033,28 @@ library
           getters
             #F5 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:38) (firstTokenOffset:23) (offset:38)
               element: <testLibrary>::@extension::A::@getter::foo
+              nextFragment: #F6
         #F2 isAugmentation extension A (nameOffset:69) (firstTokenOffset:51) (offset:69)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
           fields
             #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F6
+              inducedSetter: #F7
               previousFragment: #F3
+          getters
+            #F6 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F4
+              previousFragment: #F5
+          setters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -1931,11 +2067,22 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extension::A::@getter::foo
+          setter: <testLibrary>::@extension::A::@setter::foo
       getters
         isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@getter::foo
           firstFragment: #F5
           returnType: int
+          variable: <testLibrary>::@extension::A::@field::foo
+      setters
+        isOriginVariable isStatic foo
+          reference: <testLibrary>::@extension::A::@setter::foo
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F8
+              type: int
+          returnType: void
           variable: <testLibrary>::@extension::A::@field::foo
 ''');
   }
@@ -1968,32 +2115,74 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
-              nextFragment: #F4
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
           getters
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
-                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F9
+              nextFragment: #F10
         #F2 isAugmentation extension A (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
-          nextFragment: #F8
+          nextFragment: #F11
           fields
-            #F4 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:89) (offset:89)
+            #F6 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:89) (firstTokenOffset:89) (offset:89)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F7
+              inducedSetter: #F10
               previousFragment: #F3
-              nextFragment: #F9
-        #F8 isAugmentation extension A (nameOffset:119) (firstTokenOffset:101) (offset:119)
+              nextFragment: #F12
+          getters
+            #F7 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+              nextFragment: #F13
+          setters
+            #F10 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F8
+                  nextFragment: #F14
+              previousFragment: #F5
+              nextFragment: #F15
+        #F11 isAugmentation extension A (nameOffset:119) (firstTokenOffset:101) (offset:119)
           element: <testLibrary>::@extension::A
           previousFragment: #F2
           fields
-            #F9 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:144) (firstTokenOffset:144) (offset:144)
+            #F12 hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:144) (firstTokenOffset:144) (offset:144)
               element: <testLibrary>::@extension::A::@field::foo
-              previousFragment: #F4
+              inducedGetter: #F13
+              inducedSetter: #F15
+              previousFragment: #F6
+          getters
+            #F13 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
+              element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F12
+              previousFragment: #F7
+          setters
+            #F15 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
+              element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F12
+              formalParameters
+                #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
+                  element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F10
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -2010,16 +2199,16 @@ library
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@getter::foo
-          firstFragment: #F5
+          firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extension::A::@field::foo
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo
@@ -2027,10 +2216,11 @@ library
   }
 
   test_field_static_const_inferredType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static const x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2047,9 +2237,11 @@ library
                 IntegerLiteral
                   literal: 0 @40
                   staticType: int
+              inducedGetter: #F3
           getters
             #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@extension::E::@getter::x
+              inducingVariable: #F2
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -2314,13 +2506,17 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
-              nextFragment: #F5
+              inducingVariable: #F3
+              nextFragment: #F6
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
@@ -2328,7 +2524,7 @@ library
           element: <testLibrary>::@extension::A
           previousFragment: #F1
           getters
-            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
               element: <testLibrary>::@extension::A::@getter::foo
               previousFragment: #F4
   extensions
@@ -2353,7 +2549,7 @@ library
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -2391,13 +2587,17 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
-              nextFragment: #F5
+              inducingVariable: #F3
+              nextFragment: #F6
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value
@@ -2406,7 +2606,7 @@ library
           previousFragment: #F1
           nextFragment: #F8
           getters
-            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:93) (firstTokenOffset:70) (offset:93)
               element: <testLibrary>::@extension::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F9
@@ -2416,7 +2616,7 @@ library
           getters
             #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:153) (firstTokenOffset:130) (offset:153)
               element: <testLibrary>::@extension::A::@getter::foo
-              previousFragment: #F5
+              previousFragment: #F6
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -2439,7 +2639,7 @@ library
       setters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@extension::A::@setter::foo
-          firstFragment: #F6
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F7
@@ -2562,7 +2762,7 @@ library
   }
 
   test_getter_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   int get foo {}
 }
@@ -2611,7 +2811,7 @@ library
   }
 
   test_getter_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   T get foo {}
 }
@@ -2660,7 +2860,7 @@ library
   }
 
   test_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   void foo() {}
 }
@@ -3299,7 +3499,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   void foo() {}
 }
@@ -3338,7 +3538,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E<T> on List<T> {
   void foo(T _) {}
 }
@@ -3578,12 +3778,16 @@ library
           fields
             #F3 hasInitializer isOriginDeclaration isStatic foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@extension::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@getter::foo
+              inducingVariable: #F3
           setters
             #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extension::A::@setter::foo
+              inducingVariable: #F3
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@extension::A::@setter::foo::@formalParameter::value

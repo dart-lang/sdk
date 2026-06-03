@@ -78,7 +78,7 @@ class IntervalListBuilder {
 
 class IntervalList {
   final Uint32List _intervalList;
-  IntervalList._(this._intervalList);
+  new _(this._intervalList);
 
   bool get isEmpty => _intervalList.isEmpty;
 

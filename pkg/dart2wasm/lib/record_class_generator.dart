@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/names.dart';
 
 import 'records.dart';
 import 'util.dart';
@@ -177,7 +178,7 @@ class _RecordClassGenerator {
               .extensions
               .singleWhere((e) => e.name == 'WasmArrayExt')
               .memberDescriptors
-              .singleWhere((member) => member.name.text == '[]')
+              .singleWhere((member) => member.name == indexGetName)
               .memberReference!
               .node
           as Procedure;
@@ -311,9 +312,9 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<VariableDeclaration> positionalParameters = List.generate(
+    final List<Variable> positionalParameters = List.generate(
       fields.length,
-      (i) => VariableDeclaration('field$i', isSynthesized: true),
+      (i) => Variable('field$i', isSynthesized: true),
     );
 
     final List<Initializer> initializers = List.generate(
@@ -472,7 +473,7 @@ class _RecordClassGenerator {
       Nullability.nonNullable,
     );
 
-    final VariableDeclaration parameter = VariableDeclaration(
+    final Variable parameter = Variable(
       'other',
       type: nullableObjectType,
       isSynthesized: true,
@@ -544,11 +545,8 @@ class _RecordClassGenerator {
 
   /// Generate `_checkRecordType` member.
   Procedure _generateCheckRecordType(RecordShape shape, List<Field> fields) {
-    final typesParameter = VariableDeclaration('types', type: wasmArrayOfType);
-    final namesParameter = VariableDeclaration(
-      'names',
-      type: immutableWasmArrayOfString,
-    );
+    final typesParameter = Variable('types', type: wasmArrayOfType);
+    final namesParameter = Variable('names', type: immutableWasmArrayOfString);
 
     final List<Statement> statements = [];
 

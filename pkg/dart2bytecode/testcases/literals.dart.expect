@@ -155,7 +155,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = ObjectRef < dart:core::int >
-  [1] = DirectCall 'dart:core::_GrowableList::_literal3 (constructor)', ArgDesc num-args 4, num-type-args 0, names []
+  [1] = DirectCall 'dart:core::_GrowableList::_literal3 (constructor)', ArgDesc num-args 3, num-type-args 1, names []
   [2] = Reserved
   [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [4] = Reserved
@@ -256,7 +256,7 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef < dart:core::int, dart:core::int >
   [1] = ObjectRef < dynamic >
-  [2] = DirectCall 'dart:core::Map::_fromLiteral (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = DirectCall 'dart:core::Map::_fromLiteral (constructor)', ArgDesc num-args 1, num-type-args 2, names []
   [3] = Reserved
   [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [5] = Reserved

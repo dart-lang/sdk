@@ -691,6 +691,65 @@ p./*[1*/A/*1]*/? a;
 ''');
   }
 
+  Future<void> test_primaryConstructor_declaringParameter() async {
+    await assertOccurrences(kind: .FIELD, '''
+/// This references [/*[0*/i/*0]*/].
+class C({var int? /*[1*/i/*1]*/});
+
+void f(int? parameter) {
+  var c = C(/*[2*/i/*2]*/: parameter);
+  C(/*[3*/i/*3]*/: c./*[4*/i^/*4]*/);
+}
+''');
+  }
+
+  /// For the legacy protocol, the argument name is not treated as a reference
+  /// for the parameter because the protocol currently only supports
+  /// same-length occurrences.
+  Future<void>
+  test_primaryConstructor_declaringPrivateParameter_declaration() async {
+    await assertOccurrences(kind: .FIELD, r'''
+/// This references [/*[0*/_i/*0]*/].
+class C({var int? /*[1*/_i^/*1]*/}) {
+  String toString() => '${/*[2*/_i/*2]*/}';
+}
+
+void f(int? parameter) {
+  var _ = C(i: parameter);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_declaringPrivateParameter_field() async {
+    await assertOccurrences(kind: .FIELD, r'''
+/// This references [/*[0*/_i^/*0]*/].
+class C({var int? /*[1*/_i/*1]*/}) {
+  String toString() => '${/*[2*/_i/*2]*/}';
+}
+
+void f(int? parameter) {
+  var _ = C(i: parameter);
+}
+''');
+  }
+
+  /// For the legacy protocol, the argument name is not treated as a reference
+  /// for the parameter because the protocol currently only supports
+  /// same-length occurrences.
+  Future<void>
+  test_primaryConstructor_declaringPrivateParameter_parameter() async {
+    await assertOccurrences(kind: .PARAMETER, r'''
+/// This references [_i].
+class C({var int? _i}) {
+  String toString() => '${_i}';
+}
+
+void f(int? parameter) {
+  var _ = C(/*[0*/i^/*0]*/: parameter);
+}
+''');
+  }
+
   Future<void> test_primaryConstructor_named_constructorName() async {
     await assertOccurrences(
       kind: ElementKind.CONSTRUCTOR,

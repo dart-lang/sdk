@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
-  AddSuperConstructorInvocation({required super.context});
+  new({required super.context});
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -181,7 +181,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   /// The suffix to be added after the actual invocation.
   final List<String> _suffixParts;
 
-  _AddInvocation({
+  new({
     required super.context,
     required this._constructor,
     required this._editRange,

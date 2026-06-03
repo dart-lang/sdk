@@ -18,8 +18,7 @@ import '../extensions.dart';
 const _desc = r"Don't override fields.";
 
 class OverriddenFields extends AnalysisRule {
-  OverriddenFields()
-    : super(name: LintNames.overridden_fields, description: _desc);
+  new() : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.overriddenFields;
@@ -38,7 +37,7 @@ class OverriddenFields extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {

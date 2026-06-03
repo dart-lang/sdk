@@ -142,6 +142,17 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     'prefix-library-uris',
     help: 'Slash-separated prefix to add to all library uris',
     defaultsTo: '',
+  )
+  ..addFlag(
+    'allow-dynamic-calls-in-dynamic-modules',
+    help: 'Allow dynamic calls in dynamic modules',
+    defaultsTo: false,
+  )
+  ..addMultiOption(
+    'extra-selectors-allowed-in-dynamic-calls',
+    help:
+        'Selector names that weren\'t exposed by the host, but are allowed in '
+        'dynamic calls within the dynamic module',
   );
 
 final String _usage =
@@ -196,6 +207,10 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final bool trackCreationLocations = options['track-creation-locations'];
   final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
   final String libraryUrisPrefix = options['prefix-library-uris']!;
+  final bool allowDynamicCallsInDynamicModules =
+      options['allow-dynamic-calls-in-dynamic-modules'];
+  final List<String> dynamicCallsSelectorAllowList =
+      options['extra-selectors-allowed-in-dynamic-calls'];
 
   return await runCompilerWithOptions(
     input: input,
@@ -217,6 +232,8 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     depfile: depfile,
     depfileTarget: depfileTarget,
     libraryUrisPrefix: libraryUrisPrefix,
+    allowDynamicCallsInDynamicModules: allowDynamicCallsInDynamicModules,
+    dynamicCallsSelectorAllowList: dynamicCallsSelectorAllowList,
   );
 }
 
@@ -243,6 +260,8 @@ Future<int> runCompilerWithOptions({
   String? depfile,
   String? depfileTarget,
   required String libraryUrisPrefix,
+  bool allowDynamicCallsInDynamicModules = false,
+  List<String> dynamicCallsSelectorAllowList = const [],
 }) async {
   final fileSystem = createFrontEndFileSystem(
     fileSystemScheme,
@@ -282,6 +301,8 @@ Future<int> runCompilerWithOptions({
     ..additionalDillModules = additionalDillModules
     ..packagesFileUri = packagesUri
     ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
+    ..allowDynamicCallsInDynamicModules = allowDynamicCallsInDynamicModules
+    ..dynamicCallsSelectorAllowList = dynamicCallsSelectorAllowList
     ..explicitExperimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experimentalFlags),
       onError: printMessage,

@@ -49,18 +49,15 @@ void f(LinkedHashSet<int> s) {
   }
 
   test_closure_returns_linkedHashSet() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 
 void a(Set<int> Function() f) {}
 
 void c() {
-  a(() => LinkedHashSet<int>());
+  a(() => [!LinkedHashSet<int>()!]);
 }
-''',
-      [lint(82, 20)],
-    );
+''');
   }
 
   test_conditionalLeft() async {
@@ -113,14 +110,11 @@ class C {
   }
 
   test_functionExpression_omittedReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 
-f() => LinkedHashMap();
-''',
-      [lint(34, 15)],
-    );
+f() => [!LinkedHashMap()!];
+''');
   }
 
   test_iterable_emptyConstructor_iterableDeclaration() async {
@@ -132,15 +126,12 @@ void f() {
   }
 
   test_linkedHashMap_unnamedConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  LinkedHashMap();
+  [!LinkedHashMap()!];
 }
-''',
-      [lint(39, 15)],
-    );
+''');
   }
 
   test_linkedHashMap_unnamedConstructor_linkedHashMapParameterType() async {
@@ -154,28 +145,22 @@ void g(LinkedHashMap<int, int> p) {}
   }
 
   test_linkedHashMap_unnamedConstructor_mapParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  g(LinkedHashMap<int, int>());
+  g([!LinkedHashMap<int, int>()!]);
 }
 void g(Map<int, int> p) {}
-''',
-      [lint(41, 25)],
-    );
+''');
   }
 
   test_linkedHashSet_fromConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  LinkedHashSet.from(['foo', 'bar', 'baz']);
+  [!LinkedHashSet.from(['foo', 'bar', 'baz'])!];
 }
-''',
-      [lint(39, 41)],
-    );
+''');
   }
 
   test_linkedHashSet_fromConstructor_linkedHashSetDeclaration() async {
@@ -188,39 +173,30 @@ void f() {
   }
 
   test_linkedHashSet_fromConstructor_setDeclaration() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  Set<int> x = LinkedHashSet.from([1, 2, 3]);
+  Set<int> x = [!LinkedHashSet.from([1, 2, 3])!];
 }
-''',
-      [lint(52, 29)],
-    );
+''');
   }
 
   test_linkedHashSet_ofConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  LinkedHashSet.of(['foo', 'bar', 'baz']);
+  [!LinkedHashSet.of(['foo', 'bar', 'baz'])!];
 }
-''',
-      [lint(39, 39)],
-    );
+''');
   }
 
   test_linkedHashSet_unnamedConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  LinkedHashSet();
+  [!LinkedHashSet()!];
 }
-''',
-      [lint(39, 15)],
-    );
+''');
   }
 
   test_linkedHashSet_unnamedConstructor_hashSetParameterType() async {
@@ -253,15 +229,12 @@ void f() {
   }
 
   test_linkedHashSet_unnamedConstructor_setDeclaration() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 void f() {
-  Set<int> x = LinkedHashSet<int>();
+  Set<int> x = [!LinkedHashSet<int>()!];
 }
-''',
-      [lint(52, 20)],
-    );
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/2985
@@ -280,8 +253,7 @@ void c() {
   }
 
   test_linkedHashSetParameter_named_type_unrequired() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 
 class Foo {}
@@ -289,11 +261,9 @@ class Foo {}
 void a({required Set<Foo> some}) {}
 
 void c() {
-  a(some: LinkedHashSet<Foo>());
+  a(some: [!LinkedHashSet<Foo>()!]);
 }
-''',
-      [lint(99, 20)],
-    );
+''');
   }
 
   test_linkedHashSetParameter_type_required() async {
@@ -311,8 +281,7 @@ void c() {
   }
 
   test_linkedHashSetParameter_type_unrequired() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:collection';
 
 class Foo {}
@@ -320,11 +289,9 @@ class Foo {}
 void b(Set<Foo> some) {}
 
 void c() {
-  b(LinkedHashSet<Foo>());
+  b([!LinkedHashSet<Foo>()!]);
 }
-''',
-      [lint(82, 20)],
-    );
+''');
   }
 
   test_list_filledConstructor() async {
@@ -344,14 +311,11 @@ void f() {
   }
 
   test_listLiteral_toSet() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  ['foo', 'bar', 'baz'].toSet();
+  [!['foo', 'bar', 'baz'].toSet()!];
 }
-''',
-      [lint(13, 29)],
-    );
+''');
   }
 
   test_map_identityConstructor() async {
@@ -371,14 +335,11 @@ void f() {
   }
 
   test_map_unnamedConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Map();
+  [!Map()!];
 }
-''',
-      [lint(13, 5)],
-    );
+''');
   }
 
   test_mapLiteral() async {
@@ -456,25 +417,19 @@ Iterable<LinkedHashSet<int>> f() sync* {
   }
 
   test_set_fromConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Set.from(['foo', 'bar', 'baz']);
+  [!Set.from(['foo', 'bar', 'baz'])!];
 }
-''',
-      [lint(13, 31)],
-    );
+''');
   }
 
   test_set_fromConstructor_withTypeArgs() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Set<int>.from([]);
+  [!Set<int>.from([])!];
 }
-''',
-      [lint(13, 17)],
-    );
+''');
   }
 
   test_set_identityConstructor() async {
@@ -486,48 +441,36 @@ void f() {
   }
 
   test_set_ofConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Set.of(['foo', 'bar', 'baz']);
+  [!Set.of(['foo', 'bar', 'baz'])!];
 }
-''',
-      [lint(13, 29)],
-    );
+''');
   }
 
   test_set_unnamedConstructor() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Set();
+  [!Set()!];
 }
-''',
-      [lint(13, 5)],
-    );
+''');
   }
 
   test_set_unnamedConstructor_objectParameterType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  g(Set());
+  g([!Set()!]);
 }
 void g(Object p) {}
-''',
-      [lint(15, 5)],
-    );
+''');
   }
 
   test_set_unnamedContsructor_explicitTypeArgs() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  Set<int>();
+  [!Set<int>()!];
 }
-''',
-      [lint(13, 10)],
-    );
+''');
   }
 
   test_typedefConstruction() async {

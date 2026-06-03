@@ -6,6 +6,9 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -143,6 +146,38 @@ class IndexElementInfo {
   IndexElementInfo._(this.element, this.kind);
 }
 
+/// The identifier of an interface element in the subtype index.
+///
+/// It combines the library path, the path of the file containing the
+/// declaration, and the element name. The name is kept separately because
+/// search uses it as a file-state prefilter before matching the full [id].
+class SubtypeIndexElementId {
+  final String name;
+  final String id;
+
+  SubtypeIndexElementId({
+    required Source librarySource,
+    required Source declarationSource,
+    required this.name,
+  }) : id =
+           '${librarySource.mustBeFile.path};'
+           '${declarationSource.mustBeFile.path};'
+           '$name';
+
+  static SubtypeIndexElementId? fromElement(InterfaceElement element) {
+    var name = element.name;
+    if (name == null) {
+      return null;
+    }
+
+    return SubtypeIndexElementId(
+      librarySource: element.library.firstFragment.source,
+      declarationSource: element.firstFragment.libraryFragment.source,
+      name: name,
+    );
+  }
+}
+
 /// Information about an element referenced in index.
 class _ElementInfo {
   /// The identifier of the [LibraryFragmentImpl] containing the first
@@ -219,14 +254,14 @@ class _IndexAssembler {
   /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
   /// describe each unique [LibraryFragmentImpl].
   ///
-  /// This field contains the library URI of a unit.
+  /// This field contains the path of the library file for a unit.
   final List<_StringInfo> unitLibraryUris = [];
 
   /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
   /// describe each unique [LibraryFragmentImpl].
   ///
-  /// This field contains the unit URI of a unit, which might be the same as
-  /// the library URI for the defining unit, or a different one for a part.
+  /// This field contains the path of a unit, which might be the same as the
+  /// library path for the defining unit, or a different one for a part.
   final List<_StringInfo> unitUnitUris = [];
 
   /// Map associating strings with their [_StringInfo]s.
@@ -321,7 +356,7 @@ class _IndexAssembler {
 
   /// Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
-    unit.accept(_IndexContributor(this));
+    unit.accept(_IndexContributor(this, unit));
 
     // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
@@ -450,6 +485,13 @@ class _IndexAssembler {
     });
   }
 
+  /// Return the unique [_StringInfo] corresponding to [source].  The field
+  /// [_StringInfo.id] is filled by [assemble] during final sorting.
+  _StringInfo _getSourceInfo(Source source) {
+    var filePath = source.mustBeFile.path;
+    return _getStringInfo(filePath);
+  }
+
   /// Return the unique [_StringInfo] corresponding the given [string].  The
   /// field [_StringInfo.id] is filled by [assemble] during final sorting.
   _StringInfo _getStringInfo(String? string) {
@@ -469,17 +511,12 @@ class _IndexAssembler {
     return unitMap.putIfAbsent(libraryFragment, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(libraryFragment.library.uri));
-      unitUnitUris.add(_getUriInfo(libraryFragment.source.uri));
+      unitLibraryUris.add(
+        _getSourceInfo(libraryFragment.element.firstFragment.source),
+      );
+      unitUnitUris.add(_getSourceInfo(libraryFragment.source));
       return id;
     });
-  }
-
-  /// Return the unique [_StringInfo] corresponding [uri].  The field
-  /// [_StringInfo.id] is filled by [assemble] during final sorting.
-  _StringInfo _getUriInfo(Uri uri) {
-    String str = uri.toString();
-    return _getStringInfo(str);
   }
 
   /// Return a new [_ElementInfo] for the given [element] in the given [unitId].
@@ -501,9 +538,20 @@ class _IndexAssembler {
 
 /// Visits a resolved AST and adds relationships into the [assembler].
 class _IndexContributor extends GeneralizingAstVisitor {
-  final _IndexAssembler assembler;
+  static final _expectationPattern = RegExp(
+    r'//[ \t]*\[diag\.([a-zA-Z0-9_]+)\]',
+  );
 
-  _IndexContributor(this.assembler);
+  final _IndexAssembler assembler;
+  final CompilationUnit unit;
+
+  /// Caches the diagnostic library if the unit being indexed is an analyzer
+  /// test file. This enables synthetic indexing of expectation comments
+  /// embedded in string literals (e.g. `// [diag.foo]`).
+  late final LibraryElementImpl? _analyzerDiagnosticLibrary =
+      _findAnalyzerDiagnosticLibrary();
+
+  _IndexContributor(this.assembler, this.unit);
 
   /// Record that the name [node] has a relation of the given [kind].
   void recordNameRelation(
@@ -899,7 +947,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     _addSubtype(
-      node.primaryConstructor.typeName.lexeme,
+      node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );
@@ -1168,6 +1216,32 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    // Index analyzer diagnostic expectations inside string literals.
+    if (_analyzerDiagnosticLibrary case var diagnosticLibrary?) {
+      var lexeme = node.literal.lexeme;
+      var matches = _expectationPattern.allMatches(lexeme);
+      var tokenOffset = node.literal.offset;
+      for (var match in matches) {
+        var name = match.group(1)!;
+        var start = (match.end - 1) - name.length;
+        var element = diagnosticLibrary.exportNamespace.get2(name);
+        if (element is GetterElement) {
+          recordRelationOffset(
+            element.variable,
+            IndexRelationKind.IS_REFERENCED_BY,
+            tokenOffset + start,
+            name.length,
+            true,
+          );
+        }
+      }
+    }
+
+    super.visitSimpleStringLiteral(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (node.constructorName != null) {
@@ -1233,18 +1307,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> supertypes = [];
     List<String> members = [];
 
-    String getInterfaceElementId(InterfaceElement element) {
-      var libraryUri = element.library.uri;
-      var libraryFragment = element.firstFragment.libraryFragment;
-      var libraryFragmentUri = libraryFragment.source.uri;
-      return '$libraryUri;$libraryFragmentUri;${element.name}';
-    }
-
     void addSupertype(NamedType? type) {
       var element = type?.element;
       if (element is InterfaceElement) {
-        String id = getInterfaceElementId(element);
-        supertypes.add(id);
+        var supertypeId = SubtypeIndexElementId.fromElement(element)?.id;
+        if (supertypeId != null) {
+          supertypes.add(supertypeId);
+        }
       }
     }
 
@@ -1306,6 +1375,35 @@ class _IndexContributor extends GeneralizingAstVisitor {
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );
+  }
+
+  LibraryElementImpl? _findAnalyzerDiagnosticLibrary() {
+    var unitLibrary = unit.declaredFragment!.element;
+
+    var uriStr = unitLibrary.uri.toString();
+    var isAnalyzerTest =
+        uriStr.startsWith('package:test/') ||
+        uriStr.contains('/pkg/analyzer/test/');
+    if (!isAnalyzerTest) {
+      return null;
+    }
+
+    if (unitLibrary is LibraryElementImpl) {
+      var elementFactory = unitLibrary.session.elementFactory;
+      var diagnosticLibrary = elementFactory.libraryOfUri(
+        Uri.parse('package:analyzer/src/diagnostic/diagnostic.dart'),
+      );
+      if (diagnosticLibrary != null) {
+        return diagnosticLibrary;
+      }
+      diagnosticLibrary = elementFactory.libraryOfUri(
+        Uri.parse('package:test/diagnostic.dart'),
+      );
+      if (diagnosticLibrary != null) {
+        return diagnosticLibrary;
+      }
+    }
+    return null;
   }
 
   /// If the given [constructor] is a synthetic constructor created for a
@@ -1429,14 +1527,20 @@ class _SubtypeInfo {
 
 extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
   int getLibraryFragmentId(LibraryFragmentImpl fragment) {
-    var libraryUriId = getUriId(fragment.element.uri);
-    var unitUriId = getUriId(fragment.source.uri);
+    var libraryUriId = getSourceId(fragment.element.firstFragment.source);
+    var unitUriId = getSourceId(fragment.source);
     for (var i = 0; i < unitLibraryUris.length; i++) {
       if (unitLibraryUris[i] == libraryUriId && unitUnitUris[i] == unitUriId) {
         return i;
       }
     }
     return -1;
+  }
+
+  /// Returns the identifier of [source], or `-1` if not used.
+  int getSourceId(Source source) {
+    var filePath = source.mustBeFile.path;
+    return getStringId(filePath);
   }
 
   /// Returns the identifier of [str], or `-1` if not used.
@@ -1447,10 +1551,15 @@ extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
 
     return binarySearch(strings, str);
   }
+}
 
-  /// Returns the identifier of the [uri], or `-1` if not used.
-  int getUriId(Uri uri) {
-    var str = uri.toString();
-    return getStringId(str);
+extension _SourceExtension on Source {
+  /// Returns the [File] for this source.
+  ///
+  /// This assumes that the source is a [FileSource], which is safe because
+  /// index and search are only supported in DAS, where all sources are file
+  /// based.
+  File get mustBeFile {
+    return (this as FileSource).file;
   }
 }

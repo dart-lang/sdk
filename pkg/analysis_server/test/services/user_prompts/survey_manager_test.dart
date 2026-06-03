@@ -199,7 +199,7 @@ class TestServer implements AnalysisServer {
 
   bool supportsOpenUri = true;
 
-  TestServer(this.instrumentationService);
+  new(this.instrumentationService);
 
   @override
   OpenUriNotificationSender? get openUriNotificationSender =>
@@ -227,7 +227,7 @@ class TestServer implements AnalysisServer {
 class TestSurveyManager extends SurveyManager {
   int numberOfChecksPerformed = 0;
 
-  TestSurveyManager(
+  new(
     super.server,
     super.instrumentationService,
     super.analytics, {

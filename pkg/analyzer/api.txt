@@ -36,7 +36,7 @@ package:analyzer/analysis_rule/pubspec.dart:
     name (getter: PubspecNode?)
     path (getter: PubspecEntry?)
     version (getter: PubspecEntry?)
-  PubspecDependencyList (class extends Object, abstract):
+  PubspecDependencyList (class extends Object with Iterable<PubspecDependency>, abstract):
     new (constructor: PubspecDependencyList Function())
   PubspecEntry (class extends Object):
     new (constructor: PubspecEntry Function(PubspecNode?, PubspecNode))
@@ -60,7 +60,7 @@ package:analyzer/analysis_rule/pubspec.dart:
     new (constructor: PubspecNode Function())
     span (getter: SourceSpan)
     text (getter: String?)
-  PubspecNodeList (class extends Object implements PubspecSection, abstract):
+  PubspecNodeList (class extends Object with Iterable<PubspecNode> implements PubspecSection, abstract):
     new (constructor: PubspecNodeList Function())
     iterator (getter: Iterator<PubspecNode>)
   PubspecSection (class extends Object, abstract):
@@ -977,6 +977,7 @@ package:analyzer/dart/ast/ast.dart:
     body (getter: FunctionBody)
     constKeyword (getter: Token?)
     declaredFragment (getter: ConstructorFragment?)
+    errorRange (getter: SourceRange)
     externalKeyword (getter: Token?)
     factoryKeyword (getter: Token?)
     initializers (getter: NodeList<ConstructorInitializer>)
@@ -1132,7 +1133,8 @@ package:analyzer/dart/ast/ast.dart:
     declaredFragment (getter: ExtensionTypeFragment?)
     extensionKeyword (getter: Token)
     implementsClause (getter: ImplementsClause?)
-    primaryConstructor (getter: PrimaryConstructorDeclaration)
+    namePart (getter: ClassNamePart)
+    primaryConstructor (getter: PrimaryConstructorDeclaration, deprecated)
     typeKeyword (getter: Token)
   FieldDeclaration (class extends Object implements ClassMember, abstract, final):
     abstractKeyword (getter: Token?)
@@ -1554,6 +1556,7 @@ package:analyzer/dart/ast/ast.dart:
     constKeyword (getter: Token?)
     constructorName (getter: PrimaryConstructorName?)
     declaredFragment (getter: ConstructorFragment?)
+    errorRange (getter: SourceRange)
     formalParameters (getter: FormalParameterList)
   PrimaryConstructorName (class extends Object implements AstNode, abstract, final):
     name (getter: Token)
@@ -3391,6 +3394,7 @@ package:analyzer/dart/element/element.dart:
     isFactory (getter: bool)
     isGenerative (getter: bool)
     isOriginDeclaration (getter: bool)
+    isOriginExtensionTypeRecovery (getter: bool)
     isOriginImplicitDefault (getter: bool)
     isOriginMixinApplication (getter: bool)
     isPrimary (getter: bool)
@@ -3403,6 +3407,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: ConstructorElement)
     enclosingFragment (getter: InstanceFragment?)
     factoryKeywordOffset (getter: int?)
+    isOriginExtensionTypeRecovery (getter: bool)
     name (getter: String)
     newKeywordOffset (getter: int?)
     nextFragment (getter: ConstructorFragment?)
@@ -4060,6 +4065,7 @@ package:analyzer/dart/element/element.dart:
   PropertyAccessorFragment (class extends Object implements ExecutableFragment, abstract):
     new (constructor: PropertyAccessorFragment Function())
     element (getter: PropertyAccessorElement)
+    inducingVariable (getter: PropertyInducingFragment?)
     nextFragment (getter: PropertyAccessorFragment?)
     previousFragment (getter: PropertyAccessorFragment?)
   PropertyInducingElement (class extends Object implements VariableElement, abstract):
@@ -4076,6 +4082,8 @@ package:analyzer/dart/element/element.dart:
     new (constructor: PropertyInducingFragment Function())
     element (getter: PropertyInducingElement)
     hasInitializer (getter: bool)
+    inducedGetter (getter: GetterFragment?)
+    inducedSetter (getter: SetterFragment?)
     isAugmentation (getter: bool)
     libraryFragment (getter: LibraryFragment)
     nextFragment (getter: PropertyInducingFragment?)

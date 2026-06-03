@@ -54,7 +54,10 @@ Future<void> main(List<String> args) async {
       script,
     ]);
 
-    await checkElf(tempDir, scriptDill);
+    if (!Platform.isMacOS) {
+      // Don't run ELF on MacOS since that requires allow-unsigned-executable-memory.
+      await checkElf(tempDir, scriptDill);
+    }
     await checkMachO(tempDir, scriptDill);
     await checkAssembly(tempDir, scriptDill);
   });

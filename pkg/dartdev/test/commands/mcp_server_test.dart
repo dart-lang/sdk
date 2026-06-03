@@ -2,52 +2,70 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:dart_mcp/client.dart';
-import 'package:dart_mcp/stdio.dart';
+import 'dart:async';
+import 'package:args/command_runner.dart';
+import 'package:dartdev/src/commands/dart_mcp_server.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('dart mcp-server', () {
-    for (var withExperiment in const [true, false]) {
-      test(
-        'can be connected with a client with${withExperiment ? '' : 'out'} the experiment flag',
-        () async {
-          final client = TestMCPClient();
-          addTearDown(client.shutdown);
-          final process = await Process.start(Platform.resolvedExecutable, [
-            'mcp-server',
-            if (withExperiment) '--experimental-mcp-server',
-          ]);
+  group('DartMCPServerCommand', () {
+    late FakeRunner runner;
+    late DartMCPServerCommand command;
 
-          final connection = client.connectServer(
-            stdioChannel(input: process.stdout, output: process.stdin),
-          );
-          connection.done.then((_) => process.kill());
+    setUp(() {
+      runner = FakeRunner();
+      command = DartMCPServerCommand();
+      runner.addCommand(command);
+    });
 
-          final initializeResult = await connection.initialize(
-            InitializeRequest(
-              protocolVersion: ProtocolVersion.latestSupported,
-              capabilities: client.capabilities,
-              clientInfo: client.implementation,
-            ),
-          );
+    test('delegates to `run dart_mcp_server@`', () async {
+      await runner.run(['mcp-server']);
+      expect(runner.capturedArgs, equals(['run', 'dart_mcp_server@']));
+    });
 
-          expect(
-            initializeResult.protocolVersion,
-            ProtocolVersion.latestSupported,
-          );
-          connection.notifyInitialized();
-
-          expect(await connection.listTools(ListToolsRequest()), isNotEmpty);
-        },
+    test('forwards command arguments', () async {
+      await runner.run(['mcp-server', 'foo', 'bar']);
+      expect(
+        runner.capturedArgs,
+        equals(['run', 'dart_mcp_server@', 'foo', 'bar']),
       );
-    }
+    });
+
+    test('strips experimental flag', () async {
+      await runner.run(['mcp-server', '--experimental-mcp-server']);
+      expect(runner.capturedArgs, equals(['run', 'dart_mcp_server@']));
+    });
+
+    test('strips experimental flag and keeps other args', () async {
+      await runner.run(['mcp-server', '--experimental-mcp-server', 'foo']);
+      expect(runner.capturedArgs, equals(['run', 'dart_mcp_server@', 'foo']));
+    });
+
+    test('forwards global arguments', () async {
+      runner.argParser.addFlag('global-flag', negatable: false);
+      await runner.run(['--global-flag', 'mcp-server']);
+      expect(
+        runner.capturedArgs,
+        equals(['--global-flag', 'run', 'dart_mcp_server@']),
+      );
+    });
   });
 }
 
-base class TestMCPClient extends MCPClient {
-  TestMCPClient()
-    : super(Implementation(name: 'test client', version: '0.1.0'));
+class FakeRunner extends CommandRunner<int> {
+  List<String>? capturedArgs;
+  bool isFirstCall = true;
+
+  FakeRunner() : super('dart', 'dart command runner');
+
+  @override
+  Future<int?> run(Iterable<String> args) async {
+    if (isFirstCall) {
+      isFirstCall = false;
+      return await super.run(args);
+    } else {
+      capturedArgs = args.toList();
+      return 0;
+    }
+  }
 }

@@ -15,7 +15,7 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
     extends SharedMessageHandler<SignatureHelpParams, SignatureHelp?> {
-  SignatureHelpHandler(super.server);
+  new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
 
@@ -138,7 +138,7 @@ class SignatureHelpHandler
 
 class SignatureHelpRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<SignatureHelpOptions> {
-  SignatureHelpRegistrations(super.info);
+  new(super.info);
 
   @override
   ToJsonable? get options => SignatureHelpRegistrationOptions(

@@ -53,6 +53,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
   static const kKlass = 'klass';
   static const kMethod = 'method';
   static const kScriptUri = 'scriptUri';
+  static const kRootLibraryUri = 'rootLibraryUri';
 
   // Keys for scope response.
   static const kParamNames = 'param_names';
@@ -250,6 +251,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
         offset: scope[kTokenPos] as int,
         scriptUri: scriptUri,
         isStatic: isStatic,
+        rootLibraryUri: scope[kRootLibraryUri] as String?,
         serverInfoFile: backend.residentCompilerInfoFile!,
       );
       return {kKernelBytes: result.kernelBytes};

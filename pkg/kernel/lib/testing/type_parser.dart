@@ -58,7 +58,7 @@ class ParsedNamedType extends ParsedType {
 
   final ParsedNullability parsedNullability;
 
-  ParsedNamedType(this.name, this.arguments, this.parsedNullability);
+  new(this.name, this.arguments, this.parsedNullability);
 
   @override
   String toString() {
@@ -82,7 +82,7 @@ class ParsedNamedType extends ParsedType {
 abstract class ParsedDeclaration extends ParsedType {
   final String name;
 
-  ParsedDeclaration(this.name);
+  new(this.name);
 }
 
 class ParsedClass extends ParsedDeclaration {
@@ -92,7 +92,7 @@ class ParsedClass extends ParsedDeclaration {
   final List<ParsedType> interfaces;
   final ParsedFunctionType? callableType;
 
-  ParsedClass(
+  new(
     String name,
     this.typeVariables,
     this.supertype,
@@ -139,7 +139,7 @@ class ParsedExtension extends ParsedDeclaration {
   final List<ParsedTypeVariable> typeVariables;
   final ParsedNamedType onType;
 
-  ParsedExtension(String name, this.typeVariables, this.onType) : super(name);
+  new(String name, this.typeVariables, this.onType) : super(name);
 
   @override
   String toString() {
@@ -168,7 +168,7 @@ class ParsedTypedef extends ParsedDeclaration {
 
   final ParsedType type;
 
-  ParsedTypedef(String name, this.typeVariables, this.type) : super(name);
+  new(String name, this.typeVariables, this.type) : super(name);
 
   @override
   String toString() {
@@ -198,7 +198,7 @@ class ParsedExtensionTypeDeclaration extends ParsedDeclaration {
 
   final List<ParsedType> interfaces;
 
-  ParsedExtensionTypeDeclaration(
+  new(
     String name,
     this.typeVariables,
     this.declaredRepresentationType,
@@ -240,7 +240,7 @@ class ParsedFunctionType extends ParsedType {
 
   final ParsedNullability parsedNullability;
 
-  ParsedFunctionType(
+  new(
     this.typeVariables,
     this.returnType,
     this.arguments,
@@ -274,7 +274,7 @@ class ParsedRecordType extends ParsedType {
   final List<ParsedNamedArgument> named;
   final ParsedNullability parsedNullability;
 
-  ParsedRecordType(this.positional, this.named, this.parsedNullability);
+  new(this.positional, this.named, this.parsedNullability);
 
   @override
   String toString() {
@@ -318,7 +318,7 @@ class ParsedTypeVariable extends ParsedType {
 
   final ParsedType? bound;
 
-  ParsedTypeVariable(this.name, this.bound);
+  new(this.name, this.bound);
 
   @override
   String toString() {
@@ -341,7 +341,7 @@ class ParsedIntersectionType extends ParsedType {
 
   final ParsedType b;
 
-  ParsedIntersectionType(this.a, this.b);
+  new(this.a, this.b);
 
   @override
   String toString() {
@@ -363,7 +363,7 @@ class ParsedArguments {
   final List<ParsedType> positional;
   final List<ParsedNamedArgument> named;
 
-  ParsedArguments(this.required, this.positional, this.named)
+  new(this.required, this.positional, this.named)
     : assert(positional.isEmpty || named.isEmpty);
 
   @override
@@ -398,7 +398,7 @@ class ParsedNamedArgument {
   final ParsedType type;
   final String name;
 
-  ParsedNamedArgument(this.isRequired, this.type, this.name);
+  new(this.isRequired, this.type, this.name);
 
   @override
   String toString() {
@@ -420,7 +420,7 @@ class Token {
 
   Token? next;
 
-  Token(this.charOffset, this.text, {this.isIdentifier = false});
+  new(this.charOffset, this.text, {this.isIdentifier = false});
 
   bool get isEof => text == null;
 }
@@ -430,7 +430,7 @@ class Parser {
 
   String source;
 
-  Parser(this.peek, this.source);
+  new(this.peek, this.source);
 
   bool get atEof => peek.isEof;
 

@@ -1,0 +1,77 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/mixin_class_field_initializer.dart:18:15: Error: Can't use 'M4' as a mixin because it has constructors.
+// mixin class M4(int x) {
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+mixin class M1 extends core::Object {
+  constructor •() → self::M1
+    : super core::Object::•()
+    ;
+}
+mixin class M2 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::M2
+    : super core::Object::•()
+    ;
+}
+mixin class M3 extends core::Object {
+  final field core::int id = 0;
+  constructor •() → self::M3
+    : super core::Object::•()
+    ;
+}
+class C1 extends core::Object implements self::M1 /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object implements self::M2 /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+}
+class C3 extends core::Object implements self::M3 /*isEliminatedMixin*/  {
+  final field core::int id = 0;
+  synthetic constructor •() → self::C3
+    : super core::Object::•()
+    ;
+}
+mixin class M4 extends core::Object {
+  final field core::int id;
+  constructor •(final core::int x) → self::M4
+    : self::M4::id = x, super core::Object::•()
+    ;
+}
+class C4 extends core::Object implements self::M4 /*isEliminatedMixin*/  {
+  final field core::int id;
+  synthetic constructor •() → self::C4
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::M1 m1 = new self::M1::•();
+  self::M2 m2 = #C1;
+  self::expect(0, new self::M3::•().{self::M3::id}{core::int});
+  self::C1 c1 = new self::C1::•();
+  self::C2 c2 = new self::C2::•();
+  self::expect(0, new self::C3::•().{self::C3::id}{core::int});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = self::M2 {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///mixin_class_field_initializer.dart:
+- M2. (from org-dartlang-testcase:///mixin_class_field_initializer.dart:7:21)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

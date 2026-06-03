@@ -113,6 +113,12 @@ bool MessageHandler::Run(ThreadPool* pool,
   return result;
 }
 
+void MessageHandler::RunSync() {
+  task_running_ = true;
+  TaskCallback();
+  task_running_ = false;
+}
+
 void MessageHandler::PostMessage(std::unique_ptr<Message> message,
                                  bool before_events) {
   Message::Priority saved_priority;

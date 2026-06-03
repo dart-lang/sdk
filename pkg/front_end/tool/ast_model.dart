@@ -31,7 +31,8 @@ Uri computePackageConfig(Uri repoDir) =>
 /// nominality. For instance the name of a variable declaration is taking as
 /// defining its identity.
 const Map<String, String?> _declarativeClassesNames = const {
-  'LegacyVariableDeclaration': 'name',
+  // TODO(johnniwinther): This should be [Variable].
+  'LegacyVariable': 'name',
   'TypeParameter': 'name',
   'StructuralParameter': 'name',
   'LabeledStatement': null,
@@ -63,7 +64,7 @@ const Set<String> _interchangeableClasses = const {
   'DartType',
   'Initializer',
   'Pattern',
-  'VariableDeclaration',
+  'Variable',
 };
 
 /// Names of subclasses of [NamedNode] that do _not_ have a `visitXReference`
@@ -128,7 +129,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariableGet': {'variable': FieldRule(isDeclaration: false)},
   'VariableSet': {'variable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
-  'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
+  'LocalVariable': {'variableDeclaration': FieldRule(isDeclaration: false)},
+  'LateVariable': {'variableDeclaration': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
   'ForStatement': {'variables': FieldRule(isDeclaration: true)},
   'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
@@ -147,10 +149,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
-  'SyntheticVariable': {
-    'variableInitialization': FieldRule(isDeclaration: false),
-  },
-  'VariableStatement': {'_name': FieldRule(name: 'name')},
+  'SyntheticVariable': {'variableDeclaration': FieldRule(isDeclaration: false)},
+  'LegacyVariable': {'_name': FieldRule(name: 'name')},
   'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
@@ -163,7 +163,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'thisVariable': FieldRule(isDeclaration: false),
   },
   'NominalParameter': {'_variance': FieldRule(name: 'variance')},
-  'VariableInitialization': {'variable': FieldRule(isDeclaration: false)},
 };
 
 /// Data that determines exceptions to how fields are used.
@@ -179,7 +178,7 @@ class FieldRule {
   /// a reference to the declaration.
   final bool? isDeclaration;
 
-  const FieldRule({this.name, this.isDeclaration});
+  const new({this.name, this.isDeclaration});
 }
 
 /// Return the [FieldRule] to use for the [field] in [AstClass].
@@ -242,7 +241,7 @@ enum AstClassKind {
 
   /// A node class that declares a nominal entity but used without reference.
   ///
-  /// For instance [VariableDeclaration] which introduces a new entity when it
+  /// For instance [Variable] which introduces a new entity when it
   /// occurs in a [Block] but is used as a reference when it occurs in a
   /// [VariableGet].
   declarative,
@@ -272,7 +271,7 @@ class AstClass {
 
   Map<String, AstField> fields = {};
 
-  AstClass(
+  new(
     this.node, {
     this.superclass,
     AstClassKind? kind,
@@ -387,7 +386,7 @@ enum AstFieldKind {
 
   /// A reference to a declarative [Node].
   ///
-  /// For instance the reference to [VariableDeclaration] in [VariableGet].
+  /// For instance the reference to [Variable] in [VariableGet].
   use,
 
   /// A list of values.
@@ -411,7 +410,7 @@ class FieldType {
   final DartType type;
   final AstFieldKind kind;
 
-  FieldType(this.type, this.kind);
+  new(this.type, this.kind);
 
   @override
   String toString() => 'FieldType($type,$kind)';
@@ -420,8 +419,7 @@ class FieldType {
 class ListFieldType extends FieldType {
   final FieldType elementType;
 
-  ListFieldType(DartType type, this.elementType)
-    : super(type, AstFieldKind.list);
+  new(DartType type, this.elementType) : super(type, AstFieldKind.list);
 
   @override
   String toString() => 'ListFieldType($type,$elementType)';
@@ -430,7 +428,7 @@ class ListFieldType extends FieldType {
 class SetFieldType extends FieldType {
   final FieldType elementType;
 
-  SetFieldType(DartType type, this.elementType) : super(type, AstFieldKind.set);
+  new(DartType type, this.elementType) : super(type, AstFieldKind.set);
 
   @override
   String toString() => 'SetFieldType($type,$elementType)';
@@ -440,7 +438,7 @@ class MapFieldType extends FieldType {
   final FieldType keyType;
   final FieldType valueType;
 
-  MapFieldType(DartType type, this.keyType, this.valueType)
+  new(DartType type, this.keyType, this.valueType)
     : super(type, AstFieldKind.map);
 
   @override
@@ -450,8 +448,7 @@ class MapFieldType extends FieldType {
 class UtilityFieldType extends FieldType {
   final AstClass astClass;
 
-  UtilityFieldType(DartType type, this.astClass)
-    : super(type, AstFieldKind.utility);
+  new(DartType type, this.astClass) : super(type, AstFieldKind.utility);
 
   @override
   String toString() => 'UtilityFieldType($type,$astClass)';
@@ -464,7 +461,7 @@ class AstField {
   final FieldType type;
   final AstField? parentField;
 
-  AstField(this.astClass, this.node, this.name, this.type, this.parentField);
+  new(this.astClass, this.node, this.name, this.type, this.parentField);
 
   String dump([String indent = ""]) {
     StringBuffer sb = new StringBuffer();
@@ -481,7 +478,7 @@ class AstModel {
   final AstClass namedNodeClass;
   final AstClass constantClass;
 
-  AstModel(this.nodeClass, this.namedNodeClass, this.constantClass);
+  new(this.nodeClass, this.namedNodeClass, this.constantClass);
 
   /// Returns an [Iterable] for all declarative [Node] classes in the AST model.
   Iterable<AstClass> get declarativeClasses {
@@ -763,8 +760,7 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
               "and a rule must therefore specify "
               "whether this constitutes declarative or referential use.",
             );
-          }
-          if (!rule.isDeclaration!) {
+          } else if (!rule.isDeclaration!) {
             return new FieldType(type, AstFieldKind.use);
           }
         }

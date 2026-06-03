@@ -129,18 +129,27 @@ void FUNCTION_NAME(SynchronousSocket_WriteList)(Dart_NativeArguments args) {
                                   "First parameter must be a List<int>"));
     return;
   }
-  intptr_t offset = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
-  intptr_t length = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+
+  intptr_t start = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t bytes = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   Dart_TypedData_Type type;
   uint8_t* buffer = nullptr;
-  intptr_t len;
-  result = Dart_TypedDataAcquireData(buffer_obj, &type,
-                                     reinterpret_cast<void**>(&buffer), &len);
+  intptr_t buffer_length;
+  result = Dart_TypedDataAcquireData(
+      buffer_obj, &type, reinterpret_cast<void**>(&buffer), &buffer_length);
   DART_CHECK_ERROR(result);
-  ASSERT((offset + length) <= len);
-  buffer += offset;
+
+  const intptr_t end = start + bytes;
+  if (!(0 <= start && start <= end && end <= buffer_length)) {
+    Dart_TypedDataReleaseData(buffer_obj);
+    Dart_SetReturnValue(args, Dart_NewApiError("Invalid range"));
+    return;
+  }
+
+  buffer += start;
   intptr_t bytes_written =
-      SynchronousSocket::Write(socket->fd(), buffer, length);
+      SynchronousSocket::Write(socket->fd(), buffer, bytes);
+
   Dart_TypedDataReleaseData(buffer_obj);
   if (bytes_written >= 0) {
     Dart_SetIntegerReturnValue(args, bytes_written);

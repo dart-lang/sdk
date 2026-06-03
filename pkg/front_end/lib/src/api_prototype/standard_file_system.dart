@@ -28,7 +28,7 @@ class StandardFileSystem implements FileSystem {
 
   final FileSystemDependencyTracker? tracker;
 
-  StandardFileSystem._(this.tracker);
+  new _(this.tracker);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
@@ -57,7 +57,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  _IoFileSystemEntity(this.tracker, this.uri);
+  new(this.tracker, this.uri);
 
   @override
   int get hashCode => uri.hashCode;
@@ -147,9 +147,7 @@ class DataFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  DataFileSystemEntity(this.uri)
-    : assert(uri.isScheme('data')),
-      assert(uri.data != null);
+  new(this.uri) : assert(uri.isScheme('data')), assert(uri.data != null);
 
   @override
   int get hashCode => uri.hashCode;

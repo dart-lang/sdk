@@ -5,20 +5,21 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NullAwareElementsParserTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class NullAwareElementsParserTest extends ParserDiagnosticsTest {
   test_simple_list_literal() {
-    var parserResult = parseStringWithErrors(r'''
+    var parserResult = parseTestCodeWithDiagnostics(r'''
 f(int? x) => [?x];
 ''');
-    parserResult.assertNoErrors();
 
     var node = parserResult.findNode.singleNullAwareElement;
     assertParsedNodeText(node, r'''
@@ -30,10 +31,9 @@ NullAwareElement
   }
 
   test_simple_map_literal_both_null_aware() {
-    var parserResult = parseStringWithErrors(r'''
+    var parserResult = parseTestCodeWithDiagnostics(r'''
 f(int? x, String? y) => {?x: ?y};
 ''');
-    parserResult.assertNoErrors();
 
     var node = parserResult.findNode.mapLiteralEntry('?x: ?y');
     assertParsedNodeText(node, r'''
@@ -49,10 +49,9 @@ MapLiteralEntry
   }
 
   test_simple_map_literal_null_aware_key() {
-    var parserResult = parseStringWithErrors(r'''
+    var parserResult = parseTestCodeWithDiagnostics(r'''
 f(num? x, bool y) => {?x: y};
 ''');
-    parserResult.assertNoErrors();
 
     var node = parserResult.findNode.mapLiteralEntry("?x: y");
     assertParsedNodeText(node, r'''
@@ -67,10 +66,9 @@ MapLiteralEntry
   }
 
   test_simple_map_literal_null_aware_value() {
-    var parserResult = parseStringWithErrors(r'''
+    var parserResult = parseTestCodeWithDiagnostics(r'''
 f(String x, double? y) => {x: ?y};
 ''');
-    parserResult.assertNoErrors();
 
     var node = parserResult.findNode.mapLiteralEntry("x: ?y");
     assertParsedNodeText(node, r'''
@@ -85,10 +83,9 @@ MapLiteralEntry
   }
 
   test_simple_set_literal() {
-    var parserResult = parseStringWithErrors(r'''
+    var parserResult = parseTestCodeWithDiagnostics(r'''
 f(String? x) => {?x};
 ''');
-    parserResult.assertNoErrors();
 
     var node = parserResult.findNode.singleNullAwareElement;
     assertParsedNodeText(node, r'''

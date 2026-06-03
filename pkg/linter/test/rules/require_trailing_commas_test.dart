@@ -18,19 +18,16 @@ class RequireTrailingCommasTest extends LintRuleTest {
   String get lintRule => LintNames.require_trailing_commas;
 
   test_argumentList_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g('Text',
-      'Text');
+      'Text'[!)!];
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(71, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_containsFunctionalBlockBody_trailingComma() async {
@@ -51,35 +48,29 @@ void g(Object p1, Object p2, {Object? p3}) {}
   }
 
   test_argumentList_multiLine_containsFunctionBlockBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g(() {
-  }, 'Text');
+  }, 'Text'[!)!];
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(67, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_containsFunctionBlockBody_endsWithNamed() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g('Text', () {
-  }, p3: 'Text');
+  }, p3: 'Text'[!)!];
 }
 void g(Object p1, Object p2, {Object? p3}) {}
-''',
-      [lint(79, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_containsFunctionBlockBody_trailingComma() async {
@@ -99,8 +90,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_containsListLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -108,17 +98,14 @@ void f() {
   g([
     'one',
     'two',
-  ], 'Text');
+  ], 'Text'[!)!];
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(86, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_containsMapLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -126,12 +113,10 @@ void f() {
   g({
     'one': 'Text',
     'two': 'Text',
-  }, 'Text');
+  }, 'Text'[!)!];
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(102, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_containsMapLiteral_withTrailingComma() async {
@@ -147,8 +132,7 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_containsSetLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -156,12 +140,10 @@ void f() {
   g({
     'one',
     'two',
-  }, 'Text');
+  }, 'Text'[!)!];
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(86, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_endsWithConstantListLiteral() async {
@@ -180,19 +162,16 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_endsWithFunctionBlockBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g('Text',
-      () {}); // LINT
+      () {}[!)!]; // LINT
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(70, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_endsWithFunctionBlockBody_multiLine() async {
@@ -209,19 +188,16 @@ void g(Object p1, Object p2, {Object? p3}) {}
   }
 
   test_argumentList_multiLine_endsWithFunctionBlockBody_multiLine_named() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g('Text', 'Text', p3: () {
-  });
+  }[!)!];
 }
 void g(Object p1, Object p2, {Object? p3}) {}
-''',
-      [lint(79, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_endsWithFunctionBlockBody_multiLine_named_trailingComma() async {
@@ -272,19 +248,16 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_endsWithListLiteral_onSingleLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g('Text',
-      const ['one', 'two']);
+      const ['one', 'two'][!)!];
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(85, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_endsWithListLiteral_withTrailingComma() async {
@@ -303,19 +276,16 @@ void g(Object p1, Object p2) {}
   }
 
   test_argumentList_multiLine_endsWithMapLiteral() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   g('Text',
-      const {'one': '1', 'two': '2', 'three': '3'}); // LINT
+      const {'one': '1', 'two': '2', 'three': '3'}[!)!]; // LINT
 }
 void g(Object p1, Object p2) {}
-''',
-      [lint(109, 1)],
-    );
+''');
   }
 
   test_argumentList_multiLine_endsWithMapLiteral_trailingComma() async {
@@ -451,19 +421,16 @@ void f() {
   }
 
   test_assertStatement_closure_message() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   assert(() {
     return true;
-  }(), 'Text');
+  }(), 'Text'[!)!];
 }
-''',
-      [lint(91, 1)],
-    );
+''');
   }
 
   test_assertStatement_closure_message_trailingComma() async {
@@ -494,33 +461,27 @@ void f() {
   }
 
   test_assertStatement_multiLine_message() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   assert(false,
-      'Text');
+      'Text'[!)!];
 }
-''',
-      [lint(75, 1)],
-    );
+''');
   }
 
   test_assertStatement_oneArgument_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   assert('Text'
-      .isNotEmpty);
+      .isNotEmpty[!)!];
 }
-''',
-      [lint(80, 1)],
-    );
+''');
   }
 
   test_assertStatement_trailingComma() async {
@@ -537,19 +498,16 @@ void f() {
   }
 
   test_constructorAssertInitializer_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 class C {
   C()
       : assert(true,
-            'Text');
+            'Text'[!)!];
 }
-''',
-      [lint(91, 1)],
-    );
+''');
   }
 
   test_constructorAssertInitializer_multiLine_trailingComma() async {
@@ -568,16 +526,13 @@ class C {
   }
 
   test_function_parameters_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void method4(int one,
-    int two) {}
-''',
-      [lint(69, 1)],
-    );
+    int two[!)!] {}
+''');
   }
 
   test_function_parameters_multiLine_withComma() async {
@@ -605,16 +560,13 @@ void f(
   }
 
   test_function_parameters_withNamed_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f(int one,
-    {int two = 2}) {}
-''',
-      [lint(68, 1)],
-    );
+    {int two = 2[!}!]) {}
+''');
   }
 
   test_function_parameters_withNamed_singleLine() async {
@@ -627,19 +579,16 @@ void method1(Object p1, Object p2, {Object? param3, Object? param4}) {}
   }
 
   test_functionLiteral_parameters_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 void f() {
   (int one,
-      int two)
+      int two[!)!]
       {};
 }
-''',
-      [lint(72, 1)],
-    );
+''');
   }
 
   test_functionLiteral_parameters_singleLine() async {
@@ -654,8 +603,7 @@ void f() {
   }
 
   test_listLiteral_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -663,11 +611,9 @@ void f() {
   var x = [
     1,
     if (true) 2
-  ];
+  [!]!];
 }
-''',
-      [lint(84, 1)],
-    );
+''');
   }
 
   test_listLiteral_singleLine() async {
@@ -682,8 +628,7 @@ void f() {
   }
 
   test_mapLiteral_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -691,11 +636,9 @@ void f() {
   var x = {
     1: 1,
     if (true) 2: 2
-  };
+  [!}!];
 }
-''',
-      [lint(90, 1)],
-    );
+''');
   }
 
   test_mapLiteral_singleLine() async {
@@ -725,8 +668,7 @@ class C {
   }
 
   test_parameterList_multiLineDefaultValue_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -734,11 +676,9 @@ class C {
   C(Object p1, Object p2,
       [Object p3 = const [
         'Text',
-      ]]);
+      ][!]!]);
 }
-''',
-      [lint(122, 1)],
-    );
+''');
   }
 
   test_parameterList_multiLineDefaultValue_multiLine_trailingComma() async {
@@ -770,23 +710,19 @@ class C {
   }
 
   test_parameterList_singleLine_blankLineBefore() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
 class C {
   C(
-      Object p1, Object p2, Object p3);
+      Object p1, Object p2, Object p3[!)!];
 }
-''',
-      [lint(88, 1)],
-    );
+''');
   }
 
   test_setLiteral_multiLine() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.6
 // (pre tall-style)
 
@@ -794,11 +730,9 @@ void f() {
   var x = {
     1,
     if (true) 2
-  };
+  [!}!];
 }
-''',
-      [lint(84, 1)],
-    );
+''');
   }
 
   test_setLiteral_singleLine() async {

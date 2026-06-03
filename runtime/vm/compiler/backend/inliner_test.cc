@@ -375,17 +375,20 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
 // by deopt_id and environment from the call itself.
 ISOLATE_UNIT_TEST_CASE(Inliner_InlineForceOptimized) {
   const char* kScript = R"(
-    import 'dart:ffi';
+    @pragma('vm:force-optimize')
+    @pragma('vm:idempotent')
+    @pragma('vm:prefer-inline')
+    int newHash() => identityHashCode(Object());
 
     @pragma('vm:never-inline')
-    int foo(int x) {
-      dynamic ptr = Pointer.fromAddress(x);
-      return x + ptr.hashCode;
+    int foo() {
+      int x = newHash();
+      return x + 1;
     }
     main() {
       int r = 0;
       for (int i = 0; i < 1000; i++) {
-        r += foo(r);
+        r += foo();
       }
       return r;
     }
@@ -414,8 +417,8 @@ ISOLATE_UNIT_TEST_CASE(Inliner_InlineForceOptimized) {
         {kMoveGlob},
         {kMatchAndMoveStaticCall, &call_instr},
     }));
-    EXPECT(strcmp(call_instr->function().UserVisibleNameCString(),
-                  "Pointer.fromAddress") == 0);
+    EXPECT(strcmp(call_instr->function().UserVisibleNameCString(), "newHash") ==
+           0);
   }
 
   pipeline.RunAdditionalPasses({
@@ -438,8 +441,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_InlineForceOptimized) {
 
   auto allocate_object_instr_env = allocate_object_instr->env();
   EXPECT(allocate_object_instr_env->LazyDeoptToBeforeDeoptId());
-  EXPECT(allocate_object_instr_env->Outermost()->GetDeoptId() ==
-         call_instr->deopt_id());
   const auto call_instr_env = call_instr->env();
   const intptr_t call_first_index =
       call_instr_env->Length() - call_instr->InputCount();

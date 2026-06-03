@@ -27,7 +27,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   DartType? thisType;
 
-  DillTypeAliasBuilder(this.typedef, this.tearOffs, this.parent);
+  new(this.typedef, this.tearOffs, this.parent);
 
   @override
   int get fileOffset => typedef.fileOffset;

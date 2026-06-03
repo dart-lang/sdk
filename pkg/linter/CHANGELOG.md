@@ -1,9 +1,16 @@
-# 3.12.0-wip
+# 3.13.0-wip
 
+- new lint: `unnecessary_const_in_enum_constructor`
+- new lint: `unnecessary_type_name_in_constructor`
+- stable: `unnecessary_null_checks`
+
+# 3.12.0
+
+- new lint: `simple_directive_paths`
 - new lint: `var_with_no_type_annotation`
 - stable: `omit_obvious_local_variable_types`
 - stable: `omit_obvious_property_types`
-- stable: `specify_nonobvious_property_types`
+- stable: `specify_nonobvious_local_variable_types`
 - stable: `specify_nonobvious_property_types`
 
 # 3.11.0

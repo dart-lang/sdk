@@ -26,6 +26,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -46,7 +47,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 part 'ast.g.dart';
@@ -5200,12 +5200,12 @@ abstract final class ClassTypeAlias implements TypeAlias {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
     GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('sealedKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('interfaceKeyword'),
     GenerateNodeProperty('finalKeyword'),
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
     GenerateNodeProperty('mixinKeyword'),
     GenerateNodeProperty('typedefKeyword', isSuper: true),
     GenerateNodeProperty('name', isSuper: true),
@@ -5267,12 +5267,12 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ClassTypeAliasImpl({
     required super.comment,
     required super.metadata,
+    required super.augmentKeyword,
     required this.abstractKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required super.augmentKeyword,
     required this.mixinKeyword,
     required super.typedefKeyword,
     required super.name,
@@ -5301,6 +5301,9 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
     if (abstractKeyword case var abstractKeyword?) {
       return abstractKeyword;
     }
@@ -5315,9 +5318,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     }
     if (finalKeyword case var finalKeyword?) {
       return finalKeyword;
-    }
-    if (augmentKeyword case var augmentKeyword?) {
-      return augmentKeyword;
     }
     if (mixinKeyword case var mixinKeyword?) {
       return mixinKeyword;
@@ -5364,12 +5364,12 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
     ..addToken('finalKeyword', finalKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('typedefKeyword', typedefKeyword)
     ..addToken('name', name)
@@ -6891,6 +6891,10 @@ abstract final class ConstructorDeclaration implements ClassMember {
   @override
   ConstructorFragment? get declaredFragment;
 
+  /// The offset and length to use as an error range for this constructor
+  /// declaration, accounting for named and unnamed constructors.
+  SourceRange get errorRange;
+
   /// The token for the `external` keyword to this constructor declaration.
   Token? get externalKeyword;
 
@@ -7051,6 +7055,13 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     return body.endToken;
   }
 
+  @override
+  SourceRange get errorRange {
+    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
+    var endEntity = name ?? startEntity;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -7074,6 +7085,16 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
       return name;
     }
     return parameters.beginToken;
+  }
+
+  bool get isCompleteDeclaration {
+    if (externalKeyword != null) return true;
+    if (body is! EmptyFunctionBody) return true;
+    if (redirectedConstructor != null || initializers.isNotEmpty) return true;
+    return parameters.parameters.any((parameter) {
+      return parameter is FieldFormalParameterImpl ||
+          parameter is SuperFormalParameterImpl;
+    });
   }
 
   bool get isGenerative {
@@ -12095,7 +12116,17 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   /// The `implements` clause.
   ImplementsClause? get implementsClause;
 
+  /// The name of the extension type. In valid code the introductory declaration
+  /// has [PrimaryConstructorDeclaration], and augmentations have
+  /// [NameWithTypeParameters].
+  ClassNamePart get namePart;
+
   /// The primary constructor of the extension type.
+  ///
+  /// Use [namePart] instead. It is a [PrimaryConstructorDeclaration] for an
+  /// introductory declaration with a primary constructor, and a
+  /// [NameWithTypeParameters] for an augmentation.
+  @Deprecated('Use namePart instead')
   PrimaryConstructorDeclaration get primaryConstructor;
 
   /// The `type` keyword.
@@ -12107,7 +12138,7 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('extensionKeyword'),
     GenerateNodeProperty('typeKeyword'),
-    GenerateNodeProperty('primaryConstructor'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('body'),
   ],
@@ -12128,7 +12159,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   final Token typeKeyword;
 
   @generated
-  PrimaryConstructorDeclarationImpl _primaryConstructor;
+  ClassNamePartImpl _namePart;
 
   @generated
   ImplementsClauseImpl? _implementsClause;
@@ -12148,13 +12179,13 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required PrimaryConstructorDeclarationImpl primaryConstructor,
+    required ClassNamePartImpl namePart,
     required ImplementsClauseImpl? implementsClause,
     required ClassBodyImpl body,
-  }) : _primaryConstructor = primaryConstructor,
+  }) : _namePart = namePart,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf(primaryConstructor);
+    _becomeParentOf(namePart);
     _becomeParentOf(implementsClause);
     _becomeParentOf(body);
   }
@@ -12194,17 +12225,27 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  PrimaryConstructorDeclarationImpl get primaryConstructor =>
-      _primaryConstructor;
+  ClassNamePartImpl get namePart => _namePart;
 
   @generated
-  set primaryConstructor(PrimaryConstructorDeclarationImpl primaryConstructor) {
-    _primaryConstructor = _becomeParentOf(primaryConstructor);
+  set namePart(ClassNamePartImpl namePart) {
+    _namePart = _becomeParentOf(namePart);
   }
+
+  @override
+  @Deprecated('Use namePart instead')
+  PrimaryConstructorDeclarationImpl get primaryConstructor =>
+      namePart as PrimaryConstructorDeclarationImpl;
 
   /// Usually, the only formal parameter of the primary constructor.
   /// But could be `null` in invalid code.
   RegularFormalParameterImpl? get representationFormalParameter {
+    var primaryConstructor = namePart
+        .tryCast<PrimaryConstructorDeclarationImpl>();
+    if (primaryConstructor == null) {
+      return null;
+    }
+
     var formalParameters = primaryConstructor.formalParameters;
     return formalParameters.parameters.firstOrNull.tryCast();
   }
@@ -12215,7 +12256,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('typeKeyword', typeKeyword)
-    ..addNode('primaryConstructor', primaryConstructor)
+    ..addNode('namePart', namePart)
     ..addNode('implementsClause', implementsClause)
     ..addNode('body', body);
 
@@ -12234,10 +12275,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(primaryConstructor, oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove required child 'primaryConstructor'.",
-      );
+    if (identical(namePart, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'namePart'.");
     }
     if (identical(implementsClause, oldNode)) {
       implementsClause = null;
@@ -12252,8 +12291,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(primaryConstructor, oldNode)) {
-      primaryConstructor = newNode as PrimaryConstructorDeclarationImpl;
+    if (identical(namePart, oldNode)) {
+      namePart = newNode as ClassNamePartImpl;
       return;
     }
     if (identical(implementsClause, oldNode)) {
@@ -12271,7 +12310,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    primaryConstructor.accept(visitor);
+    namePart.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
   }
@@ -12284,15 +12323,15 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(PrimaryConstructorDeclarationImpl)? visitPrimaryConstructor,
+    void Function(ClassNamePartImpl)? visitNamePart,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
     super.visitChildren(visitor);
-    if (visitPrimaryConstructor != null) {
-      visitPrimaryConstructor(primaryConstructor);
+    if (visitNamePart != null) {
+      visitNamePart(namePart);
     } else {
-      primaryConstructor.accept(visitor);
+      namePart.accept(visitor);
     }
     if (implementsClause case var implementsClause?) {
       if (visitImplementsClause != null) {
@@ -12314,8 +12353,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (primaryConstructor._containsOffset(rangeOffset, rangeEnd)) {
-      return primaryConstructor;
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
     }
     if (implementsClause case var implementsClause?) {
       if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
@@ -12377,11 +12416,11 @@ abstract final class FieldDeclaration implements ClassMember {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('abstractKeyword', tokenGroupId: 0),
     GenerateNodeProperty('augmentKeyword', tokenGroupId: 0),
-    GenerateNodeProperty('covariantKeyword', tokenGroupId: 0),
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
     GenerateNodeProperty('staticKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('abstractKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('covariantKeyword', tokenGroupId: 0),
     GenerateNodeProperty('fields'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -12390,15 +12429,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     implements FieldDeclaration {
   @generated
   @override
-  final Token? abstractKeyword;
-
-  @generated
-  @override
   final Token? augmentKeyword;
-
-  @generated
-  @override
-  final Token? covariantKeyword;
 
   @generated
   @override
@@ -12407,6 +12438,14 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   final Token? staticKeyword;
+
+  @generated
+  @override
+  final Token? abstractKeyword;
+
+  @generated
+  @override
+  final Token? covariantKeyword;
 
   @generated
   VariableDeclarationListImpl _fields;
@@ -12419,11 +12458,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   FieldDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required this.abstractKeyword,
     required this.augmentKeyword,
-    required this.covariantKeyword,
     required this.externalKeyword,
     required this.staticKeyword,
+    required this.abstractKeyword,
+    required this.covariantKeyword,
     required VariableDeclarationListImpl fields,
     required this.semicolon,
   }) : _fields = fields {
@@ -12452,11 +12491,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   Token get firstTokenAfterCommentAndMetadata {
     if (Token.lexicallyFirst(
-          abstractKeyword,
           augmentKeyword,
-          covariantKeyword,
           externalKeyword,
           staticKeyword,
+          abstractKeyword,
+          covariantKeyword,
         )
         case var result?) {
       return result;
@@ -12470,11 +12509,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('externalKeyword', externalKeyword)
     ..addToken('staticKeyword', staticKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addNode('fields', fields)
     ..addToken('semicolon', semicolon);
 
@@ -12575,8 +12614,8 @@ abstract final class FieldFormalParameter implements FormalParameter {
       withOverride: false,
       type: _TypeLiteral<ParameterKind>,
     ),
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
     GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('thisKeyword'),
@@ -12601,8 +12640,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
     required super.comment,
     required super.metadata,
     required super.kind,
-    required super.covariantKeyword,
     required super.requiredKeyword,
+    required super.covariantKeyword,
     required super.constFinalOrVarKeyword,
     required super.type,
     required this.thisKeyword,
@@ -12631,11 +12670,11 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
     }
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
@@ -12653,8 +12692,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('thisKeyword', thisKeyword)
@@ -13876,11 +13915,11 @@ sealed class FormalParameterImpl extends AstNodeImpl
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
     }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
     if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
     }
     throw StateError('Expected at least one non-null');
   }
@@ -15276,6 +15315,11 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   set functionExpression(FunctionExpressionImpl functionExpression) {
     _functionExpression = _becomeParentOf(functionExpression);
+  }
+
+  bool get isCompleteDeclaration {
+    return externalKeyword != null ||
+        functionExpression.body is! EmptyFunctionBody;
   }
 
   @override
@@ -22029,6 +22073,10 @@ final class MethodDeclarationImpl extends ClassMemberImpl
         (body is EmptyFunctionBodyImpl && !body.semicolon.isSynthetic);
   }
 
+  bool get isCompleteDeclaration {
+    return externalKeyword != null || body is! EmptyFunctionBody;
+  }
+
   @override
   bool get isGetter => propertyKeyword?.keyword == Keyword.GET;
 
@@ -26778,7 +26826,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
       case EnumDeclarationImpl parent:
         return parent.namePart.tryCast();
       case ExtensionTypeDeclarationImpl parent:
-        return parent.primaryConstructor;
+        return parent.namePart.tryCast();
       default:
         return null;
     }
@@ -26914,6 +26962,10 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
   /// Returns `null` if the AST structure hasn't been resolved.
   ConstructorFragment? get declaredFragment;
 
+  /// The offset and length to use as an error range for this constructor
+  /// declaration, accounting for named and unnamed constructors.
+  SourceRange get errorRange;
+
   /// The formal parameters of the constructor, including declaring.
   FormalParameterList get formalParameters;
 }
@@ -26993,6 +27045,14 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @override
   Token get endToken {
     return formalParameters.endToken;
+  }
+
+  @generated
+  @override
+  SourceRange get errorRange {
+    var startEntity = beginToken;
+    var endEntity = constructorName ?? beginToken;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 
   @generated
@@ -28808,8 +28868,8 @@ abstract final class RegularFormalParameter implements FormalParameter {}
       withOverride: false,
       type: _TypeLiteral<ParameterKind>,
     ),
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
     GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('name', isSuper: true),
@@ -28824,8 +28884,8 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     required super.comment,
     required super.metadata,
     required super.kind,
-    required super.covariantKeyword,
     required super.requiredKeyword,
+    required super.covariantKeyword,
     required super.constFinalOrVarKeyword,
     required super.type,
     required super.name,
@@ -28851,11 +28911,11 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
     }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
     if (covariantKeyword case var covariantKeyword?) {
       return covariantKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
     }
     throw StateError('Expected at least one non-null');
   }
@@ -28863,11 +28923,11 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
     }
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
@@ -28890,8 +28950,8 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('name', name)
@@ -31131,8 +31191,8 @@ abstract final class SuperFormalParameter implements FormalParameter {
       withOverride: false,
       type: _TypeLiteral<ParameterKind>,
     ),
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
     GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('superKeyword'),
@@ -31157,8 +31217,8 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
     required super.comment,
     required super.metadata,
     required super.kind,
-    required super.covariantKeyword,
     required super.requiredKeyword,
+    required super.covariantKeyword,
     required super.constFinalOrVarKeyword,
     required super.type,
     required this.superKeyword,
@@ -31187,11 +31247,11 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
     }
     if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
       return constFinalOrVarKeyword;
@@ -31209,8 +31269,8 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('superKeyword', superKeyword)
@@ -32834,8 +32894,8 @@ abstract final class TopLevelVariableDeclaration
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
-    GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('semicolon'),
   ],
@@ -32848,11 +32908,11 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  final Token? abstractKeyword;
+  final Token? externalKeyword;
 
   @generated
   @override
-  final Token? externalKeyword;
+  final Token? abstractKeyword;
 
   @generated
   VariableDeclarationListImpl _variables;
@@ -32866,8 +32926,8 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
-    required this.abstractKeyword,
     required this.externalKeyword,
+    required this.abstractKeyword,
     required VariableDeclarationListImpl variables,
     required this.semicolon,
   }) : _variables = variables {
@@ -32889,11 +32949,11 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     if (augmentKeyword case var augmentKeyword?) {
       return augmentKeyword;
     }
-    if (abstractKeyword case var abstractKeyword?) {
-      return abstractKeyword;
-    }
     if (externalKeyword case var externalKeyword?) {
       return externalKeyword;
+    }
+    if (abstractKeyword case var abstractKeyword?) {
+      return abstractKeyword;
     }
     return variables.beginToken;
   }
@@ -32911,8 +32971,8 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('externalKeyword', externalKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
     ..addNode('variables', variables)
     ..addToken('semicolon', semicolon);
 

@@ -2,26 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 // Late variables cannot access primary constructor parameters.
 class LateError(int x) {
   late int y = x;
   //           ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] The getter 'x' isn't defined for the type 'LateError'.
 }
 
 // In non-primary constructors, the parameter `x` is not in scope.
 class NotPrimaryConstructor {
   int y = x;
   //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'x'.
   int z = x + 1;
   //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'x'.
   NotPrimaryConstructor(int x);
 }
 
@@ -30,8 +28,8 @@ class NotPrimaryConstructor {
 class AssignToParameter(int x) {
   int y = x++;
   //      ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_PRIMARY_CONSTRUCTOR_PARAMETER
+  // [cfe] A primary constructor parameter can't be assigned to in an initializer.
 }
 
 // A compile-time error occurs if an assignment to a primary parameter occurs
@@ -40,6 +38,6 @@ class AssignToParameterInitializer(int x) {
   final int y;
   this : y = x++;
   //         ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_PRIMARY_CONSTRUCTOR_PARAMETER
+  // [cfe] A primary constructor parameter can't be assigned to in an initializer.
 }

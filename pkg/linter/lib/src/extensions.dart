@@ -15,7 +15,7 @@ import 'package:collection/collection.dart';
 
 class EnumLikeClassDescription {
   final Map<DartObject, Set<FieldElement>> _enumConstants;
-  EnumLikeClassDescription(this._enumConstants);
+  new(this._enumConstants);
 
   /// Returns a fresh map of the class's enum-like constant values.
   Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
@@ -27,7 +27,7 @@ class InterfaceTypeDefinition {
   final String name;
   final String library;
 
-  InterfaceTypeDefinition(this.name, this.library);
+  new(this.name, this.library);
 
   @override
   int get hashCode => Object.hash(name, library);
@@ -53,8 +53,7 @@ extension AstNodeExtension on AstNode {
       ClassDeclaration() => parent.namePart.typeName.isPrivate,
       EnumDeclaration() => parent.namePart.typeName.isPrivate,
       ExtensionDeclaration() => parent.name == null || parent.name.isPrivate,
-      ExtensionTypeDeclaration() =>
-        parent.primaryConstructor.typeName.isPrivate,
+      ExtensionTypeDeclaration() => parent.namePart.typeName.isPrivate,
       MixinDeclaration() => parent.name.isPrivate,
       _ => false,
     };

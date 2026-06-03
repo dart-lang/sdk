@@ -15,8 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use spread collections when possible.';
 
 class PreferSpreadCollections extends AnalysisRule {
-  PreferSpreadCollections()
-    : super(name: LintNames.prefer_spread_collections, description: _desc);
+  new() : super(name: LintNames.prefer_spread_collections, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferSpreadCollections;
@@ -34,7 +33,7 @@ class PreferSpreadCollections extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitMethodInvocation(MethodInvocation invocation) {

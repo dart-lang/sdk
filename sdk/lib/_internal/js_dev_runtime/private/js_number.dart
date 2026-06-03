@@ -458,6 +458,26 @@ final class JSNumber extends Interceptor
     return JS('!', 'Math.clz32(#)', uint32);
   }
 
+  @notNull
+  int get trailingZeroBitCount {
+    int v = JS<int>('!', '# | 0', this);
+    if (v == 0) return 32;
+    return JS<int>('!', '31 - Math.clz32(# & -#)', v, v);
+  }
+
+  @notNull
+  int get oneBitCount {
+    // The number of bits set in the least significant 32 bits of `this`,
+    // also known as the "Hamming weight". See:
+    // https://en.wikipedia.org/wiki/Hamming_weight for an explanation of the
+    // following algorithm.
+    int v = JS<int>('!', '# | 0', this);
+    v -= (v >>> 1) & 0x5555_5555;
+    v = (v & 0x3333_3333) + ((v >>> 2) & 0x3333_3333);
+    v = (v + (v >>> 4)) & 0x0f0f_0f0f;
+    return JS<int>('!', '(Math.imul(#, 0x01010101) >>> 24)', v);
+  }
+
   // Returns pow(this, e) % m.
   @notNull
   int modPow(@nullCheck int e, @nullCheck int m) {

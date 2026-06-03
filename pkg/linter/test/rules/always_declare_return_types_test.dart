@@ -66,7 +66,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment f() { }
+  augment f();
 }
 ''');
 
@@ -84,7 +84,7 @@ f() { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment f() { }
+augment f();
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
@@ -101,8 +101,8 @@ f() { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment dynamic f() { }
-augment f() { }
+augment dynamic f();
+augment f();
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(16, 1)]);
@@ -110,14 +110,11 @@ augment f() { }
   }
 
   test_extensionMethod() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E on int {
-  f() {}
+  [!f!]() {}
 }
-''',
-      [lint(23, 1)],
-    );
+''');
   }
 
   test_instanceSetter() async {
@@ -129,14 +126,11 @@ class C {
   }
 
   test_method_expressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
-  f() => 42;
+  [!f!]() => 42;
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_method_testUnderscore_notInPubPackageTest_hasReturnType() async {
@@ -148,14 +142,11 @@ class A {
   }
 
   test_method_testUnderscore_notInPubPackageTest_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  test_foo() {}
+  [!test_foo!]() {}
 }
-''',
-      [lint(12, 8)],
-    );
+''');
   }
 
   test_method_withReturnType() async {
@@ -166,11 +157,26 @@ class C {
 ''');
   }
 
-  test_operator() async {
+  test_operator_binary() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C {
+  operator [!+!](C c) => c;
+}
+''');
+  }
+
+  test_operator_binary_withReturnType() async {
     await assertNoDiagnostics(r'''
 class C {
-  operator []=(int index, int value) //OK: #300
-  {}
+  C operator +(C c) => c;
+}
+''');
+  }
+
+  test_operator_indexAssignment() async {
+    await assertNoDiagnostics(r'''
+class C {
+  operator []=(int index, int value) {}
 }
 ''');
   }
@@ -240,12 +246,9 @@ int f() => 7;
   }
 
   test_topLevelFunction_expressionBody() async {
-    await assertDiagnostics(
-      r'''
-f() => 7;
-''',
-      [lint(0, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!f!]() => 7;
+''');
   }
 
   test_topLevelFunction_expressionBody_withReturnType() async {
@@ -255,12 +258,9 @@ void f() { }
   }
 
   test_topLevelFunction_noReturn() async {
-    await assertDiagnostics(
-      r'''
-f() {}
-''',
-      [lint(0, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!f!]() {}
+''');
   }
 
   test_topLevelSetter() async {
@@ -270,12 +270,9 @@ set f(int p) {}
   }
 
   test_typedef_oldStyle() async {
-    await assertDiagnostics(
-      r'''
-typedef t(int x);
-''',
-      [lint(8, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef [!t!](int x);
+''');
   }
 
   test_typedef_oldStyle_withReturnType() async {

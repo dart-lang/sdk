@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -30,7 +29,7 @@ Set<FormalParameterElement> _referencedParameters(FunctionBody? body) {
 }
 
 class UseSuperParameters extends MultiAnalysisRule {
-  UseSuperParameters()
+  new()
     : super(
         name: LintNames.use_super_parameters,
         description: _desc,
@@ -72,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final RuleContext context;
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   void check(
     SourceRange errorRange,

@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The possible outcomes from running a test.
-class Expectation {
+class Expectation._(
+  final String _name, {
+  final Expectation? _group,
+  bool isMeta = false,
+}) {
   /// The test completed normally and did what it intended to do.
   static final Expectation pass = Expectation._('Pass');
 
@@ -34,8 +38,10 @@ class Expectation {
 
   /// The test compiled and began executing but then threw an uncaught
   /// exception or produced the wrong output.
-  static final Expectation runtimeError =
-      Expectation._('RuntimeError', group: fail);
+  static final Expectation runtimeError = Expectation._(
+    'RuntimeError',
+    group: fail,
+  );
 
   /// The test failed with an error at compile time and did not execute any
   /// code.
@@ -43,66 +49,90 @@ class Expectation {
   /// * For a VM test, means the VM exited with a "compile error" exit code 254.
   /// * For an analyzer test, means the analyzer reported a static error.
   /// * For a dart2js test, means dart2js reported a compile error.
-  static final Expectation compileTimeError =
-      Expectation._('CompileTimeError', group: fail);
+  static final Expectation compileTimeError = Expectation._(
+    'CompileTimeError',
+    group: fail,
+  );
 
   /// The test was parsed by the spec_parser, and there was a syntax error.
-  static final Expectation syntaxError =
-      Expectation._('SyntaxError', group: fail);
+  static final Expectation syntaxError = Expectation._(
+    'SyntaxError',
+    group: fail,
+  );
 
   /// The test itself contains a comment with `@runtime-error` in it,
   /// indicating it should have produced a runtime error when run. But when it
   /// was run, the test completed without error.
-  static final Expectation missingRuntimeError =
-      Expectation._('MissingRuntimeError', group: fail);
+  static final Expectation missingRuntimeError = Expectation._(
+    'MissingRuntimeError',
+    group: fail,
+  );
 
   /// The test itself contains a comment with `@syntax-error` in it,
   /// indicating it should have produced a syntax error when compiled. But when
   /// it was compiled, no error was reported.
-  static final Expectation missingSyntaxError =
-      Expectation._('MissingSyntaxError', group: fail);
+  static final Expectation missingSyntaxError = Expectation._(
+    'MissingSyntaxError',
+    group: fail,
+  );
 
   /// The test itself contains a comment with `@compile-error` in it,
   /// indicating it should have produced an error when compiled. But when it
   /// was compiled, no error was reported.
-  static final Expectation missingCompileTimeError =
-      Expectation._('MissingCompileTimeError', group: fail);
+  static final Expectation missingCompileTimeError = Expectation._(
+    'MissingCompileTimeError',
+    group: fail,
+  );
 
   /// When the test is processed by analyzer, a static warning should be
   /// reported.
-  static final Expectation staticWarning =
-      Expectation._('StaticWarning', group: fail);
+  static final Expectation staticWarning = Expectation._(
+    'StaticWarning',
+    group: fail,
+  );
 
   /// The test itself contains a comment with `@static-warning` in it,
   /// indicating analyzer should report a static warning when analyzing it, but
   /// analysis did not produce any warnings.
-  static final Expectation missingStaticWarning =
-      Expectation._('MissingStaticWarning', group: fail);
+  static final Expectation missingStaticWarning = Expectation._(
+    'MissingStaticWarning',
+    group: fail,
+  );
 
   /// The stdout or stderr produced by the test was not valid UTF-8 and could
   /// not be decoded.
   // TODO(rnystrom): The only test that uses this expectation is the one that
   // tests that the test runner handles this expectation. Remove it?
-  static final Expectation nonUtf8Error =
-      Expectation._('NonUtf8Output', group: fail);
+  static final Expectation nonUtf8Error = Expectation._(
+    'NonUtf8Output',
+    group: fail,
+  );
 
   /// The stdout or stderr produced by the test was too long and had to be
   /// truncated by the test runner.
-  static final Expectation truncatedOutput =
-      Expectation._('TruncatedOutput', group: fail);
+  static final Expectation truncatedOutput = Expectation._(
+    'TruncatedOutput',
+    group: fail,
+  );
 
   /// The VM exited with the special exit code 252.
-  static final Expectation dartkCrash =
-      Expectation._('DartkCrash', group: crash);
+  static final Expectation dartkCrash = Expectation._(
+    'DartkCrash',
+    group: crash,
+  );
 
   /// A timeout occurred in a test using the Kernel-based front end.
-  static final Expectation dartkTimeout =
-      Expectation._('DartkTimeout', group: timeout);
+  static final Expectation dartkTimeout = Expectation._(
+    'DartkTimeout',
+    group: timeout,
+  );
 
   /// A compile error was reported on a test compiled using the Kernel-based
   /// front end.
-  static final Expectation dartkCompileTimeError =
-      Expectation._('DartkCompileTimeError', group: compileTimeError);
+  static final Expectation dartkCompileTimeError = Expectation._(
+    'DartkCompileTimeError',
+    group: compileTimeError,
+  );
 
   // "meta expectations"
   /// A marker applied to a test to indicate that the other non-pass
@@ -125,8 +155,11 @@ class Expectation {
   /// A marker that indicates the test takes a lot longer to complete than most
   /// tests.
   /// Tells the test runner to increase the timeout when running it.
-  static final Expectation extraSlow =
-      Expectation._('ExtraSlow', isMeta: true, group: skip);
+  static final Expectation extraSlow = Expectation._(
+    'ExtraSlow',
+    isMeta: true,
+    group: skip,
+  );
 
   /// Tells the test runner to not attempt to run the test.
   ///
@@ -141,16 +174,21 @@ class Expectation {
   ///
   /// Prefer this over timeout since this avoids wasting CPU resources running
   /// a test we know won't complete.
-  static final Expectation skipSlow =
-      Expectation._('SkipSlow', isMeta: true, group: skip);
+  static final Expectation skipSlow = Expectation._(
+    'SkipSlow',
+    isMeta: true,
+    group: skip,
+  );
 
   /// Skips this test because it is not intended to be meaningful for a certain
   /// reason or on some configuration.
   ///
   /// For example, tests that use dart:io are SkipByDesign on the browser since
   /// dart:io isn't supported there.
-  static final Expectation skipByDesign =
-      Expectation._('SkipByDesign', isMeta: true);
+  static final Expectation skipByDesign = Expectation._(
+    'SkipByDesign',
+    isMeta: true,
+  );
 
   /// Can be returned by the test runner to say the result should be ignored,
   /// and assumed to meet the expectations, due to an infrastructure failure.
@@ -160,8 +198,9 @@ class Expectation {
 
   /// Used by pkg/front_end/lib/src/fasta/testing, but not used by test.dart.
   /// Included here so that we can parse .status files that contain it.
-  static final Expectation verificationError =
-      Expectation._('VerificationError');
+  static final Expectation verificationError = Expectation._(
+    'VerificationError',
+  );
 
   /// Maps case-insensitive names to expectations.
   static final Map<String, Expectation> _all = Map.fromIterable(<Expectation>[
@@ -199,14 +238,8 @@ class Expectation {
     return expectation;
   }
 
-  final String _name;
-  final Expectation? _group;
-
   /// Whether this expectation is a test outcome. If not, it's a "meta marker".
-  final bool isOutcome;
-
-  Expectation._(this._name, {this._group, bool isMeta = false})
-      : isOutcome = !isMeta;
+  final bool isOutcome = !isMeta;
 
   bool canBeOutcomeOf(Expectation expectation) {
     Expectation? outcome = this;

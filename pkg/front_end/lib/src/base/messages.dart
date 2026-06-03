@@ -53,7 +53,7 @@ class LibraryProblemReporting implements ProblemReporting {
   final SourceLoader _loader;
   final Uri _fileUri;
 
-  LibraryProblemReporting(this._loader, this._fileUri);
+  new(this._loader, this._fileUri);
 
   /// Problems in this [Library] encoded as json objects.
   ///

@@ -93,26 +93,6 @@ class FlutterStyleTodosTest extends LintRuleTest {
     ]);
   }
 
-  test_goodPatterns() async {
-    await assertDiagnostics(
-      r'''
-// TODO(somebody): something
-// TODO(somebody): something, https://github.com/flutter/flutter
-''',
-      [error(diag.todo, 3, 25), error(diag.todo, 32, 61)],
-    );
-  }
-
-  test_goodPatterns_noLeadingSpace() async {
-    await assertDiagnostics(
-      r'''
-//TODO(somebody): something
-//TODO(somebody): something, https://github.com/flutter/flutter
-''',
-      [error(diag.todo, 2, 25), error(diag.todo, 30, 61)],
-    );
-  }
-
   test_justTodo() async {
     await assertDiagnostics(r'// TODO', [lint(0, 7), error(diag.todo, 3, 4)]);
   }
@@ -150,6 +130,15 @@ class FlutterStyleTodosTest extends LintRuleTest {
     ]);
   }
 
+  test_properFormat() async {
+    await assertDiagnostics(
+      r'''
+// TODO(somebody): something
+''',
+      [error(diag.todo, 3, 25)],
+    );
+  }
+
   test_properFormat_dottedUsername() async {
     await assertDiagnostics(r'// TODO(user.name): bla', [
       error(diag.todo, 3, 20),
@@ -162,10 +151,37 @@ class FlutterStyleTodosTest extends LintRuleTest {
     ]);
   }
 
+  test_properFormat_multipleSeriesOfSlashes() async {
+    await assertDiagnostics(
+      r'''
+// // TODO(somebody): something
+''',
+      [error(diag.todo, 6, 25)],
+    );
+  }
+
+  test_properFormat_noLeadingSpace() async {
+    await assertDiagnostics(
+      r'''
+//TODO(somebody): something
+''',
+      [error(diag.todo, 2, 25)],
+    );
+  }
+
   test_properFormat_simpleUsername() async {
     await assertDiagnostics(r'// TODO(username): bla', [
       error(diag.todo, 3, 19),
     ]);
+  }
+
+  test_properFormat_withComma() async {
+    await assertDiagnostics(
+      r'''
+// TODO(somebody): something, https://github.com/flutter/flutter
+''',
+      [error(diag.todo, 3, 61)],
+    );
   }
 
   test_slashStar() async {

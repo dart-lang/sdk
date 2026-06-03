@@ -1077,11 +1077,9 @@ class Closure {
         ? member.enclosingClass!.typeParameters
         : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
-    List<VariableDeclaration> convertParameters(
-      List<VariableDeclaration> params,
-    ) => [
+    List<Variable> convertParameters(List<Variable> params) => [
       for (final p in params)
-        VariableDeclaration(
+        Variable(
           p.name,
           initializer: (p.initializer != null)
               ? ConstantExpression(

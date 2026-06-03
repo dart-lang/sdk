@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 class ElementModelPage extends DiagnosticPageWithNav {
   String? _description;
 
-  ElementModelPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'element-model',

@@ -27,9 +27,6 @@ namespace dart {
 extern "C" void SimulatorFfiCallbackTrampoline();
 extern "C" void SimulatorFfiCallbackTrampolineEnd();
 #endif
-#if defined(DART_HOST_OS_FUCHSIA)
-static zx_handle_t rx_vmo = ZX_HANDLE_INVALID;
-#endif
 
 FfiCallbackMetadata::FfiCallbackMetadata() {}
 
@@ -37,7 +34,7 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
 
 #if defined(DART_HOST_OS_FUCHSIA)
-  if (rx_vmo == ZX_HANDLE_INVALID) {
+  if (rx_vmo_ == ZX_HANDLE_INVALID) {
     int fd = -1;
     const char* path = "pkg/lib/ffi_callback_stub.bin";
     zx_status_t status =
@@ -49,7 +46,7 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
       FATAL("fdio_open3_fd(%s) failed: %s\n", path,
             zx_status_get_string(status));
     }
-    status = fdio_get_vmo_exec(fd, &rx_vmo);
+    status = fdio_get_vmo_exec(fd, &rx_vmo_);
     if (status != ZX_OK) {
       FATAL("fdio_get_vmo_exec failed %s\n", zx_status_get_string(status));
     }
@@ -100,25 +97,8 @@ FfiCallbackMetadata::~FfiCallbackMetadata() {
     delete trampoline_pages_[i];
   }
 #if defined(DART_HOST_OS_FUCHSIA)
-  zx_handle_close(rx_vmo);
-  rx_vmo = ZX_HANDLE_INVALID;
+  zx_handle_close(rx_vmo_);
 #endif
-}
-
-void FfiCallbackMetadata::Init() {
-  ASSERT(singleton_ == nullptr);
-  singleton_ = new FfiCallbackMetadata();
-}
-
-void FfiCallbackMetadata::Cleanup() {
-  ASSERT(singleton_ != nullptr);
-  delete singleton_;
-  singleton_ = nullptr;
-}
-
-FfiCallbackMetadata* FfiCallbackMetadata::Instance() {
-  ASSERT(singleton_ != nullptr);
-  return singleton_;
 }
 
 namespace {
@@ -135,15 +115,23 @@ void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
   *slot = function;
 }
 
+FfiCallbackMetadata* FfiCallbackMetadata::Instance(Trampoline trampoline) {
+  const uword start = MappingStart(trampoline);
+  return *reinterpret_cast<FfiCallbackMetadata**>(
+      start + RuntimeFunctionOffset(kGroupFfiCallbackMetadata));
+}
+
 VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
 #if defined(DART_HOST_OS_FUCHSIA)
   zx_handle_t vmar = ZX_HANDLE_INVALID;
   zx_vaddr_t addr = 0;
-  ASSERT(MappingAlignment() <= 64 * KB);
+  zx_vm_option_t align_flag = Utils::ShiftForPowerOfTwo(MappingAlignment())
+                              << ZX_VM_ALIGN_BASE;
+  ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
   zx_status_t status = zx_vmar_allocate(
       zx_vmar_root_self(),
       ZX_VM_CAN_MAP_SPECIFIC | ZX_VM_CAN_MAP_READ | ZX_VM_CAN_MAP_WRITE |
-          ZX_VM_CAN_MAP_EXECUTE | ZX_VM_ALIGN_64KB,
+          ZX_VM_CAN_MAP_EXECUTE | align_flag,
       0, MappingSize(), &vmar, &addr);
   if (status != ZX_OK) {
     FATAL("zx_vmar_allocate failed: %s", zx_status_get_string(status));
@@ -152,16 +140,18 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   zx_handle_t rw_vmo = ZX_HANDLE_INVALID;
   status = zx_vmo_create(RWMappingSize(), 0, &rw_vmo);
   if (status != ZX_OK) {
-    FATAL("zx_vmar_allocate failed: %s", zx_status_get_string(status));
+    FATAL("zx_vmo_create failed: %s", zx_status_get_string(status));
   }
+  const char* name = "dart-ffi-callback-bss";
+  zx_object_set_property(rw_vmo, ZX_PROP_NAME, name, strlen(name));
 
   zx_vaddr_t rx_addr = 0;
   status =
       zx_vmar_map(vmar, ZX_VM_SPECIFIC | ZX_VM_PERM_READ | ZX_VM_PERM_EXECUTE,
-                  /*vmar_offset=*/0, rx_vmo,
+                  /*vmar_offset=*/0, rx_vmo_,
                   /*vmo_offset=*/0, RXMappingSize(), &rx_addr);
   if (status != ZX_OK) {
-    FATAL("zx_vmar_allocate failed: %s", zx_status_get_string(status));
+    FATAL("zx_vmar_map failed: %s", zx_status_get_string(status));
   }
 
   zx_vaddr_t rw_addr = 0;
@@ -170,7 +160,7 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
                   /*vmar_offset=*/RXMappingSize(), rw_vmo,
                   /*vmo_offset=*/0, RWMappingSize(), &rw_addr);
   if (status != ZX_OK) {
-    FATAL("zx_vmar_allocate failed: %s", zx_status_get_string(status));
+    FATAL("zx_vmar_map failed: %s", zx_status_get_string(status));
   }
 
   zx_handle_close(rw_vmo);
@@ -274,6 +264,7 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   FillRuntimeFunction(new_page, kDoRedirectedFfiCallback,
                       reinterpret_cast<void*>(DoRedirectedFfiCallback));
 #endif
+  FillRuntimeFunction(new_page, kGroupFfiCallbackMetadata, this);
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
@@ -497,8 +488,6 @@ FfiCallbackMetadata::LookupMetadataForTrampolineUnlocked(
     Trampoline trampoline) const {
   return *MetadataEntryOfTrampoline(trampoline)->metadata();
 }
-
-FfiCallbackMetadata* FfiCallbackMetadata::singleton_ = nullptr;
 
 ApiState* FfiCallbackMetadata::Metadata::api_state() const {
   return (is_isolate_group_bound() ? target_isolate_group_

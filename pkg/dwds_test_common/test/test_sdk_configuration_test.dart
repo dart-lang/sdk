@@ -22,7 +22,10 @@ void main() {
     });
 
     test('Creates and deletes SDK directory copy', () async {
-      final provider = TestSdkConfigurationProvider(verbose: debug);
+      final provider = TestSdkConfigurationProvider(
+        verbose: debug,
+        ddcModuleFormat: ModuleFormat.amd,
+      );
       final sdkDirectory = provider.sdkLayout.sdkDirectory;
       final sdkSummary = provider.sdkLayout.summaryPath;
       try {
@@ -91,7 +94,10 @@ void main() {
 
   group('Test SDK configuration | DDC with AMD modules |', () {
     setCurrentLogWriter(debug: debug);
-    final provider = TestSdkConfigurationProvider(verbose: debug);
+    final provider = TestSdkConfigurationProvider(
+      verbose: debug,
+      ddcModuleFormat: ModuleFormat.amd,
+    );
     tearDownAll(provider.dispose);
 
     test('Can validate configuration with generated assets', () async {

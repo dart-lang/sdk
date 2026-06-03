@@ -100,16 +100,14 @@ AliasIdentity::AliasIdentity(FlowGraphDeserializer* d)
 
 void ArgumentsDescriptor::Write(FlowGraphSerializer* s) const {
   if (IsCached()) {
-    // Simple argument descriptors are cached in the VM isolate.
+    // Simple argument descriptors are cached.
     // Write them as arguments count and query cache during deserialization.
     ASSERT(NamedCount() == 0);
     ASSERT(Count() == Size());
-    ASSERT(array_.InVMIsolateHeap());
     s->Write<intptr_t>(TypeArgsLen());
     s->Write<intptr_t>(Count());
   } else {
     ASSERT(array_.IsCanonical());
-    ASSERT(!array_.InVMIsolateHeap());
     s->Write<intptr_t>(-1);
     s->Write<const Array&>(array_);
   }
@@ -505,16 +503,6 @@ void FlowGraphSerializer::WriteTrait<const Code&>::Write(FlowGraphSerializer* s,
       return;
     }
   }
-  intptr_t index = StubCode::NumEntries();
-  ObjectStore* object_store = s->isolate_group()->object_store();
-#define MATCH(member, name)                                                    \
-  if (object_store->member() == x.ptr()) {                                     \
-    s->Write<intptr_t>(index);                                                 \
-    return;                                                                    \
-  }                                                                            \
-  ++index;
-  OBJECT_STORE_STUB_CODE_LIST(MATCH)
-#undef MATCH
   UNIMPLEMENTED();
 }
 
@@ -525,15 +513,6 @@ const Code& FlowGraphDeserializer::ReadTrait<const Code&>::Read(
   if (stub_id < StubCode::NumEntries()) {
     return StubCode::EntryAt(stub_id);
   }
-  intptr_t index = StubCode::NumEntries();
-  ObjectStore* object_store = d->isolate_group()->object_store();
-#define MATCH(member, name)                                                    \
-  if (index == stub_id) {                                                      \
-    return Code::ZoneHandle(d->zone(), object_store->member());                \
-  }                                                                            \
-  ++index;
-  OBJECT_STORE_STUB_CODE_LIST(MATCH)
-#undef MATCH
   UNIMPLEMENTED();
 }
 
@@ -700,7 +679,7 @@ void FlowGraphSerializer::WriteFlowGraph(
 
   Write<intptr_t>(flow_graph.current_ssa_temp_index());
   Write<intptr_t>(flow_graph.max_block_id());
-  Write<const Array&>(flow_graph.coverage_array());
+  Write<const TypedData&>(flow_graph.coverage_array());
 
   PrologueInfo prologue_info = flow_graph.prologue_info();
   Write<intptr_t>(prologue_info.min_block_id);
@@ -755,7 +734,7 @@ void FlowGraphSerializer::WriteFlowGraph(
 FlowGraph* FlowGraphDeserializer::ReadFlowGraph() {
   const intptr_t current_ssa_temp_index = Read<intptr_t>();
   const intptr_t max_block_id = Read<intptr_t>();
-  const Array& coverage_array = Read<const Array&>();
+  const TypedData& coverage_array = Read<const TypedData&>();
   const PrologueInfo prologue_info(Read<intptr_t>(), Read<intptr_t>());
 
   definitions_.EnsureLength(current_ssa_temp_index, nullptr);
@@ -1600,6 +1579,16 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       }
       break;
     }
+    case kTypedDataUint32ArrayCid: {
+      const auto& array = TypedData::Cast(x);
+      const intptr_t len = array.Length();
+      Write<intptr_t>(len);
+      for (intptr_t i = 0; i < len; ++i) {
+        uint32_t elem = array.GetUint32(i * kInt32Size);
+        Write<uint32_t>(elem);
+      }
+      break;
+    }
     case kBoolCid:
       Write<bool>(Bool::Cast(x).value());
       break;
@@ -1897,6 +1886,19 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       }
       return array;
     }
+    case kTypedDataUint32ArrayCid: {
+      const intptr_t len = Read<intptr_t>();
+      if (len == 0) {
+        // Currently only used for coverage arrays.
+        return Object::empty_coverage_array();
+      }
+      auto& array = TypedData::ZoneHandle(
+          Z, TypedData::New(kTypedDataUint32ArrayCid, len, Heap::kOld));
+      for (intptr_t i = 0; i < len; ++i) {
+        array.SetUint32(i * kInt32Size, Read<uint32_t>());
+      }
+      return array;
+    }
     case kBoolCid:
       return Bool::Get(Read<bool>());
     case kClosureCid: {
@@ -2182,7 +2184,8 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
   V(Instance, Object::null_instance())                                         \
   V(String, Object::null_string())                                             \
   V(TypeArguments, Object::null_type_arguments())                              \
-  V(TypeParameters, TypeParameters::Handle(d->zone()))
+  V(TypeParameters, TypeParameters::Handle(d->zone()))                         \
+  V(TypedData, TypedData::Handle(d->zone()))
 
 #define SERIALIZE_HANDLE_AS_OBJECT(handle, null_handle)                        \
   template <>                                                                  \

@@ -48,7 +48,7 @@ class NestingVisitor extends ScrapeVisitor {
   bool _pushed = false;
   int _deepestNesting = 0;
 
-  NestingVisitor({bool? allCode}) : _allCode = allCode ?? false;
+  new({bool? allCode}) : _allCode = allCode ?? false;
 
   @override
   void beforeVisitBuildMethod(Declaration node) {

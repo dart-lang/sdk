@@ -223,7 +223,7 @@ void parseFull(Uri uri, Uint8List source) {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri, LineInfo lineInfo)
+  new(Uri uri, LineInfo lineInfo)
     : super(
         null,
         uri,

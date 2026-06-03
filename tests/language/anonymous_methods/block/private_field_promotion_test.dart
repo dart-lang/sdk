@@ -56,19 +56,20 @@ void testParameterlessPromotionsCarriedIn(C c) {
   }
 }
 
-void testParameterfulPromotionsCarriedIn(C c) {
+void testParameterfulPromotionsNotCarriedIn(C c) {
   if (c._x != null) {
     c._x.expectStaticType<Exactly<Object>>;
     c.(p) {
-      // `p` refers to the same object as `c`, so `p._x` is promoted.
-      p._x.expectStaticType<Exactly<Object>>;
+      // `p` refers to the same object as `c`, but `p._x` is not promoted
+      // because `p` is treated like a normal local variable.
+      p._x.expectStaticType<Exactly<Object?>>;
     };
   }
 }
 
 main() {
-  testParameterlessPromotionsCarriedIn(C(0));
-  testParameterfulPromotionsCarriedIn(C(0));
   C(0).testParameterlessRebindsThis();
   C(0).testParameterfulDoesNotRebindThis();
+  testParameterlessPromotionsCarriedIn(C(0));
+  testParameterfulPromotionsNotCarriedIn(C(0));
 }

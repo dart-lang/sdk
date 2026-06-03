@@ -28,7 +28,7 @@ class SubtypesBenchmark {
   final Library library;
   final List<SubtypeCheck> checks;
 
-  SubtypesBenchmark(this.library, this.checks);
+  new(this.library, this.checks);
 }
 
 class SubtypeCheck {
@@ -36,7 +36,7 @@ class SubtypeCheck {
   final DartType t;
   final bool isSubtype;
 
-  SubtypeCheck(this.s, this.t, this.isSubtype);
+  new(this.s, this.t, this.isSubtype);
 
   @override
   String toString() {

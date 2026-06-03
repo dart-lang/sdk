@@ -12,7 +12,7 @@ import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart'
     as ast
-    show DartType, Name, TypeLiteralConstant, VariableDeclaration;
+    show DartType, Name, TypeLiteralConstant, Variable;
 
 /// Helper class to create IR instructions and populate [FlowGraph].
 ///
@@ -290,7 +290,7 @@ class FlowGraphBuilder {
   /// Add [LocalVariable] to the graph.
   LocalVariable declareLocalVariable(
     String name,
-    ast.VariableDeclaration? declaration,
+    ast.Variable? declaration,
     CType type,
   ) {
     final v = LocalVariable(
@@ -319,15 +319,9 @@ class FlowGraphBuilder {
   }
 
   /// Append [StoreLocal] to the graph.
-  ///
-  /// If [leaveValueOnStack] is `true`, then the stored value is left
-  /// on top of the expression stack.
-  void addStoreLocal(LocalVariable variable, {bool leaveValueOnStack = false}) {
+  void addStoreLocal(LocalVariable variable) {
     final value = pop();
     final instr = StoreLocal(graph, currentSourcePosition, variable, value);
-    if (leaveValueOnStack) {
-      push(value);
-    }
     appendInstruction(instr);
   }
 
@@ -424,10 +418,15 @@ class FlowGraphBuilder {
     return instr;
   }
 
-  /// Append [TypeParameters] taking a parameter as input to the graph.
-  TypeParameters addTypeParameters(TypeParametersKind kind) {
-    final parameter = pop();
-    final instr = TypeParameters(graph, currentSourcePosition, kind, parameter);
+  /// Append [TypeParameters] to the graph.
+  TypeParameters addTypeParameters(TypeParametersKind kind, int inputCount) {
+    final instr = TypeParameters(
+      graph,
+      currentSourcePosition,
+      kind,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
     appendInstruction(instr);
     return instr;
   }
@@ -552,18 +551,25 @@ class FlowGraphBuilder {
   /// Append [AllocateClosure] to the graph.
   AllocateClosure addAllocateClosure(
     ClosureFunction function,
+    ClosureLayout closureLayout,
     CType type,
-    int inputCount,
   ) {
     final instr = AllocateClosure(
       graph,
       currentSourcePosition,
       function,
+      closureLayout,
       type,
-      inputCount: inputCount,
     );
-    popInputs(instr, 0, inputCount);
     push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateContext] to the graph.
+  /// Does not push result onto the stack.
+  AllocateContext addAllocateContext(int length) {
+    final instr = AllocateContext(graph, currentSourcePosition, length);
     appendInstruction(instr);
     return instr;
   }
@@ -587,6 +593,22 @@ class FlowGraphBuilder {
   /// Takes type arguments and key/value pairs from the stack as inputs.
   AllocateMapLiteral addAllocateMapLiteral(CType type, int inputCount) {
     final instr = AllocateMapLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateRecordLiteral] to the graph.
+  /// Takes elements from the stack as inputs.
+  AllocateRecordLiteral addAllocateRecordLiteral(RecordType type) {
+    final inputCount = type.numFields;
+    final instr = AllocateRecordLiteral(
       graph,
       currentSourcePosition,
       type,

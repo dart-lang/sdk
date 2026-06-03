@@ -19,7 +19,7 @@ import 'package:yaml/yaml.dart';
 
 /// Produces [CodeActionLiteral]s from analysis options fixes.
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
-  AnalysisOptionsCodeActionsProducer(
+  new(
     super.server,
     super.file,
     super.lineInfo, {

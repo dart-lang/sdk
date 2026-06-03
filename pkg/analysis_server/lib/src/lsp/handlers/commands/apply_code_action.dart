@@ -25,7 +25,7 @@ import 'package:language_server_protocol/json_parsing.dart';
 /// and can easily change - the server only needs to be consistent with itself.
 class ApplyCodeActionCommandHandler
     extends SimpleEditCommandHandler<AnalysisServer> {
-  ApplyCodeActionCommandHandler(super.server);
+  new(super.server);
 
   @override
   String get commandName => 'Apply Code Action';

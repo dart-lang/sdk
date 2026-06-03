@@ -10,7 +10,7 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:path/path.dart' as path;
 
 class FixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
-  FixesPage(DiagnosticsSite site)
+  new(DiagnosticsSite site)
     : super(
         site,
         'fixes',

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
-import 'package:analyzer/file_system/file_system.dart';
 
 /// Used to write information about a session to a log.
 class SessionLogger {
@@ -24,17 +23,17 @@ class SessionLogger {
   ///
   /// If [filePath] is non-`null`, it also writes log entries to a file at
   /// [filePath].
-  factory SessionLogger({File? sessionLogFile}) {
+  factory({String? filePath}) {
     var normalizer = LogNormalizer();
     var sink = SessionLoggerInMemorySink(
       maxBufferLength: 1024,
       normalizer: normalizer,
-      sessionLogFile: sessionLogFile,
+      sessionLogFilePath: filePath,
     );
     return SessionLogger._(sink: sink, normalizer: normalizer);
   }
 
-  SessionLogger._({required this.sink, required this.normalizer});
+  new _({required this.sink, required this.normalizer});
 
   /// Adds normalization replacements for the package roots.
   ///
@@ -44,9 +43,9 @@ class SessionLogger {
     required Map<String, Uri> packageRoots,
   }) {
     for (var MapEntry(key: packageName, value: uri) in packageRoots.entries) {
-      normalizer.addUriReplacement(
+      normalizer.addReplacementsForUri(
         uri,
-        '{{context-$index:package-root:$packageName}}',
+        'context-$index:package-root:$packageName',
       );
     }
   }
@@ -82,5 +81,7 @@ class SessionLogger {
   }
 
   /// Shuts down the logger.
-  Future<void> shutdown() async {}
+  Future<void> shutdown() async {
+    await sink?.close();
+  }
 }

@@ -161,8 +161,7 @@ DartType? getExpectedType(
 }
 
 class UnnecessaryNullChecks extends AnalysisRule {
-  UnnecessaryNullChecks()
-    : super(name: LintNames.unnecessary_null_checks, description: _desc);
+  new() : super(name: LintNames.unnecessary_null_checks, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryNullChecks;
@@ -182,7 +181,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
   final RuleContext context;
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitNullAssertPattern(NullAssertPattern node) {

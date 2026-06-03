@@ -19,8 +19,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Attach library annotations to library directives.';
 
 class LibraryAnnotations extends AnalysisRule {
-  LibraryAnnotations()
-    : super(name: LintNames.library_annotations, description: _desc);
+  new() : super(name: LintNames.library_annotations, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.libraryAnnotations;
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   Directive? firstDirective;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

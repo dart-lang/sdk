@@ -55,7 +55,7 @@ class PubspecFixGenerator {
   /// The end-of-line marker to be used in this `pubspec.yaml` file.
   final String endOfLine;
 
-  PubspecFixGenerator(
+  new(
     this.resourceProvider,
     this.diagnostic,
     this.content,
@@ -375,7 +375,7 @@ class _NonDartChangeWorkspace implements ChangeWorkspace {
   @override
   ResourceProvider resourceProvider;
 
-  _NonDartChangeWorkspace(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   bool containsFile(String path) {
@@ -392,5 +392,5 @@ class _Range {
   int startOffset;
   int endOffset;
 
-  _Range(this.startOffset, this.endOffset);
+  new(this.startOffset, this.endOffset);
 }

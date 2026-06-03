@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoGenerativeConstructorsInSuperclassTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -17,36 +18,34 @@ main() {
 class NoGenerativeConstructorsInSuperclassTest
     extends PubPackageResolutionTest {
   test_explicit() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
+//              ^
+// [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
   B() : super();
 }
-''',
-      [error(diag.noGenerativeConstructorsInSuperclass, 55, 1)],
-    );
+''');
   }
 
   test_explicit_oneFactory() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
+//              ^
+// [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
   B() : super();
   factory B.second() => throw '';
 }
-''',
-      [error(diag.noGenerativeConstructorsInSuperclass, 55, 1)],
-    );
+''');
   }
 
   test_hasFactories() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw '';
 }
@@ -58,7 +57,7 @@ class B extends A {
   }
 
   test_hasFactory() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw '';
 }
@@ -69,29 +68,27 @@ class B extends A {
   }
 
   test_implicit() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
+//              ^
+// [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
   B();
 }
-''',
-      [error(diag.noGenerativeConstructorsInSuperclass, 55, 1)],
-    );
+''');
   }
 
   test_implicit2() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   factory A() => throw '';
 }
 class B extends A {
+//              ^
+// [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
 }
-''',
-      [error(diag.noGenerativeConstructorsInSuperclass, 55, 1)],
-    );
+''');
   }
 }

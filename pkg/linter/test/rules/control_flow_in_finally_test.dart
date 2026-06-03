@@ -19,22 +19,19 @@ class ControlFlowInFinallyTest extends LintRuleTest {
   String get lintRule => LintNames.control_flow_in_finally;
 
   test_break() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   for (var o in [1, 2]) {
     try {
     } catch (e) {
     } finally {
       if (1 > 0) {
-        break;
+        [!break;!]
       }
     }
   }
 }
-''',
-      [lint(108, 6)],
-    );
+''');
   }
 
   test_break_loopDeclaredWithinFinally() async {
@@ -54,20 +51,17 @@ void f() {
   }
 
   test_continue() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   for (var o in [1, 2]) {
     try {
     } catch (e) {
     } finally {
-      continue;
+      [!continue;!]
     }
   }
 }
-''',
-      [lint(87, 9)],
-    );
+''');
   }
 
   test_continue_deep() async {
@@ -99,18 +93,15 @@ void f(int i) {
   }
 
   test_return() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   try {
   } catch (e) {
   } finally {
-    return;
+    [!return;!]
   }
 }
-''',
-      [lint(53, 7)],
-    );
+''');
   }
 
   test_returnInClosure() async {

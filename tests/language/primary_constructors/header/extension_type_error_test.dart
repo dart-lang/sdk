@@ -8,38 +8,41 @@
 // declaration must still have exactly one parameter, which must be declaring.
 // The `final` can be omitted, but a `var` cannot be used.
 
-// SharedOptions=--enable-experiment=primary-constructors
-
 // -----------------
 // No `var` allowed.
 
 extension type ET1(var int i);
-//                 ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                 ^^^
+// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+//                         ^
+// [cfe] Representation fields can't have modifiers.
 
 extension type ET2(var i);
-//                 ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                 ^^^
+// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+//                     ^
+// [cfe] Representation fields can't have modifiers.
 
 // --------------------------------
 // Must have exactly one parameter.
 
 extension type ET3(final i, final x);
-//                          ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                ^
+// [cfe] Each extension type should have exactly one representation field.
+//                        ^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_REPRESENTATION_FIELDS
 
 extension type ET4(int i, int x);
-//                        ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                ^
+// [cfe] Each extension type should have exactly one representation field.
+//                      ^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_REPRESENTATION_FIELDS
 
 extension type ET5(int i, final x);
-//                        ^
-// [analyzer] unspecified
-// [cfe] unspecified
+//                ^
+// [cfe] Each extension type should have exactly one representation field.
+//                      ^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_REPRESENTATION_FIELDS
 
 // --------------------
 // The extension type representation parameter cannot be covariant.

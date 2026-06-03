@@ -122,7 +122,7 @@ ConstantPool {
   [6] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/5
   [7] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/6
   [8] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs::TypeParam/7
-  [9] = DirectCall 'dart:core::_GrowableList::_literal8 (constructor)', ArgDesc num-args 9, num-type-args 0, names []
+  [9] = DirectCall 'dart:core::_GrowableList::_literal8 (constructor)', ArgDesc num-args 8, num-type-args 1, names []
   [10] = Reserved
   [11] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [12] = Reserved
@@ -531,7 +531,7 @@ ConstantPool {
   [13] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::TypeParam/1
   [14] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::TypeParam/0
   [15] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::TypeParam/1
-  [16] = DirectCall 'dart:core::_GrowableList::_literal8 (constructor)', ArgDesc num-args 9, num-type-args 0, names []
+  [16] = DirectCall 'dart:core::_GrowableList::_literal8 (constructor)', ArgDesc num-args 8, num-type-args 1, names []
   [17] = Reserved
   [18] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [19] = Reserved
@@ -1035,7 +1035,7 @@ L1:
 }
 ConstantPool {
   [0] = ObjectRef < dart:core::Function >
-  [1] = DirectCall 'dart:core::_GrowableList:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = DirectCall 'dart:core::_GrowableList:: (constructor)', ArgDesc num-args 1, num-type-args 1, names []
   [2] = Reserved
   [3] = ClosureFunction 0
   [4] = EndClosureFunctionScope

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,82 +15,54 @@ main() {
 @reflectiveTest
 class ConstWithUndefinedConstructorTest extends PubPackageResolutionTest {
   test_class_named() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
 f() {
   return const A.noSuchConstructor();
+//               ^^^^^^^^^^^^^^^^^
+// [diag.constWithUndefinedConstructor] The class 'A' doesn't have a constant constructor 'noSuchConstructor'.
 }
-''',
-      [
-        error(
-          diag.constWithUndefinedConstructor,
-          48,
-          17,
-          messageContains: ["class 'A'", "constructor 'noSuchConstructor'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_named_prefixed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as a;
 f() {
   return const a.Future.noSuchConstructor();
+//                      ^^^^^^^^^^^^^^^^^
+// [diag.constWithUndefinedConstructor] The class 'a.Future' doesn't have a constant constructor 'noSuchConstructor'.
 }
-''',
-      [
-        error(
-          diag.constWithUndefinedConstructor,
-          56,
-          17,
-          messageContains: [
-            "class 'a.Future'",
-            "constructor 'noSuchConstructor'",
-          ],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_nonFunctionTypedef() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A.name();
 }
 typedef B = A;
 f() {
   return const B();
+//             ^
+// [diag.constWithUndefinedConstructorDefault] The class 'B' doesn't have an unnamed constant constructor.
 }
-''',
-      [error(diag.constWithUndefinedConstructorDefault, 66, 1)],
-    );
+''');
   }
 
   test_class_unnamed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A.name();
 }
 f() {
   return const A();
+//             ^
+// [diag.constWithUndefinedConstructorDefault] The class 'A' doesn't have an unnamed constant constructor.
 }
-''',
-      [
-        error(
-          diag.constWithUndefinedConstructorDefault,
-          51,
-          1,
-          messageContains: ["'A'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_class_unnamed_prefixed() async {
@@ -100,44 +71,36 @@ class A {
   const A.name();
 }
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' as lib1;
 f() {
   return const lib1.A();
+//             ^^^^^^
+// [diag.constWithUndefinedConstructorDefault] The class 'lib1.A' doesn't have an unnamed constant constructor.
 }
-''',
-      [
-        error(
-          diag.constWithUndefinedConstructorDefault,
-          49,
-          6,
-          messageContains: ["'lib1.A'"],
-        ),
-      ],
-    );
+''');
   }
 
   test_enum_notConstructor_constant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   const E.v();
+//        ^
+// [diag.constWithUndefinedConstructor] The class 'E' doesn't have a constant constructor 'v'.
 }
 
 enum E {
   v
 }
-''',
-      [error(diag.constWithUndefinedConstructor, 21, 1)],
-    );
+''');
   }
 
   test_enum_notConstructor_method() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   const E.foo();
+//        ^^^
+// [diag.constWithUndefinedConstructor] The class 'E' doesn't have a constant constructor 'foo'.
 }
 
 enum E {
@@ -145,23 +108,20 @@ enum E {
   
   void foo() {}
 }
-''',
-      [error(diag.constWithUndefinedConstructor, 21, 3)],
-    );
+''');
   }
 
   test_enum_unresolved() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 void f() {
   const E.foo();
+//        ^^^
+// [diag.constWithUndefinedConstructor] The class 'E' doesn't have a constant constructor 'foo'.
 }
 
 enum E {
   v
 }
-''',
-      [error(diag.constWithUndefinedConstructor, 21, 3)],
-    );
+''');
   }
 }

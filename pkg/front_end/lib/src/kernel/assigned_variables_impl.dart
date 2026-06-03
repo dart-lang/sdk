@@ -6,40 +6,36 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:kernel/ast.dart';
 
-class AssignedVariablesImpl
-    implements AssignedVariables<TreeNode, VariableDeclaration> {
-  final AssignedVariables<TreeNode, VariableDeclaration> _delegate;
-  final AssignedVariables<TreeNode, VariableDeclaration>? _insideAsserts;
-  final AssignedVariables<TreeNode, VariableDeclaration>? _outsideAsserts;
+class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
+  final AssignedVariables<TreeNode, Variable> _delegate;
+  final AssignedVariables<TreeNode, Variable>? _insideAsserts;
+  final AssignedVariables<TreeNode, Variable>? _outsideAsserts;
   int _assertDepth = 0;
   final Map<AssignedVariablesNodeInfo, AssignedVariablesNodeInfo>?
   _deferredInsideAssertsByDeferredDelegate;
   final Map<AssignedVariablesNodeInfo, AssignedVariablesNodeInfo>?
   _deferredOutsideAssertsByDeferredDelegate;
 
-  AssignedVariablesImpl(
-    this._delegate, {
-    required bool isClosureContextLoweringEnabled,
-  }) : _insideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, VariableDeclaration>()
-           : null,
-       _outsideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, VariableDeclaration>()
-           : null,
-       _deferredInsideAssertsByDeferredDelegate =
-           isClosureContextLoweringEnabled
-           ? new Map<
-               AssignedVariablesNodeInfo,
-               AssignedVariablesNodeInfo
-             >.identity()
-           : null,
-       _deferredOutsideAssertsByDeferredDelegate =
-           isClosureContextLoweringEnabled
-           ? new Map<
-               AssignedVariablesNodeInfo,
-               AssignedVariablesNodeInfo
-             >.identity()
-           : null;
+  new(this._delegate, {required bool isClosureContextLoweringEnabled})
+    : _insideAsserts = isClosureContextLoweringEnabled
+          ? new AssignedVariables<TreeNode, Variable>()
+          : null,
+      _outsideAsserts = isClosureContextLoweringEnabled
+          ? new AssignedVariables<TreeNode, Variable>()
+          : null,
+      _deferredInsideAssertsByDeferredDelegate = isClosureContextLoweringEnabled
+          ? new Map<
+              AssignedVariablesNodeInfo,
+              AssignedVariablesNodeInfo
+            >.identity()
+          : null,
+      _deferredOutsideAssertsByDeferredDelegate =
+          isClosureContextLoweringEnabled
+          ? new Map<
+              AssignedVariablesNodeInfo,
+              AssignedVariablesNodeInfo
+            >.identity()
+          : null;
 
   bool get _isInsideAssert => _assertDepth > 0;
 
@@ -72,7 +68,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  void declare(VariableDeclaration variable, {bool ignoreDuplicates = false}) {
+  void declare(Variable variable, {bool ignoreDuplicates = false}) {
     _delegate.declare(variable, ignoreDuplicates: ignoreDuplicates);
     _insideAsserts?.declare(variable, ignoreDuplicates: ignoreDuplicates);
     _outsideAsserts?.declare(variable, ignoreDuplicates: ignoreDuplicates);
@@ -153,7 +149,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  PromotionKeyStore<VariableDeclaration> get promotionKeyStore {
+  PromotionKeyStore<Variable> get promotionKeyStore {
     return _delegate.promotionKeyStore;
   }
 
@@ -165,7 +161,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  void read(VariableDeclaration variable) {
+  void read(Variable variable) {
     _delegate.read(variable);
     if (_isInsideAssert) {
       _insideAsserts?.read(variable);
@@ -203,7 +199,7 @@ class AssignedVariablesImpl
   }
 
   @override
-  void write(VariableDeclaration variable) {
+  void write(Variable variable) {
     _delegate.write(variable);
     if (_isInsideAssert) {
       // Coverage-ignore-block(suite): Not run.

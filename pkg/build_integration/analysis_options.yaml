@@ -1,1 +1,5 @@
+linter:
+  rules:
+    - unnecessary_type_name_in_constructor
+    - unnecessary_const_in_enum_constructor
 include: package:lints/recommended.yaml

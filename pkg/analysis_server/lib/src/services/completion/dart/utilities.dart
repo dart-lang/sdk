@@ -283,7 +283,7 @@ class CompletionDefaultArgumentList {
   final String? text;
   final List<int>? ranges;
 
-  CompletionDefaultArgumentList({required this.text, required this.ranges});
+  new({required this.text, required this.ranges});
 }
 
 /// A tuple of text to insert and an (optional) location for the cursor.
@@ -295,5 +295,5 @@ class DefaultArgument {
   /// field can be null.
   final int? cursorPosition;
 
-  DefaultArgument(this.text, {this.cursorPosition});
+  new(this.text, {this.cursorPosition});
 }

@@ -121,7 +121,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void f(x) { }
+  augment void f(x);
 }
 ''');
 
@@ -139,7 +139,7 @@ void f(x) { }
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 
-augment void f(x) { }
+augment void f(x);
 ''');
 
     await assertDiagnosticsInFile(a.path, [lint(23, 1)]);
@@ -207,14 +207,11 @@ class A {
   }
 
   test_instanceConstructor_namedParameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A({p});
+  A({[!p!]});
 }
-''',
-      [lint(15, 1)],
-    );
+''');
   }
 
   test_instanceConstructor_optionalPositionalParameterHasType() async {
@@ -226,25 +223,19 @@ class A {
   }
 
   test_instanceConstructor_optionalPositionalParameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A([p]);
+  A([[!p!]]);
 }
-''',
-      [lint(15, 1)],
-    );
+''');
   }
 
   test_instanceConstructor_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A(p);
+  A([!p!]);
 }
-''',
-      [lint(14, 1)],
-    );
+''');
   }
 
   test_instanceConstructor_positionalParameterHasType() async {
@@ -262,12 +253,9 @@ class A({int? p});
   }
 
   test_instanceConstructor_primary_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
-class A({p});
-''',
-      [lint(9, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class A({[!p!]});
+''');
   }
 
   test_instanceConstructor_primary_private_parameterMissingType() async {
@@ -302,14 +290,11 @@ class A {
   }
 
   test_instanceConstructor_requiredNamedParameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A({required p});
+  A({[!required p!]});
 }
-''',
-      [lint(15, 10)],
-    );
+''');
   }
 
   test_instanceField_onClass_hasInitializer() async {
@@ -321,26 +306,20 @@ class A {
   }
 
   test_instanceField_onClass_hasVar_noInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  var x;
+  var [!x!];
 }
-''',
-      [lint(16, 1)],
-    );
+''');
   }
 
   test_instanceField_onClass_inDeclarationList() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
   // ignore: unused_field
-  var x, _y;
+  var [!x!], _y;
 }
-''',
-      [lint(42, 1)],
-    );
+''');
   }
 
   test_instanceField_onClass_noInitializer() async {
@@ -352,14 +331,11 @@ class A {
   }
 
   test_instanceField_onClass_nullInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  final n = null;
+  final [!n!] = null;
 }
-''',
-      [lint(18, 1)],
-    );
+''');
   }
 
   test_instanceField_onClass_originPrimaryConstructor_typed() async {
@@ -369,12 +345,9 @@ class A(var int x);
   }
 
   test_instanceField_onClass_originPrimaryConstructor_untyped() async {
-    await assertDiagnostics(
-      r'''
-class A(var x);
-''',
-      [lint(8, 5)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+class A([!var x!]);
+''');
   }
 
   test_instanceGetter_onClass() async {
@@ -386,82 +359,61 @@ class A {
   }
 
   test_instanceGetter_onClass_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  get x => 42;
+  get [!x!] => 42;
 }
-''',
-      [lint(16, 1)],
-    );
+''');
   }
 
   test_instanceGetter_onExtension_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E on int {
-  get x => 0;
+  get [!x!] => 0;
 }
-''',
-      [lint(27, 1)],
-    );
+''');
   }
 
   test_instanceMethod_onClass_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  m() {}
+  [!m!]() {}
 }
-''',
-      [lint(12, 1)],
-    );
+''');
   }
 
   test_instanceMethod_onClass_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  void m(x) {}
+  void m([!x!]) {}
 }
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_instanceMethod_onExtension_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E on int {
-  f() {}
+  [!f!]() {}
 }
-''',
-      [lint(23, 1)],
-    );
+''');
   }
 
   test_instanceMethod_onExtension_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E on int {
-  void m(p) {}
+  void m([!p!]) {}
 }
-''',
-      [lint(30, 1)],
-    );
+''');
   }
 
   test_instanceMethod_onExtensionType_noReturnType() async {
     // One test should be sufficient to verify extension type
     // support as the logic is implemented commonly for all members.
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) {
-  m() {}
+  [!m!]() {}
 }
-''',
-      [lint(28, 1)],
-    );
+''');
   }
 
   test_instanceMethod_parameterNameIsMultipleUnderscores() async {
@@ -480,6 +432,54 @@ class A {
 ''');
   }
 
+  test_instanceOperator_binary_hasTypes() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A operator +(A a) => a;
+}
+''');
+  }
+
+  test_instanceOperator_binary_noParameterType() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  A operator +([!a!]) => a;
+}
+''');
+  }
+
+  test_instanceOperator_binary_noReturnType() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  operator [!+!](A a) => a;
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_hasTypes() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void operator []=(A a, A b) {}
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_noParameterType() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class A {
+  void operator []=([!a!], A b) {}
+}
+''');
+  }
+
+  test_instanceOperator_indexAssignment_noReturnType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  operator []=(A a, A b) {}
+}
+''');
+  }
+
   test_instanceSetter_noReturnType() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -489,25 +489,19 @@ class A {
   }
 
   test_instanceSetter_onClass_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  set x(p) {}
+  set x([!p!]) {}
 }
-''',
-      [lint(18, 1)],
-    );
+''');
   }
 
   test_instanceSetter_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension E on int {
-  set x(p) {}
+  set x([!p!]) {}
 }
-''',
-      [lint(29, 1)],
-    );
+''');
   }
 
   test_instanceSetter_private_parameterMissingType() async {
@@ -529,14 +523,11 @@ void f() {
   }
 
   test_newSyntax_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  new(p);
+  new([!p!]);
 }
-''',
-      [lint(16, 1)],
-    );
+''');
   }
 
   test_staticConstField_hasInitializer() async {
@@ -564,14 +555,11 @@ class A {
   }
 
   test_staticField_nullInitializer() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static final x = null;
+  static final [!x!] = null;
 }
-''',
-      [lint(25, 1)],
-    );
+''');
   }
 
   test_staticField_withInitializer() async {
@@ -583,37 +571,28 @@ class A {
   }
 
   test_staticMethod_onClass_noReturnType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static m() {}
+  static [!m!]() {}
 }
-''',
-      [lint(19, 1)],
-    );
+''');
   }
 
   test_staticMethod_onClass_parameterHasVar() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.10
 class A {
-  static void m(var p) {}
+  static void m([!var p!]) {}
 }
-''',
-      [lint(42, 5)],
-    );
+''');
   }
 
   test_staticMethod_onClass_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  static void m(p) {}
+  static void m([!p!]) {}
 }
-''',
-      [lint(26, 1)],
-    );
+''');
   }
 
   test_topLevelConst() async {
@@ -623,21 +602,15 @@ const x = '';
   }
 
   test_topLevelFunction_noReturnType() async {
-    await assertDiagnostics(
-      r'''
-f() {}
-''',
-      [lint(0, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+[!f!]() {}
+''');
   }
 
   test_topLevelFunction_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
-void f(x) {}
-''',
-      [lint(7, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+void f([!x!]) {}
+''');
   }
 
   test_topLevelGetter_hasReturnType() async {
@@ -647,12 +620,9 @@ int get x => 42;
   }
 
   test_topLevelGetter_noReturnType() async {
-    await assertDiagnostics(
-      r'''
-get x => 42;
-''',
-      [lint(4, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+get [!x!] => 42;
+''');
   }
 
   test_topLevelSetter_parameterHasType() async {
@@ -662,21 +632,15 @@ set x(int p) {}
   }
 
   test_topLevelSetter_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
-set x(p) {}
-''',
-      [lint(6, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+set x([!p!]) {}
+''');
   }
 
   test_typedefLegacy_parameterMissingType() async {
-    await assertDiagnostics(
-      r'''
-typedef F(x);
-''',
-      [lint(8, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+typedef [!F!](x);
+''');
   }
 
   test_typedefLegacy_private_parameterHasType() async {

@@ -6,7 +6,6 @@
 // SharedOptions=--enable-experiment=anonymous-methods
 
 import 'package:expect/expect.dart';
-import '../../static_type_helper.dart';
 
 class A {
   final int x = 'first'.=> this.length + length;

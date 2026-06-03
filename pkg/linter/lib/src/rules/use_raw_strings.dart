@@ -15,7 +15,7 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use raw string to avoid escapes.';
 
 class UseRawStrings extends AnalysisRule {
-  UseRawStrings() : super(name: LintNames.use_raw_strings, description: _desc);
+  new() : super(name: LintNames.use_raw_strings, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.useRawStrings;
@@ -33,7 +33,7 @@ class UseRawStrings extends AnalysisRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {

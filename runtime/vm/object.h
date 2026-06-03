@@ -454,11 +454,6 @@ class Object {
 
   bool IsNew() const { return ptr()->IsNewObject(); }
   bool IsOld() const { return ptr()->IsOldObject(); }
-#if defined(DEBUG)
-  bool InVMIsolateHeap() const;
-#else
-  bool InVMIsolateHeap() const { return ptr()->untag()->InVMIsolateHeap(); }
-#endif  // DEBUG
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -574,21 +569,18 @@ class Object {
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(UnhandledException, unhandled_oom_exception)                               \
-  V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
   V(AbstractType, null_abstract_type)                                          \
   V(TypedData, uninitialized_index)                                            \
-  V(Array, uninitialized_data)
+  V(Array, uninitialized_data)                                                 \
+  V(TypedData, empty_coverage_array)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
   static const Type& name() { return Roots::name(); }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
-  static void set_vm_isolate_snapshot_object_table(const Array& table);
-
-  // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
   static void Init(IsolateGroup* isolate_group);
   static void InitVtables();
@@ -687,7 +679,7 @@ class Object {
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
-  Object() : ptr_(Roots::null_obj()) {}
+  Object() : ptr_(nullptr) {}
 
   uword raw_value() const { return static_cast<uword>(ptr()); }
 
@@ -1830,10 +1822,12 @@ class Class : public Object {
   intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;
   FunctionPtr InvocationDispatcherFunctionFromIndex(intptr_t idx) const;
 
-  FunctionPtr GetInvocationDispatcher(const String& target_name,
-                                      const Array& args_desc,
-                                      UntaggedFunction::Kind kind,
-                                      bool create_if_absent) const;
+  FunctionPtr GetInvocationDispatcher(
+      const String& target_name,
+      const Array& args_desc,
+      UntaggedFunction::Kind kind,
+      bool create_if_absent,
+      bool is_dynamically_callable = false) const;
 
   FunctionPtr GetRecordFieldGetter(const String& getter_name) const;
 
@@ -2094,7 +2088,8 @@ class Class : public Object {
 
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
-                                         UntaggedFunction::Kind kind) const;
+                                         UntaggedFunction::Kind kind,
+                                         bool is_dynamically_callable) const;
 
   FunctionPtr CreateRecordFieldGetter(const String& getter_name) const;
 
@@ -4071,7 +4066,7 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array,
-      const Array& coverage_array) const;
+      const TypedData& coverage_array) const;
   // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
   // ic_data (array and descriptor) if 'clone_ic_data' is true.
   void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
@@ -4093,7 +4088,7 @@ class Function : public Object {
   // Coverage data array is a list of pairs:
   //   element 2 * i + 0 is token position
   //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
-  ArrayPtr GetCoverageArray() const;
+  TypedDataPtr GetCoverageArray() const;
 
   // Outputs this function's service ID to the provided JSON object.
   void AddFunctionServiceId(const JSONObject& obj) const;
@@ -4178,6 +4173,8 @@ class Function : public Object {
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
+  // dynamically_callable: host function or dynamic forwarder that can be
+  //                       invoked dynamically from a dynamic module.
 
 // Bits that are set when function is created, don't have to worry about
 // concurrent updates.
@@ -4195,7 +4192,8 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
-  V(IsExtensionTypeMember, is_extension_type_member)
+  V(IsExtensionTypeMember, is_extension_type_member)                           \
+  V(IsDynamicallyCallable, is_dynamically_callable)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
 #define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)
@@ -4500,6 +4498,13 @@ class Field : public Object {
   }
   bool has_deeply_immutable_type() const {
     return untag()->kind_bits_.Read<HasDeeplyImmutableTypeBit>();
+  }
+
+  void set_is_dynamically_callable(bool value) const {
+    untag()->kind_bits_.UpdateBool<IsDynamicallyCallableBit>(value);
+  }
+  bool is_dynamically_callable() const {
+    return untag()->kind_bits_.Read<IsDynamicallyCallableBit>();
   }
 
 #if defined(DART_DYNAMIC_MODULES)
@@ -4911,6 +4916,10 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                NoSanitizeThreadBit::kNextBit>;
+  using IsDynamicallyCallableBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               HasDeeplyImmutableTypeBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -5951,7 +5960,7 @@ class Instructions : public Object {
   uint32_t Hash() const { return Hash(ptr()); }
 
   static uint32_t Hash(const InstructionsPtr instr) {
-    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart(instr)),
+    return HashBytes(reinterpret_cast<const void*>(PayloadStart(instr)),
                      Size(instr));
   }
 
@@ -6937,7 +6946,6 @@ class Code : public Object {
   uword PayloadStart() const { return PayloadStartOf(ptr()); }
   static uword PayloadStartOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (IsUnknownDartCode(code)) return 0;
     const uword entry_offset = HasMonomorphicEntry(code)
                                    ? Instructions::kPolymorphicEntryOffsetAOT
                                    : 0;
@@ -7009,7 +7017,6 @@ class Code : public Object {
   uword Size() const { return PayloadSizeOf(ptr()); }
   static uword PayloadSizeOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
     auto instr = InstructionsOf(code);
@@ -7613,11 +7620,29 @@ class Bytecode : public Object {
 
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
+
+  intptr_t recorded_coverage_binary_offset() const {
+    return untag()->recorded_coverage_binary_offset_;
+  }
+  void set_recorded_coverage_binary_offset(intptr_t value) const {
+    StoreNonPointer(&untag()->recorded_coverage_binary_offset_, value);
+  }
+
+  TypedDataPtr coverage_array() const { return untag()->coverage_array(); }
+  TypedDataPtr EnsureCoverageArray(Thread* thread) const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   bool HasLocalVariablesInfo() const {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     return (local_variables_binary_offset() != 0);
+#else
+    return false;
+#endif
+  }
+
+  bool HasRecordedCoverage() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return (recorded_coverage_binary_offset() != 0);
 #else
     return false;
 #endif

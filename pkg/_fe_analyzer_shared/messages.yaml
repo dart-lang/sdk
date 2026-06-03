@@ -1639,6 +1639,7 @@ extensionDeclaresAbstractMember:
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
   script: |
+    // @dart=3.5
     extension E on int {
       void method();
     }
@@ -1656,6 +1657,7 @@ extensionDeclaresAbstractMember:
     have a body:
 
     ```dart
+    %language=3.5
     extension E on String {
       int [!a!]();
     }
@@ -1710,6 +1712,18 @@ extensionAugmentationHasOnClause:
   hasPublishedDocs: false
   script: |
     augment extension E on int {}
+  comment: No parameters.
+
+extensionTypeAugmentationSpecifiesRepresentationField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type augmentation can't specify a representation field."
+  correctionMessage: "Try removing the representation field."
+  analyzerCode: extensionTypeAugmentationSpecifiesRepresentationField
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    augment extension type E(int x) {}
   comment: No parameters.
 
 annotationOnTypeArgument:

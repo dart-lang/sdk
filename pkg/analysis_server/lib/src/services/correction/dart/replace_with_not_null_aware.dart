@@ -14,7 +14,7 @@ class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
   /// The operator that will replace the existing operator.
   String _newOperator = '';
 
-  ReplaceWithNotNullAware({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

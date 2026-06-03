@@ -192,19 +192,18 @@ class DynamicDispatchTable {
   }
 
   void output() {
+    outputTargetTable();
+    outputClassIdTable();
+  }
+
+  void outputTargetTable() {
     int start = 0;
     while (start < _table.length) {
-      final entry = _table[start];
-      if (entry == null) {
-        start++;
-        continue;
-      }
+      final pos = _findNextEntry(start);
+      final entry = pos.entry;
+      if (entry == null) break;
 
-      if (!translator.functions.hasDynamicSelectorCall(entry.shape)) {
-        // The dynamic call was never compiled (e.g. due to being unreachable).
-        start++;
-        continue;
-      }
+      start = pos.start;
 
       final strideWidth = calculateStrideWith(
         start,
@@ -230,28 +229,6 @@ class DynamicDispatchTable {
 
       final targetModuleBuilder = translator.moduleForReference(entry.target);
 
-      // The dynamic selector is invoked and the class has a target, we have to
-      // write the class id - to make it match at runtime.
-      final classIdsTable = getClassIdsTable(targetModuleBuilder);
-      if (strideWidth < strideElementTableLimit) {
-        for (int i = 0; i < strideWidth; ++i) {
-          targetModuleBuilder.elements
-              .activeExpressionSegmentBuilderFor(classIdsTable)
-              .setExpressionAt(
-                start + i,
-                buildIntegerExpression(targetModuleBuilder, entry.classId + i),
-              );
-        }
-      } else {
-        final b = targetModuleBuilder.startFunction.body;
-        b.fillTableRangeWithIncreasingIntegers(
-          classIdsTable,
-          start,
-          strideWidth,
-          entry.classId,
-        );
-      }
-
       // Only write out a dynamic forwarder function iff the target supports the
       // shape. See longer comment in [build] about this.
       final fun = translator.functions.getExistingDynamicForwarder(
@@ -275,6 +252,78 @@ class DynamicDispatchTable {
 
       start += strideWidth;
     }
+  }
+
+  void outputClassIdTable() {
+    int start = 0;
+    while (start < _table.length) {
+      final pos = _findNextEntry(start);
+      final entry = pos.entry;
+      if (entry == null) break;
+
+      start = pos.start;
+      int end = start + 1;
+      final targetModuleBuilder = translator.moduleForReference(entry.target);
+      while (end < _table.length) {
+        final newEntry = _table[end];
+        if (newEntry == null) break;
+        final distance = end - start;
+        if ((entry.classId + distance) != newEntry.classId) break;
+        final newTargetModuleBuilder = translator.moduleForReference(
+          newEntry.target,
+        );
+        // If the next target is in a different module, then it must be set in a
+        // different stride.
+        if (targetModuleBuilder != translator.mainModule &&
+            targetModuleBuilder != newTargetModuleBuilder) {
+          break;
+        }
+        end++;
+      }
+      final strideWidth = end - start;
+
+      // The dynamic selector is invoked and the class has a target, we have to
+      // write the class id - to make it match at runtime.
+      final classIdsTable = getClassIdsTable(targetModuleBuilder);
+      if (strideWidth < strideElementTableLimit) {
+        for (int i = 0; i < strideWidth; ++i) {
+          targetModuleBuilder.elements
+              .activeExpressionSegmentBuilderFor(classIdsTable)
+              .setExpressionAt(
+                start + i,
+                buildIntegerExpression(targetModuleBuilder, entry.classId + i),
+              );
+        }
+      } else {
+        final b = targetModuleBuilder.startFunction.body;
+        b.fillTableRangeWithIncreasingIntegers(
+          classIdsTable,
+          start,
+          strideWidth,
+          entry.classId,
+        );
+      }
+
+      start += strideWidth;
+    }
+  }
+
+  ({int start, TableEntry? entry}) _findNextEntry(int start) {
+    while (start < _table.length) {
+      final entry = _table[start];
+      if (entry == null) {
+        start++;
+        continue;
+      }
+
+      if (!translator.functions.hasDynamicSelectorCall(entry.shape)) {
+        // The dynamic call was never compiled (e.g. due to being unreachable).
+        start++;
+        continue;
+      }
+      return (start: start, entry: entry);
+    }
+    return (start: start, entry: null);
   }
 }
 

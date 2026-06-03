@@ -71,10 +71,19 @@ final _isolateRegistrationStreamController = StreamController<VmRunningIsolate>(
 
 @entrypoint
 // ignore: unused_element
-void _registerIsolate(int portId, SendPort sendPort, String name) =>
-    _isolateRegistrationStreamController.sink.add(
-      VmRunningIsolate(id: portId, name: name, sendPort: sendPort),
-    );
+void _registerIsolate(
+  int portId,
+  SendPort sendPort,
+  String name,
+  bool isSystemIsolate,
+) => _isolateRegistrationStreamController.sink.add(
+  VmRunningIsolate(
+    id: portId,
+    name: name,
+    sendPort: sendPort,
+    isSystemIsolate: isSystemIsolate,
+  ),
+);
 
 // ignore: unused_element
 StreamSubscription<ProcessSignal>? _signalSubscription;

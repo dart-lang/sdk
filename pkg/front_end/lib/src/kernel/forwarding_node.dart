@@ -13,6 +13,7 @@ import "../base/problems.dart" show unhandled;
 import '../builder/declaration_builders.dart';
 import '../source/source_library_builder.dart';
 import 'combined_member_signature.dart';
+import 'external_ast_helper.dart' as extern;
 import 'hierarchy/class_member.dart';
 import 'kernel_helper.dart';
 import 'kernel_target.dart';
@@ -52,7 +53,7 @@ class ForwardingNode {
 
   final bool _declarationIsMixinApplication;
 
-  ForwardingNode(
+  new(
     this.libraryBuilder,
     this.declarationBuilder,
     this.typeDeclaration,
@@ -351,11 +352,9 @@ class ForwardingNode {
         List<Expression> positionalArguments = new List.generate(
           function.positionalParameters.length,
           (int index) {
-            VariableDeclaration parameter =
-                function.positionalParameters[index];
+            Variable parameter = function.positionalParameters[index];
             int fileOffset = parameter.fileOffset;
-            Expression expression = new VariableGet(parameter)
-              ..fileOffset = fileOffset;
+            Expression expression = extern.createVariableGet(parameter);
             DartType superParameterType = type.positionalParameters[index];
             if (isForwardingSemiStub) {
               if (parameter.type != superParameterType) {
@@ -367,8 +366,11 @@ class ForwardingNode {
                 parameter.type,
                 superParameterType,
               )) {
-                expression = new AsExpression(expression, superParameterType)
-                  ..fileOffset = fileOffset;
+                expression = extern.createAsExpression(
+                  expression,
+                  superParameterType,
+                  fileOffset: fileOffset,
+                );
               }
             }
             return expression;
@@ -378,10 +380,9 @@ class ForwardingNode {
         List<NamedExpression> namedArguments = new List.generate(
           function.namedParameters.length,
           (int index) {
-            VariableDeclaration parameter = function.namedParameters[index];
+            Variable parameter = function.namedParameters[index];
             int fileOffset = parameter.fileOffset;
-            Expression expression = new VariableGet(parameter)
-              ..fileOffset = fileOffset;
+            Expression expression = extern.createVariableGet(parameter);
             DartType superParameterType = type.namedParameters
                 .singleWhere(
                   (NamedType namedType) => namedType.name == parameter.name,
@@ -397,11 +398,14 @@ class ForwardingNode {
                 parameter.type,
                 superParameterType,
               )) {
-                expression = new AsExpression(expression, superParameterType)
-                  ..fileOffset = fileOffset;
+                expression = extern.createAsExpression(
+                  expression,
+                  superParameterType,
+                  fileOffset: fileOffset,
+                );
               }
             }
-            return new NamedExpression(parameter.name!, expression);
+            return extern.createNamedExpression(parameter.name!, expression);
           },
           growable: true,
         );
@@ -411,32 +415,34 @@ class ForwardingNode {
                   new TypeParameterType.withDefaultNullability(typeParameter),
             )
             .toList();
-        Arguments arguments = new Arguments(
+        Arguments arguments = extern.createArguments(
           positionalArguments,
           types: typeArguments,
           named: namedArguments,
+          fileOffset: procedure.fileOffset,
         );
-        superCall = new SuperMethodInvocation(
-          new ThisExpression(),
+        superCall = extern.createSuperMethodInvocation(
+          extern.createThisExpression(fileOffset: procedure.fileOffset),
           name,
-          arguments,
           superTarget as Procedure,
+          arguments,
+          fileOffset: procedure.fileOffset,
         );
         break;
       case ProcedureKind.Getter:
-        superCall = new SuperPropertyGet(
-          new ThisExpression(),
+        superCall = extern.createSuperPropertyGet(
+          extern.createThisExpression(fileOffset: procedure.fileOffset),
           name,
           superTarget,
+          fileOffset: procedure.fileOffset,
         );
         break;
       case ProcedureKind.Setter:
         DartType superParameterType = _combinedMemberSignature
             .getMemberTypeForTarget(superTarget);
-        VariableDeclaration parameter = function.positionalParameters[0];
+        Variable parameter = function.positionalParameters[0];
         int fileOffset = parameter.fileOffset;
-        Expression expression = new VariableGet(parameter)
-          ..fileOffset = fileOffset;
+        Expression expression = extern.createVariableGet(parameter);
         if (isForwardingSemiStub) {
           if (parameter.type != superParameterType) {
             parameter.type = superParameterType;
@@ -447,15 +453,19 @@ class ForwardingNode {
             parameter.type,
             superParameterType,
           )) {
-            expression = new AsExpression(expression, superParameterType)
-              ..fileOffset = fileOffset;
+            expression = extern.createAsExpression(
+              expression,
+              superParameterType,
+              fileOffset: fileOffset,
+            );
           }
         }
-        superCall = new SuperPropertySet(
-          new ThisExpression(),
+        superCall = extern.createSuperPropertySet(
+          extern.createThisExpression(fileOffset: fileOffset),
           name,
-          expression,
           superTarget,
+          expression,
+          fileOffset: fileOffset,
         );
         break;
       // Coverage-ignore(suite): Not run.
@@ -463,7 +473,7 @@ class ForwardingNode {
         unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
     }
     function.registerFunctionBody(
-      new ReturnStatement(superCall)..fileOffset = procedure.fileOffset,
+      extern.createReturnStatement(superCall, fileOffset: procedure.fileOffset),
     );
     procedure.transformerFlags |= TransformerFlag.superCalls;
     procedure.stubKind = isForwardingStub
@@ -505,54 +515,60 @@ class ForwardingNode {
     CoreTypes coreTypes = target.loader.coreTypes;
     Expression invocation = target.backendTarget.instantiateInvocation(
       coreTypes,
-      new ThisExpression(),
+      extern.createThisExpression(fileOffset: procedure.fileOffset),
       invocationName,
-      new Arguments.forwarded(procedure.function, libraryBuilder.library),
+      extern.createArgumentsForwarded(
+        procedure.function,
+        fileOffset: procedure.fileOffset,
+      ),
       procedure.fileOffset,
       /*isSuper=*/ false,
     );
     if (shouldThrow) {
       // Build `throw new NoSuchMethodError(this, invocation)`.
-      result =
-          new Throw(
-              new StaticInvocation(
-                coreTypes.noSuchMethodErrorDefaultConstructor,
-                new Arguments([new ThisExpression(), invocation]),
-              ),
-            )
-            ..fileOffset = procedure.fileOffset
-            ..forErrorHandling = true;
+      result = extern.createThrow(
+        extern.createStaticInvocation(
+          coreTypes.noSuchMethodErrorDefaultConstructor,
+          extern.createArguments([
+            extern.createThisExpression(fileOffset: procedure.fileOffset),
+            invocation,
+          ], fileOffset: procedure.fileOffset),
+          fileOffset: procedure.fileOffset,
+        ),
+        fileOffset: procedure.fileOffset,
+        forErrorHandling: true,
+      );
     } else {
       // Build `this.noSuchMethod(invocation)`.
-      result = new InstanceInvocation(
+      result = extern.createInstanceInvocation(
         InstanceAccessKind.Instance,
-        new ThisExpression(),
+        extern.createThisExpression(fileOffset: procedure.fileOffset),
         noSuchMethodName,
-        new Arguments([invocation]),
+        extern.createArguments([invocation], fileOffset: procedure.fileOffset),
         functionType: noSuchMethodInterface.getterType as FunctionType,
         interfaceTarget: noSuchMethodInterface,
-      )..fileOffset = procedure.fileOffset;
+        fileOffset: procedure.fileOffset,
+      );
       if (procedure.function.returnType is! VoidType) {
-        result = new AsExpression(result, procedure.function.returnType)
-          ..isTypeError = true
-          ..isForDynamic = true
-          ..fileOffset = procedure.fileOffset;
+        result = extern.createAsExpression(
+          result,
+          procedure.function.returnType,
+          isTypeError: true,
+          isForDynamic: true,
+          fileOffset: procedure.fileOffset,
+        );
       }
     }
 
     FunctionType signatureType = procedure.function.computeFunctionType(
       procedure.enclosingLibrary.nonNullable,
     );
-    List<VariableDeclaration> positionalParameters =
+    List<Variable> positionalParameters =
         procedure.function.positionalParameters;
-    List<VariableDeclaration> namedParameters =
-        procedure.function.namedParameters;
+    List<Variable> namedParameters = procedure.function.namedParameters;
     int requiredParameterCount = procedure.function.requiredParameterCount;
     bool hasUpdate = false;
-    bool updateNullability(
-      VariableDeclaration parameter, {
-      required bool isRequired,
-    }) {
+    bool updateNullability(Variable parameter, {required bool isRequired}) {
       // Parameters in nnbd libraries that backends might not be able to pass
       // a non-null value for must be nullable. This allows backends to do the
       // appropriate parameter checks in the forwarder stub for null placeholder
@@ -565,7 +581,7 @@ class ForwardingNode {
     }
 
     for (int i = 0; i < positionalParameters.length; i++) {
-      VariableDeclaration parameter = positionalParameters[i];
+      Variable parameter = positionalParameters[i];
       bool isRequired = i < requiredParameterCount;
       if (updateNullability(parameter, isRequired: isRequired)) {
         parameter.type = parameter.type.withDeclaredNullability(
@@ -575,7 +591,7 @@ class ForwardingNode {
       }
     }
 
-    for (VariableDeclaration parameter in namedParameters) {
+    for (Variable parameter in namedParameters) {
       if (updateNullability(parameter, isRequired: parameter.isRequired)) {
         parameter.type = parameter.type.withDeclaredNullability(
           Nullability.nullable,
@@ -587,7 +603,7 @@ class ForwardingNode {
       procedure.signatureType = signatureType;
     }
     procedure.function.registerFunctionBody(
-      new ReturnStatement(result)..fileOffset = procedure.fileOffset,
+      extern.createReturnStatement(result, fileOffset: procedure.fileOffset),
     );
 
     procedure.isAbstract = false;

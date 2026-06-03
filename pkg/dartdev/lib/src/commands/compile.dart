@@ -70,6 +70,16 @@ enum Sanitizer {
     }
     return null;
   }
+
+  static List<Sanitizer> available() {
+    final v = Platform.version;
+    if (v.contains('"linux_x64"') || v.contains('"linux_arm64"')) {
+      return [none, asan, msan, tsan];
+    } else if (v.contains('"linux_riscv64"')) {
+      return [none, asan, tsan];
+    }
+    return [none];
+  }
 }
 
 bool checkFile(String sourcePath) {
@@ -608,14 +618,7 @@ Remove debugging information from the output and save it separately to the speci
     if (commandName != aotSnapshotCmdName) {
       return ['none'];
     }
-
-    final v = Platform.version;
-    if (v.contains('"linux_x64"') || v.contains('"linux_arm64"')) {
-      return ['none', 'asan', 'msan', 'tsan'];
-    } else if (v.contains('"linux_riscv64"')) {
-      return ['none', 'asan', 'tsan'];
-    }
-    return ['none'];
+    return Sanitizer.available().map((s) => s.name).toList();
   }
 
   @override
@@ -891,6 +894,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         negatable: false,
         help: enableAssertsOption.help,
       )
+      ..addFlag(
+        'standalone',
+        help:
+            'Compile to a WebAssembly module without JavaScript interop. '
+            'Dart-specific host imports are necessary to load these modules.',
+        negatable: false,
+        hide: !verbose,
+      )
       ..addOption(
         'shared-memory',
         help:
@@ -1043,10 +1054,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final generateSourceMap = args.flag('source-maps');
     final enabledExperiments = args.enabledExperiments;
+    final standalone = args.flag('standalone');
+    final platform = standalone
+        ? sdk.wasmStandalonePlatformDill
+        : sdk.wasmPlatformDill;
     final dart2wasmCommand = [
       sdk.dartAotRuntime,
       sdk.dart2wasmSnapshot,
-      '--platform=${sdk.wasmPlatformDill}',
+      '--platform=$platform',
       if (verbose) '--verbose',
       if (packages != null) '--packages=$packages',
       if (args.flag('print-wasm')) '--print-wasm',
@@ -1057,6 +1072,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('minify')) '--minify',
       if (!args.flag('strip-wasm')) '--no-strip-wasm',
       if (args.flag('enable-deferred-loading')) '--enable-deferred-loading',
+      if (standalone) '--standalone',
       if (args.option(recordedUsesOption.flag) != null)
         '--recorded-uses=${args.option(recordedUsesOption.flag)}',
       for (final define in defines) '-D$define',
@@ -1088,10 +1104,23 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     if (isDryRun) return 0;
 
-    final mjsFile = '$outputFileBasename.mjs';
-    log.stdout(
-      "Generated wasm module '$outputFile', and JS init file '$mjsFile'.",
-    );
+    if (standalone) {
+      log.stdout(
+        "Generated wasm module '$outputFile'. See "
+        'https://github.com/dart-lang/sdk/blob/main/pkg/dart2wasm/docs/standalone.md '
+        'for usage instructions.',
+      );
+      log.stdout(
+        'The standalone option is experimental, and used imports may change'
+        'across Dart SDK releases.',
+      );
+    } else {
+      final mjsFile = '$outputFileBasename.mjs';
+      log.stdout(
+        "Generated wasm module '$outputFile', and JS init file '$mjsFile'.",
+      );
+    }
+
     return 0;
   }
 }

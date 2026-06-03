@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateFunction extends ResolvedCorrectionProducer {
   String _functionName = '';
 
-  CreateFunction({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

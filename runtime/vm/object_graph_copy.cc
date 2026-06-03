@@ -1249,6 +1249,7 @@ class RetainingPath {
         // accommodate short chains Closure -> Context -> instance.
         saved_context_object_index = -1;
         saved_context_depth = -1;
+        USE(saved_context_depth);
       }
       // Add library url to the location if library is available.
       library = klass.library();

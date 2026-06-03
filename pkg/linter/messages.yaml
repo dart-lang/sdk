@@ -813,6 +813,72 @@ LinterLintCode:
         }
       }
       ```
+  asyncReturnWithNoAwait:
+    type: lint
+    parameters: none
+    problemMessage: "Returning a 'Future' without 'await'."
+    correctionMessage: "Try adding an 'await' or making the body non-async."
+    state:
+      stable: "3.13"
+    categories: [errorProne]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `Future` is returned from an
+      `async` function without using `await`.
+
+      Returning an unawaited `Future` from an `async` function means any
+      exception thrown by the `Future` might not propagate as expected. Having
+      the exception thrown at the `await` site helps identify the source of the
+      exception and makes it easier to debug.
+
+      #### Example
+
+      The following code produces this diagnostic because it returns the `Future`
+      from `futureString` without using `await`:
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        [!return!] value;
+      }
+      ```
+
+      #### Common fixes
+
+      Add `await` before the returned `Future`:
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        return await value;
+      }
+      ```
+
+      If you don't need to use `await`, then remove `async` from the function body:
+
+      ```dart
+      Future<String> futureString(Future<String> value) {
+        return value;
+      }
+      ```
+    deprecatedDetails: |-
+      **DO** use `await` when returning a `Future` from an `async` function.
+
+      **BAD:**
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        return value;
+      }
+      Future<int> futureInt(Future<int> value) async => value;
+      ```
+
+      **GOOD:**
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        return await value;
+      }
+      Future<int> futureInt(Future<int> value) => value;
+      ```
   avoidAnnotatingWithDynamic:
     type: lint
     parameters: none
@@ -5239,6 +5305,18 @@ LinterLintCode:
         Point(this.x, this.y);
       }
       ```
+  emptyContainerBodies:
+    type: lint
+    parameters:
+      String containerKind: The kind of the container, such as 'class' or 'enum'.
+    problemMessage: "Empty #containerKind bodies should be written using a ';' rather than '{}'."
+    correctionMessage: "Try replacing the #containerKind body with ';'."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Use `;` instead of `{}` for empty container (class, enum, etc.) bodies.
   emptyStatements:
     type: lint
     parameters: none
@@ -5853,6 +5931,17 @@ LinterLintCode:
       @reopen
       class C extends I {}
       ```
+  initializeInFieldDeclaration:
+    type: lint
+    parameters: none
+    problemMessage: "Field should be initialized in the field declaration."
+    correctionMessage: "Try initializing the field where it's declared."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Initialize fields where they're declared when possible.
   invalidCasePatterns:
     type: lint
     parameters: none
@@ -14854,6 +14943,7 @@ LinterLintCode:
     problemMessage: "Unnecessary use of a null check ('!')."
     correctionMessage: "Try removing the null check."
     state:
+      experimental: "2.12"
       stable: "3.13"
     categories: [brevity, style]
     hasPublishedDocs: true
@@ -16365,6 +16455,17 @@ LinterLintCode:
         );
       }
       ```
+  useDeclaringParameters:
+    type: lint
+    parameters: none
+    problemMessage: "Use a declaring parameter."
+    correctionMessage: "Try using a declaring parameter."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Use a declaring parameter everywhere it's valid to do so.
   useDecoratedBox:
     type: lint
     parameters: none
@@ -16917,6 +17018,17 @@ LinterLintCode:
       ```dart
       f(String? key) => {?key: "value"};
       ```
+  usePrimaryConstructors:
+    type: lint
+    parameters: none
+    problemMessage: "Use a primary constructor."
+    correctionMessage: "Try using a primary constructor."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Use a primary constructor everywhere it's valid to do so.
   useRawStrings:
     type: lint
     parameters: none

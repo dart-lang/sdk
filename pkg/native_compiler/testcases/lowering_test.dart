@@ -65,6 +65,13 @@ void mapLiterals<S, T>(S key, T Function() value, S key2, T value2) {
   print({key: value(), key2: value2});
 }
 
+void recordLiterals<T>(int a, String b, T c) {
+  print((a,));
+  print((a, b, c));
+  print((foo: b, bar: c));
+  print((a, foo: b, bar: c));
+}
+
 void stringInterpolation(int x, String s, Object o) {
   print('$o');
   print('Hey, x=$x, s=$s, o=$o');
@@ -75,7 +82,58 @@ class C<T> {
     print(x is List<T>);
     print(x is List<U>);
     print(x as Map<T, U>);
+    void local1() {
+      print(T);
+      print(U);
+    }
+
+    local1();
+    void local2<V>() {
+      print(Map<U, V>);
+    }
+
+    local2();
   }
+}
+
+void nestedFunctionTypeParameters1<S>() {
+  void nested1<T>() {
+    void nested2<U>() {
+      print(S);
+      print(T);
+      print(U);
+    }
+
+    nested2<int>();
+  }
+
+  nested1<String>();
+}
+
+void nestedFunctionTypeParameters2<S>() {
+  void nested1() {
+    void nested2<T>() {
+      print(S);
+      print(T);
+    }
+
+    nested2<int>();
+  }
+
+  nested1();
+}
+
+class D<S, T> {}
+
+class E<T, U> extends D<String, T> {}
+
+class F extends E<num, double> {}
+
+void allocateObjects<K>() {
+  print(D<int, double>());
+  print(E<int, double>());
+  print(E<K, List<K>>());
+  print(F());
 }
 
 void main() {}

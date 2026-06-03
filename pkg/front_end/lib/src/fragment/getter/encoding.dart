@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -12,12 +11,15 @@ import '../../api_prototype/experimental_flags.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/external_ast_helper.dart' as extern;
+import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
@@ -29,6 +31,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart';
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
@@ -43,11 +46,7 @@ class ExtensionInstanceGetterEncoding extends GetterEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  ExtensionInstanceGetterEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  );
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionGetter;
@@ -64,7 +63,7 @@ class ExtensionStaticGetterEncoding extends GetterEncoding
   @override
   final GetterFragment _fragment;
 
-  ExtensionStaticGetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionGetter;
@@ -87,11 +86,7 @@ class ExtensionTypeInstanceGetterEncoding extends GetterEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  ExtensionTypeInstanceGetterEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  );
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeGetter;
@@ -108,7 +103,7 @@ class ExtensionTypeStaticGetterEncoding extends GetterEncoding
   @override
   final GetterFragment _fragment;
 
-  ExtensionTypeStaticGetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeGetter;
@@ -131,7 +126,7 @@ sealed class GetterEncoding implements InferredTypeListener {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  VariableDeclaration? get thisVariable;
+  InternalVariable? get thisVariable;
 
   void becomeNative(SourceLoader loader);
 
@@ -180,9 +175,9 @@ sealed class GetterEncoding implements InferredTypeListener {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   });
 }
 
@@ -191,7 +186,7 @@ class RegularGetterEncoding extends GetterEncoding
   @override
   final GetterFragment _fragment;
 
-  RegularGetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.Method;
@@ -229,7 +224,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => null;
+  InternalVariable? get thisVariable => null;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -292,13 +287,12 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -321,23 +315,22 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       ProcedureKind.Getter,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Getter,
-            function,
-            reference: references?.getterReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = _fragment.modifiers.isStatic
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Getter,
+      function,
+      reference: references?.getterReference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: _fragment.modifiers.isStatic,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -465,20 +458,18 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }
@@ -519,7 +510,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       _clonedDeclarationTypeParameters != null ? function.typeParameters : null;
 
   @override
-  VariableDeclaration? get thisVariable => _thisFormal.variable;
+  InternalVariable? get thisVariable => _thisFormal.variable;
 
   BuiltMemberKind get _builtMemberKind;
 
@@ -616,15 +607,14 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
           // Coverage-ignore(suite): Not run.
           _thisFormal.kind == FormalParameterKind.optionalPositional,
     );
-    FunctionNode function =
-        new FunctionNode(
-            isAbstractOrExternal ? null : new EmptyStatement(),
-            typeParameters: typeParameters,
-            positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier,
-          )
-          ..fileOffset = _fragment.formalsOffset
-          ..fileEndOffset = _fragment.endOffset;
+    FunctionNode function = extern.createFunctionNode(
+      isAbstractOrExternal ? null : extern.createEmptyStatement(),
+      typeParameters: typeParameters,
+      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
+      asyncMarker: _fragment.asyncModifier.kind,
+      fileOffset: _fragment.formalsOffset,
+      fileEndOffset: _fragment.endOffset,
+    );
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
@@ -647,23 +637,22 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       ProcedureKind.Getter,
       _fragment.name,
     );
-    Procedure procedure = _procedure =
-        new Procedure(
-            memberName.name,
-            ProcedureKind.Method,
-            function,
-            reference: references?.getterReference,
-            fileUri: _fragment.fileUri,
-          )
-          ..fileStartOffset = _fragment.startOffset
-          ..fileOffset = _fragment.nameOffset
-          ..fileEndOffset = _fragment.endOffset
-          ..isAbstract = _fragment.modifiers.isAbstract
-          ..isExternal = _fragment.modifiers.isExternal
-          ..isConst = _fragment.modifiers.isConst
-          ..isStatic = true
-          ..isExtensionMember = _isExtensionMember
-          ..isExtensionTypeMember = _isExtensionTypeMember;
+    Procedure procedure = _procedure = extern.createProcedure(
+      memberName.name,
+      ProcedureKind.Method,
+      function,
+      reference: references?.getterReference,
+      fileUri: _fragment.fileUri,
+      fileStartOffset: _fragment.startOffset,
+      fileOffset: _fragment.nameOffset,
+      fileEndOffset: _fragment.endOffset,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+      isConst: _fragment.modifiers.isConst,
+      isStatic: true,
+      isExtensionMember: _isExtensionMember,
+      isExtensionTypeMember: _isExtensionTypeMember,
+    );
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -817,20 +806,18 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required VariableDeclaration? thisVariable,
+    required Variable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scope?..parent = function;
+    function.scope = scope;
     function.thisVariable = thisVariable;
   }
 }

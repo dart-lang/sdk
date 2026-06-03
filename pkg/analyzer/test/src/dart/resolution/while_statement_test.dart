@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class WhileStatementResolutionTest extends PubPackageResolutionTest {
   test_break() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     break;
@@ -26,7 +25,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -46,7 +45,7 @@ WhileStatement
   }
 
   test_break_label() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   L: while (true) {
     break L;
@@ -54,7 +53,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleLabeledStatement;
+    var node = result.findNode.singleLabeledStatement;
     assertResolvedNodeText(node, r'''
 LabeledStatement
   labels
@@ -83,18 +82,17 @@ LabeledStatement
   }
 
   test_break_label_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     break L;
+//        ^
+// [diag.labelUndefined] Can't reference an undefined label 'L'.
   }
 }
-''',
-      [error(diag.labelUndefined, 38, 1)],
-    );
+''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -117,21 +115,18 @@ WhileStatement
   }
 
   test_condition_super() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   void f() {
     while (super) {}
+//         ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
-''',
-      [
-        error(diag.missingAssignableSelector, 34, 5),
-        error(diag.nonBoolCondition, 34, 5),
-      ],
-    );
+''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -147,7 +142,7 @@ WhileStatement
   }
 
   test_continue() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     continue;
@@ -155,7 +150,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while
@@ -175,7 +170,7 @@ WhileStatement
   }
 
   test_continue_label() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   L: while (true) {
     continue L;
@@ -183,7 +178,7 @@ void f() {
 }
 ''');
 
-    var node = findNode.singleLabeledStatement;
+    var node = result.findNode.singleLabeledStatement;
     assertResolvedNodeText(node, r'''
 LabeledStatement
   labels
@@ -212,18 +207,17 @@ LabeledStatement
   }
 
   test_continue_label_unresolved() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   while (true) {
     continue L;
+//           ^
+// [diag.labelUndefined] Can't reference an undefined label 'L'.
   }
 }
-''',
-      [error(diag.labelUndefined, 41, 1)],
-    );
+''');
 
-    var node = findNode.singleWhileStatement;
+    var node = result.findNode.singleWhileStatement;
     assertResolvedNodeText(node, r'''
 WhileStatement
   whileKeyword: while

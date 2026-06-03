@@ -22,8 +22,7 @@ import '../extensions.dart';
 const _desc = r'Specify type annotations.';
 
 class StrictTopLevelInference extends MultiAnalysisRule {
-  StrictTopLevelInference()
-    : super(name: LintNames.strict_top_level_inference, description: _desc);
+  new() : super(name: LintNames.strict_top_level_inference, description: _desc);
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
@@ -53,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _Visitor(this.rule, this.context)
+  new(this.rule, this.context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
         Feature.wildcard_variables,
       );
@@ -69,7 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is! CompilationUnit) return;
-    if (node.returnType == null && !node.isSetter) {
+    if (node.returnType == null &&
+        !node.isSetter &&
+        node.name.type != TokenType.INDEX_EQ) {
       _report(node.name);
     }
 
@@ -209,7 +210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         container is ExtensionTypeElement;
 
     if (noOverride) {
-      if (node.returnType == null) {
+      if (node.returnType == null && node.name.type != TokenType.INDEX_EQ) {
         rule.reportAtToken(
           node.name,
           diagnosticCode: diag.strictTopLevelInferenceAddType,
@@ -222,6 +223,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var overriddenMember = node.declaredFragment?.element.overriddenMember;
       if (overriddenMember == null &&
           node.returnType == null &&
+          node.name.type != TokenType.INDEX_EQ &&
           (!container.isReflectiveTest ||
               (!node.name.lexeme.startsWith('test_') &&
                   !node.name.lexeme.startsWith('solo_test_')))) {
@@ -238,11 +240,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkSetter(MethodDeclaration node, PropertyAccessorElement element) {
     var parameter = node.parameters?.parameters.firstOrNull;
-    if (parameter == null) return;
-    if (parameter is! RegularFormalParameter ||
-        parameter.functionTypedSuffix != null) {
-      return;
-    }
+    if (parameter is! RegularFormalParameter) return;
+    if (parameter.functionTypedSuffix != null) return;
     if (parameter.type != null) return;
 
     if (!_isOverride(node, element)) {

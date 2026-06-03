@@ -18,8 +18,7 @@ import '../extensions.dart';
 const _desc = r'Annotate overridden members.';
 
 class AnnotateOverrides extends AnalysisRule {
-  AnnotateOverrides()
-    : super(name: LintNames.annotate_overrides, description: _desc);
+  new() : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.annotateOverrides;
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
   final RuleContext context;
 
-  _Visitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   void check(Element? element, Token target) {
     if (element == null) return;

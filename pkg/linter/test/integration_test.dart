@@ -4,16 +4,8 @@
 
 import 'package:test/test.dart';
 
-import '../tool/checks/check_all_yaml.dart';
 import '../tool/checks/check_messages_yaml.dart';
 
 void main() {
-  test('examples/all.yaml is correct', () {
-    var errors = checkAllYaml();
-    if (errors != null) {
-      fail(errors);
-    }
-  });
-
   test('messages.yaml is correct', checkMessagesYaml);
 }

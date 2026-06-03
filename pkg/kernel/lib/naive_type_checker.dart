@@ -17,7 +17,7 @@ abstract class FailureListener {
 class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  factory NaiveTypeChecker(
+  factory(
     FailureListener failures,
     Component component, {
     bool ignoreSdk = false,
@@ -37,7 +37,7 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
     );
   }
 
-  NaiveTypeChecker._(
+  new _(
     this.failures,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
@@ -233,10 +233,8 @@ ${ownType} is not a subtype of ${superType}
     }
 
     for (int i = 0; i < superFunction.positionalParameters.length; ++i) {
-      final VariableDeclaration ownParameter =
-          ownFunction.positionalParameters[i];
-      final VariableDeclaration superParameter =
-          superFunction.positionalParameters[i];
+      final Variable ownParameter = ownFunction.positionalParameters[i];
+      final Variable superParameter = superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
         ownSubstitution.substituteType(ownParameter.type),
         superSubstitution.substituteType(superParameter.type),
@@ -257,14 +255,13 @@ super method declares ${superParameter.type}
 
     // Note: FunctionNode.namedParameters are not sorted so we convert them
     // to map to make lookup faster.
-    final Map<String, VariableDeclaration> ownParameters =
-        new Map<String, VariableDeclaration>.fromIterable(
+    final Map<String, Variable> ownParameters =
+        new Map<String, Variable>.fromIterable(
           ownFunction.namedParameters,
           key: (v) => v.name,
         );
-    for (VariableDeclaration superParameter in superFunction.namedParameters) {
-      final VariableDeclaration? ownParameter =
-          ownParameters[superParameter.name];
+    for (Variable superParameter in superFunction.namedParameters) {
+      final Variable? ownParameter = ownParameters[superParameter.name];
       if (ownParameter == null) {
         return 'override is missing ${superParameter.name} parameter';
       }

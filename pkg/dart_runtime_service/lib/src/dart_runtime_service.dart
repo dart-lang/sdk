@@ -240,9 +240,15 @@ class DartRuntimeService {
         throw const DartRuntimeServiceServerAlreadyRunning();
       }
       final hostStr = config.host ?? InternetAddress.loopbackIPv4.host;
-      final host =
-          InternetAddress.tryParse(hostStr) ??
-          (await InternetAddress.lookup(hostStr)).first;
+      var parsedHost = InternetAddress.tryParse(hostStr);
+      if (parsedHost == null) {
+        final addresses = await InternetAddress.lookup(hostStr);
+        parsedHost = addresses.firstWhere(
+          (a) => a.type == InternetAddressType.IPv4,
+          orElse: () => addresses.first,
+        );
+      }
+      final host = parsedHost;
 
       _logger.info('Starting the Dart Runtime Service.');
       late String errorMessage;

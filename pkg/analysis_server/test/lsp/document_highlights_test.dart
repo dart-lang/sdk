@@ -21,37 +21,47 @@ void main() {
 @reflectiveTest
 class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_bound_topLevelVariable_wildcard() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 var /*[0*/_/*0]*/ = 1;
 void f() {
   var _ = 2;
   print(/*[1*/_/*1]*/);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_catch_error() async {
-    await _testMarkedContent(r'''
+    await _testMarkedContent(
+      r'''
 void foo() {
   try {} catch (/*[0*/error/*0]*/, stackTrace) {
     print('$/*[1*/error/*1]*/, $stackTrace');
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_catch_stack() async {
-    await _testMarkedContent(r'''
+    await _testMarkedContent(
+      r'''
 void foo() {
   try {} catch (error, /*[0*/stackTrace/*0]*/) {
     print('$error, $/*[1*/stackTrace/*1]*/');
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_class_field_underscore() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class C {
   int /*[0*/_/*0]*/ = 0;
   }
@@ -60,11 +70,14 @@ class C {
   int _ = 1;
   C()./*[1*/_/*1]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_class_getterSetter() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   int /*[0*/a/*0]*/ = 1;
 }
@@ -78,11 +91,22 @@ void f(A a, B b) {
   a./*[3*/a/*3]*/ = b./*[4*/a/*4]*/;
   b./*[5*/a/*5]*/ = a./*[6*/a/*6]*/;
 }
-''');
+''',
+      kinds: {
+        0: .Write,
+        1: .Write,
+        2: .Write,
+        3: .Write,
+        4: .Read,
+        5: .Write,
+        6: .Read,
+      },
+    );
   }
 
   Future<void> test_constructor_secondary_className() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   /*[0*/Aaa/*0]*/();
 }
@@ -91,13 +115,16 @@ void f() {
   Aaa a = Aaa./*[1*/new/*1]*/();
   var b = /*[2*/Aaa/*2]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   /// The factory keyword is considered the constructor when there's no
   /// constructor name.
   Future<void> test_constructor_secondary_factory() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   new _();
   /*[0*/factory/*0]*/() => Aaa._();
@@ -107,7 +134,9 @@ void f() {
   Aaa a = Aaa./*[1*/new/*1]*/();
   var b = /*[2*/Aaa/*2]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   /// No matches for factory keyword when there is a constructor name.
@@ -128,7 +157,8 @@ void f() {
   /// Names match names.
   Future<void>
   test_constructor_secondary_factory_withoutType_named_name() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   new _();
   factory /*[0*/named/*0]*/() => Aaa._();
@@ -137,7 +167,9 @@ class Aaa {
 void f() {
   Aaa a = Aaa./*[1*/named/*1]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   /// No matches for factory keyword when there is a type name because the type
@@ -157,7 +189,8 @@ void f() {
 
   /// Type names match type names for invocation/declaration.
   Future<void> test_constructor_secondary_factory_withType_typeName() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   new _();
   factory /*[0*/Aaa/*0]*/() => Aaa._();
@@ -166,11 +199,14 @@ class Aaa {
 void f() {
   Aaa a = /*[1*/Aaa/*1]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_constructor_secondary_new() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   /*[0*/new/*0]*/();
 }
@@ -179,7 +215,9 @@ void f() {
   Aaa a = Aaa./*[1*/new/*1]*/();
   var b = /*[2*/Aaa/*2]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   /// No matches for new keyword when there is a constructor name.
@@ -199,7 +237,8 @@ void f() {
   /// When `new` is used as the constructor identifier, it's a match for
   /// constructor invocations.
   Future<void> test_constructor_secondary_new_withType_keyword() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   Aaa./*[0*/new/*0]*/();
 }
@@ -208,13 +247,16 @@ void f() {
   Aaa a = /*[1*/Aaa/*1]*/();
   Aaa b = Aaa./*[2*/new/*2]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   /// When `new` is used as the constructor identifier, the type name is a
   /// match for the type name.
   Future<void> test_constructor_secondary_new_withType_typeName() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class /*[0*/Aaa/*0]*/ {
   /*[1*/Aaa/*1]*/.new();
 }
@@ -223,11 +265,14 @@ void f() {
   /*[2*/Aaa/*2]*/ a = Aaa();
   /*[3*/Aaa/*3]*/ b = /*[4*/Aaa/*4]*/.new();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read, 3: .Read, 4: .Read},
+    );
   }
 
   Future<void> test_constructor_secondary_newNamed() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa {
   new /*[0*/named/*0]*/();
 }
@@ -236,11 +281,14 @@ void f() {
   Aaa value = Aaa./*[1*/named/*1]*/();
   Aaa./*[2*/named/*2]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_dartCode_issue5369_field() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   var /*[0*/a/*0]*/ = [''].where((_) => true).toList();
   List<String> f() {
@@ -249,11 +297,14 @@ class A {
 }
 
 var a; // Not a reference
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_dartCode_issue5369_functionType() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   String m({ required String Function(String input) /*[0*/f/*0]*/ }) {
     return /*[1*/f/*1]*/('');
@@ -261,11 +312,14 @@ class A {
 }
 
 var f; // Not a reference
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_dartCode_issue5369_localVariable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   List<String> f() {
     var /*[0*/a/*0]*/ = [''].where((_) => true).toList();
@@ -274,18 +328,24 @@ class A {
 }
 
 var a; // Not a reference
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_dartCode_issue5369_topLevelVariable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 var /*[0*/a/*0]*/ = [''].where((_) => true).toList();
 var b = /*[1*/a/*1]*/;
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_dotShorthand_class() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 A topA = ./*[0*/a/*0]*/;
 class A {
   static A get /*[1*/a/*1]*/ => A();
@@ -296,11 +356,14 @@ void f() {
   fn(./*[3*/a/*3]*/);
   A aa = A./*[4*/a/*4]*/;
 }
-''');
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Read, 3: .Read, 4: .Read},
+    );
   }
 
   Future<void> test_dotShorthand_enum() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 const A constA = ./*[0*/a/*0]*/;
 enum A { /*[1*/a/*1]*/ }
 void fn(A a) => print(a);
@@ -309,11 +372,14 @@ void f() {
   fn(./*[3*/a/*3]*/);
   A aa = A./*[4*/a/*4]*/;
 }
-''');
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Read, 3: .Read, 4: .Read},
+    );
   }
 
   Future<void> test_dotShorthand_extensionType() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 A topA = ./*[0*/a/*0]*/;
 extension type A(int x) {
   static A get /*[1*/a/*1]*/ => A(1);
@@ -324,11 +390,14 @@ void f() {
   fn(./*[3*/a/*3]*/);
   A aa = A./*[4*/a/*4]*/;
 }
-''');
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Read, 3: .Read, 4: .Read},
+    );
   }
 
   Future<void> test_enum() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 enum /*[0*/E/*0]*/ {
   v;
 }
@@ -336,11 +405,14 @@ enum /*[0*/E/*0]*/ {
 void f(/*[1*/E/*1]*/ e) {
   /*[2*/E/*2]*/.v;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_enum_constant() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 enum E {
   /*[0*/v/*0]*/;
 }
@@ -348,11 +420,14 @@ enum E {
 void f() {
   E./*[1*/v/*1]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_enum_field() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 enum E {
   v;
   final int /*[0*/foo/*0]*/ = 0;
@@ -361,11 +436,14 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_enum_getter() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 enum E {
   v;
   int get /*[0*/foo/*0]*/ => 0;
@@ -374,11 +452,14 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_enum_method() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 enum E {
   v;
   void /*[0*/foo/*0]*/() {}
@@ -387,7 +468,9 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_enum_setter() async {
@@ -400,7 +483,7 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/ = 0;
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_extension() async {
@@ -412,11 +495,12 @@ void foo(int i) {
 extension /*[1*/E/*1]*/<ThisType> on ThisType {
   ThisType get self => this;
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_extensionMember() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension on int {
   int get /*[0*/foo/*0]*/ => 0;
 }
@@ -424,11 +508,14 @@ extension on int {
 void f(int v) {
   v./*[1*/foo/*1]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionMember_differentiation() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension on String {
   int get foo => 0;
 }
@@ -441,29 +528,38 @@ void f(int v, String s) {
   v./*[1*/foo/*1]*/;
   s.foo;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionType() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension type /*[0*/E/*0]*/(int it) {}
 
 void f(/*[1*/E/*1]*/ e) {}
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionType_constructor_primary() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension type E./*[0*/named/*0]*/(int it) {}
 
 void f() {
   E./*[1*/named/*1]*/(0);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionType_constructor_secondary() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension type E(int it) {
   E./*[0*/named/*0]*/() : this(0);
 }
@@ -471,11 +567,14 @@ extension type E(int it) {
 void f() {
   E./*[1*/named/*1]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionType_getter() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension type E(int it) {
   int get /*[0*/foo/*0]*/ => 0;
 }
@@ -483,11 +582,14 @@ extension type E(int it) {
 void f(E e) {
   e./*[1*/foo/*1]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionType_method() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension type E(int it) {
   void /*[0*/foo/*0]*/() {}
 }
@@ -495,7 +597,9 @@ extension type E(int it) {
 void f(E e) {
   e./*[1*/foo/*1]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_extensionType_setter() async {
@@ -507,11 +611,12 @@ extension type E(int it) {
 void f(E e) {
   e./*[1*/foo/*1]*/ = 0;
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_field() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   int /*[0*/fff/*0]*/;
   A(this./*[1*/fff/*1]*/);
@@ -520,7 +625,9 @@ class A {
     print(/*[3*/fff/*3]*/);
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Write, 3: .Read},
+    );
   }
 
   Future<void> test_field_unresolved() async {
@@ -535,49 +642,64 @@ class A {
   }
 
   Future<void> test_forInLoop() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f() {
   for (final /*[0*/x/*0]*/ in []) {
     /*[1*/x/*1]*/;
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_formalParameters_closure() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(void Function(int) _) {}
 
 void g() => f((/*[0*/variable/*0]*/) {
 print(/*[1*/variable/*1]*/);
 });
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_formalParameters_function() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(int /*[0*/parameter/*0]*/) {
   print(/*[1*/parameter/*1]*/);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_formalParameters_method() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class C {
   void m(int /*[0*/parameter/*0]*/) {
     print(/*[1*/parameter/*1]*/);
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_functions() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 /*[0*/main/*0]*/() {
   /*[1*/main/*1]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_extends() async {
@@ -590,11 +712,12 @@ class B extends A {
   @override
   void /*[1*/a/*1]*/() {}
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_hierarchy_method_extends_implements_fromLeaf() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A {
   void /*[0*/a/*0]*/();
 }
@@ -613,11 +736,14 @@ void f(A a, I i, B b) {
   i./*[4*/a/*4]*/();
   b./*[5*/a/*5]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Write, 3: .Read, 4: .Read, 5: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_extends_implements_fromRoot() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A {
   void /*[0*/^a/*0]*/();
 }
@@ -636,11 +762,14 @@ void f(A a, I i, B b) {
   i.a();
   b./*[3*/a/*3]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read, 3: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_extends_with_fromLeaf() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A {
   void /*[0*/a/*0]*/();
 }
@@ -659,11 +788,14 @@ void f(A a, M m, B b) {
   m./*[4*/a/*4]*/();
   b./*[5*/a/*5]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Write, 3: .Read, 4: .Read, 5: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_extends_with_fromRoot() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A {
   void /*[0*/a^/*0]*/();
 }
@@ -682,11 +814,14 @@ void f(A a, M m, B b) {
   m.a();
   b./*[3*/a/*3]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read, 3: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_extends_with_implements_fromLeaf() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A {
   void /*[0*/a/*0]*/();
 }
@@ -710,11 +845,23 @@ void f(A a, M m, I i, B b) {
   i./*[6*/a/*6]*/();
   b./*[7*/a/*7]*/();
 }
-''');
+''',
+      kinds: {
+        0: .Write,
+        1: .Write,
+        2: .Write,
+        3: .Write,
+        4: .Read,
+        5: .Read,
+        6: .Read,
+        7: .Read,
+      },
+    );
   }
 
   Future<void> test_hierarchy_method_extends_with_implements_fromRoot() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A {
   void /*[0*/^a/*0]*/();
 }
@@ -738,7 +885,9 @@ void f(A a, M m, I i, B b) {
   i.a();
   b./*[3*/a/*3]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read, 3: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_implements() async {
@@ -751,7 +900,7 @@ class B implements A {
   @override
   void /*[1*/a/*1]*/() {}
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_hierarchy_method_with() async {
@@ -764,11 +913,12 @@ class B with M {
   @override
   void /*[1*/a/*1]*/() {}
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_hierarchy_method_with_implements_fromLeaf() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 mixin M {
   void /*[0*/a/*0]*/() {} // Included because we started at B.a
 }
@@ -787,11 +937,14 @@ void f(M m, I i, B b) {
   i./*[4*/a/*4]*/();
   b./*[5*/a/*5]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Write, 3: .Read, 4: .Read, 5: .Read},
+    );
   }
 
   Future<void> test_hierarchy_method_with_implements_fromRoot() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 mixin M {
   void /*[0*/^a/*0]*/() {}
 }
@@ -810,7 +963,9 @@ void f(M m, I i, B b) {
   i.a();
   b./*[3*/a/*3]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read, 3: .Read},
+    );
   }
 
   Future<void> test_invalidLineByOne() async {
@@ -853,7 +1008,7 @@ void f(int i) {
     }
   }
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_loopWithSwitch_switchExit() async {
@@ -872,7 +1027,7 @@ void f(int i) {
     }
   }
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_return_function() async {
@@ -881,7 +1036,7 @@ int f() {
   if (true) /*[0*/return/*0]*/ 1;
   /*[1*/return/*1]*/ 2;
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_return_insideLoop() async {
@@ -899,7 +1054,7 @@ int f(int i) {
   }
   /*[2*/return/*2]*/ 2;
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_return_method() async {
@@ -910,7 +1065,7 @@ class C {
     /*[1*/return/*1]*/ 2;
   }
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_return_nestedClosure() async {
@@ -928,7 +1083,7 @@ int outerFunction() {
   };
   return 1;
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_return_nestedFunction() async {
@@ -943,7 +1098,7 @@ int outerFunction() {
   }
   return 1;
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_yield_asyncGenerator() async {
@@ -962,7 +1117,7 @@ Stream<int> outerFunction() async* {
   yield 1;
   yield* Stream.value(0);
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_keyword_yield_syncGenerator() async {
@@ -981,17 +1136,20 @@ Iterable<int> outerFunction() sync* {
   yield 1;
   yield* Iterable.empty();
 }
-''');
+''', allOfKind: .Text);
   }
 
   Future<void> test_localVariable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f() {
   var /*[0*/foo/*0]*/ = 1;
   print(/*[1*/foo/*1]*/);
   /*[2*/foo/*2]*/ = 2;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Write},
+    );
   }
 
   Future<void> test_member_field() async {
@@ -1006,11 +1164,12 @@ void f() {
   a./*[2*/fff/*2]*/ = 1;
   b./*[3*/fff/*3]*/ = '';
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_member_method() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A<T> {
   T /*[0*/mmm/*0]*/() => throw 0;
 }
@@ -1020,26 +1179,34 @@ void f() {
   a./*[1*/mmm/*1]*/();
   b./*[2*/mmm/*2]*/();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_method_underscore() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class C {
   /*[0*/_/*0]*/() {
     /*[1*/_/*1]*/();
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_mixin() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 mixin /*[0*/A/*0]*/ {
   void aaa() {}
 }
 class B with /*[1*/A/*1]*/ {}
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_nonDartFile() async {
@@ -1065,7 +1232,7 @@ void f() {
 void f() {
   /*[0*/print/*0]*/('');
 }
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_onlySelf_wildcard() async {
@@ -1073,11 +1240,12 @@ void f() {
 void f() {
   var /*[0*/_/*0]*/ = '';
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_parameter_named() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(int aaa, int bbb, {int? /*[0*/ccc/*0]*/, int? ddd}) {
   /*[1*/ccc/*1]*/;
   ddd;
@@ -1086,34 +1254,65 @@ void f(int aaa, int bbb, {int? /*[0*/ccc/*0]*/, int? ddd}) {
 void g() {
   f(0, 1, /*[2*/ccc/*2]*/: 2, ddd: 3);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Write},
+    );
   }
 
   Future<void> test_parameter_privateNamed() async {
     await _testMarkedContent('''
 class C {
   int? /*[0*/_aaa/*0]*/;
-  C({this./*[1*/_aaa/*1]*/});
+  C({this./*[1*/_aaa^/*1]*/});
 }
 
 void f() {
   C(/*[2*/aaa/*2]*/: 123);
 }
-''');
+''', allOfKind: .Write);
+  }
+
+  Future<void> test_parameter_privateNamed_argument() async {
+    await _testMarkedContent('''
+class C {
+  int? _aaa;
+  C({this./*[0*/_aaa/*0]*/});
+}
+
+void f() {
+  C(/*[1*/aaa^/*1]*/: 123);
+}
+''', allOfKind: .Write);
+  }
+
+  Future<void> test_parameter_privateNamed_field() async {
+    await _testMarkedContent('''
+class C {
+  int? /*[0*/_aaa^/*0]*/;
+  C({this./*[1*/_aaa/*1]*/});
+}
+
+void f() {
+  C(aaa: 123);
+}
+''', allOfKind: .Write);
   }
 
   Future<void> test_parameter_wildcard() async {
     await _testMarkedContent('''
 void f(int /*[0*/_/*0]*/) {}
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_pattern_assignment() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(String /*[0*/a/*0]*/, String b) {
   (b, /*[1*/a/*1]*/) = (/*[2*/a/*2]*/, b);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read},
+    );
   }
 
   Future<void> test_pattern_assignment_list() async {
@@ -1121,7 +1320,7 @@ void f(String /*[0*/a/*0]*/, String b) {
 void f(List<int> x, num /*[0*/a/*0]*/) {
   [/*[1*/a/*1]*/] = x;
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_pattern_cast_typeName() async {
@@ -1130,20 +1329,24 @@ void f(List<int> x, num /*[0*/a/*0]*/) {
   var (i as int, s as /*[2*/String/*2]*/) = record;
   return s;
 }
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_pattern_cast_variable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f((num, String) record) {
   var (i as int, /*[0*/s/*0]*/ as String) = record;
   print(/*[1*/s/*1]*/);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_pattern_map() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(x) {
   switch (x) {
     case {0: String /*[0*/a/*0]*/}:
@@ -1151,7 +1354,9 @@ void f(x) {
       break;
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_pattern_map_typeArguments() async {
@@ -1164,31 +1369,38 @@ void f(x) {
   }
   return '';
 }
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_pattern_nullAssert() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f((int?, int?) position) {
   var (x!, /*[0*/y/*0]*/!) = position;
   print(/*[1*/y/*1]*/);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_pattern_nullCheck() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(String? maybeString) {
   switch (maybeString) {
     case var /*[0*/s/*0]*/?:
       print(/*[1*/s/*1]*/);
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_pattern_object_destructure() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f() {
   final MapEntry(:/*[0*/key/*0]*/) = const MapEntry<String, int>('a', 1);
 
@@ -1196,7 +1408,9 @@ void f() {
     /*[2*/key/*2]*/;
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read},
+    );
   }
 
   Future<void> test_pattern_object_destructure_getter() async {
@@ -1208,11 +1422,12 @@ class A {
 void f() {
   final A(:/*[1*/key/*1]*/) = A();
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_pattern_object_destructure_variable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   String? /*[0*/key/*0]*/;
 }
@@ -1221,7 +1436,9 @@ void f() {
   final A(:/*[1*/k^ey/*1]*/) = A();
   /*[2*/key/*2]*/;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read},
+    );
   }
 
   Future<void> test_pattern_object_fieldName() async {
@@ -1236,11 +1453,12 @@ class Shape { }
 class Square extends Shape {
   double get /*[1*/length/*1]*/ => 0;
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_pattern_object_typeName() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 double calculateArea(Shape shape) =>
   switch (shape) {
     /*[0*/Square/*0]*/(length: var l) => l * l,
@@ -1251,11 +1469,14 @@ class Shape { }
 class /*[1*/Square/*1]*/ extends Shape {
   double get length => 0;
 }
-''');
+''',
+      kinds: {0: .Read, 1: .Write},
+    );
   }
 
   Future<void> test_pattern_object_variable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 double calculateArea(Shape shape) =>
   switch (shape) {
     Square(length: var /*[0*/l/*0]*/) => /*[1*/l/*1]*/ * /*[2*/l/*2]*/,
@@ -1266,7 +1487,9 @@ class Shape { }
 class Square extends Shape {
   double get length => 0;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_pattern_record_variable() async {
@@ -1274,11 +1497,12 @@ class Square extends Shape {
 void f(({int foo}) x, num /*[0*/a/*0]*/) {
   (foo: /*[1*/a/*1]*/,) = x;
 }
-''');
+''', allOfKind: .Write);
   }
 
   Future<void> test_pattern_relational_variable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 String f(int char) {
   const /*[0*/zero/*0]*/ = 0;
   return switch (char) {
@@ -1286,11 +1510,14 @@ String f(int char) {
     _ => '',
   };
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_patternVariable_ifCase_logicalOr() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(Object? x) {
   if (x case int /*[0*/test/*0]*/ || [int /*[1*/test/*1]*/] when /*[2*/test/*2]*/ > 0) {
     /*[3*/test/*3]*/;
@@ -1298,7 +1525,9 @@ void f(Object? x) {
     /*[5*/test/*5]*/ += 2;
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Write, 2: .Read, 3: .Read, 4: .Write, 5: .Write},
+    );
   }
 
   Future<void> test_prefix() async {
@@ -1316,7 +1545,7 @@ class A {
 void foo() {}
 
 /*[4*/p/*4]*/.A? a;
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_prefix_null() async {
@@ -1327,24 +1556,27 @@ void foo() {}
     await _testMarkedContent('''
 import 'dart:core' as /*[0*/core/*0]*/;
 void f(prefix.A? _, /*[1*/core/*1]*/.int _) {}
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_prefix_wildcard() async {
     // Ensure no crash.
     await _testMarkedContent('''
 import 'dart:io' as /*[0*/_/*0]*/;
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_prefixed() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 import '' as p;
 
 class /*[0*/A/*0]*/ {}
 
 p./*[1*/A/*1]*/? a;
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   /// The body/this keyword isn't an occurrence of anything.
@@ -1356,6 +1588,68 @@ class Aaa() {
 
 Aaa a = Aaa();
 ''');
+  }
+
+  Future<void> test_primaryConstructor_declaringParameter_declaration() async {
+    await _testMarkedContent(
+      '''
+/// This references [/*[0*/i/*0]*/].
+class C({var int? /*[1*/i^/*1]*/});
+
+void f(int? parameter) {
+  var c = C(/*[2*/i/*2]*/: parameter);
+  C(/*[3*/i/*3]*/: c./*[4*/i/*4]*/);
+}
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Write, 3: .Write, 4: .Read},
+    );
+  }
+
+  Future<void>
+  test_primaryConstructor_declaringParameter_private_declaration() async {
+    await _testMarkedContent(
+      r'''
+/// This references [/*[0*/_i/*0]*/].
+class C({var int? /*[1*/_i^/*1]*/}) {
+  String toString() => '${/*[2*/_i/*2]*/}';
+}
+
+void f(int? parameter) {
+  var _ = C(/*[3*/i/*3]*/: parameter);
+}
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Read, 3: .Write},
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaringPrivateParameter_field() async {
+    await _testMarkedContent(
+      r'''
+/// This references [/*[0*/_i^/*0]*/].
+class C({var int? /*[1*/_i/*1]*/}) {
+  String toString() => '${/*[2*/_i/*2]*/}';
+}
+
+void f(int? parameter) {
+  var _ = C(i: parameter);
+}
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Read},
+    );
+  }
+
+  Future<void>
+  test_primaryConstructor_declaringPrivateParameter_parameter() async {
+    await _testMarkedContent(r'''
+/// This references [_i].
+class C({var int? /*[0*/_i/*0]*/}) {
+  String toString() => '${_i}';
+}
+
+void f(int? parameter) {
+  var _ = C(/*[1*/i^/*1]*/: parameter);
+}
+''', allOfKind: .Write);
   }
 
   /// The body/this keyword isn't an occurrence of anything.
@@ -1370,33 +1664,42 @@ Aaa a = Aaa.named();
   }
 
   Future<void> test_primaryConstructor_named_constructorName() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class Aaa./*[0*/named/*0]*/() {
   this {}
 }
 
 Aaa a = Aaa./*[1*/named/*1]*/();
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_primaryConstructor_named_typeName() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class /*[0*/Aaa/*0]*/.named() {
   this {}
 }
 
 /*[1*/Aaa/*1]*/ a = /*[2*/Aaa/*2]*/.named();
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_primaryConstructor_typeName() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class /*[0*/Aaa/*0]*/() {
   this {}
 }
 
 /*[1*/Aaa/*1]*/ a = Aaa();
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_primaryConstructor_typeName_constructorInvocation() async {
@@ -1406,7 +1709,7 @@ class Aaa() {
 }
 
 Aaa a = /*[0*/Aaa/*0]*/();
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_recordType_typeName() async {
@@ -1414,11 +1717,12 @@ Aaa a = /*[0*/Aaa/*0]*/();
 /*[0*/double/*0]*/ f((/*[1*/double/*1]*/, /*[2*/double/*2]*/) param) {
   return 0.0;
 }
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_shadow_inner() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f() {
   var foo = 1;
   func() {
@@ -1426,11 +1730,14 @@ void f() {
     print(/*[1*/foo/*1]*/);
   }
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_shadow_outer() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f() {
   var /*[0*/foo/*0]*/ = 1;
   func() {
@@ -1439,11 +1746,14 @@ void f() {
   }
   print(/*[1*/foo/*1]*/);
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_superFormalParameter_requiredPositional() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   A(int x);
 }
@@ -1453,28 +1763,36 @@ class B extends A {
 
   B(super./*[0*/x/*0]*/) : y = /*[1*/x/*1]*/ * 2;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_topLevelVariable() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 String /*[0*/foo/*0]*/ = 'bar';
 void f() {
   print(/*[1*/foo/*1]*/);
   /*[2*/foo/*2]*/ = '';
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Write},
+    );
   }
 
   Future<void> test_topLevelVariable_underscore() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 String /*[0*/_/*0]*/ = 'bar';
 void f(int _) {
   int _ = 1;
   print(/*[1*/_/*1]*/);
   /*[2*/_/*2]*/ = '';
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Write},
+    );
   }
 
   Future<void> test_type_class() async {
@@ -1485,11 +1803,12 @@ void f() {
   /*[2*/int/*2]*/ c = 3;
 }
 /*[3*/int/*3]*/ VVV = 4;
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_type_class_constructors() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class /*[0*/A/*0]*/ {
   A(); // Default constructor is own entity
   /*[1*/A/*1]*/.named();
@@ -1498,11 +1817,14 @@ class /*[0*/A/*0]*/ {
 /*[2*/A/*2]*/ a = A(); // Default constructor is own entity
 var b = /*[3*/A/*3]*/.new();
 var c = /*[4*/A/*4]*/.new;
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read, 3: .Read, 4: .Read},
+    );
   }
 
   Future<void> test_type_class_constructors2() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class /*[0*/A/*0]*/ {
   new(); // Default constructor is own entity
   /*[1*/A/*1]*/.named();
@@ -1511,13 +1833,16 @@ class /*[0*/A/*0]*/ {
 /*[2*/A/*2]*/ a = A(); // Default constructor is own entity
 var b = /*[3*/A/*3]*/.new();
 var c = /*[4*/A/*4]*/.new;
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read, 3: .Read, 4: .Read},
+    );
   }
 
   /// The type name in default constructors are their own entity and not
   /// part of the type name.
   Future<void> test_type_class_constructors_default() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class A {
   /*[0*/A/*0]*/();
   A.named();
@@ -1526,14 +1851,19 @@ class A {
 A a = /*[1*/A/*1]*/();
 var b = A./*[2*/new/*2]*/();
 var c = A./*[3*/new/*3]*/;
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read, 3: .Read},
+    );
   }
 
   Future<void> test_type_class_definition() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class /*[0*/A/*0]*/ {}
 /*[1*/A/*1]*/? a;
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_type_dynamic() async {
@@ -1543,7 +1873,7 @@ void f() {
   /*[1*/dynamic/*1]*/ b = 2;
 }
 /*[2*/dynamic/*2]*/ V = 3;
-''');
+''', allOfKind: .Read);
   }
 
   Future<void> test_type_void() async {
@@ -1553,87 +1883,120 @@ vo^id f() {}
   }
 
   Future<void> test_typeAlias_class() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 class MyClass {}
 mixin MyMixin {}
 class /*[0*/MyAlias/*0]*/ = MyClass with MyMixin;
 /*[1*/MyAlias/*1]*/? a;
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_typeAlias_function() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 typedef /*[0*/myFunc/*0]*/();
 /*[1*/myFunc/*1]*/? f;
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_typeAlias_generic() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 typedef /*[0*/TD/*0]*/ = String;
 
 /*[1*/TD/*1]*/? a;
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_typeParameter_class() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 abstract class A</*[0*/ThisType/*0]*/> {
   /*[1*/ThisType/*1]*/ f();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_typeParameter_enum() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 enum E</*[0*/ThisType/*0]*/> {
   a;
 
   /*[1*/ThisType/*1]*/ get t => throw Error();
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_typeParameter_extension() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension E</*[0*/ThisType/*0]*/> on /*[1*/ThisType/*1]*/ {
   /*[2*/ThisType/*2]*/ f() => this;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_typeParameter_extensionType() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 extension type Et</*[0*/ThisType/*0]*/>(/*[1*/ThisType/*1]*/ value) {
   /*[2*/ThisType/*2]*/ get v => value;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   Future<void> test_typeParameter_function() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 /*[0*/ThisType/*0]*/ f</*[1*/ThisType/*1]*/>() => 0 as /*[2*/ThisType/*2]*/;
-''');
+''',
+      kinds: {0: .Read, 1: .Write, 2: .Read},
+    );
   }
 
   Future<void> test_typeParameter_functionParameter() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 void f(/*[0*/ThisType/*0]*/ Function</*[1*/ThisType/*1]*/>() f) => f();
-''');
+''',
+      kinds: {0: .Read, 1: .Write},
+    );
   }
 
   Future<void> test_typeParameter_mixin() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 mixin M</*[0*/ThisType/*0]*/> {
   /*[1*/ThisType/*1]*/ get t;
 }
-''');
+''',
+      kinds: {0: .Write, 1: .Read},
+    );
   }
 
   Future<void> test_typeParameter_typedef() async {
-    await _testMarkedContent('''
+    await _testMarkedContent(
+      '''
 typedef TypeDef</*[0*/ThisType/*0]*/> = /*[1*/ThisType/*1]*/ Function(/*[2*/ThisType/*2]*/);
-''');
+''',
+      kinds: {0: .Write, 1: .Read, 2: .Read},
+    );
   }
 
   /// Create three nested loops for this [loopKeyword] (outer/middle/inner)
@@ -1677,7 +2040,7 @@ void f() {
     } $loopEnd
 }
 ''';
-    await _testMarkedContent(content);
+    await _testMarkedContent(content, allOfKind: .Text);
   }
 
   /// Tests highlights in a Dart file using the provided content.
@@ -1690,13 +2053,45 @@ void f() {
   /// If the content contains only ranges, then the start and end of every range
   /// will be tested to ensure the full set of ranges are returned mutually for
   /// each.
-  Future<void> _testMarkedContent(String content) async {
+  ///
+  /// If [allOfKind] is provided, each returned highlight must have the same
+  /// [DocumentHighlightKind]. Otherwise, the kinds will be checked against
+  /// [kinds].
+  Future<void> _testMarkedContent(
+    String content, {
+    DocumentHighlightKind? allOfKind,
+    Map<int, DocumentHighlightKind>? kinds,
+  }) async {
     var code = TestCode.parse(content);
     expect(
       code.positions.isNotEmpty || code.ranges.isNotEmpty,
       isTrue,
-      reason: 'At least one position or range should be marked in the content',
+      reason: 'At least one position or range must be marked in the content',
     );
+
+    if (code.ranges.isEmpty) {
+      expect(
+        allOfKind == null && kinds == null,
+        isTrue,
+        reason:
+            "'allOfKind' and 'kinds' cannot be provided if there are no ranges",
+      );
+    } else {
+      expect(
+        (allOfKind != null) != (kinds != null),
+        isTrue,
+        reason:
+            "Exactly one of 'allOfKind' or 'kinds' must be provided if there are ranges",
+      );
+
+      if (kinds != null && kinds.isNotEmpty) {
+        expect(
+          kinds.values.toSet(),
+          hasLength(greaterThan(1)),
+          reason: "Use 'allOfKind' if all kinds are the same",
+        );
+      }
+    }
 
     await initialize();
     await openFile(mainFileUri, code.code);
@@ -1706,12 +2101,21 @@ void f() {
         : code.ranges.expand((range) => [range.range.start, range.range.end]);
 
     for (var position in positions) {
-      var highlights = await getDocumentHighlights(mainFileUri, position);
+      var highlights = (await getDocumentHighlights(mainFileUri, position))!;
 
       if (code.ranges.isEmpty) {
         expect(highlights, isEmpty);
       } else {
-        code.verifyRanges(highlights!.map((highlight) => highlight.range));
+        code.verifyRanges(highlights.map((highlight) => highlight.range));
+      }
+
+      // Also verify the kinds
+      for (var i = 0; i < highlights.length; i++) {
+        if (kinds != null && !kinds.containsKey(i)) {
+          fail("Range $i was not found in 'kinds'");
+        }
+        var expectedKind = allOfKind ?? kinds![i];
+        expect(highlights[i].kind, expectedKind);
       }
     }
   }

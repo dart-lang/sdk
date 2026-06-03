@@ -104,9 +104,13 @@ abstract class RuntimeConfiguration {
       _configuration.dartPath ?? dartVmExecutableFileName;
 
   String get dartVmExecutableFileName {
-    return _configuration.useSdk
-        ? '$buildDir/dart-sdk/bin/dart$executableExtension'
-        : '$buildDir/dart$executableExtension';
+    if (_configuration.useSdk) {
+      return '$buildDir/dart-sdk/bin/dart$executableExtension';
+    }
+    if (_configuration.system == System.android) {
+      return '$buildDir/dartvm$executableExtension';
+    }
+    return '$buildDir/dart$executableExtension';
   }
 
   String get dartPrecompiledBinaryFileName {

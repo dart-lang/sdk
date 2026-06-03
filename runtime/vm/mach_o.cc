@@ -2455,20 +2455,17 @@ void MachOWriter::AssertConsistency(const MachOWriter* snapshot,
 #endif
 }
 
-static uint32_t HashPortion(const MachOSection::Portion& portion) {
+static uint64_t HashPortion(const MachOSection::Portion& portion) {
   if (portion.bytes == nullptr) return 0;
-  const uint32_t hash = Utils::StringHash(portion.bytes, portion.size);
+  const uint64_t hash = Utils::StringHash64(portion.bytes, portion.size);
   // Ensure a non-zero return.
   return hash == 0 ? 1 : hash;
 }
 
-// For the UUID, we generate a 128-bit hash, where each 32 bits is a
+// For the UUID, we generate a 128-bit hash, where each 64 bits is a
 // hash of the contents of the following segments in order:
 //
-// .text(VM) | .text(Isolate) | .rodata(VM) | .rodata(Isolate)
-//
-// Any component of the build ID which does not have an associated section
-// in the output is kept as 0.
+// .text(Isolate) | .rodata(Isolate)
 void MachOHeader::GenerateUuid() {
   // Don't create a UUID for a relocatable object.
   if (type_ == SnapshotType::Object) return;
@@ -2484,30 +2481,21 @@ void MachOHeader::GenerateUuid() {
   // used to symbolicize non-symbolic stack traces.
   if (text_section == nullptr) return;
 
-  auto* const vm_instructions =
-      text_section->FindPortion(kVmSnapshotInstructionsAsmSymbol);
   auto* const isolate_instructions =
-      text_section->FindPortion(kIsolateSnapshotInstructionsAsmSymbol);
-  // All MachO snapshots have at least one of the two instruction sections.
-  ASSERT(vm_instructions != nullptr || isolate_instructions != nullptr);
+      text_section->FindPortion(kSnapshotTextAsmSymbol);
+  ASSERT(isolate_instructions != nullptr);
 
   auto* const data_section =
       text_segment_->FindSection(mach_o::SECT_CONST, mach_o::SEG_TEXT);
-  auto* const vm_data =
-      data_section == nullptr
-          ? nullptr
-          : data_section->FindPortion(kVmSnapshotDataAsmSymbol);
   auto* const isolate_data =
       data_section == nullptr
           ? nullptr
-          : data_section->FindPortion(kIsolateSnapshotDataAsmSymbol);
+          : data_section->FindPortion(kSnapshotDataAsmSymbol);
 
-  uint32_t hashes[4];
-  hashes[0] = vm_instructions == nullptr ? 0 : HashPortion(*vm_instructions);
-  hashes[1] =
-      isolate_instructions == nullptr ? 0 : HashPortion(*isolate_instructions);
-  hashes[2] = vm_data == nullptr ? 0 : HashPortion(*vm_data);
-  hashes[3] = isolate_data == nullptr ? 0 : HashPortion(*isolate_data);
+  uint64_t hashes[2];
+  COMPILE_ASSERT(sizeof(hashes) == 16);  // 128-bit UUID
+  hashes[0] = HashPortion(*isolate_instructions);
+  hashes[1] = HashPortion(*isolate_data);
 
   auto* const uuid_command = new (zone()) MachOUuid(hashes, sizeof(hashes));
   commands_.Add(uuid_command);
@@ -2547,14 +2535,9 @@ void MachOHeader::CreateBSS() {
     const char* symbol_name;
     intptr_t label;
     // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kVmSnapshotInstructionsAsmSymbol) == 0) {
-      size = BSS::kVmEntryCount * compiler::target::kWordSize;
-      symbol_name = kVmSnapshotBssAsmSymbol;
-      label = SharedObjectWriter::kVmBssLabel;
-    } else if (strcmp(portion.symbol_name,
-                      kIsolateSnapshotInstructionsAsmSymbol) == 0) {
+    if (strcmp(portion.symbol_name, kSnapshotTextAsmSymbol) == 0) {
       size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kIsolateSnapshotBssAsmSymbol;
+      symbol_name = kSnapshotBssAsmSymbol;
       label = SharedObjectWriter::kIsolateBssLabel;
     } else {
       // Not VM or isolate text.

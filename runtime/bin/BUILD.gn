@@ -581,16 +581,10 @@ template("dart_io") {
       ]
     }
 
-    if (is_linux || is_win || is_fuchsia) {
-      if (dart_use_fallback_root_certificates) {
-        deps += [ "../../third_party/fallback_root_certificates" ]
-      } else {
-        defines += [ "DART_IO_ROOT_CERTS_DISABLED" ]
-      }
-    }
-
     if (dart_disable_secure_socket) {
       defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+    } else {
+      defines += [ "DART_IO_ROOT_CERTS_DISABLED" ]
     }
 
     include_dirs = [
@@ -620,32 +614,22 @@ dart_io("common_embedder_dart_io_product") {
   extra_deps = [ ":libdart_builtin_product" ]
 }
 
-gen_snapshot_action("generate_snapshot_bin") {
+gen_snapshot_action("core_snapshot_bin") {
   deps = [ "../vm:vm_platform_stripped" ]
-  vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
-  vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
-  isolate_snapshot_data = "$target_gen_dir/isolate_snapshot_data.bin"
-  isolate_snapshot_instructions =
-      "$target_gen_dir/isolate_snapshot_instructions.bin"
+  snapshot_data = "$target_out_dir/core_snapshot_data.bin"
+  snapshot_text = "$target_out_dir/core_snapshot_text.bin"
 
   platform_dill = "$root_out_dir/vm_platform_stripped.dill"
   inputs = [ platform_dill ]
   outputs = [
-    vm_snapshot_data,
-    vm_snapshot_instructions,
-    isolate_snapshot_data,
-    isolate_snapshot_instructions,
+    snapshot_data,
+    snapshot_text,
   ]
   args = [
     "--deterministic",
     "--snapshot_kind=core",
-    "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
-    "--vm_snapshot_instructions=" +
-        rebase_path(vm_snapshot_instructions, root_build_dir),
-    "--isolate_snapshot_data=" +
-        rebase_path(isolate_snapshot_data, root_build_dir),
-    "--isolate_snapshot_instructions=" +
-        rebase_path(isolate_snapshot_instructions, root_build_dir),
+    "--snapshot_data=" + rebase_path(snapshot_data, root_build_dir),
+    "--snapshot_text=" + rebase_path(snapshot_text, root_build_dir),
     rebase_path(platform_dill, root_build_dir),
   ]
 }
@@ -654,12 +638,12 @@ gen_snapshot_action("ffi_callback_stub_bin") {
   deps = [ "../vm:vm_platform_stripped" ]
   platform_dill = "$root_out_dir/vm_platform_stripped.dill"
   inputs = [ platform_dill ]
-  outputs = [ "$target_gen_dir/ffi_callback_stub.bin" ]
+  outputs = [ "$target_out_dir/ffi_callback_stub.bin" ]
   args = [
     "--deterministic",
     "--snapshot_kind=ffi-callback-stub",
     "--ffi_callback_stub=" +
-        rebase_path("$target_gen_dir/ffi_callback_stub.bin", root_build_dir),
+        rebase_path("$target_out_dir/ffi_callback_stub.bin", root_build_dir),
     rebase_path(platform_dill, root_build_dir),
   ]
 }
@@ -758,31 +742,17 @@ template("bin_to_linkable") {
   }
 }
 
-bin_to_linkable("vm_snapshot_data_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/vm_snapshot_data.bin"
-  symbol = "kDartVmSnapshotData"
+bin_to_linkable("core_snapshot_data_linkable") {
+  deps = [ ":core_snapshot_bin" ]
+  input = "$target_out_dir/core_snapshot_data.bin"
+  symbol = "kDartCoreSnapshotData"
   executable = false
 }
 
-bin_to_linkable("vm_snapshot_instructions_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/vm_snapshot_instructions.bin"
-  symbol = "kDartVmSnapshotInstructions"
-  executable = true
-}
-
-bin_to_linkable("isolate_snapshot_data_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/isolate_snapshot_data.bin"
-  symbol = "kDartCoreIsolateSnapshotData"
-  executable = false
-}
-
-bin_to_linkable("isolate_snapshot_instructions_linkable") {
-  deps = [ ":generate_snapshot_bin" ]
-  input = "$target_gen_dir/isolate_snapshot_instructions.bin"
-  symbol = "kDartCoreIsolateSnapshotInstructions"
+bin_to_linkable("core_snapshot_text_linkable") {
+  deps = [ ":core_snapshot_bin" ]
+  input = "$target_out_dir/core_snapshot_text.bin"
+  symbol = "kDartCoreSnapshotText"
   executable = true
 }
 
@@ -804,9 +774,7 @@ bin_to_linkable("platform_dill_linkable") {
 
 bin_to_linkable("icudtl_linkable") {
   deps = []
-  if (exec_script("../tools/exists.py",
-                  [ rebase_path("//third_party/icu/flutter/icudtl.dat") ],
-                  "value")) {
+  if (path_exists("//third_party/icu/flutter/icudtl.dat")) {
     input = "//third_party/icu/flutter/icudtl.dat"
   } else {
     input = "//flutter/third_party/icu/flutter/icudtl.dat"
@@ -815,18 +783,14 @@ bin_to_linkable("icudtl_linkable") {
   executable = false
 }
 
-source_set("dart_snapshot_cc") {
+source_set("core_snapshot_cc") {
   visibility = [ ":*" ]
   deps = [
-    ":isolate_snapshot_data_linkable",
-    ":isolate_snapshot_instructions_linkable",
-    ":vm_snapshot_data_linkable",
-    ":vm_snapshot_instructions_linkable",
+    ":core_snapshot_data_linkable",
+    ":core_snapshot_text_linkable",
   ]
-  sources = get_target_outputs(":isolate_snapshot_data_linkable") +
-            get_target_outputs(":isolate_snapshot_instructions_linkable") +
-            get_target_outputs(":vm_snapshot_data_linkable") +
-            get_target_outputs(":vm_snapshot_instructions_linkable")
+  sources = get_target_outputs(":core_snapshot_data_linkable") +
+            get_target_outputs(":core_snapshot_text_linkable")
 }
 
 source_set("dart_kernel_platform_cc") {
@@ -961,12 +925,21 @@ template("dart_executable") {
         "winmm.lib",
       ]
     }
+
+    # Can't be added by tool("link"), but make sure changes to entitlements
+    # trigger re-links.
+    if (is_mac) {
+      inputs = [
+        "../tools/dart_codesign.py",
+        "../tools/entitlements/${target_name}.plist",
+      ]
+    }
   }
 }
 
 dart_executable("dartvm") {
   extra_deps = [
-    ":dart_snapshot_cc",
+    ":core_snapshot_cc",
     "..:libdart_jit",
     "../platform:libdart_platform_jit",
   ]
@@ -1061,10 +1034,7 @@ dart_executable("dartaotruntime_product") {
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   dart_executable("dart") {
     use_product_mode = true
-    extra_configs = [
-      "..:dartdev_config",
-      "..:add_empty_macho_section_config",
-    ]
+    extra_configs = [ "..:dartdev_config" ]
     extra_deps = [
       ":shared_object_loaders_product",
       "..:libdart_aotruntime_product",
@@ -1141,10 +1111,6 @@ executable("create_process_test_helper") {
 }
 
 source_set("run_vm_tests_set") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   configs += [
     "..:dart_arch_config",
     "..:dart_config",
@@ -1201,10 +1167,6 @@ source_set("run_vm_tests_set") {
 }
 
 executable("run_vm_tests") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   configs += [
     "..:dart_arch_config",
     "..:dart_config",
@@ -1219,9 +1181,9 @@ executable("run_vm_tests") {
 
   deps = [
     ":common_embedder_dart_io",
+    ":core_snapshot_cc",
     ":crashpad",
     ":dart_kernel_platform_cc",
-    ":dart_snapshot_cc",
     ":run_vm_tests_set",
     "..:libdart_precompiler_testing",
     "//third_party/boringssl",  # for secure_socket_utils_test

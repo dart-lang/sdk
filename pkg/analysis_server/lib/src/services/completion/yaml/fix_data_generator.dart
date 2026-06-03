@@ -82,8 +82,7 @@ class FixDataGenerator extends YamlCompletionGenerator {
   });
 
   /// Initialize a newly created suggestion generator for fix data files.
-  FixDataGenerator(ResourceProvider resourceProvider)
-    : super(resourceProvider, null);
+  new(ResourceProvider resourceProvider) : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => fixDataProducer;

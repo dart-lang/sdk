@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,7 +17,7 @@ main() {
 @reflectiveTest
 class ExtensionOverrideResolutionTest extends PubPackageResolutionTest {
   test_call_noPrefix_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   int call(String s) => 0;
@@ -28,7 +27,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.functionExpressionInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
@@ -59,7 +58,7 @@ FunctionExpressionInvocation
 
   test_call_noPrefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E<T> on A {
   int call(T s) => 0;
@@ -69,7 +68,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.functionExpressionInvocation('(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
@@ -117,14 +116,14 @@ extension E on A {
   int call(String s) => 0;
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E(a)('');
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.functionExpressionInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
@@ -165,14 +164,14 @@ extension E<T> on A {
   int call(T s) => 0;
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E<String>(a)('');
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.functionExpressionInvocation('(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: ExtensionOverride
@@ -218,7 +217,7 @@ FunctionExpressionInvocation
   }
 
   test_getter_noPrefix_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   int get g => 0;
@@ -228,7 +227,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.propertyAccess('E(a)');
+    var node = result.findNode.propertyAccess('E(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -255,7 +254,7 @@ PropertyAccess
   }
 
   test_getter_noPrefix_noTypeArguments_functionExpressionInvocation() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 
 extension E on A {
@@ -267,7 +266,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.functionExpressionInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function: PropertyAccess
@@ -306,7 +305,7 @@ FunctionExpressionInvocation
   }
 
   test_getter_noPrefix_typeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E<T> on A {
   int get g => 0;
@@ -316,7 +315,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.propertyAccess('(a)');
+    var node = result.findNode.propertyAccess('(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -359,14 +358,14 @@ extension E on A {
   int get g => 0;
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E(a).g;
 }
 ''');
 
-    var node = findNode.propertyAccess('E(a)');
+    var node = result.findNode.propertyAccess('E(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -403,14 +402,14 @@ extension E<T> on A {
   int get g => 0;
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E<int>(a).g;
 }
 ''');
 
-    var node = findNode.propertyAccess('(a)');
+    var node = result.findNode.propertyAccess('(a)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -451,7 +450,7 @@ PropertyAccess
   }
 
   test_indexExpression_read_nullAware() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int operator [](int index) => 0;
 }
@@ -461,7 +460,8 @@ void f(int? a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.index('[0]'), r'''
+    var node = result.findNode.index('[0]');
+    assertResolvedNodeText(node, r'''
 IndexExpression
   target: ExtensionOverride
     name: E
@@ -490,7 +490,7 @@ IndexExpression
   }
 
   test_indexExpression_write_nullAware() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   operator []=(int index, int value) {}
 }
@@ -500,7 +500,8 @@ void f(int? a) {
 }
 ''');
 
-    assertResolvedNodeText(findNode.assignment('[0] ='), r'''
+    var node = result.findNode.assignment('[0] =');
+    assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: IndexExpression
     target: ExtensionOverride
@@ -541,7 +542,7 @@ AssignmentExpression
   }
 
   test_method_noPrefix_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   void m() {}
@@ -551,7 +552,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.methodInvocation('E(a)');
+    var node = result.findNode.methodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -582,7 +583,7 @@ MethodInvocation
   }
 
   test_method_noPrefix_typeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E<T> on A {
   void m() {}
@@ -592,7 +593,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.methodInvocation('(a)');
+    var node = result.findNode.methodInvocation('(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -639,14 +640,14 @@ extension E on A {
   void m() {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E(a).m();
 }
 ''');
 
-    var node = findNode.methodInvocation('E(a)');
+    var node = result.findNode.methodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -687,14 +688,14 @@ extension E<T> on A {
   void m() {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E<int>(a).m();
 }
 ''');
 
-    var node = findNode.methodInvocation('(a)');
+    var node = result.findNode.methodInvocation('(a)');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -739,7 +740,7 @@ MethodInvocation
   }
 
   test_methodInvocation_nullAware() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int foo() => 0;
 }
@@ -749,7 +750,7 @@ void f(int? a) {
 }
 ''');
 
-    var node = findNode.methodInvocation('foo();');
+    var node = result.findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: ExtensionOverride
@@ -780,7 +781,7 @@ MethodInvocation
   }
 
   test_operator_noPrefix_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   void operator +(int offset) {}
@@ -790,7 +791,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.binary('(a)');
+    var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
@@ -819,7 +820,7 @@ BinaryExpression
   }
 
   test_operator_noPrefix_typeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E<T> on A {
   void operator +(int offset) {}
@@ -829,7 +830,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.binary('(a)');
+    var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
@@ -869,20 +870,19 @@ BinaryExpression
 
   test_operator_onTearOff() async {
     // https://github.com/dart-lang/sdk/issues/38653
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   v() {}
 }
 
 f(){
   E(0).v++;
+//     ^
+// [diag.undefinedExtensionSetter] The setter 'v' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionSetter, 45, 1)],
-    );
+''');
 
-    var node = findNode.postfix('++;');
+    var node = result.findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
   operand: PropertyAccess
@@ -922,14 +922,14 @@ extension E on A {
   void operator +(int offset) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E(a) + 1;
 }
 ''');
 
-    var node = findNode.binary('(a)');
+    var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
@@ -968,14 +968,14 @@ extension E<T> on A {
   void operator +(int offset) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E<int>(a) + 1;
 }
 ''');
 
-    var node = findNode.binary('(a)');
+    var node = result.findNode.binary('(a)');
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: ExtensionOverride
@@ -1018,7 +1018,7 @@ BinaryExpression
   }
 
   test_promotion() async {
-    await assertNoErrorsInCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int f() => 0;
 }
@@ -1031,7 +1031,7 @@ void test(C? c) {
   E(c)?.g(c); // `c` is promoted to `C` on the RHS of `?.`
 }
 ''');
-    var node = findNode.simple('c);');
+    var node = result.findNode.simple('c);');
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: c
@@ -1042,7 +1042,7 @@ SimpleIdentifier
   }
 
   test_propertyAccess_getter_nullAware() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int get foo => 0;
 }
@@ -1052,7 +1052,7 @@ void f(int? a) {
 }
 ''');
 
-    var node = findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride
@@ -1079,7 +1079,7 @@ PropertyAccess
   }
 
   test_propertyAccess_setter_nullAware() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   set foo(int _) {}
 }
@@ -1091,7 +1091,7 @@ void f(int? a) {
   }
 
   test_setter_noPrefix_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   set s(int x) {}
@@ -1101,7 +1101,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1140,7 +1140,7 @@ AssignmentExpression
   }
 
   test_setter_noPrefix_typeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E<T> on A {
   set s(int x) {}
@@ -1150,7 +1150,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1205,14 +1205,14 @@ extension E on A {
   set s(int x) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E(a).s = 0;
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1261,14 +1261,14 @@ extension E<T> on A {
   set s(int x) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E<int>(a).s = 0;
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1321,7 +1321,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_noPrefix_noTypeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E on A {
   int get s => 0;
@@ -1332,7 +1332,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1371,7 +1371,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_noPrefix_typeArguments() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {}
 extension E<T> on A {
   int get s => 0;
@@ -1382,7 +1382,7 @@ void f(A a) {
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1438,14 +1438,14 @@ extension E on A {
   set s(int x) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E(a).s += 0;
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1495,14 +1495,14 @@ extension E<T> on A {
   set s(int x) {}
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'lib.dart' as p;
 void f(p.A a) {
   p.E<int>(a).s += 0;
 }
 ''');
 
-    var node = findNode.assignment('(a)');
+    var node = result.findNode.assignment('(a)');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -1555,7 +1555,7 @@ AssignmentExpression
   }
 
   test_tearOff() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
 extension E on C {
@@ -1565,7 +1565,7 @@ extension E on C {
 f(C c) => E(c).a;
 ''');
 
-    var node = findNode.propertyAccess('E(c)');
+    var node = result.findNode.propertyAccess('E(c)');
     assertResolvedNodeText(node, r'''
 PropertyAccess
   target: ExtensionOverride

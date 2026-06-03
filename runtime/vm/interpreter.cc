@@ -44,6 +44,16 @@ DEFINE_FLAG(uint64_t,
             100 * MB,
             "Maximum size in bytes of the interpreter trace file");
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+constexpr bool kDefaultCheckDynamicCalls = true;
+#else
+constexpr bool kDefaultCheckDynamicCalls = false;
+#endif
+DEFINE_FLAG(bool,
+            check_dynamic_calls,
+            kDefaultCheckDynamicCalls,
+            "Whether to check dynamic calls from dynamic modules.");
+
 // InterpreterSetjmpBuffer are linked together, and the last created one
 // is referenced by the Interpreter. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -873,7 +883,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
                                                  ObjectPtr* top,
                                                  const KBCInstr** pc,
                                                  ObjectPtr** FP,
-                                                 ObjectPtr** SP) {
+                                                 ObjectPtr** SP,
+                                                 bool check_dynamic_call) {
   ObjectPtr null_value = Object::null();
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
@@ -906,14 +917,32 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 
   if (target != Function::null()) {
     lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
-    top[0] = target;
-    return Invoke(thread, call_base, top, pc, FP, SP);
+
+    if (check_dynamic_call) {
+      // Ensure the function can be called dynamically from a dynamic module.
+      // TODO(b/448095881): don't perform this check repeatedly, consider
+      // splitting the lookup-cache to separately track dynamic calls.
+      Zone* zone = thread->zone();
+      const Function& target_func = Function::Handle(zone, target);
+      if (!target_func.is_dynamically_callable() &&
+          !target_func.is_declared_in_bytecode()) {
+        target = Function::null();
+        top[4] = null_value;
+      }
+    }
+
+    if (target != Function::null()) {
+      top[0] = target;
+      return Invoke(thread, call_base, top, pc, FP, SP);
+    }
   }
 
-  // The miss handler should only fail to return a function in AOT mode,
-  // in which case we need to call DRT_InvokeNoSuchMethod, which
-  // walks the receiver appropriately in this case.
-#if defined(DART_PRECOMPILED_RUNTIME)
+  // Technically, the miss handler should only fail to return a function in AOT
+  // mode, in which case we need to call DRT_InvokeNoSuchMethod, which walks the
+  // receiver appropriately in this case.
+  //
+  // When a target is found, we may still reach this point in either AOT or JIT
+  // if the member is not dynamically-callable.
 
   // The receiver, name, and argument descriptor are already in the appropriate
   // places on the stack from the previous call.
@@ -955,9 +984,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     **SP = result;
     pp_ = InterpreterHelpers::FrameBytecode(*FP)->untag()->object_pool();
   }
-#else
-  UNREACHABLE();
-#endif
 
   return true;
 }
@@ -2475,8 +2501,11 @@ SwitchDispatchNoSingleStep:
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       StringPtr target_name = String::RawCast(LOAD_CONSTANT(kidx));
       argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
-      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                        &SP)) {
+
+      // TODO(b/448095881): track when caller is declared in a dynamic module.
+      bool caller_in_dynamic_module = FLAG_check_dynamic_calls;
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP, &SP,
+                        /*check_dynamic_call=*/caller_in_dynamic_module)) {
         HANDLE_EXCEPTION;
       }
       CHECK_SINGLE_STEPPING;
@@ -3525,6 +3554,59 @@ SwitchDispatchNoSingleStep:
                                   instance->untag()->length_and_flags()))));
     instance->untag()->set_element(rD, value);
     SP -= 2;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(RecordCoverage, A_E);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    // rA contains the type of the recorded coverage so the runtime can check
+    // if it is enabled even if the coverage array has not yet been allocated.
+    const bool is_branch = static_cast<bytecode::RecordedCoverageType>(rA) ==
+                           bytecode::RecordedCoverageType::kBranchTarget;
+    const bool coverage_enabled =
+        is_branch ? thread->isolate_group()->branch_coverage()
+                  : thread->isolate_group()->coverage();
+
+    if (coverage_enabled) {
+      TypedDataPtr coverage_array =
+          Function::GetBytecode(FrameFunction(FP))->untag()->coverage_array();
+
+      if (coverage_array == TypedData::null()) [[unlikely]] {
+        SP[1] = Object::null();  // Allocate stack space for result.
+        SP[2] = Function::GetBytecode(FrameFunction(FP));
+        Exit(thread, FP, SP + 3, pc);
+        INVOKE_RUNTIME(DRT_AllocateBytecodeCoverageArray,
+                       NativeArguments(thread, 1, SP + 2, SP + 1));
+        ASSERT(Bytecode::RawCast(SP[2])->untag()->coverage_array() ==
+               TypedData::RawCast(SP[1]));
+
+        coverage_array = TypedData::RawCast(SP[1]);
+      }
+      ASSERT(coverage_array != TypedData::null());
+      auto* const entries =
+          reinterpret_cast<uint32_t*>(coverage_array->untag()->data());
+
+      // The index in rE is a logical index into the (position, count) pairs.
+      ASSERT(Smi::Value(coverage_array->untag()->length()) % 2 == 0);
+      const intptr_t position_index = 2 * rE;
+      const intptr_t count_index = position_index + 1;
+
+#if defined(DEBUG)
+      // Double-check that the coverage type in the instruction is a branch
+      // target iff the encoded position is a branch target.
+      bool is_encoded_branch = false;
+      const intptr_t encoded = entries[position_index];
+      TokenPosition::DecodeCoveragePosition(encoded, &is_encoded_branch);
+      ASSERT_EQUAL(is_branch, is_encoded_branch);
+#else
+      USE(position_index);
+#endif
+
+      entries[count_index] = 1;
+    }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
     DISPATCH();
   }
 

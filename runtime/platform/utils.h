@@ -212,6 +212,7 @@ class Utils {
 
   // Computes a hash value for the given series of bytes.
   static uint32_t StringHash(const void* data, int length);
+  static uint64_t StringHash64(const void* data, int length);
 
   // Computes a hash value for the given word.
   static uint32_t WordHash(intptr_t key);

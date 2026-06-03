@@ -6,6 +6,8 @@
 //
 // Run 'dart pkg/front_end/tool/generate_ast_equivalence.dart' to update.
 
+// ignore_for_file: unnecessary_type_name_in_constructor
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'union_find.dart';
@@ -698,6 +700,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitAuxiliaryPattern(AuxiliaryPattern node, Node other) {
+    return strategy.checkAuxiliaryPattern(this, node, other);
+  }
+
+  @override
   bool visitMapPatternEntry(MapPatternEntry node, Node other) {
     return strategy.checkMapPatternEntry(this, node, other);
   }
@@ -846,11 +853,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitVariableInitialization(VariableInitialization node, Node other) {
-    return strategy.checkVariableInitialization(this, node, other);
-  }
-
-  @override
   bool visitSwitchExpressionCase(SwitchExpressionCase node, Node other) {
     return strategy.checkSwitchExpressionCase(this, node, other);
   }
@@ -861,8 +863,23 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitNominalParameter(NominalParameter node, Node other) {
+    return strategy.checkNominalParameter(this, node, other);
+  }
+
+  @override
+  bool visitTypeVariable(TypeVariable node, Node other) {
+    return strategy.checkTypeVariable(this, node, other);
+  }
+
+  @override
   bool visitLocalVariable(LocalVariable node, Node other) {
     return strategy.checkLocalVariable(this, node, other);
+  }
+
+  @override
+  bool visitLateVariable(LateVariable node, Node other) {
+    return strategy.checkLateVariable(this, node, other);
   }
 
   @override
@@ -891,23 +908,13 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitTypeVariable(TypeVariable node, Node other) {
-    return strategy.checkTypeVariable(this, node, other);
+  bool visitLegacyVariable(LegacyVariable node, Node other) {
+    return strategy.checkLegacyVariable(this, node, other);
   }
 
   @override
-  bool visitNominalParameter(NominalParameter node, Node other) {
-    return strategy.checkNominalParameter(this, node, other);
-  }
-
-  @override
-  bool visitVariableContext(VariableContext node, Node other) {
-    return strategy.checkVariableContext(this, node, other);
-  }
-
-  @override
-  bool visitScope(Scope node, Node other) {
-    return strategy.checkScope(this, node, other);
+  bool visitVariableDeclaration(VariableDeclaration node, Node other) {
+    return strategy.checkVariableDeclaration(this, node, other);
   }
 
   @override
@@ -1315,6 +1322,9 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     }
     if (a is LabeledStatement) {
       return b is LabeledStatement;
+    }
+    if (a is LegacyVariable) {
+      return b is LegacyVariable && a.name == b.name;
     }
     if (a is StructuralParameter) {
       return b is StructuralParameter && a.name == b.name;
@@ -2315,6 +2325,35 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
+    return result;
+  }
+
+  bool checkVariableContext(
+    EquivalenceVisitor visitor,
+    VariableContext? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! VariableContext) return false;
+    if (other is! VariableContext) return false;
+    bool result = true;
+    if (!checkVariableContext_captureKind(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkVariableContext_variables(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    return result;
+  }
+
+  bool checkScope(EquivalenceVisitor visitor, Scope? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! Scope) return false;
+    if (other is! Scope) return false;
+    bool result = true;
+    if (!checkScope_contexts(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     return result;
   }
 
@@ -5180,6 +5219,23 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkAuxiliaryPattern(
+    EquivalenceVisitor visitor,
+    AuxiliaryPattern? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryPattern) return false;
+    if (other is! AuxiliaryPattern) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkAuxiliaryPattern_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkMapPatternEntry(
     EquivalenceVisitor visitor,
     MapPatternEntry? node,
@@ -5892,25 +5948,7 @@ class EquivalenceStrategy {
     if (other is! VariableStatement) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkVariableStatement_fileEqualsOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_name(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_type(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_binaryOffsetNoTag(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableStatement_initializer(visitor, node, other)) {
+    if (!checkVariableStatement_declaration(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkVariableStatement_fileOffset(visitor, node, other)) {
@@ -5937,44 +5975,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionDeclaration_fileOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
-  bool checkVariableInitialization(
-    EquivalenceVisitor visitor,
-    VariableInitialization? node,
-    Object? other,
-  ) {
-    if (identical(node, other)) return true;
-    if (node is! VariableInitialization) return false;
-    if (other is! VariableInitialization) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkVariableInitialization_variable(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_initializer(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_capturedContexts(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_binaryOffsetNoTag(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_fileEqualsOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableInitialization_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -6032,6 +6032,73 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkNominalParameter(
+    EquivalenceVisitor visitor,
+    NominalParameter? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! NominalParameter) return false;
+    if (other is! NominalParameter) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkNominalParameter_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNominalParameter_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNominalParameter_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNominalParameter_bound(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNominalParameter_defaultType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNominalParameter_variance(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNominalParameter_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkTypeVariable(
+    EquivalenceVisitor visitor,
+    TypeVariable? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! TypeVariable) return false;
+    if (other is! TypeVariable) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkTypeVariable_cosmeticName(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_parameter(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkTypeVariable_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkLocalVariable(
     EquivalenceVisitor visitor,
     LocalVariable? node,
@@ -6048,10 +6115,16 @@ class EquivalenceStrategy {
     if (!checkLocalVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLocalVariable_variableInitialization(visitor, node, other)) {
+    if (!checkLocalVariable_variableDeclaration(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLocalVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLocalVariable_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_binaryOffsetNoTag(visitor, node, other)) {
@@ -6064,6 +6137,50 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkLocalVariable_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkLateVariable(
+    EquivalenceVisitor visitor,
+    LateVariable? node,
+    Object? other,
+  ) {
+    if (identical(node, other)) return true;
+    if (node is! LateVariable) return false;
+    if (other is! LateVariable) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkLateVariable_cosmeticName(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_type(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_variableDeclaration(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_initializer(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_binaryOffsetNoTag(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_fileEqualsOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLateVariable_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -6087,6 +6204,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkCatchVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkCatchVariable_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkCatchVariable_binaryOffsetNoTag(visitor, node, other)) {
@@ -6122,6 +6242,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkPositionalParameter_context(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_binaryOffsetNoTag(visitor, node, other)) {
@@ -6162,6 +6285,9 @@ class EquivalenceStrategy {
     if (!checkNamedParameter_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkNamedParameter_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkNamedParameter_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6197,6 +6323,9 @@ class EquivalenceStrategy {
     if (!checkThisVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkThisVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkThisVariable_binaryOffsetNoTag(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6229,10 +6358,16 @@ class EquivalenceStrategy {
     if (!checkSyntheticVariable_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkSyntheticVariable_variableInitialization(visitor, node, other)) {
+    if (!checkSyntheticVariable_variableDeclaration(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSyntheticVariable_annotations(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkSyntheticVariable_context(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkSyntheticVariable_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSyntheticVariable_binaryOffsetNoTag(visitor, node, other)) {
@@ -6251,103 +6386,64 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkTypeVariable(
+  bool checkLegacyVariable(
     EquivalenceVisitor visitor,
-    TypeVariable? node,
+    LegacyVariable? node,
     Object? other,
   ) {
     if (identical(node, other)) return true;
-    if (node is! TypeVariable) return false;
-    if (other is! TypeVariable) return false;
+    if (node is! LegacyVariable) return false;
+    if (other is! LegacyVariable) return false;
+    if (!visitor.checkDeclarations(node, other, '')) {
+      return false;
+    }
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkTypeVariable_cosmeticName(visitor, node, other)) {
+    if (!checkLegacyVariable_fileEqualsOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeVariable_parameter(visitor, node, other)) {
+    if (!checkLegacyVariable_annotations(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeVariable_annotations(visitor, node, other)) {
+    if (!checkLegacyVariable_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeVariable_flags(visitor, node, other)) {
+    if (!checkLegacyVariable_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkTypeVariable_fileOffset(visitor, node, other)) {
+    if (!checkLegacyVariable_type(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_binaryOffsetNoTag(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_initializer(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkLegacyVariable_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
     return result;
   }
 
-  bool checkNominalParameter(
+  bool checkVariableDeclaration(
     EquivalenceVisitor visitor,
-    NominalParameter? node,
+    VariableDeclaration? node,
     Object? other,
   ) {
     if (identical(node, other)) return true;
-    if (node is! NominalParameter) return false;
-    if (other is! NominalParameter) return false;
+    if (node is! VariableDeclaration) return false;
+    if (other is! VariableDeclaration) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkNominalParameter_flags(visitor, node, other)) {
+    if (!checkVariableDeclaration_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkNominalParameter_annotations(visitor, node, other)) {
+    if (!checkVariableDeclaration_capturedContexts(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkNominalParameter_name(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkNominalParameter_bound(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkNominalParameter_defaultType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkNominalParameter_variance(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkNominalParameter_fileOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
-  bool checkVariableContext(
-    EquivalenceVisitor visitor,
-    VariableContext? node,
-    Object? other,
-  ) {
-    if (identical(node, other)) return true;
-    if (node is! VariableContext) return false;
-    if (other is! VariableContext) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkVariableContext_captureKind(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableContext_variables(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkVariableContext_fileOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
-  bool checkScope(EquivalenceVisitor visitor, Scope? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! Scope) return false;
-    if (other is! Scope) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkScope_contexts(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkScope_fileOffset(visitor, node, other)) {
+    if (!checkVariableDeclaration_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -8033,8 +8129,45 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkVariableContext_captureKind(
+    EquivalenceVisitor visitor,
+    VariableContext node,
+    VariableContext other,
+  ) {
+    return visitor.checkValues(
+      node.captureKind,
+      other.captureKind,
+      'captureKind',
+    );
+  }
+
+  bool checkVariableContext_variables(
+    EquivalenceVisitor visitor,
+    VariableContext node,
+    VariableContext other,
+  ) {
+    return visitor.checkLists(
+      node.variables,
+      other.variables,
+      visitor.checkNodes,
+      'variables',
+    );
+  }
+
+  bool checkScope_contexts(
+    EquivalenceVisitor visitor,
+    Scope node,
+    Scope other,
+  ) {
+    return visitor.checkLists(node.contexts, other.contexts, (a, b, _) {
+      if (identical(a, b)) return true;
+      return checkVariableContext(visitor, a, b);
+    }, 'contexts');
+  }
+
   bool checkField_scope(EquivalenceVisitor visitor, Field node, Field other) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkMember_fileEndOffset(
@@ -10450,7 +10583,8 @@ class EquivalenceStrategy {
     BlockExpression node,
     BlockExpression other,
   ) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkBlockExpression_fileOffset(
@@ -10875,7 +11009,8 @@ class EquivalenceStrategy {
     FunctionNode node,
     FunctionNode other,
   ) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkFunctionNode_capturedContexts(
@@ -10883,12 +11018,14 @@ class EquivalenceStrategy {
     FunctionNode node,
     FunctionNode other,
   ) {
-    return visitor.checkLists(
-      node.capturedContexts,
-      other.capturedContexts,
-      visitor.checkNodes,
-      'capturedContexts',
-    );
+    return visitor.checkLists(node.capturedContexts, other.capturedContexts, (
+      a,
+      b,
+      _,
+    ) {
+      if (identical(a, b)) return true;
+      return checkVariableContext(visitor, a, b);
+    }, 'capturedContexts');
   }
 
   bool checkFunctionNode_emittedValueType(
@@ -12265,6 +12402,14 @@ class EquivalenceStrategy {
     return checkPattern_fileOffset(visitor, node, other);
   }
 
+  bool checkAuxiliaryPattern_fileOffset(
+    EquivalenceVisitor visitor,
+    AuxiliaryPattern node,
+    AuxiliaryPattern other,
+  ) {
+    return checkPattern_fileOffset(visitor, node, other);
+  }
+
   bool checkMapPatternEntry_key(
     EquivalenceVisitor visitor,
     MapPatternEntry node,
@@ -12764,7 +12909,8 @@ class EquivalenceStrategy {
   }
 
   bool checkBlock_scope(EquivalenceVisitor visitor, Block node, Block other) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkBlock_fileOffset(
@@ -12905,7 +13051,8 @@ class EquivalenceStrategy {
     WhileStatement node,
     WhileStatement other,
   ) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkWhileStatement_fileOffset(
@@ -12987,7 +13134,8 @@ class EquivalenceStrategy {
     ForStatement node,
     ForStatement other,
   ) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkForStatement_fileOffset(
@@ -13043,7 +13191,8 @@ class EquivalenceStrategy {
     ForInStatement node,
     ForInStatement other,
   ) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkForInStatement_fileOffset(
@@ -13207,76 +13356,15 @@ class EquivalenceStrategy {
     return checkStatement_fileOffset(visitor, node, other);
   }
 
-  bool checkVariableStatement_fileEqualsOffset(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(
-      node.fileEqualsOffset,
-      other.fileEqualsOffset,
-      'fileEqualsOffset',
-    );
-  }
-
-  bool checkVariableStatement_annotations(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkLists(
-      node.annotations,
-      other.annotations,
-      visitor.checkNodes,
-      'annotations',
-    );
-  }
-
-  bool checkVariableStatement_name(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(node.name, other.name, 'name');
-  }
-
-  bool checkVariableStatement_flags(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkVariableStatement_type(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkNodes(node.type, other.type, 'type');
-  }
-
-  bool checkVariableStatement_binaryOffsetNoTag(
-    EquivalenceVisitor visitor,
-    VariableStatement node,
-    VariableStatement other,
-  ) {
-    return visitor.checkValues(
-      node.binaryOffsetNoTag,
-      other.binaryOffsetNoTag,
-      'binaryOffsetNoTag',
-    );
-  }
-
-  bool checkVariableStatement_initializer(
+  bool checkVariableStatement_declaration(
     EquivalenceVisitor visitor,
     VariableStatement node,
     VariableStatement other,
   ) {
     return visitor.checkNodes(
-      node.initializer,
-      other.initializer,
-      'initializer',
+      node.declaration,
+      other.declaration,
+      'declaration',
     );
   }
 
@@ -13308,92 +13396,6 @@ class EquivalenceStrategy {
     EquivalenceVisitor visitor,
     FunctionDeclaration node,
     FunctionDeclaration other,
-  ) {
-    return checkStatement_fileOffset(visitor, node, other);
-  }
-
-  bool checkVariableInitialization_variable(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkNodes(node.variable, other.variable, 'variable');
-  }
-
-  bool checkVariableInitialization_initializer(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkNodes(
-      node.initializer,
-      other.initializer,
-      'initializer',
-    );
-  }
-
-  bool checkVariableInitialization_capturedContexts(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkLists(
-      node.capturedContexts,
-      other.capturedContexts,
-      visitor.checkNodes,
-      'capturedContexts',
-    );
-  }
-
-  bool checkVariableInitialization_flags(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkVariableInitialization_annotations(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkLists(
-      node.annotations,
-      other.annotations,
-      visitor.checkNodes,
-      'annotations',
-    );
-  }
-
-  bool checkVariableInitialization_binaryOffsetNoTag(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkValues(
-      node.binaryOffsetNoTag,
-      other.binaryOffsetNoTag,
-      'binaryOffsetNoTag',
-    );
-  }
-
-  bool checkVariableInitialization_fileEqualsOffset(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
-  ) {
-    return visitor.checkValues(
-      node.fileEqualsOffset,
-      other.fileEqualsOffset,
-      'fileEqualsOffset',
-    );
-  }
-
-  bool checkVariableInitialization_fileOffset(
-    EquivalenceVisitor visitor,
-    VariableInitialization node,
-    VariableInitialization other,
   ) {
     return checkStatement_fileOffset(visitor, node, other);
   }
@@ -13451,7 +13453,8 @@ class EquivalenceStrategy {
   }
 
   bool checkCatch_scope(EquivalenceVisitor visitor, Catch node, Catch other) {
-    return visitor.checkNodes(node.scope, other.scope, 'scope');
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkCatch_fileOffset(
@@ -13460,6 +13463,149 @@ class EquivalenceStrategy {
     Catch other,
   ) {
     return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkNominalParameter_flags(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkNominalParameter_annotations(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return visitor.checkLists(
+      node.annotations,
+      other.annotations,
+      visitor.checkNodes,
+      'annotations',
+    );
+  }
+
+  bool checkNominalParameter_name(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return visitor.checkValues(node.name, other.name, 'name');
+  }
+
+  bool checkNominalParameter_bound(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return visitor.checkNodes(node.bound, other.bound, 'bound');
+  }
+
+  bool checkNominalParameter_defaultType(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return visitor.checkNodes(
+      node.defaultType,
+      other.defaultType,
+      'defaultType',
+    );
+  }
+
+  bool checkNominalParameter_variance(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return visitor.checkValues(node.variance, other.variance, 'variance');
+  }
+
+  bool checkNominalParameter_fileOffset(
+    EquivalenceVisitor visitor,
+    NominalParameter node,
+    NominalParameter other,
+  ) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkTypeVariable_cosmeticName(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    return visitor.checkValues(
+      node.cosmeticName,
+      other.cosmeticName,
+      'cosmeticName',
+    );
+  }
+
+  bool checkTypeVariable_parameter(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    return visitor.checkDeclarations(
+      node.parameter,
+      other.parameter,
+      'parameter',
+    );
+  }
+
+  bool checkTypeVariable_annotations(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    return visitor.checkLists(
+      node.annotations,
+      other.annotations,
+      visitor.checkNodes,
+      'annotations',
+    );
+  }
+
+  bool checkTypeVariable_context(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkVariableBase_flags(
+    EquivalenceVisitor visitor,
+    VariableBase node,
+    VariableBase other,
+  ) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkTypeVariable_flags(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    return checkVariableBase_flags(visitor, node, other);
+  }
+
+  bool checkVariableBase_fileOffset(
+    EquivalenceVisitor visitor,
+    VariableBase node,
+    VariableBase other,
+  ) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkTypeVariable_fileOffset(
+    EquivalenceVisitor visitor,
+    TypeVariable node,
+    TypeVariable other,
+  ) {
+    return checkVariableBase_fileOffset(visitor, node, other);
   }
 
   bool checkLocalVariable_cosmeticName(
@@ -13482,15 +13628,15 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkLocalVariable_variableInitialization(
+  bool checkLocalVariable_variableDeclaration(
     EquivalenceVisitor visitor,
     LocalVariable node,
     LocalVariable other,
   ) {
     return visitor.checkNodes(
-      node.variableInitialization,
-      other.variableInitialization,
-      'variableInitialization',
+      node.variableDeclaration,
+      other.variableDeclaration,
+      'variableDeclaration',
     );
   }
 
@@ -13504,6 +13650,27 @@ class EquivalenceStrategy {
       other.annotations,
       visitor.checkNodes,
       'annotations',
+    );
+  }
+
+  bool checkLocalVariable_context(
+    EquivalenceVisitor visitor,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkLocalVariable_initializer(
+    EquivalenceVisitor visitor,
+    LocalVariable node,
+    LocalVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
     );
   }
 
@@ -13531,18 +13698,10 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkVariableBase_flags(
+  bool checkVariable_flags(
     EquivalenceVisitor visitor,
-    VariableBase node,
-    VariableBase other,
-  ) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkVariableDeclaration_flags(
-    EquivalenceVisitor visitor,
-    VariableDeclaration node,
-    VariableDeclaration other,
+    Variable node,
+    Variable other,
   ) {
     return checkVariableBase_flags(visitor, node, other);
   }
@@ -13552,21 +13711,13 @@ class EquivalenceStrategy {
     LocalVariable node,
     LocalVariable other,
   ) {
-    return checkVariableDeclaration_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
-  bool checkVariableBase_fileOffset(
+  bool checkVariable_fileOffset(
     EquivalenceVisitor visitor,
-    VariableBase node,
-    VariableBase other,
-  ) {
-    return checkTreeNode_fileOffset(visitor, node, other);
-  }
-
-  bool checkVariableDeclaration_fileOffset(
-    EquivalenceVisitor visitor,
-    VariableDeclaration node,
-    VariableDeclaration other,
+    Variable node,
+    Variable other,
   ) {
     return checkVariableBase_fileOffset(visitor, node, other);
   }
@@ -13576,7 +13727,113 @@ class EquivalenceStrategy {
     LocalVariable node,
     LocalVariable other,
   ) {
-    return checkVariableDeclaration_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
+  }
+
+  bool checkLateVariable_cosmeticName(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkValues(
+      node.cosmeticName,
+      other.cosmeticName,
+      'cosmeticName',
+    );
+  }
+
+  bool checkLateVariable_type(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkNodes(node.type, other.type, 'type');
+  }
+
+  bool checkLateVariable_variableDeclaration(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.variableDeclaration,
+      other.variableDeclaration,
+      'variableDeclaration',
+    );
+  }
+
+  bool checkLateVariable_annotations(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkLists(
+      node.annotations,
+      other.annotations,
+      visitor.checkNodes,
+      'annotations',
+    );
+  }
+
+  bool checkLateVariable_context(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkLateVariable_initializer(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
+    );
+  }
+
+  bool checkLateVariable_binaryOffsetNoTag(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkValues(
+      node.binaryOffsetNoTag,
+      other.binaryOffsetNoTag,
+      'binaryOffsetNoTag',
+    );
+  }
+
+  bool checkLateVariable_fileEqualsOffset(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return visitor.checkValues(
+      node.fileEqualsOffset,
+      other.fileEqualsOffset,
+      'fileEqualsOffset',
+    );
+  }
+
+  bool checkLateVariable_flags(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return checkVariable_flags(visitor, node, other);
+  }
+
+  bool checkLateVariable_fileOffset(
+    EquivalenceVisitor visitor,
+    LateVariable node,
+    LateVariable other,
+  ) {
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkCatchVariable_catchVariableName(
@@ -13612,6 +13869,15 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkCatchVariable_context(
+    EquivalenceVisitor visitor,
+    CatchVariable node,
+    CatchVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
   bool checkCatchVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     CatchVariable node,
@@ -13641,7 +13907,7 @@ class EquivalenceStrategy {
     CatchVariable node,
     CatchVariable other,
   ) {
-    return checkVariableDeclaration_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkCatchVariable_fileOffset(
@@ -13649,7 +13915,7 @@ class EquivalenceStrategy {
     CatchVariable node,
     CatchVariable other,
   ) {
-    return checkVariableDeclaration_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkPositionalParameter_cosmeticName(
@@ -13683,6 +13949,15 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
+  }
+
+  bool checkPositionalParameter_context(
+    EquivalenceVisitor visitor,
+    PositionalParameter node,
+    PositionalParameter other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkPositionalParameter_binaryOffsetNoTag(
@@ -13734,7 +14009,7 @@ class EquivalenceStrategy {
     FunctionParameter node,
     FunctionParameter other,
   ) {
-    return checkVariableDeclaration_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkPositionalParameter_flags(
@@ -13750,7 +14025,7 @@ class EquivalenceStrategy {
     FunctionParameter node,
     FunctionParameter other,
   ) {
-    return checkVariableDeclaration_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkPositionalParameter_fileOffset(
@@ -13792,6 +14067,15 @@ class EquivalenceStrategy {
       visitor.checkNodes,
       'annotations',
     );
+  }
+
+  bool checkNamedParameter_context(
+    EquivalenceVisitor visitor,
+    NamedParameter node,
+    NamedParameter other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
   }
 
   bool checkNamedParameter_binaryOffsetNoTag(
@@ -13863,6 +14147,15 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkThisVariable_context(
+    EquivalenceVisitor visitor,
+    ThisVariable node,
+    ThisVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
   bool checkThisVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
     ThisVariable node,
@@ -13892,7 +14185,7 @@ class EquivalenceStrategy {
     ThisVariable node,
     ThisVariable other,
   ) {
-    return checkVariableDeclaration_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkThisVariable_fileOffset(
@@ -13900,7 +14193,7 @@ class EquivalenceStrategy {
     ThisVariable node,
     ThisVariable other,
   ) {
-    return checkVariableDeclaration_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
   bool checkSyntheticVariable_cosmeticName(
@@ -13923,15 +14216,15 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkSyntheticVariable_variableInitialization(
+  bool checkSyntheticVariable_variableDeclaration(
     EquivalenceVisitor visitor,
     SyntheticVariable node,
     SyntheticVariable other,
   ) {
     return visitor.checkNodes(
-      node.variableInitialization,
-      other.variableInitialization,
-      'variableInitialization',
+      node.variableDeclaration,
+      other.variableDeclaration,
+      'variableDeclaration',
     );
   }
 
@@ -13945,6 +14238,27 @@ class EquivalenceStrategy {
       other.annotations,
       visitor.checkNodes,
       'annotations',
+    );
+  }
+
+  bool checkSyntheticVariable_context(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    'context';
+    return checkVariableContext(visitor, node.context, other.context);
+  }
+
+  bool checkSyntheticVariable_initializer(
+    EquivalenceVisitor visitor,
+    SyntheticVariable node,
+    SyntheticVariable other,
+  ) {
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
     );
   }
 
@@ -13977,7 +14291,7 @@ class EquivalenceStrategy {
     SyntheticVariable node,
     SyntheticVariable other,
   ) {
-    return checkVariableDeclaration_flags(visitor, node, other);
+    return checkVariable_flags(visitor, node, other);
   }
 
   bool checkSyntheticVariable_fileOffset(
@@ -13985,37 +14299,25 @@ class EquivalenceStrategy {
     SyntheticVariable node,
     SyntheticVariable other,
   ) {
-    return checkVariableDeclaration_fileOffset(visitor, node, other);
+    return checkVariable_fileOffset(visitor, node, other);
   }
 
-  bool checkTypeVariable_cosmeticName(
+  bool checkLegacyVariable_fileEqualsOffset(
     EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return visitor.checkValues(
-      node.cosmeticName,
-      other.cosmeticName,
-      'cosmeticName',
+      node.fileEqualsOffset,
+      other.fileEqualsOffset,
+      'fileEqualsOffset',
     );
   }
 
-  bool checkTypeVariable_parameter(
+  bool checkLegacyVariable_annotations(
     EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
-  ) {
-    return visitor.checkDeclarations(
-      node.parameter,
-      other.parameter,
-      'parameter',
-    );
-  }
-
-  bool checkTypeVariable_annotations(
-    EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return visitor.checkLists(
       node.annotations,
@@ -14025,137 +14327,89 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkTypeVariable_flags(
+  bool checkLegacyVariable_name(
     EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
-  ) {
-    return checkVariableBase_flags(visitor, node, other);
-  }
-
-  bool checkTypeVariable_fileOffset(
-    EquivalenceVisitor visitor,
-    TypeVariable node,
-    TypeVariable other,
-  ) {
-    return checkVariableBase_fileOffset(visitor, node, other);
-  }
-
-  bool checkNominalParameter_flags(
-    EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
-  ) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkNominalParameter_annotations(
-    EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
-  ) {
-    return visitor.checkLists(
-      node.annotations,
-      other.annotations,
-      visitor.checkNodes,
-      'annotations',
-    );
-  }
-
-  bool checkNominalParameter_name(
-    EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return visitor.checkValues(node.name, other.name, 'name');
   }
 
-  bool checkNominalParameter_bound(
+  bool checkLegacyVariable_flags(
     EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
-    return visitor.checkNodes(node.bound, other.bound, 'bound');
+    return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkNominalParameter_defaultType(
+  bool checkLegacyVariable_type(
     EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
-    return visitor.checkNodes(
-      node.defaultType,
-      other.defaultType,
-      'defaultType',
-    );
+    return visitor.checkNodes(node.type, other.type, 'type');
   }
 
-  bool checkNominalParameter_variance(
+  bool checkLegacyVariable_binaryOffsetNoTag(
     EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
-  ) {
-    return visitor.checkValues(node.variance, other.variance, 'variance');
-  }
-
-  bool checkNominalParameter_fileOffset(
-    EquivalenceVisitor visitor,
-    NominalParameter node,
-    NominalParameter other,
-  ) {
-    return checkTreeNode_fileOffset(visitor, node, other);
-  }
-
-  bool checkVariableContext_captureKind(
-    EquivalenceVisitor visitor,
-    VariableContext node,
-    VariableContext other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return visitor.checkValues(
-      node.captureKind,
-      other.captureKind,
-      'captureKind',
+      node.binaryOffsetNoTag,
+      other.binaryOffsetNoTag,
+      'binaryOffsetNoTag',
     );
   }
 
-  bool checkVariableContext_variables(
+  bool checkLegacyVariable_initializer(
     EquivalenceVisitor visitor,
-    VariableContext node,
-    VariableContext other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
-    return visitor.checkLists(
-      node.variables,
-      other.variables,
-      visitor.checkNodes,
-      'variables',
+    return visitor.checkNodes(
+      node.initializer,
+      other.initializer,
+      'initializer',
     );
   }
 
-  bool checkVariableContext_fileOffset(
+  bool checkLegacyVariable_fileOffset(
     EquivalenceVisitor visitor,
-    VariableContext node,
-    VariableContext other,
+    LegacyVariable node,
+    LegacyVariable other,
   ) {
     return checkTreeNode_fileOffset(visitor, node, other);
   }
 
-  bool checkScope_contexts(
+  bool checkVariableDeclaration_variable(
     EquivalenceVisitor visitor,
-    Scope node,
-    Scope other,
+    VariableDeclaration node,
+    VariableDeclaration other,
   ) {
-    return visitor.checkLists(
-      node.contexts,
-      other.contexts,
-      visitor.checkNodes,
-      'contexts',
-    );
+    return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
-  bool checkScope_fileOffset(
+  bool checkVariableDeclaration_capturedContexts(
     EquivalenceVisitor visitor,
-    Scope node,
-    Scope other,
+    VariableDeclaration node,
+    VariableDeclaration other,
+  ) {
+    return visitor.checkLists(node.capturedContexts, other.capturedContexts, (
+      a,
+      b,
+      _,
+    ) {
+      if (identical(a, b)) return true;
+      return checkVariableContext(visitor, a, b);
+    }, 'capturedContexts');
+  }
+
+  bool checkVariableDeclaration_fileOffset(
+    EquivalenceVisitor visitor,
+    VariableDeclaration node,
+    VariableDeclaration other,
   ) {
     return checkTreeNode_fileOffset(visitor, node, other);
   }

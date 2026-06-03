@@ -3338,6 +3338,8 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
                        target::Closure::length_and_flags_offset()));
 
       Label load_function_type_arguments, load_delayed_type_arguments;
+      ASSERT(instance_type_args_reg != TypeTestABI::kInstanceReg);
+      ASSERT(instance_type_args_reg != TypeTestABI::kScratchReg);
       __ MoveRegister(instance_type_args_reg, null_reg);
       __ BranchIfBit(
           TypeTestABI::kScratchReg,
@@ -3354,6 +3356,8 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
       if (n >= 5) {
         __ Bind(&load_function_type_arguments);
 
+        ASSERT(parent_fun_type_args_reg != TypeTestABI::kInstanceReg);
+        ASSERT(parent_fun_type_args_reg != TypeTestABI::kScratchReg);
         __ MoveRegister(parent_fun_type_args_reg, null_reg);
         __ BranchIfBit(
             TypeTestABI::kScratchReg,
@@ -3372,16 +3376,38 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
       if (n >= 6) {
         __ Bind(&load_delayed_type_arguments);
 
-        __ MoveRegister(delayed_type_args_reg, null_reg);
-        __ BranchIfBit(
-            TypeTestABI::kScratchReg,
-            UntaggedClosure::kHasDelayedTypeArgumentsBit + kSmiTagShift, ZERO,
-            &initialized);
-        __ LoadCompressed(
-            delayed_type_args_reg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::element_offset(
-                             UntaggedClosure::kDelayedTypeArgumentsIndex)));
+        // On 32-bit ARM [delayed_type_args_reg] can be the same as
+        // [TypeTestABI::kInstanceReg]. In such a case [delayed_type_args_reg]
+        // should not be overwritten before the last use of [kInstanceReg].
+        if (delayed_type_args_reg == TypeTestABI::kInstanceReg) {
+          Label no_delayed_type_arguments;
+          __ BranchIfBit(
+              TypeTestABI::kScratchReg,
+              UntaggedClosure::kHasDelayedTypeArgumentsBit + kSmiTagShift, ZERO,
+              &no_delayed_type_arguments);
+          __ LoadCompressed(
+              delayed_type_args_reg,
+              FieldAddress(TypeTestABI::kInstanceReg,
+                           target::Closure::element_offset(
+                               UntaggedClosure::kDelayedTypeArgumentsIndex)));
+          __ Jump(&initialized, Assembler::kNearJump);
+
+          __ Bind(&no_delayed_type_arguments);
+          __ MoveRegister(delayed_type_args_reg, null_reg);
+        } else {
+          ASSERT(delayed_type_args_reg != TypeTestABI::kInstanceReg);
+          ASSERT(delayed_type_args_reg != TypeTestABI::kScratchReg);
+          __ MoveRegister(delayed_type_args_reg, null_reg);
+          __ BranchIfBit(
+              TypeTestABI::kScratchReg,
+              UntaggedClosure::kHasDelayedTypeArgumentsBit + kSmiTagShift, ZERO,
+              &initialized);
+          __ LoadCompressed(
+              delayed_type_args_reg,
+              FieldAddress(TypeTestABI::kInstanceReg,
+                           target::Closure::element_offset(
+                               UntaggedClosure::kDelayedTypeArgumentsIndex)));
+        }
       }
     }
 

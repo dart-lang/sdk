@@ -20,7 +20,7 @@ class RequestOperation extends Operation {
   final CommonInputConverter converter;
   final Map<String, dynamic> json;
 
-  RequestOperation(this.converter, this.json);
+  new(this.converter, this.json);
 
   @override
   Future<void>? perform(Driver driver) {
@@ -71,7 +71,7 @@ class ResponseOperation extends Operation {
   final Completer<void> completer = Completer();
   late Driver driver;
 
-  ResponseOperation(this.converter, this.requestJson, this.responseJson) {
+  new(this.converter, this.requestJson, this.responseJson) {
     completer.future.then(_processResult).timeout(responseTimeout);
   }
 

@@ -47,7 +47,7 @@ class TopLevel extends Container {
 
   final Map<ParserAstNode, AstNode> map;
 
-  TopLevel(this.sourceText, this.uri, this.node, this.map);
+  new(this.sourceText, this.uri, this.node, this.map);
 
   @override
   String toString() => toStringInternal(new StringBuffer(), 0).toString();
@@ -99,7 +99,7 @@ class Class extends Container {
   @override
   final Token endInclusive;
 
-  Class(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -146,7 +146,7 @@ class Mixin extends Container {
   @override
   final Token endInclusive;
 
-  Mixin(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -193,7 +193,7 @@ class Extension extends Container {
   @override
   final Token endInclusive;
 
-  Extension(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -244,7 +244,7 @@ class Constructor extends AstNode {
   @override
   final Token endInclusive;
 
-  Constructor(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -276,7 +276,7 @@ class Factory extends AstNode {
   @override
   final Token endInclusive;
 
-  Factory(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -308,7 +308,7 @@ class Method extends AstNode {
   @override
   final Token endInclusive;
 
-  Method(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -340,7 +340,7 @@ class Enum extends AstNode {
   @override
   final Token endInclusive;
 
-  Enum(
+  new(
     this.node,
     this.name,
     this.members,
@@ -383,7 +383,7 @@ class Import extends AstNode {
   @override
   final Token endInclusive;
 
-  Import(
+  new(
     this.node,
     this.firstUri,
     this.conditionalUris,
@@ -431,7 +431,7 @@ class Export extends AstNode {
   @override
   final Token endInclusive;
 
-  Export(
+  new(
     this.node,
     this.firstUri,
     this.conditionalUris,
@@ -470,7 +470,7 @@ class Part extends AstNode {
   @override
   final Token endInclusive;
 
-  Part(this.node, this.uri, this.startInclusive, this.endInclusive);
+  new(this.node, this.uri, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -501,7 +501,7 @@ class TopLevelFields extends AstNode {
   @override
   final Token endInclusive;
 
-  TopLevelFields(this.node, this.names, this.startInclusive, this.endInclusive);
+  new(this.node, this.names, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -536,7 +536,7 @@ class TopLevelMethod extends AstNode {
   @override
   final Token endInclusive;
 
-  TopLevelMethod(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -567,7 +567,7 @@ class Typedef extends AstNode {
   @override
   final Token endInclusive;
 
-  Typedef(this.node, this.name, this.startInclusive, this.endInclusive);
+  new(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -598,7 +598,7 @@ class Fields extends AstNode {
   @override
   final Token endInclusive;
 
-  Fields(this.node, this.names, this.startInclusive, this.endInclusive);
+  new(this.node, this.names, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -632,7 +632,7 @@ class Metadata extends AstNode {
   @override
   final Token endInclusive;
 
-  Metadata(this.node, this.startInclusive, this.endInclusive);
+  new(this.node, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -662,7 +662,7 @@ class LibraryName extends AstNode {
   @override
   final Token endInclusive;
 
-  LibraryName(this.node, this.startInclusive, this.endInclusive);
+  new(this.node, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -693,7 +693,7 @@ class PartOf extends AstNode {
   final Token endInclusive;
   final Uri partOfUri;
 
-  PartOf(this.node, this.partOfUri, this.startInclusive, this.endInclusive);
+  new(this.node, this.partOfUri, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -723,7 +723,7 @@ class LanguageVersion extends AstNode {
   @override
   final Token endInclusive;
 
-  LanguageVersion(this.node, this.startInclusive, this.endInclusive);
+  new(this.node, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {

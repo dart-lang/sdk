@@ -22,7 +22,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   @override
   final int? charOffset;
 
-  const FixedTypeBuilderImpl(this.type, this.fileUri, this.charOffset);
+  const new(this.type, this.fileUri, this.charOffset);
 
   @override
   // Coverage-ignore(suite): Not run.

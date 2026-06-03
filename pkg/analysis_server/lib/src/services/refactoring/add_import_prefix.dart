@@ -13,7 +13,6 @@ import 'package:analyzer/source/source.dart' show Source;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
 
@@ -25,16 +24,13 @@ class AddImportPrefix extends RefactoringProducer {
 
   final String _defaultPrefix = 'prefix';
 
-  AddImportPrefix(super.context);
+  new(super.context);
 
   @override
   bool get isExperimental => false;
 
   @override
   CodeActionKind get kind => DartCodeActionKind.refactorAdd;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
 
   @override
   String get title => constTitle;

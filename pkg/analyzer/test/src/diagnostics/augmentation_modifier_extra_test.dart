@@ -2,156 +2,143 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationModifierExtraTest);
+    defineReflectiveTests(AugmentationModifierExtraTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class AugmentationModifierExtraTest extends PubPackageResolutionTest {
-  test_class_abstract() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment abstract class A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 8)],
-    );
-  }
-
-  test_class_abstract_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
+  test_class_abstract_abstractBase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {}
 augment abstract base class A {}
-''',
-      [
-        error(diag.augmentationModifierExtra, 27, 8),
-        error(diag.augmentationModifierExtra, 36, 4),
-      ],
-    );
+//               ^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'base' modifier that the declaration doesn't have.
+''');
   }
 
-  test_class_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
+  test_class_abstractBase_abstractBase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract base class A {}
+augment abstract base class A {}
 ''');
+  }
 
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
+  test_class_base_abstractBase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+augment abstract base class A {}
+//      ^^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'abstract' modifier that the declaration doesn't have.
+''');
+  }
 
+  test_class_nothing_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+augment abstract class A {}
+//      ^^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'abstract' modifier that the declaration doesn't have.
+''');
+  }
+
+  test_class_nothing_abstractBase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+augment abstract base class A {}
+//      ^^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'abstract' modifier that the declaration doesn't have.
+//               ^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'base' modifier that the declaration doesn't have.
+''');
+  }
+
+  test_class_nothing_base() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
 augment base class A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 4)],
-    );
+//      ^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'base' modifier that the declaration doesn't have.
+''');
   }
 
-  test_class_final() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+  test_class_nothing_final() async {
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment final class A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 5)],
-    );
+//      ^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'final' modifier that the declaration doesn't have.
+''');
   }
 
-  test_class_interface() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+  test_class_nothing_interface() async {
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment interface class A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 9)],
-    );
+//      ^^^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'interface' modifier that the declaration doesn't have.
+''');
   }
 
-  test_class_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+  test_class_nothing_mixin() async {
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment mixin class A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 5)],
-    );
+//      ^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'mixin' modifier that the declaration doesn't have.
+''');
   }
 
-  test_class_sealed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+  test_class_nothing_nothing_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
+augment class A {}
+augment abstract class A {}
+//      ^^^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'abstract' modifier that the declaration doesn't have.
 ''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment sealed class A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 6)],
-    );
   }
 
-  test_mixin_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-mixin A {}
+  test_class_nothing_sealed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+augment sealed class A {}
+//      ^^^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'sealed' modifier that the declaration doesn't have.
 ''');
+  }
 
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
+  test_mixin_base_base() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base mixin A {}
 augment base mixin A {}
-''',
-      [error(diag.augmentationModifierExtra, 27, 4)],
-    );
+''');
+  }
+
+  test_mixin_nothing_base() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin A {}
+augment base mixin A {}
+//      ^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'base' modifier that the declaration doesn't have.
+''');
+  }
+
+  test_mixin_nothing_nothing_base() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin A {}
+augment mixin A {}
+augment base mixin A {}
+//      ^^^^
+// [diag.augmentationModifierExtra] The augmentation has the 'base' modifier that the declaration doesn't have.
+''');
   }
 }

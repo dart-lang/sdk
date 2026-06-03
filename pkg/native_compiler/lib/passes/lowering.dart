@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
 
 /// IR lowering for native back-end.
 ///
@@ -56,12 +59,15 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     ),
   );
 
-  late final _emptyList = ConstantValue(
-    ast.InstanceConstant(
-      GlobalContext.instance.coreTypes.listClass.reference,
-      const <ast.DartType>[const ast.DynamicType()],
-      const {},
+  late final CFunction _prependTypeArguments = functionRegistry.getFunction(
+    GlobalContext.instance.coreTypes.index.getTopLevelProcedure(
+      'dart:_internal',
+      '_prependTypeArguments',
     ),
+  );
+
+  late final _emptyList = ConstantValue(
+    ast.ListConstant(const ast.DynamicType(), const []),
   );
 
   @override
@@ -161,11 +167,100 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
           user.replaceInputAt(user.getInputIndex(use), load);
         }
       case .functionTypeParameters:
-        final replacement = instr.inputDefAt(0);
-        instr.replaceUsesWith(replacement);
+        switch (instr.inputCount) {
+          case 1:
+            final replacement = instr.inputDefAt(0);
+            instr.replaceUsesWith(replacement);
+            break;
+          case 2:
+            final function = graph.function;
+            final numEnclosingTypeParameters =
+                function.numberOfEnclosingFunctionTypeParameters;
+            final numTotalTypeParameters =
+                numEnclosingTypeParameters +
+                function.numberOfFunctionTypeParameters;
+            final replacement = DirectCall(
+              graph,
+              instr.sourcePosition,
+              _prependTypeArguments,
+              instr.type,
+              inputCount: 4,
+              argumentsShape: functionRegistry.getArgumentsShape(4),
+            );
+            replacement.setInputAt(0, instr.inputDefAt(0));
+            replacement.setInputAt(1, instr.inputDefAt(1));
+            replacement.setInputAt(
+              2,
+              graph.getConstant(
+                ConstantValue.fromInt(numEnclosingTypeParameters),
+              ),
+            );
+            replacement.setInputAt(
+              3,
+              graph.getConstant(ConstantValue.fromInt(numTotalTypeParameters)),
+            );
+            replacement.insertBefore(instr);
+            instr.replaceUsesWith(replacement);
+            break;
+          default:
+            throw 'Unexpected number of inputs in ${IrToText.instruction(instr)}';
+        }
         break;
     }
     instr.removeFromGraph();
+  }
+
+  @override
+  void visitAllocateObject(AllocateObject instr) {
+    // Convert type arguments to the instance type arguments.
+    final cls = (instr.type.dartType as ast.InterfaceType).classNode;
+    if (!hasInstantiatorTypeArguments(cls)) {
+      assert(!instr.hasTypeArguments);
+      return;
+    }
+    final typeArgs = instr.typeArguments;
+    final types = switch (typeArgs) {
+      TypeArguments() => typeArgs.types,
+      Constant(
+        value: ConstantValue(constant: TypeArgumentsConstant(:var types)),
+      ) =>
+        types,
+      Null() => const <ast.DartType>[],
+      _ =>
+        throw 'Unexpected type arguments ${typeArgs.runtimeType} ${IrToText.instruction(typeArgs)}',
+    };
+    assert(types.length == cls.typeParameters.length);
+    final instanceTypes = flattenInstantiatorTypeArguments(cls, types);
+    if (typeArgs is TypeArguments) {
+      final instanceTypeArgs = TypeArguments(
+        graph,
+        instr.sourcePosition,
+        instanceTypes,
+        inputCount: typeArgs.inputCount,
+      );
+      for (var i = 0, n = typeArgs.inputCount; i < n; ++i) {
+        instanceTypeArgs.setInputAt(i, typeArgs.inputDefAt(i));
+      }
+      instanceTypeArgs.insertBefore(instr);
+      instr.replaceInputAt(0, instanceTypeArgs);
+    } else {
+      final instanceTypeArgs = instr.graph.getConstant(
+        ConstantValue(TypeArgumentsConstant(instanceTypes)),
+      );
+      if (instr.hasTypeArguments) {
+        instr.replaceInputAt(0, instanceTypeArgs);
+      } else {
+        final replacement = AllocateObject(
+          graph,
+          instr.sourcePosition,
+          instr.type,
+          instanceTypeArgs,
+        );
+        replacement.insertBefore(instr);
+        instr.replaceUsesWith(replacement);
+        instr.removeFromGraph();
+      }
+    }
   }
 
   @override
@@ -247,6 +342,26 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     replacement.setInputAt(1, argument);
     replacement.insertBefore(instr);
     instr.replaceUsesWith(replacement);
+    instr.removeFromGraph();
+  }
+
+  @override
+  void visitAllocateRecordLiteral(AllocateRecordLiteral instr) {
+    final obj = AllocateRecord(graph, instr.sourcePosition, instr.type);
+    obj.insertBefore(instr);
+    for (int i = 0, n = instr.inputCount; i < n; ++i) {
+      final element = instr.elementAt(i);
+      // TODO: canonicalize record fields
+      final setElem = StoreInstanceField(
+        graph,
+        instr.sourcePosition,
+        CField(RecordField(instr.type.shape, i)),
+        obj,
+        element,
+      );
+      setElem.insertBefore(instr);
+    }
+    instr.replaceUsesWith(obj);
     instr.removeFromGraph();
   }
 

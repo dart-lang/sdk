@@ -40,7 +40,7 @@ class ErrorContext {
   final YamlNode parentNode;
 
   /// Initialize a newly created error context.
-  ErrorContext({required this.key, required this.parentNode});
+  new({required this.key, required this.parentNode});
 }
 
 /// A parser used to read a transform set from a file.
@@ -70,10 +70,12 @@ class TransformSetParser {
   static const String _indexKey = 'index';
   static const String _inMixinKey = 'inMixin';
   static const String _kindKey = 'kind';
+  static const String _libraryKey = 'library';
   static const String _methodKey = 'method';
   static const String _mixinKey = 'mixin';
   static const String _nameKey = 'name';
   static const String _newElementKey = 'newElement';
+  static const String _newLibraryKey = 'newLibrary';
   static const String _newNameKey = 'newName';
   static const String _nullabilityKey = 'nullability';
   static const String _oldNameKey = 'oldName';
@@ -178,7 +180,7 @@ class TransformSetParser {
 
   /// Initialize a newly created parser to report diagnostics to the
   /// [_diagnosticReporter].
-  TransformSetParser(this._diagnosticReporter, this.packageName);
+  new(this._diagnosticReporter, this.packageName);
 
   /// Return the result of parsing the file [content] into a transform set, or
   /// `null` if the content does not represent a valid transform set.
@@ -979,6 +981,72 @@ class TransformSetParser {
     }
   }
 
+  /// Translate the [node] into an element transform. Return the resulting
+  /// transform, or `null` if the [node] does not represent a valid element
+  /// transform. If the [node] is not valid, use the [context] to
+  /// report the error.
+  Transform? _translateElementTransform(
+    YamlMap node,
+    ErrorContext context,
+    String title,
+    DateTime date,
+    bool bulkApply,
+  ) {
+    var element = _translateElement(
+      node.valueAt(_elementKey),
+      ErrorContext(key: _elementKey, parentNode: node),
+    );
+    elementBeingTransformed = element;
+    transformVariableScope = _translateTemplateVariables(
+      node.valueAt(_variablesKey),
+      ErrorContext(key: _variablesKey, parentNode: node),
+    );
+    var selector = _singleKey(
+      map: node,
+      errorNode: context.parentNode,
+      translators: {
+        const {_changesKey}: (key, value) {
+          var changes = _translateList(
+            value,
+            ErrorContext(key: _changesKey, parentNode: node),
+            _translateChange,
+          );
+          if (changes == null) {
+            // The error has already been reported.
+            _parameterModifications = null;
+            return null;
+          }
+          var parameterModifications = _parameterModifications;
+          if (parameterModifications != null) {
+            changes.add(
+              ModifyParameters(modifications: parameterModifications),
+            );
+            _parameterModifications = null;
+          }
+          return UnconditionalChangesSelector(changes);
+        },
+        const {_oneOfKey}: (key, value) {
+          return _translateConditionalChanges(
+            value,
+            ErrorContext(key: _oneOfKey, parentNode: node),
+          );
+        },
+      },
+    );
+    transformVariableScope = VariableScope.empty;
+    if (element == null || selector == null) {
+      // The error has already been reported.
+      return null;
+    }
+    return Transform(
+      title: title,
+      date: date,
+      bulkApply: bulkApply,
+      element: element,
+      changesSelector: selector,
+    );
+  }
+
   /// Translate the [node] into a value generator. Return the resulting
   /// generator, or `null` if the [node] does not represent a valid value
   /// extractor.
@@ -1041,6 +1109,87 @@ class TransformSetParser {
     }
     _reportError(diag.invalidKey.withArguments(keyType: type), node);
     return null;
+  }
+
+  /// Translate the [node] into a [ElementDescriptor]. Return the resulting
+  /// descriptor, or `null` if the [node] does not represent a valid
+  /// descriptor. If the [node] is not valid, use the [context] to
+  /// report the error.
+  ElementDescriptor? _translateLibrary(YamlNode? node, ErrorContext context) {
+    if (node is YamlScalar) {
+      var value = node.value;
+      if (value is! String) {
+        return _reportInvalidValue(node, context, 'String');
+      }
+      var uri = _translateUri(node, context);
+      if (uri != null) {
+        return ElementDescriptor(
+          libraryUris: [],
+          kind: ElementKind.libraryKind,
+          isStatic: false,
+          components: [uri.toString()],
+        );
+      }
+      return null;
+    } else if (node == null) {
+      return _reportMissingKey(context);
+    } else {
+      return _reportInvalidValue(node, context, 'ElementDescriptor');
+    }
+  }
+
+  /// Translate the [node] into a library transform. Return the resulting
+  /// transform, or `null` if the [node] does not represent a valid library
+  /// transform. If the [node] is not valid, use the [context] to
+  /// report the error.
+  Transform? _translateLibraryTransform(
+    YamlMap node,
+    String title,
+    DateTime date,
+    bool bulkApply,
+  ) {
+    var library = _translateLibrary(
+      node.valueAt(_libraryKey),
+      ErrorContext(key: _libraryKey, parentNode: node),
+    );
+    if (library == null) {
+      // The error has already been reported.
+      return null;
+    }
+    elementBeingTransformed = library;
+    var changesNode = node.valueAt(_changesKey);
+    if (changesNode == null) {
+      _reportError(diag.missingKey.withArguments(key: _changesKey), node);
+      return null;
+    }
+    var changes = _translateList(
+      node.valueAt(_changesKey),
+      ErrorContext(key: _changesKey, parentNode: node),
+      _translateReplacedByChangeLibrary,
+    );
+    if (changes == null) {
+      // The error has already been reported.
+      return null;
+    }
+    // If there is more than one change, it's an error.
+    if (changes.length > 1) {
+      _reportError(
+        diag.invalidChangeForKind.withArguments(
+          changeKind: _replacedByKind,
+          elementKind: library.kind.displayName,
+        ),
+        changesNode,
+      );
+      return null;
+    }
+
+    return Transform(
+      title: title,
+      date: date,
+      bulkApply: bulkApply,
+      element: library,
+      changesSelector: UnconditionalChangesSelector(changes),
+    );
   }
 
   /// Translate the [node] into a list of objects using the [elementTranslator].
@@ -1207,6 +1356,47 @@ class TransformSetParser {
     );
   }
 
+  /// Translate the [node] into a replaced_by change. Return the resulting
+  /// change, or `null` if the [node] does not represent a valid replaced_by
+  /// change with a different library. This change is used when replacing a
+  /// library import.
+  ReplacedBy? _translateReplacedByChangeLibrary(
+    YamlNode node,
+    ErrorContext context,
+  ) {
+    if (node is YamlMap) {
+      _reportUnsupportedKeys(node, const {_kindKey, _newLibraryKey});
+      var changeKey = _translateString(
+        node.valueAt(_kindKey),
+        ErrorContext(key: _kindKey, parentNode: node),
+      );
+      if (changeKey == null) {
+        // The error has already been reported.
+        return null;
+      }
+      if (changeKey != _replacedByKind) {
+        _reportError(
+          diag.invalidChangeForKind.withArguments(
+            changeKind: _replacedByKind,
+            elementKind: ElementKind.libraryKind.displayName,
+          ),
+          node.valueAt(_kindKey)!,
+        );
+        return null;
+      }
+      var newLibrary = _translateLibrary(
+        node.valueAt(_newLibraryKey),
+        ErrorContext(key: _newLibraryKey, parentNode: node),
+      );
+      if (newLibrary == null) {
+        // The error has already been reported.
+        return null;
+      }
+      return ReplacedBy(newElement: newLibrary, replaceTarget: false);
+    }
+    return null;
+  }
+
   /// Translate the [node] into a string. Return the resulting string, or `null`
   /// if the [node] doesn't represent a valid string. If the [node] isn't valid,
   /// use the [context] to report the error. If the [node] doesn't exist and
@@ -1272,6 +1462,7 @@ class TransformSetParser {
         _changesKey,
         _dateKey,
         _elementKey,
+        _libraryKey,
         _oneOfKey,
         _titleKey,
         _variablesKey,
@@ -1291,62 +1482,43 @@ class TransformSetParser {
             required: false,
           ) ??
           true;
-      var element = _translateElement(
-        node.valueAt(_elementKey),
-        ErrorContext(key: _elementKey, parentNode: node),
-      );
-      elementBeingTransformed = element;
-      transformVariableScope = _translateTemplateVariables(
-        node.valueAt(_variablesKey),
-        ErrorContext(key: _variablesKey, parentNode: node),
-      );
-      var selector = _singleKey(
-        map: node,
-        errorNode: context.parentNode,
-        translators: {
-          const {_changesKey}: (key, value) {
-            var changes = _translateList(
-              value,
-              ErrorContext(key: _changesKey, parentNode: node),
-              _translateChange,
-            );
-            if (changes == null) {
-              // The error has already been reported.
-              _parameterModifications = null;
-              return null;
-            }
-            var parameterModifications = _parameterModifications;
-            if (parameterModifications != null) {
-              changes.add(
-                ModifyParameters(modifications: parameterModifications),
-              );
-              _parameterModifications = null;
-            }
-            return UnconditionalChangesSelector(changes);
-          },
-          const {_oneOfKey}: (key, value) {
-            return _translateConditionalChanges(
-              value,
-              ErrorContext(key: _oneOfKey, parentNode: node),
-            );
-          },
-        },
-      );
-      transformVariableScope = VariableScope.empty;
-      if (title == null ||
-          date == null ||
-          element == null ||
-          selector == null) {
-        // The error has already been reported.
+
+      if (title == null || date == null) {
         return null;
       }
-      return Transform(
-        title: title,
-        date: date,
-        bulkApply: bulkApply,
-        element: element,
-        changesSelector: selector,
-      );
+      var elementNode = node.valueAt(_elementKey);
+      var libraryNode = node.valueAt(_libraryKey);
+      if (libraryNode == null && elementNode == null) {
+        _reportError(
+          diag.missingOneOfMultipleKeys.withArguments(
+            validKeys: [_elementKey, _libraryKey].quotedAndCommaSeparatedWithOr,
+          ),
+          node,
+        );
+        return null;
+      }
+      if (libraryNode != null && elementNode != null) {
+        _reportError(
+          diag.conflictingKey.withArguments(
+            key: _elementKey,
+            conflictingKey: _libraryKey,
+          ),
+          node,
+        );
+        return null;
+      }
+
+      if (elementNode != null) {
+        return _translateElementTransform(
+          node,
+          context,
+          title,
+          date,
+          bulkApply,
+        );
+      } else {
+        return _translateLibraryTransform(node, title, date, bulkApply);
+      }
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
@@ -1520,7 +1692,7 @@ class _SingleKeyEntry<T> {
   final String key;
   final T Function(String, YamlNode) translator;
 
-  _SingleKeyEntry({
+  new({
     required this.keyNode,
     required this.valueNode,
     required this.key,

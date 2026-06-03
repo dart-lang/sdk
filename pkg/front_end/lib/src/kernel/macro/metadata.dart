@@ -203,14 +203,14 @@ class References implements shared.References {
   @override
   shared.TypeReference get voidReference => const VoidTypeReference();
 
-  References(this.loader);
+  new(this.loader);
 }
 
 // Coverage-ignore(suite): Not run.
 class AnnotationScope implements shared.Scope {
   final LookupScope scope;
 
-  AnnotationScope(this.scope);
+  new(this.scope);
 
   @override
   shared.Proto lookup(String name) {
@@ -229,7 +229,7 @@ final class ClassScope extends shared.BaseClassScope {
   @override
   final shared.ClassReference classReference;
 
-  ClassScope(this.builder, this.classReference);
+  new(this.builder, this.classReference);
 
   @override
   shared.Proto lookup(
@@ -256,7 +256,7 @@ final class EnumScope extends shared.BaseEnumScope {
   @override
   final shared.EnumReference enumReference;
 
-  EnumScope(this.builder, this.enumReference);
+  new(this.builder, this.enumReference);
 
   @override
   shared.Proto lookup(
@@ -274,7 +274,7 @@ final class MixinScope extends shared.BaseMixinScope {
   @override
   final shared.MixinReference mixinReference;
 
-  MixinScope(this.builder, this.mixinReference);
+  new(this.builder, this.mixinReference);
 
   @override
   shared.Proto lookup(
@@ -292,7 +292,7 @@ final class ExtensionScope extends shared.BaseExtensionScope {
   @override
   final shared.ExtensionReference extensionReference;
 
-  ExtensionScope(this.builder, this.extensionReference);
+  new(this.builder, this.extensionReference);
 
   @override
   shared.Proto lookup(
@@ -310,7 +310,7 @@ final class ExtensionTypeScope extends shared.BaseExtensionTypeScope {
   @override
   final shared.ExtensionTypeReference extensionTypeReference;
 
-  ExtensionTypeScope(this.builder, this.extensionTypeReference);
+  new(this.builder, this.extensionTypeReference);
 
   @override
   shared.Proto lookup(
@@ -338,7 +338,7 @@ final class TypedefScope extends shared.BaseTypedefScope {
   @override
   final shared.TypedefReference typedefReference;
 
-  TypedefScope(this.builder, this.typedefReference);
+  new(this.builder, this.typedefReference);
 
   @override
   shared.Proto lookup(
@@ -365,14 +365,14 @@ final class TypedefScope extends shared.BaseTypedefScope {
 class TypeReference extends shared.TypeReference {
   final TypeDeclarationBuilder builder;
 
-  TypeReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
 }
 
 class VoidTypeReference extends shared.TypeReference {
-  const VoidTypeReference();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -383,7 +383,7 @@ class VoidTypeReference extends shared.TypeReference {
 class PrefixScope implements shared.Scope {
   final PrefixBuilder prefixBuilder;
 
-  PrefixScope(this.prefixBuilder);
+  new(this.prefixBuilder);
 
   @override
   shared.Proto lookup(String name) {
@@ -400,7 +400,7 @@ class PrefixScope implements shared.Scope {
 class PropertyReference extends shared.FieldReference {
   final PropertyBuilder builder;
 
-  PropertyReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -410,7 +410,7 @@ class PropertyReference extends shared.FieldReference {
 class MethodReference extends shared.FunctionReference {
   final MethodBuilder builder;
 
-  MethodReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -420,7 +420,7 @@ class MethodReference extends shared.FunctionReference {
 class ConstructorReference extends shared.ConstructorReference {
   final MemberBuilder builder;
 
-  ConstructorReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name.isEmpty ? 'new' : builder.name;
@@ -430,7 +430,7 @@ class ConstructorReference extends shared.ConstructorReference {
 class ClassReference extends shared.ClassReference {
   final ClassBuilder builder;
 
-  ClassReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -440,7 +440,7 @@ class ClassReference extends shared.ClassReference {
 class EnumReference extends shared.EnumReference {
   final ClassBuilder builder;
 
-  EnumReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -450,7 +450,7 @@ class EnumReference extends shared.EnumReference {
 class MixinReference extends shared.MixinReference {
   final ClassBuilder builder;
 
-  MixinReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -460,7 +460,7 @@ class MixinReference extends shared.MixinReference {
 class ExtensionReference extends shared.ExtensionReference {
   final ExtensionBuilder builder;
 
-  ExtensionReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -470,7 +470,7 @@ class ExtensionReference extends shared.ExtensionReference {
 class ExtensionTypeReference extends shared.ExtensionTypeReference {
   final ExtensionTypeDeclarationBuilder builder;
 
-  ExtensionTypeReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;
@@ -480,7 +480,7 @@ class ExtensionTypeReference extends shared.ExtensionTypeReference {
 class TypedefReference extends shared.TypedefReference {
   final TypeAliasBuilder builder;
 
-  TypedefReference(this.builder);
+  new(this.builder);
 
   @override
   String get name => builder.name;

@@ -17,11 +17,18 @@ main() {
 
 abstract class PartIncludeElementTest extends ElementsBaseTest {
   test_library_parts() async {
-    newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
-    newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
-    var library = await buildLibrary(
-      'library my.lib; part "a.dart"; part "b.dart";',
-    );
+    newFile('$testPackageLibPath/a.dart', r'''
+part of my.lib;
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of my.lib;
+''');
+    var library = await buildLibrary(r'''
+library my.lib;
+
+part "a.dart";
+part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -33,11 +40,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
         part_1
           uri: package:test/b.dart
-          partKeywordOffset: 31
+          partKeywordOffset: 32
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -85,9 +92,10 @@ part of 'b.dart';
 class B12 {}
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 part 'b.dart';
+
 class Z {}
 ''');
 
@@ -109,7 +117,7 @@ library
           partKeywordOffset: 15
           unit: #F2
       classes
-        #F3 class Z (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F3 class Z (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::Z
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -219,7 +227,9 @@ class B {}
 ''');
     var library = await buildLibrary(r'''
 library my.lib;
+
 part 'a.dart';
+
 class A {}
 ''');
     checkElementText(library, r'''
@@ -233,13 +243,13 @@ library
       parts
         part_0
           uri: package:test/a.dart
-          partKeywordOffset: 16
+          partKeywordOffset: 17
           unit: #F1
       classes
-        #F2 class A (nameOffset:37) (firstTokenOffset:31) (offset:37)
+        #F2 class A (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::A
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a.dart
@@ -278,6 +288,7 @@ class B {}
 ''');
     var library = await buildLibrary(r'''
 part 'a.dart';
+
 class A {}
 ''');
     checkElementText(library, r'''
@@ -293,10 +304,10 @@ library
           partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
+        #F2 class A (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::A
           constructors
-            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a.dart
@@ -363,7 +374,8 @@ library
   }
 
   test_partDirective_withRelativeUri_notPart_library() async {
-    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/a.dart', r'''
+''');
     var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
@@ -490,9 +502,10 @@ part of 'b.dart';
 class B12 {}
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 part 'b.dart';
+
 class Z {}
 ''');
 
@@ -514,7 +527,7 @@ library
           partKeywordOffset: 15
           unit: #F2
       classes
-        #F3 class Z (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F3 class Z (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::Z
     #F1 package:test/a.dart
       element: <testLibrary>

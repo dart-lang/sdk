@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,18 +30,17 @@ class Parent {
   void foo() {}
 }
 ''');
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class Child extends Parent {
   Child() {
     foo();
+//  ^^^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'foo' can only be used for overriding.
   }
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 63, 3)],
-    );
+''');
   }
 
   test_differentLibrary_valid_onlyOverride() async {
@@ -55,7 +53,7 @@ class Parent {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class Child extends Parent {
@@ -75,7 +73,7 @@ class Parent {
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class Child extends Parent {
@@ -99,16 +97,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 int m(A a) {
   return a.g;
+//         ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'g' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 42, 1)],
-    );
+''');
   }
 
   test_field_originPrimaryConstructor() async {
@@ -118,16 +115,15 @@ import 'package:meta/meta.dart';
 class A(@visibleForOverriding var int g);
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 int m(A a) {
   return a.g;
+//         ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'g' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 42, 1)],
-    );
+''');
   }
 
   test_getter() async {
@@ -140,18 +136,17 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B {
   int m(A a) {
     return a.g;
+//           ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'g' can only be used for overriding.
   }
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 56, 1)],
-    );
+''');
   }
 
   test_getter_inObjectPattern() async {
@@ -164,18 +159,17 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 void f(Object o) {
   switch (o) {
     case A(g: 7): print('yes');
+//         ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'g' can only be used for overriding.
   }
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 63, 1)],
-    );
+''');
   }
 
   test_operator() async {
@@ -188,16 +182,15 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B {
   void m(A a) => a > A();
+//                 ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member '>' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 47, 1)],
-    );
+''');
   }
 
   test_overriding_getter() async {
@@ -210,8 +203,7 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -219,10 +211,10 @@ class B extends A {
   int get g => super.g + 1;
 
   int get x => super.g + 1;
+//                   ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'g' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 100, 1)],
-    );
+''');
   }
 
   test_overriding_methodInvocation() async {
@@ -235,8 +227,7 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -244,10 +235,10 @@ class B extends A {
   void m() => super.m();
 
   void x() => super.m();
+//                  ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 'm' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 96, 1)],
-    );
+''');
   }
 
   test_overriding_operator() async {
@@ -260,8 +251,7 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -269,10 +259,10 @@ class B extends A {
   operator >(A other) => super > other;
 
   void m() => super > A();
+//                  ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member '>' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 111, 1)],
-    );
+''');
   }
 
   test_overriding_setter() async {
@@ -285,8 +275,7 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B extends A {
@@ -294,14 +283,14 @@ class B extends A {
   set s(int i) => super.s = i;
 
   set x(int i) => super.s = i;
+//                      ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 's' can only be used for overriding.
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 106, 1)],
-    );
+''');
   }
 
   test_sameLibrary() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
 
 class Parent {
@@ -327,17 +316,16 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 import 'a.dart';
 
 class B {
   void m(A a) {
     a.s = 1;
+//    ^
+// [diag.invalidUseOfVisibleForOverridingMember] The member 's' can only be used for overriding.
   }
 }
-''',
-      [error(diag.invalidUseOfVisibleForOverridingMember, 50, 1)],
-    );
+''');
   }
 }

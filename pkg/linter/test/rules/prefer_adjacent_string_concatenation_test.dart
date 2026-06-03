@@ -24,21 +24,15 @@ var s = 'hello' ' world';
   }
 
   test_plusOperator() async {
-    await assertDiagnostics(
-      r'''
-var s = 'hello' + ' world';
-''',
-      [lint(16, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var s = 'hello' [!+!] ' world';
+''');
   }
 
   test_plusOperator_inListLiteral() async {
-    await assertDiagnostics(
-      r'''
-var list = ['this is' + ' not allowed'];
-''',
-      [lint(22, 1)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var list = ['this is' [!+!] ' not allowed'];
+''');
   }
 
   test_plusOperator_nonStringLiteralLeft() async {

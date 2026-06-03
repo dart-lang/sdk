@@ -241,21 +241,24 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor is from an explicit [ConstructorDeclaration]
   /// or [PrimaryConstructorDeclaration].
   ///
-  /// When this is `true`, [isOriginImplicitDefault] and
-  /// [isOriginMixinApplication] are `false`.
+  /// Constructor origin getters are mutually exclusive. Exactly one of the
+  /// following is `true`:
+  ///
+  /// * [isOriginDeclaration]
+  /// * [isOriginExtensionTypeRecovery]
+  /// * [isOriginImplicitDefault]
+  /// * [isOriginMixinApplication]
   bool get isOriginDeclaration;
+
+  /// Whether the constructor represents the recovery constructor of an extension
+  /// type when no introductory declaration is present in the library.
+  bool get isOriginExtensionTypeRecovery;
 
   /// Whether the constructor was created because there are no explicit
   /// constructors.
-  ///
-  /// When this is `true`, [isOriginDeclaration] and
-  /// [isOriginMixinApplication] are `false`.
   bool get isOriginImplicitDefault;
 
   /// Whether the constructor was created for a mixin application.
-  ///
-  /// When this is `true`, [isOriginDeclaration] and
-  /// [isOriginImplicitDefault] are `false`.
   bool get isOriginMixinApplication;
 
   /// Whether this is a primary constructor.
@@ -297,6 +300,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   ///
   /// It is `null` if the fragment is synthetic, or does not have the keyword.
   int? get factoryKeywordOffset;
+
+  /// Whether the constructor represents the recovery constructor of an extension
+  /// type when no introductory declaration is present in the library.
+  bool get isOriginExtensionTypeRecovery;
 
   @override
   String get name;
@@ -2943,6 +2950,13 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
   @override
   PropertyAccessorElement get element;
 
+  /// The field or top-level variable fragment that induced this accessor
+  /// fragment.
+  ///
+  /// Returns `null` for explicit getter and setter declarations, including
+  /// explicit augmentations.
+  PropertyInducingFragment? get inducingVariable;
+
   @override
   PropertyAccessorFragment? get nextFragment;
 
@@ -3020,6 +3034,21 @@ abstract class PropertyInducingFragment implements VariableFragment {
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
+
+  /// The getter fragment induced by this variable or field fragment.
+  ///
+  /// Returns `null` for synthetic variable or field fragments created for
+  /// explicit accessor declarations. Such fragments do not induce accessors;
+  /// instead, they are created because explicit accessors need an associated
+  /// property-inducing element.
+  GetterFragment? get inducedGetter;
+
+  /// The setter fragment induced by this variable or field fragment.
+  ///
+  /// Returns `null` if this fragment does not induce a setter, or if this
+  /// fragment is a synthetic variable or field fragment created for explicit
+  /// accessor declarations.
+  SetterFragment? get inducedSetter;
 
   /// Whether the element is an augmentation.
   ///

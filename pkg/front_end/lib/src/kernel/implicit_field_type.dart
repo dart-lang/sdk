@@ -19,9 +19,9 @@ abstract class InferredType extends AuxiliaryType {
   Uri? get fileUri;
   int? get charOffset;
 
-  InferredType._();
+  new _();
 
-  factory InferredType({
+  factory({
     required SourceLibraryBuilder libraryBuilder,
     required TypeBuilder typeBuilder,
     required InferTypeFunction inferType,
@@ -33,7 +33,7 @@ abstract class InferredType extends AuxiliaryType {
     required Token? token,
   }) = _ImplicitType;
 
-  factory InferredType.fromInferableTypeUse(InferableTypeUse inferableTypeUse) =
+  factory fromInferableTypeUse(InferableTypeUse inferableTypeUse) =
       _InferredTypeUse;
 
   @override
@@ -125,7 +125,7 @@ class _ImplicitType extends InferredType {
 
   bool isStarted = false;
 
-  _ImplicitType({
+  new({
     required SourceLibraryBuilder libraryBuilder,
     required TypeBuilder typeBuilder,
     required InferTypeFunction inferType,
@@ -203,7 +203,7 @@ class _ImplicitType extends InferredType {
 class _InferredTypeUse extends InferredType {
   final InferableTypeUse inferableTypeUse;
 
-  _InferredTypeUse(this.inferableTypeUse) : super._();
+  new(this.inferableTypeUse) : super._();
 
   @override
   // Coverage-ignore(suite): Not run.

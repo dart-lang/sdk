@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,20 +15,18 @@ main() {
 @reflectiveTest
 class ExpressionInMapTest extends PubPackageResolutionTest {
   test_map() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 var m = <String, int>{'a', 'b' : 2};
-''',
-      [error(diag.expressionInMap, 22, 3)],
-    );
+//                    ^^^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+''');
   }
 
   test_map_const() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 const m = <String, int>{'a', 'b' : 2};
-''',
-      [error(diag.expressionInMap, 24, 3)],
-    );
+//                      ^^^
+// [diag.expressionInMap] Expressions can't be used in a map literal.
+''');
   }
 }

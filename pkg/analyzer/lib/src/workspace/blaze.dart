@@ -636,9 +636,74 @@ class BlazeWorkspacePackage extends WorkspacePackageImpl {
   bool isInTestDirectory(File file) {
     // If the package itself is a "testing" package, then [file] counts as being
     // "in a test directory."
-    return root.shortName == 'testing' ||
-        root.path.contains('/testing/') ||
-        root.getChildAssumingFolder('test').contains(file.path);
+    var pathContext = workspace.provider.pathContext;
+    var relativeRoot = pathContext.relative(root.path, from: workspace.root);
+    var relativeRootSegments = pathContext.split(relativeRoot);
+    if (root.shortName == 'testing' ||
+        relativeRootSegments.contains('testing') ||
+        relativeRootSegments.contains('integration_test') ||
+        relativeRootSegments.contains('test_driver') ||
+        relativeRootSegments.contains('test')) {
+      return true;
+    }
+
+    var libFolder = root.getChildAssumingFolder('lib');
+    var libSrcFolder = libFolder.getChildAssumingFolder('src');
+    var libSrcTestingFolder = libSrcFolder.getChildAssumingFolder('testing');
+    if (libSrcTestingFolder.contains(file.path)) {
+      return true;
+    }
+
+    var libTestDriverFolder = libFolder.getChildAssumingFolder('test_driver');
+    if (libTestDriverFolder.contains(file.path)) {
+      return true;
+    }
+
+    for (var binPath in workspace.binPaths) {
+      var binFolder = workspace.provider.getFolder(binPath);
+      var genPackageRoot = binFolder.getChildAssumingFolder(relativeRoot);
+      if (isInTestDirectoryUnder(genPackageRoot, file)) {
+        return true;
+      }
+
+      var genLibSrcTestingFolder = genPackageRoot
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('src')
+          .getChildAssumingFolder('testing');
+      if (genLibSrcTestingFolder.contains(file.path)) {
+        return true;
+      }
+
+      var genLibTestDriverFolder = genPackageRoot
+          .getChildAssumingFolder('lib')
+          .getChildAssumingFolder('test_driver');
+      if (genLibTestDriverFolder.contains(file.path)) {
+        return true;
+      }
+    }
+
+    var genfilesFolder = workspace.provider.getFolder(workspace.genfiles);
+    var genPackageRoot = genfilesFolder.getChildAssumingFolder(relativeRoot);
+    if (isInTestDirectoryUnder(genPackageRoot, file)) {
+      return true;
+    }
+
+    var genLibSrcTestingFolder = genPackageRoot
+        .getChildAssumingFolder('lib')
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('testing');
+    if (genLibSrcTestingFolder.contains(file.path)) {
+      return true;
+    }
+
+    var genLibTestDriverFolder = genPackageRoot
+        .getChildAssumingFolder('lib')
+        .getChildAssumingFolder('test_driver');
+    if (genLibTestDriverFolder.contains(file.path)) {
+      return true;
+    }
+
+    return super.isInTestDirectory(file);
   }
 
   @override

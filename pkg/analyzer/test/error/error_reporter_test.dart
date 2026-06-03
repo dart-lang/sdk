@@ -24,8 +24,8 @@ class ErrorReporterTest extends PubPackageResolutionTest {
   var listener = GatheringDiagnosticListener();
 
   test_atElement_named() async {
-    await resolveTestCode('class A {}');
-    var element = findElement2.class_('A');
+    var result = await resolveTestCode('class A {}');
+    var element = result.findElement.class_('A');
     var firstFragment = element.firstFragment;
     var reporter = DiagnosticReporter(
       listener,
@@ -38,11 +38,11 @@ class ErrorReporterTest extends PubPackageResolutionTest {
   }
 
   test_atElement_unnamed() async {
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 // comment to prevent expected offset being 0
 extension on int {}
 ''');
-    var element = findElement2.unnamedExtension();
+    var element = result.findElement.unnamedExtension();
 
     var firstFragment = element.firstFragment;
     var reporter = DiagnosticReporter(
@@ -59,7 +59,7 @@ extension on int {}
   test_atNode_types_differentNames() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'class B {}');
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
 
@@ -67,8 +67,8 @@ main() {
   x;
 }
 ''');
-    var aImport = findElement2.importFind('package:test/a.dart');
-    var bImport = findElement2.importFind('package:test/b.dart');
+    var aImport = result.findElement.importFind('package:test/a.dart');
+    var bImport = result.findElement.importFind('package:test/b.dart');
 
     var firstType = aImport
         .class_('A')
@@ -95,7 +95,7 @@ main() {
             expectedStaticType: secondType,
             additionalInfo: '',
           )
-          .at(findNode.simple('x')),
+          .at(result.findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -105,7 +105,7 @@ main() {
   test_atNode_types_sameName() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'class A {}');
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
 
@@ -113,8 +113,8 @@ main() {
   x;
 }
 ''');
-    var aImport = findElement2.importFind('package:test/a.dart');
-    var bImport = findElement2.importFind('package:test/b.dart');
+    var aImport = result.findElement.importFind('package:test/a.dart');
+    var bImport = result.findElement.importFind('package:test/b.dart');
 
     var firstType = aImport
         .class_('A')
@@ -140,7 +140,7 @@ main() {
             expectedStaticType: secondType,
             additionalInfo: '',
           )
-          .at(findNode.simple('x')),
+          .at(result.findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -150,7 +150,7 @@ main() {
   test_atNode_types_sameName_functionType() async {
     newFile('$testPackageLibPath/a.dart', 'class A{}');
     newFile('$testPackageLibPath/b.dart', 'class A{}');
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;
 
@@ -161,8 +161,8 @@ main() {
   x;
 }
 ''');
-    var fa = findNode.topLevelVariableDeclaration('fa');
-    var fb = findNode.topLevelVariableDeclaration('fb');
+    var fa = result.findNode.topLevelVariableDeclaration('fa');
+    var fb = result.findNode.topLevelVariableDeclaration('fb');
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
@@ -173,7 +173,7 @@ main() {
             expectedStaticType: fb.variables.type!.type!,
             additionalInfo: '',
           )
-          .at(findNode.simple('x')),
+          .at(result.findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -184,7 +184,7 @@ main() {
   test_atNode_types_sameName_nested() async {
     newFile('$testPackageLibPath/a.dart', 'class A{}');
     newFile('$testPackageLibPath/b.dart', 'class A{}');
-    await resolveTestCode(r'''
+    var result = await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;
 
@@ -196,8 +196,8 @@ main() {
   x;
 }
 ''');
-    var ba = findNode.topLevelVariableDeclaration('ba');
-    var bb = findNode.topLevelVariableDeclaration('bb');
+    var ba = result.findNode.topLevelVariableDeclaration('ba');
+    var bb = result.findNode.topLevelVariableDeclaration('bb');
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
@@ -208,7 +208,7 @@ main() {
             expectedStaticType: bb.variables.type!.type!,
             additionalInfo: '',
           )
-          .at(findNode.simple('x')),
+          .at(result.findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];

@@ -131,68 +131,56 @@ augment class A {
   }
 
   test_unnecessary_getterAndSetter_extensionType() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int i) {
   static int? _x;
-  static int? get x => _x;
+  static int? get [!x!] => _x;
   static set x(int? value) {
     _x = value;
   }
 }
-''',
-      [lint(62, 1)],
-    );
+''');
   }
 
   test_unnecessary_getterAndSetterHaveBlockBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? _x;
 
-  String? get x {
+  String? get [!x!] {
     return _x;
   }
   set x(String? value) {
     _x = value;
   }
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 
   test_unnecessary_getterHasExpressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? _x;
 
-  String? get x => _x;
+  String? get [!x!] => _x;
   set x(String? value)
   {
     _x = value;
   }
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 
   test_unnecessary_setterHasExpressionBody() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   String? _x;
 
-  String? get x {
+  String? get [!x!] {
     return _x;
   }
   set x(String? value) => _x = value;
 }
-''',
-      [lint(39, 1)],
-    );
+''');
   }
 }

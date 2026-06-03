@@ -280,10 +280,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     return result;
   }
 
-  void handleParameter(
-    ir.VariableDeclaration node, {
-    required bool isOptional,
-  }) {
+  void handleParameter(ir.Variable node, {required bool isOptional}) {
     Local local = _localsMap.getLocalVariable(node);
     final parameterType = _inferrer.typeOfParameter(local);
     _state.setLocal(_inferrer, _capturedAndBoxed, local, parameterType);
@@ -426,14 +423,14 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   void handleParameters(ir.FunctionNode node) {
     int position = 0;
-    for (ir.VariableDeclaration parameter in node.positionalParameters) {
+    for (ir.Variable parameter in node.positionalParameters) {
       handleParameter(
         parameter,
         isOptional: position >= node.requiredParameterCount,
       );
       position++;
     }
-    for (ir.VariableDeclaration parameter in node.namedParameters) {
+    for (ir.Variable parameter in node.namedParameters) {
       handleParameter(parameter, isOptional: true);
     }
   }
@@ -940,6 +937,16 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
 
   @override
   TypeInformation? visitVariableDeclaration(ir.VariableDeclaration node) {
+    return defaultVariable(node.variable);
+  }
+
+  @override
+  TypeInformation? visitVariableStatement(ir.VariableStatement node) {
+    return visitVariableDeclaration(node.declaration);
+  }
+
+  @override
+  TypeInformation? defaultVariable(ir.Variable node) {
     assert(
       node.parent is! ir.FunctionNode,
       "Unexpected parameter declaration.",
@@ -1249,7 +1256,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     );
   }
 
-  ir.VariableDeclaration? _getVariableDeclaration(ir.Expression node) {
+  ir.Variable? _getVariableDeclaration(ir.Expression node) {
     return node is ir.VariableGet ? node.variable : null;
   }
 
@@ -1260,7 +1267,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     AbstractValue? mask,
     TypeInformation receiverType,
     ArgumentsTypes? arguments,
-    ir.VariableDeclaration? variable,
+    ir.Variable? variable,
   ) {
     if (_types.selectorNeedsUpdate(receiverType, mask)) {
       mask = receiverType == _types.dynamicType
@@ -1310,7 +1317,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     Selector selector,
     AbstractValue? mask,
     TypeInformation receiverType,
-    ir.VariableDeclaration? variable,
+    ir.Variable? variable,
   ) {
     return _handleDynamic(
       CallType.access,
@@ -1329,7 +1336,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     AbstractValue? mask,
     TypeInformation receiverType,
     TypeInformation rhsType,
-    ir.VariableDeclaration? variable,
+    ir.Variable? variable,
   ) {
     ArgumentsTypes arguments = ArgumentsTypes([rhsType], null);
     return _handleDynamic(
@@ -1350,7 +1357,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     AbstractValue? mask,
     TypeInformation receiverType,
     ArgumentsTypes arguments,
-    ir.VariableDeclaration? variable,
+    ir.Variable? variable,
   ) {
     return _handleDynamic(
       callType,
@@ -2349,7 +2356,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   TypeInformation handleLocalFunction(
     ir.LocalFunction node,
     ir.FunctionNode functionNode, [
-    ir.VariableDeclaration? variable,
+    ir.Variable? variable,
   ]) {
     // We loose track of [this] in closures (see issue 20840). To be on
     // the safe side, we mark [this] as exposed here. We could do better by

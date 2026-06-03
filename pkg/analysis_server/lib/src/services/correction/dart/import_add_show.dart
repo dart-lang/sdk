@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ImportAddShow extends ResolvedCorrectionProducer {
-  ImportAddShow({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -63,7 +63,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   Set<String> referencedNames = SplayTreeSet<String>();
 
-  _ReferenceFinder(this.namespace);
+  new(this.namespace);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {

@@ -26,14 +26,11 @@ class A {
   }
 
   test_assertInitializer_noMessage() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class A {
-  A() : assert(true);
+  A() : [!assert(true)!];
 }
-''',
-      [lint(18, 12)],
-    );
+''');
   }
 
   test_assertInitializer_primaryConstructorBody_message() async {
@@ -45,14 +42,11 @@ class C(int x) {
   }
 
   test_assertInitializer_primaryConstructorBody_noMessage() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C(int x) {
-  this : assert(x > 0);
+  this : [!assert(x > 0)!];
 }
-''',
-      [lint(26, 13)],
-    );
+''');
   }
 
   test_assertStatement_message() async {
@@ -64,49 +58,37 @@ void f() {
   }
 
   test_assertStatement_noMessage() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
-  assert(true);
+  [!assert(true);!]
 }
-''',
-      [lint(13, 13)],
-    );
+''');
   }
 
   test_assertStatement_primaryConstructorBody_noMessage() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C(int x) {
   this {
-    assert(x > 0);
+    [!assert(x > 0);!]
   }
 }
-''',
-      [lint(30, 14)],
-    );
+''');
   }
 
   test_enum_assertInitializer_primaryConstructorBody_noMessage() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 enum E(int x) {
   e1(1);
-  this : assert(x > 0);
+  this : [!assert(x > 0)!];
 }
-''',
-      [lint(34, 13)],
-    );
+''');
   }
 
   test_extensionType_assertInitializer_primaryConstructorBody_noMessage() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 extension type E(int x) {
-  this : assert(x > 0);
+  this : [!assert(x > 0)!];
 }
-''',
-      [lint(35, 13)],
-    );
+''');
   }
 }

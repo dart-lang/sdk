@@ -20,7 +20,7 @@ class PrimaryConstructorFieldDeclaration
   @override
   bool hasBodyBeenBuilt = false;
 
-  PrimaryConstructorFieldDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -413,13 +413,8 @@ class PrimaryConstructorFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
-        isClosureContextLoweringEnabled: classBuilder
-            .libraryBuilder
-            .loader
-            .target
-            .backendTarget
-            .flags
-            .isClosureContextLoweringEnabled,
+        isClosureContextLoweringEnabled:
+            classBuilder.libraryBuilder.loader.isClosureContextLoweringEnabled,
       );
     } else {
       type.build(
@@ -534,7 +529,7 @@ class PrimaryConstructorFieldFragment implements Fragment {
     name.length,
   );
 
-  PrimaryConstructorFieldFragment({
+  new({
     required this.name,
     required this.fileUri,
     required this.nameOffset,

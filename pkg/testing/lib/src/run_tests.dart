@@ -26,7 +26,7 @@ class CommandLine {
   final Set<String> options;
   final List<String> arguments;
 
-  CommandLine(this.options, this.arguments);
+  new(this.options, this.arguments);
 
   bool get verbose => options.contains("--verbose") || options.contains("-v");
 

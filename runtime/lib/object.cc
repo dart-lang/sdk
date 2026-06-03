@@ -319,27 +319,25 @@ DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
 
 DEFINE_NATIVE_ENTRY(Internal_allocateObjectInstructionsStart, 0, 0) {
   auto isolate_group = thread->isolate_group();
-  auto& stub =
-      Code::Handle(zone, isolate_group->object_store()->allocate_object_stub());
+  auto& stub = StubCode::AllocateObject();
   ASSERT(!stub.IsUnknownDartCode());
   // We return the start offset in the isolate instructions instead of the
   // full address because that fits into small Smis on 32-bit architectures
   // or compressed pointer builds.
   const uword instructions_start =
-      reinterpret_cast<uword>(isolate_group->source()->snapshot_instructions);
+      reinterpret_cast<uword>(isolate_group->source()->snapshot_text);
   return Smi::New(stub.PayloadStart() - instructions_start);
 }
 
 DEFINE_NATIVE_ENTRY(Internal_allocateObjectInstructionsEnd, 0, 0) {
   auto isolate_group = thread->isolate_group();
-  auto& stub =
-      Code::Handle(zone, isolate_group->object_store()->allocate_object_stub());
+  auto& stub = StubCode::AllocateObject();
   ASSERT(!stub.IsUnknownDartCode());
   // We return the end offset in the isolate instructions instead of the
   // full address because that fits into small Smis on 32-bit architectures
   // or compressed pointer builds.
   const uword instructions_start =
-      reinterpret_cast<uword>(isolate_group->source()->snapshot_instructions);
+      reinterpret_cast<uword>(isolate_group->source()->snapshot_text);
   return Smi::New((stub.PayloadStart() - instructions_start) + stub.Size());
 }
 

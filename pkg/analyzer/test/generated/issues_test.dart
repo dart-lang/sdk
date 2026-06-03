@@ -38,7 +38,7 @@ class C {
 
   /// https://github.com/dart-lang/sdk/issues/38589
   test_issue38589() async {
-    await resolveTestCode('''
+    var result = await resolveTestCode('''
 mixin M {}
 
 class A implements M {}
@@ -48,6 +48,6 @@ class B implements M {}
 var b = true;
 var c = b ? A() : B();
 ''');
-    assertType(findElement2.topVar('c').type, 'M');
+    assertType(result.findElement.topVar('c').type, 'M');
   }
 }

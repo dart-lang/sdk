@@ -21,14 +21,14 @@ import 'type_schema_environment.dart';
 class TypeConstraintGatherer
     extends
         shared.TypeConstraintGenerator<
-          VariableDeclaration,
+          Variable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
         >
     with
         shared.TypeConstraintGeneratorMixin<
-          VariableDeclaration,
+          Variable,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
@@ -44,7 +44,7 @@ class TypeConstraintGatherer
 
   final TypeInferenceResultForTesting? _inferenceResultForTesting;
 
-  TypeConstraintGatherer(
+  new(
     this._environment,
     Iterable<StructuralParameter> typeParameters, {
     required OperationsCfe typeOperations,

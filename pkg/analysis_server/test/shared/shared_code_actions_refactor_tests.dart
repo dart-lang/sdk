@@ -918,6 +918,45 @@ void f() {
     );
   }
 
+  Future<void> test_error_refactorAnyway_multipleErrors() async {
+    failTestOnErrorDiagnostic = false;
+    setSupportsWindowShowMessageRequest();
+
+    const content = '''
+void f() {
+  bar();
+  bar();
+}
+
+void b^ar(int a) {
+  print(a);
+}
+''';
+    const expectedContent = '''
+void f() {
+  print(a);
+  print(a);
+}
+''';
+
+    await handleRefactorAnywayPrompt(
+      expectedMessage: 'No argument for the parameter "a". (+ 1 other error)',
+      expectedActions: [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ],
+      selectAction: UserPromptActions.refactorAnyway,
+      () async {
+        await verifyCodeActionLiteralEdits(
+          content,
+          expectedContent,
+          command: Commands.performRefactor,
+          title: inlineMethodTitle,
+        );
+      },
+    );
+  }
+
   Future<void> test_inlineAtCallSite() async {
     const content = '''
 void foo1() {

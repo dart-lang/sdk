@@ -51,16 +51,13 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  augment const A() : s = '';
+  augment const A() : [!s = ''!];
 }
-''',
-      [lint(59, 6)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -91,17 +88,14 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
   final a;
-  const A() : a = '';
+  const A() : [!a = ''!];
 }
-''',
-      [lint(62, 6)],
-    );
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -134,15 +128,12 @@ class A {
 }
 ''');
 
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 part of 'a.dart';
 
 augment class A {
-  final s = '';
+  final [!s = ''!];
 }
-''',
-      [lint(45, 6)],
-    );
+''');
   }
 }

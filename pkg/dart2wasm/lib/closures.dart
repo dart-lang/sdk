@@ -275,6 +275,7 @@ class ClosureLayouter extends RecursiveVisitor {
         mutable: false,
       ),
     },
+    brand: true,
   );
 
   /// Base struct for non-generic closure vtables.
@@ -437,10 +438,12 @@ class ClosureLayouter extends RecursiveVisitor {
     String name, {
     Map<String, w.FieldType>? namedFields,
     w.StructType? superType,
+    bool? brand,
   }) {
     final type = translator.typesBuilder.defineStruct(
       name,
       superType: superType,
+      brand: brand ?? translator.options.uniqueTypes,
     );
     if (superType != null) {
       type.fields.addAll(superType.fields);
@@ -636,6 +639,7 @@ class ClosureLayouter extends RecursiveVisitor {
           ...List.filled(typeCount, w.FieldType(typeType, mutable: false)),
         ],
         superType: _getInstantiationContextBaseStruct(typeCount),
+        brand: translator.options.uniqueTypes,
       );
     }
 
@@ -1110,18 +1114,21 @@ class ClosureLayouter extends RecursiveVisitor {
   }
 
   void _visitFunctionNode(FunctionNode functionNode) {
+    final functionType = functionNode.computeFunctionType(
+      Nullability.nonNullable,
+    );
     final representations = _representationsForCounts(
-      functionNode.typeParameters.length,
-      functionNode.positionalParameters.length,
+      functionType.typeParameters.length,
+      functionType.positionalParameters.length,
     );
     representations.registerFunction(functionNode);
-    if (functionNode.typeParameters.isNotEmpty) {
+    if (functionType.typeParameters.isNotEmpty) {
       // Due to generic function instantiations, any generic function present
       // in the program also counts as a presence of the corresponding
       // non-generic function.
       final instantiatedRepresentations = _representationsForCounts(
         0,
-        functionNode.positionalParameters.length,
+        functionType.positionalParameters.length,
       );
       instantiatedRepresentations.registerFunction(functionNode);
     }
@@ -1199,6 +1206,20 @@ class ClosureLayouter extends RecursiveVisitor {
   }
 
   @override
+  void visitConstructorTearOffConstantReference(
+    ConstructorTearOffConstant constant,
+  ) {
+    _visitFunctionNode(constant.function);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOffConstantReference(
+    RedirectingFactoryTearOffConstant constant,
+  ) {
+    _visitFunctionNode(constant.function);
+  }
+
+  @override
   void defaultConstantReference(Constant constant) {
     if (visitedConstants.add(constant)) {
       constant.visitChildren(this);
@@ -1243,7 +1264,7 @@ class ClosureRepresentationsForParameterCount {
 
   void registerFunction(FunctionNode functionNode) {
     int? prevIndex;
-    for (VariableDeclaration named in functionNode.namedParameters) {
+    for (Variable named in functionNode.namedParameters) {
       String name = named.name!;
       int nameIndex = nameIds.putIfAbsent(name, () => nameUnions.add());
       if (prevIndex != null) {
@@ -1305,22 +1326,22 @@ class ClosureRepresentationCluster {
 /// A local function or function expression.
 class Lambda {
   final FunctionNode functionNode;
-
-  // Note: creating a `Lambda` does not add this function to the compilation
-  // queue. Make sure to get it with `Functions.getLambdaFunction` to add it
-  // to the compilation queue.
-  final w.FunctionBuilder function;
-
   final Source functionNodeSource;
 
-  /// Index of the function within the enclosing member, based on pre-order
+  final Member enclosingMember;
+  final Closures enclosingMemberClosures;
+
+  /// Index of the function within the [enclosingMember], based on pre-order
   /// traversal of the member body.
   final int index;
 
+  late final LambdaCallTarget callTarget;
+
   Lambda._(
     this.functionNode,
-    this.function,
     this.functionNodeSource,
+    this.enclosingMember,
+    this.enclosingMemberClosures,
     this.index,
   );
 }
@@ -1351,10 +1372,10 @@ class Context {
   /// The parent of this context, corresponding to the lexically enclosing
   /// owner. This is null if the context is a member context, or if all contexts
   /// in the parent chain are skipped.
-  final Context? parent;
+  Context? parent;
 
   /// The variables captured by this context.
-  final List<VariableDeclaration> variables = [];
+  final List<Variable> variables = [];
 
   /// The type parameters captured by this context.
   final List<TypeParameter> typeParameters = [];
@@ -1388,7 +1409,7 @@ class Context {
 
 /// A captured variable or type parameter.
 class Capture {
-  /// The captured [VariableDeclaration] or [TypeParameter].
+  /// The captured [Variable] or [TypeParameter].
   final TreeNode variable;
 
   /// Whether the variable was captured in the initializer (if constructor
@@ -1409,7 +1430,7 @@ class Capture {
   bool written = false;
 
   Capture(this.variable, this.isInInitializer) {
-    assert(variable is VariableDeclaration || variable is TypeParameter);
+    assert(variable is Variable || variable is TypeParameter);
   }
 
   w.ValueType get type => context.struct.fields[fieldIndex].type.unpacked;
@@ -1423,7 +1444,7 @@ class Closures {
   /// [Lambda]s.
   final Map<FunctionNode, Lambda> lambdas = {};
 
-  /// Maps [VariableDeclaration]s and [TypeParameter]s in the member to
+  /// Maps [Variable]s and [TypeParameter]s in the member to
   /// [Capture]s.
   final Map<TreeNode, Capture> captures = {};
 
@@ -1502,7 +1523,10 @@ class Closures {
 
   void _collectContexts() {
     if (captures.isNotEmpty || _isThisCaptured) {
-      _member.accept(_ContextCollector(this, translator.options.enableAsserts));
+      _ContextCollector(
+        this,
+        translator.options.enableAsserts,
+      ).collect(_member);
     }
   }
 
@@ -1515,15 +1539,18 @@ class Closures {
       if (owner is Constructor) {
         context.struct = translator.typesBuilder.defineStruct(
           "<$owner-constructor-context>",
+          brand: translator.options.uniqueTypes,
         );
       } else if (owner.parent is Constructor) {
         Constructor constructor = owner.parent as Constructor;
         context.struct = translator.typesBuilder.defineStruct(
           "<$constructor-constructor-body-context>",
+          brand: translator.options.uniqueTypes,
         );
       } else {
         context.struct = translator.typesBuilder.defineStruct(
           "<context ${owner.location}>",
+          brand: translator.options.uniqueTypes,
         );
       }
     }
@@ -1544,7 +1571,7 @@ class Closures {
         assert(_member.enclosingClass != null);
         struct.fields.add(w.FieldType(_nullableThisType!));
       }
-      for (VariableDeclaration variable in context.variables) {
+      for (Variable variable in context.variables) {
         int index = struct.fields.length;
         struct.fields.add(
           w.FieldType(
@@ -1616,11 +1643,11 @@ class _CaptureFinder extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     if (depth > 0) {
       variableDepth[node] = depth;
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override
@@ -1642,8 +1669,7 @@ class _CaptureFinder extends RecursiveVisitor {
         isInInitializer,
       );
       if (functionIsSyncStarOrAsync[declDepth]) capture.written = true;
-    } else if (variable is VariableDeclaration &&
-        variable.parent is FunctionDeclaration) {
+    } else if (variable is Variable && variable.parent is FunctionDeclaration) {
       // Variable is for a function declaration, the function needs to be
       // compiled as a closure.
       closures.closurizedFunctions.add(variable.parent as FunctionDeclaration);
@@ -1713,37 +1739,20 @@ class _CaptureFinder extends RecursiveVisitor {
     super.visitTypeParameterType(node);
   }
 
-  void _visitLambda(FunctionNode node, [VariableDeclaration? variable]) {
-    final module = translator.moduleForReference(member.reference);
-    List<w.ValueType> inputs = [
-      closureContextFieldType,
-      ...List.filled(node.typeParameters.length, closures.typeType),
-      for (VariableDeclaration param in node.positionalParameters)
-        translator.translateType(param.type),
-      for (VariableDeclaration param in node.namedParameters)
-        translator.translateType(param.type),
-    ];
-    List<w.ValueType> outputs = [translator.translateType(node.returnType)];
-    w.FunctionType type = translator.typesBuilder.defineFunction(
-      inputs,
-      outputs,
-    );
-    final String? functionNodeName = variable?.name;
-    final String functionName;
-    if (functionNodeName == null) {
-      functionName = "$member closure at ${node.location}";
-    } else {
-      functionName = "$member closure $functionNodeName at ${node.location}";
-    }
-    final function = module.functions.define(type, functionName);
+  void _visitLambda(FunctionNode node) {
     final lambda = Lambda._(
       node,
-      function,
       _currentSource,
+      member,
+      closures,
       closures.lambdas.length,
     );
+    lambda.callTarget = LambdaCallTarget(
+      translator.functions.getLambdaFunctionType(lambda),
+      translator,
+      lambda,
+    );
     closures.lambdas[node] = lambda;
-    translator.functions.getLambdaFunction(lambda, member, closures);
 
     functionIsSyncStarOrAsync.add(
       node.asyncMarker == AsyncMarker.SyncStar ||
@@ -1762,7 +1771,7 @@ class _CaptureFinder extends RecursiveVisitor {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // Variable is in outer scope
     node.variable.accept(this);
-    _visitLambda(node.function, node.variable);
+    _visitLambda(node.function);
   }
 }
 
@@ -1773,6 +1782,16 @@ class _ContextCollector extends RecursiveVisitor {
   bool isInInitializer = false;
 
   _ContextCollector(this.closures, this.enableAsserts);
+
+  void collect(Member member) {
+    member.accept(this);
+
+    for (final context in closures.contexts.values) {
+      while (context.parent?.isEmpty ?? false) {
+        context.parent = context.parent!.parent;
+      }
+    }
+  }
 
   @override
   void visitAssertStatement(AssertStatement node) {
@@ -1793,12 +1812,8 @@ class _ContextCollector extends RecursiveVisitor {
         currentContext == null ||
         node.parent is Constructor && !isInInitializer;
     Context? oldContext = currentContext;
-    Context? parent = currentContext;
-    while (parent != null && parent.isEmpty) {
-      parent = parent.parent;
-    }
     bool containsThis = closures._isThisCaptured && outerMost;
-    currentContext = Context(node, parent, containsThis);
+    currentContext = Context(node, oldContext, containsThis);
     closures.contexts[node] = currentContext!;
     node.visitChildren(this);
     currentContext = oldContext;
@@ -1864,7 +1879,7 @@ class _ContextCollector extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void defaultVariable(Variable node) {
     Capture? capture = closures.captures[node];
     if (capture != null) {
       if (isInInitializer == capture.isInInitializer) {
@@ -1872,7 +1887,7 @@ class _ContextCollector extends RecursiveVisitor {
         capture.context = currentContext!;
       }
     }
-    super.visitVariableDeclaration(node);
+    super.defaultVariable(node);
   }
 
   @override

@@ -51,10 +51,8 @@ namespace bin {
 /**
  * Global state used to control and store generation of application snapshots.
  */
-static const uint8_t* ignore_vm_snapshot_data = nullptr;
-static const uint8_t* ignore_vm_snapshot_instructions = nullptr;
-static const uint8_t* app_isolate_snapshot_data = nullptr;
-static const uint8_t* app_isolate_snapshot_instructions = nullptr;
+static const uint8_t* app_snapshot_data = nullptr;
+static const uint8_t* app_snapshot_text = nullptr;
 
 #define SAVE_ERROR_AND_RETURN(result)                                          \
   if (Dart_IsError(result)) {                                                  \
@@ -239,11 +237,11 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   intptr_t kernel_buffer_size = 0;
   AppSnapshot* app_snapshot = nullptr;
 
-  const uint8_t* isolate_snapshot_data = nullptr;
-  const uint8_t* isolate_snapshot_instructions = nullptr;
+  const uint8_t* snapshot_data = nullptr;
+  const uint8_t* snapshot_text = nullptr;
   if (is_dartdev_isolate) {
-    isolate_snapshot_data = app_isolate_snapshot_data;
-    isolate_snapshot_instructions = app_isolate_snapshot_instructions;
+    snapshot_data = app_snapshot_data;
+    snapshot_text = app_snapshot_text;
   } else {
     // AOT: All isolates need to be run from AOT compiled snapshots.
     app_snapshot = Snapshot::TryReadAppSnapshot(
@@ -256,9 +254,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
       return nullptr;
     }
 
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
   }
 
   bool isolate_run_app_snapshot = true;
@@ -275,9 +271,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   IsolateData* isolate_data = nullptr;
   isolate_data = new IsolateData(isolate_group_data);
-  isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
-                                    isolate_snapshot_instructions, flags,
-                                    isolate_group_data, isolate_data, error);
+  isolate =
+      Dart_CreateIsolateGroup(script_uri, name, snapshot_data, snapshot_text,
+                              flags, isolate_group_data, isolate_data, error);
   Dart_Isolate created_isolate = nullptr;
   if (isolate == nullptr) {
     delete isolate_data;
@@ -736,13 +732,22 @@ class DartDev {
   }
 
   static void SetEnvironmentVariableCallback(Dart_CObject* message) {
-    ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
-    const char* name = GetArrayItem(message, 1)->value.as_string;
+    ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kSendPort);
+    Dart_Port reply_port = GetArrayItem(message, 1)->value.as_send_port.id;
+
+    ASSERT(GetArrayItem(message, 2)->type == Dart_CObject_kString);
+    const char* name = GetArrayItem(message, 2)->value.as_string;
+
     const char* value = nullptr;
-    if (GetArrayItem(message, 2)->type == Dart_CObject_kString) {
-      value = GetArrayItem(message, 2)->value.as_string;
+    if (GetArrayItem(message, 3)->type == Dart_CObject_kString) {
+      value = GetArrayItem(message, 3)->value.as_string;
     }
+
     Platform::SetEnvironmentVariable(name, value);
+
+    Dart_CObject reply;
+    reply.type = Dart_CObject_kNull;
+    Dart_PostCObject(reply_port, &reply);
   }
 
   // Callback that processes the result from execution of dartdev
@@ -1086,9 +1091,7 @@ void main(int argc, char** argv) {
     FreeConvertedArgs(argc, argv, argv_converted);
     Platform::Exit(kErrorExitCode);
   }
-  app_snapshot->SetBuffers(
-      &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-      &app_isolate_snapshot_data, &app_isolate_snapshot_instructions);
+  app_snapshot->SetBuffers(&app_snapshot_data, &app_snapshot_text);
 
   vm_options.AddArgument("--precompilation");
 
@@ -1117,8 +1120,6 @@ void main(int argc, char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  init_params.vm_snapshot_data = ignore_vm_snapshot_data;
-  init_params.vm_snapshot_instructions = ignore_vm_snapshot_instructions;
   init_params.create_group = CreateIsolateGroupAndSetup;
   init_params.initialize_isolate = OnIsolateInitialize;
   init_params.shutdown_isolate = OnIsolateShutdown;

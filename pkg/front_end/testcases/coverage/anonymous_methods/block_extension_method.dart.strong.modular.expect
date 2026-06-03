@@ -1,0 +1,215 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  method foo = self::E|foo;
+  method tearoff foo = self::E|get#foo;
+}
+static extension-member method E|foo(lowered final core::int #this) → void {
+  {
+    final synthesized core::int anonymous#this = 1;
+    Null #t1;
+    #L1:
+    {
+      anonymous#this;
+      {
+        #t1 = null;
+        break #L1;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    Null #t2;
+    #L2:
+    {
+      #this;
+      {
+        #t2 = null;
+        break #L2;
+      }
+    }
+  }
+  let core::int #t3 = 1 in #t3 == null ?{Null} null : block {
+    final synthesized core::int anonymous#this = #t3 as core::int;
+    Null #t4;
+    #L3:
+    {
+      anonymous#this;
+      {
+        #t4 = null;
+        break #L3;
+      }
+    }
+  } =>#t4;
+  let core::int #t5 = 1 in #t5 == null ?{Null} null : block {
+    core::int p = #t5 as core::int;
+    Null #t6;
+    #L4:
+    {
+      #this;
+      {
+        #t6 = null;
+        break #L4;
+      }
+    }
+  } =>#t6;
+  let final core::int #t7 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t7;
+      Null #t8;
+      #L5:
+      {
+        anonymous#this;
+        {
+          #t8 = null;
+          break #L5;
+        }
+      }
+    }
+  } =>#t7;
+  let final core::int #t9 = 1 in block {
+    {
+      core::int p = #t9;
+      Null #t10;
+      #L6:
+      {
+        #this;
+        {
+          #t10 = null;
+          break #L6;
+        }
+      }
+    }
+  } =>#t9;
+  let final core::int #t11 = 1 in #t11 == null ?{core::int} #t11 : block {
+    {
+      final synthesized core::int anonymous#this = #t11 as core::int;
+      Null #t12;
+      #L7:
+      {
+        anonymous#this;
+        {
+          #t12 = null;
+          break #L7;
+        }
+      }
+    }
+  } =>#t11;
+  let final core::int #t13 = 1 in #t13 == null ?{core::int} #t13 : block {
+    {
+      core::int p = #t13 as core::int;
+      Null #t14;
+      #L8:
+      {
+        #this;
+        {
+          #t14 = null;
+          break #L8;
+        }
+      }
+    }
+  } =>#t13;
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::int #t15;
+    #L9:
+    {
+      {
+        #t15 = anonymous#this;
+        break #L9;
+      }
+    }
+  }
+  {
+    core::int p = 1;
+    core::int #t16;
+    #L10:
+    {
+      {
+        #t16 = #this;
+        break #L10;
+      }
+    }
+  }
+  let core::int #t17 = 1 in #t17 == null ?{core::int?} null : block {
+    final synthesized core::int anonymous#this = #t17 as core::int;
+    core::int #t18;
+    #L11:
+    {
+      {
+        #t18 = anonymous#this;
+        break #L11;
+      }
+    }
+  } =>#t18;
+  let core::int #t19 = 1 in #t19 == null ?{core::int?} null : block {
+    core::int p = #t19 as core::int;
+    core::int #t20;
+    #L12:
+    {
+      {
+        #t20 = #this;
+        break #L12;
+      }
+    }
+  } =>#t20;
+  let final core::int #t21 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t21;
+      core::int #t22;
+      #L13:
+      {
+        {
+          #t22 = anonymous#this;
+          break #L13;
+        }
+      }
+    }
+  } =>#t21;
+  let final core::int #t23 = 1 in block {
+    {
+      core::int p = #t23;
+      core::int #t24;
+      #L14:
+      {
+        {
+          #t24 = #this;
+          break #L14;
+        }
+      }
+    }
+  } =>#t23;
+  let final core::int #t25 = 1 in #t25 == null ?{core::int} #t25 : block {
+    {
+      final synthesized core::int anonymous#this = #t25 as core::int;
+      core::int #t26;
+      #L15:
+      {
+        {
+          #t26 = anonymous#this;
+          break #L15;
+        }
+      }
+    }
+  } =>#t25;
+  let final core::int #t27 = 1 in #t27 == null ?{core::int} #t27 : block {
+    {
+      core::int p = #t27 as core::int;
+      core::int #t28;
+      #L16:
+      {
+        {
+          #t28 = #this;
+          break #L16;
+        }
+      }
+    }
+  } =>#t27;
+}
+static extension-member method E|get#foo(lowered final core::int #this) → () → void
+  return () → void => self::E|foo(#this);
+static method main() → void {
+  self::E|foo(1);
+}

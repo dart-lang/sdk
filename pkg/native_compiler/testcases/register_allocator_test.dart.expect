@@ -245,8 +245,10 @@ B20 = TargetBlock() idom:B15
   Goto(B25)
 B25 = JoinBlock(B20, B14) idom:B0
   ParallelMove output(stack[0] -> R0)
-  v79 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R0 <- (R0)
-  v28 = TypeArguments(v79, v12, <AsBroadcastStream.T%>)   # RA: R1 <- (R0, -)
+  v79 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R0)
+  ParallelMove input(vloc:R2 -> R2, NullConstant(null) -> R1)
+  v28 = TypeArguments(v79, v12, <AsBroadcastStream.T%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v29 = AllocateObject StreamSubscription<AsBroadcastStream.T%>(v28)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0, stack[3] -> R1)
@@ -264,7 +266,7 @@ B36 = TargetBlock() idom:B21
   ParallelMove output(stack[0] -> R0)
   v41 = InterfaceCall getter AsBroadcastStream._source(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:stack[7], stack[5] -> R0)
-  v44 = InterfaceCall tear-off _AsBroadcastStreamController.add(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  v44 = InterfaceCall method-extractor _AsBroadcastStreamController.add(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, stack[7] -> R1)
   v46 = InterfaceCall Stream.listen(v41, v44)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
@@ -504,31 +506,48 @@ B0 = EntryBlock() dominates:(B11, B10)
   v3 = Parameter(compare)   # RA: R2 <- ()
   v4 = Parameter(isValidKey)   # RA: R3 <- ()
   ParallelMove output(R3 -> vloc:R10, R2 -> vloc:R9, R1 -> vloc:R6, R0 -> vloc:R5)
-  ParallelMove spill(R6 -> stack[0])
+  ParallelMove spill(R5 -> stack[0], R6 -> stack[1])
   ParallelMove input(vloc:R6 -> R0, NullConstant(null) -> R2, vloc:R5 -> R1)
   v9 = TypeTest(v2, v8, v1, Map<SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
   Branch(v9, true: B10, false: B11)   # RA: (R7)
 B10 = TargetBlock() idom:B0
-  v15 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R0 <- (-, R5)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R5 -> R1)
+  v15 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R0)
   v17 = TypeCast(v2, v8, v1, Map<SplayTreeMap.from.K%, SplayTreeMap.from.V%>, unchecked)   # RA: R1 <- (R6, -, R5)
   v20 = DirectCall SplayTreeMap.of(v15, v17, v3, v4)   # RA: R0 <- (R0, R1, R9, R10) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(vloc:R0 -> R0)
   Return(v20)   # RA: (R0)
 B11 = TargetBlock() idom:B0
-  v22 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R1 <- (-, R5)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R5 -> R1)
+  v22 = TypeArguments(v8, v1, <SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v23 = AllocateObject SplayTreeMap<SplayTreeMap.from.K%, SplayTreeMap.from.V%>(v22)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[1])
+  ParallelMove spill(R0 -> stack[2])
   DirectCall SplayTreeMap.(v23, v3, v4)   # RA: R0 <- (R0, R9, R10) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   v29 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
-  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
-  InterfaceCall Map.forEach(v2, v29)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
+  StoreInstanceField(#closure-field[0], v29, v1)   # RA: (R0, R3) temps: [R1, R2]
   ParallelMove output(stack[1] -> R1)
+  InterfaceCall Map.forEach(v2, v29)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R1)
   ParallelMove input(vloc:R1 -> R0)
   Return(v23)   # RA: (R0)
+
+--- closure FunctionExpression(void (dynamic k, dynamic v) {}) at SplayTreeMap.from
+B0 = EntryBlock()
+  v7 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  Parameter(k)   # RA: param[1] <- ()
+  Parameter(v)   # RA: param[2] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v7)   # RA: (R0)
 
 --- SplayTreeMap.of
 B0 = EntryBlock()
@@ -537,9 +556,10 @@ B0 = EntryBlock()
   Parameter(other)   # RA: R1 <- ()
   v3 = Parameter(compare)   # RA: R2 <- ()
   v4 = Parameter(isValidKey)   # RA: R3 <- ()
-  ParallelMove output(R3 -> vloc:R3, R2 -> vloc:R2, R0 -> vloc:R0)
-  v8 = TypeArguments(v7, v1, <SplayTreeMap.of.K%, SplayTreeMap.of.V%>)   # RA: R1 <- (-, R0)
-  ParallelMove output(R2 -> R5, R3 -> R6)
+  ParallelMove output(R3 -> vloc:R6, R2 -> vloc:R5, R0 -> vloc:R1)
+  ParallelMove input(NullConstant(null) -> R2, vloc:R1 -> R1)
+  v8 = TypeArguments(v7, v1, <SplayTreeMap.of.K%, SplayTreeMap.of.V%>)   # RA: R0 <- (R2, R1) temps: [R3, R8]
+  ParallelMove output(R0 -> vloc:R1)
   ParallelMove input(vloc:R1 -> R1)
   v9 = AllocateObject SplayTreeMap<SplayTreeMap.of.K%, SplayTreeMap.of.V%>(v8)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
@@ -1354,6 +1374,174 @@ B0 = EntryBlock()
   ParallelMove input(ListConstant(const <dynamic>[]) -> R0)
   Return(v1)   # RA: (R0)
 
+--- LinkedListEntry.
+B0 = EntryBlock()
+  v5 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  ParallelMove input(NullConstant(null) -> vloc:R1)
+  StoreInstanceField(LinkedListEntry._next, v1, v5)   # RA: (R0, R1) temps: [R2, R3]
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v5)   # RA: (R0)
+
+--- getter LinkedListEntry._next
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(LinkedListEntry._next, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v5)   # RA: (R0)
+
+--- setter LinkedListEntry._next
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(#value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(LinkedListEntry._next, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- LinkedList.
+B0 = EntryBlock()
+  v5 = Constant(0)
+  v10 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  ParallelMove input(IntConstant(0) -> vloc:R1)
+  StoreInstanceField(LinkedList._modificationCount, v1, v5)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(IntConstant(0) -> vloc:R1)
+  StoreInstanceField(LinkedList._length, v1, v5)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> vloc:R1)
+  StoreInstanceField(LinkedList._first, v1, v10)   # RA: (R0, R1) temps: [R2, R3]
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v10)   # RA: (R0)
+
+--- getter LinkedList.isEmpty
+B0 = EntryBlock()
+  Constant(0)
+  v10 = Constant(UnboxedIntConstant(0))
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = InterfaceCall getter LinkedList._length(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v9 = UnboxInt(v5)   # RA: R0 <- (R0)
+  v7 = Comparison int ==(v9, v10)   # RA: R0 <- (R0, -)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v7)   # RA: (R0)
+
+--- LinkedList.forEach
+B0 = EntryBlock() dominates:(B11, B10)
+  v15 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(action)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R0, param[0] -> vloc:param[0])
+  v6 = InterfaceCall getter LinkedList._modificationCount(v1)   # RA: R0 <- (param[0]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[0], param[0] -> R0)
+  v9 = InterfaceCall getter LinkedList.isEmpty(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Branch(v9, true: B10, false: B11)   # RA: (R0)
+B10 = TargetBlock() idom:B0
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v15)   # RA: (R0)
+B11 = TargetBlock() idom:B0 dominates:(B21)
+  ParallelMove output(param[0] -> R0)
+  v18 = InterfaceCall getter LinkedList._first(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v19 = NullCheck(v18)   # RA: R0 <- (R0)
+  ParallelMove output(R0 -> stack[1])
+  Goto(B21)
+B21 = JoinBlock(B11, B48) idom:B11 dominates:(B31, B30) loop-header (depth:1 body:(B21, B30, B48) back-edges:(B48))
+  v52 = Phi(v19, v41)   # RA: R0 <- (R0, R0)
+  ParallelMove output(R0 -> stack[1])
+  ClosureCall(v2, v52)   # RA: R0 <- (param[1], R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R0)
+  v28 = InterfaceCall getter LinkedList._modificationCount(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  v54 = UnboxInt(v6)   # RA: R2 <- (R1)
+  v55 = UnboxInt(v28)   # RA: R0 <- (R0)
+  CompareAndBranch int ==(v54, v55, true: B30, false: B31)   # RA: (R2, R0)
+B30 = TargetBlock() idom:B21 dominates:(B48, B47) in-loop:B21
+  ParallelMove output(R1 -> R0)
+  v40 = InterfaceCall getter LinkedListEntry._next(v52)   # RA: R0 <- (stack[1]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v41 = NullCheck(v40)   # RA: R0 <- (R0)
+  ParallelMove output(param[0] -> R0, R0 -> stack[1])
+  v45 = InterfaceCall getter LinkedList._first(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[3], stack[1] -> R0)
+  v46 = DirectCall identical(v41, v45)   # RA: R0 <- (R0, stack[3]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Branch(v46, true: B47, false: B48)   # RA: (R0)
+B48 = TargetBlock() idom:B30 in-loop:B21
+  ParallelMove output(stack[1] -> R0)
+  Goto(B21)
+B47 = TargetBlock() idom:B30
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v15)   # RA: (R0)
+B31 = TargetBlock() idom:B21
+  v35 = AllocateObject ConcurrentModificationError()   # RA: R0 <- () temps: [R1, R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R1)
+  ParallelMove spill(R0 -> stack[4])
+  DirectCall ConcurrentModificationError.(v35, v1)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[4] -> R1)
+  Throw(v35)   # RA: (R1)
+
+--- getter LinkedList._modificationCount
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(LinkedList._modificationCount, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v5)   # RA: (R0)
+
+--- setter LinkedList._modificationCount
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(#value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(LinkedList._modificationCount, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- getter LinkedList._length
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(LinkedList._length, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v5)   # RA: (R0)
+
+--- setter LinkedList._length
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(#value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(LinkedList._length, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- getter LinkedList._first
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(LinkedList._first, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v5)   # RA: (R0)
+
+--- setter LinkedList._first
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(#value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(LinkedList._first, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
 --- combine
 B0 = EntryBlock()
   Constant(536870911)
@@ -1765,6 +1953,64 @@ B0 = EntryBlock()
   Parameter(replacementStringsAreOneByte)   # RA: param[3] <- ()
   ParallelMove input(NullConstant(null) -> R0)
   Return(v5)   # RA: (R0)
+
+--- closures
+B0 = EntryBlock()
+  v11 = Constant(null)
+  Parameter(a1)   # RA: R0 <- ()
+  v2 = Parameter(a2)   # RA: R1 <- ()
+  ParallelMove output(R1 -> vloc:R1)
+  v3 = AllocateContext()   # RA: R0 <- () temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  StoreInstanceField(#context-field:a2, v3, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove output(R0 -> R1)
+  v6 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  StoreInstanceField(#closure-field[0], v6, v3)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove output(R0 -> R5)
+  v8 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  StoreInstanceField(#closure-field[0], v8, v3)   # RA: (R0, R1) temps: [R2, R3]
+  DirectCall foo2(v6, v8)   # RA: R0 <- (R5, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v11)   # RA: (R0)
+
+--- closure FunctionExpression(Null (dynamic _#wc0#formal) {
+  print(a2);
+}) at closures
+B0 = EntryBlock()
+  v7 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  Parameter(_#wc0#formal)   # RA: param[1] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v4 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  v5 = LoadInstanceField(#context-field:a2, v4)   # RA: R0 <- (R0)
+  DirectCall print(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v7)   # RA: (R0)
+
+--- closure FunctionExpression(Null (dynamic _#wc1#formal, dynamic _#wc2#formal) {
+  print(a2);
+}) at closures
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  Parameter(_#wc1#formal)   # RA: param[1] <- ()
+  Parameter(_#wc2#formal)   # RA: param[2] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  v6 = LoadInstanceField(#context-field:a2, v5)   # RA: R0 <- (R0)
+  DirectCall print(v6)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- foo2
+B0 = EntryBlock()
+  v3 = Constant(null)
+  Parameter(x)   # RA: param[0] <- ()
+  Parameter(y)   # RA: param[1] <- ()
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v3)   # RA: (R0)
 
 --- main
 B0 = EntryBlock()

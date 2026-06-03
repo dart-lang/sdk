@@ -2,22 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryNullComparisonFalseTest);
     defineReflectiveTests(UnnecessaryNullComparisonTrueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UnnecessaryNullComparisonFalseTest extends PubPackageResolutionTest {
   test_equal_intLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int? b) {
   a == 0;
   0 == a;
@@ -28,22 +29,20 @@ f(int a, int? b) {
   }
 
   test_equal_notNullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(int a) {
   a == null;
+//  ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullFalse] The operand can't be 'null', so the condition is always 'false'.
   null == a;
+//^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullFalse] The operand can't be 'null', so the condition is always 'false'.
 }
-''',
-      [
-        error(diag.unnecessaryNullComparisonNeverNullFalse, 15, 7),
-        error(diag.unnecessaryNullComparisonNeverNullFalse, 26, 7),
-      ],
-    );
+''');
   }
 
   test_equal_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int? a) {
   a == null;
   null == a;
@@ -52,68 +51,62 @@ f(int? a) {
   }
 
   test_implicitlyAssigned_false() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   int? i;
   i != null;
+//^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullFalse] The operand must be 'null', so the condition is always 'false'.
   null != i;
+//     ^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullFalse] The operand must be 'null', so the condition is always 'false'.
 }
-''',
-      [
-        error(diag.unnecessaryNullComparisonAlwaysNullFalse, 18, 4),
-        error(diag.unnecessaryNullComparisonAlwaysNullFalse, 36, 4),
-      ],
-    );
+''');
   }
 
   test_implicitlyAssigned_true() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f() {
   int? i;
   i == null;
+//^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullTrue] The operand must be 'null', so the condition is always 'true'.
   null == i;
+//     ^^^^
+// [diag.unnecessaryNullComparisonAlwaysNullTrue] The operand must be 'null', so the condition is always 'true'.
 }
-''',
-      [
-        error(diag.unnecessaryNullComparisonAlwaysNullTrue, 18, 4),
-        error(diag.unnecessaryNullComparisonAlwaysNullTrue, 36, 4),
-      ],
-    );
+''');
   }
 }
 
 @reflectiveTest
 class UnnecessaryNullComparisonTrueTest extends PubPackageResolutionTest {
   test_equal_invalid_nonNull() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Unresolved o) {
+//^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
   int? i = o.nonNull;
   i == null;
   null == i;
 }
-''',
-      [error(diag.undefinedClass, 2, 10)],
-    );
+''');
   }
 
   test_equal_invalid_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Unresolved o) {
+//^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
   int? i = o.nullable;
   i == null;
   null == i;
 }
-''',
-      [error(diag.undefinedClass, 2, 10)],
-    );
+''');
   }
 
   test_notEqual_intLiteral() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int a, int? b) {
   a != 0;
   0 != a;
@@ -124,48 +117,44 @@ f(int a, int? b) {
   }
 
   test_notEqual_invalid_nonNull() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Unresolved o) {
+//^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
   int? i = o.nonNull;
   i != null;
   null != i;
 }
-''',
-      [error(diag.undefinedClass, 2, 10)],
-    );
+''');
   }
 
   test_notEqual_invalid_nullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(Unresolved o) {
+//^^^^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unresolved'.
   int? i = o.nullable;
   i != null;
   null != i;
 }
-''',
-      [error(diag.undefinedClass, 2, 10)],
-    );
+''');
   }
 
   test_notEqual_notNullable() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 f(int a) {
   a != null;
+//  ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullTrue] The operand can't be 'null', so the condition is always 'true'.
   null != a;
+//^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullTrue] The operand can't be 'null', so the condition is always 'true'.
 }
-''',
-      [
-        error(diag.unnecessaryNullComparisonNeverNullTrue, 15, 7),
-        error(diag.unnecessaryNullComparisonNeverNullTrue, 26, 7),
-      ],
-    );
+''');
   }
 
   test_notEqual_nullable() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 f(int? a) {
   a != null;
   null != a;

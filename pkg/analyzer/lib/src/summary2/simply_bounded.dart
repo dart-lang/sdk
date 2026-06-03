@@ -120,7 +120,7 @@ class SimplyBoundedDependencyWalker
           const <TypeAnnotation>[],
         );
       } else if (node is ExtensionTypeDeclaration) {
-        var parameters = node.primaryConstructor.typeParameters?.typeParameters;
+        var parameters = node.namePart.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
           node,

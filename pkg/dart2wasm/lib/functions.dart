@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'closures.dart';
@@ -106,6 +107,7 @@ class FunctionCollector {
             null,
             isImportOrExport: true,
             synthesizeNullReturnValue: false,
+            synthesizeNoReturn: false,
           );
           return _functions[member.reference] =
               translator
@@ -140,6 +142,7 @@ class FunctionCollector {
               null,
               isImportOrExport: true,
               synthesizeNullReturnValue: false,
+              synthesizeNoReturn: false,
             )
           : translator.signatureForDirectCall(target);
 
@@ -203,24 +206,19 @@ class FunctionCollector {
     });
   }
 
-  w.BaseFunction getLambdaFunction(
-    Lambda lambda,
-    Member enclosingMember,
-    Closures enclosingMemberClosures,
-  ) {
+  w.BaseFunction getLambdaFunction(Lambda lambda) {
     return _lambdas.putIfAbsent(lambda, () {
-      translator.compilationQueue.add(
-        CompilationTask(
-          lambda.function,
-          getLambdaCodeGenerator(
-            translator,
-            lambda,
-            enclosingMember,
-            enclosingMemberClosures,
-          ),
-        ),
+      final module = translator.moduleForReference(
+        lambda.enclosingMember.reference,
       );
-      return lambda.function;
+      final function = module.functions.define(
+        getLambdaFunctionType(lambda),
+        getLambdaFunctionName(lambda),
+      );
+      translator.compilationQueue.add(
+        CompilationTask(function, getLambdaCodeGenerator(translator, lambda)),
+      );
+      return function;
     });
   }
 
@@ -237,9 +235,27 @@ class FunctionCollector {
     return _getFunctionType(target);
   }
 
+  w.FunctionType getLambdaFunctionType(Lambda lambda) {
+    final node = lambda.functionNode;
+    final inputs = <w.ValueType>[
+      closureContextFieldType,
+      ...List.filled(
+        node.typeParameters.length,
+        translator.types.nonNullableTypeType,
+      ),
+      for (final param in node.positionalParameters)
+        translator.translateType(param.type),
+      for (final param in node.namedParameters)
+        translator.translateType(param.type),
+    ];
+    final outputs = [translator.translateType(node.returnType)];
+    return translator.typesBuilder.defineFunction(inputs, outputs);
+  }
+
   w.FunctionType _getFunctionType(Reference target) {
     final Member member = target.asMember;
     final synthesizeNullReturnValue = this.synthesizeNullReturnValue(target);
+    final synthesizeNoReturn = this.synthesizeNoReturn(target);
 
     if (target.isBodyReference) {
       // This is the function body that is always called directly (never via
@@ -249,22 +265,40 @@ class FunctionCollector {
         translator,
         member,
         synthesizeNullReturnValue,
+        synthesizeNoReturn,
       );
     }
 
     return member.accept1(
-      _FunctionTypeGenerator(translator, synthesizeNullReturnValue),
+      _FunctionTypeGenerator(
+        translator,
+        synthesizeNullReturnValue,
+        synthesizeNoReturn,
+      ),
       target,
     );
   }
 
   bool synthesizeNullReturnValue(Reference target) {
     final member = target.asMember;
+    if (target.isSetter) return true;
+    if (member.name == indexSetName) return true;
+
+    final returnType = translator.typeOfReturnValue(member);
+    final wasmType = translator.translateReturnType(returnType);
+    if (wasmType case w.RefType(heapType: w.HeapType.none, nullable: true)) {
+      return true;
+    }
+    return false;
+  }
+
+  bool synthesizeNoReturn(Reference target) {
+    final member = target.asMember;
     if (member is! Procedure) return false;
 
     final returnType = translator.typeOfReturnValue(member);
-    final wasmType = translator.translateType(returnType);
-    if (wasmType case w.RefType(heapType: w.HeapType.none, nullable: true)) {
+    final wasmType = translator.translateReturnType(returnType);
+    if (wasmType case w.RefType(heapType: w.HeapType.none, nullable: false)) {
       return true;
     }
     return false;
@@ -326,6 +360,18 @@ class FunctionCollector {
     } else {
       return '$memberName$inlinePostfix';
     }
+  }
+
+  String getLambdaFunctionName(Lambda lambda) {
+    final location = lambda.functionNode.location;
+    final member = lambda.enclosingMember;
+    final lambdaNode = lambda.functionNode.parent;
+    if (lambdaNode is FunctionDeclaration) {
+      final functionNodeName = lambdaNode.variable.name;
+      return "$member closure $functionNodeName at $location";
+    }
+    assert(lambdaNode is FunctionExpression);
+    return "$member closure at $location";
   }
 
   String getDynamicForwarderName(Reference target, CallShape shape) {
@@ -407,8 +453,13 @@ class FunctionCollector {
 class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
   final Translator translator;
   final bool synthesizeNullReturnValue;
+  final bool synthesizeNoReturn;
 
-  _FunctionTypeGenerator(this.translator, this.synthesizeNullReturnValue);
+  _FunctionTypeGenerator(
+    this.translator,
+    this.synthesizeNullReturnValue,
+    this.synthesizeNoReturn,
+  );
 
   @override
   w.FunctionType visitField(Field node, Reference target) {
@@ -419,6 +470,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         target,
         null,
         synthesizeNullReturnValue: synthesizeNullReturnValue,
+        synthesizeNoReturn: synthesizeNoReturn,
       );
     }
     assert(
@@ -439,6 +491,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       target,
       translator.translateType(receiverType),
       synthesizeNullReturnValue: synthesizeNullReturnValue,
+      synthesizeNoReturn: synthesizeNoReturn,
     );
   }
 
@@ -451,6 +504,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         target,
         null,
         synthesizeNullReturnValue: synthesizeNullReturnValue,
+        synthesizeNoReturn: synthesizeNoReturn,
       );
     }
 
@@ -476,6 +530,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       target,
       receiverType,
       synthesizeNullReturnValue: synthesizeNullReturnValue,
+      synthesizeNoReturn: synthesizeNoReturn,
     );
   }
 
@@ -629,7 +684,7 @@ List<w.ValueType> _getConstructorInputTypes(
   Translator translator,
   Constructor member,
   List<TypeParameter> typeParameters,
-  List<VariableDeclaration> parameters,
+  List<Variable> parameters,
   w.ValueType Function(DartType) translateType,
 ) {
   final List<w.ValueType> inputs = [];
@@ -712,6 +767,7 @@ w.FunctionType makeFunctionTypeForBody(
   Translator translator,
   Member member,
   bool synthesizeNullReturnValue,
+  bool synthesizeNoReturn,
 ) {
   assert(member.isInstanceMember);
   assert(member is Procedure);
@@ -732,9 +788,7 @@ w.FunctionType makeFunctionTypeForBody(
       translator.translateType(translator.typeOfCheckedParameterVariable(p)),
   ];
 
-  final hasNoReturnValue =
-      member is Procedure && (member.isSetter || member.name.text == '[]=') ||
-      synthesizeNullReturnValue;
+  final hasNoReturnValue = synthesizeNullReturnValue || synthesizeNoReturn;
   final outputs = [
     if (!hasNoReturnValue)
       translator.translateReturnType(translator.typeOfReturnValue(member)),
@@ -772,16 +826,13 @@ w.FunctionType _makeDynamicSignature(
       ], []);
 
     case MethodCallShape():
-      return translator.typesBuilder.defineFunction(
-        [
-          nullableReceiver ? translator.topType : translator.topTypeNonNullable,
-          for (int i = 0; i < shape.typeCount; ++i)
-            translator.translateType(translator.types.typeType),
-          for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
-          for (int i = 0; i < shape.named.length; ++i) translator.topType,
-        ],
-        [translator.topType],
-      );
+      return translator.typesBuilder.defineFunction([
+        nullableReceiver ? translator.topType : translator.topTypeNonNullable,
+        for (int i = 0; i < shape.typeCount; ++i)
+          translator.translateType(translator.types.typeType),
+        for (int i = 0; i < shape.positionalCount; ++i) translator.topType,
+        for (int i = 0; i < shape.named.length; ++i) translator.topType,
+      ], shape.isIndexSet ? [] : [translator.topType]);
   }
 }
 
@@ -820,13 +871,20 @@ w.FunctionType _makeFunctionType(
   Reference target,
   w.ValueType? receiverType, {
   required bool synthesizeNullReturnValue,
+  required bool synthesizeNoReturn,
   bool isImportOrExport = false,
 }) {
   Member member = target.asMember;
 
   if (member is Field && !member.isInstanceMember) {
     final fieldType = translator.translateTypeOfField(member);
-    if (target.isImplicitGetter || target.isStaticFieldInitializer) {
+    if (target.isImplicitGetter) {
+      return translator.typesBuilder.defineFunction(
+        const [],
+        synthesizeNullReturnValue ? [] : [fieldType],
+      );
+    }
+    if (target.isStaticFieldInitializer) {
       return translator.typesBuilder.defineFunction(const [], [fieldType]);
     }
     assert(target.isImplicitSetter);
@@ -854,11 +912,8 @@ w.FunctionType _makeFunctionType(
       (t is InterfaceType && t.classNode == translator.wasmVoidClass);
 
   final List<w.ValueType> outputs;
-  final hasNoReturnValue =
-      target.isSetter || member.name.text == '[]=' || synthesizeNullReturnValue;
+  final hasNoReturnValue = synthesizeNullReturnValue || synthesizeNoReturn;
   if (hasNoReturnValue) {
-    // Setters and []= are the only functions without any returned values. All
-    // other functions can return values (even `void` returning functions).
     outputs = const [];
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
@@ -885,6 +940,8 @@ final class MethodCallShape extends CallShape {
   final List<String> named;
 
   MethodCallShape(super.name, this.typeCount, this.positionalCount, this.named);
+
+  bool get isIndexSet => name == indexSetName;
 
   @override
   bool get isGetter => false;

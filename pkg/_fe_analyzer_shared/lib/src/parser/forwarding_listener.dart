@@ -228,12 +228,14 @@ class ForwardingListener implements Listener {
   void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
+    Token? augmentToken,
     Token? externalToken,
     Token? constToken,
   ) {
     listener?.beginFactory(
       declarationKind,
       lastConsumed,
+      augmentToken,
       externalToken,
       constToken,
     );

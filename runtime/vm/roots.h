@@ -78,12 +78,12 @@ namespace dart {
   V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(UnhandledException, unhandled_oom_exception)                               \
-  V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
   V(AbstractType, null_abstract_type)                                          \
   V(TypedData, uninitialized_index)                                            \
-  V(Array, uninitialized_data)
+  V(Array, uninitialized_data)                                                 \
+  V(TypedData, empty_coverage_array)
 
 #define API_HANDLE_ROOTS_LIST(V)                                               \
   V(true_api_handle)                                                           \
@@ -197,6 +197,8 @@ class Roots {
   static void SetCurrent(Roots* roots) { current_ = roots; }
   static void ClearCurrent() { current_ = nullptr; }
 
+  void InitVTables();
+
  private:
   enum {
 #define DEFINE_SYMBOL_INDEX(symbol, literal) k##symbol##Id,
@@ -222,6 +224,8 @@ class Roots {
   };
   Raw raw_;
 
+  // Must have the same layout as LocalHandle. Not using LocalHandle itself to
+  // break include cycle.
   struct ApiHandle {
     uword ptr;
   };
@@ -232,6 +236,8 @@ class Roots {
   };
   Api api_;
 
+  // Must have the same layout as created by VMHandles. Not using VMHandles
+  // itself to break include cycle.
   struct VMHandle {
     cpp_vtable vtable;
     ObjectPtr ptr = {nullptr};
@@ -248,10 +254,18 @@ class Roots {
   };
   Internal internal_ = {};
 
+  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&raw_); }
+  ObjectPtr* to() { return from() + sizeof(Raw) / sizeof(ObjectPtr) - 1; }
+  VMHandle* fromh() { return reinterpret_cast<VMHandle*>(&internal_); }
+  VMHandle* toh() { return fromh() + sizeof(Internal) / sizeof(VMHandle) - 1; }
+  ObjectPtr* fromah() { return reinterpret_cast<ObjectPtr*>(&api_); }
+  ObjectPtr* toah() { return fromah() + sizeof(Api) / sizeof(ObjectPtr) - 1; }
+
   static inline thread_local Roots* current_ = nullptr;
 
-  // TODO(rmacnak): Re-enable after groups initialize separately.
-  // DISALLOW_COPY_AND_ASSIGN(Roots);
+  friend class ProgramSerializationRoots;
+  friend class ProgramDeserializationRoots;
+  DISALLOW_COPY_AND_ASSIGN(Roots);
 };
 
 }  // namespace dart

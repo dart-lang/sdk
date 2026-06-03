@@ -90,7 +90,7 @@ class Test<T> {
   final List<T> Function() createData;
   final Map<Strategy, TestFunction<T>> strategies;
 
-  const Test(this.size, this.createData, this.strategies);
+  const new(this.size, this.createData, this.strategies);
 
   void _test(
     Registry registry,

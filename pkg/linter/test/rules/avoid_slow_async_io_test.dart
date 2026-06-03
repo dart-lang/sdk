@@ -18,28 +18,22 @@ class AvoidSlowAsyncIoTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_slow_async_io;
 
   test_directory_exists() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(Directory dir) async {
-  await dir.exists();
+  await [!dir.exists()!];
 }
-''',
-      [lint(56, 12)],
-    );
+''');
   }
 
   test_directory_exists_extensionType_implements() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 extension type MyDir(Directory dir) implements Directory {}
 void f(MyDir dir) async {
-  await dir.exists();
+  await [!dir.exists()!];
 }
-''',
-      [lint(112, 12)],
-    );
+''');
   }
 
   test_directory_existsSync() async {
@@ -52,15 +46,12 @@ void f(Directory dir) async {
   }
 
   test_directory_stat() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(Directory dir) async {
-  await dir.stat();
+  await [!dir.stat()!];
 }
-''',
-      [lint(56, 10)],
-    );
+''');
   }
 
   test_directory_statSync() async {
@@ -73,28 +64,22 @@ void f(Directory dir) async {
   }
 
   test_file_exists() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(File file) async {
-  await file.exists();
+  await [!file.exists()!];
 }
-''',
-      [lint(52, 13)],
-    );
+''');
   }
 
   test_file_exists_extensionType_implements() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 extension type MyFile(File file) implements File {}
 void f(MyFile file) async {
-  await file.exists();
+  await [!file.exists()!];
 }
-''',
-      [lint(106, 13)],
-    );
+''');
   }
 
   test_file_exists_extensionType_redeclares() async {
@@ -119,15 +104,12 @@ void f(File file) async {
   }
 
   test_file_lastModified() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(File file) async {
-  await file.lastModified();
+  await [!file.lastModified()!];
 }
-''',
-      [lint(52, 19)],
-    );
+''');
   }
 
   test_file_lastModifiedSync() async {
@@ -140,15 +122,12 @@ void f(File file) async {
   }
 
   test_file_stat() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(File file) async {
-  await file.stat();
+  await [!file.stat()!];
 }
-''',
-      [lint(52, 11)],
-    );
+''');
   }
 
   test_file_statSync() async {
@@ -161,15 +140,12 @@ void f(File file) async {
   }
 
   test_fileSystemEntity_isDirectory() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(String path) async {
-  await FileSystemEntity.isDirectory(path);
+  await [!FileSystemEntity.isDirectory(path)!];
 }
-''',
-      [lint(54, 34)],
-    );
+''');
   }
 
   test_fileSystemEntity_isDirectorySync() async {
@@ -182,15 +158,12 @@ void f(String path) async {
   }
 
   test_fileSystemEntity_isFile() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(String path) async {
-  await FileSystemEntity.isFile(path);
+  await [!FileSystemEntity.isFile(path)!];
 }
-''',
-      [lint(54, 29)],
-    );
+''');
   }
 
   test_fileSystemEntity_isFileSync() async {
@@ -203,15 +176,12 @@ void f(String path) async {
   }
 
   test_fileSystemEntity_isLink() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(String path) async {
-  await FileSystemEntity.isLink(path);
+  await [!FileSystemEntity.isLink(path)!];
 }
-''',
-      [lint(54, 29)],
-    );
+''');
   }
 
   test_fileSystemEntity_isLinkSync() async {
@@ -224,15 +194,12 @@ void f(String path) async {
   }
 
   test_fileSystemEntity_type() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'dart:io';
 void f(String path) async {
-  FileSystemEntity.type(path);
+  [!FileSystemEntity.type(path)!];
 }
-''',
-      [lint(48, 27)],
-    );
+''');
   }
 
   test_fileSystemEntity_typeSync() async {

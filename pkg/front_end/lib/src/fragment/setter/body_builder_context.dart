@@ -12,6 +12,7 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../type_inference/context_allocation_strategy.dart';
 import 'declaration.dart';
 
@@ -19,7 +20,7 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
   final SetterFragmentDeclaration _declaration;
 
-  SetterBodyBuilderContext(
+  new(
     this._builder,
     this._declaration,
     SourceLibraryBuilder libraryBuilder,
@@ -58,13 +59,13 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) => null;
+  Variable? getTearOffParameter(int index) => null;
 
   @override
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
   }) {
     _declaration.registerFunctionBody(
@@ -74,7 +75,7 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
       scope: scopeProviderInfo
           // Coverage-ignore(suite): Not run.
           ?.scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
       thisVariable: scopeProviderInfo
           // Coverage-ignore(suite): Not run.

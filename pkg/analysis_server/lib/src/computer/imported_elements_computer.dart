@@ -24,7 +24,7 @@ class ImportedElementsComputer {
   /// Initialize a newly created computer to compute the list of imported
   /// elements referenced in the given [unit] within the region with the given
   /// [offset] and [length].
-  ImportedElementsComputer(this.unit, this.offset, this.length);
+  new(this.unit, this.offset, this.length);
 
   /// Compute and return the list of imported elements.
   List<ImportedElements> compute() {
@@ -65,7 +65,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to visit nodes within a specified
   /// portion.
-  _Visitor(this.startOffset, this.endOffset);
+  new(this.startOffset, this.endOffset);
 
   @override
   void visitNamedType(NamedType node) {
@@ -148,7 +148,6 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {
     var parent = node.parent;
-    // TODO(scheglov): support primary constructors
-    return parent is ConstructorDeclaration && parent.typeName! == node;
+    return parent is ConstructorDeclaration && parent.typeName == node;
   }
 }

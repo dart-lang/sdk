@@ -47,7 +47,7 @@ Future<void> main(List<String> args) async {
 }
 
 class InheritanceDataComputer extends CfeDataComputer<String> {
-  const InheritanceDataComputer();
+  const new();
 
   /// Function that computes a data mapping for [library].
   ///
@@ -97,10 +97,8 @@ class InheritanceDataComputer extends CfeDataComputer<String> {
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
   final CfeTestResultData _testResultData;
 
-  InheritanceDataExtractor(
-    this._testResultData,
-    Map<Id, ActualData<String>> actualMap,
-  ) : super(_testResultData.compilerResult, actualMap);
+  new(this._testResultData, Map<Id, ActualData<String>> actualMap)
+    : super(_testResultData.compilerResult, actualMap);
 
   CfeTestConfig get _config => _testResultData.config;
 

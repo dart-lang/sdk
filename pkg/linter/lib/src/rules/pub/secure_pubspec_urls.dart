@@ -12,8 +12,7 @@ import '../../diagnostic.dart' as diag;
 const _desc = r'Use secure urls in `pubspec.yaml`.';
 
 class SecurePubspecUrls extends AnalysisRule {
-  SecurePubspecUrls()
-    : super(name: LintNames.secure_pubspec_urls, description: _desc);
+  new() : super(name: LintNames.secure_pubspec_urls, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.securePubspecUrls;
@@ -25,7 +24,7 @@ class SecurePubspecUrls extends AnalysisRule {
 class Visitor extends PubspecVisitor<void> {
   final AnalysisRule rule;
 
-  Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitPackageDependencies(PubspecDependencyList dependencies) {

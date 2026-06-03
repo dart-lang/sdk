@@ -296,10 +296,17 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyRegisterOrImmediate(instr.inputDefAt(0)),
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-      ]);
+      const InstructionConstraints(
+        InstantiateTypeArgumentsStub.resultTypeArgumentsReg,
+        [
+          InstantiateTypeArgumentsStub.instantiatorTypeArgumentsReg,
+          InstantiateTypeArgumentsStub.functionTypeArgumentsReg,
+        ],
+        [
+          InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
+          InstantiateTypeArgumentsStub.scratchReg,
+        ],
+      );
 
   @override
   InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>
@@ -330,6 +337,14 @@ final class Arm64Constraints extends Constraints {
       ]);
 
   @override
+  InstructionConstraints? visitAllocateContext(AllocateContext instr) =>
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
+
+  @override
   InstructionConstraints? visitAllocateList(AllocateList instr) =>
       InstructionConstraints(
         anyCpuRegister,
@@ -344,6 +359,14 @@ final class Arm64Constraints extends Constraints {
         [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
         const [anyCpuRegister, anyCpuRegister],
       );
+
+  @override
+  InstructionConstraints? visitAllocateRecord(AllocateRecord instr) =>
+      const InstructionConstraints(AllocationStub.resultReg, [], [
+        AllocationStub.tagsReg,
+        AllocationStub.scratch1Reg,
+        AllocationStub.scratch2Reg,
+      ]);
 
   @override
   InstructionConstraints? visitBoxInt(BoxInt instr) =>

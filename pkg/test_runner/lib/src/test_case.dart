@@ -389,11 +389,10 @@ class RunningProcess {
     for (var excludedEnvironmentVariable in _excludedEnvironmentVariables) {
       environment.remove(excludedEnvironmentVariable);
     }
-
-    // TODO(terry): Needed for roll 50?
-    environment["GLIBCPP_FORCE_NEW"] = "1";
-    environment["GLIBCXX_FORCE_NEW"] = "1";
-
+    if (configuration.keepGeneratedFiles) {
+      // Used by withTempDir in many //runtime/tests/vm/dart tests.
+      environment["KEEP_TEMPORARY_DIRECTORIES"] = "1";
+    }
     return environment;
   }
 }

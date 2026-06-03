@@ -38,7 +38,7 @@ class Driver {
   static int defaultPageLength = 25;
 
   /// Initialize a newly created driver.
-  Driver();
+  new();
 
   /// Create and return the parser used to parse the command-line arguments.
   ArgParser createParser() {

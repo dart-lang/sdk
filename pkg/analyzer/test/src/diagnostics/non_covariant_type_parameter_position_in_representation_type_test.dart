@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
       NonCovariantTypeParameterPositionInRepresentationTypeTest,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -19,38 +20,24 @@ main() {
 class NonCovariantTypeParameterPositionInRepresentationTypeTest
     extends PubPackageResolutionTest {
   test_contravariant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(void Function(T) it) {}
-''',
-      [
-        error(
-          diag.nonCovariantTypeParameterPositionInRepresentationType,
-          17,
-          1,
-        ),
-      ],
-    );
+//               ^
+// [diag.nonCovariantTypeParameterPositionInRepresentationType] An extension type parameter can't be used in a non-covariant position of its representation type.
+''');
   }
 
   test_covariant() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(T Function() it) {}
 ''');
   }
 
   test_invariant() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 extension type A<T>(T Function(T) it) {}
-''',
-      [
-        error(
-          diag.nonCovariantTypeParameterPositionInRepresentationType,
-          17,
-          1,
-        ),
-      ],
-    );
+//               ^
+// [diag.nonCovariantTypeParameterPositionInRepresentationType] An extension type parameter can't be used in a non-covariant position of its representation type.
+''');
   }
 }

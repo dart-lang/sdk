@@ -2,21 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedExtensionSetterTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class UndefinedExtensionSetterTest extends PubPackageResolutionTest {
   test_override_defined() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   void set foo(int _) {}
 }
@@ -27,48 +28,44 @@ f() {
   }
 
   test_override_undefined() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {}
 f() {
   E(0).foo = 1;
+//     ^^^
+// [diag.undefinedExtensionSetter] The setter 'foo' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionSetter, 35, 3)],
-    );
+''');
   }
 
   test_override_undefined_hasGetter_eq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int get foo => 0;
 }
 f() {
   E(0).foo = 1;
+//     ^^^
+// [diag.undefinedExtensionSetter] The setter 'foo' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionSetter, 56, 3)],
-    );
+''');
   }
 
   test_override_undefined_hasGetter_plusEq() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {
   int get foo => 0;
 }
 f() {
   E(0).foo += 1;
+//     ^^^
+// [diag.undefinedExtensionSetter] The setter 'foo' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionSetter, 56, 3)],
-    );
+''');
   }
 
   test_override_undefined_hasGetterAndNonExtensionSetter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C {
   int get id => 0;
   void set id(int v) {}
@@ -80,21 +77,20 @@ extension Ext on C {
 
 f(C c) {
   Ext(c).id++;
+//       ^^
+// [diag.undefinedExtensionSetter] The setter 'id' isn't defined for the extension 'Ext'.
 }
-''',
-      [error(diag.undefinedExtensionSetter, 117, 2)],
-    );
+''');
   }
 
   test_static_undefined() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 extension E on int {}
 void f() {
   E.foo = 3;
+//  ^^^
+// [diag.undefinedExtensionSetter] The setter 'foo' isn't defined for the extension 'E'.
 }
-''',
-      [error(diag.undefinedExtensionSetter, 37, 3)],
-    );
+''');
   }
 }

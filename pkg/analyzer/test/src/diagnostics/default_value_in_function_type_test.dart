@@ -2,81 +2,72 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DefaultValueInFunctionTypeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class DefaultValueInFunctionTypeTest extends PubPackageResolutionTest {
   test_new_named() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = int Function({Map<String, String> m = const {}});
-''',
-      [error(diag.defaultValueInFunctionType, 48, 1)],
-    );
+//                                              ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
   }
 
   test_new_named_ambiguous() async {
-    // Test that the strong checker does not crash when given an ambiguous set
-    // or map literal.
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = int Function({Object m = const {1, 2: 3}});
-''',
-      [
-        error(diag.defaultValueInFunctionType, 35, 1),
-        error(diag.ambiguousSetOrMapLiteralBoth, 37, 15),
-      ],
-    );
+//                                 ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                                   ^^^^^^^^^^^^^^^
+// [diag.ambiguousSetOrMapLiteralBoth] The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these.
+''');
   }
 
   test_new_positional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F = int Function([Map<String, String> m = const {}]);
-''',
-      [error(diag.defaultValueInFunctionType, 48, 1)],
-    );
+//                                              ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
   }
 
   test_old_named() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F([x = 0]);
-''',
-      [error(diag.defaultValueInFunctionType, 13, 1)],
-    );
+//           ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
   }
 
   test_old_positional() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 typedef F([x = 0]);
-''',
-      [error(diag.defaultValueInFunctionType, 13, 1)],
-    );
+//           ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
   }
 
   test_typeArgument_ofInstanceCreation() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 void f() {
   A<void Function([int x = 42])>();
+//                       ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 }
-''',
-      [error(diag.defaultValueInFunctionType, 51, 1)],
-    );
-    // The expression is resolved, even if it is invalid.
-    assertType(findNode.integerLiteral('42'), 'int');
+''');
+    assertType(result.findNode.integerLiteral('42'), 'int');
   }
 }

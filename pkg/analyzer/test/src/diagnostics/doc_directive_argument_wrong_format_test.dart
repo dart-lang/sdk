@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,59 +15,54 @@ void main() {
 @reflectiveTest
 class DocDirectiveArgumentWrongFormatTest extends PubPackageResolutionTest {
   test_animation_heightWrongFormat() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@animation 600 nan http://google.com}
+//                  ^^^
+// [diag.docDirectiveArgumentWrongFormat] The 'height' argument must be formatted as an integer.
 class C {}
-''',
-      [error(diag.docDirectiveArgumentWrongFormat, 20, 3)],
-    );
+''');
   }
 
   test_animation_urlWrongFormat() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@animation 600 400 other}
 class C {}
 ''');
   }
 
   test_animation_widthWrongFormat() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@animation nan 400 http://google.com}
+//              ^^^
+// [diag.docDirectiveArgumentWrongFormat] The 'width' argument must be formatted as an integer.
 class C {}
-''',
-      [error(diag.docDirectiveArgumentWrongFormat, 16, 3)],
-    );
+''');
   }
 
   test_youtube_heightWrongFormat() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube 600 nan https://www.youtube.com/watch?v=123}
+//                ^^^
+// [diag.docDirectiveArgumentWrongFormat] The 'height' argument must be formatted as an integer.
 class C {}
-''',
-      [error(diag.docDirectiveArgumentWrongFormat, 18, 3)],
-    );
+''');
   }
 
   test_youtube_urlWrongFormat() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube 600 400 http://google.com}
+//                    ^^^^^^^^^^^^^^^^^
+// [diag.docDirectiveArgumentWrongFormat] The 'url' argument must be formatted as a YouTube URL, starting with 'https://www.youtube.com/watch?v='.
 class C {}
-''',
-      [error(diag.docDirectiveArgumentWrongFormat, 22, 17)],
-    );
+''');
   }
 
   test_youtube_widthWrongFormat() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube nan 400 https://www.youtube.com/watch?v=123}
+//            ^^^
+// [diag.docDirectiveArgumentWrongFormat] The 'width' argument must be formatted as an integer.
 class C {}
-''',
-      [error(diag.docDirectiveArgumentWrongFormat, 14, 3)],
-    );
+''');
   }
 }

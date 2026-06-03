@@ -19,7 +19,7 @@ const _desc = 'Specify element model tracking annotation.';
 class AnalyzerElementModelTracking extends MultiAnalysisRule {
   static const ruleName = 'analyzer_element_model_tracking';
 
-  AnalyzerElementModelTracking()
+  new()
     : super(
         name: ruleName,
         description: _desc,
@@ -47,13 +47,13 @@ class _TrackingAnnotation {
   final Annotation node;
   final ElementAnnotation element;
 
-  _TrackingAnnotation({required this.node, required this.element});
+  new({required this.node, required this.element});
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  _Visitor(this.rule);
+  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

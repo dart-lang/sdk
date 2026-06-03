@@ -12,7 +12,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -23,7 +22,6 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<InternalExecutableElement>>();
@@ -40,9 +38,16 @@ class InheritanceOverrideVerifier {
 
   final Map<InterfaceElementImpl, _InterfaceElementState>
   _interfaceElementStates = {};
+  final Map<LibraryFragmentImpl, DiagnosticReporter>
+  _diagnosticReportersByFragment;
 
-  InheritanceOverrideVerifier(this._typeSystem, this._inheritance)
-    : _typeProvider = _typeSystem.typeProvider;
+  InheritanceOverrideVerifier(
+    this._typeSystem,
+    this._inheritance, {
+    required Map<LibraryFragmentImpl, DiagnosticReporter>
+    diagnosticReportersByFragment,
+  }) : _typeProvider = _typeSystem.typeProvider,
+       _diagnosticReportersByFragment = diagnosticReportersByFragment;
 
   void verifyUnit(CompilationUnitImpl unit, DiagnosticReporter reporter) {
     var library = unit.declaredFragment!.element;
@@ -72,6 +77,8 @@ class InheritanceOverrideVerifier {
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
+          reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else if (declaration is ClassTypeAliasImpl) {
         var fragment = declaration.declaredFragment!;
@@ -91,6 +98,8 @@ class InheritanceOverrideVerifier {
           superclass: declaration.superclass,
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
+          reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else if (declaration is EnumDeclarationImpl) {
         var fragment = declaration.declaredFragment!;
@@ -110,6 +119,8 @@ class InheritanceOverrideVerifier {
           members: declaration.body.members,
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
+          reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else if (declaration is MixinDeclarationImpl) {
         var fragment = declaration.declaredFragment!;
@@ -128,6 +139,9 @@ class InheritanceOverrideVerifier {
           implementsClause: declaration.implementsClause,
           members: declaration.body.members,
           onClause: declaration.onClause,
+          interfaceElementState: interfaceElementState(fragment.element),
+          reportInterfaceConflicts: _reportInterfaceConflicts,
+          targetForElement: _targetForElement,
         );
       } else {
         continue;
@@ -139,6 +153,85 @@ class InheritanceOverrideVerifier {
 
       verifier._verifyMustBeOverridden();
     }
+  }
+
+  void _reportInterfaceConflicts(
+    InterfaceElementImpl element,
+    Interface interface,
+  ) {
+    for (var conflict in interface.conflicts) {
+      var interfaceTarget = _targetForElement(element);
+      if (interfaceTarget == null) {
+        continue;
+      }
+
+      var memberName = conflict.name.name;
+      switch (conflict) {
+        case GetterMethodConflict():
+          var target = interfaceTarget;
+
+          // Try to use a local declaration related to the conflict.
+          if (interface.declared[conflict.name] case var declared?) {
+            target = _targetForElement(declared) ?? target;
+          }
+
+          target.report(
+            diag.inconsistentInheritanceGetterAndMethod.withArguments(
+              memberName: memberName,
+              getterInterface: conflict.getter.enclosingElement.name!,
+              methodInterface: conflict.method.enclosingElement!.name!,
+            ),
+          );
+        case CandidatesConflict():
+          var inheritedSignatures = conflict.candidates
+              .map((candidate) {
+                var className = candidate.enclosingElement!.name;
+                var typeStr = candidate.type.getDisplayString();
+                return '$className.$memberName ($typeStr)';
+              })
+              .join(', ');
+          interfaceTarget.report(
+            diag.inconsistentInheritance.withArguments(
+              name: memberName,
+              inheritedSignatures: inheritedSignatures,
+            ),
+          );
+        default:
+          throw StateError('${conflict.runtimeType}');
+      }
+    }
+  }
+
+  _DiagnosticTarget? _targetForElement(Element element) {
+    var nonSynthetic = element.nonSynthetic;
+    if (nonSynthetic is! ElementImpl) {
+      return null;
+    }
+    return _targetForFragment(nonSynthetic.firstFragment);
+  }
+
+  _DiagnosticTarget? _targetForFragment(FragmentImpl fragment) {
+    var libraryFragment = fragment.libraryFragment;
+    if (libraryFragment == null) {
+      return null;
+    }
+
+    var reporter = _diagnosticReportersByFragment[libraryFragment];
+    if (reporter == null) {
+      return null;
+    }
+
+    var offset = fragment.nameOffset;
+    var length = fragment.name?.length;
+    if (offset == null || length == null) {
+      return null;
+    }
+
+    return _DiagnosticTarget(
+      reporter: reporter,
+      offset: offset,
+      length: length,
+    );
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
@@ -175,7 +268,10 @@ class _ClassVerifier {
   final MixinOnClause? onClause;
   final NamedType? superclass;
   final WithClause? withClause;
-  final _InterfaceElementState? interfaceElementState;
+  final _InterfaceElementState interfaceElementState;
+  final void Function(InterfaceElementImpl element, Interface interface)
+  reportInterfaceConflicts;
+  final _DiagnosticTarget? Function(Element element) targetForElement;
 
   final List<InterfaceType> directSuperInterfaces = [];
 
@@ -203,7 +299,9 @@ class _ClassVerifier {
     this.onClause,
     this.superclass,
     this.withClause,
-    this.interfaceElementState,
+    required this.interfaceElementState,
+    required this.reportInterfaceConflicts,
+    required this.targetForElement,
   }) : libraryUri = library.uri;
 
   /// Verify inheritance overrides, and return `true` if an error was
@@ -231,9 +329,8 @@ class _ClassVerifier {
     // Compute the interface of the class.
     var interface = inheritance.getInterface(element);
 
-    // Report conflicts between direct superinterfaces of the class.
-    for (var conflict in interface.conflicts) {
-      _reportInconsistentInheritance(classNameToken, conflict);
+    if (identical(classFragment, element.firstFragment)) {
+      reportInterfaceConflicts(element, interface);
     }
 
     if (element.supertype != null) {
@@ -257,7 +354,7 @@ class _ClassVerifier {
       // So, here we skip corresponding nodes to keep the index in sync.
       if (mixinType is InterfaceTypeImpl &&
           isInterfaceTypeInterface(mixinType)) {
-        var index = interfaceElementState!.mixinIndex++;
+        var index = interfaceElementState.mixinIndex++;
         _checkDeclaredMembers(node, mixinType, mixinIndex: index);
         directSuperInterfaces.add(mixinType);
       }
@@ -298,7 +395,7 @@ class _ClassVerifier {
         _checkDeclaredMember(
           member.name,
           libraryUri,
-          member.declaredFragment!.asElement2,
+          member.declaredFragment!.element,
           methodParameterNodes: member.parameters?.parameters,
         );
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
@@ -333,6 +430,11 @@ class _ClassVerifier {
 
         // No concrete implementation of the name.
         if (concreteElement == null) {
+          if (interfaceElement
+              .baseElement
+              .isAugmentationWithoutAugmentedDeclaration) {
+            continue;
+          }
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
@@ -575,6 +677,10 @@ class _ClassVerifier {
   /// [diag.recursiveInterfaceInheritanceOn],
   /// [diag.recursiveInterfaceInheritanceWith].
   bool _checkForRecursiveInterfaceInheritance(InterfaceElementImpl element) {
+    if (interfaceElementState.hasReportedRecursiveInterfaceInheritance) {
+      return true;
+    }
+
     var cycle = element.interfaceCycle;
     if (cycle == null) {
       return false;
@@ -585,8 +691,9 @@ class _ClassVerifier {
         reporter.report(
           diag.recursiveInterfaceInheritanceExtends
               .withArguments(className: element.displayName)
-              .atSourceRange(element.diagnosticRange(diagnosticSource)),
+              .at(superclass),
         );
+        interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
         return true;
       }
     }
@@ -597,8 +704,9 @@ class _ClassVerifier {
           reporter.report(
             diag.recursiveInterfaceInheritanceOn
                 .withArguments(mixinName: element.displayName)
-                .atSourceRange(element.diagnosticRange(diagnosticSource)),
+                .at(typeAnnotation),
           );
+          interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
           return true;
         }
       }
@@ -610,8 +718,9 @@ class _ClassVerifier {
           reporter.report(
             diag.recursiveInterfaceInheritanceWith
                 .withArguments(className: element.displayName)
-                .atSourceRange(element.diagnosticRange(diagnosticSource)),
+                .at(typeAnnotation),
           );
+          interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
           return true;
         }
       }
@@ -623,21 +732,27 @@ class _ClassVerifier {
           reporter.report(
             diag.recursiveInterfaceInheritanceImplements
                 .withArguments(className: element.displayName)
-                .atSourceRange(element.diagnosticRange(diagnosticSource)),
+                .at(typeAnnotation),
           );
+          interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
           return true;
         }
       }
     }
 
-    reporter.report(
-      diag.recursiveInterfaceInheritance
-          .withArguments(
-            className: element.displayName,
-            loop: cycle.map((e) => e.displayName).join(', '),
-          )
-          .atSourceRange(classElement.diagnosticRange(diagnosticSource)),
+    // Earlier fragments can see cycles from clauses in later augmentations.
+    // Wait for those clauses before reporting the generic cycle.
+    if (classFragment.nextFragment != null) {
+      return true;
+    }
+
+    targetForElement(element)?.report(
+      diag.recursiveInterfaceInheritance.withArguments(
+        className: element.displayName,
+        loop: cycle.map((e) => e.displayName).join(', '),
+      ),
     );
+    interfaceElementState.hasReportedRecursiveInterfaceInheritance = true;
     return true;
   }
 
@@ -804,42 +919,6 @@ class _ClassVerifier {
       }
     }
     return false;
-  }
-
-  void _reportInconsistentInheritance(Token token, Conflict conflict) {
-    var name = conflict.name;
-
-    if (conflict is GetterMethodConflict) {
-      // Members that participate in inheritance are always enclosed in named
-      // elements so it is safe to assume that
-      // `conflict.getter.enclosingElement.name` and
-      // `conflict.method.enclosingElement.name` are both non-`null`.
-      reporter.report(
-        diag.inconsistentInheritanceGetterAndMethod
-            .withArguments(
-              memberName: name.name,
-              getterInterface: conflict.getter.enclosingElement!.name!,
-              methodInterface: conflict.method.enclosingElement!.name!,
-            )
-            .at(token),
-      );
-    } else if (conflict is CandidatesConflict) {
-      var candidatesStr = conflict.candidates
-          .map((candidate) {
-            var className = candidate.enclosingElement!.name;
-            var typeStr = candidate.type.getDisplayString();
-            return '$className.${name.name} ($typeStr)';
-          })
-          .join(', ');
-
-      reporter.report(
-        diag.inconsistentInheritance
-            .withArguments(name: name.name, inheritedSignatures: candidatesStr)
-            .at(token),
-      );
-    } else {
-      throw StateError('${conflict.runtimeType}');
-    }
   }
 
   void _reportInheritedAbstractMembers(
@@ -1050,8 +1129,26 @@ class _ClassVerifier {
   }
 }
 
+class _DiagnosticTarget {
+  final DiagnosticReporter reporter;
+  final int offset;
+  final int length;
+
+  _DiagnosticTarget({
+    required this.reporter,
+    required this.offset,
+    required this.length,
+  });
+
+  void report(LocatableDiagnostic diagnostic) {
+    reporter.report(diagnostic.atOffset(offset: offset, length: length));
+  }
+}
+
 /// Maintains an [InterfaceElementImpl]'s mixin index across multiple fragments.
 class _InterfaceElementState {
+  bool hasReportedRecursiveInterfaceInheritance = false;
+
   int mixinIndex = 0;
 
   _InterfaceElementState();

@@ -4,8 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
@@ -22,29 +20,24 @@ main() {
 class ExpressionParserTest extends ParserDiagnosticsTest {
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
-    for (TokenType type in TokenType.all) {
-      if (type.precedence > 0) {
-        var source = 'a ${type.lexeme} b';
-        try {
-          parseStringWithErrors('var x = $source;');
-        } on TestFailure {
-          // Ensure that there are no infinite loops or exceptions thrown
-          // by the parser. Test failures are fine.
-        }
+    for (var type in TokenType.all) {
+      if (type.precedence <= 0) {
+        continue;
       }
+      parseTestCodeIgnoringDiagnostics('var x = a ${type.lexeme} b;');
     }
   }
 
   void test_invalidExpression_37706() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <b?c>();
+//       ^
+// [diag.expectedToken] Expected to find '>'.
+//             ^
+// [diag.unexpectedToken] Unexpected text ';'.
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.expectedToken] Expected to find ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 9, 1),
-      error(diag.unexpectedToken, 15, 1),
-      error(diag.missingFunctionBody, 15, 1),
-      error(diag.expectedToken, 15, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -73,17 +66,19 @@ CompilationUnit
   }
 
   void test_listLiteral_invalid_assert() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = n=<.["$assert;
+//         ^
+// [diag.expectedTypeName] Expected a type name.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
+//             ^^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'assert' can't be used as an identifier because it's a keyword.
+//                   ^
+// [diag.expectedToken] Expected to find ';'.
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 23][length 1] Expected to find ']'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 11, 1),
-      error(diag.expectedTypeName, 12, 1),
-      error(diag.expectedIdentifierButGotKeyword, 15, 6),
-      error(diag.unterminatedStringLiteral, 21, 1),
-      error(diag.expectedToken, 21, 1),
-      error(diag.expectedToken, 23, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -128,13 +123,13 @@ CompilationUnit
   }
 
   void test_listLiteral_invalidElement_37697() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [<y.<z>(){}];
+//          ^
+// [diag.expectedTypeName] Expected a type name.
+//            ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 12, 1),
-      error(diag.expectedToken, 14, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -174,16 +169,18 @@ CompilationUnit
   }
 
   void test_lt_dot_bracket_quote() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <.[";
+//       ^
+// [diag.expectedTypeName] Expected a type name.
+//        ^
+// [diag.expectedTypeName] Expected a type name.
+//         ^^
+// [diag.expectedToken] Expected to find ';'.
+//          ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 14][length 1] Expected to find ']'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 9, 1),
-      error(diag.expectedTypeName, 10, 1),
-      error(diag.expectedToken, 11, 2),
-      error(diag.unterminatedStringLiteral, 12, 1),
-      error(diag.expectedToken, 14, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -205,13 +202,13 @@ ListLiteral
   }
 
   void test_lt_dot_listLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <.[];
+//       ^
+// [diag.expectedTypeName] Expected a type name.
+//        ^^
+// [diag.expectedTypeName] Expected a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedTypeName, 9, 1),
-      error(diag.expectedTypeName, 10, 2),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -230,10 +227,9 @@ ListLiteral
   }
 
   void test_mapLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {3: 6};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -251,10 +247,9 @@ SetOrMapLiteral
   }
 
   void test_mapLiteral_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const {3: 6};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -272,33 +267,65 @@ SetOrMapLiteral
 ''');
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_mapLiteral_invalid_too_many_type_arguments1() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int, int, int>{};
+//         ^^^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 11, 3)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
+SetOrMapLiteral
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+      NamedType
+        name: int
+      NamedType
+        name: int
+    rightBracket: >
+  leftBracket: {
+  rightBracket: }
+  isMap: false
 ''');
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_mapLiteral_invalid_too_many_type_arguments2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int, int, int>{1};
+//         ^^^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 11, 3)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
+SetOrMapLiteral
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+      NamedType
+        name: int
+      NamedType
+        name: int
+    rightBracket: >
+  leftBracket: {
+  elements
+    IntegerLiteral
+      literal: 1
+  rightBracket: }
+  isMap: false
 ''');
   }
 
   void test_namedArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a: 1, b: 2);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -322,14 +349,15 @@ MethodInvocation
   }
 
   void test_nullableTypeInStringInterpolations_as_48999() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ${i as int?};
+//      ^
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                  ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 9, 1),
-      error(diag.unexpectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -338,14 +366,15 @@ SimpleIdentifier
   }
 
   void test_nullableTypeInStringInterpolations_is_48999() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ${i is int?};
+//      ^
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                  ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 9, 1),
-      error(diag.unexpectedToken, 20, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -354,10 +383,9 @@ SimpleIdentifier
   }
 
   void test_parseAdditiveExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x + y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -370,10 +398,9 @@ BinaryExpression
   }
 
   void test_parseAdditiveExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super + y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -386,10 +413,9 @@ BinaryExpression
   }
 
   void test_parseAssignableExpression_expression_args_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (x)(y).z;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -412,10 +438,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_expression_args_dot_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (x)<F>(y).z;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -444,10 +469,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_expression_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (x).y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -463,10 +487,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_expression_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (x)[y];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IndexExpression
@@ -483,10 +506,9 @@ IndexExpression
   }
 
   void test_parseAssignableExpression_expression_question_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (x)?.y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -502,10 +524,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_identifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -514,10 +535,9 @@ SimpleIdentifier
   }
 
   void test_parseAssignableExpression_identifier_args_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x(y).z;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -537,10 +557,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_identifier_args_dot_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x<E>(y).z;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -566,10 +585,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_identifier_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x.y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixedIdentifier
@@ -582,10 +600,9 @@ PrefixedIdentifier
   }
 
   void test_parseAssignableExpression_identifier_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x[y];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IndexExpression
@@ -599,10 +616,9 @@ IndexExpression
   }
 
   void test_parseAssignableExpression_identifier_question_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x?.y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -615,10 +631,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_super_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -631,10 +646,9 @@ PropertyAccess
   }
 
   void test_parseAssignableExpression_super_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super[y];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IndexExpression
@@ -648,10 +662,9 @@ IndexExpression
   }
 
   void test_parseAssignableSelector_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x.x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixedIdentifier
@@ -664,10 +677,9 @@ PrefixedIdentifier
   }
 
   void test_parseAssignableSelector_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x[x];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IndexExpression
@@ -681,10 +693,9 @@ IndexExpression
   }
 
   void test_parseAssignableSelector_none() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -693,10 +704,9 @@ SimpleIdentifier
   }
 
   void test_parseAssignableSelector_question_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x?.x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -709,10 +719,11 @@ PropertyAccess
   }
 
   void test_parseAwaitExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = await x;
+//      ^^^^^
+// [diag.awaitInWrongContext] The await expression can only be used in an async function.
 ''');
-    parseResult.assertErrors([error(diag.awaitInWrongContext, 8, 5)]);
     var node = parseResult.findNode.singleAwaitExpression;
     assertParsedNodeText(node, r'''
 AwaitExpression
@@ -723,10 +734,9 @@ AwaitExpression
   }
 
   void test_parseBitwiseAndExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x & y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -739,10 +749,9 @@ BinaryExpression
   }
 
   void test_parseBitwiseAndExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super & y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -755,10 +764,9 @@ BinaryExpression
   }
 
   void test_parseBitwiseOrExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x | y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -771,10 +779,9 @@ BinaryExpression
   }
 
   void test_parseBitwiseOrExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super | y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -787,10 +794,9 @@ BinaryExpression
   }
 
   void test_parseBitwiseXorExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x ^ y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -803,10 +809,9 @@ BinaryExpression
   }
 
   void test_parseBitwiseXorExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super ^ y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -819,10 +824,9 @@ BinaryExpression
   }
 
   void test_parseCascadeSection_i() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..[i];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -839,10 +843,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_ia() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..[i](b);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -866,10 +869,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_ia_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..[i]<E>(b);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -899,10 +901,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_ii() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a(b).c(d);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -933,10 +934,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_ii_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a<E>(b).c<F>(d);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -979,10 +979,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_p() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -997,10 +996,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_p_assign() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a = 3;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1019,12 +1017,11 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_p_assign_withCascade() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null
   ..a = 3
   ..m();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1050,12 +1047,11 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_p_assign_withCascade_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null
   ..a = 3
   ..m<E>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1087,10 +1083,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_p_builtIn() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..as;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1105,10 +1100,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_pa() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a(b);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1129,10 +1123,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_pa_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a<E>(b);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1159,10 +1152,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_paa() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a(b)(c);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1190,10 +1182,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_paa_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a<E>(b)<F>(c);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1233,10 +1224,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_paapaa() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a(b)(c).d(e)(f);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1281,10 +1271,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_paapaa_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a<E>(b)<F>(c).d<G>(e)<H>(f);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1353,10 +1342,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_pap() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a(b).c;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1381,10 +1369,9 @@ CascadeExpression
   }
 
   void test_parseCascadeSection_pap_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null..a<E>(b).c;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
@@ -1415,10 +1402,9 @@ CascadeExpression
   }
 
   void test_parseConditionalExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x ? y : z;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
@@ -1434,10 +1420,9 @@ ConditionalExpression
   }
 
   void test_parseConstExpression_instanceCreation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const A();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -1452,10 +1437,9 @@ InstanceCreationExpression
   }
 
   void test_parseConstExpression_listLiteral_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const <A>[];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -1472,10 +1456,9 @@ ListLiteral
   }
 
   void test_parseConstExpression_listLiteral_untyped() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const [];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -1486,10 +1469,9 @@ ListLiteral
   }
 
   void test_parseConstExpression_mapLiteral_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const <A, B>{};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1509,10 +1491,11 @@ SetOrMapLiteral
   }
 
   void test_parseConstExpression_mapLiteral_typed_missingGt() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const <A, B {};
+//                ^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 18, 1)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1532,10 +1515,9 @@ SetOrMapLiteral
   }
 
   void test_parseConstExpression_mapLiteral_untyped() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const {};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -1547,10 +1529,11 @@ SetOrMapLiteral
   }
 
   void test_parseConstructorInitializer_functionExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C { C.n() : this()(); }
+//                ^^^^^^^^
+// [diag.invalidInitializer] Not a valid initializer.
 ''');
-    parseResult.assertErrors([error(diag.invalidInitializer, 18, 8)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1578,10 +1561,9 @@ CompilationUnit
   }
 
   void test_parseEqualityExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x == y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -1594,10 +1576,9 @@ BinaryExpression
   }
 
   void test_parseEqualityExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super == y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -1610,10 +1591,9 @@ BinaryExpression
   }
 
   void test_parseExpression_assign() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x = y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AssignmentExpression
@@ -1626,13 +1606,13 @@ AssignmentExpression
   }
 
   void test_parseExpression_assign_compound() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x ||= y;
+//      ^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingAssignableSelector, 8, 4),
-      error(diag.missingIdentifier, 12, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AssignmentExpression
@@ -1649,10 +1629,9 @@ AssignmentExpression
   }
 
   void test_parseExpression_comparison() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --a.b == c;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -1671,10 +1650,11 @@ BinaryExpression
   }
 
   void test_parseExpression_constAndTypeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const <E>;
+//               ^
+// [diag.expectedToken] Expected to find '['.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -1691,10 +1671,9 @@ ListLiteral
   }
 
   void test_parseExpression_function_async() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = () async {};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -1710,10 +1689,9 @@ FunctionExpression
   }
 
   void test_parseExpression_function_asyncStar() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = () async* {};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -1730,10 +1708,9 @@ FunctionExpression
   }
 
   void test_parseExpression_function_sync() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = () {};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -1748,10 +1725,9 @@ FunctionExpression
   }
 
   void test_parseExpression_function_syncStar() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = () sync* {};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -1768,12 +1744,11 @@ FunctionExpression
   }
 
   void test_parseExpression_invokeFunctionExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (a) {
   return a + a;
 }(3);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpressionInvocation
@@ -1807,10 +1782,9 @@ FunctionExpressionInvocation
   }
 
   void test_parseExpression_nonAwait() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = await();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -1823,12 +1797,11 @@ MethodInvocation
   }
 
   void test_parseExpression_sendWithTypeParam_afterIndex() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 main() {
   factories[C]<num, int>();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1869,12 +1842,11 @@ CompilationUnit
   }
 
   void test_parseExpression_sendWithTypeParam_afterSend() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 main() {
   factories(C)<num, int>();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1917,10 +1889,9 @@ CompilationUnit
   }
 
   void test_parseExpression_superMethodInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.m();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -1936,10 +1907,9 @@ MethodInvocation
   }
 
   void test_parseExpression_superMethodInvocation_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.m<E>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -1961,10 +1931,9 @@ MethodInvocation
   }
 
   void test_parseExpression_superMethodInvocation_typeArguments_chained() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.b.c<D>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -1990,10 +1959,9 @@ MethodInvocation
   }
 
   void test_parseExpressionList_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [1, 2, 3];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2010,10 +1978,9 @@ ListLiteral
   }
 
   void test_parseExpressionList_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [1];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2026,10 +1993,9 @@ ListLiteral
   }
 
   void test_parseExpressionWithoutCascade_assign() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x = y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AssignmentExpression
@@ -2042,10 +2008,9 @@ AssignmentExpression
   }
 
   void test_parseExpressionWithoutCascade_comparison() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --a.b == c;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -2064,10 +2029,9 @@ BinaryExpression
   }
 
   void test_parseExpressionWithoutCascade_superMethodInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.m();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -2084,10 +2048,9 @@ MethodInvocation
 
   void
   test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.m<E>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -2109,10 +2072,9 @@ MethodInvocation
   }
 
   void test_parseFunctionExpression_body_inExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (int i) => i++;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -2133,10 +2095,11 @@ FunctionExpression
   }
 
   void test_parseFunctionExpression_constAndTypeParameters2() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const <E>(E i) => i++;
+//      ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 8, 5)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -2163,10 +2126,11 @@ FunctionExpression
   }
 
   void test_parseFunctionExpression_functionInPlaceOfTypeName() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <test(, (){});>[0, 1, 2];
+//       ^^^^
+// [diag.expectedToken] Expected to find '>'.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 9, 4)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2189,10 +2153,9 @@ ListLiteral
   }
 
   void test_parseFunctionExpression_typeParameters() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <E>(E i) => i++;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -2219,10 +2182,11 @@ FunctionExpression
   }
 
   void test_parseInstanceCreationExpression_qualifiedType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2237,10 +2201,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_qualifiedType_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2256,10 +2221,11 @@ InstanceCreationExpression
 
   void
   test_parseInstanceCreationExpression_qualifiedType_named_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2274,10 +2240,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_qualifiedType_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2292,10 +2259,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_type() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2310,10 +2278,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_type_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2328,10 +2297,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_type_named_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2346,10 +2316,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_type_named_typeArguments_34403() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new a.b.c<C>();
+//              ^
+// [diag.constructorWithTypeArguments] A constructor invocation can't have type arguments after the constructor name.
 ''');
-    parseResult.assertErrors([error(diag.constructorWithTypeArguments, 16, 1)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2376,10 +2347,11 @@ InstanceCreationExpression
   }
 
   void test_parseInstanceCreationExpression_type_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new $token;
+//          ^^^^^^
+// [diag.expectedToken] Expected to find '('.
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 12, 6)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2394,10 +2366,9 @@ InstanceCreationExpression
   }
 
   void test_parseListLiteral_empty_oneToken() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2407,10 +2378,9 @@ ListLiteral
   }
 
   void test_parseListLiteral_empty_oneToken_withComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = /* 0 */ [];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2420,10 +2390,9 @@ ListLiteral
   }
 
   void test_parseListLiteral_empty_twoTokens() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2433,10 +2402,9 @@ ListLiteral
   }
 
   void test_parseListLiteral_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [1, 2, 3];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2453,10 +2421,9 @@ ListLiteral
   }
 
   void test_parseListLiteral_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [1];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2469,10 +2436,9 @@ ListLiteral
   }
 
   void test_parseListLiteral_single_withTypeArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int>[1];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -2491,10 +2457,9 @@ ListLiteral
   }
 
   void test_parseListOrMapLiteral_list_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [1][1];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IndexExpression
@@ -2512,12 +2477,11 @@ IndexExpression
   }
 
   void test_parseListOrMapLiteral_list_type() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int> [1] <int> [1];
+//                    ^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 ''');
-    parseResult.assertErrors([
-      error(diag.equalityCannotBeEqualityOperand, 22, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -2548,14 +2512,15 @@ BinaryExpression
   }
 
   void test_parseListOrMapLiteral_map_noType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {'1' : 1} {'1' : 1};
+//              ^
+// [diag.expectedToken] Expected to find ';'.
+//                ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                         ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 16, 1),
-      error(diag.expectedExecutable, 18, 1),
-      error(diag.unexpectedToken, 27, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -2573,15 +2538,17 @@ SetOrMapLiteral
   }
 
   void test_parseListOrMapLiteral_map_type() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <String, int> {'1' : 1} <String, int> {'1' : 1};
+//                                       ^^^
+// [diag.expectedToken] Expected to find ';'.
+//                                          ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                                            ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                                                     ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 41, 3),
-      error(diag.expectedExecutable, 44, 1),
-      error(diag.expectedExecutable, 46, 1),
-      error(diag.unexpectedToken, 55, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2623,10 +2590,9 @@ CompilationUnit
   }
 
   void test_parseLogicalAndExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x && y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -2639,10 +2605,9 @@ BinaryExpression
   }
 
   void test_parseLogicalOrExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x || y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -2655,10 +2620,9 @@ BinaryExpression
   }
 
   void test_parseMapLiteral_empty() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <String, int>{};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -2677,10 +2641,9 @@ SetOrMapLiteral
   }
 
   void test_parseMapLiteral_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {'a': b, 'x': y};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -2704,10 +2667,9 @@ SetOrMapLiteral
   }
 
   void test_parseMapLiteral_multiple_trailing_comma() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {'a': b, 'x': y};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -2731,10 +2693,9 @@ SetOrMapLiteral
   }
 
   void test_parseMapLiteral_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {'x': y};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -2752,10 +2713,9 @@ SetOrMapLiteral
   }
 
   void test_parseMapLiteralEntry_complex() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {2 + 2: y};
 ''');
-    parseResult.assertNoErrors();
     var node =
         (parseResult.findNode.singleVariableDeclaration.initializer
                 as SetOrMapLiteral)
@@ -2776,10 +2736,9 @@ MapLiteralEntry
   }
 
   void test_parseMapLiteralEntry_int() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {0: y};
 ''');
-    parseResult.assertNoErrors();
     var node =
         (parseResult.findNode.singleVariableDeclaration.initializer
                 as SetOrMapLiteral)
@@ -2796,15 +2755,15 @@ MapLiteralEntry
   }
 
   void test_parseMapLiteralEntry_string() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = { x' :  };
+//         ^^^^^^^
+// [diag.expectedToken] Expected to find ','.
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
+// [diag.expectedToken][column 19][length 1] Expected to find '}'.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 11, 7),
-      error(diag.expectedToken, 11, 7),
-      error(diag.unterminatedStringLiteral, 17, 1),
-      error(diag.expectedToken, 19, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2830,10 +2789,9 @@ CompilationUnit
   }
 
   void test_parseMultiplicativeExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x * y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -2846,10 +2804,9 @@ BinaryExpression
   }
 
   void test_parseMultiplicativeExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super * y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -2862,10 +2819,9 @@ BinaryExpression
   }
 
   void test_parseNewExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new A();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -2880,10 +2836,9 @@ InstanceCreationExpression
   }
 
   void test_parsePostfixExpression_decrement() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = i--;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PostfixExpression
@@ -2894,10 +2849,9 @@ PostfixExpression
   }
 
   void test_parsePostfixExpression_increment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = i++;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PostfixExpression
@@ -2908,10 +2862,9 @@ PostfixExpression
   }
 
   void test_parsePostfixExpression_none_indexExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[0];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IndexExpression
@@ -2925,10 +2878,9 @@ IndexExpression
   }
 
   void test_parsePostfixExpression_none_methodInvocation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a.m();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -2944,10 +2896,9 @@ MethodInvocation
   }
 
   void test_parsePostfixExpression_none_methodInvocation_question_dot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a?.m();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -2964,10 +2915,9 @@ MethodInvocation
 
   void
   test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a?.m<E>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -2989,10 +2939,9 @@ MethodInvocation
   }
 
   void test_parsePostfixExpression_none_methodInvocation_typeArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a.m<E>();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 MethodInvocation
@@ -3014,10 +2963,9 @@ MethodInvocation
   }
 
   void test_parsePostfixExpression_none_propertyAccess() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a.b;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixedIdentifier
@@ -3030,10 +2978,9 @@ PrefixedIdentifier
   }
 
   void test_parsePrefixedIdentifier_noPrefix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $lexeme;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3042,10 +2989,9 @@ SimpleIdentifier
   }
 
   void test_parsePrefixedIdentifier_prefix() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $lexeme;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3054,10 +3000,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const A();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -3072,10 +3017,9 @@ InstanceCreationExpression
   }
 
   void test_parsePrimaryExpression_double() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $doubleLiteral;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3084,10 +3028,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_false() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = false;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BooleanLiteral
@@ -3096,10 +3039,9 @@ BooleanLiteral
   }
 
   void test_parsePrimaryExpression_function_arguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (int i) => i + 1;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -3122,10 +3064,9 @@ FunctionExpression
   }
 
   void test_parsePrimaryExpression_function_noArguments() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = () => 42;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -3140,10 +3081,9 @@ FunctionExpression
   }
 
   void test_parsePrimaryExpression_genericFunctionExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <X, Y>(Map<X, Y> m, X x) => m[x];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
@@ -3187,10 +3127,9 @@ FunctionExpression
   }
 
   void test_parsePrimaryExpression_hex() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $hexLiteral;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3199,10 +3138,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_identifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3211,10 +3149,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_int() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $intLiteral;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3223,10 +3160,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_listLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -3236,10 +3172,9 @@ ListLiteral
   }
 
   void test_parsePrimaryExpression_listLiteral_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -3249,10 +3184,9 @@ ListLiteral
   }
 
   void test_parsePrimaryExpression_listLiteral_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <A>[];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ListLiteral
@@ -3268,10 +3202,9 @@ ListLiteral
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -3282,10 +3215,9 @@ SetOrMapLiteral
   }
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <A, B>{};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -3304,10 +3236,9 @@ SetOrMapLiteral
   }
 
   void test_parsePrimaryExpression_new() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = new A();
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 InstanceCreationExpression
@@ -3322,10 +3253,9 @@ InstanceCreationExpression
   }
 
   void test_parsePrimaryExpression_null() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = null;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 NullLiteral
@@ -3334,10 +3264,9 @@ NullLiteral
   }
 
   void test_parsePrimaryExpression_parenthesized() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = (x);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ParenthesizedExpression
@@ -3349,10 +3278,9 @@ ParenthesizedExpression
   }
 
   void test_parsePrimaryExpression_string() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = string;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3361,10 +3289,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_string_multiline() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = string;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3373,10 +3300,9 @@ SimpleIdentifier
   }
 
   void test_parsePrimaryExpression_string_raw() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = r'string';
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleStringLiteral
@@ -3385,10 +3311,9 @@ SimpleStringLiteral
   }
 
   void test_parsePrimaryExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super.x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PropertyAccess
@@ -3401,10 +3326,9 @@ PropertyAccess
   }
 
   void test_parsePrimaryExpression_this() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = this;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ThisExpression
@@ -3413,10 +3337,9 @@ ThisExpression
   }
 
   void test_parsePrimaryExpression_true() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = true;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BooleanLiteral
@@ -3425,12 +3348,11 @@ BooleanLiteral
   }
 
   void test_parseRedirectingConstructorInvocation_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : this.a();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3465,12 +3387,11 @@ CompilationUnit
   }
 
   void test_parseRedirectingConstructorInvocation_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : this();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3502,10 +3423,11 @@ CompilationUnit
   }
 
   void test_parseRelationalExpression_as_chained() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x as Y as Z;
+//             ^^
+// [diag.unexpectedToken] Unexpected text 'as'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 15, 2)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AsExpression
@@ -3518,10 +3440,9 @@ AsExpression
   }
 
   void test_parseRelationalExpression_as_functionType_noReturnType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x as Function(int);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AsExpression
@@ -3540,10 +3461,9 @@ AsExpression
   }
 
   void test_parseRelationalExpression_as_functionType_returnType() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x as String Function(int);
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AsExpression
@@ -3564,10 +3484,9 @@ AsExpression
   }
 
   void test_parseRelationalExpression_as_generic() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x as C<D>;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AsExpression
@@ -3586,10 +3505,9 @@ AsExpression
   }
 
   void test_parseRelationalExpression_as_simple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x as Y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AsExpression
@@ -3602,10 +3520,9 @@ AsExpression
   }
 
   void test_parseRelationalExpression_as_simple_function() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x as Function;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 AsExpression
@@ -3618,10 +3535,9 @@ AsExpression
   }
 
   void test_parseRelationalExpression_is() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x is y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
@@ -3634,10 +3550,11 @@ IsExpression
   }
 
   void test_parseRelationalExpression_is_chained() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x is Y is! Z;
+//             ^^
+// [diag.unexpectedToken] Unexpected text 'is'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 15, 2)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
@@ -3650,10 +3567,9 @@ IsExpression
   }
 
   void test_parseRelationalExpression_isNot() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x is! y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
@@ -3667,10 +3583,9 @@ IsExpression
   }
 
   void test_parseRelationalExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x < y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -3683,10 +3598,9 @@ BinaryExpression
   }
 
   void test_parseRelationalExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super < y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -3699,12 +3613,11 @@ BinaryExpression
   }
 
   void test_parseRethrowExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = rethrow;
+//      ^^^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'rethrow' can't be used as an identifier because it's a keyword.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedIdentifierButGotKeyword, 8, 7),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3713,10 +3626,9 @@ SimpleIdentifier
   }
 
   void test_parseShiftExpression_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x << y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -3729,10 +3641,9 @@ BinaryExpression
   }
 
   void test_parseShiftExpression_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = super << y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 BinaryExpression
@@ -3749,10 +3660,9 @@ BinaryExpression
   }
 
   void test_parseSimpleIdentifier_builtInIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $lexeme;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3761,10 +3671,9 @@ SimpleIdentifier
   }
 
   void test_parseSimpleIdentifier_normalIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $lexeme;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3773,14 +3682,15 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_adjacent() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a' 'b;
+//      ^
+// [diag.expectedToken] Expected to find ';'.
+//       ^^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//          ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 9, 3),
-      error(diag.missingConstFinalVarOrType, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3805,10 +3715,9 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_endsWithInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x$y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3817,16 +3726,19 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_interpolated() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a ${b} c $this d;
+//      ^
+// [diag.expectedToken] Expected to find ';'.
+//        ^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
+//          ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^^^^^
+// [diag.expectedToken] Expected to find ';'.
+//                     ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 1),
-      error(diag.missingFunctionParameters, 10, 1),
-      error(diag.expectedToken, 12, 1),
-      error(diag.expectedToken, 17, 5),
-      error(diag.missingConstFinalVarOrType, 23, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3874,16 +3786,18 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_interpolated_void() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <html>$void</html>;
+//           ^
+// [diag.expectedToken] Expected to find ';'.
+//            ^^^^^
+// [diag.expectedToken] Expected to find '['.
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
+//                  ^
+// [diag.missingIdentifier] Expected an identifier.
+//                   ^^^^
+// [diag.expectedToken] Expected to find ','.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 13, 1),
-      error(diag.expectedToken, 14, 5),
-      error(diag.missingFunctionParameters, 14, 5),
-      error(diag.missingIdentifier, 20, 1),
-      error(diag.expectedToken, 21, 4),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3925,14 +3839,13 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_encodedSpace() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = \x20
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
 a;
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 1),
-      error(diag.expectedToken, 8, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3959,10 +3872,9 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_endsWithInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x$y;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -3971,16 +3883,16 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_multiline_escapedBackslash() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = \\
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 a;
+// [diag.missingConstFinalVarOrType][column 1][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 1),
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 9, 1),
-      error(diag.missingConstFinalVarOrType, 11, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4005,11 +3917,10 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_escapedBackslash_raw() {
-    var parseResult = parseStringWithErrors(r"""
+    var parseResult = parseTestCodeWithDiagnostics(r"""
 var v = r'''\\
 a''';
 """);
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r"""
 SimpleStringLiteral
@@ -4019,15 +3930,14 @@ a'''
   }
 
   void test_parseStringLiteral_multiline_escapedEolMarker() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = \
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
 a;
+// [diag.missingConstFinalVarOrType][column 1][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 1),
-      error(diag.expectedToken, 8, 1),
-      error(diag.missingConstFinalVarOrType, 10, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4052,11 +3962,10 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_escapedEolMarker_raw() {
-    var parseResult = parseStringWithErrors(r"""
+    var parseResult = parseTestCodeWithDiagnostics(r"""
 var v = r'''\
 a''';
 """);
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r"""
 SimpleStringLiteral
@@ -4066,16 +3975,16 @@ a'''
   }
 
   void test_parseStringLiteral_multiline_escapedSpaceAndEolMarker() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = \ \
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
+//        ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
 a;
+// [diag.missingConstFinalVarOrType][column 1][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 1),
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 10, 1),
-      error(diag.missingConstFinalVarOrType, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4100,11 +4009,10 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_escapedSpaceAndEolMarker_raw() {
-    var parseResult = parseStringWithErrors(r"""
+    var parseResult = parseTestCodeWithDiagnostics(r"""
 var v = r'''\ \
 a''';
 """);
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r"""
 SimpleStringLiteral
@@ -4114,14 +4022,13 @@ a'''
   }
 
   void test_parseStringLiteral_multiline_escapedTab() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = \t
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ';'.
 a;
 ''');
-    parseResult.assertErrors([
-      error(diag.missingIdentifier, 8, 1),
-      error(diag.expectedToken, 8, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4148,11 +4055,10 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_escapedTab_raw() {
-    var parseResult = parseStringWithErrors(r"""
+    var parseResult = parseTestCodeWithDiagnostics(r"""
 var v = r'''\t
 a''';
 """);
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r"""
 SimpleStringLiteral
@@ -4162,14 +4068,15 @@ a'''
   }
 
   void test_parseStringLiteral_multiline_quoteAfterInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $x'y;
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
+//        ^^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//          ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 2),
-      error(diag.expectedExecutable, 10, 3),
-      error(diag.unterminatedStringLiteral, 12, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -4178,14 +4085,15 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_multiline_startsWithInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ${x}y;
+//      ^
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//          ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 9, 1),
-      error(diag.missingConstFinalVarOrType, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4210,10 +4118,9 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_multiline_twoSpaces() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -4222,11 +4129,10 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_multiline_twoSpaces_raw() {
-    var parseResult = parseStringWithErrors(r"""
+    var parseResult = parseTestCodeWithDiagnostics(r"""
 var v = r'''  
 a''';
 """);
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r"""
 SimpleStringLiteral
@@ -4236,14 +4142,13 @@ a'''
   }
 
   void test_parseStringLiteral_multiline_untrimmed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v =  a
+//       ^
+// [diag.expectedToken] Expected to find ';'.
 b;
+// [diag.missingConstFinalVarOrType][column 1][length 1] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 9, 1),
-      error(diag.missingConstFinalVarOrType, 11, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4268,14 +4173,15 @@ CompilationUnit
   }
 
   void test_parseStringLiteral_quoteAfterInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = $x";
+//      ^^
+// [diag.expectedToken] Expected to find ';'.
+//        ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//         ^
+// [diag.unterminatedStringLiteral] Unterminated string literal.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 2),
-      error(diag.expectedExecutable, 10, 2),
-      error(diag.unterminatedStringLiteral, 11, 1),
-    ]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -4284,10 +4190,9 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SimpleIdentifier
@@ -4296,14 +4201,15 @@ SimpleIdentifier
   }
 
   void test_parseStringLiteral_startsWithInterpolation() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ${x}y;
+//      ^
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//          ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 ''');
-    parseResult.assertErrors([
-      error(diag.expectedToken, 8, 1),
-      error(diag.expectedExecutable, 9, 1),
-      error(diag.missingConstFinalVarOrType, 12, 1),
-    ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4328,12 +4234,11 @@ CompilationUnit
   }
 
   void test_parseSuperConstructorInvocation_named() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : super.a();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4368,12 +4273,11 @@ CompilationUnit
   }
 
   void test_parseSuperConstructorInvocation_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {
   C() : super();
 }
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4405,10 +4309,9 @@ CompilationUnit
   }
 
   void test_parseSymbolLiteral_builtInIdentifier() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = #dynamic.static.abstract;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SymbolLiteral
@@ -4421,10 +4324,9 @@ SymbolLiteral
   }
 
   void test_parseSymbolLiteral_multiple() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = #a.b.c;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SymbolLiteral
@@ -4437,10 +4339,9 @@ SymbolLiteral
   }
 
   void test_parseSymbolLiteral_operator() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = #==;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SymbolLiteral
@@ -4451,10 +4352,9 @@ SymbolLiteral
   }
 
   void test_parseSymbolLiteral_single() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = #a;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SymbolLiteral
@@ -4465,10 +4365,9 @@ SymbolLiteral
   }
 
   void test_parseSymbolLiteral_void() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = #void;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SymbolLiteral
@@ -4479,10 +4378,9 @@ SymbolLiteral
   }
 
   void test_parseThrowExpression() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = throw x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ThrowExpression
@@ -4493,10 +4391,9 @@ ThrowExpression
   }
 
   void test_parseThrowExpressionWithoutCascade() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = throw x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 ThrowExpression
@@ -4507,10 +4404,9 @@ ThrowExpression
   }
 
   void test_parseUnaryExpression_decrement_identifier_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --a[0];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4526,10 +4422,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_decrement_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4539,22 +4434,24 @@ PrefixExpression
 ''');
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_parseUnaryExpression_decrement_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --super;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
+PrefixExpression
+  operator: --
+  operand: SuperExpression
+    superKeyword: super
 ''');
   }
 
   void test_parseUnaryExpression_decrement_super_propertyAccess() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --super.x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4568,22 +4465,24 @@ PrefixExpression
 ''');
   }
 
-  @failingTest
+  @skippedTest // TODO(scheglov): fix it
   void test_parseUnaryExpression_decrement_super_withComment() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = /* 0 */ --super;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
+PrefixExpression
+  operator: --
+  operand: SuperExpression
+    superKeyword: super
 ''');
   }
 
   void test_parseUnaryExpression_increment_identifier_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ++a[0];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4599,10 +4498,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_increment_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ++x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4613,10 +4511,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_increment_super_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ++super[0];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4632,10 +4529,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_increment_super_propertyAccess() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ++super.x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4650,10 +4546,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_minus_identifier_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = -a[0];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4669,10 +4564,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_minus_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = -x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4683,10 +4577,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_minus_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = -super;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4697,10 +4590,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_not_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4711,10 +4603,11 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_not_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !super;
+//       ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    parseResult.assertErrors([error(diag.missingAssignableSelector, 9, 5)]);
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4725,10 +4618,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_tilda_normal() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ~x;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4739,10 +4631,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_tilda_super() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ~super;
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4753,10 +4644,9 @@ PrefixExpression
   }
 
   void test_parseUnaryExpression_tilde_identifier_index() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = ~a[0];
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
@@ -4772,10 +4662,9 @@ PrefixExpression
   }
 
   void test_setLiteral() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = {3};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -4789,10 +4678,9 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_const() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const {3, 6};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -4809,10 +4697,9 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_const_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = const <int>{3};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -4833,12 +4720,11 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_nested_typeArgument() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <Set<int>>{
   {3},
 };
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
@@ -4869,10 +4755,9 @@ SetOrMapLiteral
   }
 
   void test_setLiteral_typed() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int>{3};
 ''');
-    parseResult.assertNoErrors();
     var node = parseResult.findNode.singleVariableDeclaration.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral

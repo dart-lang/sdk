@@ -10,7 +10,7 @@ class Foo {
   final String x;
   final int y;
 
-  Foo(this.x, this.y);
+  new(this.x, this.y);
 }
 
 Future<void> main(List<String> args) async {

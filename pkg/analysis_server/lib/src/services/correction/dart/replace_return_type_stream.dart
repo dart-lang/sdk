@@ -14,7 +14,7 @@ class ReplaceReturnTypeStream extends ResolvedCorrectionProducer {
   /// The text for the type argument to 'Stream'.
   String _typeArgument = '';
 
-  ReplaceReturnTypeStream({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

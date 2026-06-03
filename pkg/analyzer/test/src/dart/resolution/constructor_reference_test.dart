@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,14 @@ main() {
     defineReflectiveTests(
       ConstructorReferenceResolutionTest_WithoutConstructorTearoffs,
     );
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ConstructorReferenceResolutionTest extends PubPackageResolutionTest {
   test_abstractClass_factory() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
   factory A() => A2();
 }
@@ -32,7 +33,7 @@ foo() {
 }
 ''');
 
-    var node = findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -51,20 +52,19 @@ ConstructorReference
   }
 
   test_abstractClass_generative() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
   A();
 }
 
 foo() {
   A.new;
+//^^^^^
+// [diag.tearoffOfGenerativeConstructorOfAbstractClass] A generative constructor of an abstract class can't be torn off.
 }
-''',
-      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 39, 5)],
-    );
+''');
 
-    var node = findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -83,8 +83,7 @@ ConstructorReference
   }
 
   test_abstractClass_redirecting() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
   A(): this.two();
 
@@ -93,12 +92,12 @@ abstract class A {
 
 foo() {
   A.new;
+//^^^^^
+// [diag.tearoffOfGenerativeConstructorOfAbstractClass] A generative constructor of an abstract class can't be torn off.
 }
-''',
-      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 63, 5)],
-    );
+''');
 
-    var node = findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -117,27 +116,20 @@ ConstructorReference
   }
 
   test_class_generic_inferFromContext_badTypeArgument() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T extends num> {
   A.foo();
 }
 
 A<String> Function() bar() {
+// [context 1][column 1][length 9] The inverted type 'A<String>' is also not regular-bounded, so the type is not well-bounded.
+//^^^^^^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
   return A.foo;
 }
-''',
-      [
-        error(
-          diag.typeArgumentNotMatchingBounds,
-          41,
-          6,
-          contextMessages: [message(testFile, 39, 9)],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -158,7 +150,7 @@ ConstructorReference
   }
 
   test_class_generic_named_inferTypeFromContext() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
@@ -168,7 +160,7 @@ A<int> Function() bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -189,7 +181,7 @@ ConstructorReference
   }
 
   test_class_generic_named_uninstantiated() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
@@ -199,7 +191,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -218,7 +210,7 @@ ConstructorReference
   }
 
   test_class_generic_named_uninstantiated_bound() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T extends num> {
   A.foo();
 }
@@ -228,7 +220,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -247,7 +239,7 @@ ConstructorReference
   }
 
   test_class_nonGeneric_const() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   const A();
 }
@@ -255,7 +247,7 @@ class A {
 const a1 = A.new;
 ''');
 
-    var node = findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -274,7 +266,7 @@ ConstructorReference
   }
 
   test_class_nonGeneric_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A.foo();
 }
@@ -284,7 +276,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -303,7 +295,7 @@ ConstructorReference
   }
 
   test_class_nonGeneric_unnamed() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A();
 }
@@ -313,7 +305,7 @@ bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorReference('A.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -338,14 +330,14 @@ class A {
 }
 typedef TA = A;
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bar() {
   a.TA.foo;
 }
 ''');
 
-    var node = findNode.constructorReference('a.TA.foo;');
+    var node = result.findNode.constructorReference('a.TA.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -374,14 +366,14 @@ class A {
 }
 typedef TA = A;
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bar() {
   a.TA.new;
 }
 ''');
 
-    var node = findNode.constructorReference('a.TA.new;');
+    var node = result.findNode.constructorReference('a.TA.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -409,14 +401,14 @@ class A {
   A.foo();
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bar() {
   a.A.foo;
 }
 ''');
 
-    var node = findNode.constructorReference('a.A.foo;');
+    var node = result.findNode.constructorReference('a.A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -444,14 +436,14 @@ class A {
   A();
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 bar() {
   a.A.new;
 }
 ''');
 
-    var node = findNode.constructorReference('a.A.new;');
+    var node = result.findNode.constructorReference('a.A.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -474,7 +466,7 @@ ConstructorReference
   }
 
   test_typeAlias_generic_const() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   const A();
 }
@@ -483,7 +475,7 @@ typedef TA<T> = A<T>;
 const a = TA.new;
 ''');
 
-    var node = findNode.constructorReference('TA.new;');
+    var node = result.findNode.constructorReference('TA.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -502,7 +494,7 @@ ConstructorReference
   }
 
   test_typeAlias_generic_named_uninstantiated() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   A.foo();
 }
@@ -513,7 +505,7 @@ bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('TA.foo;');
+    var node = result.findNode.constructorReference('TA.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -532,7 +524,7 @@ ConstructorReference
   }
 
   test_typeAlias_instantiated_const() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   const A();
 }
@@ -541,7 +533,7 @@ typedef TA = A<int>;
 const a = TA.new;
 ''');
 
-    var node = findNode.constructorReference('TA.new;');
+    var node = result.findNode.constructorReference('TA.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -564,7 +556,7 @@ ConstructorReference
   }
 
   test_typeAlias_instantiated_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
@@ -575,7 +567,7 @@ bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('TA.foo;');
+    var node = result.findNode.constructorReference('TA.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -602,7 +594,7 @@ ConstructorReference
 class ConstructorReferenceResolutionTest_TypeArgs
     extends PubPackageResolutionTest {
   test_alias_generic_const() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   const A.foo();
 }
@@ -611,7 +603,7 @@ typedef TA<T, U> = A<U, T>;
 const a = TA<int, String>.foo;
 ''');
 
-    var node = findNode.constructorReference('TA<int, String>.foo;');
+    var node = result.findNode.constructorReference('TA<int, String>.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -646,7 +638,7 @@ ConstructorReference
   }
 
   test_alias_generic_const_differingNumberOfTypeParameters() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   A.foo() {}
 }
@@ -655,7 +647,7 @@ typedef TA<T> = A<T, String>;
 const x = TA<int>.foo;
 ''');
 
-    var node = findNode.constructorReference('TA<int>.foo;');
+    var node = result.findNode.constructorReference('TA<int>.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -686,7 +678,7 @@ ConstructorReference
   }
 
   test_alias_generic_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   A.foo();
 }
@@ -697,7 +689,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('TA<int, String>.foo;');
+    var node = result.findNode.constructorReference('TA<int, String>.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -732,7 +724,7 @@ ConstructorReference
   }
 
   test_alias_generic_uninstantiated_const() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T, U> {
   const A.foo();
 }
@@ -741,7 +733,7 @@ typedef TA<T, U> = A<U, T>;
 const a = TA.foo;
 ''');
 
-    var node = findNode.constructorReference('TA.foo;');
+    var node = result.findNode.constructorReference('TA.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -760,7 +752,7 @@ ConstructorReference
   }
 
   test_alias_generic_unnamed() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A();
 }
@@ -771,7 +763,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('TA<int>.new;');
+    var node = result.findNode.constructorReference('TA<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -802,8 +794,7 @@ ConstructorReference
   }
 
   test_alias_generic_with_inferred_type_parameter() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class C<T> {
   final T x;
   C(this.x);
@@ -811,14 +802,14 @@ class C<T> {
 typedef Direct<T> = C<T>;
 void main() {
   var x = const <C<int> Function(int)>[Direct.new];
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
-''',
-      [error(diag.unusedLocalVariable, 87, 1)],
-    );
+''');
   }
 
   test_alias_genericWithBound_unnamed() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A();
 }
@@ -829,7 +820,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('TA<int>.new;');
+    var node = result.findNode.constructorReference('TA<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -860,8 +851,7 @@ ConstructorReference
   }
 
   test_alias_genericWithBound_unnamed_badBound() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A();
 }
@@ -869,12 +859,12 @@ typedef TA<T extends num> = A<T>;
 
 void bar() {
   TA<String>.new;
+//   ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
 }
-''',
-      [error(diag.typeArgumentNotMatchingBounds, 75, 6)],
-    );
+''');
 
-    var node = findNode.constructorReference('TA<String>.new;');
+    var node = result.findNode.constructorReference('TA<String>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -905,7 +895,7 @@ ConstructorReference
   }
 
   test_class_generic_const() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   const A();
 }
@@ -913,7 +903,7 @@ class A<T> {
 const a = A<int>.new;
 ''');
 
-    var node = findNode.constructorReference('A<int>.new;');
+    var node = result.findNode.constructorReference('A<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -944,7 +934,7 @@ ConstructorReference
   }
 
   test_class_generic_named() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
@@ -954,7 +944,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A<int>.foo;');
+    var node = result.findNode.constructorReference('A<int>.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -985,71 +975,61 @@ ConstructorReference
   }
 
   test_class_generic_named_cascade() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
 
 void bar() {
   A<int>..foo;
+// ^
+// [diag.undefinedOperator] The operator '<' isn't defined for the type 'Type'.
+//     ^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
+//      ^^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [
-        error(diag.undefinedOperator, 43, 1),
-        error(diag.equalityCannotBeEqualityOperand, 47, 1),
-        error(diag.missingIdentifier, 48, 2),
-      ],
-    );
+''');
     // The parser produces nonsense here because the `<` disambiguates as a
     // relational operator, so no need to assert anything about analysis
     // results.
   }
 
   test_class_generic_named_nullAware() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
 
 void bar() {
   A<int>?.foo;
+// ^
+// [diag.undefinedOperator] The operator '<' isn't defined for the type 'Type'.
+//     ^
+// [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
+//      ^^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [
-        error(diag.undefinedOperator, 43, 1),
-        error(diag.equalityCannotBeEqualityOperand, 47, 1),
-        error(diag.missingIdentifier, 48, 2),
-      ],
-    );
+''');
     // The parser produces nonsense here because the `<` disambiguates as a
     // relational operator, so no need to assert anything about analysis
     // results.
   }
 
   test_class_generic_named_typeArgs() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
 
 void bar() {
   A<int>.foo<int>;
+//          ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.foo' doesn't have type parameters.
 }
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          52,
-          5,
-          messageContains: ["The constructor 'A.foo'"],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.constructorReference('A<int>.foo<int>;');
+    var node = result.findNode.constructorReference('A<int>.foo<int>;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1080,27 +1060,19 @@ ConstructorReference
   }
 
   test_class_generic_new_typeArgs() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.new();
 }
 
 void bar() {
   A<int>.new<int>;
+//          ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.new' doesn't have type parameters.
 }
-''',
-      [
-        error(
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          52,
-          5,
-          messageContains: ["The constructor 'A.new'"],
-        ),
-      ],
-    );
+''');
 
-    var node = findNode.constructorReference('A<int>.new<int>;');
+    var node = result.findNode.constructorReference('A<int>.new<int>;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1131,20 +1103,19 @@ ConstructorReference
   }
 
   test_class_generic_nonConstructor() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   static int i = 1;
 }
 
 void bar() {
   A<int>.i;
+//^^^^^^^^
+// [diag.classInstantiationAccessToStaticMember] The static member 'i' can't be accessed on a class instantiation.
 }
-''',
-      [error(diag.classInstantiationAccessToStaticMember, 51, 8)],
-    );
+''');
 
-    var node = findNode.constructorReference('A<int>.i;');
+    var node = result.findNode.constructorReference('A<int>.i;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1171,20 +1142,19 @@ ConstructorReference
   }
 
   test_class_generic_nothing_hasNamedConstructor() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo();
 }
 
 void bar() {
   A<int>.;
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
 }
-''',
-      [error(diag.missingIdentifier, 49, 1)],
-    );
+''');
 
-    var node = findNode.constructorReference('A<int>.;');
+    var node = result.findNode.constructorReference('A<int>.;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1211,7 +1181,7 @@ ConstructorReference
   }
 
   test_class_generic_unnamed() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A();
 }
@@ -1221,7 +1191,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A<int>.new;');
+    var node = result.findNode.constructorReference('A<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1252,7 +1222,7 @@ ConstructorReference
   }
 
   test_class_generic_unnamed_partOfPropertyAccess() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A();
 }
@@ -1262,7 +1232,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A<int>.new');
+    var node = result.findNode.constructorReference('A<int>.new');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1293,7 +1263,7 @@ ConstructorReference
   }
 
   test_class_genericWithBound_unnamed() async {
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T extends num> {
   A();
 }
@@ -1303,7 +1273,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('A<int>.new;');
+    var node = result.findNode.constructorReference('A<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1334,20 +1304,19 @@ ConstructorReference
   }
 
   test_class_genericWithBound_unnamed_badBound() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T extends num> {
   A();
 }
 
 void bar() {
   A<String>.new;
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
 }
-''',
-      [error(diag.typeArgumentNotMatchingBounds, 52, 6)],
-    );
+''');
 
-    var node = findNode.constructorReference('A<String>.new;');
+    var node = result.findNode.constructorReference('A<String>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1384,14 +1353,14 @@ class A<T> {
 }
 typedef TA<T> = A<T>;
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void bar() {
   a.TA<int>.new;
 }
 ''');
 
-    var node = findNode.constructorReference('a.TA<int>.new;');
+    var node = result.findNode.constructorReference('a.TA<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1431,14 +1400,14 @@ class A<T> {
   A.foo();
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void bar() {
   a.A<int>.foo;
 }
 ''');
 
-    var node = findNode.constructorReference('a.A<int>.foo;');
+    var node = result.findNode.constructorReference('a.A<int>.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1478,7 +1447,7 @@ class A<T> {
   A();
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 extension on Function {
   void m() {}
@@ -1488,7 +1457,7 @@ void bar() {
 }
 ''');
 
-    var node = findNode.constructorReference('a.A<int>.new');
+    var node = result.findNode.constructorReference('a.A<int>.new');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1528,14 +1497,14 @@ class A<T> {
   A();
 }
 ''');
-    await assertNoErrorsInCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as a;
 void bar() {
   a.A<int>.new;
 }
 ''');
 
-    var node = findNode.constructorReference('a.A<int>.new;');
+    var node = result.findNode.constructorReference('a.A<int>.new;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1575,20 +1544,19 @@ class ConstructorReferenceResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest
     with WithoutConstructorTearoffsMixin {
   test_class_generic_nonConstructor() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   static int i = 1;
 }
 
 void bar() {
   A<int>.i;
+// ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 }
-''',
-      [error(diag.experimentNotEnabled, 52, 5)],
-    );
+''');
 
-    var node = findNode.constructorReference('A<int>.i;');
+    var node = result.findNode.constructorReference('A<int>.i;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName
@@ -1615,20 +1583,19 @@ ConstructorReference
   }
 
   test_constructorTearoff() async {
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class A {
   A.foo();
 }
 
 void bar() {
   A.foo;
+//^^^^^
+// [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
 }
-''',
-      [error(diag.sdkVersionConstructorTearoffs, 39, 5)],
-    );
+''');
 
-    var node = findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorReference('A.foo;');
     assertResolvedNodeText(node, r'''
 ConstructorReference
   constructorName: ConstructorName

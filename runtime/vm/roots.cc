@@ -12,6 +12,18 @@
 
 namespace dart {
 
+void Roots::InitVTables() {
+#define DECL(type, name) name().initRO(name().ptr());
+  HANDLE_ROOTS_LIST(DECL)
+#undef DECL
+  for (intptr_t i = 0; i < kNumPredefinedSymbols + 256; i++) {
+    symbol_handle(i).initRO(symbol_handle(i).ptr());
+  }
+  for (intptr_t i = 0; i < kNumStubEntries; i++) {
+    stub_handle(i).initRO(stub_handle(i).ptr());
+  }
+}
+
 void Roots::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   COMPILE_ASSERT(ARRAY_SIZE(raw_.cached_args_descriptors_) ==
                  ArgumentsDescriptor::kCachedDescriptorCount);
@@ -20,17 +32,18 @@ void Roots::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   COMPILE_ASSERT(sizeof(Roots::ApiHandle) == sizeof(LocalHandle));
   COMPILE_ASSERT(sizeof(Roots::VMHandle) == kVMHandleSizeInWords * kWordSize);
 
-  ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&raw_);
-  visitor->VisitPointers(from, from + sizeof(Raw) / sizeof(ObjectPtr) - 1);
+  visitor->set_gc_root_type("bootstrap roots");
 
-  from = reinterpret_cast<ObjectPtr*>(&api_);
-  visitor->VisitPointers(from, from + sizeof(Api) / sizeof(ObjectPtr) - 1);
+  visitor->VisitPointers(from(), to());
+  visitor->VisitPointers(fromah(), toah());
 
-  VMHandle* fromh = reinterpret_cast<VMHandle*>(&internal_);
-  VMHandle* toh = fromh + sizeof(Internal) / sizeof(VMHandle) - 1;
+  VMHandle* fromh = this->fromh();
+  VMHandle* toh = this->toh();
   for (VMHandle* h = fromh; h <= toh; h++) {
     visitor->VisitPointer(&(h->ptr));
   }
+
+  visitor->clear_gc_root_type();
 }
 
 }  // namespace dart

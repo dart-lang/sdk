@@ -22,10 +22,6 @@
 #include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 
-#if defined(DEBUG)
-#define SNAPSHOT_BACKTRACE
-#endif
-
 namespace dart {
 
 // Forward declarations.
@@ -170,7 +166,7 @@ class ImageReader : public ZoneObject {
  public:
   ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
 
-  ApiErrorPtr VerifyAlignment() const;
+  char* VerifyAlignment() const;
 
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsAt(uint32_t offset) const);
   ONLY_IN_PRECOMPILED(uword GetBareInstructionsEnd() const);
@@ -479,14 +475,11 @@ class ImageWriter : public ValueObject {
   static constexpr intptr_t SectionLabel(ProgramSection section, bool vm) {
     switch (section) {
       case ProgramSection::Text:
-        return vm ? SharedObjectWriter::kVmInstructionsLabel
-                  : SharedObjectWriter::kIsolateInstructionsLabel;
+        return SharedObjectWriter::kIsolateInstructionsLabel;
       case ProgramSection::Data:
-        return vm ? SharedObjectWriter::kVmDataLabel
-                  : SharedObjectWriter::kIsolateDataLabel;
+        return SharedObjectWriter::kIsolateDataLabel;
       case ProgramSection::Bss:
-        return vm ? SharedObjectWriter::kVmBssLabel
-                  : SharedObjectWriter::kIsolateBssLabel;
+        return SharedObjectWriter::kIsolateBssLabel;
       case ProgramSection::BuildId:
         // Both vm and isolate share the build id section.
         return SharedObjectWriter::kBuildIdLabel;
@@ -769,10 +762,6 @@ class ImageWriter : public ValueObject {
 };
 
 #if defined(DART_PRECOMPILER)
-static_assert(ImageWriter::SectionLabel(ImageWriter::ProgramSection::Bss,
-                                        /*vm=*/true) ==
-                  SharedObjectWriter::kVmBssLabel,
-              "unexpected label for VM BSS section");
 static_assert(ImageWriter::SectionLabel(ImageWriter::ProgramSection::Bss,
                                         /*vm=*/false) ==
                   SharedObjectWriter::kIsolateBssLabel,

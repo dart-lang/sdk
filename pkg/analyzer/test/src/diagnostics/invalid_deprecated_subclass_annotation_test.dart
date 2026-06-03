@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,87 +15,73 @@ main() {
 @reflectiveTest
 class InvalidDeprecatedSubclassAnnotationTest extends PubPackageResolutionTest {
   test_class() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
 class C {}
 ''');
   }
 
   test_class_final() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 final class C {}
-''',
-      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
-    );
+''');
   }
 
   test_class_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 class _C {}
-''',
-      [
-        error(diag.invalidDeprecatedSubclassAnnotation, 1, 19),
-        error(diag.unusedElement, 29, 2),
-      ],
-    );
+//    ^^
+// [diag.unusedElement] The declaration '_C' isn't referenced.
+''');
   }
 
   test_class_sealed() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 sealed class C {}
-''',
-      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
-    );
+''');
   }
 
   test_enum() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 enum E { one; }
-''',
-      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
-    );
+''');
   }
 
   test_mixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
 mixin M {}
 ''');
   }
 
   test_mixin_base() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 base mixin M {}
-''',
-      [error(diag.invalidDeprecatedSubclassAnnotation, 1, 19)],
-    );
+''');
   }
 
   test_mixin_private() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 mixin _M {}
-''',
-      [
-        error(diag.invalidDeprecatedSubclassAnnotation, 1, 19),
-        error(diag.unusedElement, 29, 2),
-      ],
-    );
+//    ^^
+// [diag.unusedElement] The declaration '_M' isn't referenced.
+''');
   }
 
   test_typeAlias_ofClass() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class C {}
 @Deprecated.subclass()
 typedef D = C;
@@ -104,13 +89,11 @@ typedef D = C;
   }
 
   test_typeAlias_ofFinalClass() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 final class C {}
 @Deprecated.subclass()
+// [diag.invalidDeprecatedSubclassAnnotation][column 2][length 19] The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins.
 typedef D = C;
-''',
-      [error(diag.invalidDeprecatedSubclassAnnotation, 18, 19)],
-    );
+''');
   }
 }

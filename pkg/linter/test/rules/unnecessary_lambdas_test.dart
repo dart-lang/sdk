@@ -45,14 +45,11 @@ var x = [].map((e) => C.new(e));
     newFile('$testPackageLibPath/b.dart', r'''
 class C {}
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'b.dart' as b;
 
-var x = [() => b.C()];
-''',
-      [lint(32, 11)],
-    );
+var x = [[!() => b.C()!]];
+''');
   }
 
   test_constructorCall_importedDeferred() async {
@@ -85,13 +82,10 @@ var x = [].map((e) => C.named(e));
   }
 
   test_constructorCall_noArgs() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {}
-var x = [() => C()];
-''',
-      [lint(20, 9)],
-    );
+var x = [[!() => C()!]];
+''');
   }
 
   test_constructorCall_noParameter_oneArg() async {
@@ -153,24 +147,18 @@ var x = [() => f<int>()];
   }
 
   test_functionCall_matchingArg() async {
-    await assertDiagnostics(
-      r'''
-var x = [].forEach((x) => print(x));
-''',
-      [lint(19, 15)],
-    );
+    await assertDiagnosticsFromMarkdown(r'''
+var x = [].forEach([!(x) => print(x)!]);
+''');
   }
 
   test_functionCall_singleStatement() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 final f = () {};
-final l = () {
+final l = [!() {
   f();
-};
-''',
-      [lint(27, 13)],
-    );
+}!];
+''');
   }
 
   test_functionTearoff() async {
@@ -183,16 +171,13 @@ var x = [].forEach(print);
     newFile('$testPackageLibPath/b.dart', r'''
 bool isB(Object o) => true;
 ''');
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 import 'b.dart' as b;
 
 void f() {
-  [].where((o) => b.isB(o));
+  [].where([!(o) => b.isB(o)!]);
 }
-''',
-      [lint(45, 15)],
-    );
+''');
   }
 
   test_importedFunction_deferred() async {
@@ -273,15 +258,12 @@ void f() {
   }
 
   test_methodCallOnFinalLocal_matchingArg() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 void f() {
   final l = [];
-  [].where((e) => l.contains(e));
+  [].where([!(e) => l.contains(e)!]);
 }
-''',
-      [lint(38, 20)],
-    );
+''');
   }
 
   test_methodCallOnLateFinalLocal_matchingArg() async {
@@ -333,19 +315,16 @@ void f() {
   }
 
   test_noParameter_targetIsFinalField() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 class C {
   final f = 1;
   Function m() {
-    return () {
+    return [!() {
       f.toString();
-    };
+    }!];
   }
 }
-''',
-      [lint(53, 30)],
-    );
+''');
   }
 
   test_noParameter_targetIsGetter() async {
@@ -375,15 +354,12 @@ Future<void> foo({required String? txt}) async {}
   }
 
   test_targetIsFinalParameter() async {
-    await assertDiagnostics(
-      r'''
+    await assertDiagnosticsFromMarkdown(r'''
 // @dart = 3.10
 void f(List<String> list) {
-  list.where((final e) => ((a) => e.contains(a))(e));
+  list.where((final e) => ([!(a) => e.contains(a)!])(e));
 }
-''',
-      [lint(71, 20)],
-    );
+''');
   }
 
   test_targetIsUntypedParameter() async {

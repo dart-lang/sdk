@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedExtendTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -21,13 +22,12 @@ class DeprecatedExtendTest extends PubPackageResolutionTest {
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {}
-''',
-      [error(diag.deprecatedExtend, 37, 3)],
-    );
+//                ^^^
+// [diag.deprecatedExtend] Extending 'Foo' is deprecated.
+''');
   }
 
   test_annotatedClass_indirect() async {
@@ -37,7 +37,7 @@ class Foo {}
 class Bar extends Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Baz extends Bar {}
 ''');
@@ -50,7 +50,7 @@ class Foo {}
 typedef Foo2 = Foo;
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo2 {}
 ''');
@@ -63,13 +63,12 @@ class Foo = Object with M;
 mixin M {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {}
-''',
-      [error(diag.deprecatedExtend, 37, 3)],
-    );
+//                ^^^
+// [diag.deprecatedExtend] Extending 'Foo' is deprecated.
+''');
   }
 
   test_classTypeAlias() async {
@@ -78,18 +77,17 @@ class Bar extends Foo {}
 class Foo {}
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 mixin M {}
 class Bar = Foo with M;
-''',
-      [error(diag.deprecatedExtend, 42, 3)],
-    );
+//          ^^^
+// [diag.deprecatedExtend] Extending 'Foo' is deprecated.
+''');
   }
 
   test_insideLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 @Deprecated.extend()
 class Foo {}
 class Bar extends Foo {}
@@ -101,7 +99,7 @@ class Bar extends Foo {}
 class Foo {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'foo.dart';
 class Bar extends Foo {}
 ''');

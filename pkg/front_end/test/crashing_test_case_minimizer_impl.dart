@@ -185,7 +185,7 @@ class TestMinimizer {
 
   static const int _$LF = 10;
 
-  TestMinimizer(this._settings);
+  new(this._settings);
 
   bool? _oldEchoMode;
   bool? _oldLineMode;
@@ -2408,7 +2408,7 @@ class _CompilationHelperClass {
   Uint8List latestCrashData;
   final Uint8List originalData;
 
-  _CompilationHelperClass(this.originalData) : latestCrashData = originalData;
+  new(this.originalData) : latestCrashData = originalData;
 }
 
 class _Replacement implements Comparable<_Replacement> {
@@ -2416,7 +2416,7 @@ class _Replacement implements Comparable<_Replacement> {
   final int to;
   final String? nullOrReplacement;
 
-  _Replacement(this.from, this.to, {this.nullOrReplacement});
+  new(this.from, this.to, {this.nullOrReplacement});
 
   @override
   int compareTo(_Replacement other) {
@@ -2475,7 +2475,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
   @override
   final Uri uri;
-  _FakeFileSystemEntity(this.fs, this.uri);
+  new(this.fs, this.uri);
 
   void _ensureCachedIfOk() {
     if (fs.data.containsKey(uri)) return;
@@ -2523,5 +2523,5 @@ class _FakeFileSystemEntity extends FileSystemEntity {
 }
 
 class _DoesntCrashOnInput {
-  _DoesntCrashOnInput();
+  new();
 }

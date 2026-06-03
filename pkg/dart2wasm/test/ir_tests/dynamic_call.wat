@@ -4,7 +4,7 @@
   (type $Array<Object?> (array (field (mut (ref null $#Top)))))
   (type $BoxedBool (sub final $#Top (struct
     (field $field0 i32)
-    (field $value (mut i32)))))
+    (field $value i32))))
   (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
@@ -46,7 +46,7 @@
   (table $dtable0 3 i31ref)
   (table $dtable2 3 funcref)
   (global $1 (ref $BoxedInt)
-    (i32.const 63)
+    (i32.const 85)
     (i64.const 1)
     (struct.new $BoxedInt))
   (global $true (ref $BoxedBool)

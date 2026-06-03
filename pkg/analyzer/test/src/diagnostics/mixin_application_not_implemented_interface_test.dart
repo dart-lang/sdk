@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinApplicationNotImplementedInterfaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -18,23 +19,22 @@ class MixinApplicationNotImplementedInterfaceTest
     extends PubPackageResolutionTest {
   test_class_hasRecursion() async {
     // https://github.com/dart-lang/sdk/issues/61829
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class A {}
 abstract class X with Unresolved, M, CycleWithX {}
+//             ^
+// [diag.recursiveInterfaceInheritance] 'X' can't be a superinterface of itself: CycleWithX, X.
+//                    ^^^^^^^^^^
+// [diag.mixinOfNonClass] Classes can only mix in mixins and classes.
 mixin M on A {}
 mixin CycleWithX on X {}
-''',
-      [
-        error(diag.recursiveInterfaceInheritance, 26, 1),
-        error(diag.mixinOfNonClass, 33, 10),
-        error(diag.recursiveInterfaceInheritance, 84, 10),
-      ],
-    );
+//    ^^^^^^^^^^
+// [diag.recursiveInterfaceInheritance] 'CycleWithX' can't be a superinterface of itself: CycleWithX, X.
+''');
   }
 
   test_class_matchingInterface() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
@@ -43,7 +43,7 @@ class C extends A<int> with M {}
   }
 
   test_class_matchingInterface_inPreviousMixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
 class B {}
 mixin M1 implements A<B> {}
@@ -53,45 +53,62 @@ class C extends Object with M1, M2 {}
   }
 
   test_class_noMatchingInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
 class C extends Object with M {}
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 84, 1)],
-    );
+//                          ^
+// [diag.mixinApplicationNotImplementedInterface] 'M<dynamic>' can't be mixed onto 'Object' because 'Object' doesn't implement 'A<dynamic>'.
+''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_noMatchingInterface_fromAugmentation() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 class B with M {}
+//           ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Object' because 'Object' doesn't implement 'A'.
 mixin M {}
 class A {}
 augment mixin M on A {}
+''');
+  }
+
+  test_class_noMatchingInterface_fromAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+class B with M {}
+//           ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Object' because 'Object' doesn't implement 'A'.
+mixin M {}
+class A {}
 ''',
-      [error(diag.mixinApplicationNotImplementedInterface, 13, 1)],
-    );
+      b: r'''
+part of 'a.dart';
+
+augment mixin M on A {}
+''',
+    });
   }
 
   test_class_noMatchingInterface_withTypeArguments() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
 class C extends Object with M<int> {}
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 84, 1)],
-    );
+//                          ^
+// [diag.mixinApplicationNotImplementedInterface] 'M<int>' can't be mixed onto 'Object' because 'Object' doesn't implement 'A<int>'.
+''');
   }
 
   test_class_noMemberErrors() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
@@ -107,13 +124,13 @@ class C {
 }
 
 class X = C with M;
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 134, 1)],
-    );
+//               ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'C' because 'C' doesn't implement 'A'.
+''');
   }
 
   test_class_noSuperclassConstraint() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
 class B {}
 mixin M<T> {}
@@ -123,13 +140,15 @@ class C extends Object with M {}
 
   test_class_recursiveSubtypeCheck() async {
     // See dartbug.com/32353 for a detailed explanation.
-    await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 class ioDirectory implements ioFileSystemEntity {}
 
 class ioFileSystemEntity {}
 
 abstract class _LocalDirectory
+//             ^^^^^^^^^^^^^^^
+// [diag.conflictingGenericInterfaces] The class '_LocalDirectory' can't implement both 'ForwardingFileSystemEntity<_LocalDirectory, ioDirectory>' and 'ForwardingFileSystemEntity<Directory, ioDirectory>' because the type arguments are different.
+// [diag.unusedElement] The declaration '_LocalDirectory' isn't referenced.
     extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
     with ForwardingDirectory, DirectoryAddOnsMixin {}
 
@@ -149,57 +168,49 @@ mixin ForwardingDirectory<T extends Directory>
 abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 mixin DirectoryAddOnsMixin implements Directory {}
-''',
-      [
-        error(diag.conflictingGenericInterfaces, 96, 15),
-        error(diag.unusedElement, 96, 15),
-      ],
-    );
+''');
 
-    var mixins = findElement2.class_('_LocalDirectory').mixins;
+    var mixins = result.findElement.class_('_LocalDirectory').mixins;
     assertType(mixins[0], 'ForwardingDirectory<Directory>');
   }
 
   test_classTypeAlias_generic() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 mixin M on A<int> {}
 
 class X = A<double> with M;
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 62, 1)],
-    );
+//                       ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'A<double>' because 'A<double>' doesn't implement 'A<int>'.
+''');
   }
 
   test_classTypeAlias_noMatchingInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
 class B {}
 mixin M<T> on A<T> {}
 class C = Object with M;
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 78, 1)],
-    );
+//                    ^
+// [diag.mixinApplicationNotImplementedInterface] 'M<dynamic>' can't be mixed onto 'Object' because 'Object' doesn't implement 'A<dynamic>'.
+''');
   }
 
   test_classTypeAlias_notGeneric() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 mixin M on A {}
 
 class X = Object with M;
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 51, 1)],
-    );
+//                    ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Object' because 'Object' doesn't implement 'A'.
+''');
   }
 
   test_classTypeAlias_OK_0() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 
 class X = Object with M;
@@ -207,7 +218,7 @@ class X = Object with M;
   }
 
   test_classTypeAlias_OK_1() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 mixin M on A {}
@@ -217,7 +228,7 @@ class X = A with M;
   }
 
   test_classTypeAlias_OK_generic() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
 mixin M<T> on A<T> {}
@@ -229,7 +240,7 @@ class C<T> = B<T> with M<T>;
   }
 
   test_classTypeAlias_OK_previousMixin() async {
-    await assertNoErrorsInCode(r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 
 mixin M1 implements A {}
@@ -241,8 +252,7 @@ class X = Object with M1, M2;
   }
 
   test_classTypeAlias_oneOfTwo() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B {}
 class C {}
@@ -250,13 +260,13 @@ class C {}
 mixin M on A, B {}
 
 class X = C with M;
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 71, 1)],
-    );
+//               ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'C' because 'C' doesn't implement 'A'.
+''');
   }
 
   test_enum_matchingInterface_inPreviousMixin() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 
 mixin M1 implements A {}
@@ -270,22 +280,21 @@ enum E with M1, M2 {
   }
 
   test_enum_noMatchingInterface() async {
-    await assertErrorsInCode(
-      '''
+    await resolveTestCodeWithDiagnostics('''
 abstract class A {}
 
 mixin M on A {}
 
 enum E with M {
+//          ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Enum' because 'Enum' doesn't implement 'A'.
   v
 }
-''',
-      [error(diag.mixinApplicationNotImplementedInterface, 50, 1)],
-    );
+''');
   }
 
   test_enum_noSuperclassConstraint() async {
-    await assertNoErrorsInCode('''
+    await resolveTestCodeWithDiagnostics('''
 mixin M {}
 
 enum E with M {
@@ -294,20 +303,11 @@ enum E with M {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_noSuperclassConstraint_augmented() async {
-    newFile(testFile.path, r'''
-part 'a.dart';
+    await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 enum E {v}
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment enum E with M {}
 ''');
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
   }
 }
