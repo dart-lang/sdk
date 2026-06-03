@@ -552,7 +552,7 @@ def AddCommonGnOptionArgs(parser):
                         action='store_true')
     parser.add_argument('--codesigning-identity',
                         help='Sign executables using the given identity.',
-                        default='-',
+                        default='',
                         type=str)
     parser.add_argument(
         '--include-experimental-vm-service',
