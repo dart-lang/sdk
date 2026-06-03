@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: unnecessary_type_name_in_constructor
-
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
@@ -35,7 +33,7 @@ class TestParser extends Parser {
   final bool trace;
   bool _inhibitPrinting = false;
 
-  TestParser(
+  new(
     Listener listener,
     this.trace, {
     required ExperimentalFeatures experimentalFeatures,

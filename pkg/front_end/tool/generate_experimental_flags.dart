@@ -247,17 +247,6 @@ String generateCfeFile(Uri repoDir) {
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
-''');
-  // This code generator generates Dart 3.12-style constructor declarations, so
-  // ignore the `unnecessary_type_name_in_constructor` lint.
-  // TODO(paulberry): switch the code generator to Dart 3.13-style constructor
-  // declarations, and remove this ignore comment.
-  sb.write('''
-
-// ignore_for_file: unnecessary_type_name_in_constructor
-''');
-
-  sb.write('''
 
 part of 'experimental_flags.dart';
 ''');
@@ -313,7 +302,7 @@ class ExperimentalFlag {
   ///    sdk/lib/_internal/allowed_experiments.json
   final Version experimentReleasedVersion;
 
-  const ExperimentalFlag(
+  const new(
       {required this.name,
       required this.isEnabledByDefault,
       required this.isExpired,
@@ -382,7 +371,7 @@ class GlobalFeatures {
   final Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   final Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
 
-  GlobalFeatures(this.explicitExperimentalFlags,
+  new(this.explicitExperimentalFlags,
       {this.allowedExperimentalFlags,
       this.defaultExperimentFlagsForTesting,
       this.experimentEnabledVersionForTesting,
@@ -438,7 +427,7 @@ class LibraryFeatures {
   final Uri canonicalUri;
   final Version libraryVersion;
 
-  LibraryFeatures(this.globalFeatures, this.canonicalUri, this.libraryVersion);
+  new(this.globalFeatures, this.canonicalUri, this.libraryVersion);
 ''');
   for (String key in keys) {
     String identifier = keyToIdentifier(key);

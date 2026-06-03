@@ -6,8 +6,6 @@
 //
 // Run 'dart pkg/front_end/tool/generate_ast_equivalence.dart' to update.
 
-// ignore_for_file: unnecessary_type_name_in_constructor
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'union_find.dart';
@@ -25,7 +23,7 @@ part 'equivalence_helpers.dart';
 class EquivalenceVisitor implements Visitor1<bool, Node> {
   final EquivalenceStrategy strategy;
 
-  EquivalenceVisitor({this.strategy = const EquivalenceStrategy()});
+  new({this.strategy = const EquivalenceStrategy()});
 
   @override
   bool visitAuxiliaryConstant(AuxiliaryConstant node, Node other) {
@@ -1574,7 +1572,7 @@ EquivalenceResult checkEquivalence(
 /// Custom strategies can be made by extending this strategy and override
 /// methods where exceptions to the structural equivalence are needed.
 class EquivalenceStrategy {
-  const EquivalenceStrategy();
+  const new();
 
   bool checkAuxiliaryConstant(
     EquivalenceVisitor visitor,
