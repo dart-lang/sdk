@@ -68,12 +68,10 @@ template("compile_platform") {
       depfile = outputs[0] + ".d"
 
       script = "$_dart_root/build/gn_run_binary.py"
-      args = [
-        "compiled_action",
-        rebase_path(get_label_info(compile_platform_tool, "root_out_dir") +
-                        "/compile_platform.exe",
-                    root_build_dir),
-      ]
+      args =
+          [ rebase_path(get_label_info(compile_platform_tool, "root_out_dir") +
+                            "/compile_platform.exe",
+                        root_build_dir) ]
       args += invoker.args
       if (defined(invoker.single_root_scheme)) {
         args += [ "--single-root-scheme=" + invoker.single_root_scheme ]

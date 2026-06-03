@@ -11,7 +11,6 @@ template("wasm_module") {
   action(target_name) {
     script = rebase_path("//build/gn_run_binary.py")
     args = [
-      "compiled_action",
       rebase_path("//third_party/emsdk/upstream/emscripten/emcc"),
       "--no-entry",
       rebase_path("//tests/web/wasm/ffi/${invoker.module_name}.c"),
