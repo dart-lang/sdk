@@ -31,6 +31,7 @@ import 'src/commands/install.dart';
 import 'src/commands/installed.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/run.dart';
+import 'src/commands/skills.dart';
 import 'src/commands/test.dart';
 import 'src/commands/tooling_daemon.dart';
 import 'src/commands/uninstall.dart';
@@ -153,6 +154,7 @@ class DartdevRunner extends CommandRunner<int> {
         dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       ),
     );
+    addCommand(SkillsCommand(verbose: verbose));
     addCommand(
       TestCommand(
         nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
