@@ -281,6 +281,7 @@ abstract class _EqualsAndHashCode {
 }
 
 mixin _OperatorEqualsAndHashCode implements _EqualsAndHashCode {
+  @pragma("vm:prefer-inline")
   int _hashCode(Object? e) => e.hashCode;
   bool _equals(Object? e1, Object? e2) => e1 == e2;
 }
