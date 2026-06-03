@@ -43,10 +43,8 @@ class IncludesTypeParametersNonCovariantly
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
-  IncludesTypeParametersNonCovariantly(
-    this._typeParametersToSearchFor, {
-    required Variance initialVariance,
-  }) : _variance = initialVariance;
+  new(this._typeParametersToSearchFor, {required Variance initialVariance})
+    : _variance = initialVariance;
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) {
@@ -366,7 +364,7 @@ abstract class TypeInferenceEngine {
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
 
-  TypeInferenceEngineImpl({this.benchmarker});
+  new({this.benchmarker});
 
   @override
   TypeInferrer createTypeInferrer({
@@ -492,7 +490,7 @@ class OperationsCfe
   final Map<DartType, DartType> typeCacheNullable;
   final Map<DartType, DartType> typeCacheLegacy;
 
-  OperationsCfe(
+  new(
     this.typeEnvironment, {
     required this.fieldNonPromotabilityInfo,
     required this.typeCacheNonNullable,

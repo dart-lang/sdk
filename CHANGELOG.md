@@ -116,6 +116,15 @@ To learn more about the feature, check out the
 
 ### Tools
 
+#### Analyzer
+
+- The following lint rules have been determined to be low value, and are
+  deprecated: `avoid_public_typedef_functions`, and `one_member_abstracts`.
+  If there is desire to keep using these, they can be re-implemented with
+  [analyzer plugins][].
+
+[analyzer plugins]: https://dart.dev/tools/analyzer-plugins
+
 #### Dart format
 
 These changes are not language versioned and affect formatting all code:

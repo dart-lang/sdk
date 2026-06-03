@@ -1325,6 +1325,69 @@ ClassDeclaration
 ''', withOffsets: true);
   }
 
+  test_field_abstract_static() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  abstract static int? foo;
+//         ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'abstract'.
+}
+''');
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+            question: ?
+          variables
+            VariableDeclaration
+              name: foo
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_field_abstract_static_language305() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {
+  abstract static int? foo;
+//^^^^^^^^
+// [diag.abstractStaticField] Static fields can't be declared 'abstract'.
+}
+''');
+    assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        fields: VariableDeclarationList
+          type: NamedType
+            name: int
+            question: ?
+          variables
+            VariableDeclaration
+              name: foo
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_field_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment class A {

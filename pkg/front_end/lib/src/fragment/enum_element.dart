@@ -29,7 +29,7 @@ class EnumElementDeclaration
 
   late final int elementIndex;
 
-  EnumElementDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
     type.registerInferable(this);
     type.registerInferredTypeListener(this);
@@ -496,7 +496,7 @@ class EnumElementFragment implements Fragment {
     name.length,
   );
 
-  EnumElementFragment({
+  new({
     required this.metadata,
     required this.name,
     required this.nameOffset,
@@ -556,7 +556,7 @@ class _EnumElementClassMember implements ClassMember {
 
   Covariance? _covariance;
 
-  _EnumElementClassMember(this._builder, this._fragment);
+  new(this._builder, this._fragment);
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -701,7 +701,7 @@ class _EnumElementClassMember implements ClassMember {
 class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
   final EnumElementFragment _fragment;
 
-  _EnumElementFragmentBodyBuilderContext(
+  new(
     this._fragment,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {

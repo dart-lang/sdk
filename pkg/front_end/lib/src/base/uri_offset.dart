@@ -14,7 +14,7 @@ class UriOffset implements UriOffsetLength {
   @override
   final int fileOffset;
 
-  UriOffset(this.fileUri, this.fileOffset);
+  new(this.fileUri, this.fileOffset);
 
   @override
   int get length => noLength;
@@ -34,7 +34,7 @@ class UriOffsetLength {
   /// message output for the source location.
   final int length;
 
-  UriOffsetLength(this.fileUri, this.fileOffset, this.length);
+  new(this.fileUri, this.fileOffset, this.length);
 }
 
 extension ProblemReportingExtension on ProblemReporting {

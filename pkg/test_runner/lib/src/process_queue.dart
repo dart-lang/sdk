@@ -804,10 +804,13 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
     steps.add(
-      () => device.pushCachedData("$buildPath/dart", '$devicedir/dart'),
+      () => device.pushCachedData('$buildPath/dartvm', '$devicedir/dartvm'),
     );
     steps.add(
-      () => device.pushCachedData("$buildPath/dartvm", '$devicedir/dartvm'),
+      () => device.pushCachedData(
+        '$buildPath/dartvm.sym',
+        '$devicedir/dartvm.sym',
+      ),
     );
     steps.add(
       () => device.runAdbCommand([
@@ -822,7 +825,7 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(
       () => device.runAdbShellCommand([
         'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
-            '$devicedir/dart',
+            '$devicedir/dartvm',
         '--android-log-to-stderr',
         ...arguments,
       ], timeout: timeoutDuration),

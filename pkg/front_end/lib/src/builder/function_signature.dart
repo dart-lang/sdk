@@ -16,7 +16,7 @@ abstract class FunctionSignature {
 class FunctionNodeSignature implements FunctionSignature {
   final FunctionNode _function;
 
-  FunctionNodeSignature(this._function);
+  new(this._function);
 
   @override
   FunctionType get functionType =>

@@ -23,7 +23,7 @@ Future<void> main(List<String> args) async {
 }
 
 class StaticTypeDataComputer extends CfeDataComputer<String> {
-  const StaticTypeDataComputer();
+  const new();
 
   /// Function that computes a data mapping for [library].
   ///
@@ -61,7 +61,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   final TypeEnvironment _environment;
   StaticTypeContext? _staticTypeContext;
 
-  StaticTypeDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
   ) : _environment = new TypeEnvironment(

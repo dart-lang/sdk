@@ -39,7 +39,7 @@ class ScopeProviderInfo {
   Scope? scope;
   Variable? thisVariable;
 
-  ScopeProviderInfo({required this.kind});
+  new({required this.kind});
 }
 
 abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
@@ -210,7 +210,7 @@ class CollectorScopeProviderInfo extends ScopeProviderInfo {
   /// case the current scope doesn't contain captured variables yet.
   CollectorScopeProviderInfo? capturedVariableCollector;
 
-  CollectorScopeProviderInfo({required super.kind});
+  new({required super.kind});
 }
 
 class LoopDepthAllocationStrategy

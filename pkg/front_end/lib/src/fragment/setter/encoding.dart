@@ -45,11 +45,7 @@ class ExtensionInstanceSetterEncoding extends SetterEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  ExtensionInstanceSetterEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  );
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionSetter;
@@ -66,7 +62,7 @@ class ExtensionStaticSetterEncoding extends SetterEncoding
   @override
   final SetterFragment _fragment;
 
-  ExtensionStaticSetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionSetter;
@@ -89,11 +85,7 @@ class ExtensionTypeInstanceSetterEncoding extends SetterEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  ExtensionTypeInstanceSetterEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  );
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeSetter;
@@ -110,7 +102,7 @@ class ExtensionTypeStaticSetterEncoding extends SetterEncoding
   @override
   final SetterFragment _fragment;
 
-  ExtensionTypeStaticSetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeSetter;
@@ -127,7 +119,7 @@ class RegularSetterEncoding extends SetterEncoding
   @override
   final SetterFragment _fragment;
 
-  RegularSetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.Method;

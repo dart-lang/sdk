@@ -3837,17 +3837,18 @@ class FormalParameterElementImpl extends PromotableElementImpl
     this._firstFragment, {
     FormalParameterElementImpl? baseFormalParameter,
   }) : _baseFormalParameter = baseFormalParameter {
-    FormalParameterFragmentImpl? fragment = _firstFragment;
-    while (fragment != null) {
+    for (var fragment in _fragments) {
       fragment._element = this;
-      fragment = fragment.nextFragment;
-    }
-
-    for (var typeParameter in _firstFragment._typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
-    for (var formalParameter in _firstFragment._formalParameters) {
-      formalParameter.initElement();
+      for (var typeParameter in fragment._typeParameters) {
+        if (typeParameter.previousFragment == null) {
+          TypeParameterElementImpl(firstFragment: typeParameter);
+        }
+      }
+      for (var formalParameter in fragment._formalParameters) {
+        if (formalParameter.previousFragment == null) {
+          formalParameter.initElement();
+        }
+      }
     }
   }
 

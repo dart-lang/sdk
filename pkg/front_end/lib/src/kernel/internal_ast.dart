@@ -110,7 +110,7 @@ class TryStatement extends InternalStatement {
   List<Catch> catchBlocks;
   Statement? finallyBlock;
 
-  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock) {
+  new(this.tryBlock, this.catchBlocks, this.finallyBlock) {
     tryBlock.parent = this;
     setParents(catchBlocks, this);
     finallyBlock?.parent = this;
@@ -146,7 +146,7 @@ class SwitchCaseImpl extends SwitchCase {
   final List<int> caseOffsets;
   final bool hasLabel;
 
-  SwitchCaseImpl(
+  new(
     this.caseOffsets,
     List<Expression> expressions,
     List<int> expressionOffsets,
@@ -165,7 +165,7 @@ class BreakStatementImpl extends BreakStatement {
   Statement? targetStatement;
   final bool isContinue;
 
-  BreakStatementImpl({required this.isContinue}) : super(dummyLabeledStatement);
+  new({required this.isContinue}) : super(dummyLabeledStatement);
 
   @override
   String toString() {
@@ -244,7 +244,7 @@ sealed class InternalInitializer extends AuxiliaryInitializer {
 class TypeArguments {
   final List<DartType> types;
 
-  TypeArguments(this.types);
+  new(this.types);
 
   // Coverage-ignore(suite): Not run.
   void toText(AstPrinter printer) {
@@ -266,7 +266,7 @@ class PositionalArgument extends Argument {
   @override
   Expression expression;
 
-  PositionalArgument(this.expression);
+  new(this.expression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -283,7 +283,7 @@ class PositionalArgument extends Argument {
 }
 
 class SuperPositionalArgument extends PositionalArgument {
-  SuperPositionalArgument(super.expression);
+  new(super.expression);
 
   @override
   bool get isSuperParameter => true;
@@ -292,7 +292,7 @@ class SuperPositionalArgument extends PositionalArgument {
 class NamedArgument extends Argument {
   NamedExpression namedExpression;
 
-  NamedArgument(this.namedExpression);
+  new(this.namedExpression);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -319,7 +319,7 @@ class NamedArgument extends Argument {
 }
 
 class SuperNamedArgument extends NamedArgument {
-  SuperNamedArgument(super.expression);
+  new(super.expression);
 
   @override
   bool get isSuperParameter => true;
@@ -332,7 +332,7 @@ class ActualArguments extends TreeNode with InternalTreeNode {
   bool _hasNamedBeforePositional;
   int _positionalCount;
 
-  ActualArguments({
+  new({
     required this.argumentList,
     required bool hasNamedBeforePositional,
     required int positionalCount,
@@ -340,7 +340,7 @@ class ActualArguments extends TreeNode with InternalTreeNode {
        _positionalCount = positionalCount;
 
   // Coverage-ignore(suite): Not run.
-  ActualArguments.empty()
+  new empty()
     : this.argumentList = [],
       this._hasNamedBeforePositional = false,
       this._positionalCount = 0;
@@ -469,7 +469,7 @@ class Cascade extends InternalExpression {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  Cascade(this.variable, {required this.isNullAware}) {
+  new(this.variable, {required this.isNullAware}) {
     variable.parent = this;
   }
 
@@ -523,7 +523,7 @@ class AnonymousMethodExpression extends InternalExpression {
   final bool isParameterless;
   final int typeOffset;
 
-  AnonymousMethodExpression(
+  new(
     this.variable,
     this.body, {
     required this.isImplicitlyTyped,
@@ -568,7 +568,7 @@ class AnonymousMethodBlock extends InternalExpression {
   final bool isParameterless;
   final int typeOffset;
 
-  AnonymousMethodBlock(
+  new(
     this.variable,
     this.body, {
     required this.isImplicitlyTyped,
@@ -610,7 +610,7 @@ class DeferredCheck extends InternalExpression {
   InternalVariable variable;
   Expression expression;
 
-  DeferredCheck(this.variable, this.expression, {required int fileOffset}) {
+  new(this.variable, this.expression, {required int fileOffset}) {
     variable.parent = this;
     expression.parent = this;
     this.fileOffset = fileOffset;
@@ -649,7 +649,7 @@ class FactoryConstructorInvocation extends InternalExpression {
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
-  FactoryConstructorInvocation(
+  new(
     this.target,
     this.typeArguments,
     this.arguments, {
@@ -698,7 +698,7 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
   ActualArguments arguments;
   final bool isConst;
 
-  TypeAliasedConstructorInvocation(
+  new(
     this.typeAliasBuilder,
     this.target,
     this.typeArguments,
@@ -750,7 +750,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
-  TypeAliasedFactoryInvocation(
+  new(
     this.typeAliasBuilder,
     this.target,
     this.typeArguments,
@@ -801,7 +801,7 @@ class IfNullExpression extends InternalExpression {
   Expression left;
   Expression right;
 
-  IfNullExpression(this.left, this.right) {
+  new(this.left, this.right) {
     left.parent = this;
     right.parent = this;
   }
@@ -840,7 +840,7 @@ class InternalIntLiteral extends InternalExpression {
   /// `int.parse`).
   final String? literal;
 
-  InternalIntLiteral(this.value, this.literal, {required int fileOffset}) {
+  new(this.value, this.literal, {required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
 
@@ -886,11 +886,7 @@ class LargeIntLiteral extends InternalExpression {
 
   bool isParenthesized = false;
 
-  LargeIntLiteral(
-    this._strippedLiteral,
-    this.literal, {
-    required int fileOffset,
-  }) {
+  new(this._strippedLiteral, this.literal, {required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
 
@@ -938,7 +934,7 @@ class ExpressionInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
   ActualArguments arguments;
 
-  ExpressionInvocation(this.expression, this.typeArguments, this.arguments) {
+  new(this.expression, this.typeArguments, this.arguments) {
     expression.parent = this;
     arguments.parent = this;
   }
@@ -969,8 +965,7 @@ class ExpressionInvocation extends InternalExpression {
 class ReturnStatementImpl extends ReturnStatement {
   final bool isArrow;
 
-  ReturnStatementImpl(this.isArrow, [Expression? expression])
-    : super(expression);
+  new(this.isArrow, [Expression? expression]) : super(expression);
 
   @override
   String toString() {
@@ -1009,7 +1004,7 @@ class VariableDeclarationImpl extends LegacyVariable
   @override
   final bool isLocalFunction;
 
-  VariableDeclarationImpl(
+  new(
     String? name, {
     this.forSyntheticToken = false,
     bool hasDeclaredInitializer = false,
@@ -1055,7 +1050,7 @@ class VariableDeclarationImpl extends LegacyVariable
   }
 
   // Coverage-ignore(suite): Not run.
-  VariableDeclarationImpl.forEffect(Expression initializer)
+  new forEffect(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = false,
       isLocalFunction = false,
@@ -1064,7 +1059,7 @@ class VariableDeclarationImpl extends LegacyVariable
   }
 
   // Coverage-ignore(suite): Not run.
-  VariableDeclarationImpl.forValue(Expression initializer)
+  new forValue(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = true,
       isLocalFunction = false,
@@ -1109,7 +1104,7 @@ class InternalLocalVariable extends TreeNode
   @override
   final bool isLocalFunction;
 
-  InternalLocalVariable({
+  new({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -1205,7 +1200,7 @@ class InternalLateVariable extends TreeNode
   @override
   final bool isLocalFunction;
 
-  InternalLateVariable({
+  new({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -1299,7 +1294,7 @@ class InternalPositionalParameter extends TreeNode
   @override
   final bool isLocalFunction;
 
-  InternalPositionalParameter({
+  new({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -1406,7 +1401,7 @@ class InternalNamedParameter extends TreeNode
   @override
   final bool isLocalFunction;
 
-  InternalNamedParameter({
+  new({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -1532,7 +1527,7 @@ class InternalCatchVariable extends TreeNode
   @override
   final bool isLocalFunction;
 
-  InternalCatchVariable({
+  new({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -1582,7 +1577,7 @@ class InternalSyntheticVariable extends TreeNode
   @override
   final bool isLocalFunction;
 
-  InternalSyntheticVariable({
+  new({
     required this.astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -2121,7 +2116,7 @@ mixin InternalVariableMixin on TreeNode implements InternalVariable {
 class LoadLibraryImpl extends LoadLibrary {
   final ActualArguments? arguments;
 
-  LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
+  new(LibraryDependency import, this.arguments) : super(import);
 
   @override
   String toString() {
@@ -2146,7 +2141,7 @@ class LoadLibraryTearOff extends InternalExpression {
   LibraryDependency import;
   Procedure target;
 
-  LoadLibraryTearOff(this.import, this.target);
+  new(this.import, this.target);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2202,7 +2197,7 @@ class IfNullPropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a ??= b`.
   final bool isNullAware;
 
-  IfNullPropertySet(
+  new(
     this.receiver,
     this.propertyName,
     this.rhs, {
@@ -2263,7 +2258,7 @@ class IfNullSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullSet(this.read, this.write, {required this.forEffect}) {
+  new(this.read, this.write, {required this.forEffect}) {
     read.parent = this;
     write.parent = this;
   }
@@ -2364,7 +2359,7 @@ class ExtensionIfNullSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionIfNullSet.explicit({
+  new explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
     required Expression receiver,
@@ -2395,7 +2390,7 @@ class ExtensionIfNullSet extends InternalExpression {
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
-  ExtensionIfNullSet.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -2424,7 +2419,7 @@ class ExtensionIfNullSet extends InternalExpression {
          extensionTypeArgumentOffset: null,
        );
 
-  ExtensionIfNullSet._(
+  new _(
     this.extension,
     this.knownTypeArguments,
     this.receiver,
@@ -2559,7 +2554,7 @@ class ExtensionCompoundSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionCompoundSet.explicit({
+  new explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
     required Expression receiver,
@@ -2592,7 +2587,7 @@ class ExtensionCompoundSet extends InternalExpression {
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
-  ExtensionCompoundSet.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -2623,7 +2618,7 @@ class ExtensionCompoundSet extends InternalExpression {
          extensionTypeArgumentOffset: null,
        );
 
-  ExtensionCompoundSet._(
+  new _(
     this.extension,
     this.knownTypeArguments,
     this.receiver,
@@ -2727,7 +2722,7 @@ class CompoundPropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a += b`.
   final bool isNullAware;
 
-  CompoundPropertySet({
+  new({
     required this.receiver,
     required this.propertyName,
     required this.binaryName,
@@ -2810,7 +2805,7 @@ class PropertyIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  PropertyIncDec(
+  new(
     this.receiver,
     this.name, {
     required this.forEffect,
@@ -2915,7 +2910,7 @@ class ExtensionIncDec extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionIncDec.explicit({
+  new explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
     required Expression receiver,
@@ -2942,7 +2937,7 @@ class ExtensionIncDec extends InternalExpression {
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
-  ExtensionIncDec.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -2967,7 +2962,7 @@ class ExtensionIncDec extends InternalExpression {
          extensionTypeArgumentOffset: null,
        );
 
-  ExtensionIncDec._(
+  new _(
     this.extension,
     this.knownTypeArguments,
     this.receiver,
@@ -3057,7 +3052,7 @@ class LocalIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  LocalIncDec({
+  new({
     required this.variable,
     required this.forEffect,
     required this.isPost,
@@ -3138,7 +3133,7 @@ class StaticIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  StaticIncDec({
+  new({
     required this.getter,
     required this.setter,
     required this.name,
@@ -3222,7 +3217,7 @@ class SuperIncDec extends InternalExpression {
   /// The file offset of the `++` or `--` operator.
   final int operatorOffset;
 
-  SuperIncDec({
+  new({
     required this.getter,
     required this.setter,
     required this.name,
@@ -3279,7 +3274,7 @@ class IndexGet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a]`.
   final bool isNullAware;
 
-  IndexGet(this.receiver, this.index, {required this.isNullAware}) {
+  new(this.receiver, this.index, {required this.isNullAware}) {
     receiver.parent = this;
     index.parent = this;
   }
@@ -3340,7 +3335,7 @@ class IndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] = b`.
   final bool isNullAware;
 
-  IndexSet(
+  new(
     this.receiver,
     this.index,
     this.value, {
@@ -3402,7 +3397,7 @@ class SuperIndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
-  SuperIndexSet(this.setter, this.index, this.value) {
+  new(this.setter, this.index, this.value) {
     index.parent = this;
     value.parent = this;
   }
@@ -3463,7 +3458,7 @@ class ExtensionIndexGet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionIndexGet(
+  new(
     this.extension,
     this.explicitTypeArguments,
     this.receiver,
@@ -3558,7 +3553,7 @@ class ExtensionIndexSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionIndexSet(
+  new(
     this.extension,
     this.explicitTypeArguments,
     this.receiver,
@@ -3659,7 +3654,7 @@ class IfNullIndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] ??= b`.
   final bool isNullAware;
 
-  IfNullIndexSet({
+  new({
     required this.receiver,
     required this.index,
     required this.value,
@@ -3745,7 +3740,7 @@ class IfNullSuperIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullSuperIndexSet({
+  new({
     required this.getter,
     required this.setter,
     required this.index,
@@ -3844,7 +3839,7 @@ class ExtensionIfNullIndexSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionIfNullIndexSet({
+  new({
     required this.extension,
     required this.knownTypeArguments,
     required this.receiver,
@@ -3946,7 +3941,7 @@ class CompoundIndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] += b`.
   final bool isNullAware;
 
-  CompoundIndexSet({
+  new({
     required this.receiver,
     required this.index,
     required this.binaryName,
@@ -4049,7 +4044,7 @@ class CompoundSuperIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
-  CompoundSuperIndexSet({
+  new({
     required this.getter,
     required this.setter,
     required this.index,
@@ -4170,7 +4165,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionCompoundIndexSet({
+  new({
     required this.extension,
     required this.explicitTypeArguments,
     required this.receiver,
@@ -4276,7 +4271,7 @@ class ExtensionGet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionGet.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -4293,7 +4288,7 @@ class ExtensionGet extends InternalExpression {
          extensionTypeArgumentOffset: null,
        );
 
-  ExtensionGet.explicit({
+  new explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
     required Expression receiver,
@@ -4312,7 +4307,7 @@ class ExtensionGet extends InternalExpression {
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
-  ExtensionGet._(
+  new _(
     this.extension,
     this.knownTypeArguments,
     this.receiver,
@@ -4424,7 +4419,7 @@ class ExtensionSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionSet.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -4445,7 +4440,7 @@ class ExtensionSet extends InternalExpression {
          extensionTypeArgumentOffset: null,
        );
 
-  ExtensionSet.explicit({
+  new explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
     required Expression receiver,
@@ -4468,7 +4463,7 @@ class ExtensionSet extends InternalExpression {
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
-  ExtensionSet._(
+  new _(
     this.extension,
     this.knownTypeArguments,
     this.receiver,
@@ -4570,7 +4565,7 @@ class ExtensionMethodInvocation extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionMethodInvocation.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -4591,7 +4586,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          isNullAware: false,
        );
 
-  ExtensionMethodInvocation.explicit({
+  new explicit({
     required Extension extension,
     required Expression receiver,
     required Name name,
@@ -4614,7 +4609,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          isNullAware: isNullAware,
        );
 
-  ExtensionMethodInvocation._(
+  new _(
     this.extension,
     this.receiver,
     this.name,
@@ -4717,7 +4712,7 @@ class ExtensionGetterInvocation extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionGetterInvocation.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -4738,7 +4733,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          isNullAware: false,
        );
 
-  ExtensionGetterInvocation.explicit({
+  new explicit({
     required Extension extension,
     required Expression receiver,
     required Name name,
@@ -4761,7 +4756,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          isNullAware: isNullAware,
        );
 
-  ExtensionGetterInvocation._(
+  new _(
     this.extension,
     this.receiver,
     this.name,
@@ -4858,7 +4853,7 @@ class ExtensionTearOff extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionTearOff.implicit({
+  new implicit({
     required Extension extension,
     required List<DartType>? thisTypeArguments,
     required Expression thisAccess,
@@ -4875,7 +4870,7 @@ class ExtensionTearOff extends InternalExpression {
          extensionTypeArgumentOffset: null,
        );
 
-  ExtensionTearOff.explicit({
+  new explicit({
     required Extension extension,
     required List<DartType>? explicitTypeArguments,
     required Expression receiver,
@@ -4894,7 +4889,7 @@ class ExtensionTearOff extends InternalExpression {
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
        );
 
-  ExtensionTearOff._(
+  new _(
     this.extension,
     this.knownTypeArguments,
     this.receiver,
@@ -4953,7 +4948,7 @@ class EqualsExpression extends InternalExpression {
   Expression right;
   bool isNot;
 
-  EqualsExpression(this.left, this.right, {required this.isNot}) {
+  new(this.left, this.right, {required this.isNot}) {
     left.parent = this;
     right.parent = this;
   }
@@ -4990,7 +4985,7 @@ class BinaryExpression extends InternalExpression {
   Name binaryName;
   Expression right;
 
-  BinaryExpression(this.left, this.binaryName, this.right) {
+  new(this.left, this.binaryName, this.right) {
     left.parent = this;
     right.parent = this;
   }
@@ -5026,7 +5021,7 @@ class UnaryExpression extends InternalExpression {
   Name unaryName;
   Expression expression;
 
-  UnaryExpression(this.unaryName, this.expression) {
+  new(this.unaryName, this.expression) {
     expression.parent = this;
   }
 
@@ -5063,7 +5058,7 @@ class UnaryExpression extends InternalExpression {
 class ParenthesizedExpression extends InternalExpression {
   Expression expression;
 
-  ParenthesizedExpression(this.expression) {
+  new(this.expression) {
     expression.parent = this;
   }
 
@@ -5149,7 +5144,7 @@ class MethodInvocation extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
 
-  MethodInvocation(
+  new(
     this.receiver,
     this.name,
     this.typeArguments,
@@ -5206,7 +5201,7 @@ class PropertyGet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a`.
   final bool isNullAware;
 
-  PropertyGet(this.receiver, this.name, {required this.isNullAware}) {
+  new(this.receiver, this.name, {required this.isNullAware}) {
     receiver.parent = this;
   }
 
@@ -5264,7 +5259,7 @@ class PropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a = b`.
   final bool isNullAware;
 
-  PropertySet(
+  new(
     this.receiver,
     this.name,
     this.value, {
@@ -5310,7 +5305,7 @@ class InternalRecordLiteral extends InternalExpression {
   final List<Object /*Expression|NamedExpression*/> originalElementOrder;
   final bool isConst;
 
-  InternalRecordLiteral(
+  new(
     this.positional,
     this.named,
     this.namedElements,
@@ -5368,19 +5363,14 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   List<Expression> positional = [];
   List<NamedExpression> named = [];
 
-  ExtensionTypeRedirectingInitializer(
-    Procedure target,
-    ActualArguments arguments,
-  ) : this.byReference(
+  new(Procedure target, ActualArguments arguments)
+    : this.byReference(
         // Getter vs setter doesn't matter for procedures.
         getNonNullableMemberReferenceGetter(target),
         arguments,
       );
 
-  ExtensionTypeRedirectingInitializer.byReference(
-    this.targetReference,
-    this.arguments,
-  ) {
+  new byReference(this.targetReference, this.arguments) {
     arguments.parent = this;
   }
 
@@ -5422,12 +5412,9 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   Reference fieldReference;
   Expression value;
 
-  ExtensionTypeRepresentationFieldInitializer(
-    Procedure field,
-    this.value, {
-    required int fileOffset,
-  }) : assert(field.stubKind == ProcedureStubKind.RepresentationField),
-       this.fieldReference = field.reference {
+  new(Procedure field, this.value, {required int fileOffset})
+    : assert(field.stubKind == ProcedureStubKind.RepresentationField),
+      this.fieldReference = field.reference {
     value.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -5467,7 +5454,7 @@ class DotShorthand extends InternalExpression {
   /// The entire dot shorthand expression (e.g. `.zero` or `.parse(input)`).
   Expression innerExpression;
 
-  DotShorthand(this.innerExpression);
+  new(this.innerExpression);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5503,7 +5490,7 @@ class DotShorthandInvocation extends InternalExpression {
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
-  DotShorthandInvocation(
+  new(
     this.name,
     this.typeArguments,
     this.arguments, {
@@ -5551,11 +5538,7 @@ class DotShorthandPropertyGet extends InternalExpression {
   /// [InferenceVisitor].
   bool hasTypeParameters;
 
-  DotShorthandPropertyGet(
-    this.name, {
-    required this.nameOffset,
-    this.hasTypeParameters = false,
-  });
+  new(this.name, {required this.nameOffset, this.hasTypeParameters = false});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5584,7 +5567,7 @@ class InternalConstructorInvocation extends InternalExpression {
   final ActualArguments arguments;
   final bool isConst;
 
-  InternalConstructorInvocation(
+  new(
     this.target,
     this.typeArguments,
     this.arguments, {
@@ -5630,12 +5613,7 @@ class InternalStaticInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
   final ActualArguments arguments;
 
-  InternalStaticInvocation(
-    this.name,
-    this.target,
-    this.typeArguments,
-    this.arguments,
-  ) {
+  new(this.name, this.target, this.typeArguments, this.arguments) {
     arguments.parent = this;
   }
 
@@ -5667,12 +5645,7 @@ class InternalSuperMethodInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
   final ActualArguments arguments;
 
-  InternalSuperMethodInvocation(
-    this.name,
-    this.typeArguments,
-    this.arguments,
-    this.target,
-  ) {
+  new(this.name, this.typeArguments, this.arguments, this.target) {
     arguments.parent = this;
   }
 
@@ -5703,7 +5676,7 @@ class InternalRedirectingInitializer extends InternalInitializer {
   final Constructor target;
   ActualArguments arguments;
 
-  InternalRedirectingInitializer(this.target, this.arguments) {
+  new(this.target, this.arguments) {
     arguments.parent = this;
   }
 
@@ -5740,11 +5713,7 @@ class InternalSuperInitializer extends InternalInitializer {
   @override
   final bool isSynthetic;
 
-  InternalSuperInitializer(
-    this.target,
-    this.arguments, {
-    required this.isSynthetic,
-  }) {
+  new(this.target, this.arguments, {required this.isSynthetic}) {
     arguments.parent = this;
   }
 
@@ -5894,10 +5863,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   /// The declared variable.
   final VariableDeclaration variableDeclaration;
 
-  SingleVariableDeclarationForInElement({
-    required this.variableDeclaration,
-    required this.error,
-  });
+  new({required this.variableDeclaration, required this.error});
 
   @override
   Variable _computeLoopVariable(
@@ -6005,10 +5971,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
   /// The error that should be emitted prior to the for-in statement.
   final InvalidExpression error;
 
-  MultiVariableDeclarationForInElement({
-    required this.variableDeclarations,
-    required this.error,
-  });
+  new({required this.variableDeclarations, required this.error});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6078,7 +6041,7 @@ class UnassignableForInElement extends _BaseForInElement {
   /// The error that should be emitted prior to the for-in statement.
   final InvalidExpression error;
 
-  UnassignableForInElement({required this.expression, required this.error});
+  new({required this.expression, required this.error});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6128,7 +6091,7 @@ class PatternForInElement extends InternalForInElement {
   /// The file offset of the `in` keyword.
   final int inOffset;
 
-  PatternForInElement({required this.pattern, required this.inOffset});
+  new({required this.pattern, required this.inOffset});
 
   @override
   ForInHeaderResult inferForInHeader(
@@ -6171,7 +6134,7 @@ class InvalidForInElement extends _BaseForInElement {
   /// The file offset of the `in` keyword.
   final int inOffset;
 
-  InvalidForInElement({required this.error, required this.inOffset});
+  new({required this.error, required this.inOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6227,7 +6190,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
   /// This is used for instance for a final local variable.
   final InvalidExpression? error;
 
-  ExistingVariableForInElement({
+  new({
     required this.variable,
     required this.nameOffset,
     required this.inOffset,
@@ -6301,7 +6264,7 @@ class PropertyForInElement extends _BaseForInElement {
   /// [_computeEncoding].
   late final PropertySetData _data;
 
-  PropertyForInElement({
+  new({
     required this.receiver,
     required this.name,
     required this.nameOffset,
@@ -6379,11 +6342,7 @@ class StaticForInElement extends _BaseForInElement {
   /// [_computeEncoding].
   late final DartType _writeContext;
 
-  StaticForInElement({
-    required this.target,
-    required this.nameOffset,
-    required this.inOffset,
-  });
+  new({required this.target, required this.nameOffset, required this.inOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6463,7 +6422,7 @@ class ExtensionForInElement extends _BaseForInElement {
   /// [_computeEncoding].
   late final ExtensionSetData _data;
 
-  ExtensionForInElement({
+  new({
     required this.extension,
     required this.thisTypeArguments,
     required this.thisAccess,
@@ -6544,7 +6503,7 @@ class ForInEncoding {
   /// must therefore be emitted in the same block as the body content.
   final Statement? bodyPrologue;
 
-  ForInEncoding({this.preLoopError, this.bodyPrologue});
+  new({this.preLoopError, this.bodyPrologue});
 
   @override
   String toString() => 'ForInStatementResult($preLoopError,$bodyPrologue)';
@@ -6567,7 +6526,7 @@ class ForInHeaderResult {
   /// as being part of the loop body.
   final ForInEncoding Function() computeEncoding;
 
-  ForInHeaderResult({
+  new({
     required this.loopVariable,
     required this.iterable,
     required this.computeEncoding,
@@ -6609,7 +6568,7 @@ class InternalForInStatement extends InternalStatement
   /// The file offset for the for-in body.
   final int bodyOffset;
 
-  InternalForInStatement(
+  new(
     this.element,
     this.iterable,
     this.body, {
@@ -6649,7 +6608,7 @@ class InternalVariableGet extends InternalExpression {
   /// The target variable.
   final InternalVariable variable;
 
-  InternalVariableGet(this.variable);
+  new(this.variable);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -6677,7 +6636,7 @@ class InternalVariableSet extends InternalExpression {
 
   Expression value;
 
-  InternalVariableSet(this.variable, this.value) {
+  new(this.variable, this.value) {
     value.parent = this;
   }
 
@@ -6714,7 +6673,7 @@ class InternalFunctionNode {
   final int fileOffset;
   final int fileEndOffset;
 
-  InternalFunctionNode({
+  new({
     required this.returnType,
     required this.typeParameters,
     required this.positionalParameters,
@@ -6808,10 +6767,7 @@ class InternalFunctionNode {
 class InternalFunctionExpression extends InternalExpression {
   final InternalFunctionNode function;
 
-  InternalFunctionExpression({
-    required this.function,
-    required int fileOffset,
-  }) {
+  new({required this.function, required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
 
@@ -6840,10 +6796,7 @@ class InternalFunctionDeclaration extends InternalStatement {
   late final InternalFunctionNode function;
   late final bool hasImplicitReturnType;
 
-  InternalFunctionDeclaration({
-    required this.variable,
-    required int fileOffset,
-  }) {
+  new({required this.variable, required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
 
@@ -6911,7 +6864,7 @@ class InternalOrPattern extends InternalPattern {
   List<InternalVariable> get internalDeclaredVariables =>
       orPatternJointVariables;
 
-  InternalOrPattern(
+  new(
     this.left,
     this.right, {
     required this.orPatternJointVariables,
@@ -6955,7 +6908,7 @@ class InternalAndPattern extends InternalPattern {
     ...right.internalDeclaredVariables,
   ];
 
-  InternalAndPattern(this.left, this.right, {required int fileOffset}) {
+  new(this.left, this.right, {required int fileOffset}) {
     left.parent = this;
     right.parent = this;
     this.fileOffset = fileOffset;
@@ -6987,7 +6940,7 @@ class InternalAndPattern extends InternalPattern {
 class InternalConstantPattern extends InternalPattern {
   final Expression expression;
 
-  InternalConstantPattern({required this.expression, required int fileOffset}) {
+  new({required this.expression, required int fileOffset}) {
     expression.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7018,7 +6971,7 @@ class InternalConstantPattern extends InternalPattern {
 class InternalAssignedVariablePattern extends InternalPattern {
   final InternalVariable variable;
 
-  InternalAssignedVariablePattern(this.variable, {required int fileOffset}) {
+  new(this.variable, {required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
 
@@ -7053,7 +7006,7 @@ class InternalCastPattern extends InternalPattern {
   final InternalPattern pattern;
   final DartType type;
 
-  InternalCastPattern(this.pattern, this.type, {required int fileOffset}) {
+  new(this.pattern, this.type, {required int fileOffset}) {
     pattern.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7093,7 +7046,7 @@ class InternalInvalidPattern extends InternalPattern {
   @override
   final List<InternalVariable> internalDeclaredVariables;
 
-  InternalInvalidPattern({
+  new({
     required this.invalidExpression,
     required this.internalDeclaredVariables,
     required int fileOffset,
@@ -7135,7 +7088,7 @@ class InternalListPattern extends InternalPattern {
       ...pattern.internalDeclaredVariables,
   ];
 
-  InternalListPattern({
+  new({
     required this.typeArgument,
     required this.patterns,
     required int fileOffset,
@@ -7197,7 +7150,7 @@ class InternalMapPattern extends InternalPattern {
         ...entry.value.internalDeclaredVariables,
   ];
 
-  InternalMapPattern({
+  new({
     required this.keyType,
     required this.valueType,
     required this.entries,
@@ -7241,11 +7194,7 @@ class InternalMapPatternEntry extends TreeNode with InternalTreeNode {
   final Expression key;
   final InternalPattern value;
 
-  InternalMapPatternEntry({
-    required this.key,
-    required this.value,
-    required int fileOffset,
-  }) {
+  new({required this.key, required this.value, required int fileOffset}) {
     value.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7277,7 +7226,7 @@ class InternalMapPatternEntry extends TreeNode with InternalTreeNode {
 class InternalMapPatternRestEntry extends TreeNode
     with InternalTreeNode
     implements InternalMapPatternEntry {
-  InternalMapPatternRestEntry({required int fileOffset}) {
+  new({required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
 
@@ -7319,11 +7268,7 @@ class InternalNamedPattern extends InternalPattern {
   List<InternalVariable> get internalDeclaredVariables =>
       pattern.internalDeclaredVariables;
 
-  InternalNamedPattern({
-    required this.name,
-    required this.pattern,
-    required int fileOffset,
-  }) {
+  new({required this.name, required this.pattern, required int fileOffset}) {
     pattern.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7358,7 +7303,7 @@ class InternalNamedPattern extends InternalPattern {
 class InternalNullAssertPattern extends InternalPattern {
   final InternalPattern pattern;
 
-  InternalNullAssertPattern({required this.pattern, required int fileOffset}) {
+  new({required this.pattern, required int fileOffset}) {
     pattern.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7395,7 +7340,7 @@ class InternalNullAssertPattern extends InternalPattern {
 class InternalNullCheckPattern extends InternalPattern {
   final InternalPattern pattern;
 
-  InternalNullCheckPattern({required this.pattern, required int fileOffset}) {
+  new({required this.pattern, required int fileOffset}) {
     pattern.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7442,7 +7387,7 @@ class InternalObjectPattern extends InternalPattern {
   /// `true` this means that no further type inference needs to be performed.
   final bool hasExplicitTypeArguments;
 
-  InternalObjectPattern({
+  new({
     required this.requiredType,
     required this.fields,
     required this.typedef,
@@ -7498,7 +7443,7 @@ class InternalRecordPattern extends InternalPattern {
       ...pattern.internalDeclaredVariables,
   ];
 
-  InternalRecordPattern({required this.patterns, required int fileOffset}) {
+  new({required this.patterns, required int fileOffset}) {
     setParents(patterns, this);
     this.fileOffset = fileOffset;
   }
@@ -7536,11 +7481,7 @@ class InternalRelationalPattern extends InternalPattern {
   final RelationalPatternKind kind;
   final Expression expression;
 
-  InternalRelationalPattern({
-    required this.kind,
-    required this.expression,
-    required int fileOffset,
-  }) {
+  new({required this.kind, required this.expression, required int fileOffset}) {
     expression.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7591,7 +7532,7 @@ class InternalRelationalPattern extends InternalPattern {
 class InternalRestPattern extends InternalPattern {
   InternalPattern? subPattern;
 
-  InternalRestPattern({required this.subPattern, required int fileOffset}) {
+  new({required this.subPattern, required int fileOffset}) {
     subPattern?.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7635,11 +7576,7 @@ class InternalVariablePattern extends InternalPattern {
   @override
   List<InternalVariable> get internalDeclaredVariables => [variable];
 
-  InternalVariablePattern({
-    required this.type,
-    required this.variable,
-    required int fileOffset,
-  }) {
+  new({required this.type, required this.variable, required int fileOffset}) {
     variable.parent = this;
     this.fileOffset = fileOffset;
   }
@@ -7676,7 +7613,7 @@ class InternalVariablePattern extends InternalPattern {
 class InternalWildcardPattern extends InternalPattern {
   final DartType? type;
 
-  InternalWildcardPattern({required this.type, required int fileOffset}) {
+  new({required this.type, required int fileOffset}) {
     this.fileOffset = fileOffset;
   }
   @override

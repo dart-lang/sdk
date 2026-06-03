@@ -16,7 +16,7 @@ class _SubtypeRelation {
   final DartType subtype;
   final DartType supertype;
 
-  _SubtypeRelation(this.types, this.subtype, this.supertype);
+  new(this.types, this.subtype, this.supertype);
 
   @override
   bool operator ==(Object other) =>

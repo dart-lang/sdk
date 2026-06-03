@@ -105,7 +105,7 @@ class RegularSetterDeclaration
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
-  RegularSetterDeclaration(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 

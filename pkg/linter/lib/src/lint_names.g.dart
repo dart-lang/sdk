@@ -57,6 +57,8 @@ abstract final class LintNames {
 
   static const String annotate_redeclares = 'annotate_redeclares';
 
+  static const String async_return_with_no_await = 'async_return_with_no_await';
+
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
 

@@ -24,7 +24,7 @@ class TestConfig {
   /// The descriptive name of the config, used on error reporting.
   final String name;
 
-  const TestConfig(this.marker, this.name);
+  const new(this.marker, this.name);
 }
 
 /// The compilation result of an id-test for given test [config].
@@ -36,7 +36,7 @@ abstract class TestResultData<C extends TestConfig, R> {
   /// compiler.
   final R compilerResult;
 
-  TestResultData(this.config, this.compilerResult);
+  new(this.config, this.compilerResult);
 
   Component get component;
 }
@@ -49,7 +49,7 @@ abstract class DataComputer<
   R,
   D extends TestResultData<C, R>
 > {
-  const DataComputer();
+  const new();
 
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
@@ -134,7 +134,7 @@ class KernelCompiledData<T, R> extends CompiledData<T> {
   final R compilerResult;
   final Component component;
 
-  KernelCompiledData(
+  new(
     this.compilerResult,
     this.component,
     super.mainUri,

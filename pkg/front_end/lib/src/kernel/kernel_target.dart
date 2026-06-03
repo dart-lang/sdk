@@ -167,7 +167,7 @@ class KernelTarget {
 
   final Benchmarker? benchmarker;
 
-  KernelTarget(
+  new(
     this.context,
     this.fileSystem,
     this.includeComments,
@@ -2038,7 +2038,7 @@ class KernelDiagnosticReporter
     extends DiagnosticReporter<Message, LocatedMessage> {
   final SourceLoader loader;
 
-  KernelDiagnosticReporter(this.loader);
+  new(this.loader);
 
   @override
   void report(
@@ -2055,5 +2055,5 @@ class KernelDiagnosticReporter
 class BuildResult {
   final Component? component;
 
-  BuildResult({this.component});
+  new({this.component});
 }

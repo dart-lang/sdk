@@ -33,7 +33,7 @@ class DillTarget {
 
   final Benchmarker? benchmarker;
 
-  DillTarget(
+  new(
     this.context,
     this.ticker,
     this.uriTranslator,

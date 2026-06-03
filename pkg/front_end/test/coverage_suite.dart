@@ -226,7 +226,7 @@ class Options {
   final Uri outputDirectory;
   final int numberOfWorkers;
 
-  Options(
+  new(
     this.configurationName,
     this.verbose,
     this.debug,

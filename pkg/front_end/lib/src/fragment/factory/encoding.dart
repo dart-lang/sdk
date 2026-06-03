@@ -61,7 +61,7 @@ class FactoryEncoding implements InferredTypeListener {
 
   final ConstructorReferenceBuilder? _redirectionTarget;
 
-  FactoryEncoding(
+  new(
     this._fragment, {
     required this.typeParameters,
     required this.returnType,
@@ -886,7 +886,7 @@ class FactoryEncoding implements InferredTypeListener {
 }
 
 abstract class FactoryEncodingStrategy {
-  factory FactoryEncodingStrategy(DeclarationBuilder declarationBuilder) {
+  factory(DeclarationBuilder declarationBuilder) {
     switch (declarationBuilder) {
       case ClassBuilder():
       case ExtensionTypeDeclarationBuilder():
@@ -909,7 +909,7 @@ abstract class FactoryEncodingStrategy {
 }
 
 class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
-  const RegularFactoryEncodingStrategy();
+  const new();
 
   @override
   (List<SourceNominalParameterBuilder>?, TypeBuilder)
@@ -945,7 +945,7 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
 }
 
 class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
-  const ExtensionFactoryEncodingStrategy();
+  const new();
 
   @override
   (List<SourceNominalParameterBuilder>?, TypeBuilder)

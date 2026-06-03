@@ -78,7 +78,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
-  SourceEnumBuilder({
+  new({
     required String name,
     required List<SourceNominalParameterBuilder>? typeParameters,
     required TypeBuilder underscoreEnumTypeBuilder,
@@ -469,7 +469,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   final int _fileOffset;
   late final Procedure _procedure;
 
-  _EnumToStringMethodDeclaration(
+  new(
     this._enumBuilder,
     this._stringTypeBuilder,
     this._underscoreEnumTypeBuilder, {
@@ -645,7 +645,7 @@ class _EnumValuesFieldDeclaration
 
   final TypeBuilder _typeBuilder;
 
-  _EnumValuesFieldDeclaration(this._sourceEnumBuilder, this._typeBuilder);
+  new(this._sourceEnumBuilder, this._typeBuilder);
 
   @override
   UriOffsetLength get uriOffset =>
@@ -920,7 +920,7 @@ class _EnumValuesClassMember implements ClassMember {
 
   Covariance? _covariance;
 
-  _EnumValuesClassMember(this._builder, this.uriOffset);
+  new(this._builder, this.uriOffset);
 
   @override
   bool get forSetter => false;

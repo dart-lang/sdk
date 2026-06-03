@@ -17,7 +17,12 @@ const _desc =
     r'Avoid defining a one-member abstract class when a simple function will do.';
 
 class OneMemberAbstracts extends AnalysisRule {
-  new() : super(name: LintNames.one_member_abstracts, description: _desc);
+  new()
+    : super(
+        name: LintNames.one_member_abstracts,
+        description: _desc,
+        state: .deprecated(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.oneMemberAbstracts;

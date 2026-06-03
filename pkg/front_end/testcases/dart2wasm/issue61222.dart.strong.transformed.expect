@@ -13,12 +13,6 @@ class C extends core::Object /*hasConstConstructor*/  {
   const constructor v1() → self::C
     : this self::C::_(1)
     ;
-  static synthetic method _#_#tearOff(final core::int? field) → self::C
-    return new self::C::_(field);
-  static synthetic method _#vn#tearOff() → self::C
-    return new self::C::vn();
-  static synthetic method _#v1#tearOff() → self::C
-    return new self::C::v1();
 }
 extension type E(core::int? _) {
   abstract extension-type-member representation-field get _() → core::int?;
@@ -81,7 +75,7 @@ Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:14:23 -> 
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:14:9 -> NullConstant(null)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:15:23 -> IntConstant(1)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:15:9 -> IntConstant(1)
-Extra constant evaluation: evaluated: 35, effectively constant: 6
+Extra constant evaluation: evaluated: 31, effectively constant: 6
 
 
 Constructor coverage from constants:

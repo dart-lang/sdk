@@ -25,9 +25,9 @@ class NodeLocator2Test extends ParserDiagnosticsTest {
   }
 
   void test_onlyStartOffset() {
-    String code = ' f() {} ';
+    var code = ' f() {} ';
     //             01234567
-    CompilationUnit unit = parseStringWithErrors(code).unit;
+    var unit = parseTestCodeWithDiagnostics(code).unit;
     var function = unit.declarations.single as FunctionDeclaration;
     var expression = function.functionExpression;
     var body = expression.body as BlockFunctionBody;
@@ -46,7 +46,7 @@ class NodeLocator2Test extends ParserDiagnosticsTest {
     var source = r'''
 class A<T> {}
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T> {}'));
     expect(node, isClassDeclaration);
   }
@@ -57,7 +57,7 @@ class A {
   A() {}
 }
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     // TODO(dantup): Update these tests to use markers.
     var node = _assertLocate(unit, source.indexOf('() {}'));
     expect(node, isConstructorDeclaration);
@@ -67,7 +67,7 @@ class A {
     var source = r'''
 void f() {}
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
     expect(node, isFunctionDeclaration);
   }
@@ -76,7 +76,7 @@ void f() {}
     var source = r'''
 void f<T>() {}
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
     expect(node, isFunctionDeclaration);
   }
@@ -87,7 +87,7 @@ class A {
   void m() {}
 }
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
     expect(node, isMethodDeclaration);
   }
@@ -98,7 +98,7 @@ class A {
   void m<T>() {}
 }
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
     expect(node, isMethodDeclaration);
   }
@@ -109,7 +109,7 @@ class A {
   A.c() {}
 }
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
     expect(node, isConstructorDeclaration);
   }
@@ -118,15 +118,15 @@ class A {
     var source = r'''
 set s(int i) {}
 ''';
-    var unit = parseStringWithErrors(source).unit;
+    var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('(int i)'));
     expect(node, isFunctionDeclaration);
   }
 
   void test_startEndOffset() {
-    String code = ' f() {} ';
+    var code = ' f() {} ';
     //             01234567
-    CompilationUnit unit = parseStringWithErrors(code).unit;
+    var unit = parseTestCodeWithDiagnostics(code).unit;
     var function = unit.declarations.single as FunctionDeclaration;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));

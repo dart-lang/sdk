@@ -16,6 +16,7 @@ import 'analyzer_element_model_tracking_test.dart'
 import 'analyzer_public_api_test.dart' as analyzer_public_api;
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'annotate_redeclares_test.dart' as annotate_redeclares;
+import 'async_return_with_no_await_test.dart' as async_return_with_no_await;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_bool_literals_in_conditional_expressions_test.dart'
@@ -354,6 +355,7 @@ void main() {
   analyzer_public_api.main();
   annotate_overrides.main();
   annotate_redeclares.main();
+  async_return_with_no_await.main();
   avoid_annotating_with_dynamic.main();
   avoid_bool_literals_in_conditional_expressions.main();
   avoid_catches_without_on_clauses.main();

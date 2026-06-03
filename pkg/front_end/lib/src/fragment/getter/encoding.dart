@@ -46,11 +46,7 @@ class ExtensionInstanceGetterEncoding extends GetterEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  ExtensionInstanceGetterEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  );
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionGetter;
@@ -67,7 +63,7 @@ class ExtensionStaticGetterEncoding extends GetterEncoding
   @override
   final GetterFragment _fragment;
 
-  ExtensionStaticGetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionGetter;
@@ -90,11 +86,7 @@ class ExtensionTypeInstanceGetterEncoding extends GetterEncoding
   @override
   final FormalParameterBuilder _thisFormal;
 
-  ExtensionTypeInstanceGetterEncoding(
-    this._fragment,
-    this._clonedDeclarationTypeParameters,
-    this._thisFormal,
-  );
+  new(this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeGetter;
@@ -111,7 +103,7 @@ class ExtensionTypeStaticGetterEncoding extends GetterEncoding
   @override
   final GetterFragment _fragment;
 
-  ExtensionTypeStaticGetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeGetter;
@@ -194,7 +186,7 @@ class RegularGetterEncoding extends GetterEncoding
   @override
   final GetterFragment _fragment;
 
-  RegularGetterEncoding(this._fragment);
+  new(this._fragment);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.Method;

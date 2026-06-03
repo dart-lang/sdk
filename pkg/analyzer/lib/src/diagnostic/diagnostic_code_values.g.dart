@@ -219,6 +219,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.deadCodeOnCatchSubtype,
   diag.deadNullAwareExpression,
   diag.defaultInSwitchExpression,
+  diag.defaultValueAlreadySpecifiedInAugmentationChain,
   diag.defaultValueInFunctionType,
   diag.defaultValueInRedirectingFactoryConstructor,
   diag.defaultValueOnRequiredParameter,

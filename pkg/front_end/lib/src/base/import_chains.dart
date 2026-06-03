@@ -116,10 +116,7 @@ class LoadedLibrariesImpl implements LoadedLibraries {
   final List<CompilationUnit> rootCompilationUnits;
   final Map<Uri, CompilationUnit> compilationUnits = {};
 
-  LoadedLibrariesImpl(
-    this.rootCompilationUnits,
-    Iterable<CompilationUnit> compilationUnits,
-  ) {
+  new(this.rootCompilationUnits, Iterable<CompilationUnit> compilationUnits) {
     compilationUnits.forEach((CompilationUnit compilationUnit) {
       this.compilationUnits[compilationUnit.importUri] = compilationUnit;
     });
@@ -221,7 +218,7 @@ abstract class CodeLocation {
   /// Returns the uri of this location relative to [baseUri].
   String relativize(Uri baseUri);
 
-  factory CodeLocation(Uri uri) {
+  factory(Uri uri) {
     if (uri.isScheme('package')) {
       int slashPos = uri.path.indexOf('/');
       if (slashPos != -1) {
@@ -244,7 +241,7 @@ abstract class CodeLocation {
 class SchemeLocation implements CodeLocation {
   final Uri uri;
 
-  SchemeLocation(this.uri);
+  new(this.uri);
 
   @override
   bool inSameLocation(Uri uri) {
@@ -264,7 +261,7 @@ class SchemeLocation implements CodeLocation {
 class PackageLocation implements CodeLocation {
   final String packageName;
 
-  PackageLocation(this.packageName);
+  new(this.packageName);
 
   @override
   bool inSameLocation(Uri uri) {
@@ -281,7 +278,7 @@ class PackageLocation implements CodeLocation {
 class UriLocation implements CodeLocation {
   final Uri uri;
 
-  UriLocation(this.uri);
+  new(this.uri);
 
   @override
   bool inSameLocation(Uri uri) => this.uri == uri;

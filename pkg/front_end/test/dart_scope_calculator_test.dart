@@ -117,7 +117,7 @@ void testDill(File dill) {
 }
 
 class DevNullSink<T> implements Sink<T> {
-  const DevNullSink();
+  const new();
 
   @override
   void add(T data) {}
@@ -232,7 +232,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   int countMoreThanOneAfterFilter = 0;
   int countExactlyOneAfterFilter = 0;
 
-  ScopeTestingBinaryPrinter()
+  new()
     : super(
         const DevNullSink(),
         newVariableIndexerForTesting: VariableIndexer2.new,

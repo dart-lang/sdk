@@ -37,7 +37,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
   final CompilerContext compilerContext;
   List<LocatedMessage> errors = [];
 
-  CfeVerificationErrorListener(this.compilerContext);
+  new(this.compilerContext);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -89,7 +89,7 @@ void verifyGetStaticType(
 class CfeVerifyGetStaticType extends VerifyGetStaticType {
   final bool skipPlatform;
 
-  CfeVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
+  new(TypeEnvironment env, this.skipPlatform) : super(env);
 
   @override
   void visitLibrary(Library node) {

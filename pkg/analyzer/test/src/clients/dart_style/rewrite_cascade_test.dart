@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/clients/dart_style/rewrite_cascade.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,15 +45,16 @@ class RewriteCascadeTest extends ParserDiagnosticsTest {
     };
 
     void assertSingle({required String input, required String expected}) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $input
 }
 ''');
-      var statement = parseResult.findNode.expressionStatement(input);
+      var findNode = parseResult.findNode;
+      var statement = findNode.singleExpressionStatement;
       var result = fixCascadeByParenthesizingTarget(
         expressionStatement: statement,
-        cascadeExpression: statement.expression as CascadeExpression,
+        cascadeExpression: findNode.singleCascadeExpression,
       );
       expect(result.toSource(), expected);
       expect(result.semicolon, same(statement.semicolon));
@@ -67,13 +67,12 @@ void f() {
 
   test_insertCascadeTargetIntoExpression() {
     void assertSingle({required String input, required String expected}) {
-      var parseResult = parseStringWithErrors('''
+      var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $input;
-    }
-    ''');
-      var statement = parseResult.findNode.expressionStatement(input);
-      var cascadeExpression = statement.expression as CascadeExpression;
+}
+''');
+      var cascadeExpression = parseResult.findNode.singleCascadeExpression;
       var result = insertCascadeTargetIntoExpression(
         expression: cascadeExpression.cascadeSections.single,
         cascadeTarget: cascadeExpression.target,

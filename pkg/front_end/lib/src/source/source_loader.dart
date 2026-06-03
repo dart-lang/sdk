@@ -226,7 +226,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
   final List<String> _expectedOutlineFutureProblems = [];
   final List<String> _expectedBodyBuildingFutureProblems = [];
 
-  SourceLoader(this.fileSystem, this.includeComments, this.target)
+  new(this.fileSystem, this.includeComments, this.target)
     : dataForTesting = retainDataForTesting
           ?
             // Coverage-ignore(suite): Not run.
@@ -3544,7 +3544,7 @@ class _SourceClassGraph implements Graph<SourceClassBuilder> {
   directSupertypeMap = {};
   final Map<SourceClassBuilder, List<SourceClassBuilder>> _supertypeMap = {};
 
-  _SourceClassGraph(this.vertices, this._objectClass);
+  new(this.vertices, this._objectClass);
 
   List<SourceClassBuilder> computeSuperClasses(SourceClassBuilder cls) {
     Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
@@ -3579,7 +3579,7 @@ class _SourceExtensionTypeGraph
   >
   _supertypeMap = {};
 
-  _SourceExtensionTypeGraph(this.vertices);
+  new(this.vertices);
 
   List<SourceExtensionTypeDeclarationBuilder> computeSuperClasses(
     SourceExtensionTypeDeclarationBuilder extensionTypeBuilder,
@@ -3614,7 +3614,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
   final Member _enclosingMember;
   final _SuperMemberCache cache;
 
-  _CheckSuperAccess(
+  new(
     this._sourceLibraryBuilder,
     this._mixinApplicationClass,
     this._typeBuilder,

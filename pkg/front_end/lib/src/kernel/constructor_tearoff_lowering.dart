@@ -498,11 +498,7 @@ class LoweredTypedefTearOff {
   Expression targetTearOff;
   List<DartType> typeArguments;
 
-  LoweredTypedefTearOff(
-    this.typedefTearOff,
-    this.targetTearOff,
-    this.typeArguments,
-  );
+  new(this.typedefTearOff, this.targetTearOff, this.typeArguments);
 
   /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
   /// [expression] is the encoding of a lowered typedef tear off.

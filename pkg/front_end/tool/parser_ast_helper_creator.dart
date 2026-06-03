@@ -206,7 +206,7 @@ class ParserCreatorListener extends Listener {
   final StringBuffer newClasses = new StringBuffer();
   final List<String> visitNames = [];
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(
@@ -475,5 +475,5 @@ class Parameter {
   final String type;
   final bool hasQuestion;
 
-  Parameter(this.name, this.type, this.hasQuestion);
+  new(this.name, this.type, this.hasQuestion);
 }

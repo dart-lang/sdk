@@ -25,7 +25,7 @@ typedef BodyBuilderCreator =
 class ResolverForTesting extends Resolver {
   final BodyBuilderCreator bodyBuilderCreator;
 
-  ResolverForTesting({
+  new({
     required super.classHierarchy,
     required super.coreTypes,
     required super.typeInferenceEngine,
@@ -73,7 +73,7 @@ class _ResolverContext {
   late final CloneVisitorNotMembers _simpleCloner =
       new CloneVisitorNotMembers();
 
-  _ResolverContext._({
+  new _({
     required this.libraryBuilder,
     required this.typeInferrer,
     required this.typeEnvironment,
@@ -82,7 +82,7 @@ class _ResolverContext {
     required this.fileUri,
   });
 
-  factory _ResolverContext({
+  factory({
     required TypeInferenceEngineImpl typeInferenceEngine,
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
@@ -200,7 +200,7 @@ class _InitializerBuilder {
   ///    initializer. This avoids cascading errors.
   bool _needsImplicitSuperInitializer;
 
-  _InitializerBuilder({
+  new({
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required BodyBuilderContext bodyBuilderContext,
@@ -811,7 +811,7 @@ class _SuperParameterArguments {
   final int positionalCount;
   final int firstPositionalOffset;
 
-  _SuperParameterArguments(
+  new(
     this.arguments, {
     required this.positionalCount,
     required this.firstPositionalOffset,

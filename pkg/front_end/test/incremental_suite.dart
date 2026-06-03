@@ -702,7 +702,7 @@ class Context extends ChainContext {
 
   TestData? cleanupHelper;
 
-  Context(this.updateExpectations, this.breakBetween, this.skipTests);
+  new(this.updateExpectations, this.breakBetween, this.skipTests);
 
   @override
   Future<void> cleanUp(TestDescription description, Result result) async {
@@ -734,7 +734,7 @@ class ExpressionCompilation {
   final String expression;
   final String? className;
 
-  ExpressionCompilation({
+  new({
     required this.errors,
     required this.warnings,
     required this.uri,
@@ -814,7 +814,7 @@ class NewWorldTest {
   Component? newestWholeComponent;
   Component? sdk;
 
-  NewWorldTest({
+  new({
     required this.data,
     required this.context,
     required this.worlds,
@@ -2741,7 +2741,7 @@ class NewWorldTestData {
 
   // TODO: When needed, we can do this for warnings too.
   List<Set<String>> worldErrors = [];
-  NewWorldTestData({
+  new({
     required this.platformBinariesRoot,
     required this.checkoutRoot,
     required this.target,
@@ -2817,7 +2817,7 @@ class NewWorldTestProperties {
 }
 
 class ReadTest extends Step<TestDescription, TestData, Context> {
-  const ReadTest();
+  const new();
 
   @override
   String get name => "read test";
@@ -2840,7 +2840,7 @@ class ReadTest extends Step<TestDescription, TestData, Context> {
 }
 
 class RunCompilations extends Step<TestData, TestData, Context> {
-  const RunCompilations();
+  const new();
 
   @override
   String get name => "run compilations";
@@ -2888,7 +2888,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
 }
 
 class Strategy extends EquivalenceStrategy {
-  const Strategy();
+  const new();
 
   @override
   bool checkClass_procedures(
@@ -2936,7 +2936,7 @@ class TestData {
   Directory? outDir;
   Uri loadedFrom;
 
-  TestData(this.map, this.outDir, this.loadedFrom);
+  new(this.map, this.outDir, this.loadedFrom);
 }
 
 class TestIncrementalCompiler extends IncrementalCompiler {
@@ -2945,7 +2945,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       new TestRecorderForTesting();
   final Uri entryPoint;
 
-  TestIncrementalCompiler(
+  new(
     CompilerOptions options,
     this.entryPoint, [
     Uri? initializeFrom,
@@ -2960,7 +2960,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
          incrementalSerializer,
        );
 
-  TestIncrementalCompiler.fromComponent(
+  new fromComponent(
     CompilerOptions options,
     this.entryPoint,
     Component? componentToInitializeFrom, [
@@ -3034,7 +3034,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 class TestMemoryFileSystem extends MemoryFileSystem {
   Uri holePunchBase;
 
-  TestMemoryFileSystem(Uri currentDirectory, {required this.holePunchBase})
+  new(Uri currentDirectory, {required this.holePunchBase})
     : super(currentDirectory);
 
   @override
@@ -3180,7 +3180,7 @@ class World {
   /// points to anything in itself.
   final bool checkConstantCoverageReferences;
 
-  World({
+  new({
     required this.modules,
     required this.updateWorldType,
     required this.noFullComponent,

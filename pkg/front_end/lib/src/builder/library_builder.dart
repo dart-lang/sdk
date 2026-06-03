@@ -152,7 +152,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   @override
   final Uri fileUri;
 
-  LibraryBuilderImpl(this.fileUri);
+  new(this.fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.

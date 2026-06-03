@@ -10,15 +10,11 @@ class C extends core::Object {
   constructor •(core::int? i) → self::C
     : self::C::_f2 = i, self::C::_f3 = i, self::C::_f4 = i, super core::Object::•()
     ;
-  static synthetic method _#new#tearOff(core::int? i) → self::C
-    return new self::C::•(i);
 }
 class A extends core::Object {
   constructor •(core::int? i) → self::A
     : super core::Object::•()
     ;
-  static synthetic method _#new#tearOff(core::int? i) → self::A
-    return new self::A::•(i);
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
 }
@@ -65,15 +61,11 @@ class B extends core::Object {
   constructor •(core::int? i) → self::B
     : super core::Object::•()
     ;
-  static synthetic method _#new#tearOff(core::int? i) → self::B
-    return new self::B::•(i);
 }
 class E extends self::_E&B&M1 implements self::D {
   constructor •(super-initializing-formal core::int? i) → self::E
     : super self::_E&B&M1::•(i)
     ;
-  static synthetic method _#new#tearOff(core::int? i) → self::E
-    return new self::E::•(i);
   @#C1
   method noSuchMethod(core::Invocation invocation) → dynamic
     return super.{core::Object::noSuchMethod}(invocation);

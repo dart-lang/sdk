@@ -28,7 +28,7 @@ String typeSchemaToString(DartType schema) {
 // Coverage-ignore(suite): Not run.
 /// Extension of [Printer] that represents the unknown type as `?`.
 class TypeSchemaPrinter extends Printer {
-  TypeSchemaPrinter(
+  new(
     StringSink sink, {
     NameSystem? syntheticNames,
     bool showOffsets = false,
@@ -55,7 +55,7 @@ class TypeSchemaPrinter extends Printer {
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
 class UnknownType extends AuxiliaryType implements SharedUnknownType {
-  const UnknownType();
+  const new();
 
   @override
   Nullability get declaredNullability => Nullability.undetermined;
@@ -103,7 +103,7 @@ class UnknownType extends AuxiliaryType implements SharedUnknownType {
 
 /// Visitor used to compute [isKnown].
 class _HasUnknownVisitor extends FindTypeVisitor {
-  const _HasUnknownVisitor();
+  const new();
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) => node is UnknownType;

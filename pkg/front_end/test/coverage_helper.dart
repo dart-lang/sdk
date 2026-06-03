@@ -146,7 +146,7 @@ class Coverage {
   final Map<Uri, FileCoverage> _coverages = {};
   final String displayName;
 
-  Coverage(this.displayName);
+  new(this.displayName);
 
   FileCoverage getOrAddFileCoverage(Uri uri) {
     return _coverages[uri] ??= new FileCoverage._(uri);
@@ -180,7 +180,7 @@ class Coverage {
     };
   }
 
-  factory Coverage.fromJson(Map<String, Object?> json) {
+  factory fromJson(Map<String, Object?> json) {
     Coverage result = new Coverage(json["displayName"] as String? ?? "");
     List coverages = json["coverages"] as List;
     for (Map<String, dynamic> entry in coverages) {
@@ -190,7 +190,7 @@ class Coverage {
     return result;
   }
 
-  factory Coverage.loadFromFile(File f) {
+  factory loadFromFile(File f) {
     return Coverage.fromJson(jsonDecode(f.readAsStringSync()));
   }
 
@@ -210,7 +210,7 @@ class FileCoverage {
   final Set<int> misses = {};
   final Set<StartEndPair> notCompiled = {};
 
-  FileCoverage._(this.uri);
+  new _(this.uri);
 
   Map<String, Object?> toJson() {
     List<int> notCompiledRanges = [];
@@ -229,7 +229,7 @@ class FileCoverage {
     };
   }
 
-  factory FileCoverage.fromJson(Map<String, Object?> json) {
+  factory fromJson(Map<String, Object?> json) {
     FileCoverage result = new FileCoverage._(Uri.parse(json["uri"] as String));
     List hits = json["hits"] as List;
     for (int hit in hits) {
@@ -253,7 +253,7 @@ class StartEndPair implements Comparable {
   final int startPos;
   final int endPos;
 
-  StartEndPair(this.startPos, this.endPos);
+  new(this.startPos, this.endPos);
 
   @override
   String toString() => "[$startPos - $endPos]";

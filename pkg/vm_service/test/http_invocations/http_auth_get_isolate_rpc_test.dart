@@ -9,4 +9,5 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       httpGetIsolateRpcTests,
       'http_auth_get_isolate_rpc_test.dart',
+      useAuthToken: true,
     );

@@ -447,7 +447,7 @@ class InvocationMode {
 
   final String name;
 
-  const InvocationMode(this.name);
+  const new(this.name);
 
   /// Returns the set of information modes from a comma-separated list of
   /// invocation mode names.
@@ -608,7 +608,7 @@ class Verbosity {
   final String name;
   final String help;
 
-  const Verbosity(this.name, this.help);
+  const new(this.name, this.help);
 
   @override
   String toString() => 'Verbosity($name)';

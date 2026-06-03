@@ -101,14 +101,14 @@ class FileSystemException implements Exception {
   final Uri uri;
   final String message;
 
-  FileSystemException(this.uri, this.message);
+  new(this.uri, this.message);
 
   @override
   String toString() => 'FileSystemException(uri=$uri; message=$message)';
 }
 
 class NullFileSystem implements FileSystem {
-  const NullFileSystem();
+  const new();
 
   @override
   FileSystemEntity entityForUri(Uri uri) {

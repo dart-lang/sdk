@@ -146,7 +146,7 @@ class ParserCreatorListener extends Listener {
   List<String> parameters = [];
   List<String?> parametersNamed = [];
 
-  ParserCreatorListener(this.out);
+  new(this.out);
 
   @override
   void beginClassDeclaration(

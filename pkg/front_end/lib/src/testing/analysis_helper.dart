@@ -83,7 +83,7 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   StaticTypeContext? staticTypeContext;
 
-  StaticTypeVisitorBase(Component component, ClassHierarchy classHierarchy)
+  new(Component component, ClassHierarchy classHierarchy)
     : typeEnvironment = new TypeEnvironment(
         new CoreTypes(component),
         classHierarchy,
@@ -123,7 +123,7 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
 
   Map<String, Map<String, List<FormattedMessage>>> _messages = {};
 
-  AnalysisVisitor(this.onDiagnostic, this.component, this.uriFilter)
+  new(this.onDiagnostic, this.component, this.uriFilter)
     : super(
         component,
         new ClassHierarchy(component, new CoreTypes(component)),
@@ -203,7 +203,7 @@ class AnalysisInterface {
   final AnalysisVisitor _visitor;
   final ComponentLookup _componentLookup;
 
-  AnalysisInterface(this._visitor)
+  new(this._visitor)
     : _componentLookup = new ComponentLookup(_visitor.component);
 
   void reportMessage(TreeNode node, String message) {
@@ -244,7 +244,7 @@ typedef GeneralAnalysisFunction =
 class GeneralAnalyzer extends AnalysisVisitor {
   final GeneralAnalysisFunction analyzer;
 
-  GeneralAnalyzer(
+  new(
     DiagnosticMessageHandler onDiagnostic,
     Component component,
     bool Function(Uri uri)? analyzedUrisFilter,
@@ -281,7 +281,7 @@ PerformAnalysisFunction performGeneralAnalysis(
 class ComponentLookup {
   final Component _component;
 
-  ComponentLookup(this._component);
+  new(this._component);
 
   Map<Uri, LibraryLookup>? _libraries;
 
@@ -303,7 +303,7 @@ class ComponentLookup {
 class LibraryLookup {
   final Library library;
 
-  LibraryLookup(this.library);
+  new(this.library);
 
   Map<String, ClassLookup>? _classes;
 
@@ -325,7 +325,7 @@ class LibraryLookup {
 class ClassLookup {
   final Class cls;
 
-  ClassLookup(this.cls);
+  new(this.cls);
 }
 
 /// Entry points used for analyzing cfe source code.

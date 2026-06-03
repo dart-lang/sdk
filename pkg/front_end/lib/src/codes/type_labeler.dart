@@ -23,7 +23,7 @@ import 'denylisted_classes.dart' show denylistedCoreClasses;
 class LabeledString {
   final List<Object> parts;
 
-  LabeledString(this.parts);
+  new(this.parts);
 
   @override
   String toString() => parts.join();
@@ -633,13 +633,7 @@ class LabeledNode {
   final Uri importUri;
   final Uri fileUri;
 
-  LabeledNode(
-    this.node,
-    this.name,
-    this.importUri,
-    this.fileUri,
-    this.typeLabeler,
-  );
+  new(this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
 
   @override
   String toString() {

@@ -57,7 +57,7 @@ class Dart2jsTester {
   List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
 
-  Dart2jsTester(
+  new(
     this.useExperimentalInvalidation,
     this.fast,
     this.addDebugBreaks,

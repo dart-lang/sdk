@@ -49,7 +49,7 @@ class SuiteFolderOptions {
   final Uri baseUri;
   final Map<Uri, FolderOptions> _folderOptions = {};
 
-  SuiteFolderOptions(this.baseUri);
+  new(this.baseUri);
 
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions? folderOptions = _folderOptions[directory.uri];
@@ -203,7 +203,7 @@ class FolderOptions {
   final bool showOffsets;
   final bool forceClosureContextLowering;
 
-  FolderOptions(
+  new(
     this._explicitExperimentalFlags, {
     this.enableUnscheduledExperiments,
     this.forceLateLowerings,

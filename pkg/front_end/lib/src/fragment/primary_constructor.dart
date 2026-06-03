@@ -34,7 +34,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     constructorName.fullNameLength,
   );
 
-  PrimaryConstructorFragment({
+  new({
     required this.constructorName,
     required this.fileUri,
     required this.startOffset,
@@ -108,10 +108,7 @@ class _PrimaryConstructorBodyBuildingContext
   @override
   final bool shouldFinishFunction;
 
-  _PrimaryConstructorBodyBuildingContext(
-    this._fragment, {
-    required this.shouldFinishFunction,
-  });
+  new(this._fragment, {required this.shouldFinishFunction});
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment

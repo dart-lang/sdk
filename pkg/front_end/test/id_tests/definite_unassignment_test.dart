@@ -31,7 +31,7 @@ Future<void> main(List<String> args) async {
 }
 
 class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {
-  const DefiniteUnassignmentDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -67,7 +67,7 @@ class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {
 class DefiniteUnassignmentDataExtractor extends CfeDataExtractor<String> {
   final FlowAnalysisResult _flowResult;
 
-  DefiniteUnassignmentDataExtractor(
+  new(
     InternalCompilerResult compilerResult,
     Map<Id, ActualData<String>> actualMap,
     this._flowResult,

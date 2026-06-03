@@ -19,7 +19,7 @@ class Application {
   late _Output _output;
   bool _started = false;
 
-  Application(this._widget) {
+  new(this._widget) {
     _latestKnownTerminalColumns = stdout.terminalColumns;
     _latestKnownTerminalRows = stdout.terminalLines;
     _preventClose = new RawReceivePort();
@@ -278,7 +278,7 @@ abstract class Widget {
 
 class BoxedWidget extends Widget {
   final Widget? _content;
-  BoxedWidget(this._content);
+  new(this._content);
 
   @override
   bool input(Application app, List<int> data) {
@@ -321,7 +321,7 @@ class BoxedWidget extends Widget {
 class QuitOnQWidget extends Widget {
   Widget? _contentWidget;
 
-  QuitOnQWidget(this._contentWidget);
+  new(this._contentWidget);
 
   @override
   void print(WriteOnlyOutput output) {
@@ -342,7 +342,7 @@ class WithSingleLineBottomWidget extends Widget {
   Widget? _contentWidget;
   Widget? _bottomWidget;
 
-  WithSingleLineBottomWidget(this._contentWidget, this._bottomWidget);
+  new(this._contentWidget, this._bottomWidget);
 
   @override
   void print(WriteOnlyOutput output) {
@@ -399,7 +399,7 @@ class _Output implements WriteOnlyOutput {
   final Uint16List _text;
   final Uint16List _modifiers;
 
-  _Output(this.rows, this.columns)
+  new(this.rows, this.columns)
     : _text = new Uint16List(rows * columns),
       _modifiers = new Uint16List(rows * columns);
 
@@ -502,7 +502,7 @@ class WriteOnlyPartialOutput implements WriteOnlyOutput {
   final int rows;
   @override
   final int columns;
-  WriteOnlyPartialOutput(
+  new(
     this._output,
     this.offsetRow,
     this.offsetColumn,

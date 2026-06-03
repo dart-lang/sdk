@@ -9,7 +9,7 @@ import 'api_prototype/file_system.dart';
 class SchemeBasedFileSystem implements FileSystem {
   final Map<String, FileSystem> fileSystemByScheme;
 
-  SchemeBasedFileSystem(this.fileSystemByScheme);
+  new(this.fileSystemByScheme);
 
   @override
   FileSystemEntity entityForUri(Uri uri) {

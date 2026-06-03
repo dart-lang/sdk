@@ -60,8 +60,10 @@ RecordLiteral
   }
 
   void test_namedFieldRecovery_language219() {
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = (a: 0);
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''', featureSet: FeatureSets.language_2_19);
 
     var node = parseResult.findNode.singleParenthesizedExpression;

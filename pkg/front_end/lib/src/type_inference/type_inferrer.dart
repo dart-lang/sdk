@@ -153,7 +153,7 @@ class TypeInferrerImpl implements TypeInferrer {
         thisType: thisType,
       );
 
-  TypeInferrerImpl(
+  new(
     this.engine,
     this.thisType,
     this.libraryBuilder,
@@ -533,7 +533,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   @override
   final ExtensionScope extensionScope;
 
-  TypeInferrerImplBenchmarked(
+  new(
     TypeInferenceEngine engine,
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
@@ -700,31 +700,21 @@ class InferredFunctionBody {
   final DartType? emittedValueType;
   final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredFunctionBody(
-    this.body,
-    this.emittedValueType,
-    this.scopeProviderInfo,
-  );
+  new(this.body, this.emittedValueType, this.scopeProviderInfo);
 }
 
 class InferredFieldInitializer {
   final ExpressionInferenceResult expressionInferenceResult;
   final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredFieldInitializer(
-    this.expressionInferenceResult,
-    this.scopeProviderInfo,
-  );
+  new(this.expressionInferenceResult, this.scopeProviderInfo);
 }
 
 class InferredConstructorInitializers {
   final List<InitializerInferenceResult> initializersInferenceResult;
   final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredConstructorInitializers(
-    this.initializersInferenceResult,
-    this.scopeProviderInfo,
-  );
+  new(this.initializersInferenceResult, this.scopeProviderInfo);
 }
 
 /// Contextual information used to infer constructor initializers and body.

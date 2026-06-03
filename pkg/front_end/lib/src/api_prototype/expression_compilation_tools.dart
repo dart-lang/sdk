@@ -176,18 +176,18 @@ class ParsedType {
   final List<ParsedType>? arguments;
   final List<String?>? recordFieldNames;
 
-  ParsedType.interface(this.uri, this.className, this.nullability)
+  new interface(this.uri, this.className, this.nullability)
     : type = ParsedTypeKind.Interface,
       arguments = [],
       recordFieldNames = null;
 
-  ParsedType.record(this.nullability, this.recordFieldNames)
+  new record(this.nullability, this.recordFieldNames)
     : type = ParsedTypeKind.Record,
       uri = null,
       className = null,
       arguments = [];
 
-  ParsedType.nullType()
+  new nullType()
     : type = ParsedTypeKind.Null,
       uri = null,
       className = null,

@@ -16,29 +16,26 @@ class AssignedVariablesImpl implements AssignedVariables<TreeNode, Variable> {
   final Map<AssignedVariablesNodeInfo, AssignedVariablesNodeInfo>?
   _deferredOutsideAssertsByDeferredDelegate;
 
-  AssignedVariablesImpl(
-    this._delegate, {
-    required bool isClosureContextLoweringEnabled,
-  }) : _insideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, Variable>()
-           : null,
-       _outsideAsserts = isClosureContextLoweringEnabled
-           ? new AssignedVariables<TreeNode, Variable>()
-           : null,
-       _deferredInsideAssertsByDeferredDelegate =
-           isClosureContextLoweringEnabled
-           ? new Map<
-               AssignedVariablesNodeInfo,
-               AssignedVariablesNodeInfo
-             >.identity()
-           : null,
-       _deferredOutsideAssertsByDeferredDelegate =
-           isClosureContextLoweringEnabled
-           ? new Map<
-               AssignedVariablesNodeInfo,
-               AssignedVariablesNodeInfo
-             >.identity()
-           : null;
+  new(this._delegate, {required bool isClosureContextLoweringEnabled})
+    : _insideAsserts = isClosureContextLoweringEnabled
+          ? new AssignedVariables<TreeNode, Variable>()
+          : null,
+      _outsideAsserts = isClosureContextLoweringEnabled
+          ? new AssignedVariables<TreeNode, Variable>()
+          : null,
+      _deferredInsideAssertsByDeferredDelegate = isClosureContextLoweringEnabled
+          ? new Map<
+              AssignedVariablesNodeInfo,
+              AssignedVariablesNodeInfo
+            >.identity()
+          : null,
+      _deferredOutsideAssertsByDeferredDelegate =
+          isClosureContextLoweringEnabled
+          ? new Map<
+              AssignedVariablesNodeInfo,
+              AssignedVariablesNodeInfo
+            >.identity()
+          : null;
 
   bool get _isInsideAssert => _assertDepth > 0;
 

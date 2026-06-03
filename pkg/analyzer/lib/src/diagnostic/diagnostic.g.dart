@@ -3371,6 +3371,19 @@ const DiagnosticWithoutArguments defaultInSwitchExpression =
     );
 
 /// No parameters.
+const DiagnosticWithoutArguments
+defaultValueAlreadySpecifiedInAugmentationChain = DiagnosticWithoutArgumentsImpl(
+  name: 'default_value_already_specified_in_augmentation_chain',
+  problemMessage:
+      "The default value for this optional parameter was already specified in "
+      "the augmentation chain.",
+  correctionMessage: "Try removing all but one of the default values.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'default_value_already_specified_in_augmentation_chain',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments defaultValueInFunctionType =
     DiagnosticWithoutArgumentsImpl(
       name: 'default_value_in_function_type',

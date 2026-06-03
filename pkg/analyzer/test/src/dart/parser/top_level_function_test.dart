@@ -322,9 +322,11 @@ FunctionDeclaration
 
   test_recovery_body_issue56355() {
     // https://github.com/dart-lang/sdk/issues/56355
-    var parseResult = parseStringWithErrors(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 void get() {
   http.Response response = http2
+//                         ^^^^^
+// [diag.expectedToken] Expected to find ';'.
 }
 ''');
 

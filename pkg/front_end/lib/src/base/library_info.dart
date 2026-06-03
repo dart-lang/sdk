@@ -81,7 +81,7 @@ class Maturity {
 
   final String description;
 
-  const Maturity(this.level, this.name, this.description);
+  const new(this.level, this.name, this.description);
 
   @override
   String toString() => "$name: $level\n$description\n";

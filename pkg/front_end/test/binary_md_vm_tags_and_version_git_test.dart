@@ -211,7 +211,7 @@ class TagCompare {
   final int? vmVersion;
   final Class tagClass;
 
-  TagCompare(
+  new(
     this.mdTagToName,
     this.mdVersion,
     this.vmTagToName,

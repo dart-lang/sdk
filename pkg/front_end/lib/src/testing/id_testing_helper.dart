@@ -40,7 +40,7 @@ class CfeTestConfig extends TestConfig {
   final bool compileSdk;
   final TestTargetFlags targetFlags;
 
-  const CfeTestConfig(
+  const new(
     super.marker,
     super.name, {
     this.explicitExperimentalFlags = const {},
@@ -78,7 +78,7 @@ abstract class CfeDataComputer<T>
           InternalCompilerResult,
           CfeTestResultData
         > {
-  const CfeDataComputer();
+  const new();
 }
 
 /// Auxiliary data from running a test.
@@ -87,7 +87,7 @@ class CfeTestResultData
   /// CustomData is passed from [CfeTestConfig.customizeCompilerOptions].
   final dynamic customData;
 
-  CfeTestResultData(super.config, this.customData, super.compilerResult);
+  new(super.config, this.customData, super.compilerResult);
 
   @override
   Component get component => compilerResult.component!;
@@ -119,7 +119,7 @@ class CfeDataRegistry<T> with DataRegistry<T>, CfeDataRegistryMixin<T> {
   @override
   final Map<Id, ActualData<T>> actualMap;
 
-  CfeDataRegistry(this.compilerResult, this.actualMap);
+  new(this.compilerResult, this.actualMap);
 }
 
 abstract class CfeDataExtractor<T> extends DataExtractor<T>
@@ -127,8 +127,7 @@ abstract class CfeDataExtractor<T> extends DataExtractor<T>
   @override
   final InternalCompilerResult compilerResult;
 
-  CfeDataExtractor(this.compilerResult, Map<Id, ActualData<T>> actualMap)
-    : super(actualMap);
+  new(this.compilerResult, Map<Id, ActualData<T>> actualMap) : super(actualMap);
 }
 
 /// Create the testing URI used for [fileName] in annotated tests.

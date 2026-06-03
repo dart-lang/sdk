@@ -17,7 +17,7 @@ class MatchingExpressionVisitor
   final MatchingCache matchingCache;
   final CoreTypes coreTypes;
 
-  MatchingExpressionVisitor(this.matchingCache, this.coreTypes);
+  new(this.matchingCache, this.coreTypes);
 
   DelayedExpression visitPattern(
     Pattern node,

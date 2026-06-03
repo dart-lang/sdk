@@ -18,7 +18,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   late final _ConstantEvaluator constantEvaluator;
   final bool _removeAsserts;
 
-  ConstConditionalSimplifier(
+  new(
     DartLibrarySupport librarySupport,
     ConstantsBackend constantsBackend,
     this._component,
@@ -136,7 +136,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   // TODO(fishythefish): Make this more granular than [TreeNode].
   final bool Function(TreeNode) _shouldNotInline;
 
-  _ConstantEvaluator(
+  new(
     super.librarySupport,
     super.constantsBackend,
     super.component,

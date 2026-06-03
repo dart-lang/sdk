@@ -20,6 +20,7 @@ class AvoidPrivateTypedefFunctions extends AnalysisRule {
     : super(
         name: LintNames.avoid_private_typedef_functions,
         description: _desc,
+        state: .deprecated(since: .new(3, 13, 0)),
       );
 
   @override

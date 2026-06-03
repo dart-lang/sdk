@@ -3764,7 +3764,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var errorRange = superInvocation?.sourceRange ?? implicitErrorRange;
     diagnosticReporter.report(
       diag.constConstructorWithNonConstSuper
-          .withArguments(superclassName: element.enclosingElement.displayName)
+          .withArguments(
+            superclassName: invokedSuper.enclosingElement.displayName,
+          )
           .atSourceRange(errorRange),
     );
     return true;
@@ -3952,6 +3954,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
     if (typeSystem.isStrictlyNonNullable(lhsType)) {
       diagnosticReporter.report(diag.deadNullAwareExpression.at(rhs));
+    }
+  }
+
+  void _checkForDefaultValueAlreadySpecifiedInAugmentationChain(
+    FormalParameter formalParameter,
+  ) {
+    if (!formalParameter.isOptional) {
+      return;
+    }
+
+    var defaultClause = formalParameter.defaultClause;
+    if (defaultClause == null) {
+      return;
+    }
+
+    var fragment = formalParameter.declaredFragment;
+    if (fragment is! FormalParameterFragmentImpl) {
+      return;
+    }
+
+    for (var previousFragment in fragment.precedingFragments) {
+      if (previousFragment.constantInitializer != null) {
+        diagnosticReporter.report(
+          diag.defaultValueAlreadySpecifiedInAugmentationChain
+              .withContextMessages([
+                ?previousFragment.contextMessageAt(
+                  "The previous formal parameter with default value is here.",
+                ),
+              ])
+              .at(defaultClause.separator),
+        );
+        return;
+      }
     }
   }
 
@@ -7583,6 +7618,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }();
 
     for (var parameter in node.parameters) {
+      _checkForDefaultValueAlreadySpecifiedInAugmentationChain(parameter);
+
       if (parameter.isRequiredNamed) {
         if (parameter.defaultClause != null) {
           var errorTarget = parameter.name ?? parameter;

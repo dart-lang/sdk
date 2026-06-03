@@ -90,7 +90,7 @@ class KernelTargetTester extends KernelTargetTest {
   final vmService.VmService serviceClient;
   final Map<String, List<Uri>> classesInUris;
 
-  KernelTargetTester(
+  new(
     CompilerContext compilerContext,
     api.FileSystem fileSystem,
     bool includeComments,

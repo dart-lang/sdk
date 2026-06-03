@@ -50,7 +50,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
 
   final Set<Variable> unwritten;
 
-  UnreachableIfFinder._(this.unwritten);
+  new _(this.unwritten);
 
   List<Warning> warnings = [];
 
@@ -125,7 +125,7 @@ class UnreachableIfFinder extends RecursiveVisitor {
 class EffectivelyFinal extends RecursiveVisitor {
   final Set<Variable> unwritten = {};
 
-  EffectivelyFinal._();
+  new _();
 
   @override
   void defaultVariable(Variable node) {
@@ -145,7 +145,7 @@ class Warning {
   final String message;
   final String? hint;
 
-  Warning(this.location, this.message, this.hint);
+  new(this.location, this.message, this.hint);
 
   @override
   String toString() {

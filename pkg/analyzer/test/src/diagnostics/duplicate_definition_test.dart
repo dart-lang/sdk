@@ -154,13 +154,13 @@ class C {
 
   test_instance_getter_field_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
-abstract class C {
+class C {
   int get foo;
 //        ^^^
 // [context 1] The corresponding getter is declared here.
 }
 
-augment abstract class C {
+augment class C {
   augment int foo = 0;
 //            ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
@@ -459,13 +459,13 @@ class A(var int _, var int _);
 
   test_instance_setter_field_augment() async {
     await resolveTestCodeWithDiagnostics(r'''
-abstract class C {
+class C {
   void set foo(int _);
 //         ^^^
 // [context 1] The corresponding setter is declared here.
 }
 
-augment abstract class C {
+augment class C {
   augment int foo = 0;
 //            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.

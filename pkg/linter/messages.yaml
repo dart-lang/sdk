@@ -813,6 +813,72 @@ LinterLintCode:
         }
       }
       ```
+  asyncReturnWithNoAwait:
+    type: lint
+    parameters: none
+    problemMessage: "Returning a 'Future' without 'await'."
+    correctionMessage: "Try adding an 'await' or making the body non-async."
+    state:
+      stable: "3.13"
+    categories: [errorProne]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `Future` is returned from an
+      `async` function without using `await`.
+
+      Returning an unawaited `Future` from an `async` function means any
+      exception thrown by the `Future` might not propagate as expected. Having
+      the exception thrown at the `await` site helps identify the source of the
+      exception and makes it easier to debug.
+
+      #### Example
+
+      The following code produces this diagnostic because it returns the `Future`
+      from `futureString` without using `await`:
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        [!return!] value;
+      }
+      ```
+
+      #### Common fixes
+
+      Add `await` before the returned `Future`:
+
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        return await value;
+      }
+      ```
+
+      If you don't need to use `await`, then remove `async` from the function body:
+
+      ```dart
+      Future<String> futureString(Future<String> value) {
+        return value;
+      }
+      ```
+    deprecatedDetails: |-
+      **DO** use `await` when returning a `Future` from an `async` function.
+
+      **BAD:**
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        return value;
+      }
+      Future<int> futureInt(Future<int> value) async => value;
+      ```
+
+      **GOOD:**
+      ```dart
+      Future<String> futureString(Future<String> value) async {
+        return await value;
+      }
+      Future<int> futureInt(Future<int> value) => value;
+      ```
   avoidAnnotatingWithDynamic:
     type: lint
     parameters: none

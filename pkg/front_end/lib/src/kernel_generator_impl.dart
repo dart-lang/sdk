@@ -300,7 +300,7 @@ class InternalCompilerResult implements CompilerResult {
   /// This is only provided for use in testing.
   final KernelTarget? kernelTargetForTesting;
 
-  InternalCompilerResult({
+  new({
     this.summary,
     this.component,
     this.sdkComponent,

@@ -348,7 +348,7 @@ class Parser {
   bool get allowedToShortcutParseExpression => true;
 
   /// `true` if the 'augmentations' feature is enabled.
-  final bool _isAugmentationsFeatureEnabled;
+  final bool isAugmentationsFeatureEnabled;
 
   Parser(
     this.listener, {
@@ -363,8 +363,9 @@ class Parser {
            .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isAnonymousMethodsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.anonymousMethods),
-       _isAugmentationsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.augmentations);
+       isAugmentationsFeatureEnabled = experimentalFeatures.isExperimentEnabled(
+         ExperimentalFlag.augmentations,
+       );
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -4349,7 +4350,7 @@ class Parser {
     if (getOrSet != null) {
       reportRecoverableErrorWithToken(getOrSet, diag.extraneousModifier);
     }
-    if (!_isAugmentationsFeatureEnabled && abstractToken != null) {
+    if (!isAugmentationsFeatureEnabled && abstractToken != null) {
       reportRecoverableErrorWithToken(abstractToken, diag.extraneousModifier);
     }
     return parseFields(
@@ -4585,7 +4586,7 @@ class Parser {
     token = parseFunctionBody(
       token,
       /* ofFunctionExpression = */ false,
-      isExternal || _isAugmentationsFeatureEnabled,
+      isExternal || isAugmentationsFeatureEnabled,
     );
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next!, getOrSet, token);
@@ -5252,7 +5253,7 @@ class Parser {
         next = token.next!;
       }
       if (isModifier(next)) {
-        if (next.isA(Keyword.STATIC)) {
+        if (next.isA(Keyword.STATIC) && abstractToken == null) {
           staticToken = token = next;
           next = token.next!;
         } else if (next.isA(Keyword.COVARIANT)) {
@@ -6009,7 +6010,7 @@ class Parser {
         /* ofFunctionExpression = */ false,
         /* allowAbstract = */ (staticToken == null ||
                 externalToken != null ||
-                _isAugmentationsFeatureEnabled) &&
+                isAugmentationsFeatureEnabled) &&
             inPlainSync,
       );
     }
@@ -6211,7 +6212,7 @@ class Parser {
       token = parseFunctionBody(
         token,
         /* ofFunctionExpression = */ false,
-        /* allowAbstract = */ _isAugmentationsFeatureEnabled,
+        /* allowAbstract = */ isAugmentationsFeatureEnabled,
       );
     }
     switch (kind) {

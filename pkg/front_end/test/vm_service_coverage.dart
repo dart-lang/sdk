@@ -26,7 +26,7 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
   final bool printHits;
   final bool doPrint;
 
-  CoverageHelper({
+  new({
     this.forceCompilation = false,
     this.printHits = true,
     this.doPrint = true,

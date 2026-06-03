@@ -330,13 +330,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     while (true) {
       if (fragment.element case PropertyAccessorElement element) {
         if (element.isOriginVariable) {
-          // ignore: parameter_assignments
           fragment = element.variable.firstFragment;
         }
       }
       if (fragment.element case FieldElement element) {
         if (element.isOriginDeclaringFormalParameter) {
-          // ignore:parameter_assignments
           fragment = element.declaringFormalParameter!.firstFragment;
         }
       }
@@ -356,7 +354,6 @@ class _Visitor extends SimpleAstVisitor<void> {
           length: fragment.enclosingFragment!.name!.length,
         );
       } else if (fragment.enclosingFragment case var enclosingFragment?) {
-        // ignore: parameter_assignments
         fragment = enclosingFragment;
       } else {
         // This should never happen. But if it does, make sure we generate a

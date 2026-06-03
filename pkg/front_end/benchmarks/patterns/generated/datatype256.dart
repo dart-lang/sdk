@@ -7977,7 +7977,7 @@ abstract class Visitor256<R, A> {
 }
 
 class CounterVisitor256 implements Visitor256<void, Counter> {
-  const CounterVisitor256();
+  const new();
 
   @override
   void visitSub0(Sub0 sub, Counter counter) {

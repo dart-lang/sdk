@@ -13,12 +13,6 @@ class C extends core::Object /*hasConstConstructor*/  {
   const constructor v1() → self::C
     : this self::C::_(1)
     ;
-  static synthetic method _#_#tearOff(core::int? field) → self::C
-    return new self::C::_(field);
-  static synthetic method _#vn#tearOff() → self::C
-    return new self::C::vn();
-  static synthetic method _#v1#tearOff() → self::C
-    return new self::C::v1();
 }
 extension type E(core::int? _) {
   abstract extension-type-member representation-field get _() → core::int?;

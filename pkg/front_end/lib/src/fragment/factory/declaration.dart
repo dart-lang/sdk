@@ -117,7 +117,7 @@ class FactoryDeclarationImpl
   late final TypeBuilder _returnType;
   late final FactoryEncoding _encoding;
 
-  FactoryDeclarationImpl(this._fragment) {
+  new(this._fragment) {
     _fragment.declaration = this;
   }
 

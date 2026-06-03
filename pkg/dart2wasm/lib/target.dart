@@ -554,7 +554,8 @@ class WasmTarget extends Target {
   int get enabledLateLowerings => LateLowering.all;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
+  int get enabledConstructorTearOffLowerings =>
+      ConstructorTearOffLowering.typedefs;
 
   @override
   bool get supportsExplicitGetterCalls => true;

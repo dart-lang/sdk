@@ -233,6 +233,21 @@ group("dart2js_bot") {
   ]
 }
 
+group("android_bot") {
+  deps = [
+    "runtime/bin:abstract_socket_test",
+    "runtime/bin:dartaotruntime",
+    "runtime/bin:dartvm",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
+    "runtime/bin:gen_snapshot($host_toolchain)",
+    "runtime/bin:process_test",
+    "runtime/bin:run_vm_tests",
+    "samples/ffi/http:fake_http",
+    "samples/ffi/httpIG:fake_httpIG",
+  ]
+}
+
 group("dartfuzz") {
   deps = [
     "runtime/bin:dartaotruntime",

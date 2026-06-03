@@ -297,7 +297,7 @@ CompilerOptions getOptions(Uri sdkRoot) {
 }
 
 class PrinterPrime extends Printer {
-  PrinterPrime(
+  new(
     StringSink sink, {
     NameSystem? syntheticNames,
     bool showOffsets = false,

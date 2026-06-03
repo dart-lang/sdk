@@ -26,12 +26,16 @@ class DiscardedFutures extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
+    var typeProvider = context.typeProvider;
     var visitor = UnusedFuturesVisitor(
       rule: this,
+      typeProvider: typeProvider,
       isInteresting: (node) {
         var type = node.staticType;
         // This rule does concern itself with `FutureOr`.
-        if (type == null || !type.isOrImplementsFutureOrFutureOr) {
+        if (type == null ||
+            (type.asInstanceOf(typeProvider.futureElement) == null &&
+                type.asInstanceOf(typeProvider.futureOrElement) == null)) {
           return false;
         }
         // This rule is only concerned with code in sync functions.

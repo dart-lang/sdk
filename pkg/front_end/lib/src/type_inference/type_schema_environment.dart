@@ -59,8 +59,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   @override
   final ClassHierarchy hierarchy;
 
-  TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
-    : super(coreTypes, hierarchy);
+  new(CoreTypes coreTypes, this.hierarchy) : super(coreTypes, hierarchy);
 
   // Coverage-ignore(suite): Not run.
   InterfaceType functionRawType(Nullability nullability) {
@@ -317,7 +316,7 @@ class AllTypeParameterEliminator extends Substitution {
   final DartType bottomType;
   final DartType topType;
 
-  AllTypeParameterEliminator(this.bottomType, this.topType);
+  new(this.bottomType, this.topType);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {

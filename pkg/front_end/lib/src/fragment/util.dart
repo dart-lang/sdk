@@ -36,7 +36,7 @@ class ConstructorName {
   /// This is used in messages to put the right amount of `^` under the name.
   final int fullNameLength;
 
-  ConstructorName({
+  new({
     required this.name,
     required this.nameOffset,
     required this.fullName,
@@ -112,7 +112,7 @@ extension FormalsExtension on List<FormalParameterBuilder>? {
 }
 
 sealed class PropertyEncodingStrategy {
-  factory PropertyEncodingStrategy(
+  factory(
     DeclarationBuilder? declarationBuilder, {
     required bool isInstanceMember,
   }) {
@@ -149,7 +149,7 @@ sealed class PropertyEncodingStrategy {
 }
 
 class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
-  const RegularPropertyEncodingStrategy();
+  const new();
 
   @override
   GetterEncoding createGetterEncoding(
@@ -172,7 +172,7 @@ class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
 
 class ExtensionInstancePropertyEncodingStrategy
     implements PropertyEncodingStrategy {
-  const ExtensionInstancePropertyEncodingStrategy();
+  const new();
 
   @override
   GetterEncoding createGetterEncoding(
@@ -229,7 +229,7 @@ class ExtensionInstancePropertyEncodingStrategy
 
 class ExtensionStaticPropertyEncodingStrategy
     implements PropertyEncodingStrategy {
-  const ExtensionStaticPropertyEncodingStrategy();
+  const new();
 
   @override
   GetterEncoding createGetterEncoding(
@@ -252,7 +252,7 @@ class ExtensionStaticPropertyEncodingStrategy
 
 class ExtensionTypeInstancePropertyEncodingStrategy
     implements PropertyEncodingStrategy {
-  const ExtensionTypeInstancePropertyEncodingStrategy();
+  const new();
 
   @override
   GetterEncoding createGetterEncoding(
@@ -309,7 +309,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
 
 class ExtensionTypeStaticPropertyEncodingStrategy
     implements PropertyEncodingStrategy {
-  const ExtensionTypeStaticPropertyEncodingStrategy();
+  const new();
 
   @override
   GetterEncoding createGetterEncoding(

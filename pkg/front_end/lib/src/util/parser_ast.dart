@@ -1515,7 +1515,7 @@ extension LibraryNameExtension on LibraryNameEnd {
 }
 
 class UnescapeErrorListenerDummy implements UnescapeErrorListener {
-  const UnescapeErrorListenerDummy();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.

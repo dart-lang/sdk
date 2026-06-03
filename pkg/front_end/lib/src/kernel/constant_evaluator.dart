@@ -134,7 +134,7 @@ class ConstantsTransformer extends RemovingTransformer {
   /// Cache used for checking exhaustiveness.
   CfeExhaustivenessCache? _exhaustivenessCache;
 
-  ConstantsTransformer(
+  new(
     Target target,
     Map<String, String>? environmentDefines,
     this.evaluateAnnotations,
@@ -2623,7 +2623,7 @@ class ConstantEvaluator
 
   Library get currentLibrary => staticTypeContext.enclosingLibrary;
 
-  ConstantEvaluator(
+  new(
     this.dartLibrarySupport,
     this.backend,
     this.component,
@@ -6133,7 +6133,7 @@ class StatementConstantEvaluator
         VariableVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
-  StatementConstantEvaluator(this.exprEvaluator);
+  new(this.exprEvaluator);
 
   /// Evaluate the expression using the [ConstantEvaluator].
   Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
@@ -6476,14 +6476,14 @@ class StatementConstantEvaluator
 class ConstantCoverage {
   final Map<Uri, Set<Reference>> constructorCoverage;
 
-  ConstantCoverage(this.constructorCoverage);
+  new(this.constructorCoverage);
 }
 
 class ConstantEvaluationData {
   final ConstantCoverage coverage;
   final Set<Library> visitedLibraries;
 
-  ConstantEvaluationData(this.coverage, this.visitedLibraries);
+  new(this.coverage, this.visitedLibraries);
 }
 
 /// Holds the necessary information for a constant object, namely
@@ -6507,7 +6507,7 @@ class InstanceBuilder {
 
   final List<Expression> unusedArguments = <Expression>[];
 
-  InstanceBuilder(this.evaluator, this.klass, this.typeArguments);
+  new(this.evaluator, this.klass, this.typeArguments);
 
   void setFieldValue(Field field, Constant constant) {
     fields[field] = constant;
@@ -6557,9 +6557,9 @@ class EvaluationEnvironment {
 
   final EvaluationEnvironment? _parent;
 
-  EvaluationEnvironment() : _parent = null;
+  new() : _parent = null;
 
-  EvaluationEnvironment.withParent(this._parent);
+  new withParent(this._parent);
 
   /// Whether the current environment is empty.
   bool get isEmpty {
@@ -6642,43 +6642,43 @@ class RedundantFileUriExpressionRemover extends Transformer {
 class EvaluationReference {
   Constant value;
 
-  EvaluationReference(this.value);
+  new(this.value);
 }
 
 /// Represents a status for statement execution.
 abstract class ExecutionStatus {
-  const ExecutionStatus();
+  const new();
 }
 
 /// Status that the statement completed execution successfully.
 class ProceedStatus extends ExecutionStatus {
-  const ProceedStatus();
+  const new();
 }
 
 /// Status that the statement returned a valid [Constant] value.
 class ReturnStatus extends ExecutionStatus {
   final Constant? value;
 
-  ReturnStatus(this.value);
+  new(this.value);
 }
 
 /// Status with an exception or error that the statement has thrown.
 class AbortStatus extends ExecutionStatus {
   final AbortConstant error;
 
-  AbortStatus(this.error);
+  new(this.error);
 }
 
 /// Status that the statement breaks out of an enclosing [LabeledStatement].
 class BreakStatus extends ExecutionStatus {
   final LabeledStatement target;
 
-  BreakStatus(this.target);
+  new(this.target);
 }
 
 /// Mutable lists used within the [ConstantEvaluator].
 class MutableListConstant extends ListConstant {
-  MutableListConstant(DartType typeArgument, List<Constant> entries)
+  new(DartType typeArgument, List<Constant> entries)
     : super(typeArgument, entries);
 
   @override
@@ -6691,7 +6691,7 @@ class FunctionValue implements AuxiliaryConstant {
   final FunctionNode function;
   final EvaluationEnvironment? environment;
 
-  FunctionValue(this.function, this.environment);
+  new(this.function, this.environment);
 
   @override
   R accept<R>(ConstantVisitor<R> v) {
@@ -6812,35 +6812,30 @@ class _AbortDueToErrorConstant extends AbortConstant {
   final List<LocatedMessage>? context;
   final bool isEvaluationError;
 
-  _AbortDueToErrorConstant(
-    this.node,
-    this.message, {
-    this.context,
-    required this.isEvaluationError,
-  });
+  new(this.node, this.message, {this.context, required this.isEvaluationError});
 }
 
 class _AbortDueToInvalidExpressionConstant extends AbortConstant {
   final InvalidExpression node;
 
-  _AbortDueToInvalidExpressionConstant(this.node);
+  new(this.node);
 }
 
 class _AbortDueToInvalidInitializerConstant extends AbortConstant {
   final InvalidInitializer node;
 
-  _AbortDueToInvalidInitializerConstant(this.node);
+  new(this.node);
 }
 
 class _AbortDueToThrowConstant extends AbortConstant {
   final TreeNode node;
   final Object throwValue;
 
-  _AbortDueToThrowConstant(this.node, this.throwValue);
+  new(this.node, this.throwValue);
 }
 
 abstract class ErrorReporter {
-  const ErrorReporter();
+  const new();
 
   void report(LocatedMessage message, [List<LocatedMessage>? context]);
 
@@ -6852,7 +6847,7 @@ abstract class ErrorReporter {
 }
 
 class SimpleErrorReporter implements ErrorReporter {
-  const SimpleErrorReporter();
+  const new();
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -6910,7 +6905,7 @@ bool _isFormalParameter(Variable variable) {
 }
 
 class _InlinedBlock extends Block {
-  _InlinedBlock(List<Statement> statements) : super(statements);
+  new(List<Statement> statements) : super(statements);
 }
 
 /// Information about a currently transformed [PatternSwitchStatement].
@@ -6932,7 +6927,7 @@ class _PatternSwitchStatementInfo {
   /// The [PatternSwitchCase] currently being transformed.
   PatternSwitchCase? currentSwitchCase;
 
-  _PatternSwitchStatementInfo(
+  new(
     this.switchIndexVariable,
     this.innerLabeledStatement,
     this.switchCaseIndexMap,

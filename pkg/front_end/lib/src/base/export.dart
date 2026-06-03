@@ -21,7 +21,7 @@ class Export {
 
   final int charOffset;
 
-  Export(
+  new(
     this.exporter,
     this.exportedCompilationUnit,
     this.combinators,

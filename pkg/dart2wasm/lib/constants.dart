@@ -1127,12 +1127,25 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   }
 
   @override
-  ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    Procedure member = constant.targetReference.asProcedure;
+  ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) =>
+      handleTearOffConstant(constant);
 
-    final functionTypeConstant = constants._lowerTypeToConstant(
-      translator.getTearOffType(member),
+  @override
+  ConstantInfo? visitConstructorTearOffConstant(
+    ConstructorTearOffConstant constant,
+  ) => handleTearOffConstant(constant);
+
+  @override
+  ConstantInfo? visitRedirectingFactoryTearOffConstant(
+    RedirectingFactoryTearOffConstant constant,
+  ) => handleTearOffConstant(constant);
+
+  ConstantInfo handleTearOffConstant(TearOffConstant constant) {
+    final target = constant.target;
+    final functionType = target.function!.computeFunctionType(
+      Nullability.nonNullable,
     );
+    final functionTypeConstant = constants._lowerTypeToConstant(functionType);
     final functionTypeInfo = ensureConstant(functionTypeConstant)!;
     final childConstants = [functionTypeInfo];
 
@@ -1144,7 +1157,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final owningModule = translator.moduleForReference(
       constant.targetReference,
     );
-    final closure = translator.getTearOffClosure(member, owningModule);
+    final closure = translator.getTearOffClosure(target, owningModule);
     final closureClassInfo = translator.closureInfo;
     translator.functions.recordClassAllocation(closureClassInfo.classId);
 
@@ -1202,8 +1215,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitInstantiationConstant(InstantiationConstant constant) {
     final tearOffConstant = constant.tearOffConstant as TearOffConstant;
-    final tearOffProcedure = tearOffConstant.target as Procedure;
-    final tearOffFunctionType = translator.getTearOffType(tearOffProcedure);
+    final tearOffTarget = tearOffConstant.target;
+    final tearOffFunctionType = translator.getTearOffType(tearOffTarget);
 
     final functionTypeInfo = ensureConstant(
       constants._lowerTypeToConstant(
@@ -1229,11 +1242,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // Once we define the constant in a certain module we may be in link phase
     // and have passed the codegen phase and we cannot codegen arbitrary
     // functions in link phase anymore.
-    final owningModule = translator.moduleForReference(
-      tearOffProcedure.reference,
-    );
+    final owningModule = translator.moduleForReference(tearOffTarget.reference);
     final tearOffClosure = translator.getTearOffClosure(
-      tearOffProcedure,
+      tearOffTarget,
       owningModule,
     );
     final closureClassInfo = translator.closureInfo;
@@ -1663,13 +1674,28 @@ class TypeOfConstantVisitor extends ConstantVisitor<w.RefType>
   }
 
   @override
-  w.RefType visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    final member = constant.targetReference.asProcedure;
-    final function = member.function;
+  w.RefType visitStaticTearOffConstant(StaticTearOffConstant constant) =>
+      handleTearOffConstant(constant);
+
+  @override
+  w.RefType visitConstructorTearOffConstant(
+    ConstructorTearOffConstant constant,
+  ) => handleTearOffConstant(constant);
+
+  @override
+  w.RefType visitRedirectingFactoryTearOffConstant(
+    RedirectingFactoryTearOffConstant constant,
+  ) => handleTearOffConstant(constant);
+
+  w.RefType handleTearOffConstant(TearOffConstant constant) {
+    final member = constant.target;
+    final functionType = member.function!.computeFunctionType(
+      Nullability.nonNullable,
+    );
     final representation = translator.closureLayouter.getClosureRepresentation(
-      function.typeParameters.length,
-      function.positionalParameters.length,
-      function.namedParameters.map((p) => p.name!).toList(),
+      functionType.typeParameters.length,
+      functionType.positionalParameters.length,
+      functionType.namedParameters.map((p) => p.name).toList(),
     )!;
     return w.RefType.def(representation.closureStruct, nullable: false);
   }
@@ -2138,7 +2164,7 @@ class _ConstantAccessor {
       return '$prefix$name<$typeArguments>';
     }
     if (constant is TearOffConstant) {
-      return '$prefix${constant.target.name} tear-off';
+      return '$prefix${constant.target.toString()} tear-off';
     }
     if (constant is AuxiliaryConstant) {
       if (constant is DummyValueConstant) {

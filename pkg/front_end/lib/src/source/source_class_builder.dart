@@ -139,7 +139,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   final ClassDeclaration _introductory;
   List<ClassDeclaration> _augmentations;
 
-  SourceClassBuilder({
+  new({
     required Modifiers modifiers,
     required this.name,
     required this.typeParameters,

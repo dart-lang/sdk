@@ -43,7 +43,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     constructorName.fullNameLength,
   );
 
-  ConstructorFragment({
+  new({
     required this.constructorName,
     required this.fileUri,
     required this.startOffset,
@@ -124,7 +124,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
 class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
   final ConstructorFragment _fragment;
 
-  _ConstructorBodyBuildingContext(this._fragment);
+  new(this._fragment);
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment

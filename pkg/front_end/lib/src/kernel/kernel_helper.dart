@@ -46,7 +46,7 @@ class DelayedDefaultValueCloner {
   /// isn't performed twice.
   bool _hasCloned = false;
 
-  DelayedDefaultValueCloner(
+  new(
     this.original,
     this.synthesized, {
     this.identicalSignatures = true,
@@ -322,7 +322,7 @@ class TypeDependency {
   final bool copyReturnType;
   bool _hasBeenInferred = false;
 
-  TypeDependency(
+  new(
     this.synthesized,
     this.original,
     this.substitution, {

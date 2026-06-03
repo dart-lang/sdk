@@ -25,7 +25,7 @@ class Crash {
 
   bool _hasBeenReported = false;
 
-  Crash(this.uri, this.charOffset, this.error, this.trace);
+  new(this.uri, this.charOffset, this.error, this.trace);
 
   @override
   String toString() {

@@ -76,7 +76,7 @@ vars = {
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:15.0.135",
-  "jsshell_tag": "version:150.0.1",
+  "jsshell_tag": "version:151.0.3",
   "jsc_tag": "version:313485",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
@@ -149,7 +149,7 @@ vars = {
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "14f99ecdcb74778654d936ce26c70798a3b6649f",
-  "tools_rev": "6a7dd15748e63db7d41cfee8294c54636b668f41",
+  "tools_rev": "338a2c8380059afb250a1d0c26555e4da24c6ccc",
   "vector_math_rev": "7bf60fb95e0fbbd7648944071de9ab5e32ce7387",
   "web_rev": "428cc812ac022c995abfd2b74e3903610f1360fd",
   "webdev_rev": "f9a56607fac5ad0c979d2647cf11d3e3be993bf6",
@@ -165,7 +165,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "149.0.7827.14",
+  "chrome_tag": "149.0.7827.53",
   "download_firefox": False,
   "firefox_tag": "151.0",
 

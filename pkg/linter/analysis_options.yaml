@@ -38,7 +38,6 @@ linter:
     - no_literal_bool_comparisons
     - noop_primitive_operations
     - only_throw_errors
-    - parameter_assignments
     - prefer_asserts_in_initializer_lists
     - prefer_const_constructors_in_immutables
     - prefer_constructors_over_static_methods

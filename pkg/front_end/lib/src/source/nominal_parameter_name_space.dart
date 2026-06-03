@@ -70,7 +70,7 @@ class NominalParameterNameSpace {
 class NominalParameterScope extends AbstractTypeParameterScope {
   final NominalParameterNameSpace _nameSpace;
 
-  NominalParameterScope(super._parent, this._nameSpace);
+  new(super._parent, this._nameSpace);
 
   @override
   TypeParameterBuilder? getTypeParameter(String name) =>

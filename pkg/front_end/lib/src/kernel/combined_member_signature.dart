@@ -94,7 +94,7 @@ abstract class CombinedMemberSignatureBase {
 
   /// Creates a [CombinedMemberSignatureBase] whose canonical member is already
   /// defined.
-  CombinedMemberSignatureBase.internal(
+  new internal(
     this.membersBuilder,
     this._canonicalMemberIndex,
     this.members, {
@@ -108,7 +108,7 @@ abstract class CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedMemberSignatureBase(
+  new(
     this.membersBuilder,
     this.members, {
     required this.forSetter,
@@ -793,7 +793,7 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
-  CombinedClassMemberSignature.internal(
+  new internal(
     ClassMembersBuilder membersBuilder,
     this.classBuilder,
     int? canonicalMemberIndex,
@@ -814,7 +814,7 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedClassMemberSignature(
+  new(
     ClassMembersBuilder membersBuilder,
     this.classBuilder,
     List<ClassMember> members, {
@@ -860,7 +860,7 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedExtensionTypeMemberSignature(
+  new(
     ClassMembersBuilder membersBuilder,
     this.extensionTypeDeclarationBuilder,
     List<ClassMember> members, {

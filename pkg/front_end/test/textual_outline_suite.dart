@@ -65,7 +65,7 @@ class Context extends ChainContext with MatchContext {
   @override
   bool get canBeFixWithUpdateExpectations => true;
 
-  Context(Uri baseUri, Map<String, String> environment)
+  new(Uri baseUri, Map<String, String> environment)
     : suiteFolderOptions = new SuiteFolderOptions(baseUri),
       updateExpectations =
           environment[EnvironmentKeys.updateExpectations] == "true",
@@ -82,7 +82,7 @@ class Context extends ChainContext with MatchContext {
 }
 
 class TextualOutline extends Step<TestDescription, TestDescription, Context> {
-  const TextualOutline();
+  const new();
 
   @override
   String get name => "TextualOutline";

@@ -38,7 +38,7 @@ Future<void> run(
 }
 
 class TypeArgumentsVisitor extends VerifyingAnalysis {
-  TypeArgumentsVisitor(
+  new(
     DiagnosticMessageHandler onDiagnostic,
     Component component,
     String? allowedListPath,

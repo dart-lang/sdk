@@ -53,7 +53,7 @@ class ForwardingNode {
 
   final bool _declarationIsMixinApplication;
 
-  ForwardingNode(
+  new(
     this.libraryBuilder,
     this.declarationBuilder,
     this.typeDeclaration,

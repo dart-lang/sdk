@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/node_text_expectations.dart';
@@ -21,16 +20,11 @@ main() {
 class ExpressionParserTest extends ParserDiagnosticsTest {
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
-    for (TokenType type in TokenType.all) {
-      if (type.precedence > 0) {
-        var source = 'a ${type.lexeme} b';
-        try {
-          parseStringWithErrors('var x = $source;');
-        } on TestFailure {
-          // Ensure that there are no infinite loops or exceptions thrown
-          // by the parser. Test failures are fine.
-        }
+    for (var type in TokenType.all) {
+      if (type.precedence <= 0) {
+        continue;
       }
+      parseTestCodeIgnoringDiagnostics('var x = a ${type.lexeme} b;');
     }
   }
 

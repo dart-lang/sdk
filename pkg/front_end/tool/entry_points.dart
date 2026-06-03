@@ -220,7 +220,7 @@ class BatchCompiler {
 
   void Function(CfeDiagnosticMessage)? _originalOnDiagnostic;
 
-  BatchCompiler(this.lines);
+  new(this.lines);
 
   Future<void> run() async {
     await for (String line in lines!) {

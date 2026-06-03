@@ -31,6 +31,7 @@ class UnawaitedFutures extends AnalysisRule {
   ) {
     var visitor = UnusedFuturesVisitor(
       rule: this,
+      typeProvider: context.typeProvider,
       isInteresting: (node) {
         var type = node.staticType;
         // This rule is not currently concerned with `FutureOr`.
