@@ -196,6 +196,9 @@ abstract final class CustomMethods {
     'dart/updateDiagnosticInformation',
   );
 
+  /// Used for resolving commands to support interactive forms.
+  static const resolveCommand = Method('command/resolve');
+
   /// An experimental 'echo' handler that can used by tests to verify
   /// experimental handlers only show up when requested.
   static const experimentalEcho = Method('experimental/echo');

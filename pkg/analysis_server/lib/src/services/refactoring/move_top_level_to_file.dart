@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/list.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,7 +19,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart'
-    show CommandParameter, SaveUriCommandParameter;
+    hide Element;
 import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A refactoring that will move one or more top-level declarations to a
@@ -71,8 +74,8 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
     _initializeFromMembers(members);
     var pathContext = refactoringContext.server.resourceProvider.pathContext;
     var sourcePath = members.containingFile;
-    // TODO(dantup): Add refactor-specific validation for incoming arguments.
-    // Argument is a String URI.
+    // Fields are validated as part of resolve(). We'll keep showing the
+    // form inputs until all the fields have valid answers.
     var destinationUri = Uri.parse(commandArguments[0] as String);
     var destinationFilePath = pathContext.fromUri(destinationUri);
 
@@ -207,6 +210,34 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
     return false;
   }
 
+  /// Handles resolving the command to execute this refactor using Interactive
+  /// Forms.
+  @override
+  Future<ErrorOr<InteractiveExecuteCommandParams>> resolve(
+    InteractiveExecuteCommandParams command,
+  ) async {
+    var commandArguments = command.arguments;
+    if (commandArguments == null) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'Refactor commands must have arguments',
+      );
+    }
+
+    var form = _createInteractiveForm()
+      ..processResponse(command.formAnswers ?? []);
+
+    return success(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: buildCommandArguments(form.answers),
+        data: command.data,
+        formFields: form.clientFields.nullIfEmpty,
+        formAnswers: form.clientAnswers.nullIfEmpty,
+      ),
+    );
+  }
+
   /// Use the [builder] to add the imports that need to be added to the library
   /// to which the code is being moved based on the information in the import
   /// [analyzer].
@@ -233,6 +264,30 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
         );
       }
     }
+  }
+
+  /// Builds the [InteractiveForm] to collect input for this refactor.
+  InteractiveForm _createInteractiveForm() {
+    var destinationUriField = FormField(
+      id: 'destinationUri',
+      description: 'Move to file',
+      required: true,
+      defaultValue: refactoringContext.server.pathContext
+          .toUri(defaultFilePath)
+          .toString(),
+      type: FormFieldTypeFile(filters: ['*.dart']),
+    );
+
+    var supportedInteractiveFormInputTypes =
+        refactoringContext
+            .clientCapabilities
+            ?.supportedInteractiveFormInputTypes ??
+        {};
+
+    return InteractiveForm(
+      supportedInteractiveFormInputTypes: supportedInteractiveFormInputTypes,
+      fields: [destinationUriField],
+    );
   }
 
   /// Initialize the [title] and [defaultFilePath] based on the [members] being

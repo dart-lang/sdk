@@ -105,6 +105,7 @@ class LspClientCapabilities {
   final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
   final Set<String> codeActionCommandParameterSupportedKinds;
+  final Set<String> supportedInteractiveFormInputTypes;
   final bool supportsShowMessageRequest;
 
   /// A set of commands that exist on the client that the server may call.
@@ -225,6 +226,8 @@ class LspClientCapabilities {
       experimentalSnippetTextEdit: experimental.snippetTextEdit,
       codeActionCommandParameterSupportedKinds:
           experimental.commandParameterKinds,
+      supportedInteractiveFormInputTypes:
+          experimental.interactiveFormInputTypes,
       supportsShowMessageRequest: experimental.showMessageRequest,
       supportedCommands: experimental.commands,
       experimentalCapabilitiesErrors: experimental.errors,
@@ -265,6 +268,7 @@ class LspClientCapabilities {
     required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
     required this.codeActionCommandParameterSupportedKinds,
+    required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
     required this.supportedCommands,
     required this.experimentalCapabilitiesErrors,
@@ -291,12 +295,14 @@ class _ExperimentalClientCapabilities {
 
   final bool snippetTextEdit;
   final Set<String> commandParameterKinds;
+  final Set<String> interactiveFormInputTypes;
   final Set<String> commands;
   final bool showMessageRequest;
 
   new({
     required this.snippetTextEdit,
     required this.commandParameterKinds,
+    required this.interactiveFormInputTypes,
     required this.commands,
     required this.showMessageRequest,
     required this.errors,
@@ -362,6 +368,16 @@ class _ExperimentalClientCapabilities {
       commandParameters['supportedKinds'],
     );
 
+    // Interactive Forms.
+    var interactiveForms = expectMap(
+      '.interactiveResolve',
+      experimental['interactiveResolve'],
+    );
+    var interactiveFormInputTypes = expectNullableStringSet(
+      '.interactiveResolve.inputTypes',
+      interactiveForms?['inputTypes'],
+    );
+
     // Executable commands.
     var commands = expectNullableStringSet(
       '.commands',
@@ -384,6 +400,7 @@ class _ExperimentalClientCapabilities {
     return _ExperimentalClientCapabilities(
       snippetTextEdit: snippetTextEdit ?? false,
       commandParameterKinds: commandParameterKinds ?? {},
+      interactiveFormInputTypes: interactiveFormInputTypes ?? {},
       commands: commands ?? {},
       showMessageRequest: showMessageRequest ?? false,
       errors: errors,

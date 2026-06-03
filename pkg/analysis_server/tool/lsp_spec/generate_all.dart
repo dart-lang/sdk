@@ -321,7 +321,7 @@ List<LspEntity> getCustomClasses() {
     // Support for the original (Dart-specific) interactive-refactors.
     ...interactiveRefactorsClasses,
 
-    // Support for the new (Go-specified) interactive-refactors.
+    // Support for Interactive Forms.
     ...interactiveFormClasses,
   ];
   return customTypes;
