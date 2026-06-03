@@ -34,7 +34,7 @@ Agent skills are AI coding assistant instructions from
 https://github.com/dart-lang/skills that teach agents Dart-specific workflows
 such as writing tests, running static analysis, or resolving package conflicts.
 
-By default, skills are installed into the current project directory under the
+By default, skills are installed into the current project root directory under the
 agent's configuration folder (e.g. .claude/skills/, .agents/skills/). Use
 --global (-g) to install for the current user across all projects instead.
 
@@ -137,8 +137,20 @@ String _homeDir() =>
     Platform.environment['USERPROFILE'] ??
     Directory.current.path;
 
+String _projectRoot() {
+  var dir = Directory.current;
+  while (true) {
+    if (File(path.join(dir.path, 'pubspec.yaml')).existsSync()) {
+      return dir.path;
+    }
+    final parent = dir.parent;
+    if (parent.path == dir.path) return Directory.current.path;
+    dir = parent;
+  }
+}
+
 String _baseDir({required bool global}) =>
-    global ? _homeDir() : Directory.current.path;
+    global ? _homeDir() : _projectRoot();
 
 Directory _skillDir(String baseDir, String agent, String skillName) {
   return Directory(path.join(baseDir, _agentSkillDirs[agent]!, skillName));
