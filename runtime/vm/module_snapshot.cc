@@ -1642,6 +1642,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));
   AddBaseObject(Type::Handle(zone(), object_store->never_type()));
   AddBaseObject(Object::empty_array());
+  AddBaseObject(Object::optimized_out());
   AddBaseObject(StubCode::Subtype1TestCache());
   AddBaseObject(StubCode::Subtype2TestCache());
   AddBaseObject(StubCode::Subtype3TestCache());

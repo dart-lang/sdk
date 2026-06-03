@@ -165,6 +165,7 @@ class SnapshotSerializer {
     addBaseObject(const ast.NullType());
     addBaseObject(const ast.NeverType.nonNullable());
     addBaseObject(ast.ListConstant(const ast.DynamicType(), const []));
+    addBaseObject(UndefinedConstant());
     // TODO: generate these stubs instead of referencing them from the VM.
     addBaseObject(StubCode.Subtype1TestCache);
     addBaseObject(StubCode.Subtype2TestCache);
