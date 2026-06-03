@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/commands/refactor_command_executor.dart';
+/// @docImport 'package:analysis_server/src/lsp/handlers/commands/refactor_command_resolver.dart';
+library;
+
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -12,7 +16,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
-/// A mixin with functionality common to handlers for refactor commands.
+/// A mixin with functionality common to handlers for refactor commands,
+/// such as [RefactorCommandResolver] and [RefactorCommandExecutor].
 mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
   Future<ErrorOr<T>> execute(
     ProgressReporter progress,

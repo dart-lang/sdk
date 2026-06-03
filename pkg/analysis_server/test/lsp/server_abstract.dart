@@ -786,6 +786,18 @@ mixin ClientCapabilitiesHelperMixin {
     };
   }
 
+  void setSupportedInteractiveFormInputKinds(Set<String>? inputTypes) {
+    const parentKey = 'interactiveResolve';
+    const inputTypesKey = 'inputTypes';
+    if (inputTypes != null) {
+      experimentalCapabilities[parentKey] = {
+        inputTypesKey: inputTypes.toList(),
+      };
+    } else {
+      experimentalCapabilities.remove(parentKey);
+    }
+  }
+
   void setSupportsWindowShowMessageRequest([bool supported = true]) {
     if (supported) {
       experimentalCapabilities['supportsWindowShowMessageRequest'] = true;

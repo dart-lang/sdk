@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -40,6 +41,11 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
   List<Object?> buildCommandArguments(List<Object?> args) {
     return RefactoringProcessor.buildCommandArguments(refactoringContext, args);
   }
+
+  /// Resolves command arguments using the interactive forms functionality.
+  Future<ErrorOr<InteractiveExecuteCommandParams>> resolve(
+    InteractiveExecuteCommandParams command,
+  );
 }
 
 /// An object that can compute a refactoring in a Dart file.

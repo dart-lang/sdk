@@ -1059,6 +1059,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "--include-experimental-vm-service",
             "runtime"
           ]
@@ -1089,6 +1090,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "--include-experimental-vm-service",
             "runtime"
           ]
@@ -1097,6 +1099,7 @@
           "name": "build iOS shared library",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "--os=ios",
             "runtime:dart_jit_library"
           ]
@@ -1137,6 +1140,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime"
           ]
         },
@@ -1167,6 +1171,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "--include-experimental-vm-service",
             "runtime",
             "dartaotruntime"
@@ -1208,6 +1213,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1322,6 +1328,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--dart-dynamic-modules",
+            "--codesigning-identity=-",
             "runtime",
             "utils/dart2bytecode",
             "utils/modular_aot_compiler"
@@ -1478,6 +1485,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--dart-dynamic-modules",
+            "--codesigning-identity=-",
             "runtime",
             "runtime_precompiled",
             "utils/gen_kernel"
@@ -3132,6 +3140,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "create_sdk",
             "dartanalyzer",
             "ddc_stable_test",
