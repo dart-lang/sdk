@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: unnecessary_type_name_in_constructor
-
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
@@ -26,7 +24,7 @@ class ParserTestListener implements Listener {
   final StringBuffer sb = new StringBuffer();
   final bool trace;
 
-  ParserTestListener(this.trace);
+  new(this.trace);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");

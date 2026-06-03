@@ -401,19 +401,8 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
-    sb.write('''
-$preamble
-''');
-    // This code generator generates Dart 3.12-style constructor declarations,
-    // so ignore the `unnecessary_type_name_in_constructor` lint.
-    // TODO(paulberry): switch the code generator to Dart 3.13-style constructor
-    // declarations, and remove this ignore comment.
-    sb.write('''
-
-// ignore_for_file: unnecessary_type_name_in_constructor
-''');
-
     sb.writeln('''
+$preamble
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
@@ -433,7 +422,7 @@ class $visitorName$visitorTypeParameters
     implements Visitor1<$returnType, $argumentType> {
   final $strategyName strategy;
 
-  $visitorName({
+  new({
       this.strategy = const $strategyName()});
 ''');
   }
@@ -849,7 +838,7 @@ EquivalenceResult checkEquivalence(
 /// Custom strategies can be made by extending this strategy and override
 /// methods where exceptions to the structural equivalence are needed.
 class $strategyName {
-  const $strategyName();
+  const new();
 ''');
     _classStrategyMembers.forEach((key, value) {
       sb.write(value);
