@@ -6924,30 +6924,28 @@ class Parser {
         listener.handleIdentifier(token, IdentifierContext.expression);
       }
     } else {
-      if (isPatternsFeatureEnabled && looksLikeOuterPatternEquals(token)) {
-        token = parsePatternAssignment(token);
-      } else {
-        token = token.next!.isA(Keyword.THROW)
-            ? parseThrowExpression(token, /* allowCascades = */ true)
-            : parsePrecedenceExpression(
-                token,
-                ASSIGNMENT_PRECEDENCE,
-                /* allowCascades = */ true,
-                ConstantPatternContext.none,
-              );
-      }
+      token = _parseExpression(token, /* allowCascades = */ true);
     }
     expressionDepth--;
     return token;
   }
 
   Token parseExpressionWithoutCascade(Token token) {
+    return _parseExpression(token, /* allowCascades = */ false);
+  }
+
+  Token _parseExpression(Token token, bool allowCascades) {
+    if (isPatternsFeatureEnabled && looksLikeOuterPatternEquals(token)) {
+      return allowCascades
+          ? parsePatternAssignment(token)
+          : _parsePatternAssignment(token, /* allowCascades = */ false);
+    }
     return token.next!.isA(Keyword.THROW)
-        ? parseThrowExpression(token, /* allowCascades = */ false)
+        ? parseThrowExpression(token, allowCascades)
         : parsePrecedenceExpression(
             token,
             ASSIGNMENT_PRECEDENCE,
-            /* allowCascades = */ false,
+            allowCascades,
             ConstantPatternContext.none,
           );
   }
@@ -7254,14 +7252,7 @@ class Parser {
           );
           operator = next;
         }
-        token = next.next!.isA(Keyword.THROW)
-            ? parseThrowExpression(next, allowCascades)
-            : parsePrecedenceExpression(
-                next,
-                level,
-                allowCascades,
-                ConstantPatternContext.none,
-              );
+        token = _parseExpression(next, allowCascades);
         listener.handleAssignmentExpression(operator, token);
       } else if (tokenLevel == POSTFIX_PRECEDENCE) {
         if ((identical(type, TokenType.PLUS_PLUS)) ||
@@ -12359,11 +12350,17 @@ class Parser {
 
   /// patternAssignment ::= outerPattern '=' expression
   Token parsePatternAssignment(Token token) {
+    return _parsePatternAssignment(token, /* allowCascades = */ true);
+  }
+
+  Token _parsePatternAssignment(Token token, bool allowCascades) {
     token = parsePattern(token, PatternContext.assignment);
     Token equals = token.next!;
     // Caller should have assured that the pattern was followed by an `=`.
     assert(equals.isA(TokenType.EQ));
-    token = parseExpression(equals);
+    token = allowCascades
+        ? parseExpression(equals)
+        : parseExpressionWithoutCascade(equals);
     listener.handlePatternAssignment(equals);
     return token;
   }
