@@ -192,6 +192,8 @@ class NoSuchParameter : public MethodParameter {
 #define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
 #define OBJECT_PARAMETER new IdParameter("objectId", true)
+#define NATIVE_MEMORY_ADDRESS_PARAMETER new StringParameter("address", true)
+#define NATIVE_MEMORY_SIZE_PARAMETER new UIntParameter("size", true)
 
 static bool ValidateUIntParameter(const char* value) {
   if (value == nullptr) {
@@ -6235,6 +6237,124 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 #undef DEFINE_ADD_VALUE_F
 }
 
+static constexpr const char* kNativeMemoryAddressParam = "address";
+static constexpr const char* kNativeMemorySizeParam = "size";
+static constexpr const char* kNativeMemoryBytesKey = "bytes";
+static constexpr const char* kNativeMemoryTypeKey = "type";
+
+static void ReadNativeMemoryHelper(JSONStream* js,
+                                   uintptr_t address,
+                                   intptr_t size) {
+  if (address == 0) {
+    js->PrintError(kInvalidParams, "null pointer");
+    return;
+  }
+
+  if (address > (UINTPTR_MAX - static_cast<uintptr_t>(size))) {
+    js->PrintError(kInvalidParams, "address + size overflows address space");
+    return;
+  }
+
+  CAllocUniquePtr<uint8_t> buffer(reinterpret_cast<uint8_t*>(malloc(size)));
+
+  if (buffer.get() == nullptr) {
+    js->PrintError(kInternalError, "failed to allocate buffer");
+    return;
+  }
+
+  const char* read_error = nullptr;
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  bool ok = OS::SafeReadMemory(address, buffer.get(), size, &read_error);
+#elif defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
+  bool ok = false;  // TODO(thenourhan): implement using mach_vm_read
+#elif defined(DART_HOST_OS_WINDOWS)
+  bool ok = false;  // TODO(thenourhan): implement using ReadProcessMemory
+#else
+  bool ok = false;  // TODO(thenourhan): implement for other platforms
+#endif
+
+  if (!ok) {
+    const char* error_msg =
+        (read_error != nullptr) ? read_error : "address not readable";
+    js->PrintError(kNativeMemoryReadError, "%s", error_msg);
+    return;
+  }
+
+  CStringUniquePtr hex(reinterpret_cast<char*>(malloc(size * 2 + 1)));
+  for (intptr_t i = 0; i < size; i++) {
+    Utils::SNPrint(hex.get() + i * 2, 3, "%02x", buffer.get()[i]);
+  }
+  hex.get()[size * 2] = '\0';
+
+  JSONObject response(js);
+  response.AddProperty(kNativeMemoryTypeKey, "NativeMemory");
+  response.AddPropertyF(kNativeMemoryAddressParam, "0x%" Px "", address);
+  response.AddProperty64(kNativeMemorySizeParam, size);
+  response.AddProperty(kNativeMemoryBytesKey, hex.get());
+}
+
+static const MethodParameter* const read_native_memory_params[] = {
+    NATIVE_MEMORY_ADDRESS_PARAMETER,
+    NATIVE_MEMORY_SIZE_PARAMETER,
+    nullptr,
+};
+
+// Parameters:
+//   address : string
+//     Hex string without '0x' prefix (e.g. "7f3a00001000").
+//
+//   size : int
+//     Number of bytes to read. Must be between 1 and 1048576 (1 MB).
+//
+// Responses:
+//
+//   On success:
+//     {
+//       "type":    "NativeMemory",
+//       "address": "0x7f3a00001000",
+//       "size":    8,
+//       "bytes":   "0102030405060708"
+//     }
+//
+//   On read failure (unmapped/invalid address):
+//     JSON-RPC error code 1004 with OS error string as details
+//          "Input/output error" (Linux EIO)
+//          "ReadProcessMemory failed (error 299)" (Windows)
+//          "mach_vm_read_overwrite failed" (macOS)
+//
+//   On invalid params (null pointer, address overflow):
+//     JSON-RPC error code -32602 "Invalid params"
+//
+static void ReadNativeMemory(Thread* thread, JSONStream* js) {
+  const char* address_str = js->LookupParam(kNativeMemoryAddressParam);
+  const char* size_str = js->LookupParam(kNativeMemorySizeParam);
+
+  if (address_str == nullptr) {
+    PrintMissingParamError(js, kNativeMemoryAddressParam);
+    return;
+  }
+  if (size_str == nullptr) {
+    PrintMissingParamError(js, kNativeMemorySizeParam);
+    return;
+  }
+
+  uintptr_t address = 0;
+  intptr_t size = 0;
+
+  if (!GetUnsignedIntegerId(address_str, &address, 16)) {
+    PrintInvalidParamError(js, kNativeMemoryAddressParam);
+    return;
+  }
+  if (!GetIntegerId(size_str, &size) || size <= 0 || size > 1 * MB) {
+    PrintInvalidParamError(js, kNativeMemorySizeParam);
+    return;
+  }
+
+  ReadNativeMemoryHelper(js, static_cast<uintptr_t>(address),
+                         static_cast<intptr_t>(size));
+}
+
 // clang-format off
 static const ServiceMethodDescriptor service_methods_[] = {
   { "_echo", Echo,
@@ -6402,6 +6522,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     collect_all_garbage_params },
   { "_getDefaultClassesAliases", GetDefaultClassesAliases,
     get_default_classes_aliases_params },
+  { "_readNativeMemory", ReadNativeMemory, read_native_memory_params },
 };
 // clang-format on
 

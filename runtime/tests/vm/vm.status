@@ -232,10 +232,18 @@ dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image
 dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 
 [ $system == macos ]
+cc/Service_ReadNativeMemory_InvalidAddress: Skip
+cc/Service_ReadNativeMemory_LargeRead: Skip
+cc/Service_ReadNativeMemory_NullAddress: Skip
+cc/Service_ReadNativeMemory_ValidAddress: Skip
 dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to cause OOM doesn't work on mac
 
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
+cc/Service_ReadNativeMemory_InvalidAddress: Skip
+cc/Service_ReadNativeMemory_LargeRead: Skip
+cc/Service_ReadNativeMemory_NullAddress: Skip
+cc/Service_ReadNativeMemory_ValidAddress: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
 [ $system != windows ]

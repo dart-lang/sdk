@@ -12,6 +12,7 @@
 #include <dlfcn.h>              // NOLINT
 #include <elf.h>                // NOLINT
 #include <errno.h>              // NOLINT
+#include <fcntl.h>              // NOLINT
 #include <limits.h>             // NOLINT
 #include <malloc.h>             // NOLINT
 #include <sys/resource.h>       // NOLINT
@@ -218,6 +219,25 @@ uintptr_t OS::CurrentRSS() {
     return 0;
   }
   return current_rss_pages * getpagesize();
+}
+
+bool OS::SafeReadMemory(uintptr_t address,
+                        uint8_t* buffer,
+                        intptr_t size_in_bytes,
+                        const char** error) {
+  int fd = open("/proc/self/mem", O_RDONLY | O_CLOEXEC);
+  if (fd < 0) {
+    *error = strerror(errno);
+    return false;
+  }
+  ssize_t bytes_read =
+      pread64(fd, buffer, size_in_bytes, static_cast<off64_t>(address));
+  close(fd);
+  if (bytes_read == -1) {
+    *error = strerror(errno);
+    return false;
+  }
+  return bytes_read == static_cast<ssize_t>(size_in_bytes);
 }
 
 void OS::Sleep(int64_t millis) {
