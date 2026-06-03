@@ -70,3 +70,30 @@ _pkg_builder(
     channels = ["try"],
     properties = chrome,
 )
+
+def _devtools_builder(name, category = None, **kwargs):
+    dart.ci_sandbox_builder(
+        name,
+        category = category,
+        location_filters = paths.to_location_filters(paths.devtools),
+        properties = chrome,
+        **kwargs
+    )
+
+_devtools_builder(
+    "devtools-linux-release-x64",
+    category = "devtools|l",
+    channels = ["try"],
+)
+_devtools_builder(
+    "devtools-mac-release-arm64",
+    category = "devtools|m",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+)
+_devtools_builder(
+    "devtools-win-release-x64",
+    category = "devtools|w",
+    channels = ["try"],
+    dimensions = [windows],
+)
