@@ -692,6 +692,179 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
                handler.msg());
 }
 
+ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_ValidAddress) {
+  const char* kScript =
+      "@pragma('vm:entry-point', 'set')\n"
+      "var port;\n"
+      "main() {}\n";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(thread);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+    EXPECT_VALID(result);
+  }
+
+  uint8_t buffer[8] = {0x01, 0xAB, 0x0F, 0xFF, 0xDE, 0xAD, 0xBE, 0xEF};
+  uintptr_t address = reinterpret_cast<uintptr_t>(buffer);
+
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  {
+    TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
+    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+  }
+
+  Array& service_msg = Array::Handle();
+
+  // send _readNativeMemory RPC with valid address
+  service_msg = EvalF(lib,
+                      "[0, port, '0', '_readNativeMemory', false, "
+                      "['address', 'size'], ['%" Px "', '8']]",
+                      address);
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+
+  EXPECT_SUBSTRING("\"type\":\"NativeMemory\"", handler.msg());
+  EXPECT_SUBSTRING("\"bytes\":\"01ab0fffdeadbeef\"", handler.msg());
+}
+
+ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_LargeRead) {
+  const char* kScript =
+      "@pragma('vm:entry-point', 'set')\n"
+      "var port;\n"
+      "main() {}\n";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(thread);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+    EXPECT_VALID(result);
+  }
+
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  {
+    TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
+    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+  }
+
+  Array& service_msg = Array::Handle();
+
+  // allocate 1MB
+  const intptr_t kOneMB = 1 * MB;
+  CAllocUniquePtr<uint8_t> large_buffer(
+      reinterpret_cast<uint8_t*>(malloc(kOneMB)));
+  for (intptr_t i = 0; i < kOneMB; i++) {
+    large_buffer.get()[i] = static_cast<uint8_t>(i % 256);
+  }
+
+  uintptr_t address = reinterpret_cast<uintptr_t>(large_buffer.get());
+
+  service_msg = EvalF(lib,
+                      "[0, port, '0', '_readNativeMemory', false, "
+                      "['address', 'size'], ['%" Px "', '%" Pd "']]",
+                      address, kOneMB);
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+
+  EXPECT_SUBSTRING("\"type\":\"NativeMemory\"", handler.msg());
+  EXPECT_SUBSTRING("\"bytes\":", handler.msg());
+}
+
+ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_InvalidAddress) {
+  const char* kScript =
+      "@pragma('vm:entry-point', 'set')\n"
+      "var port;\n"
+      "main() {}\n";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(thread);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+    EXPECT_VALID(result);
+  }
+
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  {
+    TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
+    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+  }
+
+  Array& service_msg = Array::Handle();
+
+  service_msg = EvalF(lib,
+                      "[0, port, '0', '_readNativeMemory', false, "
+                      "['address', 'size'], ['1000', '8']]");
+
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+
+  EXPECT_SUBSTRING("\"code\":1004", handler.msg());
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  EXPECT_SUBSTRING("Input\\/output error", handler.msg());
+#elif defined(DART_HOST_OS_WINDOWS)
+  EXPECT_SUBSTRING("error 299", handler.msg());
+#endif
+}
+
+ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_NullAddress) {
+  const char* kScript =
+      "@pragma('vm:entry-point', 'set')\n"
+      "var port;\n"
+      "main() {}\n";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(thread);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+    EXPECT_VALID(result);
+  }
+
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  {
+    TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
+    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+  }
+
+  Array& service_msg = Array::Handle();
+
+  service_msg = EvalF(lib,
+                      "[0, port, '0', '_readNativeMemory', false, "
+                      "['address', 'size'], ['0', '8']]");
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+
+  EXPECT_SUBSTRING("\"error\"", handler.msg());
+  EXPECT_SUBSTRING("null pointer", handler.msg());
+}
+
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)
 
