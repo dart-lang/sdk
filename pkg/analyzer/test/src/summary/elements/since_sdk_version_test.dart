@@ -107,11 +107,11 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           getters
-            #F3 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F3 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@getter::foo
               inducingVariable: #F2
           setters
-            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               inducingVariable: #F2
               formalParameters
@@ -174,7 +174,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
+            #F3 isComplete isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
               element: dart:foo::@class::A::@getter::foo
   classes
     isSimplyBounded class A
@@ -218,7 +218,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 isCompleteDeclaration isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isComplete isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@class::A::@method::foo
   classes
     isSimplyBounded class A
@@ -255,7 +255,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 isCompleteDeclaration isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isComplete isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     isSimplyBounded class A
@@ -292,7 +292,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 isCompleteDeclaration isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isComplete isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     isSimplyBounded class A
@@ -331,7 +331,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           setters
-            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
+            #F3 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
                 #F4 requiredPositional isOriginDeclaration _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
@@ -431,13 +431,13 @@ library
                   staticType: List<E>
               inducedGetter: #F7
           getters
-            #F3 isCompleteDeclaration isOriginVariable isStatic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F3 isComplete isOriginVariable isStatic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: dart:foo::@enum::E::@getter::v1
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginVariable isStatic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F5 isComplete isOriginVariable isStatic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: dart:foo::@enum::E::@getter::v2
               inducingVariable: #F4
-            #F7 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F7 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@getter::values
               inducingVariable: #F6
   enums
@@ -541,14 +541,14 @@ library
                   staticType: List<E>
               inducedGetter: #F5
           getters
-            #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: dart:foo::@enum::E::@getter::v
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F5 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@getter::values
               inducingVariable: #F4
           methods
-            #F6 isCompleteDeclaration isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
+            #F6 isComplete isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
               element: dart:foo::@enum::E::@method::foo
   enums
     isSimplyBounded enum E
@@ -617,7 +617,7 @@ library
         #F1 extension E (nameOffset:51) (firstTokenOffset:26) (offset:51)
           element: dart:foo::@extension::E
           methods
-            #F2 isCompleteDeclaration isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
+            #F2 isComplete isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
               element: dart:foo::@extension::E::@method::foo
   extensions
     extension E
@@ -655,7 +655,7 @@ library
         #F1 mixin M (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@mixin::M
           methods
-            #F2 isCompleteDeclaration isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isComplete isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@mixin::M::@method::foo
   mixins
     isSimplyBounded mixin M
@@ -690,9 +690,9 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@function::foo
-        #F2 isCompleteDeclaration isOriginDeclaration isStatic bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
+        #F2 isComplete isOriginDeclaration isStatic bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: dart:foo::@function::bar
   functions
     isOriginDeclaration isStatic foo
@@ -722,7 +722,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration isStatic foo
@@ -748,7 +748,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration isStatic foo
@@ -774,7 +774,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration isStatic foo
@@ -802,7 +802,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
+        #F1 isComplete isOriginDeclaration isStatic foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration isStatic foo
@@ -830,7 +830,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
@@ -870,7 +870,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
             #F2 requiredPositional isOriginDeclaration p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
@@ -938,7 +938,7 @@ library
           element: dart:foo::@topLevelVariable::foo
           inducedGetter: #F2
       getters
-        #F2 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
           inducingVariable: #F1
   topLevelVariables

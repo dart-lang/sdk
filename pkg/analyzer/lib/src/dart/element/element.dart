@@ -4468,13 +4468,12 @@ abstract class FragmentImpl implements Fragment {
     return current;
   }
 
-  @generated
   @visibleForTesting
   @trackedInternal
   Map<String, bool> get flagsForTesting {
     return {
       'isAugmentation': isAugmentation,
-      'isCompleteDeclaration': isCompleteDeclaration,
+      'isComplete': isCompleteDeclaration,
     };
   }
 
