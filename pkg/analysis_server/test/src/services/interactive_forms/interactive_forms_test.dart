@@ -399,7 +399,7 @@ class InteractiveFormsTest {
     String? defaultValue,
   }) {
     return _field(
-      FormFieldTypeFile(existence: FileExistence.New, type: FileType.Regular),
+      FormFieldTypeFile(existence: .New, type: .Regular),
       id,
       description: description,
       required: required,
