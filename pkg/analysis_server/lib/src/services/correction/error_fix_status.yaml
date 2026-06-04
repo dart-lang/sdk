@@ -2290,6 +2290,11 @@ no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
   status: noFix
+no_raw_types:
+  status: needsFix
+  notes: |-
+    There are a few basic cases where we can look at another expression's type
+    in order to find a replacement, like `C c = C<int>()`.
 no_runtimetype_tostring:
   status: noFix
 no_self_assignments:

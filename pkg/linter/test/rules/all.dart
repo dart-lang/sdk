@@ -157,6 +157,7 @@ import 'no_leading_underscores_for_local_identifiers_test.dart'
     as no_leading_underscores_for_local_identifiers;
 import 'no_literal_bool_comparisons_test.dart' as no_literal_bool_comparisons;
 import 'no_logic_in_create_state_test.dart' as no_logic_in_create_state;
+import 'no_raw_types_test.dart' as no_raw_types;
 import 'no_runtimeType_toString_test.dart' as no_runtimeType_toString;
 import 'no_self_assignments_test.dart' as no_self_assignments;
 import 'no_wildcard_variable_uses_test.dart' as no_wildcard_variable_uses;
@@ -454,6 +455,7 @@ void main() {
   no_leading_underscores_for_local_identifiers.main();
   no_literal_bool_comparisons.main();
   no_logic_in_create_state.main();
+  no_raw_types.main();
   no_runtimeType_toString.main();
   no_self_assignments.main();
   no_wildcard_variable_uses.main();

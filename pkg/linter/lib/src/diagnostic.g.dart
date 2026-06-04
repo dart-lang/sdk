@@ -1930,6 +1930,21 @@ const LinterLintWithoutArguments noopPrimitiveOperations =
       expectedTypes: [],
     );
 
+/// Parameters:
+/// Type type: the name of the generic type
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required DartType type})
+>
+noRawTypes = LinterLintTemplate(
+  name: 'no_raw_types',
+  problemMessage:
+      "The generic type '{0}' should have explicit type arguments but doesn't.",
+  correctionMessage: "Use explicit type arguments for '{0}'.",
+  uniqueName: 'no_raw_types',
+  withArguments: _withArgumentsNoRawTypes,
+  expectedTypes: [ExpectedType.type],
+);
+
 /// No parameters.
 const LinterLintWithoutArguments noRuntimetypeTostring =
     LinterLintWithoutArguments(
@@ -4324,6 +4339,10 @@ LocatableDiagnostic _withArgumentsNonConstantIdentifierNames({
   required Object p0,
 }) {
   return LocatableDiagnosticImpl(diag.nonConstantIdentifierNames, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsNoRawTypes({required DartType type}) {
+  return LocatableDiagnosticImpl(diag.noRawTypes, [type]);
 }
 
 LocatableDiagnostic _withArgumentsOneMemberAbstracts({required Object p0}) {

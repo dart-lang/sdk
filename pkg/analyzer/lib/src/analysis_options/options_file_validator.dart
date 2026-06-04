@@ -812,23 +812,16 @@ class _LanguageOptionValidator extends OptionsValidator {
       var language = analyzer.valueAt(AnalysisOptionsFileKeys.language);
       if (language is YamlMap) {
         language.nodes.forEach((k, v) {
-          String? key;
-          bool validKey = false;
-          if (k is YamlScalar) {
-            key = k.value?.toString();
-            if (!AnalysisOptionsFileKeys.languageOptions.contains(key)) {
-              _builder.reportError(
-                reporter,
-                AnalysisOptionsFileKeys.language,
-                k,
-              );
-            } else {
-              // If we have a valid key, go on and check the value.
-              validKey = true;
-            }
+          if (k is! YamlScalar) return;
+          var key = k.value?.toString();
+          if (!AnalysisOptionsFileKeys.languageOptions.contains(key)) {
+            _builder.reportError(reporter, AnalysisOptionsFileKeys.language, k);
+            return;
           }
-          if (validKey && v is YamlScalar) {
-            if (v.toBool() == null) {
+
+          if (v is YamlScalar) {
+            var value = v.toBool();
+            if (value == null) {
               // `null` is not a valid key, so we can safely assume `key` is
               // non-`null`.
               reporter.report(
@@ -840,6 +833,17 @@ class _LanguageOptionValidator extends OptionsValidator {
                     )
                     .atSourceSpan(v.span),
               );
+            } else if (key == AnalysisOptionsFileKeys.strictRawTypes && value) {
+              // TODO(srawlins): Enable once the `no_raw_types` lint rule is
+              // available in Flutter main, so that developers have something to
+              // migrate to.
+              if (1 == 2) {
+                reporter.report(
+                  diag.analysisOptionDeprecated
+                      .withArguments(optionName: key!)
+                      .atSourceSpan(k.span),
+                );
+              }
             }
           }
         });
