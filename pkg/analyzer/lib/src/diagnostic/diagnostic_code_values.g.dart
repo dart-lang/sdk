@@ -80,6 +80,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.augmentationOfDifferentDeclarationKind,
   diag.augmentationOfMixinApplicationClass,
   diag.augmentationOptionalPositionalFormalParameterCount,
+  diag.augmentationPositionalFormalParameterName,
   diag.augmentationRequiredPositionalFormalParameterCount,
   diag.augmentationReturnTypeMismatch,
   diag.augmentationTypeParameterBound,

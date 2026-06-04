@@ -9,9 +9,188 @@ import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AugmentationFormalParameterNameTest);
     defineReflectiveTests(AugmentationFormalParameterShapeTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class AugmentationFormalParameterNameTest extends PubPackageResolutionTest {
+  test_class_constructor_fP1__rP2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int p1;
+  A(this.p1);
+//       ^^
+// [context 1] The preceding declaration is here.
+  augment A(int p2);
+//              ^^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'p2' must either match the name 'p1' from a preceding declaration or be '_'.
+}
+''');
+  }
+
+  test_class_constructor_sp1__rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A([int? p1]);
+}
+class B extends A {
+  B([super.p1]);
+//         ^^
+// [context 1] The preceding declaration is here.
+  augment B([int? p2]);
+//                ^^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'p2' must either match the name 'p1' from a preceding declaration or be '_'.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP__x__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int x);
+//             ^
+// [context 1] The preceding declaration is here.
+  augment void foo(int y) {}
+//                     ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+}
+''');
+  }
+
+  test_topLevelFunction_rP__wildcard__x__wildcard() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int _);
+augment void f(int x);
+augment void f(int _) {}
+''');
+  }
+
+  test_topLevelFunction_rP__wildcard__x__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int _);
+augment void f(int x);
+//                 ^
+// [context 1] The preceding declaration is here.
+augment void f(int y) {}
+//                 ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelFunction_rP__x__wildcard() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x);
+augment void f(int _) {}
+''');
+  }
+
+  test_topLevelFunction_rp__x__wildcard() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f([int? x]);
+augment void f([int? _]) {}
+''');
+  }
+
+  test_topLevelFunction_rP__x__wildcard__x() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x);
+augment void f(int _);
+augment void f(int x) {}
+''');
+  }
+
+  test_topLevelFunction_rP__x__wildcard__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x);
+//         ^
+// [context 1] The preceding declaration is here.
+augment void f(int _);
+augment void f(int y) {}
+//                 ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelFunction_rP__x__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x);
+//         ^
+// [context 1] The preceding declaration is here.
+augment void f(int y) {}
+//                 ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelFunction_rp__x__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f([int? x]);
+//           ^
+// [context 1] The preceding declaration is here.
+augment void f([int? y]) {}
+//                   ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelFunction_rP_rP__x_y__a_b() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x, int y);
+//         ^
+// [context 1] The preceding declaration is here.
+//                ^
+// [context 2] The preceding declaration is here.
+augment void f(int a, int b) {}
+//                 ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'a' must either match the name 'x' from a preceding declaration or be '_'.
+//                        ^
+// [diag.augmentationPositionalFormalParameterName][context 2] The parameter name 'b' must either match the name 'y' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelFunction_rP_rp__x_y__x_z() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x, [int? y]);
+//                  ^
+// [context 1] The preceding declaration is here.
+augment void f(int x, [int? z]) {}
+//                          ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'z' must either match the name 'y' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelSetter_rP__wildcard__x__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _);
+augment set foo(int x);
+//                  ^
+// [context 1] The preceding declaration is here.
+augment set foo(int y) {}
+//                  ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
+
+  test_topLevelSetter_rP__x__wildcard() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int x);
+augment set foo(int _) {}
+''');
+  }
+
+  test_topLevelSetter_rP__x__y() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int x);
+//          ^
+// [context 1] The preceding declaration is here.
+augment set foo(int y) {}
+//                  ^
+// [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
 }
 
 @reflectiveTest
@@ -195,6 +374,17 @@ void f(int? p1);
 augment void f(int? p1, [int? p2, int? p3]) {}
 //                      ^
 // [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 2 optional positional formal parameters, but the declaration has 0.
+''');
+  }
+
+  test_topLevelFunction_rP1__rP2_rP3_nameMismatch() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1);
+//   ^
+// [context 1] The declaration being augmented.
+augment void f(int p2, int p3) {}
+//                         ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 2 required positional formal parameters, but the declaration has 1.
 ''');
   }
 

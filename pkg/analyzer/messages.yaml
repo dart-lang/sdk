@@ -1857,6 +1857,15 @@ CompileTimeErrorCode:
     problemMessage: "The augmentation has #actualCount optional positional formal parameters, but the declaration has #expectedCount."
     correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
+  augmentationPositionalFormalParameterName:
+    type: compileTimeError
+    parameters:
+      String expectedName: the name from a preceding declaration.
+      String actualName: the name in the augmentation.
+    experiment: augmentations
+    problemMessage: "The parameter name '#actualName' must either match the name '#expectedName' from a preceding declaration or be '_'."
+    correctionMessage: "Try changing the name to '#expectedName', or changing it to '_'."
+    hasPublishedDocs: false
   augmentationOfDifferentDeclarationKind:
     type: compileTimeError
     parameters:
