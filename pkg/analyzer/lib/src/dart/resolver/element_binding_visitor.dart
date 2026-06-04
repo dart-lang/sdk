@@ -340,7 +340,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
         fragment.isExternal = true;
       }
 
-      fragment.isCompleteDeclaration = node.isCompleteDeclaration;
+      fragment.isComplete = node.isComplete;
       fragment.isAsynchronous = body.isAsynchronous;
       fragment.isGenerator = body.isGenerator;
       if (node.returnType == null) {

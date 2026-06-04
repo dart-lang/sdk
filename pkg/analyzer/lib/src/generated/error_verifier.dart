@@ -671,7 +671,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
 
-    if (fragment.isAugmentation && fragment.isCompleteDeclaration) {
+    if (fragment.isAugmentation && fragment.isComplete) {
       var precedingComplete = fragment.nearestPrecedingCompleteFragment;
       if (precedingComplete != null) {
         diagnosticReporter.report(
@@ -2748,7 +2748,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required PropertyInducingFragmentImpl fragment,
   }) {
     if (fragment.inducedGetter case var inducedGetter?) {
-      if (inducedGetter.isCompleteDeclaration) {
+      if (inducedGetter.isComplete) {
         var precedingComplete = inducedGetter.nearestPrecedingCompleteFragment;
         if (precedingComplete != null) {
           diagnosticReporter.report(
@@ -2765,7 +2765,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (fragment.inducedSetter case var inducedSetter?) {
-      if (inducedSetter.isCompleteDeclaration) {
+      if (inducedSetter.isComplete) {
         var precedingComplete = inducedSetter.nearestPrecedingCompleteFragment;
         if (precedingComplete != null) {
           diagnosticReporter.report(
@@ -4704,7 +4704,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var element = node.declaredFragment!.element;
-    if (element.fragments.any((f) => f.isCompleteDeclaration)) {
+    if (element.fragments.any((f) => f.isComplete)) {
       return;
     }
 
@@ -4851,7 +4851,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Token? augmentKeyword,
     required FragmentImpl fragment,
   }) {
-    if (augmentKeyword != null && fragment.isCompleteDeclaration) {
+    if (augmentKeyword != null && fragment.isComplete) {
       var precedingComplete = fragment.nearestPrecedingCompleteFragment;
       if (precedingComplete != null) {
         diagnosticReporter.report(
@@ -4898,7 +4898,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (element.fragments.any((f) => f.isCompleteDeclaration)) {
+    if (element.fragments.any((f) => f.isComplete)) {
       return;
     }
 
@@ -5045,7 +5045,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         (setter?.element.fragments.length ?? 0) > 1;
 
     if (getter != null) {
-      if (getter.element.fragments.none((f) => f.isCompleteDeclaration)) {
+      if (getter.element.fragments.none((f) => f.isComplete)) {
         var diagnostic = hasAugmentations
             ? diag.inducedGetterNotCompleteAfterAugmentations
             : diag.inducedGetterWithoutBody;
@@ -5056,7 +5056,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (setter != null) {
-      if (setter.element.fragments.none((f) => f.isCompleteDeclaration)) {
+      if (setter.element.fragments.none((f) => f.isComplete)) {
         var diagnostic = hasAugmentations
             ? diag.inducedSetterNotCompleteAfterAugmentations
             : diag.inducedSetterWithoutBody;

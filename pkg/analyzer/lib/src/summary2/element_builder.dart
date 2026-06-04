@@ -461,7 +461,7 @@ class ElementBuilder {
         ..isOriginVariable = true
         ..isAbstract = fieldFragment.isAbstract
         ..isAugmentation = fieldFragment.isAugmentation
-        ..isCompleteDeclaration = !fieldFragment.isAbstract
+        ..isComplete = !fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
       fieldFragment.inducedGetter = getterFragment;
       instanceFragment.addGetter(getterFragment);
@@ -491,7 +491,7 @@ class ElementBuilder {
         ..isOriginVariable = true
         ..isAbstract = fieldFragment.isAbstract
         ..isAugmentation = fieldFragment.isAugmentation
-        ..isCompleteDeclaration = !fieldFragment.isAbstract
+        ..isComplete = !fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
       fieldFragment.inducedSetter = setterFragment;
       instanceFragment.addSetter(setterFragment);
@@ -918,7 +918,7 @@ class ElementBuilder {
         ..isOriginVariable = true
         ..isAbstract = variableFragment.isAbstract
         ..isAugmentation = variableFragment.isAugmentation
-        ..isCompleteDeclaration =
+        ..isComplete =
             variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
       variableFragment.inducedGetter = getterFragment;
@@ -948,7 +948,7 @@ class ElementBuilder {
         ..isOriginVariable = true
         ..isAbstract = variableFragment.isAbstract
         ..isAugmentation = variableFragment.isAugmentation
-        ..isCompleteDeclaration =
+        ..isComplete =
             variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
       variableFragment.inducedSetter = setterFragment;
@@ -1404,7 +1404,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isConst = node.constKeyword != null;
     fragment.isExternal = node.externalKeyword != null;
     fragment.isFactory = node.factoryKeyword != null;
-    fragment.isCompleteDeclaration = node.isCompleteDeclaration;
+    fragment.isComplete = node.isComplete;
     fragment.metadata = _buildMetadata(node.metadata);
     fragment.typeName = node.typeName?.name;
 
@@ -1813,7 +1813,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isAsynchronous = body.isAsynchronous;
     executableFragment.isExternal = node.externalKeyword != null;
     executableFragment.isGenerator = body.isGenerator;
-    executableFragment.isCompleteDeclaration = node.isCompleteDeclaration;
+    executableFragment.isComplete = node.isComplete;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -1955,7 +1955,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;
     executableFragment.isGenerator = node.body.isGenerator;
-    executableFragment.isCompleteDeclaration = node.isCompleteDeclaration;
+    executableFragment.isComplete = node.isComplete;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -2048,7 +2048,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isConst =
         node.constKeyword != null || parent is EnumDeclarationImpl;
     fragment.isPrimary = true;
-    fragment.isCompleteDeclaration = true;
+    fragment.isComplete = true;
     fragment.typeName = node.typeName.lexeme;
 
     node.declaredFragment = fragment;

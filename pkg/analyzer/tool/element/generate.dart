@@ -155,35 +155,26 @@ class _ElementGenerator {
 
       var existingGetters = <String, _ExistingGeneratedGetter>{};
       var body = declaration.body as BlockClassBodyImpl;
-      var isFlagsForTestingGenerated = true;
       for (var member in body.members) {
-        if (member is MethodDeclarationImpl) {
-          if (member.isGetter &&
-              member.name.lexeme == 'flagsForTesting' &&
-              !member.isGenerated) {
-            isFlagsForTestingGenerated = false;
-          }
-
-          if (member.isGenerated) {
-            replacements.add(
-              _Replacement(offset: member.offset, end: member.end, text: ''),
+        if (member is MethodDeclarationImpl && member.isGenerated) {
+          replacements.add(
+            _Replacement(offset: member.offset, end: member.end, text: ''),
+          );
+          if (member.isGetter) {
+            var getterElement = member.declaredFragment!.element;
+            var getterName = getterElement.name!;
+            existingGetters[getterName] = _ExistingGeneratedGetter(
+              documentationComment: getterElement.documentationComment,
+              annotations: member.metadata
+                  .map((annotation) {
+                    return unitResult.content.substring(
+                      annotation.offset,
+                      annotation.end,
+                    );
+                  })
+                  .where((source) => source != '@generated')
+                  .toList(),
             );
-            if (member.isGetter) {
-              var getterElement = member.declaredFragment!.element;
-              var getterName = getterElement.name!;
-              existingGetters[getterName] = _ExistingGeneratedGetter(
-                documentationComment: getterElement.documentationComment,
-                annotations: member.metadata
-                    .map((annotation) {
-                      return unitResult.content.substring(
-                        annotation.offset,
-                        annotation.end,
-                      );
-                    })
-                    .where((source) => source != '@generated')
-                    .toList(),
-              );
-            }
           }
         }
       }
@@ -257,7 +248,7 @@ class _ElementGenerator {
             : flag.elementSource != _ElementFlagSource.none;
       }).toList();
 
-      if (flagsForTesting.isNotEmpty && isFlagsForTestingGenerated) {
+      if (flagsForTesting.isNotEmpty) {
         buffer.writeln();
         buffer.writeln('@generated');
         if (className != 'ElementImpl' && className != 'FragmentImpl') {

@@ -51,7 +51,7 @@ class _UnitApiSignatureComputer {
           declaration.beginToken,
           functionExpression.parameters?.endToken ?? declaration.name,
         );
-        signature.addBool(declaration.isCompleteDeclaration);
+        signature.addBool(declaration.isComplete);
         _addFunctionBodyModifiers(functionExpression.body);
       } else if (declaration is MixinDeclarationImpl) {
         _addMixin(declaration);
@@ -93,7 +93,7 @@ class _UnitApiSignatureComputer {
     _addTokens(node.beginToken, node.parameters.endToken);
     _addNodeList(node.initializers);
     _addNode(node.redirectedConstructor);
-    signature.addBool(node.isCompleteDeclaration);
+    signature.addBool(node.isComplete);
   }
 
   void _addEnum(EnumDeclarationImpl node) {
@@ -144,7 +144,7 @@ class _UnitApiSignatureComputer {
   void _addMethodDeclaration(MethodDeclarationImpl node) {
     signature.addInt(_kindMethodDeclaration);
     _addTokens(node.beginToken, node.parameters?.endToken ?? node.name);
-    signature.addBool(node.isCompleteDeclaration);
+    signature.addBool(node.isComplete);
     _addFunctionBodyModifiers(node.body);
     signature.addBool(node.invokesSuperSelf);
   }

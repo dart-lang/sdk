@@ -18674,7 +18674,7 @@ library
 ''');
   }
 
-  test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
+  test_constructor_secondary_augmentation_chain_isComplete_factory() async {
     var library = await buildLibrary(r'''
 class A {
   factory A();
@@ -18738,7 +18738,7 @@ library
 ''');
   }
 
-  test_constructor_secondary_augmentation_chain_isCompleteDeclaration_generative() async {
+  test_constructor_secondary_augmentation_chain_isComplete_generative() async {
     var library = await buildLibrary(r'''
 class A {
   A();
@@ -34646,7 +34646,7 @@ library
 ''');
   }
 
-  test_getter_augmentation_chain_isCompleteDeclaration_instance() async {
+  test_getter_augmentation_chain_isComplete_instance() async {
     var library = await buildLibrary(r'''
 class A {
   int get foo;
@@ -35867,7 +35867,7 @@ library
 ''');
   }
 
-  test_getter_static_augmentation_chain_isCompleteDeclaration() async {
+  test_getter_static_augmentation_chain_isComplete() async {
     var library = await buildLibrary(r'''
 class A {
   static int get foo;
@@ -36751,7 +36751,7 @@ library
 ''');
   }
 
-  test_isCompleteDeclaration_constructor_complete() async {
+  test_isComplete_constructor_complete() async {
     var library = await buildLibrary(r'''
 class A {
   A();
@@ -36761,10 +36761,10 @@ class A {
     var classA = library.classes.singleWhere((e) => e.name == 'A');
     var constructor = classA.constructors.single;
 
-    expect(constructor.firstFragment.isCompleteDeclaration, isFalse);
+    expect(constructor.firstFragment.isComplete, isFalse);
   }
 
-  test_isCompleteDeclaration_method_complete() async {
+  test_isComplete_method_complete() async {
     var library = await buildLibrary(r'''
 class A {
   static void foo() {}
@@ -36774,7 +36774,7 @@ class A {
     var classA = library.classes.singleWhere((e) => e.name == 'A');
     var method = classA.methods.singleWhere((e) => e.name == 'foo');
 
-    expect(method.firstFragment.isCompleteDeclaration, isTrue);
+    expect(method.firstFragment.isComplete, isTrue);
   }
 
   test_method_abstract() async {
@@ -40784,7 +40784,7 @@ library
 ''');
   }
 
-  test_method_augmentation_chain_isCompleteDeclaration_instance() async {
+  test_method_augmentation_chain_isComplete_instance() async {
     var library = await buildLibrary(r'''
 class A {
   void foo();
@@ -43235,7 +43235,7 @@ library
 ''');
   }
 
-  test_method_static_augmentation_chain_isCompleteDeclaration() async {
+  test_method_static_augmentation_chain_isComplete() async {
     var library = await buildLibrary(r'''
 class A {
   static void foo();
@@ -45289,7 +45289,7 @@ library
 ''');
   }
 
-  test_setter_augmentation_chain_isCompleteDeclaration_instance() async {
+  test_setter_augmentation_chain_isComplete_instance() async {
     var library = await buildLibrary(r'''
 class A {
   set foo(int _);
@@ -47289,7 +47289,7 @@ library
 ''');
   }
 
-  test_setter_static_augmentation_chain_isCompleteDeclaration() async {
+  test_setter_static_augmentation_chain_isComplete() async {
     var library = await buildLibrary(r'''
 class A {
   static set foo(int _);

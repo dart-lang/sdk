@@ -7413,7 +7413,7 @@ library
 ''');
   }
 
-  test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
+  test_constructor_secondary_augmentation_chain_isComplete_factory() async {
     var library = await buildLibrary(r'''
 enum A {
   v;
