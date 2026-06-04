@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/extensions/list.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -42,10 +45,65 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
     return RefactoringProcessor.buildCommandArguments(refactoringContext, args);
   }
 
-  /// Resolves command arguments using the interactive forms functionality.
+  /// Builds the interative form for this refactor.
+  ErrorOr<InteractiveForm> buildInteractiveForm();
+
+  /// A helper to create an [InteractiveForm] with client capabilities.
+  InteractiveForm createForm(List<FormField> fields) {
+    var supportedInteractiveFormInputTypes =
+        refactoringContext
+            .clientCapabilities
+            ?.supportedInteractiveFormInputTypes ??
+        {};
+
+    return InteractiveForm(
+      supportedInteractiveFormInputTypes: supportedInteractiveFormInputTypes,
+      fields: fields,
+    );
+  }
+
+  /// Resolves the command used for invoking this refactor by calling
+  /// [buildInteractiveForm] to build the interactive form.
   Future<ErrorOr<InteractiveExecuteCommandParams>> resolve(
     InteractiveExecuteCommandParams command,
-  );
+  ) async {
+    var commandArguments = command.arguments;
+    if (commandArguments == null) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'Refactor commands must have arguments',
+      );
+    }
+
+    return buildInteractiveForm().mapResultSync((form) {
+      form.processResponse(command.formAnswers ?? []);
+
+      return success(
+        InteractiveExecuteCommandParams(
+          command: command.command,
+          arguments: buildCommandArguments(form.answers),
+          data: command.data,
+          formFields: form.clientFields.nullIfEmpty,
+          formAnswers: form.clientAnswers.nullIfEmpty,
+        ),
+      );
+    });
+  }
+
+  /// Wraps a refactor validation function that returns [RefactoringStatus]
+  /// to return a String error message if there are fatal errors, matching the
+  /// validation of Interactive Forms.
+  String? Function(Object? value) wrapRefactorValidationFunction<T>(
+    RefactoringStatus Function(T name) validator,
+  ) {
+    return (Object? value) {
+      var result = validator(value as T);
+      if (result.hasFatalError) {
+        return result.message ?? 'invalid value';
+      }
+      return null;
+    };
+  }
 }
 
 /// An object that can compute a refactoring in a Dart file.

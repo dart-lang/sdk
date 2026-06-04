@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/refactoring/add_import_prefix.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
@@ -17,12 +18,14 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommandResolveTest);
     defineReflectiveTests(CommandResolveFileInputTest);
+    defineReflectiveTests(CommandResolveStringInputTest);
   });
 }
 
 /// Tests file inputs in `command/resolve` using the MoveToFile refactor.
 @reflectiveTest
-class CommandResolveFileInputTest extends RefactoringTest {
+class CommandResolveFileInputTest extends RefactoringTest
+    with InteractiveFormsExperimentMixin {
   /// Simple file content with a single class named 'A'.
   final simpleClassContent = '''
 class ^A {}
@@ -85,7 +88,7 @@ class ^A {}
 
   Future<void> test_formFields_notSupported() async {
     // If we don't support the 'file' kind, then we shouldn't get back any
-    // form fields, only the default.
+    // form fields, only the default value in the arguments.
     setSupportedInteractiveFormInputKinds({'number'});
 
     addTestSource(simpleClassContent);
@@ -263,6 +266,183 @@ class ^A {}
   }
 }
 
+/// Tests string inputs in `command/resolve` using the AddImportPrefix refactor.
+@reflectiveTest
+class CommandResolveStringInputTest extends RefactoringTest
+    with InteractiveFormsExperimentMixin {
+  final source = '''
+^import 'package:test/main.dart';
+''';
+
+  @override
+  String get refactoringCommandId => AddImportPrefix.commandName;
+
+  String get refactoringTitle => AddImportPrefix.constTitle;
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Most of the tests here assume we support string. Tests that do not will
+    // explicitly unset this.
+    setSupportedInteractiveFormInputKinds({'string'});
+  }
+
+  Future<void> test_acceptsValidAnswers() async {
+    addTestSource(source);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+
+    // Resolve the command, which should add the outstanding form fields.
+    var resolvedCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    // Resolve again, with a valid answer.
+    expect(resolvedCommand.formFields, hasLength(1));
+    var field = resolvedCommand.formFields!.single;
+    resolvedCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: resolvedCommand.command,
+        arguments: resolvedCommand.arguments,
+        formFields: resolvedCommand.formFields,
+        formAnswers: [field.answer('custom_prefix')],
+      ),
+    );
+
+    // Check that the form field has gone, and that the valid answer was moved
+    // into the command arguments.
+    expect(resolvedCommand.formFields, isNull);
+    var arguments = getRefactorCommandArguments(resolvedCommand.arguments);
+    expect(arguments, hasLength(1));
+    expect(arguments.single, 'custom_prefix');
+  }
+
+  Future<void> test_formFields_notSupported() async {
+    // If we don't support the 'string' kind, then we shouldn't get back any
+    // form fields, only the default value in the arguments.
+    setSupportedInteractiveFormInputKinds({'file'});
+
+    addTestSource(source);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+
+    // Resolve the command, which would normally add the form fields, but the
+    // only one used here is not supported by us.
+    var resolvedCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    // Check basics.
+    expect(resolvedCommand.command, command.command);
+    expect(resolvedCommand.formAnswers, isNull);
+    expect(resolvedCommand.formFields, isNull);
+
+    // Check the arguments to the command contain the default value so the
+    // command will still work without the user prompt.
+    var refactorArguments = getRefactorCommandArguments(
+      resolvedCommand.arguments,
+    );
+    expect(refactorArguments, hasLength(1));
+    expect(refactorArguments.single, 'main');
+  }
+
+  Future<void> test_formFields_supported() async {
+    addTestSource(source);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+
+    // Resolve the command, which should add the outstanding form fields.
+    var resolvedCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    // Check basics.
+    expect(resolvedCommand.command, command.command);
+    expect(resolvedCommand.formAnswers, isNull);
+    expect(resolvedCommand.formFields, hasLength(1));
+
+    // Because this argument is optional (because we only expect it when using
+    // Interactive Forms but the refactor can be used without), args are
+    // populated with the default during resolve.
+    var arguments = getRefactorCommandArguments(resolvedCommand.arguments);
+    expect(arguments, hasLength(1));
+    expect(arguments.single, 'main');
+
+    // Check the form field is what we'd expect.
+    var field = resolvedCommand.formFields!.single;
+    expect(field.type.kind, 'string');
+    expect(field.description, 'Import Prefix');
+    expect(field.defaultValue, 'main');
+    expect(field.error, isNull);
+  }
+
+  Future<void> test_validates_invalidValue() async {
+    addTestSource(source);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var command = action.asCommand;
+
+    // Resolve the command, which should add the outstanding form fields.
+    var resolvedCommand = await resolveCommand(
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    // Resolve again, with an invalid prefix name.
+    expect(resolvedCommand.formFields, hasLength(1));
+    var field = resolvedCommand.formFields!.single;
+    resolvedCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: resolvedCommand.command,
+        arguments: resolvedCommand.arguments,
+        formFields: resolvedCommand.formFields,
+        formAnswers: [field.answer('Invalid Prefix')],
+      ),
+    );
+
+    // Check the field has a validation error and the current value is
+    // preserved.
+    expect(resolvedCommand.formFields, hasLength(1));
+    field = resolvedCommand.formFields!.single;
+    expect(field.error, "Import prefix name must not contain ' '.");
+    expect(resolvedCommand.formAnswers!.single, field.answer('Invalid Prefix'));
+
+    // Resolve again with a valid value and ensure the field is completed.
+    resolvedCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: resolvedCommand.command,
+        arguments: resolvedCommand.arguments,
+        formFields: resolvedCommand.formFields,
+        formAnswers: [field.answer('valid_prefix')],
+      ),
+    );
+
+    expect(resolvedCommand.formFields, isNull);
+    var arguments = getRefactorCommandArguments(resolvedCommand.arguments);
+    expect(arguments, hasLength(1));
+    expect(arguments.single, 'valid_prefix');
+  }
+}
+
 @reflectiveTest
 class CommandResolveTest extends AbstractLspAnalysisServerTest {
   Future<void> test_returnsInputForUnknownCommand() async {
@@ -279,5 +459,22 @@ class CommandResolveTest extends AbstractLspAnalysisServerTest {
     var resolvedCommand = await resolveCommand(command);
 
     expect(resolvedCommand, command);
+  }
+}
+
+/// A temporary mixin that sets the flag to enable the Interactive Forms
+/// experiment setting.
+mixin InteractiveFormsExperimentMixin on RefactoringTest {
+  @override
+  Future<void> initializeServer({
+    bool experimentalOptInFlag = true,
+    // We default this to true for these tests, though it's false in the
+    // the super implementation.
+    bool experimentalInteractiveForms = true,
+  }) {
+    return super.initializeServer(
+      experimentalOptInFlag: experimentalOptInFlag,
+      experimentalInteractiveForms: experimentalInteractiveForms,
+    );
   }
 }
