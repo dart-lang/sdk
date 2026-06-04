@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/growable_type_data.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
 final class BuiltInReference extends Reference implements ExportableReference {
@@ -717,9 +718,9 @@ final class ReferenceTableWriter {
 
   final Map<Reference, int> _indexByReference = Map.identity();
 
-  final List<int> _tagIndexes = [];
+  final GrowableUint8List _tagIndexes = GrowableUint8List();
   final List<int> _parentIndexes = [];
-  final List<int> _kindIndexes = [];
+  final GrowableUint8List _kindIndexes = GrowableUint8List();
   final List<String> _keyStrings = [];
   final List<String> _uriStrings = [];
 
@@ -735,9 +736,9 @@ final class ReferenceTableWriter {
   }
 
   void write(BinaryWriter sink) {
-    sink.writeUint8List(Uint8List.fromList(_tagIndexes));
+    sink.writeUint8List(_tagIndexes.takeAndReset());
     sink.writeUint30List(_parentIndexes);
-    sink.writeUint8List(Uint8List.fromList(_kindIndexes));
+    sink.writeUint8List(_kindIndexes.takeAndReset());
     sink.writeStringList(_keyStrings);
     sink.writeStringList(_uriStrings);
   }

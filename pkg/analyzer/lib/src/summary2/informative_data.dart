@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/growable_type_data.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var info = _InfoBuilder().build(unit);
@@ -760,7 +761,7 @@ class _InfoBuilder {
     }
     enumConstantArguments?.typeArguments?.accept(collector);
     enumConstantArguments?.argumentList.accept(collector);
-    return Uint32List.fromList(collector.offsets);
+    return collector.offsets.takeAndReset();
   }
 
   _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration node) {
@@ -2228,7 +2229,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _OffsetsCollector extends _OffsetsAstVisitor {
-  final List<int> offsets = [];
+  final GrowableUint32List offsets = GrowableUint32List();
 
   @override
   void handleToken(Token token) {

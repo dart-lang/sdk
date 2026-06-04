@@ -117,7 +117,7 @@ abstract class AbstractScanner implements Scanner {
   Token? commentsTail;
 
   @override
-  final List<int> lineStarts;
+  final LineStarts lineStarts;
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -168,7 +168,9 @@ abstract class AbstractScanner implements Scanner {
   AbstractScanner._recoveryOptionScanner(
     AbstractScanner copyFrom,
     Token newEofToken,
-  ) : lineStarts = [],
+  ) : lineStarts = new LineStarts(
+        /*numberOfBytesHint - fake number, but doesn't really matter */ 1000,
+      ),
       includeComments = false,
       languageVersionChanged = null,
       inRecoveryOption = true,
@@ -2475,6 +2477,21 @@ class LineStarts extends Object with ListMixin<int> {
     : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
+  }
+
+  // Coverage-ignore(suite): Not run.
+  /// Create a [Uint32List] or [Uint16List] (as needed) copy without the last
+  /// element. Used by the Analyzer.
+  List<int> copyToTypedDataWithoutLastElement() {
+    if (last > 65535) {
+      Uint32List list = new Uint32List(arrayLength - 1);
+      list.setRange(0, arrayLength - 1, array);
+      return list;
+    } else {
+      Uint16List list = new Uint16List(arrayLength - 1);
+      list.setRange(0, arrayLength - 1, array);
+      return list;
+    }
   }
 
   // Implement abstract members used by [ListMixin]
