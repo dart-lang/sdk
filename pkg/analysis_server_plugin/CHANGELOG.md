@@ -1,7 +1,7 @@
-## 0.3.16-dev
+## 0.3.16
 
-- Require version `13.1.0-dev` of the `analyzer` package.
-- Require version `0.14.10-dev` of the `analyzer_plugin` package.
+- Require version `13.1.0` of the `analyzer` package.
+- Require version `0.14.10` of the `analyzer_plugin` package.
 - Overhaul the plugin server which decides what files to re-analyze after
   various events, including overlay changes (in the IDE), file watch events,
   etc. This change results in better results caching, so that, generally

@@ -1,4 +1,4 @@
-## 13.1.0-dev
+## 13.1.0
 
 * Deprecate `PackageConfigFileBuilder` in `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
 * Deprecate `isInitializingFormal` in `FormalParameterElement`. Use type checks (`element is FieldFormalParameterElement`) instead.
