@@ -13890,6 +13890,44 @@ LinterLintCode:
       stable: "2.1"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `async` function or method
+      returns an `await` expression and the static type of the
+      awaited `Future` is a [subtype][] of the declared return type.
+
+      The `await` is unnecessary because returning a `Future` from an
+      `async` function already produces a `Future` that
+      completes with the same result.
+
+      The analyzer doesn't report this diagnostic for `await` expressions
+      inside a `try` block because removing the `await` changes how
+      errors from the awaited `Future` are handled.
+
+      [subtype]: https://dart.dev/resources/glossary#subtype
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      has a return type of `Future<int>` and returns an awaited `Future`
+      whose static type is also `Future<int>`:
+
+      ```dart
+      Future<int> f(Future<int> future) async {
+        return [!await!] future;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary `await`:
+
+      ```dart
+      Future<int> f(Future<int> future) async {
+        return future;
+      }
+      ```
     deprecatedDetails: |-
       Avoid returning an awaited expression when the expression type is assignable to
       the function's return type.
