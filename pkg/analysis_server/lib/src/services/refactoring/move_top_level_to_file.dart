@@ -275,7 +275,7 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
       defaultValue: refactoringContext.server.pathContext
           .toUri(defaultFilePath)
           .toString(),
-      type: FormFieldTypeFile(filters: ['*.dart']),
+      type: FormFieldTypeFile(type: .Regular, filters: ['dart']),
     );
 
     var supportedInteractiveFormInputTypes =
