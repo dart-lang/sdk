@@ -1832,6 +1832,31 @@ CompileTimeErrorCode:
     problemMessage: The augmentation is missing the '#modifier' modifier that the declaration has.
     correctionMessage: Try adding the '#modifier' modifier, or removing it from the declaration.
     hasPublishedDocs: false
+  augmentationNamedFormalParameterExtra:
+    type: compileTimeError
+    parameters:
+      String name: the name of the formal parameter.
+    experiment: augmentations
+    problemMessage: "The augmentation has a named formal parameter '#name', but the declaration doesn't."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
+  augmentationNamedFormalParameterMissing:
+    type: compileTimeError
+    parameters:
+      String name: the name of the formal parameter.
+    experiment: augmentations
+    problemMessage: "The augmentation is missing the named formal parameter '#name' from the declaration."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
+  augmentationOptionalPositionalFormalParameterCount:
+    type: compileTimeError
+    parameters:
+      int expectedCount: the number of optional positional formal parameters in the declaration.
+      int actualCount: the number of optional positional formal parameters in the augmentation.
+    experiment: augmentations
+    problemMessage: "The augmentation has #actualCount optional positional formal parameters, but the declaration has #expectedCount."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
+    hasPublishedDocs: false
   augmentationOfDifferentDeclarationKind:
     type: compileTimeError
     parameters:
@@ -1893,6 +1918,15 @@ CompileTimeErrorCode:
     experiment: augmentations
     problemMessage: "Mixin application classes can't be augmented."
     correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
+    hasPublishedDocs: false
+  augmentationRequiredPositionalFormalParameterCount:
+    type: compileTimeError
+    parameters:
+      int expectedCount: the number of required positional formal parameters in the declaration.
+      int actualCount: the number of required positional formal parameters in the augmentation.
+    experiment: augmentations
+    problemMessage: "The augmentation has #actualCount required positional formal parameters, but the declaration has #expectedCount."
+    correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
   augmentationInducedGetterReturnTypeMismatch:
     type: compileTimeError

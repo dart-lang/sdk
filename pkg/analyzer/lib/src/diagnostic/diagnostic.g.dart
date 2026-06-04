@@ -977,6 +977,44 @@ augmentationModifierMissing = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the formal parameter.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+augmentationNamedFormalParameterExtra = DiagnosticWithArguments(
+  name: 'augmentation_named_formal_parameter_extra',
+  problemMessage:
+      "The augmentation has a named formal parameter '{0}', but the declaration "
+      "doesn't.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_named_formal_parameter_extra',
+  withArguments: _withArgumentsAugmentationNamedFormalParameterExtra,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the formal parameter.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+augmentationNamedFormalParameterMissing = DiagnosticWithArguments(
+  name: 'augmentation_named_formal_parameter_missing',
+  problemMessage:
+      "The augmentation is missing the named formal parameter '{0}' from the "
+      "declaration.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_named_formal_parameter_missing',
+  withArguments: _withArgumentsAugmentationNamedFormalParameterMissing,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String declarationKind: the name of the declaration kind.
 /// String augmentationKind: the name of the augmentation kind.
 const DiagnosticWithArguments<
@@ -1008,6 +1046,58 @@ const DiagnosticWithoutArguments augmentationOfMixinApplicationClass =
       uniqueName: 'augmentation_of_mixin_application_class',
       expectedTypes: [],
     );
+
+/// Parameters:
+/// int expectedCount: the number of optional positional formal parameters in
+///                    the declaration.
+/// int actualCount: the number of optional positional formal parameters in
+///                  the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required int expectedCount,
+    required int actualCount,
+  })
+>
+augmentationOptionalPositionalFormalParameterCount = DiagnosticWithArguments(
+  name: 'augmentation_optional_positional_formal_parameter_count',
+  problemMessage:
+      "The augmentation has {1} optional positional formal parameters, but the "
+      "declaration has {0}.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_optional_positional_formal_parameter_count',
+  withArguments:
+      _withArgumentsAugmentationOptionalPositionalFormalParameterCount,
+  expectedTypes: [ExpectedType.int, ExpectedType.int],
+);
+
+/// Parameters:
+/// int expectedCount: the number of required positional formal parameters in
+///                    the declaration.
+/// int actualCount: the number of required positional formal parameters in
+///                  the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required int expectedCount,
+    required int actualCount,
+  })
+>
+augmentationRequiredPositionalFormalParameterCount = DiagnosticWithArguments(
+  name: 'augmentation_required_positional_formal_parameter_count',
+  problemMessage:
+      "The augmentation has {1} required positional formal parameters, but the "
+      "declaration has {0}.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameters to match the "
+      "declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_required_positional_formal_parameter_count',
+  withArguments:
+      _withArgumentsAugmentationRequiredPositionalFormalParameterCount,
+  expectedTypes: [ExpectedType.int, ExpectedType.int],
+);
 
 /// Parameters:
 /// Type expectedType: the return type of the declaration
@@ -18612,6 +18702,22 @@ LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
   return LocatableDiagnosticImpl(diag.augmentationModifierMissing, [modifier]);
 }
 
+LocatableDiagnostic _withArgumentsAugmentationNamedFormalParameterExtra({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationNamedFormalParameterExtra, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationNamedFormalParameterMissing({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationNamedFormalParameterMissing, [
+    name,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
   required String declarationKind,
   required String augmentationKind,
@@ -18620,6 +18726,28 @@ LocatableDiagnostic _withArgumentsAugmentationOfDifferentDeclarationKind({
     declarationKind,
     augmentationKind,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsAugmentationOptionalPositionalFormalParameterCount({
+  required int expectedCount,
+  required int actualCount,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationOptionalPositionalFormalParameterCount,
+    [expectedCount, actualCount],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsAugmentationRequiredPositionalFormalParameterCount({
+  required int expectedCount,
+  required int actualCount,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationRequiredPositionalFormalParameterCount,
+    [expectedCount, actualCount],
+  );
 }
 
 LocatableDiagnostic _withArgumentsAugmentationReturnTypeMismatch({
