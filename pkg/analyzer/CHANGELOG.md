@@ -1,3 +1,7 @@
+## 13.2.0-dev
+
+* Internal changes only.
+
 ## 13.1.0
 
 * Deprecate `PackageConfigFileBuilder` in `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
