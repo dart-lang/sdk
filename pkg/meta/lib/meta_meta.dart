@@ -95,6 +95,10 @@ class TargetKind {
   /// extension, extension type, or at the top-level of a library.
   static const getter = TargetKind._('getters', 'getter');
 
+  /// Indicates that an annotation is valid on any import directive.
+  static const importDirective =
+      TargetKind._('import directives', 'importDirective');
+
   /// Indicates that an annotation is valid on any method declaration, both
   /// instance and static methods, whether it's in a class, enum, mixin,
   /// extension, or extension type.
@@ -164,6 +168,7 @@ class TargetKind {
     function,
     library,
     getter,
+    importDirective,
     method,
     mixinType,
     optionalParameter,

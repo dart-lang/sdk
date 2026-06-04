@@ -783,6 +783,7 @@ class AnnotationVerifier {
       FunctionDeclaration(isGetter: true) => kinds.contains(TargetKind.getter),
       FunctionDeclaration(isSetter: true) => kinds.contains(TargetKind.setter),
       FunctionDeclaration() => kinds.contains(TargetKind.function),
+      ImportDirective() => kinds.contains(TargetKind.importDirective),
       MethodDeclaration(isGetter: true) => kinds.contains(TargetKind.getter),
       MethodDeclaration(isSetter: true) => kinds.contains(TargetKind.setter),
       MethodDeclaration() => kinds.contains(TargetKind.method),

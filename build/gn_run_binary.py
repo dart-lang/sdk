@@ -5,12 +5,9 @@
 """Helper script for GN to run an arbitrary binary. See compiled_action.gni.
 
 Run with:
-  python3 gn_run_binary.py <invoker> <binary_name> [args ...]
+  python3 gn_run_binary.py <binary_name> [args ...]
 
-Where <invoker> is either "compiled_action" or "exec_script". If it is
-"compiled_action" the script has a non-zero exit code on a failure. If it is
-"exec_script" the script has no output on success and produces output otherwise,
-but always has an exit code of 0.
+Swallows output on success.
 """
 
 import os
@@ -36,30 +33,22 @@ def _decode(bytes):
 
 
 def main(argv):
-    error_exit = 0
-    if argv[1] == "compiled_action":
-        error_exit = 1
-    elif argv[1] != "exec_script":
-        print("The first argument should be either "
-              "'compiled_action' or 'exec_script")
-        return 1
-
     # Unless the path is absolute, this script is designed to run binaries
     # produced by the current build, which is the current working directory when
     # this script is run.
-    path = os.path.abspath(argv[2])
+    path = os.path.abspath(argv[1])
 
     if not os.path.isfile(path):
         print("Binary not found: " + path)
-        return error_exit
+        return 1
 
     # The rest of the arguments are passed directly to the executable.
-    args = [path] + argv[3:]
+    args = [path] + argv[2:]
 
     result = run_command(args)
     if result != 0:
         print(result)
-        return error_exit
+        return 1
     return 0
 
 

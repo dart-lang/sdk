@@ -89,9 +89,7 @@ template("_compiled_action") {
       deps += invoker.deps
     }
 
-    # The "compiled_action" argument to gn_run_binary.py indicates that
-    # it will exit with a non-zero status when the target program does.
-    args = [ "compiled_action" ]
+    args = []
 
     if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
       args += [
@@ -147,7 +145,7 @@ template("_prebuilt_tool_action") {
       inputs += [ invoker.dfe ]
     }
 
-    args = [ "compiled_action" ]
+    args = []
 
     if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
       args += [

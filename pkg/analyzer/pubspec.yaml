@@ -17,7 +17,7 @@ dependencies:
   convert: ^3.0.0
   crypto: ^3.0.0
   glob: ^2.0.0
-  meta: ^1.18.0
+  meta: ^1.18.3
   package_config: ^2.0.0
   path: ^1.9.0
   pub_semver: ^2.1.4

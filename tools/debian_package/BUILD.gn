@@ -38,7 +38,6 @@ if (is_linux) {
     outputs = [ "$root_out_dir/dart_${version}-1_${debian_arch}.deb" ]
     script = "../../build/gn_run_binary.py"
     args = [
-      "compiled_action",
       rebase_path("create_debian_package.py"),
       "--version=$version",
       "--timestamp=$timestamp",
