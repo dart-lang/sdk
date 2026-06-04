@@ -6,8 +6,10 @@ import 'dart:typed_data';
 
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
+import 'package:cfg/utils/bit_vector.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -206,48 +208,64 @@ abstract base class CodeGenerator extends Pass
     // Generated via ParallelMove instructions inserted by register allocator.
   }
 
-  @override
-  void visitParallelMove(ParallelMove instr) {
-    // TODO: merge subsequent ParallelMove instructions.
-    final map = <Location, Location>{};
-    Set<Location>? overwritten;
+  /// Ensure that all destinations are distinct and
+  /// stack locations are not used both as a source and destination.
+  static bool _verifyParallelMoveDestinations(ParallelMove instr) {
+    final destinations = <Location>{};
+    for (final move in instr.moves) {
+      final to = switch (move) {
+        Move() => move.to.physicalLocation,
+        LoadConstant() => move.to.physicalLocation,
+        _ => throw 'Unexpected move ${move.runtimeType} $move',
+      };
+      if (!destinations.add(to)) {
+        throw 'Non-unique destination location $to in ${IrToText.instruction(instr)}';
+      }
+    }
     for (final move in instr.moves) {
       if (move is Move) {
         final from = move.from.physicalLocation;
         final to = move.to.physicalLocation;
-        assert(!(overwritten?.contains(from) ?? false));
+        if (from != to &&
+            from is StackLocation &&
+            destinations.contains(from)) {
+          throw 'Stack location $from is used both as a source and destination in ${IrToText.instruction(instr)}';
+        }
+      }
+    }
+    return true;
+  }
+
+  @override
+  void visitParallelMove(ParallelMove instr) {
+    // TODO: merge subsequent ParallelMove instructions.
+    assert(_verifyParallelMoveDestinations(instr));
+    final moves = <Move>[];
+    for (final move in instr.moves) {
+      if (move is Move) {
+        final from = move.from = move.from.physicalLocation;
+        final to = move.to = move.to.physicalLocation;
         if (from != to) {
-          if (to is StackLocation) {
+          if (from is StackLocation && to is StackLocation) {
             // Moves into spill slots cannot participate in cycles.
-            // Generate them eagerly and do not put them into the map
-            // as they may have the same source as register/register moves.
-            assert(!map.containsKey(to));
-            assert(() {
-              (overwritten ??= {}).add(to);
-              return true;
-            }());
-            if (from is StackLocation) {
-              final temp = getMoveTempRegister(RegisterClass.cpu);
-              generateMove(from, temp);
-              generateMove(temp, to);
-            } else {
-              generateMove(from, to);
-            }
+            // Generate them eagerly as they require a temporary register
+            // which can be occupied while breaking a cycle.
+            final temp = getMoveTempRegister(RegisterClass.cpu);
+            generateMove(from, temp);
+            generateMove(temp, to);
           } else {
-            assert(!map.containsKey(from));
-            map[from] = to;
+            moves.add(move);
           }
         }
       }
     }
-    while (map.isNotEmpty) {
-      final from = map.keys.first;
-      final to = map[from]!;
-      if (map.containsKey(to)) {
-        _generateDependentMoves(from, to, map);
-      } else {
-        generateMove(from, to);
-        map.remove(from);
+    // The algorithm is described in Laurence Rideau, Bernard Paul Serpette, Xavier Leroy (2008)
+    // "Tilting at windmills with Coq: formal verification of a compilation algorithm for parallel moves".
+    final pending = BitVector(moves.length);
+    final processed = BitVector(moves.length);
+    for (var i = 0; i < moves.length; ++i) {
+      if (!processed[i]) {
+        _generateOneMove(i, moves, pending, processed);
       }
     }
     for (final move in instr.moves) {
@@ -257,48 +275,34 @@ abstract base class CodeGenerator extends Pass
     }
   }
 
-  void _generateDependentMoves(
-    Location from,
-    Location to,
-    Map<Location, Location> moves,
+  void _generateOneMove(
+    int i,
+    List<Move> moves,
+    BitVector pending,
+    BitVector processed,
   ) {
-    assert(from != to);
-    assert(moves[from] == to);
-    final pendingList = <Location>[from];
-    final pendingSet = <Location>{from};
-    // Visit the chain of dependent moves until it ends or cycle is found.
-    while (moves.containsKey(to)) {
-      if (pendingSet.contains(to)) {
-        // Moves form a cycle. Save value to the temporary register to generate moves.
-        // TODO: regalloc should provide scratch register(s) for
-        // ParallelMove instructions if there are available registers.
-        // TODO: we can also allocate a scratch register from ParallelMove
-        // itself, resusing source registers which are already moved out or
-        // destination registers which are not moved in yet.
-        final temp = getMoveTempRegister(
-          (to is FPRegister || moves[to] is FPRegister)
-              ? RegisterClass.fpu
-              : RegisterClass.cpu,
-        );
-        generateMove(to, temp);
-        while (pendingList.isNotEmpty) {
-          from = pendingList.removeLast();
-          if (from == to) {
-            generateMove(temp, moves.remove(from)!);
-            break;
-          }
-          generateMove(from, moves.remove(from)!);
-        }
-        break;
+    pending[i] = true;
+    final dst = moves[i].to;
+    for (var j = 0; j < moves.length; ++j) {
+      if (processed[j]) {
+        continue;
       }
-      from = to;
-      to = moves[from]!;
-      pendingList.add(from);
-      pendingSet.add(from);
+      if (dst == moves[j].from) {
+        if (pending[j]) {
+          final temp = getMoveTempRegister(
+            (moves[j].from is FPRegister || moves[j].to is FPRegister)
+                ? RegisterClass.fpu
+                : RegisterClass.cpu,
+          );
+          generateMove(moves[j].from, temp);
+          moves[j].from = temp;
+        } else {
+          _generateOneMove(j, moves, pending, processed);
+        }
+      }
     }
-    for (final from in pendingList.reversed) {
-      generateMove(from, moves.remove(from)!);
-    }
+    generateMove(moves[i].from, moves[i].to);
+    processed[i] = true;
   }
 
   Location getMoveTempRegister(RegisterClass registerClass);
