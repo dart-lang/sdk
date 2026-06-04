@@ -1114,35 +1114,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     }, 'ClientCapabilities.experimental.commands must be a List<String>?');
   }
 
-  Future<void> test_invalidExperimental_dartCodeAction() async {
-    await expectInvalidExperimentalParams(
-      {'dartCodeAction': 1},
-      'ClientCapabilities.experimental.dartCodeAction must be a Map<String, Object?>?',
-    );
-  }
-
-  Future<void>
-  test_invalidExperimental_dartCodeAction_commandParameterSupport() async {
-    await expectInvalidExperimentalParams(
-      {
-        'dartCodeAction': {'commandParameterSupport': 1},
-      },
-      'ClientCapabilities.experimental.dartCodeAction.commandParameterSupport must be a Map<String, Object?>?',
-    );
-  }
-
-  Future<void>
-  test_invalidExperimental_dartCodeAction_commandParameterSupport_supportedKinds() async {
-    await expectInvalidExperimentalParams(
-      {
-        'dartCodeAction': {
-          'commandParameterSupport': {'supportedKinds': 1},
-        },
-      },
-      'ClientCapabilities.experimental.dartCodeAction.commandParameterSupport.supportedKinds must be a List<String>?',
-    );
-  }
-
   Future<void> test_invalidExperimental_snippetTextEdit() async {
     await expectInvalidExperimentalParams({
       'snippetTextEdit': 1,

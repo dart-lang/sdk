@@ -186,14 +186,4 @@ abstract class RefactoringProducer {
   bool selectionIsInToken(Token? token) {
     return refactoringContext.selectionIsInToken(token);
   }
-
-  /// Return `true` if the client has support for command parameters of the
-  /// provided `kind`. Subclasses that produce command parameters of this kind
-  /// that don't have a default value must not create a refactoring if this
-  /// returns `false`.
-  bool supportsCommandParameter(String kind) {
-    var capabilities = refactoringContext.clientCapabilities;
-    return capabilities != null &&
-        capabilities.codeActionCommandParameterSupportedKinds.contains(kind);
-  }
 }

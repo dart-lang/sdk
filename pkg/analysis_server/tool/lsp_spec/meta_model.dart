@@ -82,18 +82,6 @@ class Field extends Member {
   });
 }
 
-class FixedValueField extends Field {
-  final String value;
-  new({
-    required super.name,
-    super.comment,
-    required this.value,
-    required super.type,
-    required super.allowsNull,
-    required super.allowsUndefined,
-  });
-}
-
 /// An interface/class parsed from the LSP JSON model.
 class Interface extends LspEntity {
   final List<TypeReference> baseTypes;

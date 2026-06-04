@@ -92,17 +92,13 @@ class RefactoringProcessor {
             ? producer.parameters
             : <CommandParameter>[];
         // In debug mode, throw if we produced a refactoring that has parameters
-        // without default values that are not supported by the client.
+        // without default values. Support for fields without defaults was
+        // removed since this functionality was replaced by Interactive Forms,
+        // the only existing interactive refactor always has one, and we do not
+        // intend to add any more.
         assert(
-          () {
-            return parameters.every(
-              (parameter) =>
-                  parameter.defaultValue != null ||
-                  producer.supportsCommandParameter(parameter.kind),
-            );
-          }(),
-          '${producer.title} refactor returned parameters without defaults '
-          'that are not supported by the client',
+          parameters.every((parameter) => parameter.defaultValue != null),
+          '${producer.title} refactor returned parameters without defaults',
         );
 
         var command = entry.key;

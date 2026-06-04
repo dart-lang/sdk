@@ -1424,19 +1424,12 @@ class A {}<<<<<<<<<<
     );
   }
 
-  Future<void>
-  test_protocol_available_withClientCommandParameterSupport() async {
+  Future<void> test_protocol_available() async {
     addTestSource(simpleClassContent);
     await initializeServer();
-    await expectCodeActionWithTitle(simpleClassRefactorTitle);
-  }
-
-  Future<void>
-  test_protocol_available_withoutClientCommandParameterSupport() async {
-    addTestSource(simpleClassContent);
-    await initializeServer();
-    // This refactor is available without command parameter support because
-    // it has defaults.
+    // This refactor is available regardless of command parameter support
+    // because it has a default value for the only field which is coded into
+    // the arguments by default.
     await expectCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
