@@ -94,13 +94,7 @@ class Scanner {
     );
 
     // fasta pretends there is an additional line at EOF so we skip the last one.
-    if (result.lineStarts.last > 65535) {
-      Uint32List list = _lineStarts = Uint32List(result.lineStarts.length - 1);
-      list.setRange(0, result.lineStarts.length - 1, result.lineStarts);
-    } else {
-      Uint16List list = _lineStarts = Uint16List(result.lineStarts.length - 1);
-      list.setRange(0, result.lineStarts.length - 1, result.lineStarts);
-    }
+    _lineStarts = result.lineStarts.copyToTypedDataWithoutLastElement();
 
     return result.tokens;
   }
