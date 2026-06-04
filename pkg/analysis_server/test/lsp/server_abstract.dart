@@ -780,12 +780,6 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
-  void setSupportedCommandParameterKinds(Set<String>? kinds) {
-    experimentalCapabilities['dartCodeAction'] = {
-      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
-    };
-  }
-
   void setSupportedInteractiveFormInputKinds(Set<String>? inputTypes) {
     const parentKey = 'interactiveResolve';
     const inputTypesKey = 'inputTypes';

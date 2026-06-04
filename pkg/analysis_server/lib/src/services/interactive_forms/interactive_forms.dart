@@ -182,12 +182,19 @@ class InteractiveForm {
       return null;
     }
 
-    return switch (field.type) {
+    var errorMessage = switch (field.type) {
       FormFieldTypeFile() => _validateFile(answerValue),
       FormFieldTypeBool() => _validateBool(answerValue),
       FormFieldTypeNumber() => _validateNumber(answerValue),
       FormFieldTypeString() => _validateString(answerValue),
     };
+
+    // Handle fields with custom validation.
+    if (field is ValidatableFormField) {
+      errorMessage ??= field._validate(answerValue);
+    }
+
+    return errorMessage;
   }
 
   /// Validates this value is a valid boolean, returning a user-facing error
@@ -215,6 +222,25 @@ class InteractiveForm {
   String? _validateString(Object? value) {
     return value is String ? null : 'Must be a valid string';
   }
+}
+
+/// A [FormField] with custom validation.
+class ValidatableFormField extends FormField {
+  /// A custom validation function for this field.
+  ///
+  /// Returns `null` if the value is valid, otherwise a validation error
+  /// message.
+  final String? Function(Object? value) _validate;
+
+  new({
+    super.defaultValue,
+    required super.description,
+    super.error,
+    required super.id,
+    required super.required,
+    required super.type,
+    required this._validate,
+  });
 }
 
 extension FormFieldExtension on FormField {

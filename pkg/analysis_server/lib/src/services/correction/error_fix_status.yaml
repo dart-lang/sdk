@@ -245,9 +245,17 @@ augmentation_modifier_extra:
   status: hasFix
 augmentation_modifier_missing:
   status: needsFix
+augmentation_named_formal_parameter_extra:
+  status: needsEvaluation
+augmentation_named_formal_parameter_missing:
+  status: needsEvaluation
 augmentation_of_different_declaration_kind:
   status: noFix
 augmentation_of_mixin_application_class:
+  status: needsEvaluation
+augmentation_optional_positional_formal_parameter_count:
+  status: needsEvaluation
+augmentation_required_positional_formal_parameter_count:
   status: needsEvaluation
 augmentation_return_type_mismatch:
   status: needsEvaluation
