@@ -627,6 +627,102 @@ class C {
 ''');
   }
 
+  Future<void> test_named_inInitializer_referencedInBody_secondary() async {
+    await resolveTestCode('''
+class C {
+  final int _i;
+
+  C({required int ^i}) : _i = i {
+    print(i);
+  }
+}
+''');
+    await assertHasAssist('''
+class C {
+  final int _i;
+
+  C({required this._i}) {
+    print(_i);
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_named_inInitializer_referencedInFieldInitializer_primary() async {
+    await resolveTestCode('''
+class C({required int ^i}) {
+  final int _i;
+  final int _j = i;
+
+  this : _i = i;
+}
+''');
+    await assertHasAssist('''
+class C({required this._i}) {
+  final int _i;
+  final int _j = _i;
+
+  this;
+}
+''');
+  }
+
+  Future<void>
+  test_named_inInitializer_referencedInInitializer_primary() async {
+    await resolveTestCode('''
+class C({required int ^i}) {
+  final int _i;
+  final int _j;
+
+  this : _i = i, _j = i;
+}
+''');
+    await assertHasAssist('''
+class C({required this._i}) {
+  final int _i;
+  final int _j;
+
+  this : _j = _i;
+}
+''');
+  }
+
+  Future<void>
+  test_named_inInitializer_referencedInInitializer_secondary() async {
+    await resolveTestCode('''
+class C {
+  final int _i;
+  final int _j;
+
+  C({required int ^i}) : _i = i, _j = i;
+}
+''');
+    await assertHasAssist('''
+class C {
+  final int _i;
+  final int _j;
+
+  C({required this._i}) : _j = _i;
+}
+''');
+  }
+
+  Future<void> test_named_inInitializer_rightSide() async {
+    await resolveTestCode('''
+class C({required int i}) {
+  int _i;
+  this : _i = ^i;
+}
+''');
+    await assertHasAssist('''
+class C({required this._i}) {
+  int _i;
+  this;
+}
+''');
+  }
+
   Future<void> test_named_unsupported() async {
     await resolveTestCode('''
 // @dart=3.10
