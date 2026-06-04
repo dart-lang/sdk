@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/utilities/growable_type_data.dart';
 import 'package:meta/meta.dart';
 
 @visibleForTesting
@@ -77,7 +77,7 @@ class ManifestNode {
 
   factory ManifestNode.encode(EncodeContext context, AstNode node) {
     var buffer = StringBuffer();
-    var lengthList = <int>[];
+    var lengthList = GrowableUint32List();
 
     var token = node.beginToken;
     while (true) {
@@ -99,11 +99,11 @@ class ManifestNode {
       return ManifestNode._(
         isValid: true,
         tokenBuffer: buffer.toString(),
-        tokenLengthList: Uint32List.fromList(lengthList),
+        tokenLengthList: lengthList.takeAndReset(),
         elements: collector.map.keys
             .map((element) => ManifestElement.encode(context, element))
             .toFixedList(),
-        elementIndexList: Uint32List.fromList(collector.elementIndexList),
+        elementIndexList: collector.elementIndexList.takeAndReset(),
       );
     } else {
       return ManifestNode._(
@@ -184,10 +184,7 @@ class ManifestNode {
     }
 
     // Must reference elements in the same order.
-    if (!const ListEquality<int>().equals(
-      collector.elementIndexList,
-      elementIndexList,
-    )) {
+    if (!collector.elementIndexList.equalToUint32List(elementIndexList)) {
       return false;
     }
 
@@ -217,7 +214,7 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
   final List<TypeParameterElement> _localTypeParameters = [];
   final Map<Element, int> map = Map.identity();
-  final List<int> elementIndexList = [];
+  final GrowableUint32List elementIndexList = GrowableUint32List();
 
   _ElementCollector({
     required this.indexOfTypeParameter,
