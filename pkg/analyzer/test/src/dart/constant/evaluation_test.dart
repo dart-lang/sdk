@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -14,7 +9,6 @@ import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
@@ -3918,7 +3912,7 @@ const v2 = -v1;
     TestResolvedUnitResult unitResult,
     String name,
   ) {
-    var value = _evaluateConstant(unitResult, name);
+    var value = _topLevelVar(unitResult, name)!;
     var featureSet = unitResult.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isFalse);
@@ -3928,7 +3922,7 @@ const v2 = -v1;
     TestResolvedUnitResult unitResult,
     String name,
   ) {
-    var value = _evaluateConstant(unitResult, name);
+    var value = _topLevelVar(unitResult, name)!;
     var featureSet = unitResult.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
@@ -3941,13 +3935,14 @@ mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List<int>
   elements
     int 1
     int 3
     int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -3955,12 +3950,13 @@ List<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 < 0) 2, 3];
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List<int>
   elements
     int 1
     int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -3968,13 +3964,14 @@ List<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List<int>
   elements
     int 1
     int 2
     int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -3982,13 +3979,14 @@ List<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) 2, 3];
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List<int>
   elements
     int 1
     int 2
     int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -3996,13 +3994,14 @@ List<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List<int>
   elements
     int 1
     int 2
     int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4010,7 +4009,7 @@ List<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = [1, ...[2, 3], 4];
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 List<int>
   elements
@@ -4018,6 +4017,7 @@ List<int>
     int 2
     int 3
     int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4025,7 +4025,7 @@ List<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Map<String, int>
   entries
@@ -4038,6 +4038,7 @@ Map<String, int>
     entry
       key: String d
       value: int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4045,7 +4046,7 @@ Map<String, int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Map<String, int>
   entries
@@ -4055,6 +4056,7 @@ Map<String, int>
     entry
       key: String c
       value: int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4062,7 +4064,7 @@ Map<String, int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Map<String, int>
   entries
@@ -4075,6 +4077,7 @@ Map<String, int>
     entry
       key: String d
       value: int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4082,7 +4085,7 @@ Map<String, int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Map<String, int>
   entries
@@ -4095,6 +4098,7 @@ Map<String, int>
     entry
       key: String c
       value: int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4102,7 +4106,7 @@ Map<String, int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, if (1 > 0) if (2 > 1) ...{'b' : 2}, 'c' : 3};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Map<String, int>
   entries
@@ -4115,6 +4119,7 @@ Map<String, int>
     entry
       key: String c
       value: int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4122,7 +4127,7 @@ Map<String, int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Map<String, int>
   entries
@@ -4138,6 +4143,7 @@ Map<String, int>
     entry
       key: String d
       value: int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4145,13 +4151,14 @@ Map<String, int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Set<int>
   elements
     int 1
     int 3
     int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4159,12 +4166,13 @@ Set<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 < 0) 2, 3};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Set<int>
   elements
     int 1
     int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4172,13 +4180,14 @@ Set<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Set<int>
   elements
     int 1
     int 2
     int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4186,13 +4195,14 @@ Set<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) 2, 3};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Set<int>
   elements
     int 1
     int 2
     int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4200,13 +4210,14 @@ Set<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Set<int>
   elements
     int 1
     int 2
     int 3
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4214,7 +4225,7 @@ Set<int>
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = {1, ...{2, 3}, 4};
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Set<int>
   elements
@@ -4222,6 +4233,7 @@ Set<int>
     int 2
     int 3
     int 4
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4247,19 +4259,20 @@ class A {
 }
 ''');
 
-    var resultA = _evaluateConstant(result, 'a');
+    var resultA = _topLevelVar(result, 'a');
     assertDartObjectText(resultA, r'''
 A
   constructorInvocation
     constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
 
-    var resultB = _evaluateConstant(result, 'b');
+    var resultB = _topLevelVar(result, 'b');
     assertDartObjectText(resultB, r'''
 A
   constructorInvocation
     constructor: <testLibrary>::@class::A::@constructor::new
-  variable: <testLibrary>::@topLevelVariable::a
+  variable: <testLibrary>::@topLevelVariable::b
 ''');
 
     expect(resultB, resultA);
@@ -4277,7 +4290,7 @@ class B extends A {
 }
 ''');
 
-    var resultA = _evaluateConstant(result, 'a');
+    var resultA = _topLevelVar(result, 'a');
     assertDartObjectText(resultA, r'''
 B
   (super): A
@@ -4285,9 +4298,10 @@ B
       constructor: <testLibrary>::@class::A::@constructor::new
   constructorInvocation
     constructor: <testLibrary>::@class::B::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
 
-    var resultB = _evaluateConstant(result, 'b');
+    var resultB = _topLevelVar(result, 'b');
     assertDartObjectText(resultB, r'''
 B
   (super): A
@@ -4295,7 +4309,7 @@ B
       constructor: <testLibrary>::@class::A::@constructor::new
   constructorInvocation
     constructor: <testLibrary>::@class::B::@constructor::new
-  variable: <testLibrary>::@topLevelVariable::a
+  variable: <testLibrary>::@topLevelVariable::b
 ''');
 
     expect(resultB, resultA);
@@ -4444,9 +4458,10 @@ const c = a && true;
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false & true;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4455,9 +4470,10 @@ bool false
 const b = bool.fromEnvironment('y');
 const c = false & b;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4475,9 +4491,10 @@ const c = true && a;
 const a = bool.fromEnvironment('x');
 const c = a & true;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4487,9 +4504,10 @@ const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a & b;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4692,9 +4710,10 @@ const c = a || true;
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false | true;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4703,9 +4722,10 @@ bool true
 const b = bool.fromEnvironment('y');
 const c = false | b;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4725,9 +4745,10 @@ const c = true || a;
 const a = bool.fromEnvironment('x');
 const c = a | true;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4737,9 +4758,10 @@ const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a | b;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4747,9 +4769,10 @@ bool false
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 | 5;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 7
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4784,9 +4807,10 @@ const c = 'a' ?? 'b';
 //               ^^^
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 String a
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4803,9 +4827,10 @@ class C {}
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = null ?? 'b';
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 String b
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4813,9 +4838,10 @@ String b
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = null ?? null;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 Null null
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4823,9 +4849,10 @@ Null null
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = false ^ true;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4834,9 +4861,10 @@ bool true
 const b = bool.fromEnvironment('y');
 const c = false ^ b;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4845,9 +4873,10 @@ bool false
 const a = bool.fromEnvironment('x');
 const c = a ^ true;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool true
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4857,9 +4886,10 @@ const a = bool.fromEnvironment('x');
 const b = bool.fromEnvironment('y');
 const c = a ^ b;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 bool false
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4867,9 +4897,10 @@ bool false
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3 ^ 5;
 ''');
-    var result = _evaluateConstant(unitResult, 'c');
+    var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int 6
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -5065,9 +5096,10 @@ double 3.45
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const double d = 3;
 ''');
-    var result = _evaluateConstant(unitResult, 'd');
+    var result = _topLevelVar(unitResult, 'd');
     assertDartObjectText(result, r'''
 double 3.0
+  variable: <testLibrary>::@topLevelVariable::d
 ''');
   }
 
@@ -5321,11 +5353,12 @@ const y = B(x);
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = dynamic;
 ''');
-    var result = _evaluateConstant(unitResult, 'a');
+    var result = _topLevelVar(unitResult, 'a');
     assertDartObjectText(result, r'''
 Type
   toTypeValue: dynamic
   toTypeValueNotExtensionTypeErased: dynamic
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -5407,56 +5440,6 @@ String a3c
 }
 
 class ConstantVisitorTestSupport extends PubPackageResolutionTest {
-  DartObjectImpl _evaluateConstant(
-    TestResolvedUnitResult unitResult,
-    String name, {
-    List<DiagnosticCode>? diagnosticCodes,
-    Map<String, String> declaredVariables = const {},
-  }) {
-    var expression = unitResult.findNode
-        .topVariableDeclarationByName(name)
-        .initializer!;
-    return _evaluateExpression(
-      unitResult,
-      expression,
-      diagnosticCodes: diagnosticCodes,
-      declaredVariables: declaredVariables,
-    )!;
-  }
-
-  DartObjectImpl? _evaluateExpression(
-    TestResolvedUnitResult unitResult,
-    Expression expression, {
-    List<DiagnosticCode>? diagnosticCodes,
-    Map<String, String> declaredVariables = const {},
-  }) {
-    var unit = unitResult.unit;
-    var source = unit.declaredFragment!.source;
-    var errorListener = GatheringDiagnosticListener();
-    var diagnosticReporter = DiagnosticReporter(errorListener, source);
-    var constantVisitor = ConstantVisitor(
-      ConstantEvaluationEngine(
-        declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-        configuration: ConstantEvaluationConfiguration(),
-      ),
-      unitResult.libraryElement,
-      diagnosticReporter,
-    );
-
-    var expressionConstant = constantVisitor.evaluateAndReportInvalidConstant(
-      expression,
-    );
-    var result = expressionConstant is DartObjectImpl
-        ? expressionConstant
-        : null;
-    if (diagnosticCodes == null) {
-      errorListener.assertNoErrors();
-    } else {
-      errorListener.assertErrorsWithCodes(diagnosticCodes);
-    }
-    return result;
-  }
-
   DartObjectImpl? _evaluationResult(VariableElementImpl element) {
     var evaluationResult = element.evaluationResult;
     switch (evaluationResult) {
@@ -5865,21 +5848,6 @@ const b = bool.fromEnvironment('b', defaultValue: true);
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(
-      _evaluateConstant(result, 'a', declaredVariables: {'a': 'true'}),
-      r'''
-bool true
-''',
-    );
-
-    var bResult = _evaluateConstant(
-      result,
-      'b',
-      declaredVariables: {'b': 'bbb'},
-    );
-    assertDartObjectText(bResult, r'''
-bool true
-''');
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50045
@@ -6098,6 +6066,26 @@ class A {
 ''');
   }
 
+  test_bool_fromEnvironment_declaredVariables() async {
+    declaredVariables = {'a': 'true', 'b': 'bbb'};
+
+    var result = await resolveTestCodeWithDiagnostics('''
+const a = bool.fromEnvironment('a');
+const b = bool.fromEnvironment('b', defaultValue: true);
+''');
+
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+
+    var bResult = _topLevelVar(result, 'b');
+    assertDartObjectText(bResult, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
   test_bool_hasEnvironment() async {
     var result = await resolveTestCodeWithDiagnostics('''
 const a = bool.hasEnvironment('a');
@@ -6106,12 +6094,19 @@ const a = bool.hasEnvironment('a');
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(
-      _evaluateConstant(result, 'a', declaredVariables: {'a': '42'}),
-      r'''
+  }
+
+  test_bool_hasEnvironment_declaredVariables() async {
+    declaredVariables = {'a': '42'};
+
+    var result = await resolveTestCodeWithDiagnostics('''
+const a = bool.hasEnvironment('a');
+''');
+
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 bool true
-''',
-    );
+  variable: <testLibrary>::@topLevelVariable::a
+''');
   }
 
   test_class_constructor_duplicateInitialization_fieldInitializer_initializer() async {
@@ -7132,20 +7127,25 @@ const bool b = .fromEnvironment('b', defaultValue: true);
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(
-      _evaluateConstant(result, 'a', declaredVariables: {'a': 'true'}),
-      r'''
-bool true
-''',
-    );
+  }
 
-    var bResult = _evaluateConstant(
-      result,
-      'b',
-      declaredVariables: {'b': 'bbb'},
-    );
+  test_dotShorthand_bool_fromEnvironment_declaredVariables() async {
+    declaredVariables = {'a': 'true', 'b': 'bbb'};
+
+    var result = await resolveTestCodeWithDiagnostics('''
+const bool a = .fromEnvironment('a');
+const bool b = .fromEnvironment('b', defaultValue: true);
+''');
+
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+
+    var bResult = _topLevelVar(result, 'b');
     assertDartObjectText(bResult, r'''
 bool true
+  variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -7157,12 +7157,19 @@ const bool a = .hasEnvironment('a');
 bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(
-      _evaluateConstant(result, 'a', declaredVariables: {'a': '42'}),
-      r'''
+  }
+
+  test_dotShorthand_bool_hasEnvironment_declaredVariables() async {
+    declaredVariables = {'a': '42'};
+
+    var result = await resolveTestCodeWithDiagnostics('''
+const bool a = .hasEnvironment('a');
+''');
+
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 bool true
-''',
-    );
+  variable: <testLibrary>::@topLevelVariable::a
+''');
   }
 
   test_dotShorthand_constantArgument_issue60963() async {
@@ -7611,20 +7618,25 @@ const b = int.fromEnvironment('b', defaultValue: 42);
 int 0
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(
-      _evaluateConstant(result, 'a', declaredVariables: {'a': '5'}),
-      r'''
-int 5
-''',
-    );
+  }
 
-    var bResult = _evaluateConstant(
-      result,
-      'b',
-      declaredVariables: {'b': 'bbb'},
-    );
+  test_int_fromEnvironment_declaredVariables() async {
+    declaredVariables = {'a': '5', 'b': 'bbb'};
+
+    var result = await resolveTestCodeWithDiagnostics('''
+const a = int.fromEnvironment('a');
+const b = int.fromEnvironment('b', defaultValue: 42);
+''');
+
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
+int 5
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+
+    var bResult = _topLevelVar(result, 'b');
     assertDartObjectText(bResult, r'''
 int 42
+  variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -7753,12 +7765,19 @@ const a = String.fromEnvironment('a');
 String <empty>
   variable: <testLibrary>::@topLevelVariable::a
 ''');
-    assertDartObjectText(
-      _evaluateConstant(result, 'a', declaredVariables: {'a': 'test'}),
-      r'''
+  }
+
+  test_string_fromEnvironment_declaredVariables() async {
+    declaredVariables = {'a': 'test'};
+
+    var result = await resolveTestCodeWithDiagnostics('''
+const a = String.fromEnvironment('a');
+''');
+
+    assertDartObjectText(_topLevelVar(result, 'a'), r'''
 String test
-''',
-    );
+  variable: <testLibrary>::@topLevelVariable::a
+''');
   }
 
   test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
