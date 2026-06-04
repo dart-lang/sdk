@@ -4472,10 +4472,7 @@ abstract class FragmentImpl implements Fragment {
   @visibleForTesting
   @trackedInternal
   Map<String, bool> get flagsForTesting {
-    return {
-      'isAugmentation': isAugmentation,
-      'isCompleteDeclaration': isCompleteDeclaration,
-    };
+    return {'isAugmentation': isAugmentation, 'isComplete': isComplete};
   }
 
   /// The fragments in the augmentation chain that follow this fragment,
@@ -4502,13 +4499,13 @@ abstract class FragmentImpl implements Fragment {
   }
 
   @generated
-  bool get isCompleteDeclaration {
-    return hasFlag(_FragmentStorageFlag.fragment_isCompleteDeclaration);
+  bool get isComplete {
+    return hasFlag(_FragmentStorageFlag.fragment_isComplete);
   }
 
   @generated
-  set isCompleteDeclaration(bool value) {
-    setFlag(_FragmentStorageFlag.fragment_isCompleteDeclaration, value);
+  set isComplete(bool value) {
+    setFlag(_FragmentStorageFlag.fragment_isComplete, value);
   }
 
   /// Whether the element is private.
@@ -4550,7 +4547,7 @@ abstract class FragmentImpl implements Fragment {
   /// The nearest preceding fragment in the augmentation chain that is complete.
   FragmentImpl? get nearestPrecedingCompleteFragment {
     return precedingFragments.firstWhereOrNull((fragment) {
-      return fragment.isCompleteDeclaration;
+      return fragment.isComplete;
     });
   }
 
@@ -12071,7 +12068,7 @@ enum _FormalParameterElementFlags {
 
 enum _FragmentFlags {
   isAugmentation(fragment: true),
-  isCompleteDeclaration(fragment: true);
+  isComplete(fragment: true);
 
   final bool fragment;
   final _ElementFlagSource element;
@@ -12116,7 +12113,7 @@ enum _FragmentStorageFlag {
   formalParameterFragment_isOriginMixinApplicationClassConstructor,
   formalParameterFragment_isOriginOtherFragmentOfEnclosing,
   fragment_isAugmentation,
-  fragment_isCompleteDeclaration,
+  fragment_isComplete,
   libraryFragment_isOriginNotExistingFile,
   methodFragment_isOriginDeclaration,
   methodFragment_isOriginInterface,

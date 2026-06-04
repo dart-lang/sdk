@@ -9,7 +9,6 @@ import "flag_fuzzer.dart";
 
 Future<void> main() => flagFuzz(
   (String output) => [
-    "--no-dds",
     "pkg/compiler/lib/src/dart2js.dart",
     "--invoker=test",
     "--platform-binaries=out/ReleaseX64",

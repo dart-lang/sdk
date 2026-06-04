@@ -21,6 +21,8 @@ final buildDirs = [
   "out/DebugSIMRISCV64",
 ];
 
+final alwaysFlags = ["--no-dds"];
+
 final profilerFlags = [
   "--profile_vm=true", // default is different for simulators
   "--profile_vm=false",
@@ -177,6 +179,7 @@ Future<void> test(
     commands = [
       [
         "$buildDir/dartvm",
+        ...alwaysFlags,
         ...someJitRuntimeFlags(),
         dartScript,
         ...dartArguments,
@@ -192,6 +195,7 @@ Future<void> test(
     commands = [
       [
         "out/ReleaseX64/dartvm",
+        ...alwaysFlags,
         "pkg/vm/bin/gen_kernel.dart",
         "--platform=$buildDir/vm_platform.dill",
         "--aot",
@@ -207,6 +211,7 @@ Future<void> test(
       ],
       [
         "$buildDir/dartaotruntime",
+        ...alwaysFlags,
         ...someAotRuntimeFlags(),
         "out/dartfuzz/$taskIndex.elf",
         ...dartArguments,
@@ -285,7 +290,10 @@ Future<void> flagFuzz(
   await Directory("out/dartfuzz").create();
 
   var executable = "out/ReleaseX64/dartvm";
-  var arguments = createDartCommand("out/dartfuzz/expected.$extension");
+  var arguments = [
+    ...alwaysFlags,
+    ...createDartCommand("out/dartfuzz/expected.$extension"),
+  ];
   var processResult = await Process.run(executable, arguments);
   if (processResult.exitCode != 0) {
     print("=== FAILURE ===");

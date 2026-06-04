@@ -3667,6 +3667,18 @@
           "fileset": "vm"
         }
       ]
+    },
+    {
+      "builders": [
+        "devtools-linux-release-x64",
+        "devtools-mac-release-arm64",
+        "devtools-win-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used for DevTools testing."
+      },
+      "steps": [
+      ]
     }
   ],
   "sanitizer_options": {

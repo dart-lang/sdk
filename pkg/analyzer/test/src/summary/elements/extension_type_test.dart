@@ -37,7 +37,7 @@ library
               element: <testLibrary>::@extensionType::E::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 21
@@ -46,7 +46,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -121,7 +121,7 @@ library
               element: <testLibrary>::@extensionType::E::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::E::@constructor::new
               metadata
                 Annotation
@@ -144,7 +144,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -231,7 +231,7 @@ library
               element: <testLibrary>::@extensionType::E::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::E::@constructor::new
               metadata
                 Annotation
@@ -248,7 +248,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -311,7 +311,7 @@ library
               element: <testLibrary>::@extensionType::E::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary named (nameOffset:23) (firstTokenOffset:15) (offset:23)
+            #F4 isComplete isConst isOriginDeclaration isPrimary named (nameOffset:23) (firstTokenOffset:15) (offset:23)
               element: <testLibrary>::@extensionType::E::@constructor::named
               typeName: E
               typeNameOffset: 21
@@ -321,7 +321,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:33) (firstTokenOffset:29) (offset:33)
                   element: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -393,7 +393,7 @@ library
               element: <testLibrary>::@extensionType::E::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 21
@@ -402,7 +402,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -473,7 +473,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+            #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
@@ -481,7 +481,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -535,7 +535,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -547,7 +547,7 @@ library
                       literal: 0 @28
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -604,7 +604,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 10
@@ -614,7 +614,7 @@ library
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -669,7 +669,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 10
@@ -679,7 +679,7 @@ library
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:38) (firstTokenOffset:33) (offset:38)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -733,7 +733,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 12
@@ -743,7 +743,7 @@ library
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -799,7 +799,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 12
@@ -809,7 +809,7 @@ library
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -862,7 +862,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::_it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -870,7 +870,7 @@ library
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::_it
               inducingVariable: #F2
   extensionTypes
@@ -925,7 +925,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -937,7 +937,7 @@ library
                       literal: 0 @23
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -995,7 +995,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 14
@@ -1009,7 +1009,7 @@ library
                       literal: 0 @26
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -1067,7 +1067,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 12
@@ -1077,7 +1077,7 @@ library
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1133,7 +1133,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 12
@@ -1143,7 +1143,7 @@ library
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1197,7 +1197,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -1209,7 +1209,7 @@ library
                       literal: 0 @23
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1268,7 +1268,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -1280,7 +1280,7 @@ library
                       literal: 0 @23
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F6 extension type B (nameOffset:46) (firstTokenOffset:31) (offset:46)
@@ -1290,7 +1290,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:46) (offset:46)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:46) (offset:46)
               element: <testLibrary>::@extensionType::B::@constructor::new
               typeName: B
               typeNameOffset: 46
@@ -1298,7 +1298,7 @@ library
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:50) (firstTokenOffset:48) (offset:50)
                   element: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F7
   extensionTypes
@@ -1384,7 +1384,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 14
@@ -1398,7 +1398,7 @@ library
                       literal: 0 @26
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -1456,7 +1456,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 20
@@ -1466,7 +1466,7 @@ library
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:18) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1522,7 +1522,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 20
@@ -1532,7 +1532,7 @@ library
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:34) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1585,7 +1585,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::_it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -1593,7 +1593,7 @@ library
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:18) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::_it
               inducingVariable: #F2
   extensionTypes
@@ -1649,7 +1649,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 9
@@ -1659,7 +1659,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1717,7 +1717,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -1726,7 +1726,7 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   documentationComment: /// first\n/// second
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1783,7 +1783,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 15
@@ -1793,7 +1793,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:17) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1849,7 +1849,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 15
@@ -1859,7 +1859,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:43) (firstTokenOffset:33) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1914,7 +1914,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 11
@@ -1924,7 +1924,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:17) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -1980,7 +1980,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 11
@@ -1990,7 +1990,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:39) (firstTokenOffset:33) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2045,7 +2045,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 11
@@ -2055,7 +2055,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2111,7 +2111,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 11
@@ -2121,7 +2121,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2176,7 +2176,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 5
@@ -2186,7 +2186,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:17) (firstTokenOffset:17) (offset:17)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2242,7 +2242,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 5
@@ -2252,7 +2252,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:33) (firstTokenOffset:33) (offset:33)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2307,7 +2307,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 17
@@ -2325,7 +2325,7 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2397,7 +2397,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 17
@@ -2415,7 +2415,7 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2486,7 +2486,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 15
@@ -2496,7 +2496,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:17) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2552,7 +2552,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 15
@@ -2562,7 +2562,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:43) (firstTokenOffset:33) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2617,7 +2617,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 19
@@ -2627,7 +2627,7 @@ library
                 #F5 requiredPositional isDeclaring isExplicitlyCovariant isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:17) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2683,7 +2683,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 19
@@ -2693,7 +2693,7 @@ library
                 #F5 requiredPositional isDeclaring isExplicitlyCovariant isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:33) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2748,7 +2748,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 18
@@ -2758,7 +2758,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:30) (firstTokenOffset:17) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2813,7 +2813,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 16
@@ -2823,7 +2823,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:28) (firstTokenOffset:24) (offset:28)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2879,7 +2879,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 9
@@ -2889,7 +2889,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -2944,7 +2944,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 21
@@ -2962,7 +2962,7 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -3033,7 +3033,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::A
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 8
@@ -3043,7 +3043,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.A (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::A
           getters
-            #F3 isCompleteDeclaration isOriginVariable A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::A
               inducingVariable: #F2
   extensionTypes
@@ -3099,7 +3099,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::A
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 8
@@ -3109,7 +3109,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.A (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::A
           getters
-            #F3 isCompleteDeclaration isOriginVariable A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::A
               inducingVariable: #F2
   extensionTypes
@@ -3164,7 +3164,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 9
@@ -3174,7 +3174,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -3230,7 +3230,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 9
@@ -3240,7 +3240,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -3294,7 +3294,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -3306,7 +3306,7 @@ library
                       literal: 0 @29
                       staticType: int
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -3363,7 +3363,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 11
@@ -3373,7 +3373,7 @@ library
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration super.it (nameOffset:23) (firstTokenOffset:17) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -3428,7 +3428,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 11
@@ -3438,7 +3438,7 @@ library
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration super.it (nameOffset:39) (firstTokenOffset:33) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -3492,14 +3492,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 3
               typeName: A
               typeNameOffset: 15
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -3549,14 +3549,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 3
               typeName: A
               typeNameOffset: 31
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -3605,7 +3605,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 19
@@ -3617,7 +3617,7 @@ library
                 #F6 optionalNamed isOriginDeclaration b (nameOffset:31) (firstTokenOffset:26) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -3676,7 +3676,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 19
@@ -3688,7 +3688,7 @@ library
                 #F6 optionalNamed isOriginDeclaration b (nameOffset:47) (firstTokenOffset:42) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -3746,7 +3746,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 27
@@ -3758,7 +3758,7 @@ library
                 #F6 requiredNamed isOriginDeclaration b (nameOffset:39) (firstTokenOffset:26) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -3816,7 +3816,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 19
@@ -3828,7 +3828,7 @@ library
                 #F6 optionalPositional isOriginDeclaration b (nameOffset:31) (firstTokenOffset:26) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -3887,7 +3887,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 19
@@ -3899,7 +3899,7 @@ library
                 #F6 optionalPositional isOriginDeclaration b (nameOffset:47) (firstTokenOffset:42) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -3957,7 +3957,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 27
@@ -3969,7 +3969,7 @@ library
                 #F6 optionalNamed isOriginDeclaration b (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4027,7 +4027,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 35
@@ -4039,7 +4039,7 @@ library
                 #F6 requiredNamed isOriginDeclaration b (nameOffset:47) (firstTokenOffset:34) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4097,7 +4097,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 18
@@ -4109,7 +4109,7 @@ library
                 #F6 optionalNamed isOriginDeclaration b (nameOffset:30) (firstTokenOffset:25) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4168,7 +4168,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 18
@@ -4180,7 +4180,7 @@ library
                 #F6 optionalNamed isOriginDeclaration b (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4238,7 +4238,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 18
@@ -4250,7 +4250,7 @@ library
                 #F6 optionalPositional isOriginDeclaration b (nameOffset:30) (firstTokenOffset:25) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4309,7 +4309,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 18
@@ -4321,7 +4321,7 @@ library
                 #F6 optionalPositional isOriginDeclaration b (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4379,7 +4379,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 15
@@ -4391,7 +4391,7 @@ library
                 #F6 requiredPositional isOriginDeclaration b (nameOffset:28) (firstTokenOffset:24) (offset:28)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4450,7 +4450,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::a
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 15
@@ -4462,7 +4462,7 @@ library
                 #F6 requiredPositional isOriginDeclaration b (nameOffset:44) (firstTokenOffset:40) (offset:44)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::b
           getters
-            #F3 isCompleteDeclaration isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::a
               inducingVariable: #F2
   extensionTypes
@@ -4520,7 +4520,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 9
@@ -4530,7 +4530,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -4586,7 +4586,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 31
               codeLength: 9
@@ -4596,7 +4596,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -4651,14 +4651,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::#0
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               codeOffset: 15
               codeLength: 2
               typeName: A
               typeNameOffset: 15
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -4707,7 +4707,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary name (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F4 isComplete isOriginDeclaration isPrimary name (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::name
               codeOffset: 15
               codeLength: 14
@@ -4718,7 +4718,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:26) (firstTokenOffset:22) (offset:26)
                   element: <testLibrary>::@extensionType::A::@constructor::name::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -4793,7 +4793,7 @@ library
                   staticType: int
               inducedGetter: #F6
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+            #F7 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 31
@@ -4814,10 +4814,10 @@ library
                       element: <testLibrary>::@extensionType::E::@getter::foo
                       staticType: int
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F3
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+            #F6 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
               element: <testLibrary>::@extensionType::E::@getter::foo
               inducingVariable: #F5
       topLevelVariables
@@ -4829,7 +4829,7 @@ library
               staticType: int
           inducedGetter: #F10
       getters
-        #F10 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F10 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
           inducingVariable: #F9
   extensionTypes
@@ -4946,7 +4946,7 @@ library
               element: <testLibrary>::@extensionType::E::@field::it
               inducedGetter: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 15
@@ -4954,7 +4954,7 @@ library
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:45) (offset:47)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::E::@getter::it
               inducingVariable: #F4
   extensionTypes
@@ -5021,7 +5021,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5031,7 +5031,7 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
@@ -5044,7 +5044,7 @@ library
               inducedGetter: #F10
               previousFragment: #F3
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
@@ -5059,7 +5059,7 @@ library
               typeNameOffset: 66
               periodOffset: 67
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
@@ -5127,7 +5127,7 @@ library
               inducedGetter: #F6
               nextFragment: #F7
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5137,7 +5137,7 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F12
@@ -5154,7 +5154,7 @@ library
               inducedGetter: #F12
               previousFragment: #F5
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 55
@@ -5172,7 +5172,7 @@ library
                 #F14 requiredPositional isOriginDeclaration a (nameOffset:82) (firstTokenOffset:80) (offset:82)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
@@ -5243,7 +5243,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary named (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F6 isComplete isOriginDeclaration isPrimary named (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 15
@@ -5254,7 +5254,7 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
@@ -5267,7 +5267,7 @@ library
               inducedGetter: #F10
               previousFragment: #F3
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary named (nameOffset:60) (firstTokenOffset:58) (offset:60)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary named (nameOffset:60) (firstTokenOffset:58) (offset:60)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 58
@@ -5282,7 +5282,7 @@ library
               typeName: A
               typeNameOffset: 78
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
@@ -5321,7 +5321,7 @@ library
 ''');
   }
 
-  test_constructor_secondary_augmentation_chain_isCompleteDeclaration_factory() async {
+  test_constructor_secondary_augmentation_chain_isComplete_factory() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {
   factory A();
@@ -5351,7 +5351,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -5369,7 +5369,7 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F12
@@ -5384,7 +5384,7 @@ library
               previousFragment: #F3
               nextFragment: #F14
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@extensionType::A::@constructor::new#1
               typeName: A
               typeNameOffset: 68
@@ -5395,7 +5395,7 @@ library
                   nextFragment: #F15
               nextFragment: #F16
               previousFragment: #F8
-            #F16 isAugmentation isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:82) (offset:98)
+            #F16 isAugmentation isComplete isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:82) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new#1
               factoryKeywordOffset: 90
               typeName: A
@@ -5408,7 +5408,7 @@ library
               nextFragment: #F18
               previousFragment: #F11
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
@@ -5422,7 +5422,7 @@ library
               inducedGetter: #F19
               previousFragment: #F5
           constructors
-            #F18 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
+            #F18 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
               element: <testLibrary>::@extensionType::A::@constructor::new#1
               typeName: A
               typeNameOffset: 137
@@ -5444,7 +5444,7 @@ library
                   previousFragment: #F17
               previousFragment: #F18
           getters
-            #F19 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
+            #F19 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F12
@@ -5508,14 +5508,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:37)
+            #F6 isComplete isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new#1
               factoryKeywordOffset: 29
               typeName: A
@@ -5524,7 +5524,7 @@ library
                 #F7 requiredPositional isOriginDeclaration it (nameOffset:43) (firstTokenOffset:39) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -5586,14 +5586,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isFactory isOriginDeclaration named (nameOffset:39) (firstTokenOffset:29) (offset:39)
+            #F6 isComplete isFactory isOriginDeclaration named (nameOffset:39) (firstTokenOffset:29) (offset:39)
               element: <testLibrary>::@extensionType::A::@constructor::named
               factoryKeywordOffset: 29
               typeName: A
@@ -5603,7 +5603,7 @@ library
                 #F7 requiredPositional isOriginDeclaration it (nameOffset:49) (firstTokenOffset:45) (offset:49)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -5665,14 +5665,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isFactory isOriginDeclaration named (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F6 isComplete isFactory isOriginDeclaration named (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::named
               factoryKeywordOffset: 29
               typeName: null
@@ -5680,7 +5680,7 @@ library
                 #F7 requiredPositional isOriginDeclaration it (nameOffset:47) (firstTokenOffset:43) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -5742,7 +5742,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F4 isComplete isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::primary
               typeName: A
               typeNameOffset: 15
@@ -5750,7 +5750,7 @@ library
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
-            #F6 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F6 isComplete isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               factoryKeywordOffset: 37
               typeName: null
@@ -5758,7 +5758,7 @@ library
                 #F7 requiredPositional isOriginDeclaration it (nameOffset:49) (firstTokenOffset:45) (offset:49)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -5820,14 +5820,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::_it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this._it (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
-            #F6 isCompleteDeclaration isOriginDeclaration named (nameOffset:33) (firstTokenOffset:31) (offset:33)
+            #F6 isComplete isOriginDeclaration named (nameOffset:33) (firstTokenOffset:31) (offset:33)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 31
@@ -5836,7 +5836,7 @@ library
                 #F7 optionalNamed hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:45) (firstTokenOffset:40) (offset:45)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::_it
               inducingVariable: #F2
   extensionTypes
@@ -5900,14 +5900,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::_123
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this._123 (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_123
-            #F6 isCompleteDeclaration isOriginDeclaration named (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F6 isComplete isOriginDeclaration named (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 32
@@ -5916,7 +5916,7 @@ library
                 #F7 optionalNamed hasImplicitType isFinal isOriginDeclaration this._123 (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::_123
           getters
-            #F3 isCompleteDeclaration isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::_123
               inducingVariable: #F2
   extensionTypes
@@ -5979,14 +5979,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::_it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this._it (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
-            #F6 isCompleteDeclaration isOriginDeclaration named (nameOffset:33) (firstTokenOffset:31) (offset:33)
+            #F6 isComplete isOriginDeclaration named (nameOffset:33) (firstTokenOffset:31) (offset:33)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 31
@@ -5995,7 +5995,7 @@ library
                 #F7 requiredNamed hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:54) (firstTokenOffset:40) (offset:54)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable _it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::_it
               inducingVariable: #F2
   extensionTypes
@@ -6060,14 +6060,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
+            #F6 isComplete isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
@@ -6076,7 +6076,7 @@ library
                 #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:42) (firstTokenOffset:37) (offset:42)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6140,14 +6140,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
+            #F6 isComplete isOriginDeclaration named (nameOffset:31) (firstTokenOffset:29) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 29
@@ -6156,7 +6156,7 @@ library
                 #F7 requiredPositional isFinal isOriginDeclaration this.it (nameOffset:46) (firstTokenOffset:37) (offset:46)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6220,14 +6220,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isConst isOriginDeclaration named (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F6 isComplete isConst isOriginDeclaration named (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 35
@@ -6236,7 +6236,7 @@ library
                 #F7 requiredPositional isOriginDeclaration a (nameOffset:47) (firstTokenOffset:43) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6309,14 +6309,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isOriginDeclaration named (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F6 isComplete isOriginDeclaration named (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@constructor::named
               newKeywordOffset: 29
               typeName: null
@@ -6324,7 +6324,7 @@ library
                 #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:44) (firstTokenOffset:39) (offset:44)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6387,14 +6387,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F6 isCompleteDeclaration isConst isOriginDeclaration named (nameOffset:39) (firstTokenOffset:29) (offset:39)
+            #F6 isComplete isConst isOriginDeclaration named (nameOffset:39) (firstTokenOffset:29) (offset:39)
               element: <testLibrary>::@extensionType::A::@constructor::named
               newKeywordOffset: 35
               typeName: null
@@ -6402,7 +6402,7 @@ library
                 #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:50) (firstTokenOffset:45) (offset:50)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6465,7 +6465,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F4 isComplete isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::primary
               typeName: A
               typeNameOffset: 15
@@ -6473,7 +6473,7 @@ library
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
-            #F6 isCompleteDeclaration isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F6 isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               newKeywordOffset: 37
               typeName: null
@@ -6481,7 +6481,7 @@ library
                 #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6544,7 +6544,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F4 isComplete isOriginDeclaration isPrimary primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@extensionType::A::@constructor::primary
               typeName: A
               typeNameOffset: 15
@@ -6552,7 +6552,7 @@ library
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
-            #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F6 isComplete isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@extensionType::A::@constructor::new
               newKeywordOffset: 43
               typeName: null
@@ -6560,7 +6560,7 @@ library
                 #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:52) (firstTokenOffset:47) (offset:52)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -6627,7 +6627,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F4 extension type B (nameOffset:45) (firstTokenOffset:30) (offset:45)
@@ -6637,7 +6637,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F6
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F5
   extensionTypes
@@ -6720,17 +6720,17 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
           getters
-            #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F3
           methods
-            #F6 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F6 isComplete isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo1
         #F2 isAugmentation extension type A (nameOffset:70) (firstTokenOffset:47) (offset:70)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           methods
-            #F7 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:81) (firstTokenOffset:76) (offset:81)
+            #F7 isComplete isOriginDeclaration foo2 (nameOffset:81) (firstTokenOffset:76) (offset:81)
               element: <testLibrary>::@extensionType::A::@method::foo2
   extensionTypes
     isSimplyBounded extension type A
@@ -6795,7 +6795,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
           getters
-            #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F3
         #F2 isAugmentation extension type A (nameOffset:52) (firstTokenOffset:29) (offset:52)
@@ -6864,7 +6864,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
           getters
-            #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F3
         #F2 isAugmentation extension type A (nameOffset:52) (firstTokenOffset:29) (offset:52)
@@ -6876,11 +6876,11 @@ library
               inducedGetter: #F7
               inducedSetter: #F8
           getters
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -6960,7 +6960,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
+            #F6 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 23
@@ -6970,12 +6970,12 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F4 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:42) (firstTokenOffset:37) (offset:42)
+            #F11 isComplete isOriginDeclaration foo1 (nameOffset:42) (firstTokenOffset:37) (offset:42)
               element: <testLibrary>::@extensionType::A::@method::foo1
         #F2 isAugmentation extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
@@ -6986,7 +6986,7 @@ library
               inducedGetter: #F10
               previousFragment: #F3
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -6996,12 +6996,12 @@ library
                   previousFragment: #F7
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
           methods
-            #F12 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:97) (firstTokenOffset:92) (offset:97)
+            #F12 isComplete isOriginDeclaration foo2 (nameOffset:97) (firstTokenOffset:92) (offset:97)
               element: <testLibrary>::@extensionType::A::@method::foo2
   extensionTypes
     isSimplyBounded extension type A
@@ -7074,7 +7074,7 @@ library
               typeNameOffset: 29
               periodOffset: 30
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -7135,7 +7135,7 @@ library
               typeName: A
               typeNameOffset: 29
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
   extensionTypes
@@ -7196,14 +7196,14 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
           getters
-            #F3 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@extensionType::A::@getter::#1
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F5 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F4
           setters
-            #F6 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F6 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F4
               formalParameters
@@ -7282,7 +7282,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -7292,7 +7292,7 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
@@ -7307,7 +7307,7 @@ library
               previousFragment: #F3
               nextFragment: #F12
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
@@ -7319,7 +7319,7 @@ library
               nextFragment: #F14
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
@@ -7333,7 +7333,7 @@ library
               inducedGetter: #F15
               previousFragment: #F5
           constructors
-            #F14 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:89) (offset:89)
+            #F14 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:89) (offset:89)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 89
@@ -7343,7 +7343,7 @@ library
                   previousFragment: #F8
               previousFragment: #F9
           getters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+            #F15 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F12
               previousFragment: #F10
@@ -7414,7 +7414,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F5
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F4
   classes
@@ -7472,7 +7472,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F4
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
         #F5 isAugmentation extension type A (nameOffset:72) (firstTokenOffset:49) (offset:72)
@@ -7482,7 +7482,7 @@ library
               element: <testLibrary>::@extensionType::A#1::@field::it
               inducedGetter: #F7
           getters
-            #F7 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+            #F7 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@extensionType::A#1::@getter::it
               inducingVariable: #F6
   classes
@@ -7553,7 +7553,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:24) (offset:24)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
@@ -7561,7 +7561,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:30) (firstTokenOffset:26) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -7623,7 +7623,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F6
@@ -7634,7 +7634,7 @@ library
               element: <testLibrary>::@extensionType::I1::@field::it
               inducedGetter: #F9
           getters
-            #F9 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F9 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extensionType::I1::@getter::it
               inducingVariable: #F8
         #F2 isAugmentation extension type A (nameOffset:95) (firstTokenOffset:72) (offset:95)
@@ -7646,7 +7646,7 @@ library
               inducedGetter: #F6
               previousFragment: #F3
           getters
-            #F6 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F6 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
@@ -7657,7 +7657,7 @@ library
               element: <testLibrary>::@extensionType::I2::@field::it
               inducedGetter: #F12
           getters
-            #F12 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
+            #F12 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
               element: <testLibrary>::@extensionType::I2::@getter::it
               inducingVariable: #F11
   extensionTypes
@@ -7752,7 +7752,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -7762,7 +7762,7 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
@@ -7773,7 +7773,7 @@ library
               element: <testLibrary>::@extensionType::I1::@field::it
               inducedGetter: #F13
           constructors
-            #F14 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:57) (offset:57)
+            #F14 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 57
@@ -7781,7 +7781,7 @@ library
                 #F15 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:64) (firstTokenOffset:60) (offset:64)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
-            #F13 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F13 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extensionType::I1::@getter::it
               inducingVariable: #F12
         #F2 isAugmentation extension type A (nameOffset:95) (firstTokenOffset:72) (offset:95)
@@ -7795,7 +7795,7 @@ library
               previousFragment: #F3
               nextFragment: #F17
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
@@ -7807,7 +7807,7 @@ library
               nextFragment: #F19
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
@@ -7819,7 +7819,7 @@ library
               element: <testLibrary>::@extensionType::I2::@field::it
               inducedGetter: #F23
           constructors
-            #F24 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
+            #F24 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 137
@@ -7827,7 +7827,7 @@ library
                 #F25 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:144) (firstTokenOffset:140) (offset:144)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
-            #F23 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
+            #F23 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
               element: <testLibrary>::@extensionType::I2::@getter::it
               inducingVariable: #F22
         #F16 isAugmentation extension type A (nameOffset:175) (firstTokenOffset:152) (offset:175)
@@ -7839,7 +7839,7 @@ library
               inducedGetter: #F20
               previousFragment: #F5
           constructors
-            #F19 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:175) (offset:175)
+            #F19 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:175) (offset:175)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 175
@@ -7849,7 +7849,7 @@ library
                   previousFragment: #F8
               previousFragment: #F9
           getters
-            #F20 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:175)
+            #F20 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:175)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F17
               previousFragment: #F10
@@ -7860,7 +7860,7 @@ library
               element: <testLibrary>::@extensionType::I3::@field::it
               inducedGetter: #F28
           constructors
-            #F29 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:217) (offset:217)
+            #F29 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:217) (offset:217)
               element: <testLibrary>::@extensionType::I3::@constructor::new
               typeName: I3
               typeNameOffset: 217
@@ -7868,7 +7868,7 @@ library
                 #F30 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:224) (firstTokenOffset:220) (offset:224)
                   element: <testLibrary>::@extensionType::I3::@constructor::new::@formalParameter::it
           getters
-            #F28 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:217)
+            #F28 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:217)
               element: <testLibrary>::@extensionType::I3::@getter::it
               inducingVariable: #F27
   extensionTypes
@@ -8020,7 +8020,7 @@ library
               inducedGetter: #F6
               nextFragment: #F7
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -8030,7 +8030,7 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F12
@@ -8041,7 +8041,7 @@ library
               element: <testLibrary>::@extensionType::I1::@field::it
               inducedGetter: #F15
           constructors
-            #F16 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
+            #F16 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
@@ -8049,7 +8049,7 @@ library
                 #F17 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
-            #F15 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F15 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@extensionType::I1::@getter::it
               inducingVariable: #F14
         #F2 isAugmentation extension type A (nameOffset:98) (firstTokenOffset:75) (offset:98)
@@ -8065,7 +8065,7 @@ library
               inducedGetter: #F12
               previousFragment: #F5
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
@@ -8075,7 +8075,7 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
@@ -8089,7 +8089,7 @@ library
               element: <testLibrary>::@extensionType::I2::@field::it
               inducedGetter: #F21
           constructors
-            #F22 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:146) (offset:146)
+            #F22 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:146) (offset:146)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 146
@@ -8097,7 +8097,7 @@ library
                 #F23 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:156) (firstTokenOffset:152) (offset:156)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
-            #F21 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:146)
+            #F21 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:146)
               element: <testLibrary>::@extensionType::I2::@getter::it
               inducingVariable: #F20
   extensionTypes
@@ -8229,7 +8229,7 @@ library
               inducedGetter: #F8
               nextFragment: #F9
           constructors
-            #F10 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F10 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -8239,7 +8239,7 @@ library
                   nextFragment: #F12
               nextFragment: #F13
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               nextFragment: #F14
@@ -8250,7 +8250,7 @@ library
               element: <testLibrary>::@extensionType::I1::@field::it
               inducedGetter: #F17
           constructors
-            #F18 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
+            #F18 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
@@ -8258,7 +8258,7 @@ library
                 #F19 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
-            #F17 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F17 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: <testLibrary>::@extensionType::I1::@getter::it
               inducingVariable: #F16
         #F2 isAugmentation extension type A (nameOffset:98) (firstTokenOffset:75) (offset:98)
@@ -8277,7 +8277,7 @@ library
               inducedGetter: #F14
               previousFragment: #F7
           constructors
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
+            #F13 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:98) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
@@ -8287,7 +8287,7 @@ library
                   previousFragment: #F11
               previousFragment: #F10
           getters
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
+            #F14 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F9
               previousFragment: #F8
@@ -8301,7 +8301,7 @@ library
               element: <testLibrary>::@extensionType::I2::@field::it
               inducedGetter: #F23
           constructors
-            #F24 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:149) (offset:149)
+            #F24 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:149) (offset:149)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 149
@@ -8309,7 +8309,7 @@ library
                 #F25 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:159) (firstTokenOffset:155) (offset:159)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
-            #F23 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
+            #F23 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:149)
               element: <testLibrary>::@extensionType::I2::@getter::it
               inducingVariable: #F22
   extensionTypes
@@ -8444,7 +8444,7 @@ library
               element: <testLibrary>::@extensionType::X::@field::it
               inducedGetter: #F6
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@extensionType::X::@getter::it
               inducingVariable: #F5
   classes
@@ -8508,7 +8508,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F4 extension type B (nameOffset:57) (firstTokenOffset:42) (offset:57)
@@ -8518,7 +8518,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F6
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F5
   extensionTypes
@@ -8587,7 +8587,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -8637,7 +8637,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
@@ -8647,7 +8647,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F6
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F5
   extensionTypes
@@ -8714,7 +8714,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -8762,7 +8762,7 @@ library
               element: <testLibrary>::@extensionType::X::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::X::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -8811,7 +8811,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F4
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
   extensionTypes
@@ -8862,7 +8862,7 @@ library
               element: <testLibrary>::@extensionType::X::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@extensionType::X::@getter::it
               inducingVariable: #F2
       typeAliases
@@ -9037,7 +9037,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 38
@@ -9045,7 +9045,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:44) (firstTokenOffset:40) (offset:44)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -9100,7 +9100,7 @@ library
               element: <testLibrary>::@extensionType::#0::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@extensionType::#0::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -9149,7 +9149,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F4
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
   extensionTypes
@@ -9200,7 +9200,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -9208,7 +9208,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:19) (firstTokenOffset:17) (offset:19)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F6 extension type B (nameOffset:42) (firstTokenOffset:27) (offset:42)
@@ -9218,7 +9218,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:42) (offset:42)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@extensionType::B::@constructor::new
               typeName: B
               typeNameOffset: 42
@@ -9226,7 +9226,7 @@ library
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:46) (firstTokenOffset:44) (offset:46)
                   element: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F7
   extensionTypes
@@ -9310,7 +9310,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -9318,7 +9318,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:19) (firstTokenOffset:17) (offset:19)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F6 extension type B (nameOffset:42) (firstTokenOffset:27) (offset:42)
@@ -9328,7 +9328,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:42) (offset:42)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@extensionType::B::@constructor::new
               typeName: B
               typeNameOffset: 42
@@ -9336,7 +9336,7 @@ library
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:52) (firstTokenOffset:44) (offset:52)
                   element: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F7
   extensionTypes
@@ -9418,7 +9418,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
-            #F4 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -9426,7 +9426,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:19) (firstTokenOffset:17) (offset:19)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -9483,7 +9483,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
@@ -9493,7 +9493,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F6
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F5
   extensionTypes
@@ -9563,7 +9563,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F4
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
         #F5 extension type B (nameOffset:45) (firstTokenOffset:30) (offset:45)
@@ -9573,7 +9573,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F7
           getters
-            #F7 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+            #F7 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F6
   extensionTypes
@@ -9643,7 +9643,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
         #F4 extension type B (nameOffset:44) (firstTokenOffset:29) (offset:44)
@@ -9653,7 +9653,7 @@ library
               element: <testLibrary>::@extensionType::B::@field::it
               inducedGetter: #F6
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@extensionType::B::@getter::it
               inducingVariable: #F5
   extensionTypes
@@ -9718,7 +9718,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
   extensionTypes
@@ -9768,7 +9768,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -9776,7 +9776,7 @@ library
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:45) (firstTokenOffset:35) (offset:45)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
-            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F4
   extensionTypes
@@ -9845,7 +9845,7 @@ library
               inducedGetter: #F6
               nextFragment: #F7
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F8
@@ -9865,7 +9865,7 @@ library
               previousFragment: #F5
               nextFragment: #F11
           getters
-            #F8 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F8 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
@@ -9883,7 +9883,7 @@ library
               inducedGetter: #F12
               previousFragment: #F7
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:93)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:93)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F11
               previousFragment: #F8
@@ -9944,7 +9944,7 @@ library
               inducedGetter: #F8
               nextFragment: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               nextFragment: #F10
@@ -9968,7 +9968,7 @@ library
               previousFragment: #F7
               nextFragment: #F14
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F9
               previousFragment: #F8
@@ -9989,7 +9989,7 @@ library
               inducedGetter: #F15
               previousFragment: #F9
           getters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:93)
+            #F15 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:93)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F10
@@ -10052,7 +10052,7 @@ library
               inducedGetter: #F8
               nextFragment: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               nextFragment: #F10
@@ -10076,7 +10076,7 @@ library
               previousFragment: #F7
               nextFragment: #F14
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F9
               previousFragment: #F8
@@ -10097,7 +10097,7 @@ library
               inducedGetter: #F15
               previousFragment: #F9
           getters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F15 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F10
@@ -10163,7 +10163,7 @@ library
               inducedGetter: #F10
               nextFragment: #F11
           getters
-            #F10 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F10 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F9
               nextFragment: #F12
@@ -10191,7 +10191,7 @@ library
               previousFragment: #F9
               nextFragment: #F17
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F11
               previousFragment: #F10
@@ -10215,7 +10215,7 @@ library
               inducedGetter: #F18
               previousFragment: #F11
           getters
-            #F18 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F18 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F17
               previousFragment: #F12
@@ -10280,7 +10280,7 @@ library
               inducedGetter: #F8
               nextFragment: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               nextFragment: #F10
@@ -10304,7 +10304,7 @@ library
               previousFragment: #F7
               nextFragment: #F14
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F9
               previousFragment: #F8
@@ -10325,7 +10325,7 @@ library
               inducedGetter: #F15
               previousFragment: #F9
           getters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F15 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F10
@@ -10388,7 +10388,7 @@ library
               inducedGetter: #F8
               nextFragment: #F9
           getters
-            #F8 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F8 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               nextFragment: #F10
@@ -10412,7 +10412,7 @@ library
               previousFragment: #F7
               nextFragment: #F14
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F9
               previousFragment: #F8
@@ -10433,7 +10433,7 @@ library
               inducedGetter: #F15
               previousFragment: #F9
           getters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F15 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F10
@@ -10496,7 +10496,7 @@ library
               inducedGetter: #F7
               inducedSetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -10506,15 +10506,15 @@ library
                   nextFragment: #F11
               nextFragment: #F12
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F13
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo1
               inducingVariable: #F6
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               inducingVariable: #F6
               formalParameters
@@ -10533,7 +10533,7 @@ library
               inducedGetter: #F16
               inducedSetter: #F17
           constructors
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:76) (offset:76)
+            #F12 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 76
@@ -10543,15 +10543,15 @@ library
                   previousFragment: #F10
               previousFragment: #F9
           getters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
+            #F13 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F16 isCompleteDeclaration isOriginVariable isStatic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+            #F16 isComplete isOriginVariable isStatic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@extensionType::A::@getter::foo2
               inducingVariable: #F15
           setters
-            #F17 isCompleteDeclaration isOriginVariable isStatic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+            #F17 isComplete isOriginVariable isStatic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@extensionType::A::@setter::foo2
               inducingVariable: #F15
               formalParameters
@@ -10662,7 +10662,7 @@ library
               inducedSetter: #F8
               nextFragment: #F9
           constructors
-            #F10 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F10 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -10672,16 +10672,16 @@ library
                   nextFragment: #F12
               nextFragment: #F13
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F14
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F15
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -10703,7 +10703,7 @@ library
               inducedSetter: #F18
               previousFragment: #F6
           constructors
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F13 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -10713,16 +10713,16 @@ library
                   previousFragment: #F11
               previousFragment: #F10
           getters
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F14 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
+            #F15 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F9
               previousFragment: #F7
           setters
-            #F18 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
+            #F18 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F9
               formalParameters
@@ -10819,7 +10819,7 @@ library
               inducedSetter: #F8
               nextFragment: #F9
           constructors
-            #F10 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F10 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -10829,16 +10829,16 @@ library
                   nextFragment: #F12
               nextFragment: #F13
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F14
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F15
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -10857,7 +10857,7 @@ library
               previousFragment: #F3
               nextFragment: #F20
           constructors
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F13 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -10869,12 +10869,12 @@ library
               nextFragment: #F22
               previousFragment: #F10
           getters
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F14 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F23
-            #F15 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
+            #F15 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
               element: <testLibrary>::@extensionType::A::@getter::foo
               previousFragment: #F7
               nextFragment: #F24
@@ -10892,7 +10892,7 @@ library
               inducedSetter: #F18
               previousFragment: #F6
           constructors
-            #F22 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
+            #F22 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
@@ -10902,16 +10902,16 @@ library
                   previousFragment: #F12
               previousFragment: #F13
           getters
-            #F23 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
+            #F23 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F20
               previousFragment: #F14
-            #F24 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
+            #F24 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F9
               previousFragment: #F15
           setters
-            #F18 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
+            #F18 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F9
               formalParameters
@@ -11008,7 +11008,7 @@ library
               inducedSetter: #F8
               nextFragment: #F9
           constructors
-            #F10 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F10 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -11018,16 +11018,16 @@ library
                   nextFragment: #F12
               nextFragment: #F13
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F14
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F15
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -11046,7 +11046,7 @@ library
               previousFragment: #F3
               nextFragment: #F20
           constructors
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F13 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -11058,13 +11058,13 @@ library
               nextFragment: #F22
               previousFragment: #F10
           getters
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F14 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F23
           setters
-            #F18 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
+            #F18 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
                 #F17 requiredPositional isOriginDeclaration _ (nameOffset:116) (firstTokenOffset:112) (offset:116)
@@ -11087,7 +11087,7 @@ library
               inducedSetter: #F25
               previousFragment: #F6
           constructors
-            #F22 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
+            #F22 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
@@ -11097,16 +11097,16 @@ library
                   previousFragment: #F12
               previousFragment: #F13
           getters
-            #F23 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
+            #F23 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F20
               previousFragment: #F14
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
+            #F15 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F9
               previousFragment: #F7
           setters
-            #F25 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
+            #F25 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:181)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F9
               formalParameters
@@ -11199,7 +11199,7 @@ library
               inducedSetter: #F8
               nextFragment: #F9
           constructors
-            #F10 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F10 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -11209,16 +11209,16 @@ library
                   nextFragment: #F12
               nextFragment: #F13
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F14
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F15
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -11240,7 +11240,7 @@ library
               inducedSetter: #F18
               previousFragment: #F6
           constructors
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F13 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -11250,16 +11250,16 @@ library
                   previousFragment: #F11
               previousFragment: #F10
           getters
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F14 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
+            #F15 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F9
               previousFragment: #F7
           setters
-            #F18 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
+            #F18 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F9
               formalParameters
@@ -11352,7 +11352,7 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               nextFragment: #F7
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -11362,11 +11362,11 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F12
-            #F13 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:29) (offset:44)
+            #F13 isComplete isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:29) (offset:44)
               element: <testLibrary>::@extensionType::A::@getter::foo
               nextFragment: #F14
         #F2 isAugmentation extension type A (nameOffset:80) (firstTokenOffset:57) (offset:80)
@@ -11383,7 +11383,7 @@ library
               inducedSetter: #F15
               previousFragment: #F6
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:80) (offset:80)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:80) (offset:80)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 80
@@ -11393,16 +11393,16 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
+            #F14 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F7
               previousFragment: #F13
           setters
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
+            #F15 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F7
               formalParameters
@@ -11497,7 +11497,7 @@ library
               inducedSetter: #F8
               nextFragment: #F9
           constructors
-            #F10 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F10 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -11507,16 +11507,16 @@ library
                   nextFragment: #F12
               nextFragment: #F13
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F14
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F15
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -11541,7 +11541,7 @@ library
               previousFragment: #F6
               nextFragment: #F21
           constructors
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F13 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -11553,18 +11553,18 @@ library
               nextFragment: #F23
               previousFragment: #F10
           getters
-            #F14 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F14 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F24
-            #F15 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
+            #F15 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F9
               previousFragment: #F7
               nextFragment: #F25
           setters
-            #F18 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
+            #F18 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F9
               formalParameters
@@ -11588,7 +11588,7 @@ library
               inducedSetter: #F27
               previousFragment: #F9
           constructors
-            #F23 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:143) (offset:143)
+            #F23 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:143) (offset:143)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 143
@@ -11598,16 +11598,16 @@ library
                   previousFragment: #F12
               previousFragment: #F13
           getters
-            #F24 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:143)
+            #F24 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:143)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F20
               previousFragment: #F14
-            #F25 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:176)
+            #F25 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:176)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F21
               previousFragment: #F15
           setters
-            #F27 isAugmentation isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:176)
+            #F27 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:176)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F21
               formalParameters
@@ -11739,10 +11739,10 @@ library
                   staticType: int
               inducedGetter: #F5
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F5 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F4
   extensionTypes
@@ -11810,10 +11810,10 @@ library
                   staticType: int
               inducedGetter: #F5
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F5 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F4
   extensionTypes
@@ -11877,10 +11877,10 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               inducedGetter: #F5
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F4
   extensionTypes
@@ -11940,10 +11940,10 @@ library
             #F4 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
-            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F5 isComplete isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo
   extensionTypes
     isSimplyBounded extension type A
@@ -12007,7 +12007,7 @@ library
             #F6 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12017,11 +12017,11 @@ library
                   nextFragment: #F9
               nextFragment: #F10
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F11
-            #F12 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F12 isComplete isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo1
         #F2 isAugmentation extension type A (nameOffset:74) (firstTokenOffset:51) (offset:74)
           element: <testLibrary>::@extensionType::A
@@ -12034,7 +12034,7 @@ library
             #F13 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
+            #F10 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
@@ -12044,11 +12044,11 @@ library
                   previousFragment: #F8
               previousFragment: #F7
           getters
-            #F11 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F11 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F14 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:96) (firstTokenOffset:88) (offset:96)
+            #F14 isComplete isOriginDeclaration foo2 (nameOffset:96) (firstTokenOffset:88) (offset:96)
               element: <testLibrary>::@extensionType::A::@getter::foo2
   extensionTypes
     isSimplyBounded extension type A
@@ -12135,7 +12135,7 @@ library
             #F8 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12145,7 +12145,7 @@ library
                   nextFragment: #F11
               nextFragment: #F12
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F13
@@ -12166,7 +12166,7 @@ library
             #F15 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:70) (offset:70)
+            #F12 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 70
@@ -12176,7 +12176,7 @@ library
                   previousFragment: #F10
               previousFragment: #F9
           getters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F13 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
@@ -12269,7 +12269,7 @@ library
             #F7 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12279,14 +12279,14 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F12
-            #F13 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F13 isComplete isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo1
               nextFragment: #F14
-            #F15 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:58) (firstTokenOffset:50) (offset:58)
+            #F15 isComplete isOriginDeclaration foo2 (nameOffset:58) (firstTokenOffset:50) (offset:58)
               element: <testLibrary>::@extensionType::A::@getter::foo2
         #F2 isAugmentation extension type A (nameOffset:95) (firstTokenOffset:72) (offset:95)
           element: <testLibrary>::@extensionType::A
@@ -12297,7 +12297,7 @@ library
               inducedGetter: #F12
               previousFragment: #F3
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
@@ -12307,11 +12307,11 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F14 isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:125) (firstTokenOffset:109) (offset:125)
+            #F14 isAugmentation isComplete isOriginDeclaration foo1 (nameOffset:125) (firstTokenOffset:109) (offset:125)
               element: <testLibrary>::@extensionType::A::@getter::foo1
               previousFragment: #F13
   extensionTypes
@@ -12397,7 +12397,7 @@ library
               inducedGetter: #F7
               inducedSetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12407,16 +12407,16 @@ library
                   nextFragment: #F11
               nextFragment: #F12
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F13
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F14
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -12431,7 +12431,7 @@ library
               inducedGetter: #F13
               previousFragment: #F3
           constructors
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F12 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -12441,11 +12441,11 @@ library
                   previousFragment: #F10
               previousFragment: #F9
           getters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F13 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-            #F14 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
+            #F14 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
               element: <testLibrary>::@extensionType::A::@getter::foo
               previousFragment: #F7
   extensionTypes
@@ -12536,7 +12536,7 @@ library
               inducedGetter: #F7
               inducedSetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12546,16 +12546,16 @@ library
                   nextFragment: #F11
               nextFragment: #F12
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F13
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
               nextFragment: #F14
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -12572,7 +12572,7 @@ library
               previousFragment: #F3
               nextFragment: #F17
           constructors
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F12 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -12584,12 +12584,12 @@ library
               nextFragment: #F19
               previousFragment: #F9
           getters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F13 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F20
-            #F14 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
+            #F14 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
               element: <testLibrary>::@extensionType::A::@getter::foo
               previousFragment: #F7
               nextFragment: #F21
@@ -12602,7 +12602,7 @@ library
               inducedGetter: #F20
               previousFragment: #F5
           constructors
-            #F19 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
+            #F19 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:148) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
@@ -12612,11 +12612,11 @@ library
                   previousFragment: #F11
               previousFragment: #F12
           getters
-            #F20 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
+            #F20 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F17
               previousFragment: #F13
-            #F21 isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:185) (firstTokenOffset:162) (offset:185)
+            #F21 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:185) (firstTokenOffset:162) (offset:185)
               element: <testLibrary>::@extensionType::A::@getter::foo
               previousFragment: #F14
   extensionTypes
@@ -12705,7 +12705,7 @@ library
             #F6 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12715,11 +12715,11 @@ library
                   nextFragment: #F9
               nextFragment: #F10
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F11
-            #F12 isCompleteDeclaration isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F12 isComplete isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo
               nextFragment: #F13
         #F2 isAugmentation extension type A (nameOffset:73) (firstTokenOffset:50) (offset:73)
@@ -12733,7 +12733,7 @@ library
               previousFragment: #F3
               nextFragment: #F15
           constructors
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:73) (offset:73)
+            #F10 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:73) (offset:73)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 73
@@ -12745,12 +12745,12 @@ library
               nextFragment: #F17
               previousFragment: #F7
           getters
-            #F11 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+            #F11 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F18
-            #F13 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:103) (firstTokenOffset:87) (offset:103)
+            #F13 isAugmentation isComplete isOriginDeclaration foo (nameOffset:103) (firstTokenOffset:87) (offset:103)
               element: <testLibrary>::@extensionType::A::@getter::foo
               previousFragment: #F12
               nextFragment: #F19
@@ -12763,7 +12763,7 @@ library
               inducedGetter: #F18
               previousFragment: #F5
           constructors
-            #F17 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:139) (offset:139)
+            #F17 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:139) (offset:139)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 139
@@ -12773,11 +12773,11 @@ library
                   previousFragment: #F9
               previousFragment: #F10
           getters
-            #F18 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:139)
+            #F18 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:139)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F15
               previousFragment: #F11
-            #F19 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:169) (firstTokenOffset:153) (offset:169)
+            #F19 isAugmentation isComplete isOriginDeclaration foo (nameOffset:169) (firstTokenOffset:153) (offset:169)
               element: <testLibrary>::@extensionType::A::@getter::foo
               previousFragment: #F13
   extensionTypes
@@ -12844,11 +12844,11 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F4 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
                 #F5 requiredPositional isOriginDeclaration a (nameOffset:42) (firstTokenOffset:38) (offset:42)
@@ -12912,7 +12912,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -12922,12 +12922,12 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F11 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
         #F2 isAugmentation extension type A (nameOffset:69) (firstTokenOffset:46) (offset:69)
           element: <testLibrary>::@extensionType::A
@@ -12938,7 +12938,7 @@ library
               inducedGetter: #F10
               previousFragment: #F3
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
@@ -12948,12 +12948,12 @@ library
                   previousFragment: #F7
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
           methods
-            #F12 isCompleteDeclaration isOriginDeclaration bar (nameOffset:88) (firstTokenOffset:83) (offset:88)
+            #F12 isComplete isOriginDeclaration bar (nameOffset:88) (firstTokenOffset:83) (offset:88)
               element: <testLibrary>::@extensionType::A::@method::bar
   extensionTypes
     isSimplyBounded extension type A
@@ -13027,7 +13027,7 @@ library
               inducedGetter: #F6
               nextFragment: #F7
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13037,12 +13037,12 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F12
           methods
-            #F13 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F13 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
         #F2 isAugmentation extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
@@ -13057,7 +13057,7 @@ library
               inducedGetter: #F12
               previousFragment: #F5
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -13067,12 +13067,12 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
           methods
-            #F14 isCompleteDeclaration isOriginDeclaration bar (nameOffset:97) (firstTokenOffset:95) (offset:97)
+            #F14 isComplete isOriginDeclaration bar (nameOffset:97) (firstTokenOffset:95) (offset:97)
               element: <testLibrary>::@extensionType::A::@method::bar
   extensionTypes
     isSimplyBounded extension type A
@@ -13146,7 +13146,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13156,15 +13156,15 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F11 isComplete isOriginDeclaration foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo1
               nextFragment: #F12
-            #F13 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:46) (offset:51)
+            #F13 isComplete isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:46) (offset:51)
               element: <testLibrary>::@extensionType::A::@method::foo2
         #F2 isAugmentation extension type A (nameOffset:87) (firstTokenOffset:64) (offset:87)
           element: <testLibrary>::@extensionType::A
@@ -13175,7 +13175,7 @@ library
               inducedGetter: #F10
               previousFragment: #F3
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:87) (offset:87)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 87
@@ -13185,12 +13185,12 @@ library
                   previousFragment: #F7
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:87)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:87)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
           methods
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:114) (firstTokenOffset:101) (offset:114)
+            #F12 isAugmentation isComplete isOriginDeclaration foo1 (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@extensionType::A::@method::foo1
               previousFragment: #F11
   extensionTypes
@@ -13266,7 +13266,7 @@ library
               inducedGetter: #F6
               nextFragment: #F7
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13276,15 +13276,15 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F12
           methods
-            #F13 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F13 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F14
-            #F15 isCompleteDeclaration isOriginDeclaration bar (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F15 isComplete isOriginDeclaration bar (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@extensionType::A::@method::bar
         #F2 isAugmentation extension type A (nameOffset:85) (firstTokenOffset:62) (offset:85)
           element: <testLibrary>::@extensionType::A
@@ -13299,7 +13299,7 @@ library
               inducedGetter: #F12
               previousFragment: #F5
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:85) (offset:85)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 85
@@ -13309,12 +13309,12 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:85)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:85)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
           methods
-            #F14 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:115) (firstTokenOffset:102) (offset:115)
+            #F14 isAugmentation isComplete isOriginDeclaration foo (nameOffset:115) (firstTokenOffset:102) (offset:115)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F13
   extensionTypes
@@ -13392,7 +13392,7 @@ library
               inducedGetter: #F6
               nextFragment: #F7
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13402,12 +13402,12 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F6 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F6 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               nextFragment: #F12
           methods
-            #F13 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F13 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F14
         #F2 isAugmentation extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
@@ -13423,7 +13423,7 @@ library
               inducedGetter: #F12
               previousFragment: #F5
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
@@ -13433,12 +13433,12 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F7
               previousFragment: #F6
           methods
-            #F14 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:105) (firstTokenOffset:95) (offset:105)
+            #F14 isAugmentation isComplete isOriginDeclaration foo (nameOffset:105) (firstTokenOffset:95) (offset:105)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F13
   extensionTypes
@@ -13512,7 +13512,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13522,12 +13522,12 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F11 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F12
         #F2 isAugmentation extension type A (nameOffset:69) (firstTokenOffset:46) (offset:69)
@@ -13541,7 +13541,7 @@ library
               previousFragment: #F3
               nextFragment: #F14
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
@@ -13553,13 +13553,13 @@ library
               nextFragment: #F16
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F17
           methods
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
+            #F12 isAugmentation isComplete isOriginDeclaration foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F11
               nextFragment: #F18
@@ -13572,7 +13572,7 @@ library
               inducedGetter: #F17
               previousFragment: #F5
           constructors
-            #F16 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:131) (offset:131)
+            #F16 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:131) (offset:131)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 131
@@ -13582,12 +13582,12 @@ library
                   previousFragment: #F8
               previousFragment: #F9
           getters
-            #F17 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:131)
+            #F17 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:131)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F10
           methods
-            #F18 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:158) (firstTokenOffset:145) (offset:158)
+            #F18 isAugmentation isComplete isOriginDeclaration foo (nameOffset:158) (firstTokenOffset:145) (offset:158)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F12
   extensionTypes
@@ -13656,7 +13656,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13666,12 +13666,12 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F11 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F12
               typeParameters
@@ -13692,7 +13692,7 @@ library
               previousFragment: #F3
               nextFragment: #F18
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:71) (offset:71)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 71
@@ -13704,13 +13704,13 @@ library
               nextFragment: #F20
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F21
           methods
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:98) (firstTokenOffset:85) (offset:98)
+            #F12 isAugmentation isComplete isOriginDeclaration foo (nameOffset:98) (firstTokenOffset:85) (offset:98)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F11
               nextFragment: #F22
@@ -13732,7 +13732,7 @@ library
               inducedGetter: #F21
               previousFragment: #F5
           constructors
-            #F20 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:135) (offset:135)
+            #F20 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:135) (offset:135)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 135
@@ -13742,12 +13742,12 @@ library
                   previousFragment: #F8
               previousFragment: #F9
           getters
-            #F21 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:135)
+            #F21 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:135)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F18
               previousFragment: #F10
           methods
-            #F22 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:162) (firstTokenOffset:149) (offset:162)
+            #F22 isAugmentation isComplete isOriginDeclaration foo (nameOffset:162) (firstTokenOffset:149) (offset:162)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F12
               typeParameters
@@ -13828,7 +13828,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -13838,12 +13838,12 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F11 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F12
               typeParameters
@@ -13867,7 +13867,7 @@ library
               previousFragment: #F3
               nextFragment: #F20
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:71) (offset:71)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 71
@@ -13879,13 +13879,13 @@ library
               nextFragment: #F22
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F23
           methods
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:98) (firstTokenOffset:85) (offset:98)
+            #F12 isAugmentation isComplete isOriginDeclaration foo (nameOffset:98) (firstTokenOffset:85) (offset:98)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F11
               nextFragment: #F24
@@ -13911,7 +13911,7 @@ library
               inducedGetter: #F23
               previousFragment: #F5
           constructors
-            #F22 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:138) (offset:138)
+            #F22 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:138) (offset:138)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 138
@@ -13921,12 +13921,12 @@ library
                   previousFragment: #F8
               previousFragment: #F9
           getters
-            #F23 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:138)
+            #F23 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:138)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F20
               previousFragment: #F10
           methods
-            #F24 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:165) (firstTokenOffset:152) (offset:165)
+            #F24 isAugmentation isComplete isOriginDeclaration foo (nameOffset:165) (firstTokenOffset:152) (offset:165)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F12
               typeParameters
@@ -14012,7 +14012,7 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -14022,12 +14022,12 @@ library
                   nextFragment: #F8
               nextFragment: #F9
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F10
           methods
-            #F11 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F11 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               nextFragment: #F12
               typeParameters
@@ -14048,7 +14048,7 @@ library
               previousFragment: #F3
               nextFragment: #F18
           constructors
-            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
@@ -14060,13 +14060,13 @@ library
               nextFragment: #F20
               previousFragment: #F6
           getters
-            #F10 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F10 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
               nextFragment: #F21
           methods
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:101) (firstTokenOffset:88) (offset:101)
+            #F12 isAugmentation isComplete isOriginDeclaration foo (nameOffset:101) (firstTokenOffset:88) (offset:101)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F11
               nextFragment: #F22
@@ -14088,7 +14088,7 @@ library
               inducedGetter: #F21
               previousFragment: #F5
           constructors
-            #F20 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:138) (offset:138)
+            #F20 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:138) (offset:138)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 138
@@ -14098,12 +14098,12 @@ library
                   previousFragment: #F8
               previousFragment: #F9
           getters
-            #F21 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:138)
+            #F21 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:138)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F18
               previousFragment: #F10
           methods
-            #F22 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:165) (firstTokenOffset:152) (offset:165)
+            #F22 isAugmentation isComplete isOriginDeclaration foo (nameOffset:165) (firstTokenOffset:152) (offset:165)
               element: <testLibrary>::@extensionType::A::@method::foo
               previousFragment: #F12
               typeParameters
@@ -14177,11 +14177,11 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
           methods
-            #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F4 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
               formalParameters
                 #F5 optionalNamed isOriginDeclaration a (nameOffset:43) (firstTokenOffset:39) (offset:43)
@@ -14249,11 +14249,11 @@ library
             #F4 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo
           getters
-            #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F2
           setters
-            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F5 hasImplicitReturnType isComplete isOriginDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
                 #F6 requiredPositional isOriginDeclaration _ (nameOffset:44) (firstTokenOffset:37) (offset:44)
@@ -14325,7 +14325,7 @@ library
             #F6 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo1
           constructors
-            #F7 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F7 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -14335,12 +14335,12 @@ library
                   nextFragment: #F9
               nextFragment: #F10
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F11
           setters
-            #F12 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F12 hasImplicitReturnType isComplete isOriginDeclaration foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
                 #F13 requiredPositional isOriginDeclaration _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
@@ -14356,7 +14356,7 @@ library
             #F14 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
+            #F10 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
@@ -14366,12 +14366,12 @@ library
                   previousFragment: #F8
               previousFragment: #F7
           getters
-            #F11 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F11 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
           setters
-            #F15 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:92) (firstTokenOffset:88) (offset:92)
+            #F15 hasImplicitReturnType isComplete isOriginDeclaration foo2 (nameOffset:92) (firstTokenOffset:88) (offset:92)
               element: <testLibrary>::@extensionType::A::@setter::foo2
               formalParameters
                 #F16 requiredPositional isOriginDeclaration _ (nameOffset:101) (firstTokenOffset:97) (offset:101)
@@ -14469,7 +14469,7 @@ library
             #F7 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F8 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F8 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -14479,19 +14479,19 @@ library
                   nextFragment: #F10
               nextFragment: #F11
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F12
           setters
-            #F13 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F13 hasImplicitReturnType isComplete isOriginDeclaration foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
                 #F14 requiredPositional isOriginDeclaration _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
                   element: <testLibrary>::@extensionType::A::@setter::foo1::@formalParameter::_
                   nextFragment: #F15
               nextFragment: #F16
-            #F17 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:54) (firstTokenOffset:50) (offset:54)
+            #F17 hasImplicitReturnType isComplete isOriginDeclaration foo2 (nameOffset:54) (firstTokenOffset:50) (offset:54)
               element: <testLibrary>::@extensionType::A::@setter::foo2
               formalParameters
                 #F18 requiredPositional isOriginDeclaration _ (nameOffset:63) (firstTokenOffset:59) (offset:63)
@@ -14505,7 +14505,7 @@ library
               inducedGetter: #F12
               previousFragment: #F3
           constructors
-            #F11 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
+            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:95) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
@@ -14515,12 +14515,12 @@ library
                   previousFragment: #F9
               previousFragment: #F8
           getters
-            #F12 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
           setters
-            #F16 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:121) (firstTokenOffset:109) (offset:121)
+            #F16 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration foo1 (nameOffset:121) (firstTokenOffset:109) (offset:121)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
                 #F15 requiredPositional isOriginDeclaration _ (nameOffset:130) (firstTokenOffset:126) (offset:130)
@@ -14619,7 +14619,7 @@ library
               inducedGetter: #F7
               inducedSetter: #F8
           constructors
-            #F9 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+            #F9 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
@@ -14629,15 +14629,15 @@ library
                   nextFragment: #F11
               nextFragment: #F12
           getters
-            #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F13
-            #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
               inducingVariable: #F6
           setters
-            #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               inducingVariable: #F6
               formalParameters
@@ -14654,7 +14654,7 @@ library
               inducedGetter: #F13
               previousFragment: #F3
           constructors
-            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
+            #F12 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
@@ -14664,12 +14664,12 @@ library
                   previousFragment: #F10
               previousFragment: #F9
           getters
-            #F13 isAugmentation isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F13 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
           setters
-            #F16 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
+            #F16 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
                 #F15 requiredPositional isOriginDeclaration _ (nameOffset:116) (firstTokenOffset:112) (offset:116)
