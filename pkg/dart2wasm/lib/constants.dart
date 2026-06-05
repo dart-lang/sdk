@@ -152,6 +152,7 @@ typedef ConstantCodeGeneratorLazy =
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
+  final Map<Constant, Map<w.ModuleBuilder, w.Global>> valueTypeConstants = {};
   final Map<w.ModuleBuilder, w.DataSegmentBuilder> _byteSegments = {};
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
@@ -619,7 +620,32 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
 
   @override
   w.ValueType visitIntConstant(IntConstant constant) {
-    if (expectedType is w.RefType) return defaultConstant(constant);
+    if (expectedType is w.RefType) {
+      final moduleMap = constants.valueTypeConstants.putIfAbsent(
+        constant,
+        () => {},
+      );
+      final perModuleGlobal = moduleMap.putIfAbsent(b.moduleBuilder, () {
+        final translator = constants.translator;
+        final info = translator.classInfo[translator.boxedIntClass]!;
+        final globalType = w.GlobalType(
+          w.RefType(info.struct, nullable: false),
+          mutable: false,
+        );
+        final definedGlobal = b.moduleBuilder.globals.define(
+          globalType,
+          constants._constantAccessor._constantName(constant),
+        );
+        definedGlobal.initializer
+          ..i32_const(info.classId)
+          ..i64_const(constant.value)
+          ..struct_new(info.struct)
+          ..end();
+        return definedGlobal;
+      });
+      b.global_get(perModuleGlobal);
+      return perModuleGlobal.type.type;
+    }
     if (expectedType == w.NumType.i32) {
       b.i32_const(constant.value);
       return w.NumType.i32;
@@ -630,7 +656,32 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
 
   @override
   w.ValueType visitDoubleConstant(DoubleConstant constant) {
-    if (expectedType is w.RefType) return defaultConstant(constant);
+    if (expectedType is w.RefType) {
+      final moduleMap = constants.valueTypeConstants.putIfAbsent(
+        constant,
+        () => {},
+      );
+      final perModuleGlobal = moduleMap.putIfAbsent(b.moduleBuilder, () {
+        final translator = constants.translator;
+        final info = translator.classInfo[translator.boxedDoubleClass]!;
+        final globalType = w.GlobalType(
+          w.RefType(info.struct, nullable: false),
+          mutable: false,
+        );
+        final definedGlobal = b.moduleBuilder.globals.define(
+          globalType,
+          constants._constantAccessor._constantName(constant),
+        );
+        definedGlobal.initializer
+          ..i32_const(info.classId)
+          ..f64_const(constant.value)
+          ..struct_new(info.struct)
+          ..end();
+        return definedGlobal;
+      });
+      b.global_get(perModuleGlobal);
+      return perModuleGlobal.type.type;
+    }
     b.f64_const(constant.value);
     return w.NumType.f64;
   }
@@ -677,6 +728,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           .constant;
 
   ConstantInfo? ensureConstant(Constant constant) {
+    if (constant is IntConstant || constant is DoubleConstant) {
+      // Value types do not have identity and as such we don't need a unique box
+      // for them. They are lazily created at instantiation time.
+      return null;
+    }
+
     // To properly canonicalize type literal constants, we normalize the
     // type before canonicalization.
     if (constant is TypeLiteralConstant) {
@@ -740,34 +797,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitIntConstant(IntConstant constant) {
-    ClassInfo info = translator.classInfo[translator.boxedIntClass]!;
-    return createConstant(
-      constant,
-      const [],
-      info.nonNullableType,
-      canBeEager: true,
-      (_, b, _) {
-        b.i32_const(info.classId);
-        b.i64_const(constant.value);
-        b.struct_new(info.struct);
-      },
-    );
+    throw StateError('Int constants should be handled at instantiation');
   }
 
   @override
   ConstantInfo? visitDoubleConstant(DoubleConstant constant) {
-    ClassInfo info = translator.classInfo[translator.boxedDoubleClass]!;
-    return createConstant(
-      constant,
-      const [],
-      info.nonNullableType,
-      canBeEager: true,
-      (_, b, _) {
-        b.i32_const(info.classId);
-        b.f64_const(constant.value);
-        b.struct_new(info.struct);
-      },
-    );
+    throw StateError('Double constants should be handled at instantiation');
   }
 
   @override

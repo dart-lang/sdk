@@ -39,10 +39,6 @@ Part 0
      - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_111_1
      - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::v
   Constants
-     - IntConstant(20)
-     - IntConstant(256)
-     - IntConstant(36)
-     - IntConstant(92)
      - StaticTearOffConstant(ExpectException._kEmptyString)
      - StringConstant("(expected: <")
      - StringConstant(") fails.")

@@ -13,6 +13,7 @@
     (field $field0 i32)
     (field $field1 (mut i32)))))
   (global $.h1-nonshared-const (import "" "h1-nonshared-const") (ref extern))
+  (global $.shared-const (import "" "shared-const") (ref extern))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 17 funcref)
   (global $"\"bad\"" (ref $JSExternWrapper) <...>)
   (global $MyConstClass (ref $MyConstClass)
@@ -23,9 +24,18 @@
     (global.get $.h1-nonshared-const)
     (struct.new $JSExternWrapper)
     (struct.new $MyConstClass))
+  (global $MyConstClass_14 (ref $MyConstClass)
+    (i32.const 109)
+    (i32.const 0)
+    (i32.const 60)
+    (i32.const 0)
+    (global.get $.shared-const)
+    (struct.new $JSExternWrapper)
+    (struct.new $MyConstClass))
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $int.parse))
-    (set 1 (ref.func $"mainImpl <noInline>")))
+    (set 1 (ref.func $"mainImpl <noInline>"))
+    (set 16 (ref.func $0)))
   (func $"mainImpl <noInline>" (param $var0 i32)
     i64.const 0
     i32.const 2
@@ -50,13 +60,11 @@
     end
   )
   (func $"modH1Use <noInline>" (param $var0 i32) (result (ref $MyConstClass))
+    global.get $MyConstClass
+    global.get $MyConstClass_14
     local.get $var0
-    if (result (ref $MyConstClass))
-      global.get $MyConstClass
-    else
-      i32.const 16
-      call_indirect $module0.cross-module-funcs-0 (result (ref $MyConstClass))
-    end
+    select (ref $MyConstClass)
   )
+  (func $null (result (ref $MyConstClass)) <...>)
   (func $int.parse (result i64) <...>)
 )
