@@ -293,6 +293,25 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_namedConstructor_withPrimaryConstructors() async {
+    await resolveTestCode('''
+class A(final int field) {}
+
+class B extends A {
+  B.named();
+}
+''');
+    await assertHasFix('''
+class A(final int field) {}
+
+class B extends A {
+  B.named();
+
+  new named(super.field);
+}
+''', matchFixMessage: 'Create constructor to call super.');
+  }
+
   Future<void> test_fieldInitializer_withoutPrimaryConstructors() async {
     await resolveTestCode('''
 // @dart=3.10

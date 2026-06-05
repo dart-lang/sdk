@@ -156,14 +156,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           }
         }
 
-        if (isEnabled(Feature.primary_constructors) && constructorName == null) {
+        if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
+          if (constructorName != null) {
+            builder.write(' ');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         } else {
           builder.write(_targetClass.namePart.typeName.lexeme);
-        }
-        if (constructorName != null && constructorName != 'new') {
-          builder.write('.');
-          builder.addSimpleLinkedEdit('NAME', constructorName);
+          if (constructorName != null) {
+            builder.write('.');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         }
         builder.write('(');
         writeParameters(true);
@@ -206,14 +210,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write(parameterName);
         }
 
-        if (isEnabled(Feature.primary_constructors) && constructorName == null) {
+        if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
+          if (constructorName != null) {
+            builder.write(' ');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         } else {
           builder.write(_targetClass.namePart.typeName.lexeme);
-        }
-        if (constructorName != null && constructorName != 'new') {
-          builder.write('.');
-          builder.addSimpleLinkedEdit('NAME', constructorName);
+          if (constructorName != null) {
+            builder.write('.');
+            builder.addSimpleLinkedEdit('NAME', constructorName);
+          }
         }
         builder.write('(');
 
