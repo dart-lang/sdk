@@ -17,6 +17,7 @@
 namespace dart {
 
 class Dwarf;
+class CoffWriter;
 class ElfWriter;
 class MachOWriter;
 
@@ -33,6 +34,7 @@ class SharedObjectWriter : public ZoneObject {
   };
 
   enum class Output {
+    Coff,
     Elf,
     MachO,
   };
@@ -223,6 +225,7 @@ class SharedObjectWriter : public ZoneObject {
 
   virtual const ElfWriter* AsElfWriter() const { return nullptr; }
   virtual const MachOWriter* AsMachOWriter() const { return nullptr; }
+  virtual const CoffWriter* AsCoffWriter() const { return nullptr; }
 
  protected:
   Zone* const zone_;

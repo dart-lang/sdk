@@ -176,6 +176,10 @@ class Dwarf : public ZoneObject {
         const char* compilation_unit_name = nullptr);
 
   const GrowableArray<const Code*>& codes() const { return codes_; }
+  const GrowableArray<const Script*>& scripts() const { return scripts_; }
+  const Trie<const char>* deobfuscation_trie() const {
+    return deobfuscation_trie_;
+  }
 
   // Stores the code object for later creating the line number program.
   void AddCode(const Code& code, intptr_t label);
@@ -184,6 +188,9 @@ class Dwarf : public ZoneObject {
   intptr_t AddScript(const Script& script);
   intptr_t LookupFunction(const Function& function);
   intptr_t LookupScript(const Script& script);
+  intptr_t LookupCodeLabel(const Code& code) const {
+    return code_to_label_.LookupValue(&code);
+  }
 
   void WriteAbbreviations(DwarfWriteStream* stream);
   void WriteDebugInfo(DwarfWriteStream* stream);

@@ -4091,6 +4091,8 @@ typedef enum {
   Dart_AotBinaryFormat_Elf = 0,
   Dart_AotBinaryFormat_Assembly = 1,
   Dart_AotBinaryFormat_MachO_Dylib = 2,
+  /* PE/COFF object output is only supported when targeting Windows x64. */
+  Dart_AotBinaryFormat_PECoff_Obj = 3,
 } Dart_AotBinaryFormat;
 
 /**
