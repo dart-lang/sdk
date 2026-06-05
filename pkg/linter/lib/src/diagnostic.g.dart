@@ -1851,6 +1851,15 @@ noDuplicateCaseValues = LinterLintTemplate(
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
+/// No parameters.
+const LinterLintWithoutArguments noDynamicCasts = LinterLintWithoutArguments(
+  name: 'no_dynamic_casts',
+  problemMessage: "Implicit cast from 'dynamic'.",
+  correctionMessage: "Try adding an explicit cast or changing the target type.",
+  uniqueName: 'no_dynamic_casts',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// Object p0: undocumented
 const DiagnosticWithArguments<
