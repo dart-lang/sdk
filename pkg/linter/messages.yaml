@@ -7619,6 +7619,35 @@ LinterLintCode:
       NOTE: this lint only reports duplicate cases in libraries opted in to Dart 2.19
       and below. In Dart 3.0 and after, duplicate cases are reported as dead code
       by the analyzer.
+  noDynamicCasts:
+    type: lint
+    parameters: none
+    problemMessage: "Implicit cast from 'dynamic'."
+    correctionMessage: "Try adding an explicit cast or changing the target type."
+    state:
+      stable: "3.13"
+    categories: [errorProne]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      **DO** avoid implicit casts from `dynamic`.
+
+      Assigning a `dynamic`-typed expression to a non-`dynamic`, non-`Object?`
+      target is a form of implicit casting. It is better to make such a cast
+      explicit, so that it is visible to developers.
+
+      **BAD:**
+      ```dart
+      void f(dynamic x) {
+        int y = x;
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      void f(dynamic x) {
+        int y = x as int;
+      }
+      ```
   noLeadingUnderscoresForLibraryPrefixes:
     type: lint
     parameters:

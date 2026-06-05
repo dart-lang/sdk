@@ -115,6 +115,7 @@ import 'rules/missing_whitespace_between_adjacent_strings.dart';
 import 'rules/no_adjacent_strings_in_list.dart';
 import 'rules/no_default_cases.dart';
 import 'rules/no_duplicate_case_values.dart';
+import 'rules/no_dynamic_casts.dart';
 import 'rules/no_leading_underscores_for_library_prefixes.dart';
 import 'rules/no_leading_underscores_for_local_identifiers.dart';
 import 'rules/no_literal_bool_comparisons.dart';
@@ -382,6 +383,7 @@ void registerLintRules() {
     ..registerLintRule(NoAdjacentStringsInList())
     ..registerLintRule(NoDefaultCases())
     ..registerLintRule(NoDuplicateCaseValues())
+    ..registerLintRule(NoDynamicCasts())
     ..registerLintRule(NoLeadingUnderscoresForLibraryPrefixes())
     ..registerLintRule(NoLeadingUnderscoresForLocalIdentifiers())
     ..registerLintRule(NoLiteralBoolComparisons())
