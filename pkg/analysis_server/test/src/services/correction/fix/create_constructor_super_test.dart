@@ -30,7 +30,7 @@ class B extends A {}
 class A(final int field) {}
 
 class B extends A {
-  B(super.field);
+  new(super.field);
 }
 ''', matchFixMessage: 'Create constructor to call super.');
   }
@@ -45,7 +45,7 @@ class B extends A;
 class A(final int field);
 
 class B extends A {
-  B(super.field);
+  new(super.field);
 }
 ''', matchFixMessage: 'Create constructor to call super.');
   }
@@ -72,7 +72,7 @@ class A {
 class B extends A {
   int existingField = 0;
 
-  B(super.field);
+  new(super.field);
 
   void existingMethod() {}
 }
@@ -100,7 +100,7 @@ class C extends B {
 import 'package:test/b.dart';
 
 class C extends B {
-  C(super.a);
+  new(super.a);
 }
 ''');
   }
@@ -125,7 +125,7 @@ class A {
   int field;
 }
 class B extends A {
-  B(super.field);
+  new(super.field);
 
   int existingField = 0;
   void existingMethod() {}
@@ -176,7 +176,7 @@ class A {
 class B extends A {
   int existingField = 0;
 
-  B(super.p1, super.p2, super.p3);
+  new(super.p1, super.p2, super.p3);
 
   void existingMethod() {}
 }
@@ -201,7 +201,7 @@ class A {
 class B extends A {
   int existingField = 0;
 
-  B(super.p1, super.p2, super.p3, {required super.p4, required super.p5});
+  new(super.p1, super.p2, super.p3, {required super.p4, required super.p5});
 
   void existingMethod() {}
 }
@@ -226,7 +226,7 @@ class A {
 class B extends A {
   int existingField = 0;
 
-  B(super.p1, super.p2, super.p3);
+  new(super.p1, super.p2, super.p3);
 
   void existingMethod() {}
 }
@@ -259,7 +259,7 @@ class C<T> {
   C(this.x);
 }
 class D extends C<int> {
-  D(super.x);
+  new(super.x);
 }
 ''');
   }
@@ -286,11 +286,42 @@ class A {
 class B extends A {
   int existingField = 0;
 
-  B(super._);
+  new(super._);
 
   void existingMethod() {}
 }
 ''');
+  }
+
+  Future<void> test_fieldInitializer_withoutPrimaryConstructors() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  int _field;
+  A(this._field);
+  int get field => _field;
+}
+class B extends A {
+  int existingField = 0;
+
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+// @dart=3.10
+class A {
+  int _field;
+  A(this._field);
+  int get field => _field;
+}
+class B extends A {
+  int existingField = 0;
+
+  B(super.field);
+
+  void existingMethod() {}
+}
+''', matchFixMessage: 'Create constructor to call super.');
   }
 }
 
