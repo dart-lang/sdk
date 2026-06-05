@@ -295,21 +295,38 @@ class B extends A {
 
   Future<void> test_namedConstructor_withPrimaryConstructors() async {
     await resolveTestCode('''
-class A(final int field) {}
-
+class A {
+  A.named(int p1);
+}
 class B extends A {
-  B.named();
+  int existingField = 0;
+
+  void existingMethod() {}
 }
 ''');
     await assertHasFix('''
+class A {
+  A.named(int p1);
+}
+class B extends A {
+  int existingField = 0;
+
+  new named(super.p1) : super.named();
+
+  void existingMethod() {}
+}
+''', matchFixMessage: 'Create constructor to call super.named()');
+  }
+
+  Future<void> test_namedConstructor_withPrimaryConstructors_alreadyExists() async {
+    await resolveTestCode('''
 class A(final int field) {}
 
 class B extends A {
-  B.named();
-
-  new named(super.field);
+  new(super.field);
 }
-''', matchFixMessage: 'Create constructor to call super.');
+''');
+    await assertNoFix();
   }
 
   Future<void> test_fieldInitializer_withoutPrimaryConstructors() async {
