@@ -37,7 +37,11 @@ class ModuleMetadataBuilder {
         : 'module$id';
     return ModuleMetadata._(
       moduleImportName,
-      options.moduleNameForId(options.outputFile, id, emitAsMain: emitAsMain),
+      WasmCompilerOptions.moduleNameForId(
+        options.outputFile,
+        id,
+        emitAsMain: emitAsMain,
+      ),
       skipEmit: skipEmit,
       isMain: id == WasmCompilerOptions.mainModuleId,
     );

@@ -55,11 +55,6 @@ Part 0
      - pkg/compiler/test/custom_split/data/fuse_with_and/lib_010_0.dart::@methods::g_010_0
      - pkg/compiler/test/custom_split/data/fuse_with_and/lib_100_0.dart::@methods::g_100_0
   Constants
-     - IntConstant(127)
-     - IntConstant(20)
-     - IntConstant(256)
-     - IntConstant(36)
-     - IntConstant(92)
      - StaticTearOffConstant(ExpectException._kEmptyString)
      - StringConstant("(expected: <")
      - StringConstant(") fails.")

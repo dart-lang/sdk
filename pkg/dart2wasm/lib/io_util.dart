@@ -135,9 +135,12 @@ class CompilerPhaseInputOutputManager {
     int moduleId,
     List<String> flags,
   ) async {
-    final inputModuleName = options.moduleNameForId(mainWasmModule, moduleId);
+    final inputModuleName = WasmCompilerOptions.moduleNameForId(
+      mainWasmModule,
+      moduleId,
+    );
 
-    final outputModuleName = options.moduleNameForId(
+    final outputModuleName = WasmCompilerOptions.moduleNameForId(
       options.outputFile,
       moduleId,
     );
@@ -224,7 +227,7 @@ class CompilerPhaseInputOutputManager {
     final moduleIds = <int>{};
     for (final file in files) {
       if (file is! File) continue;
-      final moduleId = options.idForModuleName(
+      final moduleId = WasmCompilerOptions.idForModuleName(
         mainWasmFilename,
         path.basename(file.path),
       );

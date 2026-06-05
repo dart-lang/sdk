@@ -774,6 +774,12 @@ mixin KernelNodes {
     LibraryIndex.topLevel,
     'get:_loadingMap',
   );
+  late final Procedure? dartInternalModuleNamePrefixGetter = index
+      .tryGetProcedure(
+        'dart:_internal',
+        LibraryIndex.topLevel,
+        'get:_moduleNamePrefix',
+      );
   late final Procedure? dartInternalLoadingMapNamesGetter = index
       .tryGetProcedure(
         'dart:_internal',

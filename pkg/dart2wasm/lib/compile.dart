@@ -40,6 +40,7 @@ import 'compiler_options.dart' as compiler;
 import 'constant_evaluator.dart';
 import 'deferred_loading.dart';
 import 'dry_run.dart';
+import 'generate_wasm.dart';
 import 'io_util.dart';
 import 'js/runtime_generator.dart' as js;
 import 'modules.dart';
@@ -666,7 +667,7 @@ Future<CompilationResult> _runCodegenPhase(
   final wasmOutputFilename = path.basename(options.outputFile);
   final moduleIds = modules.keys
       .map<int>(
-        (moduleMetadata) => options.idForModuleName(
+        (moduleMetadata) => WasmCompilerOptions.idForModuleName(
           wasmOutputFilename,
           moduleMetadata.moduleName,
         )!,
