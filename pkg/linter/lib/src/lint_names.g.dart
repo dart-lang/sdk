@@ -317,6 +317,8 @@ abstract final class LintNames {
 
   static const String no_logic_in_create_state = 'no_logic_in_create_state';
 
+  static const String no_raw_types = 'no_raw_types';
+
   static const String no_runtimetype_tostring = 'no_runtimetype_tostring';
 
   static const String no_self_assignments = 'no_self_assignments';

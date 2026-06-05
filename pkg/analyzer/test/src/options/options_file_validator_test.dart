@@ -308,6 +308,26 @@ analyzer:
     );
   }
 
+  @FailingTest(reason: 'Enable when we deprecate strict-raw-types')
+  test_analyzer_language_strictRawTypes_deprecated() {
+    validate(
+      '''
+analyzer:
+  language:
+    strict-raw-types: true
+''',
+      [diag.analysisOptionDeprecated],
+    );
+  }
+
+  test_analyzer_language_strictRawTypes_notDeprecatedIfFalse() {
+    validate('''
+analyzer:
+  language:
+    strict-raw-types: false
+''', []);
+  }
+
   test_analyzer_language_supports_empty() {
     validate('''
 analyzer:

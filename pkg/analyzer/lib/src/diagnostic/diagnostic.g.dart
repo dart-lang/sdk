@@ -1074,6 +1074,27 @@ augmentationOptionalPositionalFormalParameterCount = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String expectedName: the name from a preceding declaration.
+/// String actualName: the name in the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String expectedName,
+    required String actualName,
+  })
+>
+augmentationPositionalFormalParameterName = DiagnosticWithArguments(
+  name: 'augmentation_positional_formal_parameter_name',
+  problemMessage:
+      "The parameter name '{1}' must either match the name '{0}' from a "
+      "preceding declaration or be '_'.",
+  correctionMessage: "Try changing the name to '{0}', or changing it to '_'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_positional_formal_parameter_name',
+  withArguments: _withArgumentsAugmentationPositionalFormalParameterName,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
 /// int expectedCount: the number of required positional formal parameters in
 ///                    the declaration.
 /// int actualCount: the number of required positional formal parameters in
@@ -18736,6 +18757,16 @@ _withArgumentsAugmentationOptionalPositionalFormalParameterCount({
   return LocatableDiagnosticImpl(
     diag.augmentationOptionalPositionalFormalParameterCount,
     [expectedCount, actualCount],
+  );
+}
+
+LocatableDiagnostic _withArgumentsAugmentationPositionalFormalParameterName({
+  required String expectedName,
+  required String actualName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationPositionalFormalParameterName,
+    [expectedName, actualName],
   );
 }
 

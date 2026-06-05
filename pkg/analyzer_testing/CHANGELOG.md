@@ -1,3 +1,7 @@
+## 0.3.1-dev
+
+- Require version `13.2.0-dev` of the `analyzer` package.
+
 ## 0.3.0
 
 - Add `PackageConfigFileBuilder` to the public API.

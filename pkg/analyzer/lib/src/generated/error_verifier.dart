@@ -2793,6 +2793,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         .where((parameter) => parameter.isRequiredPositional)
         .length;
 
+    var firstOptionalPositionalCount = firstParameters
+        .where((parameter) => parameter.isOptionalPositional)
+        .length;
+    var currentOptionalPositionalCount = currentParameters
+        .where((parameter) => parameter.isOptionalPositional)
+        .length;
+
     FormalParameter? formalParameterAtPositionalIndex(int index) {
       return formalParameterList.parameters
           .where((parameter) => parameter.isPositional)
@@ -2838,13 +2845,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ),
       );
     } else {
-      var firstOptionalPositionalCount = firstParameters
-          .where((parameter) => parameter.isOptionalPositional)
-          .length;
-      var currentOptionalPositionalCount = currentParameters
-          .where((parameter) => parameter.isOptionalPositional)
-          .length;
-
       if (currentOptionalPositionalCount < firstOptionalPositionalCount) {
         diagnosticReporter.report(
           diag.augmentationOptionalPositionalFormalParameterCount
@@ -2880,6 +2880,57 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       ),
               ),
         );
+      }
+    }
+
+    // Positional parameter names can be `_`, but every non-wildcard name must
+    // match all preceding non-wildcard declarations for the same parameter.
+    if (currentRequiredPositionalCount == firstRequiredPositionalCount &&
+        currentOptionalPositionalCount == firstOptionalPositionalCount) {
+      for (var formalParameter in formalParameterList.parameters) {
+        if (!formalParameter.isPositional) {
+          continue;
+        }
+
+        var currentParameter = formalParameter.declaredFragment;
+        if (currentParameter is! FormalParameterFragmentImpl ||
+            currentParameter.isOriginOtherFragmentOfEnclosing) {
+          continue;
+        }
+
+        var currentName = currentParameter.name;
+        if (currentName == null || currentName == '_') {
+          continue;
+        }
+
+        for (var precedingParameter in currentParameter.precedingFragments) {
+          if (precedingParameter.isOriginOtherFragmentOfEnclosing ||
+              precedingParameter.nameOffset == null) {
+            continue;
+          }
+
+          var precedingName = precedingParameter.name;
+          if (precedingName == null ||
+              precedingName == '_' ||
+              precedingName == currentName) {
+            continue;
+          }
+
+          diagnosticReporter.report(
+            diag.augmentationPositionalFormalParameterName
+                .withArguments(
+                  expectedName: precedingName,
+                  actualName: currentName,
+                )
+                .withContextMessages([
+                  ?precedingParameter.contextMessageAt(
+                    'The preceding declaration is here.',
+                  ),
+                ])
+                .at(formalParameterErrorEntity(formalParameter)),
+          );
+          break;
+        }
       }
     }
 

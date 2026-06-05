@@ -7878,6 +7878,57 @@ LinterLintCode:
         }
       }
       ```
+  noRawTypes:
+    type: lint
+    parameters:
+      Type type: the name of the generic type
+    problemMessage: "The generic type '#type' should have explicit type arguments but doesn't."
+    correctionMessage: "Use explicit type arguments for '#type'."
+    state:
+      stable: "3.13"
+    categories: [errorProne]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a generic type is used without
+      explicit type arguments, meaning it is a raw type.
+
+      #### Example
+
+      The following code produces this diagnostic because the generic class `C`
+      is used without a type argument:
+
+      ```dart
+      class C<T> {}
+      [!C!] c = C<int>();
+      ```
+
+      #### Common fixes
+
+      Provide explicit type arguments:
+
+      ```dart
+      class C<T> {}
+      C<int> c = C<int>();
+      ```
+    deprecatedDetails: |-
+      **DON'T** use raw types.
+
+      A raw type is a type annotation for a generic type which omits type
+      arguments. Developers may mistakenly believe that the type arguments are
+      inferred, but in fact each type parameter's bound is used, which can lead
+      to lost type information.
+
+      **BAD:**
+      ```dart
+      List list = [1, 2, 3];
+      ```
+
+      **GOOD:**
+      ```dart
+      List<int> list = [1, 2, 3];
+      ```
   noRuntimetypeTostring:
     type: lint
     parameters: none
