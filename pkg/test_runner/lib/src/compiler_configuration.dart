@@ -992,6 +992,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.coff) {
+      commands.add(computeCoffLinkCommand(tempDir, environmentOverrides));
+    }
+
     if (_isAndroid &&
         _configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
       // On Android, run the NDK's "strip" tool with "--strip-unneeded" to copy
@@ -1083,13 +1087,26 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     }
 
     var format = _configuration.genSnapshotFormat!;
-    var output = (format == GenSnapshotFormat.assembly)
-        ? tempAssemblyFile(tempDir)
-        : tempAOTFile(tempDir);
+    var output = tempAOTFile(tempDir);
+    if (format == GenSnapshotFormat.assembly) {
+      output = tempAssemblyFile(tempDir);
+    } else if (format == GenSnapshotFormat.coff) {
+      output = tempCoffObjectFile(tempDir);
+    }
     // Whether or not loading units are used. Mach-O doesn't currently support
     // this, and this isn't done for assembly output to avoid having to handle
     // the assembly of multiple assembly output files.
     var split = format == GenSnapshotFormat.elf;
+    var snapshotArguments = _replaceDartFiles(
+      arguments,
+      tempKernelFile(tempDir),
+    );
+    if (format == GenSnapshotFormat.coff) {
+      snapshotArguments = snapshotArguments
+          .where((argument) => !argument.startsWith('--save-debugging-info'))
+          .toList();
+    }
+
     var args = [
       "--snapshot-kind=${format.snapshotType}",
       "--${format.fileOption}=$output",
@@ -1101,7 +1118,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (arguments.contains('--print-flow-graph-optimized') &&
           (_configuration.isMinified || arguments.contains('--obfuscate')))
         '--save-obfuscation_map=$tempDir/renames.json',
-      ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
+      ...snapshotArguments,
     ];
 
     var command = CompilationCommand(
@@ -1275,6 +1292,36 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       tempDir,
       bootstrapDependencies(),
       cc,
+      args,
+      environmentOverrides,
+      alwaysCompile: !_useSdk,
+    );
+  }
+
+  Command computeCoffLinkCommand(
+    String tempDir,
+    Map<String, String> environmentOverrides,
+  ) {
+    if (!Platform.isWindows) {
+      throw "COFF snapshots are only linked by the Windows test runner.";
+    }
+
+    var args = [
+      '--target=x86_64-windows',
+      '-nostdlib',
+      '-Wl,/NOENTRY',
+      '-Wl,/DEBUG',
+      '-shared',
+      '-o',
+      tempAOTFile(tempDir),
+      tempCoffObjectFile(tempDir),
+    ];
+
+    return CompilationCommand(
+      'link_coff',
+      tempDir,
+      bootstrapDependencies(),
+      'buildtools\\win-x64\\clang\\bin\\clang.exe',
       args,
       environmentOverrides,
       alwaysCompile: !_useSdk,
@@ -1626,6 +1673,8 @@ abstract mixin class VMKernelCompilerMixin {
       Path('$tempDir/out.dill').toNativePath();
   String tempAssemblyFile(String tempDir) =>
       Path('$tempDir/out.S').toNativePath();
+  String tempCoffObjectFile(String tempDir) =>
+      Path('$tempDir/out.obj').toNativePath();
   String tempAOTFile(String tempDir) {
     if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
       switch (_configuration.system) {
@@ -1644,6 +1693,9 @@ abstract mixin class VMKernelCompilerMixin {
     }
     if (_configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
       return Path('$tempDir/libout.so').toNativePath();
+    }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.coff) {
+      return Path('$tempDir/out.dll').toNativePath();
     }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }
