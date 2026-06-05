@@ -22,7 +22,7 @@
   (global $FooConst0 (import "module0" "global7") (ref $Object))
   (global $fooGlobal0 (import "module0" "global16") (ref null $#Top))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 45 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 670 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 673 funcref)
   (global $"\"0\"" (ref $JSExternWrapper) <...>)
   (global $"\"1\"" (ref $JSExternWrapper) <...>)
   (global $"\"2\"" (ref $JSExternWrapper) <...>)
@@ -65,7 +65,7 @@
     (struct.new $JSExternWrapper))
   (global $"\"foo5Code(\"" (ref $JSExternWrapper) <...>)
   (global $FooConst5 (ref $Object)
-    (i32.const 113)
+    (i32.const 114)
     (i32.const 0)
     (struct.new $Object))
   (global $_InterfaceType (ref $_InterfaceType) <...>)
@@ -222,7 +222,7 @@
     call $"fooGlobal5 implicit getter"
     local.get $var2
     struct.get $Object $field0
-    i32.const 378
+    i32.const 382
     i32.add
     call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top))
   )

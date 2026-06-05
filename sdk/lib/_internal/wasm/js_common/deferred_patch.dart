@@ -22,10 +22,18 @@ final Map<int, Future<void>> _loading = {};
 final Set<int> _loaded = {};
 
 /// Only used when loading modules directly, will get populated by the compiler.
-external ImmutableWasmArray<ImmutableWasmArray<WasmExternRef>> get _loadingMap;
+///
+/// Maps a loading id (aka deferred prefix) to the set of module ids that have
+/// to be loaded.
+external WasmArray<WasmArray<WasmI8>?> get _loadingMap;
 
 /// Maps load id to (import uri, import prefix).
 external ImmutableWasmArray<WasmExternRef> get _loadingMapNames;
+
+/// The prefix of all module names.
+///
+/// For `test_module<id>.wasm` it will be `test_module`.
+external WasmExternRef get _moduleNamePrefix;
 
 @pragma("wasm:import", "moduleLoadingHelper.loadDeferredModules")
 external WasmExternRef _loadDeferredModules(WasmExternRef moduleNames);
@@ -94,8 +102,10 @@ Future<void> loadLibraryFromLoadId(int loadId) {
           'Error loading load ID: ${_loadIdInJson(loadId)}\n$e',
         );
       }
-      return 'Error loading ${_prefixName(loadId)} of library '
-          '${_importUri(loadId)}\n$e';
+      throw DeferredLoadException(
+        'Error loading ${_prefixName(loadId)} of library '
+        '${_importUri(loadId)}\n$e',
+      );
     },
   );
 }
@@ -108,18 +118,47 @@ Future<void> _loadLibraryViaEmbedderLoadId(int loadId) {
 
 Future<void> _loadLibraryViaEmbedderModuleNames(int loadId) {
   assert(loadId < _loadingMap.length);
-
-  final ImmutableWasmArray<WasmExternRef> moduleNames = _loadingMap[loadId];
-  if (moduleNames.length == 0) {
+  final WasmArray<WasmI8>? encodedModuleIds = _loadingMap[loadId];
+  if (encodedModuleIds == null) {
     // No modules to load.
     return Future.value();
   }
-  final moduleNamesAsList = <JSString>[];
-  for (int i = 0; i < moduleNames.length; ++i) {
-    moduleNamesAsList.add(JSValue(moduleNames[i]) as JSString);
-  }
+  final moduleNamesAsList = _decodeEncodedModuleIds('test', encodedModuleIds);
+
   final promise =
       (_loadDeferredModules(moduleNamesAsList.toJS.toExternRef!).toJS
           as JSPromise);
   return promise.toDart;
+}
+
+/// Keep in sync with pkg/dart2wasm/lib/translator.dart:Translator._patchLoadingMapGetter`
+List<JSString> _decodeEncodedModuleIds(
+  String prefix,
+  WasmArray<WasmI8> encoded,
+) {
+  int offset = 0;
+
+  int nextULEB128() {
+    int result = 0;
+    int shift = 0;
+    while (true) {
+      final byte = encoded.readUnsigned(offset++);
+      result |= (byte & 0x7F) << shift;
+      shift += 7;
+      if ((byte & 0x80) == 0) break;
+    }
+    return result;
+  }
+
+  final length = nextULEB128();
+  final moduleIds = <JSString>[];
+  int previousModuleId = 0;
+  final prefix = JSStringImpl.fromRefUnchecked(_moduleNamePrefix);
+  for (int i = 0; i < length; ++i) {
+    int diff = nextULEB128();
+    final moduleId = previousModuleId + diff;
+    moduleIds.add('$prefix${moduleId.toString()}.wasm'.toJS);
+    previousModuleId = moduleId;
+  }
+  return moduleIds;
 }

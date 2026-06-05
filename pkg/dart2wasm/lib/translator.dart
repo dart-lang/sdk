@@ -28,6 +28,7 @@ import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
 import 'dynamic_dispatchers.dart';
 import 'functions.dart';
+import 'generate_wasm.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
 import 'modules.dart';
@@ -645,40 +646,85 @@ class Translator with KernelNodes {
   // NOTE: We do this after code generation is complete. So the code generation
   // phase has the opportunity to generate more wasm modules and add them to the
   // loading map.
+  //
+  // Keep in sync with sdk/lib/_internal/wasm/js_common/deferred_patch.dart's
+  // `_decodeEncodedModuleIds` and `_loadLibraryViaEmbedderModuleNames`
   void _patchLoadingMapGetter(w.FunctionBuilder function) {
-    final externRef = w.RefType.extern(nullable: false);
-    final arrayExternRef = wasmArrayType(
-      externRef,
-      externRef.toString(),
-      mutable: false,
-    );
-    final arrayArrayString = wasmArrayType(
-      w.RefType(arrayExternRef, nullable: false),
-      arrayExternRef.toString(),
-      mutable: false,
+    final moduleMap = loadingMap.moduleMap;
+    final byteArrayType = wasmArrayType(w.PackedType.i8, 'WasmI8');
+    final arrayOfNullableByteArray = wasmArrayType(
+      w.RefType(byteArrayType, nullable: true),
+      'WasmArray<WasmI8>',
     );
 
-    _lazyInitializeGlobal(
-      function,
-      w.RefType(arrayArrayString, nullable: false),
-      'loadIdModuleNames',
-      (b) {
-        final moduleMap = loadingMap.moduleMap;
-        for (int i = 0; i < moduleMap.length; ++i) {
-          final moduleNames = moduleMap[i];
-          for (int k = 0; k < moduleNames.length; ++k) {
-            b.global_get(
-              getInternalizedStringGlobal(
-                function.moduleBuilder,
-                moduleNames[k].moduleName,
-              ),
-            );
-          }
-          b.array_new_fixed(arrayExternRef, moduleNames.length);
-        }
-        b.array_new_fixed(arrayArrayString, moduleMap.length);
-      },
+    // Make a global containing the load id -> module id list table.
+    final loadingMapGlobal = mainModule.globals.define(
+      w.GlobalType(w.RefType(arrayOfNullableByteArray, nullable: false)),
     );
+    loadingMapGlobal.initializer
+      ..i32_const(moduleMap.length)
+      ..array_new_default(arrayOfNullableByteArray)
+      ..end();
+
+    // Make the getter return that array.
+    _replaceBody(function)
+      ..global_get(loadingMapGlobal)
+      ..end();
+
+    // Emit code to initialize the load id -> module id list table.
+    final startFunction = mainModule.startFunction.body;
+    final encodedSegment = mainModule.dataSegments.define();
+    for (int i = 0; i < moduleMap.length; ++i) {
+      final moduleNames = moduleMap[i];
+      if (moduleNames.isEmpty) continue;
+
+      // We sort the module ids increasingly, thereby allowing us to encode them
+      // via delta to previous module id.
+      final moduleIds = <int>[];
+      for (int k = 0; k < moduleNames.length; ++k) {
+        final moduleId = WasmCompilerOptions.idFromDeferredModuleFilename(
+          moduleNames[k].moduleName,
+        );
+        moduleIds.add(moduleId);
+      }
+      moduleIds.sort();
+
+      // Make the encoded list of module ids.
+      final moduleIdsEncoded = BytesBuilder();
+      moduleIdsEncoded.writeULEB128(moduleNames.length);
+      int lastId = 0;
+      for (int i = 0; i < moduleIds.length; ++i) {
+        final moduleId = moduleIds[i];
+        final diff = moduleId - lastId;
+        moduleIdsEncoded.writeULEB128(diff);
+        lastId = moduleId;
+      }
+
+      // Append the encoded module id list to the data segment & make start
+      // function patch the runtime with the list.
+      startFunction.global_get(loadingMapGlobal);
+      startFunction.i32_const(i);
+      {
+        startFunction.i32_const(encodedSegment.length);
+        startFunction.i32_const(moduleIdsEncoded.length);
+        startFunction.array_new_data(byteArrayType, encodedSegment);
+        encodedSegment.append(moduleIdsEncoded.takeBytes());
+      }
+      startFunction.array_set(arrayOfNullableByteArray);
+    }
+
+    final mainModuleOutput = _builderToOutput[mainModule]!;
+    final prefix = WasmCompilerOptions.deferredModuleFilenamePrefix(
+      mainModuleOutput.moduleName,
+    );
+    final prefixGetter =
+        functions.getExistingFunction(
+              dartInternalModuleNamePrefixGetter!.reference,
+            )
+            as w.FunctionBuilder;
+    _replaceBody(prefixGetter)
+      ..global_get(getInternalizedStringGlobal(mainModule, prefix))
+      ..end();
   }
 
   void _patchLoadingMapNamesGetter(w.FunctionBuilder function) {
@@ -724,12 +770,7 @@ class Translator with KernelNodes {
       ..ref_null(w.HeapType.none)
       ..end();
 
-    final b = w.InstructionsBuilder(
-      f.moduleBuilder,
-      f.type.inputs,
-      f.type.outputs,
-    );
-    f.replaceBody(b);
+    final b = _replaceBody(f);
 
     final label = b.block(const [], [type]);
     b.global_get(global);
@@ -741,6 +782,16 @@ class Translator with KernelNodes {
     b.local_get(local);
     b.end();
     b.end();
+  }
+
+  w.InstructionsBuilder _replaceBody(w.FunctionBuilder function) {
+    final newBody = w.InstructionsBuilder(
+      function.moduleBuilder,
+      function.type.inputs,
+      function.type.outputs,
+    );
+    function.replaceBody(newBody);
+    return newBody;
   }
 
   void _printFunction(w.BaseFunction function, Object name) {
@@ -3967,4 +4018,16 @@ class SingleClosureTarget {
   final ParameterInfo paramInfo;
 
   SingleClosureTarget._(this.callTarget, this.paramInfo);
+}
+
+extension on BytesBuilder {
+  void writeULEB128(int value) {
+    assert(value >= 0);
+    do {
+      int byte = value & 0x7F;
+      value >>>= 7;
+      if (value != 0) byte |= 0x80;
+      addByte(byte);
+    } while (value != 0);
+  }
 }

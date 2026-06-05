@@ -49,7 +49,6 @@ Part 0
      - pkg/compiler/test/custom_split/data/fuse_with_or/libImport.dart::@methods::v
      - pkg/compiler/test/custom_split/data/fuse_with_or/lib_001_0.dart::@methods::g_001_0
   Constants
-     - IntConstant(127)
      - IntConstant(20)
      - IntConstant(256)
      - IntConstant(36)

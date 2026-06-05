@@ -3,6 +3,8 @@
   (type $ArgumentError <...>)
   (type $Array<Object?> <...>)
   (type $Array<String> <...>)
+  (type $Array<WasmArray<WasmI8>?> <...>)
+  (type $Array<WasmI8> <...>)
   (type $Array<int> <...>)
   (type $JSExternWrapper <...>)
   (type $Object <...>)
@@ -16,6 +18,7 @@
   (global $BoxedDouble._cacheKeys (mut (ref $Array<int>)) <...>)
   (global $BoxedDouble._cacheValues (mut (ref $Array<String>)) <...>)
   (global $_deletedDataMarker (mut (ref $#Top)) <...>)
+  (global $global0 (ref $Array<WasmArray<WasmI8>?>) <...>)
   (elem $cross-module-funcs-0
     (set 3 (ref.func $"wasm:js-string.length (import)"))
     (set 4 (ref.func $JSStringImpl._interpolate))
@@ -49,6 +52,12 @@
     i32.const 0
     struct.new $Object
     global.set $_deletedDataMarker
+    global.get $global0
+    i32.const 0
+    i32.const 0
+    i32.const 2
+    array.new_data $Array<WasmI8>$data0
+    array.set $Array<WasmArray<WasmI8>?>
   )
   (func $ArgumentError (param $var0 (ref null $#Top)) (param $var1 (ref null $JSExternWrapper)) (result (ref $ArgumentError)) <...>)
   (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
@@ -58,4 +67,5 @@
   (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_jsBigIntToString (param $var0 i64) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
+  (data $data0 <... 2 bytes ...>)
 )
