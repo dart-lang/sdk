@@ -28,12 +28,9 @@ under the top-level `analyzer` section. In the new analyzer plugin system,
 
 Individual plugins are listed similar to how dependencies are listed in a
 `pubspec.yaml` file; they are listed as a key-value pair, with the package name
-as the key. The value can either be
-
-* a package version constraint, in which case the package is downloaded from
-  https://pub.dev,
-* a package version constraint and a `hosted` key specifying pub server URL to download the package from,
-* an absolute path.
+as the key. The value can be a package version constraint, in which case the
+package is downloaded from https://pub.dev (or another location, if the
+`hosted` key is present), a git URI, or an absolute path.
 
 For example, while developing a plugin locally, it can be enabled as:
 
@@ -42,6 +39,11 @@ plugins:
   my_plugin:
     path: /path/to/my_plugin
 ```
+
+See the standard [Package dependencies documentation][] for details regarding
+how a plugin's source location can be specified.
+
+[Package dependencies documentation]: https://dart.dev/tools/pub/dependencies
 
 When the analysis server sees that a set of plugins is enabled, it creates a
 synthetic package which depends on each plugin package, which is loaded into a
