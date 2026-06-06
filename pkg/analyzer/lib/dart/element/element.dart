@@ -766,6 +766,16 @@ abstract class ElementAnnotation {
   /// if the value of this annotation could not be computed because of errors.
   DartObject? computeConstantValue();
 
+  /// Whether this annotation is a valid annotation for the given [element].
+  ///
+  /// Returns `true` if the annotation has known target kinds, and the
+  /// [element] matches one of them. Returns `false` if the annotation has known
+  /// target kinds, and the [element] does not match any of them.
+  ///
+  /// Returns `null` if there is no known set of target kinds for this
+  /// annotation.
+  bool? isValidAtElement(Element element);
+
   /// Returns a textual description of this annotation in a form approximating
   /// valid source.
   ///

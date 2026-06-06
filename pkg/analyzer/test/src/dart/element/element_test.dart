@@ -27,6 +27,12 @@ main() {
 
 @reflectiveTest
 class ElementAnnotationImplTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_computeConstantValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -48,6 +54,88 @@ main() {
 
     DartObject value = annotation.computeConstantValue()!;
     expect(value.getField('f')!.toStringValue(), 'x');
+  }
+
+  test_isValidAtElement_declaringFormalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.field})
+class FieldOnly {
+  const FieldOnly();
+}
+
+@Target({TargetKind.parameter})
+class ParameterOnly {
+  const ParameterOnly();
+}
+
+class A {
+  @FieldOnly()
+  final int explicit = 0;
+}
+
+class B(@FieldOnly() @ParameterOnly() final int f);
+''');
+
+    var explicitField = result.findElement.field('explicit', of: 'A');
+    var declaringField = result.findElement.field('f', of: 'B');
+    var declaringParameter = result.findElement
+        .class_('B')
+        .constructors
+        .single
+        .formalParameters
+        .single;
+
+    var explicitFieldOnly = explicitField.metadata.annotations.single;
+    expect(explicitFieldOnly.isValidAtElement(explicitField), isTrue);
+    expect(explicitFieldOnly.isValidAtElement(declaringParameter), isFalse);
+
+    var declaringFieldOnly = declaringParameter.metadata.annotations[0];
+    var declaringParameterOnly = declaringParameter.metadata.annotations[1];
+    expect(declaringFieldOnly.isValidAtElement(declaringParameter), isFalse);
+    expect(declaringFieldOnly.isValidAtElement(declaringField), isTrue);
+    expect(declaringParameterOnly.isValidAtElement(declaringParameter), isTrue);
+    expect(declaringParameterOnly.isValidAtElement(declaringField), isFalse);
+  }
+
+  test_isValidAtElement_noTarget() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+@A()
+class B {}
+''');
+    var class_ = result.findElement.class_('B');
+    var annotation = class_.metadata.annotations.single;
+
+    expect(annotation.isValidAtElement(class_), isNull);
+  }
+
+  test_isValidAtElement_override() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void m() {}
+}
+
+class B extends A {
+  @override
+  void m() {}
+
+  void n(int p) {}
+}
+''');
+    var method = result.findElement.method('m', of: 'B');
+    var parameter = result.findElement
+        .method('n', of: 'B')
+        .formalParameters
+        .single;
+    var annotation = method.metadata.annotations.single;
+
+    expect(annotation.isValidAtElement(method), isTrue);
+    expect(annotation.isValidAtElement(parameter), isFalse);
   }
 }
 
