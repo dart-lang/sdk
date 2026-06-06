@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/annotation_target.dart';
 import 'package:meta/meta_meta.dart';
 
 import '../analyzer.dart';
@@ -64,8 +64,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      if (elementAnnotation.targetKinds.length == 1 &&
-          elementAnnotation.targetKinds.contains(TargetKind.library) &&
+      var targetKinds = elementAnnotation.targetKinds;
+      if (targetKinds != null &&
+          targetKinds.length == 1 &&
+          targetKinds.contains(TargetKind.library) &&
           firstDirective == node) {
         rule.reportAtNode(annotation);
       } else if (elementAnnotation.isPragmaLateTrust) {

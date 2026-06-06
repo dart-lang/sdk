@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/annotation_target.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
@@ -1952,6 +1953,11 @@ class ElementAnnotationImpl
       return result;
     }
     return null;
+  }
+
+  @override
+  bool? isValidAtElement(Element element) {
+    return isAnnotationValidAtElement(this, element);
   }
 
   @override

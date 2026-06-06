@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/annotation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -358,7 +358,7 @@ class ImportOrganizer {
       IgnoreInfo.isIgnoreComment(token.lexeme);
 
   static bool _isLibraryTargetAnnotation(Annotation annotation) =>
-      annotation.elementAnnotation?.targetKinds.contains(TargetKind.library) ??
+      annotation.elementAnnotation?.targetKinds?.contains(TargetKind.library) ??
       false;
 }
 

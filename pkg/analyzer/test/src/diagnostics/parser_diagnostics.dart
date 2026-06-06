@@ -41,17 +41,6 @@ class ParserDiagnosticsTest {
     }
   }
 
-  ParseStringResult parseStringWithErrors(
-    String content, {
-    FeatureSet? featureSet,
-  }) {
-    return parseString(
-      content: content,
-      featureSet: featureSet ?? testFeatureSet,
-      throwIfDiagnostics: false,
-    );
-  }
-
   /// Parses [content] without checking diagnostics.
   ///
   /// Use this only for parser smoke tests where diagnostics are intentionally

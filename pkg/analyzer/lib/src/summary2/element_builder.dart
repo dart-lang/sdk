@@ -2081,6 +2081,10 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
     }
     for (var (i, formalParameter) in formalParameters.indexed) {
+      if (formalParameter is! RegularFormalParameterImpl) {
+        continue;
+      }
+
       var isExtensionTypeRepresentation =
           i == 0 && isFirstFormalExtensionTypeRepresentation;
       if (formalParameter.finalOrVarKeyword != null ||
