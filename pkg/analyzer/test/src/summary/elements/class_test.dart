@@ -11738,6 +11738,65 @@ library
 ''');
   }
 
+  test_constructor_primary_formalParameter_field_requiredPositional_final() async {
+    var library = await buildLibrary(r'''
+class A(final this.foo) {
+  final int foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isFinal isOriginDeclaration foo (nameOffset:38) (firstTokenOffset:38) (offset:38)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
+          constructors
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F3 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isFinal isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional hasImplicitType isFinal this.foo
+              firstFragment: #F5
+              type: int
+              field: <testLibrary>::@class::A::@field::foo
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_constructor_primary_formalParameter_regular_requiredPositional_functionTypedSuffix() async {
     var library = await buildLibrary(r'''
 class A(int foo()) {}
@@ -11842,6 +11901,68 @@ library
               typeNameOffset: 27
               formalParameters
                 #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration super.foo (nameOffset:35) (firstTokenOffset:29) (offset:35)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F3
+              type: int
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      supertype: A
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional hasImplicitType isFinal super.foo
+              firstFragment: #F6
+              type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_constructor_primary_formalParameter_super_requiredPositional_final() async {
+    var library = await buildLibrary(r'''
+class A(int foo) {}
+
+class B(final super.foo) extends A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:8) (offset:12)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+        #F4 hasExtendsClause class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 27
+              formalParameters
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration super.foo (nameOffset:41) (firstTokenOffset:29) (offset:41)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
   classes
     isSimplyBounded class A
