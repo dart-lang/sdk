@@ -56,7 +56,7 @@ class /*0*/MyWidget extends StatelessWidget {
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatelessWidget {
-  const /*1*/MyWidget({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {

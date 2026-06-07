@@ -318,7 +318,8 @@ class B extends A {
 ''', matchFixMessage: 'Create constructor to call super.named()');
   }
 
-  Future<void> test_namedConstructor_withPrimaryConstructors_alreadyExists() async {
+  Future<void>
+  test_namedConstructor_withPrimaryConstructors_alreadyExists() async {
     await resolveTestCode('''
 class A(final int field) {}
 
