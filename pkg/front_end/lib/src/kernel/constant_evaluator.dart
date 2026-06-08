@@ -998,9 +998,9 @@ class ConstantsTransformer extends RemovingTransformer {
           );
         }
         SwitchCase switchCase = extern.createSwitchCase(
-          expressions,
-          expressionOffsets,
-          patternSwitchCase.body,
+          expressions: expressions,
+          expressionOffsets: expressionOffsets,
+          body: patternSwitchCase.body,
           isDefault: patternSwitchCase.isDefault,
           fileOffset: patternSwitchCase.fileOffset,
         );
@@ -1011,8 +1011,8 @@ class ConstantsTransformer extends RemovingTransformer {
       }
 
       replacement = extern.createSwitchStatement(
-        node.expression,
-        switchCases,
+        expression: node.expression,
+        cases: switchCases,
         isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
         expressionType: scrutineeType,
         fileOffset: node.fileOffset,
@@ -1274,15 +1274,15 @@ class ConstantsTransformer extends RemovingTransformer {
           ], fileOffset: switchCase.fileOffset);
 
           SwitchCase replacementCase = extern.createSwitchCase(
-            [
+            expressions: [
               extern.createIntLiteral(
                 typeEnvironment.coreTypes,
                 continueTargetIndex,
                 fileOffset: node.fileOffset,
               ),
             ],
-            [node.fileOffset],
-            extern.createBlock([
+            expressionOffsets: [node.fileOffset],
+            body: extern.createBlock([
               for (Variable jointVariable in switchCase.jointVariables)
                 extern.createVariableStatement(
                   extern.createVariableDeclaration(jointVariable),
@@ -1408,8 +1408,10 @@ class ConstantsTransformer extends RemovingTransformer {
             extern.createVariableStatement(declaredVariableHelper),
           innerLabeledStatement,
           extern.createSwitchStatement(
-            extern.createVariableGet(matchResultVariableDeclaration.variable),
-            replacementCases,
+            expression: extern.createVariableGet(
+              matchResultVariableDeclaration.variable,
+            ),
+            cases: replacementCases,
             isExplicitlyExhaustive: false,
             expressionType: scrutineeType,
             fileOffset: node.fileOffset,
@@ -2047,9 +2049,9 @@ class ConstantsTransformer extends RemovingTransformer {
         );
 
         SwitchCase switchCase = extern.createSwitchCase(
-          expressions,
-          expressionOffsets,
-          extern.createBlock([
+          expressions: expressions,
+          expressionOffsets: expressionOffsets,
+          body: extern.createBlock([
             extern.createExpressionStatement(
               extern.createVariableSet(
                 valueVariableDeclaration.variable,
@@ -2069,8 +2071,8 @@ class ConstantsTransformer extends RemovingTransformer {
       }
 
       labeledStatement.body = extern.createSwitchStatement(
-        node.expression,
-        switchCases,
+        expression: node.expression,
+        cases: switchCases,
         isExplicitlyExhaustive: true,
         expressionType: scrutineeType,
         fileOffset: node.fileOffset,

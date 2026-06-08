@@ -35,6 +35,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/type_schema.dart';
+import 'body_builder.dart';
 import 'external_ast_helper.dart' as extern;
 
 /// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
@@ -142,22 +143,182 @@ class TryStatement extends InternalStatement {
   }
 }
 
-class SwitchCaseImpl extends SwitchCase {
-  final List<int> caseOffsets;
-  final bool hasLabel;
+sealed class InternalSwitchCase extends TreeNode with InternalTreeNode {
+  List<Label>? get labels;
+  Statement get body;
 
-  new(
-    this.caseOffsets,
-    List<Expression> expressions,
-    List<int> expressionOffsets,
-    Statement body, {
-    bool isDefault = false,
-    required this.hasLabel,
-  }) : super(expressions, expressionOffsets, body, isDefault: isDefault);
+  bool get hasLabel => labels != null;
+
+  List<ContinueSwitchStatement>? _continueStatements;
+  SwitchCase? _node;
+
+  void _connectContinueToCase(
+    ContinueSwitchStatement continueStatement,
+    SwitchCase switchCase,
+  ) {
+    continueStatement.target = switchCase;
+    if (switchCase is PatternSwitchCase) {
+      switchCase.labelUsers.add(continueStatement);
+    }
+  }
+
+  /// Registers that [statement] targets this switch case.
+  ///
+  /// The ensures that continue statements and switch cases are connected
+  /// correctly in the external AST.
+  void registerContinueSwitchStatement(ContinueSwitchStatement statement) {
+    (_continueStatements ??= [])..add(statement);
+    SwitchCase? node = _node;
+    if (node != null) {
+      _connectContinueToCase(statement, node);
+    }
+  }
+
+  /// Registers that [node] corresponds to this switch case.
+  ///
+  /// The ensures that continue statements and switch cases are connected
+  /// correctly in the external AST.
+  void registerSwitchCase(SwitchCase node) {
+    assert(_node == null, "SwitchCase already created for $this.");
+    _node = node;
+
+    List<ContinueSwitchStatement>? continueStatements = _continueStatements;
+    if (continueStatements != null) {
+      for (ContinueSwitchStatement continueStatement in continueStatements) {
+        _connectContinueToCase(continueStatement, node);
+      }
+    }
+  }
+}
+
+class InternalSwitchStatementCase extends InternalSwitchCase {
+  final List<Expression> expressions;
+  final List<int> expressionOffsets;
+  @override
+  final Statement body;
+  final bool isDefault;
+  final List<int> caseOffsets;
+  @override
+  final List<Label>? labels;
+
+  new({
+    required this.caseOffsets,
+    required this.expressions,
+    required this.expressionOffsets,
+    required this.body,
+    required this.isDefault,
+    required this.labels,
+    required int fileOffset,
+  }) {
+    setParents(expressions, this);
+    body.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  int get caseHeadCount => expressions.length;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    bool needsNewLine = false;
+    if (labels != null) {
+      for (Label label in labels!) {
+        if (needsNewLine) {
+          printer.newLine();
+        }
+        printer.write(label.name);
+        printer.write(':');
+        needsNewLine = true;
+      }
+    }
+    for (Expression expression in expressions) {
+      if (needsNewLine) {
+        printer.newLine();
+      }
+      printer.write('case ');
+      printer.writeExpression(expression);
+      printer.write(':');
+      needsNewLine = true;
+    }
+    if (isDefault) {
+      if (needsNewLine) {
+        printer.newLine();
+      }
+      printer.write('default:');
+    }
+    printer.incIndentation();
+    Statement? block = body;
+    if (block is Block) {
+      for (Statement statement in block.statements) {
+        printer.newLine();
+        printer.writeStatement(statement);
+      }
+    } else {
+      printer.write(' ');
+      printer.writeStatement(body);
+    }
+    printer.decIndentation();
+  }
 
   @override
   String toString() {
-    return "SwitchCaseImpl(${toStringInternal()})";
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalRegularSwitchStatement extends InternalStatement
+    implements InternalSwitchStatement {
+  final Expression expression;
+
+  @override
+  final List<InternalSwitchStatementCase> cases;
+
+  new({
+    required this.expression,
+    required this.cases,
+    required int fileOffset,
+  }) {
+    expression.parent = this;
+    setParents(cases, this);
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalRegularSwitchStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('switch (');
+    printer.writeExpression(expression);
+    printer.write(') {');
+    printer.incIndentation();
+    for (InternalSwitchStatementCase switchCase in cases) {
+      printer.newLine();
+      switchCase.toTextInternal(printer);
+    }
+    printer.decIndentation();
+    printer.newLine();
+    printer.write('}');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -7129,11 +7290,6 @@ class InternalListPattern extends InternalPattern {
   }
 }
 
-final InternalPattern dummyInternalPattern = new InternalConstantPattern(
-  expression: dummyExpression,
-  fileOffset: TreeNode.noOffset,
-);
-
 class InternalMapPattern extends InternalPattern {
   /// The key type arguments as specific in the map pattern syntax.
   DartType? keyType;
@@ -7642,3 +7798,457 @@ class InternalWildcardPattern extends InternalPattern {
     return "$runtimeType(${toStringInternal()})";
   }
 }
+
+/// A [InternalPattern] with an optional guard [Expression].
+class InternalPatternGuard extends TreeNode with InternalTreeNode {
+  final InternalPattern pattern;
+  final Expression? guard;
+
+  new({required this.pattern, required this.guard, required int fileOffset}) {
+    pattern.parent = this;
+    guard?.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    pattern.toTextInternal(printer);
+    if (guard != null) {
+      printer.write(' when ');
+      printer.writeExpression(guard!);
+    }
+  }
+
+  @override
+  String toString() => '$runtimeType(${toStringInternal()})';
+}
+
+class InternalPatternSwitchCase extends InternalSwitchCase {
+  final List<int> caseOffsets;
+  final List<InternalPatternGuard> patternGuards;
+
+  @override
+  final Statement body;
+
+  final bool isDefault;
+
+  @override
+  final List<Label>? labels;
+
+  final List<InternalVariable> jointVariables;
+
+  final List<int>? jointVariableFirstUseOffsets;
+
+  new({
+    required this.caseOffsets,
+    required this.patternGuards,
+    required this.body,
+    required this.isDefault,
+    required this.labels,
+    required this.jointVariables,
+    required this.jointVariableFirstUseOffsets,
+    required int fileOffset,
+  }) {
+    setParents(patternGuards, this);
+    setParents(jointVariables, this);
+    body.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  int get caseHeadCount => patternGuards.length;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    bool needsNewLine = false;
+    if (labels != null) {
+      for (Label label in labels!) {
+        if (needsNewLine) {
+          printer.newLine();
+        }
+        printer.write(label.name);
+        printer.write(':');
+        needsNewLine = true;
+      }
+    }
+    for (InternalPatternGuard patternGuard in patternGuards) {
+      if (needsNewLine) {
+        printer.newLine();
+      }
+      printer.write('case ');
+      patternGuard.toTextInternal(printer);
+      printer.write(':');
+      needsNewLine = true;
+    }
+    if (isDefault) {
+      if (needsNewLine) {
+        printer.newLine();
+      }
+      printer.write('default:');
+    }
+    printer.incIndentation();
+    Statement? block = body;
+    if (block is Block) {
+      for (Statement statement in block.statements) {
+        printer.newLine();
+        printer.writeStatement(statement);
+      }
+    } else {
+      printer.write(' ');
+      printer.writeStatement(body);
+    }
+    printer.decIndentation();
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalPatternSwitchStatement extends InternalStatement
+    implements InternalSwitchStatement {
+  final Expression expression;
+
+  @override
+  final List<InternalPatternSwitchCase> cases;
+
+  new({
+    required this.expression,
+    required this.cases,
+    required int fileOffset,
+  }) {
+    expression.parent = this;
+    setParents(cases, this);
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalPatternSwitchStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('switch (');
+    printer.writeExpression(expression);
+    printer.write(') {');
+    printer.incIndentation();
+    for (InternalPatternSwitchCase switchCase in cases) {
+      printer.newLine();
+      switchCase.toTextInternal(printer);
+    }
+    printer.decIndentation();
+    printer.newLine();
+    printer.write('}');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+sealed class InternalSwitch implements TreeNode {}
+
+sealed class InternalSwitchStatement
+    implements InternalSwitch, InternalStatement {
+  List<InternalSwitchCase> get cases;
+}
+
+class InternalSwitchExpressionCase extends TreeNode with InternalTreeNode {
+  final InternalPatternGuard patternGuard;
+  final Expression expression;
+
+  new({
+    required this.patternGuard,
+    required this.expression,
+    required int fileOffset,
+  }) {
+    patternGuard.parent = this;
+    expression.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(' => ');
+    printer.writeExpression(expression);
+  }
+
+  @override
+  String toString() {
+    return '$runtimeType(${toStringInternal()})';
+  }
+}
+
+class InternalSwitchExpression extends InternalExpression
+    implements InternalSwitch {
+  final Expression expression;
+  final List<InternalSwitchExpressionCase> cases;
+
+  new({
+    required this.expression,
+    required this.cases,
+    required int fileOffset,
+  }) {
+    expression.parent = this;
+    setParents(cases, this);
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalSwitchExpression(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('switch (');
+    printer.writeExpression(expression);
+    printer.write(') {');
+    String comma = ' ';
+    for (InternalSwitchExpressionCase switchCase in cases) {
+      printer.write(comma);
+      switchCase.toTextInternal(printer);
+      comma = ', ';
+    }
+    printer.write(' }');
+  }
+
+  @override
+  String toString() => '$runtimeType(${toStringInternal()})';
+}
+
+class InternalPatternVariableDeclaration extends InternalStatement {
+  final InternalPattern pattern;
+  final Expression initializer;
+  final bool isFinal;
+
+  new({
+    required this.pattern,
+    required this.initializer,
+    required this.isFinal,
+    required int fileOffset,
+  }) {
+    pattern.parent = this;
+    initializer.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalPatternVariableDeclaration(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (isFinal) {
+      printer.write('final ');
+    } else {
+      printer.write('var ');
+    }
+    pattern.toTextInternal(printer);
+    printer.write(" = ");
+    printer.writeExpression(initializer);
+    printer.write(';');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalPatternAssignment extends InternalExpression {
+  final InternalPattern pattern;
+  final Expression expression;
+
+  new({
+    required this.pattern,
+    required this.expression,
+    required int fileOffset,
+  }) {
+    pattern.parent = this;
+    expression.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalPatternAssignment(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    pattern.toTextInternal(printer);
+    printer.write(' = ');
+    printer.writeExpression(expression);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+/// Statement for a if-case statements:
+///
+///     if (expression case pattern) then
+///     if (expression case pattern) then else otherwise
+///     if (expression case pattern when guard) then
+///     if (expression case pattern when guard) then else otherwise
+///
+class InternalIfCaseStatement extends InternalStatement {
+  final Expression expression;
+  final InternalPatternGuard patternGuard;
+  final Statement then;
+  final Statement? otherwise;
+
+  new({
+    required this.expression,
+    required this.patternGuard,
+    required this.then,
+    required this.otherwise,
+    required int fileOffset,
+  }) {
+    expression.parent = this;
+    patternGuard.parent = this;
+    then.parent = this;
+    otherwise?.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalIfCaseStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    printer.writeExpression(expression);
+    printer.write(' case ');
+    patternGuard.toTextInternal(printer);
+    printer.write(') ');
+    printer.writeStatement(then);
+    if (otherwise != null) {
+      printer.write(' else ');
+      printer.writeStatement(otherwise!);
+    }
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalContinueSwitchStatement extends InternalStatement {
+  late InternalSwitchCase target;
+
+  new({required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('continue');
+    if (target.labels != null) {
+      printer.write(' ');
+      printer.write(target.labels!.first.name);
+    }
+    printer.write(';');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalContinueSwitchStatement(this);
+  }
+}
+
+final InternalPattern dummyInternalPattern = new InternalConstantPattern(
+  expression: dummyExpression,
+  fileOffset: TreeNode.noOffset,
+);
+
+final InternalPatternGuard dummyInternalPatternGuard = new InternalPatternGuard(
+  pattern: dummyInternalPattern,
+  guard: null,
+  fileOffset: TreeNode.noOffset,
+);
+
+final InternalSwitchExpressionCase dummyInternalSwitchExpressionCase =
+    new InternalSwitchExpressionCase(
+      patternGuard: dummyInternalPatternGuard,
+      expression: dummyExpression,
+      fileOffset: TreeNode.noOffset,
+    );
+
+final InternalSwitchCase dummyInternalSwitchCase =
+    new InternalSwitchStatementCase(
+      caseOffsets: [],
+      expressions: [],
+      expressionOffsets: [],
+      body: dummyStatement,
+      isDefault: false,
+      labels: null,
+      fileOffset: TreeNode.noOffset,
+    );
