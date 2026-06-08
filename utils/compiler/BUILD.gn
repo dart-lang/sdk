@@ -54,7 +54,7 @@ sdk_root = "../../sdk"
 
 application_snapshot("dart2js") {
   deps = [ ":dart2js_create_snapshot_entry" ]
-  training_deps = [ ":compile_dart2js_platform" ]
+  training_deps = [ ":dart2js_platform" ]
   training_inputs = [
     "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/dart2js_outline.dill",
@@ -106,7 +106,7 @@ aot_snapshot("dart2js_sdk_aot_product") {
   force_product_mode = !dart_debug
 }
 
-compile_platform("compile_dart2js_platform") {
+compile_platform("dart2js_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
@@ -122,7 +122,7 @@ compile_platform("compile_dart2js_platform") {
     "dart:core",
   ]
 }
-compile_platform("compile_dart2js_server_platform") {
+compile_platform("dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"

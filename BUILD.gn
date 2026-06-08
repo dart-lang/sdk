@@ -144,10 +144,10 @@ group("dart2js") {
 group("dart2wasm_platform") {
   deps = [
     ":runtime_precompiled",
-    "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
-    "utils/dart2wasm:compile_dart2wasm_standalone_platform",
+    "utils/dart2wasm:dart2wasm_js_compatibility_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
+    "utils/dart2wasm:dart2wasm_standalone_platform",
   ]
   if (defined(is_product)) {
     if (is_product) {
@@ -202,8 +202,8 @@ group("analysis_server") {
 
 group("tools") {
   deps = [
-    "utils:compile_platform.exe",
-    "utils:gen_kernel.exe",
+    "utils:bootstrap_compile_platform.exe",
+    "utils:bootstrap_gen_kernel.exe",
   ]
 }
 
@@ -269,8 +269,8 @@ group("dartfuzz") {
   deps = [
     "runtime/bin:dartaotruntime",
     "runtime/bin:dartvm",
-    "utils/compiler:compile_dart2js_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
+    "utils/compiler:dart2js_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/kernel-service",
   ]
 }

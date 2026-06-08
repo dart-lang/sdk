@@ -63,7 +63,7 @@ template("dart2js_compile") {
 
   prebuilt_dart_action(target_name) {
     mnemonic = "DART2JS"
-    deps = invoker.deps + [ "../compiler:compile_dart2js_platform" ]
+    deps = invoker.deps + [ "../compiler:dart2js_platform" ]
 
     inputs = [
       "$root_out_dir/dart2js_platform.dill",
