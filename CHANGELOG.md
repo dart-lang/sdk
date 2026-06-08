@@ -230,7 +230,7 @@ certificates if the system certificates cannot be found.
 
 ## 3.12.0
 
-**Released on:** Unreleased
+**Released on:** 2026-05-20
 
 ### Language
 
