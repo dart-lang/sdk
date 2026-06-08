@@ -218,13 +218,16 @@ class _WidgetCallSiteTransformer extends Transformer {
       );
       return node;
     }
-    if (_isWidgetFactory(target) && _tracker._locationClass != null) {
-      _addLocationArgument(
-        node,
-        target.function,
-        locationClass: _tracker._locationClass!,
-      );
-      return node;
+    if (_isWidgetFactory(target)) {
+      final Class? locationClass = _tracker._getFactoryLocationClass(target);
+      if (locationClass != null) {
+        _addLocationArgument(
+          node,
+          target.function,
+          locationClass: locationClass,
+        );
+        return node;
+      }
     }
     return node;
   }
@@ -383,7 +386,6 @@ class WidgetCreatorTracker {
   void _resolveWellKnownClasses(Iterable<Library> libraries) {
     // If the Widget or Debug location classes have been updated we need to get
     // the latest version
-
     for (Library library in libraries) {
       final Uri importUri = library.importUri;
 
@@ -589,14 +591,12 @@ class WidgetCreatorTracker {
           changedStructureNotifier,
         );
       }
-      if (_widgetFactoryClass != null) {
-        for (Extension extension in library.extensions) {
-          _transformWidgetFactories(
-            librariesToTransform,
-            transformedExtensions,
-            extension,
-          );
-        }
+      for (Extension extension in library.extensions) {
+        _transformExtension(
+          librariesToTransform,
+          transformedExtensions,
+          extension,
+        );
       }
     }
 
@@ -612,17 +612,6 @@ class WidgetCreatorTracker {
   }
 
   _TrackingClasses? _getTrackingClasses(Class clazz) {
-    // Legacy Case: Check for widget class.
-    if (_isSubclassOfWidget(clazz)) {
-      if (_hasCreationLocationClass != null && _locationClass != null) {
-        return new _TrackingClasses(
-          hasCreationLocationClass: _hasCreationLocationClass!,
-          locationClass: _locationClass!,
-          locationFieldName: _locationFieldName,
-        );
-      }
-    }
-
     // New Case: Check for 'pragma('track-creation-locations')' annotation.
     if (_hasTrackCreationLocationsPragmaAnnotation(clazz)) {
       if (_developerHasCreationLocationClass != null &&
@@ -630,6 +619,17 @@ class WidgetCreatorTracker {
         return new _TrackingClasses(
           hasCreationLocationClass: _developerHasCreationLocationClass!,
           locationClass: _developerCreationLocationClass!,
+          locationFieldName: _locationFieldName,
+        );
+      }
+    }
+
+    // Legacy Case: Check for widget class.
+    if (_isSubclassOfWidget(clazz)) {
+      if (_hasCreationLocationClass != null && _locationClass != null) {
+        return new _TrackingClasses(
+          hasCreationLocationClass: _hasCreationLocationClass!,
+          locationClass: _locationClass!,
           locationFieldName: _locationFieldName,
         );
       }
@@ -645,50 +645,88 @@ class WidgetCreatorTracker {
 
   bool _hasTrackCreationLocationsPragmaAnnotation(Class clazz) {
     if (_developerHasCreationLocationClass == null) return false;
-    return _isSubclassWhere(clazz, (Class c) {
-      for (Expression annotation in c.annotations) {
-        // Case before constant evaluation (newly compiled modules).
-        if (annotation is RedirectingFactoryInvocation) {
-          final expression = annotation.expression;
+    return _isSubclassWhere(
+      clazz,
+      (Class c) => _hasPragmaAnnotation(c, 'track-creation-locations'),
+    );
+  }
 
-          if (expression is ConstructorInvocation) {
-            final Class enclosingClass = expression.target.enclosingClass;
+  bool _hasPragmaAnnotation(Annotatable node, String pragmaName) {
+    for (Expression annotation in node.annotations) {
+      if (_getPragmaName(annotation) == pragmaName) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-            if (enclosingClass.name == 'pragma' &&
-                enclosingClass.enclosingLibrary.importUri.toString() ==
-                    'dart:core') {
-              if (expression.arguments.positional.isNotEmpty) {
-                final Expression firstArg =
-                    expression.arguments.positional.first;
-                if (firstArg is StringLiteral &&
-                    firstArg.value == 'track-creation-locations') {
-                  return true;
-                }
-              }
-            }
+  String? _getPragmaName(Expression expression) {
+    // Direct invocation, e.g. `@pragma('...')`.
+    // Applies before constant evaluation (newly compiled modules).
+    if (expression
+        case RedirectingFactoryInvocation(
+              expression: final ConstructorInvocation invocation,
+            ) ||
+            final ConstructorInvocation invocation) {
+      final Class enclosingClass = invocation.target.enclosingClass;
+      if (enclosingClass.name == 'pragma' &&
+          enclosingClass.enclosingLibrary.importUri.toString() == 'dart:core') {
+        if (invocation.arguments.positional.isNotEmpty) {
+          final Expression firstArg = invocation.arguments.positional.first;
+          if (firstArg is StringLiteral) {
+            return firstArg.value;
           }
         }
-        // Case after constant evaluation (incremental or modular compilation).
-        if (annotation case ConstantExpression(
-          constant: final InstanceConstant constant,
-        )) {
-          final Class enclosingClass = constant.classNode;
+      }
+    }
 
-          if (enclosingClass.name == 'pragma' &&
-              enclosingClass.enclosingLibrary.importUri.toString() ==
-                  'dart:core') {
-            for (final Constant value in constant.fieldValues.values) {
-              if (value case StringConstant(
-                value: 'track-creation-locations',
-              )) {
-                return true;
-              }
+    // Aliased constant, e.g. `@widgetFactory`
+    // with `const widgetFactory = pragma('...');`.
+    // Applies before constant evaluation (newly compiled modules).
+    if (expression is StaticGet) {
+      final Member target = expression.target;
+      if (target is Field && target.isConst) {
+        if (target.initializer != null) {
+          return _getPragmaName(target.initializer!);
+        }
+      }
+    }
+
+    // Evaluated constant pragma.
+    // Applies after constant evaluation (incremental or modular compilation).
+    if (expression is ConstantExpression) {
+      final Constant constant = expression.constant;
+      if (constant is InstanceConstant) {
+        final Class enclosingClass = constant.classNode;
+        if (enclosingClass.name == 'pragma' &&
+            enclosingClass.enclosingLibrary.importUri.toString() ==
+                'dart:core') {
+          for (final Constant value in constant.fieldValues.values) {
+            if (value is StringConstant) {
+              return value.value;
             }
           }
         }
       }
-      return false;
-    });
+    }
+    return null;
+  }
+
+  Class? _getFactoryLocationClass(Procedure method) {
+    if (_hasPragmaAnnotation(method, 'track-creation-locations')) {
+      return _developerCreationLocationClass;
+    }
+    if (_hasWidgetFactoryAnnotation(method)) {
+      return _locationClass;
+    }
+    return null;
+  }
+
+  bool _isTransformedType(DartType type) {
+    if (type is InterfaceType) {
+      return _getTrackingClasses(type.classNode) != null;
+    }
+    return false;
   }
 
   bool _isSubclassWhere(Class a, bool Function(Class b) predicate) {
@@ -845,14 +883,13 @@ class WidgetCreatorTracker {
     clazz.constructors.forEach(handleConstructor);
   }
 
-  void _transformWidgetFactories(
+  void _transformExtension(
     Set<Library> librariesToBeTransformed,
     Set<Extension> transformedExtensions,
     Extension extension,
   ) {
     // TODO(johnniwinther): We should have a lint for unsupported use of
     // `@widgetFactory`.
-    assert(_widgetFactoryClass != null);
 
     if (!librariesToBeTransformed.contains(extension.enclosingLibrary) ||
         !transformedExtensions.add(extension)) {
@@ -866,34 +903,36 @@ class WidgetCreatorTracker {
         continue;
       }
       final Procedure? method = member.memberReference?.asProcedure;
-      if (method != null && _hasWidgetFactoryAnnotation(method)) {
-        _maybeAddNamedParameter(
-          method.function,
-          new Variable(
-            _creationLocationParameterName,
-            type: new InterfaceType(
-              _locationClass!,
-              extension.enclosingLibrary.nullable,
-            ),
-            initializer: new NullLiteral(),
-          ),
-        );
+      if (method != null) {
+        _transformExtensionProcedure(method, extension);
       }
       final Procedure? tearOff = member.tearOffReference?.asProcedure;
-      if (tearOff != null && _hasWidgetFactoryAnnotation(tearOff)) {
-        _maybeAddNamedParameter(
-          tearOff.function,
-          new Variable(
-            _creationLocationParameterName,
-            type: new InterfaceType(
-              _locationClass!,
-              extension.enclosingLibrary.nullable,
-            ),
-            initializer: new NullLiteral(),
-          ),
-        );
+      if (tearOff != null) {
+        _transformExtensionProcedure(tearOff, extension);
       }
     }
+  }
+
+  void _transformExtensionProcedure(Procedure method, Extension extension) {
+    final Class? locationClass = _getFactoryLocationClass(method);
+    if (locationClass == null) {
+      return;
+    }
+    if (!_isTransformedType(method.function.returnType)) {
+      return;
+    }
+
+    _maybeAddNamedParameter(
+      method.function,
+      new Variable(
+        _creationLocationParameterName,
+        type: new InterfaceType(
+          locationClass,
+          extension.enclosingLibrary.nullable,
+        ),
+        initializer: new NullLiteral(),
+      ),
+    );
   }
 }
 
