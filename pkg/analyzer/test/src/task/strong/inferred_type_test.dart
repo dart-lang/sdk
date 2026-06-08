@@ -3,10 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,10 +18,6 @@ void main() {
 
 @reflectiveTest
 class InferredTypeTest extends PubPackageResolutionTest {
-  File get dartAsyncFile {
-    return getFile('${sdkRoot.posixPath}/lib/async/async.dart');
-  }
-
   test_asyncClosureReturnType_flatten() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 Future<int> futureInt = null;
@@ -440,14 +432,14 @@ var y = () => x;
 
   @SkippedTest(reason: 'Element model rewrite')
   test_circularReference_viaClosures_initializerTypes() async {
-    print('-' * 64);
-    var result = await assertErrorsInCode(
-      '''
+    var result = await resolveTestCodeWithDiagnostics('''
 var x = () => y;
+//  ^
+// [diag.topLevelCycle] The type of 'x' can't be inferred because it depends on itself through the cycle: x, y.
 var y = () => x;
-''',
-      [error(diag.topLevelCycle, 4, 1), error(diag.topLevelCycle, 21, 1)],
-    );
+//  ^
+// [diag.topLevelCycle] The type of 'y' can't be inferred because it depends on itself through the cycle: x, y.
+''');
 
     var x = result.libraryElement.topLevelVariables[0];
     var y = result.libraryElement.topLevelVariables[1];
@@ -2092,371 +2084,611 @@ int get y => null;
     await resolveTestCodeWithDiagnostics(r'''
 void add(int x) {}
 add2(int y) {}
-main() {
-  Future<int> f;
+void foo(Future<int> f) {
   var a = f.then(add);
-//    ^
-// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
-//        ^
-// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
+
   var b = f.then(add2);
-//    ^
-// [diag.unusedLocalVariable] The value of the local variable 'b' isn't used.
-//        ^
-// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
+
+  (a, b);
 }
 ''');
   }
 
-  test_futureThen() async {
-    String build({
-      required String declared,
-      required String downwards,
-      required String upwards,
-    }) =>
-        '''
+  test_futureThen_conditional_declaredFuture_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
-  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
 }
 
-void main() {
-  $declared f;
-  $downwards<int> t1 = f.then((_) async => await new $upwards<int>.value(1));
-  $downwards<int> t2 = f.then((_) async {
-     return await new $upwards<int>.value(2);});
-  $downwards<int> t3 = f.then((_) async => 3);
-  $downwards<int> t4 = f.then((_) async {
-    return 4;});
-  $downwards<int> t5 = f.then((_) => new $upwards<int>.value(5));
-  $downwards<int> t6 = f.then((_) {return new $upwards<int>.value(6);});
-  $downwards<int> t7 = f.then((_) async => new $upwards<int>.value(7));
-  $downwards<int> t8 = f.then((_) async {
-    return new $upwards<int>.value(8);});
-}
-''';
+void foo(Future<bool> f) {
+  Future<int> t1 = f.then(
+    (x) async => x ? 2 : await new Future<int>.value(3),
+  );
 
-    List<ExpectedDiagnostic> diagnostics = [
-      error(
-        diag.invalidOverride,
-        188,
-        4,
-        contextMessages: [message(dartAsyncFile, 570, 4)],
-      ),
-      error(diag.missingDefaultValueForParameter, 226, 7),
-      error(diag.returnOfInvalidTypeFromMethod, 239, 4),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 295, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 367, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 452, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 495, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 550, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 610, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 677, 1),
-      error(diag.notAssignedPotentiallyNonNullableLocalVariable, 743, 1),
-    ];
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
-      diagnostics,
-    );
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
-      diagnostics,
-    );
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"),
-      diagnostics,
-    );
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
-      diagnostics,
-    );
-    await _assertErrors(
-      build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
-      diagnostics,
-    );
-    await _assertErrors(
-      build(declared: "Future", downwards: "Future", upwards: "Future"),
-      diagnostics,
-    );
+  // Note: Why the duplicate here?
+  Future<int> t2 = f.then((x) async {
+    return await x ? 2 : new Future<int>.value(3);
+  });
+
+  Future<int> t5 = f.then((x) => x ? 2 : new Future<int>.value(3));
+
+  Future<int> t6 = f.then((x) {
+    return x ? 2 : new Future<int>.value(3);
+  });
+
+  (t1, t2, t5, t6);
+}
+''');
   }
 
-  test_futureThen_conditional() async {
-    String build({
-      required String declared,
-      required String downwards,
-      required String upwards,
-    }) =>
-        '''
+  test_futureThen_conditional_declaredFuture_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
+
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
-  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
 }
 
-void main() {
-  $declared<bool> f;
-  $downwards<int> t1 = f.then(
-      (x) async => x ? 2 : await new $upwards<int>.value(3));
-  $downwards<int> t2 = f.then((x) async { // TODO(leafp): Why the duplicate here?
-    return await x ? 2 : new $upwards<int>.value(3);});
-  $downwards<int> t5 = f.then(
-      (x) => x ? 2 : new $upwards<int>.value(3));
-  $downwards<int> t6 = f.then(
-      (x) {return x ? 2 : new $upwards<int>.value(3);});
+void foo(Future<bool> f) {
+  Future<int> t1 = f.then(
+    (x) async => x ? 2 : await new MyFuture<int>.value(3),
+  );
+
+  // Note: Why the duplicate here?
+  Future<int> t2 = f.then((x) async {
+    return await x ? 2 : new MyFuture<int>.value(3);
+  });
+
+  Future<int> t5 = f.then((x) => x ? 2 : new MyFuture<int>.value(3));
+
+  Future<int> t6 = f.then((x) {
+    return x ? 2 : new MyFuture<int>.value(3);
+  });
+
+  (t1, t2, t5, t6);
 }
-''';
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 300, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 387, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 519, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 594, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+''');
+  }
 
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 300, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 389, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 523, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 600, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+  test_futureThen_conditional_declaredMyFuture_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
 
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 302, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 391, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 525, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 602, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
 
-    await _assertErrors(
-      build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 302, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 393, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 529, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 608, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+void foo(MyFuture<bool> f) {
+  Future<int> t1 = f.then(
+    (x) async => x ? 2 : await new Future<int>.value(3),
+  );
 
-    await _assertErrors(
-      build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 298, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 387, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 521, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 598, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+  // Note: Why the duplicate here?
+  Future<int> t2 = f.then((x) async {
+    return await x ? 2 : new Future<int>.value(3);
+  });
 
-    await _assertErrors(
-      build(declared: "Future", downwards: "Future", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 298, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 385, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 517, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 592, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+  Future<int> t5 = f.then((x) => x ? 2 : new Future<int>.value(3));
+
+  Future<int> t6 = f.then((x) {
+    return x ? 2 : new Future<int>.value(3);
+  });
+
+  (t1, t2, t5, t6);
+}
+''');
+  }
+
+  test_futureThen_conditional_declaredMyFuture_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture<bool> f) {
+  Future<int> t1 = f.then(
+    (x) async => x ? 2 : await new MyFuture<int>.value(3),
+  );
+
+  // Note: Why the duplicate here?
+  Future<int> t2 = f.then((x) async {
+    return await x ? 2 : new MyFuture<int>.value(3);
+  });
+
+  Future<int> t5 = f.then((x) => x ? 2 : new MyFuture<int>.value(3));
+
+  Future<int> t6 = f.then((x) {
+    return x ? 2 : new MyFuture<int>.value(3);
+  });
+
+  (t1, t2, t5, t6);
+}
+''');
+  }
+
+  test_futureThen_conditional_declaredMyFuture_downwardsMyFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture<bool> f) {
+  MyFuture<int> t1 = f.then(
+    (x) async => x ? 2 : await new Future<int>.value(3),
+  );
+
+  // Note: Why the duplicate here?
+  MyFuture<int> t2 = f.then((x) async {
+    return await x ? 2 : new Future<int>.value(3);
+  });
+
+  MyFuture<int> t5 = f.then((x) => x ? 2 : new Future<int>.value(3));
+
+  MyFuture<int> t6 = f.then((x) {
+    return x ? 2 : new Future<int>.value(3);
+  });
+
+  (t1, t2, t5, t6);
+}
+''');
+  }
+
+  test_futureThen_conditional_declaredMyFuture_downwardsMyFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture<bool> f) {
+  MyFuture<int> t1 = f.then(
+    (x) async => x ? 2 : await new MyFuture<int>.value(3),
+  );
+
+  // Note: Why the duplicate here?
+  MyFuture<int> t2 = f.then((x) async {
+    return await x ? 2 : new MyFuture<int>.value(3);
+  });
+
+  MyFuture<int> t5 = f.then((x) => x ? 2 : new MyFuture<int>.value(3));
+
+  MyFuture<int> t6 = f.then((x) {
+    return x ? 2 : new MyFuture<int>.value(3);
+  });
+
+  (t1, t2, t5, t6);
+}
+''');
+  }
+
+  test_futureThen_declaredFuture_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(Future f) {
+  Future<int> t1 = f.then((_) async => await new Future<int>.value(1));
+
+  Future<int> t2 = f.then((_) async {
+    return await new Future<int>.value(2);
+  });
+
+  Future<int> t3 = f.then((_) async => 3);
+
+  Future<int> t4 = f.then((_) async {
+    return 4;
+  });
+
+  Future<int> t5 = f.then((_) => new Future<int>.value(5));
+
+  Future<int> t6 = f.then((_) {
+    return new Future<int>.value(6);
+  });
+
+  Future<int> t7 = f.then((_) async => new Future<int>.value(7));
+
+  Future<int> t8 = f.then((_) async {
+    return new Future<int>.value(8);
+  });
+
+  (t1, t2, t3, t4, t5, t6, t7, t8);
+}
+''');
+  }
+
+  test_futureThen_declaredFuture_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(Future f) {
+  Future<int> t1 = f.then((_) async => await new MyFuture<int>.value(1));
+
+  Future<int> t2 = f.then((_) async {
+    return await new MyFuture<int>.value(2);
+  });
+
+  Future<int> t3 = f.then((_) async => 3);
+
+  Future<int> t4 = f.then((_) async {
+    return 4;
+  });
+
+  Future<int> t5 = f.then((_) => new MyFuture<int>.value(5));
+
+  Future<int> t6 = f.then((_) {
+    return new MyFuture<int>.value(6);
+  });
+
+  Future<int> t7 = f.then((_) async => new MyFuture<int>.value(7));
+
+  Future<int> t8 = f.then((_) async {
+    return new MyFuture<int>.value(8);
+  });
+
+  (t1, t2, t3, t4, t5, t6, t7, t8);
+}
+''');
+  }
+
+  test_futureThen_declaredMyFuture_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture f) {
+  Future<int> t1 = f.then((_) async => await new Future<int>.value(1));
+
+  Future<int> t2 = f.then((_) async {
+    return await new Future<int>.value(2);
+  });
+
+  Future<int> t3 = f.then((_) async => 3);
+
+  Future<int> t4 = f.then((_) async {
+    return 4;
+  });
+
+  Future<int> t5 = f.then((_) => new Future<int>.value(5));
+
+  Future<int> t6 = f.then((_) {
+    return new Future<int>.value(6);
+  });
+
+  Future<int> t7 = f.then((_) async => new Future<int>.value(7));
+
+  Future<int> t8 = f.then((_) async {
+    return new Future<int>.value(8);
+  });
+
+  (t1, t2, t3, t4, t5, t6, t7, t8);
+}
+''');
+  }
+
+  test_futureThen_declaredMyFuture_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture f) {
+  Future<int> t1 = f.then((_) async => await new MyFuture<int>.value(1));
+
+  Future<int> t2 = f.then((_) async {
+    return await new MyFuture<int>.value(2);
+  });
+
+  Future<int> t3 = f.then((_) async => 3);
+
+  Future<int> t4 = f.then((_) async {
+    return 4;
+  });
+
+  Future<int> t5 = f.then((_) => new MyFuture<int>.value(5));
+
+  Future<int> t6 = f.then((_) {
+    return new MyFuture<int>.value(6);
+  });
+
+  Future<int> t7 = f.then((_) async => new MyFuture<int>.value(7));
+
+  Future<int> t8 = f.then((_) async {
+    return new MyFuture<int>.value(8);
+  });
+
+  (t1, t2, t3, t4, t5, t6, t7, t8);
+}
+''');
+  }
+
+  test_futureThen_declaredMyFuture_downwardsMyFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture f) {
+  MyFuture<int> t1 = f.then((_) async => await new Future<int>.value(1));
+
+  MyFuture<int> t2 = f.then((_) async {
+    return await new Future<int>.value(2);
+  });
+
+  MyFuture<int> t3 = f.then((_) async => 3);
+
+  MyFuture<int> t4 = f.then((_) async {
+    return 4;
+  });
+
+  MyFuture<int> t5 = f.then((_) => new Future<int>.value(5));
+
+  MyFuture<int> t6 = f.then((_) {
+    return new Future<int>.value(6);
+  });
+
+  MyFuture<int> t7 = f.then((_) async => new Future<int>.value(7));
+
+  MyFuture<int> t8 = f.then((_) async {
+    return new Future<int>.value(8);
+  });
+
+  (t1, t2, t3, t4, t5, t6, t7, t8);
+}
+''');
+  }
+
+  test_futureThen_declaredMyFuture_downwardsMyFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void foo(MyFuture f) {
+  MyFuture<int> t1 = f.then((_) async => await new MyFuture<int>.value(1));
+
+  MyFuture<int> t2 = f.then((_) async {
+    return await new MyFuture<int>.value(2);
+  });
+
+  MyFuture<int> t3 = f.then((_) async => 3);
+
+  MyFuture<int> t4 = f.then((_) async {
+    return 4;
+  });
+
+  MyFuture<int> t5 = f.then((_) => new MyFuture<int>.value(5));
+
+  MyFuture<int> t6 = f.then((_) {
+    return new MyFuture<int>.value(6);
+  });
+
+  MyFuture<int> t7 = f.then((_) async => new MyFuture<int>.value(7));
+
+  MyFuture<int> t8 = f.then((_) async {
+    return new MyFuture<int>.value(8);
+  });
+
+  (t1, t2, t3, t4, t5, t6, t7, t8);
+}
+''');
   }
 
   test_futureThen_downwardsMethodTarget() async {
     // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
-    await assertErrorsInCode(
-      r'''
-main() {
-  Future<int> f;
+    await resolveTestCodeWithDiagnostics(r'''
+void foo(Future<int> f) {
   Future<List<int>> b = f
+// [diag.invalidAssignment][column 25][length 51] A value of type 'Future<List<dynamic>>' can't be assigned to a variable of type 'Future<List<int>>'.
       .then((x) => [])
       .whenComplete(() {});
   b = f.then((x) => []);
-}
-  ''',
-      [
-        error(diag.unusedLocalVariable, 46, 1),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 50, 1),
-        error(diag.invalidAssignment, 50, 51),
-        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 109, 1),
-      ],
-    );
-  }
-
-  test_futureThen_explicitFuture() async {
-    await resolveTestCodeWithDiagnostics(r'''
-m1() {
-  Future<int> f;
-  var x = f.then<Future<List<int>>>((x) => []);
-//        ^
-// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
-//                                         ^^
-// [diag.returnOfInvalidTypeFromClosure] The returned type 'List<dynamic>' isn't returnable from a 'FutureOr<Future<List<int>>>' function, as required by the closure's context.
-  Future<List<int>> y = x;
-//                  ^
-// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
-//                      ^
-// [diag.invalidAssignment] A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
-}
-m2() {
-  Future<int> f;
-  var x = f.then<List<int>>((x) => []);
-//        ^
-// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
-  Future<List<int>> y = x;
-//                  ^
-// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+  b;
 }
 ''');
   }
 
-  test_futureThen_upwards() async {
+  test_futureThen_explicitFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void foo1(Future<int> f) {
+  var x = f.then<Future<List<int>>>((x) => []);
+//                                         ^^
+// [diag.returnOfInvalidTypeFromClosure] The returned type 'List<dynamic>' isn't returnable from a 'FutureOr<Future<List<int>>>' function, as required by the closure's context.
+  Future<List<int>> y = x;
+//                      ^
+// [diag.invalidAssignment] A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
+  y;
+}
+
+void foo2(Future<int> f) {
+  var x = f.then<List<int>>((x) => []);
+  Future<List<int>> y = x;
+  y;
+}
+''');
+  }
+
+  test_futureThen_upwards_declaredFuture_downwardsFuture_upwardsFuture() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27088.
-    String build({
-      required String declared,
-      required String downwards,
-      required String upwards,
-    }) =>
-        '''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
+
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
-  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
 }
 
 void main() {
   var f = foo().then((_) => 2.3);
-  $downwards<int> f2 = f;
+  Future<int> f2 = f;
+//            ^^
+// [diag.unusedLocalVariable] The value of the local variable 'f2' isn't used.
+//                 ^
+// [diag.invalidAssignment] A value of type 'Future<double>' can't be assigned to a variable of type 'Future<int>'.
 
   // The unnecessary cast is to illustrate that we inferred <double> for
   // the generic type args, even though we had a return type context.
-  $downwards<num> f3 = foo().then(
-      (_) => 2.3) as $upwards<double>;
+  Future<num> f3 = foo().then(
+//            ^^
+// [diag.unusedLocalVariable] The value of the local variable 'f3' isn't used.
+// [diag.unnecessaryCast][column 20][length 47] Unnecessary cast.
+      (_) => 2.3) as Future<double>;
 }
-$declared foo() => new $declared<int>.value(1);
-    ''';
+Future foo() => new Future<int>.value(1);
+''');
+  }
 
-    await assertErrorsInCode(
-      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.unusedLocalVariable, 309, 2),
-        error(diag.invalidAssignment, 314, 1),
-        error(diag.unusedLocalVariable, 475, 2),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+  test_futureThen_upwards_declaredMyFuture_downwardsFuture_upwardsFuture() async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27088.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
 
-    await assertErrorsInCode(
-      build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.unusedLocalVariable, 311, 2),
-        error(diag.invalidAssignment, 316, 1),
-        error(diag.unusedLocalVariable, 479, 2),
-        error(diag.unnecessaryCast, 484, 49),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
 
-    await assertErrorsInCode(
-      build(declared: "Future", downwards: "Future", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.unusedLocalVariable, 309, 2),
-        error(diag.invalidAssignment, 314, 1),
-        error(diag.unusedLocalVariable, 475, 2),
-        error(diag.unnecessaryCast, 480, 47),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+void main() {
+  var f = foo().then((_) => 2.3);
+  Future<int> f2 = f;
+//            ^^
+// [diag.unusedLocalVariable] The value of the local variable 'f2' isn't used.
+//                 ^
+// [diag.invalidAssignment] A value of type 'MyFuture<double>' can't be assigned to a variable of type 'Future<int>'.
+
+  // The unnecessary cast is to illustrate that we inferred <double> for
+  // the generic type args, even though we had a return type context.
+  Future<num> f3 = foo().then(
+//            ^^
+// [diag.unusedLocalVariable] The value of the local variable 'f3' isn't used.
+      (_) => 2.3) as Future<double>;
+}
+MyFuture foo() => new MyFuture<int>.value(1);
+''');
+  }
+
+  test_futureThen_upwards_declaredMyFuture_downwardsMyFuture_upwardsMyFuture() async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27088.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value(T x) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+void main() {
+  var f = foo().then((_) => 2.3);
+  MyFuture<int> f2 = f;
+//              ^^
+// [diag.unusedLocalVariable] The value of the local variable 'f2' isn't used.
+//                   ^
+// [diag.invalidAssignment] A value of type 'MyFuture<double>' can't be assigned to a variable of type 'MyFuture<int>'.
+
+  // The unnecessary cast is to illustrate that we inferred <double> for
+  // the generic type args, even though we had a return type context.
+  MyFuture<num> f3 = foo().then(
+//              ^^
+// [diag.unusedLocalVariable] The value of the local variable 'f3' isn't used.
+// [diag.unnecessaryCast][column 22][length 49] Unnecessary cast.
+      (_) => 2.3) as MyFuture<double>;
+}
+MyFuture foo() => new MyFuture<int>.value(1);
+''');
   }
 
   test_futureThen_upwardsFromBlock() async {
@@ -2464,9 +2696,11 @@ $declared foo() => new $declared<int>.value(1);
     await resolveTestCodeWithDiagnostics(r'''
 main() {
   Future<int> base;
-  var f = base.then((x) { return x == 0; });
+  var f = base.then((x) {
 //        ^^^^
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'base' must be assigned before it can be used.
+    return x == 0;
+  });
   var g = base.then((x) => x == 0);
 //        ^^^^
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'base' must be assigned before it can be used.
@@ -2478,153 +2712,174 @@ main() {
 ''');
   }
 
-  test_futureUnion_asyncConditional() async {
-    String build({
-      required String downwards,
-      required String upwards,
-      String expectedInfo = '',
-    }) =>
-        '''
+  test_futureUnion_asyncConditional_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
-  MyFuture.value(x) {}
+  MyFuture.value([T? x]) {}
   dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
-  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
 }
 
-$downwards<int> g1(bool x) async {
-  return x ? 42 : new $upwards.value(42); }
-$downwards<int> g2(bool x) async =>
-  x ? 42 : new $upwards.value(42);
-$downwards<int> g3(bool x) async {
-  var y = x ? 42 : ${expectedInfo}new $upwards.value(42);
+Future<int> g1(bool x) async {
+  return x ? 42 : new Future.value(42); }
+Future<int> g2(bool x) async =>
+  x ? 42 : new Future.value(42);
+Future<int> g3(bool x) async {
+  var y = x ? 42 : new Future.value(42);
   return y;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Object' can't be returned from the function 'g3' because it has a return type of 'Future<int>'.
 }
-    ''';
-
-    await assertErrorsInCode(build(downwards: "Future", upwards: "Future"), [
-      error(
-        diag.invalidOverride,
-        185,
-        4,
-        contextMessages: [message(dartAsyncFile, 570, 4)],
-      ),
-      error(diag.missingDefaultValueForParameter, 223, 7),
-      error(diag.returnOfInvalidTypeFromMethod, 236, 4),
-      error(diag.returnOfInvalidTypeFromFunction, 464, 1),
-    ]);
-    await disposeAnalysisContextCollection();
-
-    await assertErrorsInCode(build(downwards: "Future", upwards: "MyFuture"), [
-      error(
-        diag.invalidOverride,
-        185,
-        4,
-        contextMessages: [message(dartAsyncFile, 570, 4)],
-      ),
-      error(diag.missingDefaultValueForParameter, 223, 7),
-      error(diag.returnOfInvalidTypeFromMethod, 236, 4),
-      error(diag.returnOfInvalidTypeFromFunction, 470, 1),
-    ]);
-    await disposeAnalysisContextCollection();
+''');
   }
 
-  test_futureUnion_downwards() async {
-    String build({
-      required String declared,
-      required String downwards,
-      required String upwards,
-      String expectedError = '',
-    }) {
-      return '''
+  test_futureUnion_asyncConditional_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
-  MyFuture.value([x]) {}
+  MyFuture.value([T? x]) {}
   dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
-  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
 }
 
-$declared f;
+Future<int> g1(bool x) async {
+  return x ? 42 : new MyFuture.value(42); }
+Future<int> g2(bool x) async =>
+  x ? 42 : new MyFuture.value(42);
+Future<int> g3(bool x) async {
+  var y = x ? 42 : new MyFuture.value(42);
+  return y;
+//       ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'Object' can't be returned from the function 'g3' because it has a return type of 'Future<int>'.
+}
+''');
+  }
+
+  test_futureUnion_downwards_declaredFuture_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([T? x]) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+Future f;
+//     ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
 // Instantiates Future<int>
-$downwards<int> t1 = f.then((_) =>
-   new $upwards.value($expectedError'hi'));
+Future<int> t1 = f.then((_) =>
+   new Future.value('hi'));
+//                  ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'FutureOr<int>?'.
 
 // Instantiates List<int>
-$downwards<List<int>> t2 = f.then((_) => [3]);
-$downwards<List<int>> g2() async { return [3]; }
-$downwards<List<int>> g3() async {
-  return new $upwards.value(
+Future<List<int>> t2 = f.then((_) => [3]);
+Future<List<int>> g2() async { return [3]; }
+Future<List<int>> g3() async {
+  return new Future.value(
       [3]); }
-''';
-    }
+''');
+  }
 
-    await assertErrorsInCode(
-      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notInitializedNonNullableVariable, 256, 1),
-        error(diag.argumentTypeNotAssignable, 338, 4),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+  test_futureUnion_downwards_declaredFuture_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([T? x]) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
 
-    await assertErrorsInCode(
-      build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notInitializedNonNullableVariable, 256, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+Future f;
+//     ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
+// Instantiates Future<int>
+Future<int> t1 = f.then((_) =>
+   new MyFuture.value('hi'));
+//                    ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int?'.
 
-    await assertErrorsInCode(
-      build(declared: "Future", downwards: "Future", upwards: "Future"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notInitializedNonNullableVariable, 254, 1),
-        error(diag.argumentTypeNotAssignable, 336, 4),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+// Instantiates List<int>
+Future<List<int>> t2 = f.then((_) => [3]);
+Future<List<int>> g2() async { return [3]; }
+Future<List<int>> g3() async {
+  return new MyFuture.value(
+      [3]); }
+''');
+  }
 
-    await assertErrorsInCode(
-      build(declared: "Future", downwards: "Future", upwards: "MyFuture"),
-      [
-        error(
-          diag.invalidOverride,
-          187,
-          4,
-          contextMessages: [message(dartAsyncFile, 570, 4)],
-        ),
-        error(diag.missingDefaultValueForParameter, 225, 7),
-        error(diag.returnOfInvalidTypeFromMethod, 238, 4),
-        error(diag.notInitializedNonNullableVariable, 254, 1),
-      ],
-    );
-    await disposeAnalysisContextCollection();
+  test_futureUnion_downwards_declaredMyFuture_downwardsFuture_upwardsFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([T? x]) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+MyFuture f;
+//       ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
+// Instantiates Future<int>
+Future<int> t1 = f.then((_) =>
+   new Future.value('hi'));
+//                  ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'FutureOr<int>?'.
+
+// Instantiates List<int>
+Future<List<int>> t2 = f.then((_) => [3]);
+Future<List<int>> g2() async { return [3]; }
+Future<List<int>> g3() async {
+  return new Future.value(
+      [3]); }
+''');
+  }
+
+  test_futureUnion_downwards_declaredMyFuture_downwardsFuture_upwardsMyFuture() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+class MyFuture<T> implements Future<T> {
+  MyFuture() {}
+  MyFuture.value([T? x]) {}
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  MyFuture<S> then<S>(FutureOr<S> Function(T) f, {Function? onError}) {
+    return MyFuture<S>();
+  }
+}
+
+MyFuture f;
+//       ^
+// [diag.notInitializedNonNullableVariable] The non-nullable variable 'f' must be initialized.
+// Instantiates Future<int>
+Future<int> t1 = f.then((_) =>
+   new MyFuture.value('hi'));
+//                    ^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int?'.
+
+// Instantiates List<int>
+Future<List<int>> t2 = f.then((_) => [3]);
+Future<List<int>> g2() async { return [3]; }
+Future<List<int>> g3() async {
+  return new MyFuture.value(
+      [3]); }
+''');
   }
 
   test_futureUnion_downwardsGenericMethodWithFutureReturn() async {
@@ -2654,13 +2909,9 @@ class A {}
     await resolveTestCodeWithDiagnostics(r'''
 T id<T>(T x) => x;
 
-main() async {
-  Future<String> f;
+foo(Future<String> f) async {
   String s = await id(f);
-//       ^
-// [diag.unusedLocalVariable] The value of the local variable 's' isn't used.
-//                    ^
-// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'f' must be assigned before it can be used.
+  s;
 }
 ''');
   }
@@ -5657,20 +5908,6 @@ main() {
     var y = result.libraryElement.topLevelVariables[1];
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'void');
-  }
-
-  Future<void> _assertErrors(
-    String code,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    var result = await resolveTestCode(code);
-    assertErrorsInList(
-      result.diagnostics.where((e) {
-        return e.diagnosticCode != diag.unusedLocalVariable &&
-            e.diagnosticCode.type != DiagnosticType.TODO;
-      }).toList(),
-      expectedDiagnostics,
-    );
   }
 
   void _assertTypeStr(DartType type, String expected) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -175,34 +174,31 @@ void f() {
   }
 
   test_method_conflict_conflict_notSpecific_sameName() async {
-    var one = newFile('$testPackageLibPath/one.dart', '''
+    var one = getFile('$testPackageLibPath/one.dart');
+    var two = getFile('$testPackageLibPath/two.dart');
+
+    await resolveFilesWithDiagnostics({
+      one: '''
 extension E on int { void foo() {} }
-''');
-    var two = newFile('$testPackageLibPath/two.dart', '''
+//        ^
+// [context 1] E is defined in /home/test/lib/one.dart
+''',
+      two: '''
 extension E on int { void foo() {} }
-''');
-    await assertErrorsInCode(
-      '''
+//        ^
+// [context 2] E is defined in /home/test/lib/two.dart
+''',
+      testFile: '''
 // ignore_for_file: unused_import
 import 'one.dart';
 import 'two.dart';
 void f() {
   0.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessTwo][context 1][context 2] A member named 'foo' is defined in 'extension E on int (where E is defined in /home/test/lib/one.dart)' and 'extension E on int (where E is defined in /home/test/lib/two.dart)', and neither is more specific.
 }
 ''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessTwo,
-          87,
-          3,
-          messageContains: [
-            "'extension E on int (where E is defined in ${one.path})' and "
-                "'extension E on int (where E is defined in ${two.path})',",
-          ],
-          contextMessages: [message(one, 10, 1), message(two, 10, 1)],
-        ),
-      ],
-    );
+    });
   }
 
   test_method_conflict_conflict_notSpecific_sameName_invalidType() async {
@@ -334,34 +330,36 @@ void f() {
   }
 
   test_method_triple_conflict_sameName() async {
-    var one = newFile('$testPackageLibPath/one.dart', '''
+    var one = getFile('$testPackageLibPath/one.dart');
+    var two = getFile('$testPackageLibPath/two.dart');
+    var three = getFile('$testPackageLibPath/three.dart');
+
+    await resolveFilesWithDiagnostics({
+      one: '''
 extension E on int { void foo() {} }
-''');
-    var two = newFile('$testPackageLibPath/two.dart', '''
+//        ^
+// [context 1] E is defined in /home/test/lib/one.dart
+''',
+      two: '''
 extension E on int { void foo() {} }
-''');
-    newFile('$testPackageLibPath/three.dart', '''
+//        ^
+// [context 2] E is defined in /home/test/lib/two.dart
+''',
+      three: '''
 extension E1 on int { void foo() {} }
-''');
-    await assertErrorsInCode(
-      '''
+''',
+      testFile: '''
 // ignore_for_file: unused_import
 import 'one.dart';
 import 'two.dart';
 import 'three.dart';
 void f() {
   0.foo();
+//  ^^^
+// [diag.ambiguousExtensionMemberAccessThreeOrMore][context 1][context 2] A member named 'foo' is defined in extension 'E', extension 'E', and extension 'E1', and none are more specific.
 }
 ''',
-      [
-        error(
-          diag.ambiguousExtensionMemberAccessThreeOrMore,
-          108,
-          3,
-          contextMessages: [message(one, 10, 1), message(two, 10, 1)],
-        ),
-      ],
-    );
+    });
   }
 
   test_noMoreSpecificExtension() async {

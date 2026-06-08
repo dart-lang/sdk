@@ -4,8 +4,6 @@
 
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -7688,19 +7686,18 @@ void main() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55467')
   test_listLiteral_expression_nonConstant() async {
-    await assertErrorsInCode(
-      '''
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/55467
+    await resolveTestCodeWithDiagnostics('''
 var b = 7;
 var x = const A([b]);
+//               ^
+// [diag.invalidConstant] Invalid constant value.
 
 class A {
   const A(List<int> p);
 }
-''',
-      [error(diag.nonConstantListElement, 28, 1)],
-    );
+''');
   }
 
   test_redirectingConstructor_typeParameter() async {

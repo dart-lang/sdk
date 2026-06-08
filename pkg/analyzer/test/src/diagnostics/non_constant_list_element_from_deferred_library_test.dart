@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,20 +17,17 @@ main() {
 @reflectiveTest
 class NonConstantListElementFromDeferredLibraryTest
     extends PubPackageResolutionTest {
-  @failingTest
   test_const_ifElement_thenTrue_deferredElse() async {
-    // reports wrong error code (which is not crucial to fix)
     newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;
 ''');
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const [ if (cond) 'a' else a.c ];
-''',
-      [error(diag.nonConstantListElementFromDeferredLibrary, 0, 0)],
-    );
+//                                 ^^^
+// [diag.nonConstantListElement] The values in a const list literal must be constants.
+''');
   }
 
   test_const_ifElement_thenTrue_deferredThen() async {

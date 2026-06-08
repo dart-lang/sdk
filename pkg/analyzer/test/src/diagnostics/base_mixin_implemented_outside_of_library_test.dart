@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -39,26 +38,23 @@ base class Bar implements Foo {}
   }
 
   test_class_outside_viaExtends() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-base mixin A {}
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+base mixin A {}
+//         ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''',
+      testFile: r'''
 import 'a.dart';
 
 sealed class B extends Object with A {}
 class C implements B {}
+//                 ^
+// [diag.baseMixinImplementedOutsideOfLibrary][context 1] The mixin 'A' can't be implemented outside of its library because it's a base mixin.
 ''',
-      [
-        error(
-          diag.baseMixinImplementedOutsideOfLibrary,
-          77,
-          1,
-          contextMessages: [message(a, 11, 1)],
-        ),
-      ],
-    );
+    });
   }
 
   test_class_outside_viaTypedef_inside() async {

@@ -8,7 +8,6 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -80,16 +79,13 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
     );
     var avoidIntRule = _AvoidIntRule();
     registerLintRule(avoidIntRule);
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 // ignore: avoid_int
+//         ^^^^^^^^^
+// [diag.unignorableIgnore] The diagnostic 'avoid_int' can't be ignored.
 int a = 0;
-''',
-      [
-        error(diag.unignorableIgnore, 11, 9),
-        error(avoidIntRule.diagnosticCode, 21, 3),
-      ],
-    );
+// [diag.avoidInt][column 1][length 3] Avoid int.
+''');
   }
 }
 
@@ -98,7 +94,7 @@ class _AvoidIntRule extends AnalysisRule {
     'avoid_int',
     'Avoid int.',
     correctionMessage: 'Try avoiding int.',
-    uniqueName: 'LintCode.avoid_int',
+    uniqueName: 'avoid_int',
   );
 
   _AvoidIntRule() : super(name: 'avoid_int', description: '');

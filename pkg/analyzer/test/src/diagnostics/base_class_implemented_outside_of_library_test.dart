@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -40,71 +38,43 @@ base class Bar implements Foo {}
   }
 
   test_class_outside_sealed() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-base class A {}
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+base class A {}
+//         ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''',
+      testFile: r'''
 import 'a.dart';
 sealed class B extends A {}
 base class C implements B {}
+//                      ^
+// [diag.baseClassImplementedOutsideOfLibrary][context 1] The class 'A' can't be implemented outside of its library because it's a base class.
 ''',
-      [
-        this.error(
-          diag.baseClassImplementedOutsideOfLibrary,
-          69,
-          1,
-          text:
-              "The class 'A' can't be implemented outside of its library because it's a base class.",
-          contextMessages: [
-            contextMessage(
-              a,
-              11,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   test_class_outside_sealed_noBase() async {
     // Instead of emitting [SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED], we
     // tell the user that they can't implement an indirect base supertype.
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-base class A {}
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+base class A {}
+//         ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''',
+      testFile: r'''
 import 'a.dart';
 sealed class B extends A {}
 class C implements B {}
+//                 ^
+// [diag.baseClassImplementedOutsideOfLibrary][context 1] The class 'A' can't be implemented outside of its library because it's a base class.
 ''',
-      [
-        this.error(
-          diag.baseClassImplementedOutsideOfLibrary,
-          64,
-          1,
-          text:
-              "The class 'A' can't be implemented outside of its library because it's a base class.",
-          contextMessages: [
-            contextMessage(
-              a,
-              11,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   test_class_outside_viaExtends() async {
@@ -159,37 +129,23 @@ base class C = Object with M implements B;
   }
 
   test_classTypeAlias_outside() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-base class A {}
-''');
+    var a = getFile('$testPackageLibPath/a.dart');
 
-    await assertErrorsInCode(
-      r'''
+    await resolveFilesWithDiagnostics({
+      a: r'''
+base class A {}
+//         ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''',
+      testFile: r'''
 import 'a.dart';
 sealed class B extends A {}
 mixin M {}
 base class C = Object with M implements B;
+//                                      ^
+// [diag.baseClassImplementedOutsideOfLibrary][context 1] The class 'A' can't be implemented outside of its library because it's a base class.
 ''',
-      [
-        this.error(
-          diag.baseClassImplementedOutsideOfLibrary,
-          96,
-          1,
-          text:
-              "The class 'A' can't be implemented outside of its library because it's a base class.",
-          contextMessages: [
-            contextMessage(
-              a,
-              11,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   test_enum_inside() async {
