@@ -12535,9 +12535,9 @@ LinterLintCode:
 
       #### Example
 
-      The following code produces this diagnostic because the type of `x` is
-      non-obvious: it's inferred from the return type of `f`, which requires
-      looking at the declaration of `f`:
+      The following code produces this diagnostic because the variable `x` is
+      not obviously-typed;  its type is inferred from the return type of `f`, 
+      which requires looking at the declaration of `f`:
 
       ```dart
       List<Map<String, int>> f() => [];
