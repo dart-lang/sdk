@@ -49,6 +49,17 @@ class C(int? i) {
 ''');
   }
 
+  test_field_withComment() async {
+    await assertNoDiagnostics(r'''
+class C(int i) {
+  /// A comment.
+  final int i;
+
+  this : i = i;
+}
+''');
+  }
+
   test_fieldFormalParameter_differentType() async {
     await assertNoDiagnostics(r'''
 class C(int this.i) {
@@ -68,6 +79,15 @@ class C(this.[!i!]) {
   test_fieldFormalParameter_sameType() async {
     await assertDiagnosticsFromMarkdown(r'''
 class C(int this.[!i!]) {
+  int i;
+}
+''');
+  }
+
+  test_fieldFormalParameter_withComment() async {
+    await assertNoDiagnostics(r'''
+class C(int this.i) {
+  /// A comment.
   int i;
 }
 ''');
