@@ -1785,7 +1785,8 @@ ASSEMBLER_TEST_RUN(InstructionFence, test) {
   EXPECT_DISASSEMBLY(
       "0000100f fence.i\n"
       "00008067 ret\n");
-  Call(test->entry());
+
+  // Not running: may trap. This was removed from the user ISA.
 }
 
 ASSEMBLER_TEST_GENERATE(EnvironmentCall, assembler) {

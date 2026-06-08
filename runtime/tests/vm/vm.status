@@ -250,7 +250,7 @@ dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 dart/ctrlc_handling_test: SkipByDesign
 
 [ $qemu ]
-cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+cc/ManyClasses: SkipSlow # Generates 100k classes, slow on emulated architectures.
 cc/StressMallocDirectly: Skip # Queries RSS
 cc/StressMallocThroughZones: Skip # Queries RSS
 cc/SweepDontNeed: Skip # Queries RSS
