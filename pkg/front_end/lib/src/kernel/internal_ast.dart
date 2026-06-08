@@ -41,7 +41,7 @@ import 'external_ast_helper.dart' as extern;
 /// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<TreeNode, Expression, Pattern, Variable>;
+    shared.MatchContext<TreeNode, Expression, InternalPattern, Variable>;
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -6247,7 +6247,7 @@ class UnassignableForInElement extends _BaseForInElement {
 /// For-in element for a pattern variable declaration.
 class PatternForInElement extends InternalForInElement {
   /// The pattern used in the variable declaration.
-  final Pattern pattern;
+  final InternalPattern pattern;
 
   /// The file offset of the `in` keyword.
   final int inOffset;
@@ -6982,13 +6982,30 @@ class InternalFunctionDeclaration extends InternalStatement {
 }
 
 // Coverage-ignore(suite): Not run.
-sealed class InternalPattern extends AuxiliaryPattern {
-  List<InternalVariable> get internalDeclaredVariables;
+sealed class InternalPattern extends TreeNode with InternalTreeNode {
+  /// Returns the variable name that this pattern defines, if any.
+  ///
+  /// This is used to derive an implicit variable name from a pattern to use
+  /// on object patterns. For instance
+  ///
+  ///    if (o case Foo(:var bar, :var baz!)) { ... }
+  ///
+  /// the getter names 'bar' and 'baz' are implicitly defined by the patterns.
+  String? get variableName => null;
+
+  /// Variable declarations induced by nested variable patterns.
+  ///
+  /// These variables are initialized to the values captured by the variable
+  /// patterns nested in the pattern.
+  List<InternalVariable> get declaredVariables;
 
   @override
-  @Deprecated('Use internalDeclaredVariables instead')
-  List<Variable> get declaredVariables =>
-      unsupported("${runtimeType}.declaredVariables", -1, null);
+  R accept<R>(TreeVisitor<R> v) =>
+      unsupported("${runtimeType}.accept", -1, null);
+
+  @override
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      unsupported("${runtimeType}.accept", -1, null);
 
   @override
   void replaceChild(TreeNode child, TreeNode replacement) {
@@ -7022,8 +7039,7 @@ class InternalOrPattern extends InternalPattern {
   final List<InternalVariable> orPatternJointVariables;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables =>
-      orPatternJointVariables;
+  List<InternalVariable> get declaredVariables => orPatternJointVariables;
 
   new(
     this.left,
@@ -7064,9 +7080,9 @@ class InternalAndPattern extends InternalPattern {
   final InternalPattern right;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => [
-    ...left.internalDeclaredVariables,
-    ...right.internalDeclaredVariables,
+  List<InternalVariable> get declaredVariables => [
+    ...left.declaredVariables,
+    ...right.declaredVariables,
   ];
 
   new(this.left, this.right, {required int fileOffset}) {
@@ -7107,7 +7123,7 @@ class InternalConstantPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => const [];
+  List<InternalVariable> get declaredVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -7137,7 +7153,7 @@ class InternalAssignedVariablePattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => const [];
+  List<InternalVariable> get declaredVariables => const [];
 
   @override
   String get variableName => variable.cosmeticName!;
@@ -7176,8 +7192,7 @@ class InternalCastPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables =>
-      pattern.internalDeclaredVariables;
+  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -7205,11 +7220,11 @@ class InternalInvalidPattern extends InternalPattern {
   final Expression invalidExpression;
 
   @override
-  final List<InternalVariable> internalDeclaredVariables;
+  final List<InternalVariable> declaredVariables;
 
   new({
     required this.invalidExpression,
-    required this.internalDeclaredVariables,
+    required this.declaredVariables,
     required int fileOffset,
   }) {
     invalidExpression.parent = this;
@@ -7244,9 +7259,8 @@ class InternalListPattern extends InternalPattern {
   List<InternalPattern> patterns;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => [
-    for (InternalPattern pattern in patterns)
-      ...pattern.internalDeclaredVariables,
+  List<InternalVariable> get declaredVariables => [
+    for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
   new({
@@ -7276,7 +7290,7 @@ class InternalListPattern extends InternalPattern {
     }
     printer.write('[');
     String comma = '';
-    for (Pattern pattern in patterns) {
+    for (InternalPattern pattern in patterns) {
       printer.write(comma);
       pattern.toTextInternal(printer);
       comma = ', ';
@@ -7300,10 +7314,10 @@ class InternalMapPattern extends InternalPattern {
   final List<InternalMapPatternEntry> entries;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => [
+  List<InternalVariable> get declaredVariables => [
     for (InternalMapPatternEntry entry in entries)
       if (entry is! InternalMapPatternRestEntry)
-        ...entry.value.internalDeclaredVariables,
+        ...entry.value.declaredVariables,
   ];
 
   new({
@@ -7421,8 +7435,7 @@ class InternalNamedPattern extends InternalPattern {
   final InternalPattern pattern;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables =>
-      pattern.internalDeclaredVariables;
+  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
 
   new({required this.name, required this.pattern, required int fileOffset}) {
     pattern.parent = this;
@@ -7468,8 +7481,7 @@ class InternalNullAssertPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables =>
-      pattern.internalDeclaredVariables;
+  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -7505,8 +7517,7 @@ class InternalNullCheckPattern extends InternalPattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables =>
-      pattern.internalDeclaredVariables;
+  List<InternalVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   shared.PatternResult acceptInference(
@@ -7555,10 +7566,9 @@ class InternalObjectPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get internalDeclaredVariables {
+  List<InternalVariable> get declaredVariables {
     return [
-      for (InternalNamedPattern field in fields)
-        ...field.internalDeclaredVariables,
+      for (InternalNamedPattern field in fields) ...field.declaredVariables,
     ];
   }
 
@@ -7576,7 +7586,7 @@ class InternalObjectPattern extends InternalPattern {
     printer.writeType(requiredType);
     printer.write('(');
     String comma = '';
-    for (Pattern field in fields) {
+    for (InternalPattern field in fields) {
       printer.write(comma);
       field.toTextInternal(printer);
       comma = ', ';
@@ -7594,9 +7604,8 @@ class InternalRecordPattern extends InternalPattern {
   final List<InternalPattern> patterns;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => [
-    for (InternalPattern pattern in patterns)
-      ...pattern.internalDeclaredVariables,
+  List<InternalVariable> get declaredVariables => [
+    for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
   new({required this.patterns, required int fileOffset}) {
@@ -7617,7 +7626,7 @@ class InternalRecordPattern extends InternalPattern {
   void toTextInternal(AstPrinter printer) {
     printer.write('(');
     String comma = '';
-    for (Pattern pattern in patterns) {
+    for (InternalPattern pattern in patterns) {
       printer.write(comma);
       pattern.toTextInternal(printer);
       comma = ', ';
@@ -7643,7 +7652,7 @@ class InternalRelationalPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => const [];
+  List<InternalVariable> get declaredVariables => const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -7694,8 +7703,8 @@ class InternalRestPattern extends InternalPattern {
   }
 
   @override
-  List<InternalVariable> get internalDeclaredVariables =>
-      subPattern?.internalDeclaredVariables ?? const [];
+  List<InternalVariable> get declaredVariables =>
+      subPattern?.declaredVariables ?? const [];
 
   @override
   shared.PatternResult acceptInference(
@@ -7730,7 +7739,7 @@ class InternalVariablePattern extends InternalPattern {
   final InternalVariable variable;
 
   @override
-  List<InternalVariable> get internalDeclaredVariables => [variable];
+  List<InternalVariable> get declaredVariables => [variable];
 
   new({required this.type, required this.variable, required int fileOffset}) {
     variable.parent = this;
@@ -7773,7 +7782,7 @@ class InternalWildcardPattern extends InternalPattern {
     this.fileOffset = fileOffset;
   }
   @override
-  List<InternalVariable> get internalDeclaredVariables => const [];
+  List<InternalVariable> get declaredVariables => const [];
 
   @override
   shared.PatternResult acceptInference(

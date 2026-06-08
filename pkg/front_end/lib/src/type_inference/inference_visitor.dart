@@ -131,7 +131,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           Statement,
           Expression,
           Variable,
-          Pattern,
+          InternalPattern,
           InvalidExpression,
           TypeDeclarationType,
           TypeDeclaration
@@ -3305,7 +3305,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   PatternForInData inferPatternForInHeader({
     required TreeNode node,
-    required Pattern pattern,
+    required InternalPattern pattern,
     required Expression iterable,
     required bool isAsync,
     required int inOffset,
@@ -3338,12 +3338,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Object? rewrite = popRewrite();
-    if (!identical(rewrite, pattern)) {
-      pattern = rewrite as Pattern;
-    }
+    Pattern outputPattern = popRewrite() as Pattern;
 
-    rewrite = popRewrite();
+    Object? rewrite = popRewrite();
     if (!identical(rewrite, iterable)) {
       iterable = rewrite as Expression;
     }
@@ -3370,13 +3367,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       loopVariable: loopVariable,
       iterable: iterable,
       computePatternVariableDeclaration: () =>
-          new PatternVariableDeclaration(
-              pattern,
-              extern.createVariableGet(loopVariable, fileOffset: inOffset),
-              isFinal: false,
-            )
-            ..fileOffset = inOffset
-            ..matchedValueType = matchedValueType,
+          extern.createPatternVariableDeclaration(
+            pattern: outputPattern,
+            initializer: extern.createVariableGet(
+              loopVariable,
+              fileOffset: inOffset,
+            ),
+            isFinal: false,
+            fileOffset: inOffset,
+            matchedValueType: matchedValueType,
+          ),
     );
   }
 
@@ -3873,7 +3873,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node.otherwise,
           {
             for (InternalVariable variable
-                in node.patternGuard.pattern.internalDeclaredVariables)
+                in node.patternGuard.pattern.declaredVariables)
               variable.cosmeticName!: variable.astVariable,
           },
         );
@@ -4289,21 +4289,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferredSpreadTypes: inferredSpreadTypes,
           inferredConditionTypes: inferredConditionTypes,
         );
-    IfCaseStatementResult<InvalidExpression>
-    analysisResult = analyzeIfCaseElement(
-      node: element,
-      expression: element.expression,
-      pattern: element.internalPatternGuard.pattern,
-      variables: {
-        for (InternalVariable variable
-            in element.internalPatternGuard.pattern.internalDeclaredVariables)
-          variable.cosmeticName!: variable.astVariable,
-      },
-      guard: element.internalPatternGuard.guard,
-      ifTrue: element.then,
-      ifFalse: element.otherwise,
-      context: context,
-    );
+    IfCaseStatementResult<InvalidExpression> analysisResult =
+        analyzeIfCaseElement(
+          node: element,
+          expression: element.expression,
+          pattern: element.internalPatternGuard.pattern,
+          variables: {
+            for (InternalVariable variable
+                in element.internalPatternGuard.pattern.declaredVariables)
+              variable.cosmeticName!: variable.astVariable,
+          },
+          guard: element.internalPatternGuard.guard,
+          ifTrue: element.then,
+          ifFalse: element.otherwise,
+          context: context,
+        );
 
     element.matchedValueType = analysisResult.matchedExpressionType
         .unwrapTypeView();
@@ -7416,7 +7416,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           pattern: entry.internalPatternGuard.pattern,
           variables: {
             for (InternalVariable variable
-                in entry.internalPatternGuard.pattern.internalDeclaredVariables)
+                in entry.internalPatternGuard.pattern.declaredVariables)
               variable.cosmeticName!: variable.astVariable,
           },
           guard: entry.internalPatternGuard.guard,
@@ -14454,16 +14454,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return analyzeLogicalOrPatternSchema(node.left, node.right);
         case InternalRecordPattern():
           return analyzeRecordPatternSchema(
-            fields: <RecordPatternField<TreeNode, Pattern>>[
+            fields: <RecordPatternField<TreeNode, InternalPattern>>[
               for (InternalPattern element in node.patterns)
                 if (element is InternalNamedPattern)
-                  new RecordPatternField<TreeNode, Pattern>(
+                  new RecordPatternField<TreeNode, InternalPattern>(
                     node: element,
                     name: element.name,
                     pattern: element.pattern,
                   )
                 else
-                  new RecordPatternField<TreeNode, Pattern>(
+                  new RecordPatternField<TreeNode, InternalPattern>(
                     node: element,
                     name: null,
                     pattern: element,
@@ -14725,8 +14725,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (node as InternalSwitchExpression).cases[index];
     InternalPattern pattern = switchExpressionCase.patternGuard.pattern;
     Map<String, Variable> variables = {
-      for (InternalVariable declaredVariable
-          in pattern.internalDeclaredVariables)
+      for (InternalVariable declaredVariable in pattern.declaredVariables)
         declaredVariable.cosmeticName!: declaredVariable.astVariable,
     };
     return new SwitchExpressionMemberInfo<TreeNode, Expression, Variable>(
@@ -14769,7 +14768,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 guard: patternGuard.guard,
                 variables: {
                   for (InternalVariable variable
-                      in patternGuard.pattern.internalDeclaredVariables)
+                      in patternGuard.pattern.declaredVariables)
                     variable.cosmeticName!: variable.astVariable,
                 },
               ),
@@ -15025,7 +15024,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15070,7 +15069,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15103,7 +15102,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (error != null) {
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15173,17 +15172,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Object? rewrite = popRewrite();
-    Pattern right = node.right;
-    if (!identical(rewrite, node.right)) {
-      right = rewrite as Pattern;
-    }
-
-    rewrite = popRewrite();
-    Pattern left = node.left;
-    if (!identical(rewrite, node.left)) {
-      left = rewrite as Pattern;
-    }
+    Pattern right = popRewrite() as Pattern;
+    Pattern left = popRewrite() as Pattern;
 
     pushRewrite(
       extern.createAndPattern(
@@ -15222,32 +15212,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
-    Object? rewrite = popRewrite();
-    Pattern right = node.right;
-    if (!identical(rewrite, node.right)) {
-      right = rewrite as Pattern;
-    }
-
-    rewrite = popRewrite();
-    Pattern left = node.left;
-    if (!identical(rewrite, node.left)) {
-      left = rewrite as Pattern;
-    }
+    Pattern right = popRewrite() as Pattern;
+    Pattern left = popRewrite() as Pattern;
 
     Map<String, Variable> leftDeclaredVariablesByName = {
-      for (InternalVariable variable in node.left.internalDeclaredVariables)
+      for (InternalVariable variable in node.left.declaredVariables)
         variable.cosmeticName!: variable.astVariable,
     };
     Map<String, Variable> jointVariableNames = {
       for (InternalVariable variable in node.orPatternJointVariables)
         variable.cosmeticName!: variable.astVariable,
     };
-    for (InternalVariable rightVariable
-        in node.right.internalDeclaredVariables) {
+    for (InternalVariable rightVariable in node.right.declaredVariables) {
       String rightVariableName = rightVariable.cosmeticName!;
       Variable? leftVariable = leftDeclaredVariablesByName[rightVariableName];
       Variable? jointVariable = jointVariableNames[rightVariableName];
@@ -15300,11 +15280,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       checkStack(node, stackBase, [/* subpattern = */ ValueKinds.Pattern]),
     );
 
-    Object? rewrite = popRewrite();
-    Pattern pattern = node.pattern;
-    if (!identical(rewrite, node.pattern)) {
-      pattern = rewrite as Pattern;
-    }
+    Pattern pattern = popRewrite() as Pattern;
 
     pushRewrite(
       extern.createCastPattern(
@@ -15345,7 +15321,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15428,7 +15404,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (error != null) {
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15442,7 +15418,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (error != null) {
         patterns[i] = extern.createInvalidPattern(
           error: error,
-          declaredVariables: node.patterns[i].internalDeclaredVariables,
+          declaredVariables: node.patterns[i].declaredVariables,
         );
       } else {
         patterns[i] = rewrite as Pattern;
@@ -15635,7 +15611,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analyzeObjectPattern(
           context,
           node,
-          fields: <RecordPatternField<TreeNode, Pattern>>[
+          fields: <RecordPatternField<TreeNode, InternalPattern>>[
             for (InternalNamedPattern field in node.fields)
               new RecordPatternField(
                 node: field,
@@ -15667,7 +15643,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15686,7 +15662,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fieldName: new Name(field.name, libraryBuilder.library),
           pattern: extern.createInvalidPattern(
             error: error,
-            declaredVariables: field.pattern.internalDeclaredVariables,
+            declaredVariables: field.pattern.declaredVariables,
           ),
           fileOffset: field.fileOffset,
         );
@@ -15850,7 +15826,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     pushRewrite(
       extern.createInvalidPattern(
         error: node.invalidExpression,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       ),
     );
 
@@ -15887,7 +15863,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (error != null) {
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -15967,7 +15943,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 name,
                 isExpressionInvocation: false,
               ),
-              declaredVariables: node.internalDeclaredVariables,
+              declaredVariables: node.declaredVariables,
             );
             break;
           case ObjectAccessTargetKind.objectMember:
@@ -16062,7 +16038,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -16070,7 +16046,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (error != null) {
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -16155,7 +16131,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (insertionIndex == 0) {
         replacement ??= extern.createInvalidPattern(
           error: firstError!,
-          declaredVariables: node.internalDeclaredVariables,
+          declaredVariables: node.declaredVariables,
           fileOffset: node.fileOffset,
         );
       }
@@ -16190,7 +16166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    List<RecordPatternField<TreeNode, Pattern>> fields = [
+    List<RecordPatternField<TreeNode, InternalPattern>> fields = [
       for (InternalPattern fieldPattern in node.patterns)
         new RecordPatternField(
           node: fieldPattern,
@@ -16223,7 +16199,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (error != null) {
       replacement = extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -16360,7 +16336,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: node.fileOffset,
             length: node.variableName.length,
           ),
-          declaredVariables: node.internalDeclaredVariables,
+          declaredVariables: node.declaredVariables,
         );
       }
     } else if (variable.isStaticLate) {
@@ -16375,7 +16351,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: node.fileOffset,
             length: node.variableName.length,
           ),
-          declaredVariables: node.internalDeclaredVariables,
+          declaredVariables: node.declaredVariables,
         );
       }
     } else if (variable.isFinal &&
@@ -16392,7 +16368,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           fileOffset: node.fileOffset,
           length: node.variableName.length,
         ),
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -16417,7 +16393,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (error != null) {
       replacement ??= extern.createInvalidPattern(
         error: error,
-        declaredVariables: node.internalDeclaredVariables,
+        declaredVariables: node.declaredVariables,
       );
     }
 
@@ -16616,9 +16592,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   (Member?, SharedTypeView) resolveObjectPatternPropertyGet({
-    required Pattern objectPattern,
+    required InternalPattern objectPattern,
     required SharedTypeView receiverType,
-    required shared.RecordPatternField<TreeNode, Pattern> field,
+    required shared.RecordPatternField<TreeNode, InternalPattern> field,
   }) {
     String fieldName = field.name!;
     ObjectAccessTarget fieldAccessTarget = findInterfaceMember(
@@ -16660,7 +16636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  Pattern? getRestPatternElementPattern(TreeNode node) {
+  InternalPattern? getRestPatternElementPattern(TreeNode node) {
     if (node is InternalMapPatternRestEntry) {
       return null;
     } else {
@@ -16669,7 +16645,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleListPatternRestElement(Pattern container, TreeNode restElement) {
+  void handleListPatternRestElement(
+    InternalPattern container,
+    TreeNode restElement,
+  ) {
     InternalRestPattern restPattern = restElement as InternalRestPattern;
     int? stackBase;
     Pattern? subPattern;
@@ -16704,21 +16683,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void handleMapPatternRestElement(Pattern container, TreeNode restElement) {
+  void handleMapPatternRestElement(
+    InternalPattern container,
+    TreeNode restElement,
+  ) {
     pushRewrite(
       extern.createMapPatternRestEntry(fileOffset: container.fileOffset),
     );
   }
 
   @override
-  shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
+  shared.MapPatternEntry<Expression, InternalPattern>? getMapPatternEntry(
     TreeNode element,
   ) {
     element as InternalMapPatternEntry;
     if (element is InternalMapPatternRestEntry) {
       return null;
     } else {
-      return new shared.MapPatternEntry<Expression, Pattern>(
+      return new shared.MapPatternEntry<Expression, InternalPattern>(
         key: element.key,
         value: element.value,
       );
@@ -16727,7 +16709,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleMapPatternEntry(
-    Pattern container,
+    InternalPattern container,
     covariant InternalMapPatternEntry entryElement,
     SharedTypeView keyType,
   ) {

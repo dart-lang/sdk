@@ -411,10 +411,27 @@ for (void e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new PatternForInElement(
-        pattern: new RecordPattern([
-          new VariablePattern(const VoidType(), new LegacyVariable('a')),
-          new VariablePattern(null, new LegacyVariable('b')),
-        ]),
+        pattern: new InternalRecordPattern(
+          patterns: [
+            new InternalVariablePattern(
+              type: const VoidType(),
+              variable: new VariableDeclarationImpl(
+                'a',
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+            new InternalVariablePattern(
+              type: null,
+              variable: new VariableDeclarationImpl(
+                'b',
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+          ],
+          fileOffset: TreeNode.noOffset,
+        ),
         inOffset: -1,
       ),
       new NullLiteral(),
