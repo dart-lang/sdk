@@ -158,13 +158,13 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
         if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
-          if (constructorName != null) {
+          if (constructorName != null && constructorName != 'new') {
             builder.write(' ');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
         } else {
           builder.write(_targetClass.namePart.typeName.lexeme);
-          if (constructorName != null) {
+          if (constructorName != null && constructorName != 'new') {
             builder.write('.');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
@@ -212,13 +212,13 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
         if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
-          if (constructorName != null) {
+          if (constructorName != null && constructorName != 'new') {
             builder.write(' ');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
         } else {
           builder.write(_targetClass.namePart.typeName.lexeme);
-          if (constructorName != null) {
+          if (constructorName != null && constructorName != 'new') {
             builder.write('.');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }

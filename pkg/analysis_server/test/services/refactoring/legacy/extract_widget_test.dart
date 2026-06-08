@@ -1351,7 +1351,7 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  const new({
+  const Test({
     Key? key,
   }) : super(key: key);
 
