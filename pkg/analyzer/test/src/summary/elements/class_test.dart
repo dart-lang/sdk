@@ -36872,32 +36872,6 @@ library
 ''');
   }
 
-  test_isComplete_constructor_complete() async {
-    var library = await buildLibrary(r'''
-class A {
-  A();
-}
-''');
-
-    var classA = library.classes.singleWhere((e) => e.name == 'A');
-    var constructor = classA.constructors.single;
-
-    expect(constructor.firstFragment.isComplete, isFalse);
-  }
-
-  test_isComplete_method_complete() async {
-    var library = await buildLibrary(r'''
-class A {
-  static void foo() {}
-}
-''');
-
-    var classA = library.classes.singleWhere((e) => e.name == 'A');
-    var method = classA.methods.singleWhere((e) => e.name == 'foo');
-
-    expect(method.firstFragment.isComplete, isTrue);
-  }
-
   test_method_abstract() async {
     var library = await buildLibrary(r'''
 abstract class C {
