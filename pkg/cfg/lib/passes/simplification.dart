@@ -115,7 +115,7 @@ final class Simplification extends Pass
     }
     // Move constant operand to the right.
     if (left is Constant) {
-      instr.op = instr.op.flipOperands();
+      instr.op = instr.op.swapped;
       instr.replaceInputAt(0, right);
       instr.replaceInputAt(1, left);
       left = instr.left;
