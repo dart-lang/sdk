@@ -23,6 +23,7 @@ _CACHES = {
 _NO_CACHES = [swarming.cache("builder")]
 _NO_RECLIENT = {"custom_vars": {"download_reclient": False}}
 _ANDROID_DEPS = {"custom_vars": {"download_android_deps": True}}
+_BUILD_DEVTOOLS = {"custom_vars": {"build_devtools_from_source": True}}
 _CHROME = {"custom_vars": {"download_chrome": True}}
 _EMSCRIPTEN = {"custom_vars": {"download_emscripten": True}}
 _FIREFOX = {"custom_vars": {"download_firefox": True}}
@@ -67,6 +68,7 @@ safari_26_5 = _SAFARI_26_5
 # Properties
 
 android_deps = _ANDROID_DEPS
+build_devtools = _BUILD_DEVTOOLS
 chrome = _CHROME
 emscripten = _EMSCRIPTEN
 firefox = _FIREFOX

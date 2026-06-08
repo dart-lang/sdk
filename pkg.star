@@ -9,6 +9,7 @@ load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
     "arm64",
+    "build_devtools",
     "chrome",
     "flute",
     "flutter_pool",
@@ -71,12 +72,15 @@ _pkg_builder(
     properties = chrome,
 )
 
+dart.poller("devtools-gitiles-trigger", branches = ["main"], paths = paths.devtools)
+
 def _devtools_builder(name, category = None, **kwargs):
     dart.ci_sandbox_builder(
         name,
         category = category,
+        triggered_by = ["devtools-gitiles-trigger-%s"],
         location_filters = paths.to_location_filters(paths.devtools),
-        properties = chrome,
+        properties = [chrome, build_devtools],
         **kwargs
     )
 
