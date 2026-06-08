@@ -12527,7 +12527,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when a local variable is declared
-      without a type annotation and the type is not [obviously-typed](https://dart.dev/glossary/obviously-typed).
+      without a type annotation and the initializing expression is not [obviously-typed](https://dart.dev/glossary/obviously-typed).
 
       Type annotations on local variables improve code readability by making the
       expected type explicit, which helps readers understand the code without analyzing
