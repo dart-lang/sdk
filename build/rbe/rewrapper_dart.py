@@ -349,10 +349,10 @@ trace to find the place to insert the appropriate support.
             elif arg == 'obj/utils/dartdev/generate_dartdev_snapshot.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_generate_dartdev_snapshot()
-            elif arg == 'obj/utils/bootstrap_gen_kernel.dill':
+            elif arg.endswith('obj/utils/bootstrap_gen_kernel.dill'):
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_gen_kernel()
-            elif arg == 'obj/utils/bootstrap_compile_platform.dill':
+            elif arg.endswith('obj/utils/bootstrap_compile_platform.dill'):
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_compile_platform()
             elif arg == 'obj/utils/kernel-service/kernel-service_snapshot.jit.dill':
