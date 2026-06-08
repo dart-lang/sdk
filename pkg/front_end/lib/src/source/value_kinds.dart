@@ -201,13 +201,14 @@ class ValueKinds {
         NullValues.RecordTypeFieldList,
       );
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
-  static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
+  static const ValueKind SwitchCase =
+      const SingleValueKind<type.InternalSwitchCase>();
   static const ValueKind SwitchCaseList =
-      const SingleValueKind<List<type.SwitchCase>>();
+      const SingleValueKind<List<type.InternalSwitchCase>>();
   static const ValueKind SwitchExpressionCase =
-      const SingleValueKind<type.SwitchExpressionCase>();
+      const SingleValueKind<type.InternalSwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
-      const SingleValueKind<List<type.SwitchExpressionCase>>();
+      const SingleValueKind<List<type.InternalSwitchExpressionCase>>();
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Block);

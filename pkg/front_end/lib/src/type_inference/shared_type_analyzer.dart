@@ -299,7 +299,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression switchCaseCompletesNormally({
-    required covariant SwitchStatement node,
+    required covariant InternalSwitchStatement node,
     required int caseIndex,
   }) {
     return problemReporting.buildProblem(

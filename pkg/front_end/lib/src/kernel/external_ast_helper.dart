@@ -379,6 +379,19 @@ FunctionNode createFunctionNode(
     ..fileEndOffset = fileEndOffset ?? fileOffset;
 }
 
+IfCaseStatement createIfCaseStatement({
+  required Expression expression,
+  required PatternGuard patternGuard,
+  required Statement then,
+  required Statement? otherwise,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new IfCaseStatement(expression, patternGuard, then, otherwise)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
+}
+
 /// Creates an if statement with the [condition], [then] branch and [otherwise]
 /// as the optional else branch.
 IfStatement createIfStatement(
@@ -883,6 +896,77 @@ Variable createParameterVariable(
     ..isCovariantByClass = isCovariantByClass;
 }
 
+PatternAssignment createPatternAssignment({
+  required Pattern pattern,
+  required Expression expression,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new PatternAssignment(pattern, expression)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
+}
+
+PatternGuard createPatternGuard({
+  required Pattern pattern,
+  required Expression? guard,
+  required int fileOffset,
+}) {
+  return new PatternGuard(pattern, guard)..fileOffset = fileOffset;
+}
+
+ContinueSwitchStatement createContinueSwitchStatement({
+  required int fileOffset,
+}) {
+  return new ContinueSwitchStatement(dummySwitchCase)..fileOffset = fileOffset;
+}
+
+PatternSwitchCase createPatternSwitchCase({
+  required List<int> caseOffsets,
+  required List<PatternGuard> patternGuards,
+  required Statement body,
+  required bool isDefault,
+  required bool hasLabel,
+  required List<Variable> jointVariables,
+  required List<int>? jointVariableFirstUseOffsets,
+  required int fileOffset,
+}) {
+  return new PatternSwitchCase(
+    caseOffsets,
+    patternGuards,
+    body,
+    isDefault: isDefault,
+    hasLabel: hasLabel,
+    jointVariables: jointVariables,
+    jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
+  )..fileOffset = fileOffset;
+}
+
+PatternSwitchStatement createPatternSwitchStatement({
+  required Expression expression,
+  required List<PatternSwitchCase> cases,
+  required DartType expressionType,
+  required bool lastCaseTerminates,
+  required int fileOffset,
+}) {
+  return new PatternSwitchStatement(expression, cases)
+    ..expressionType = expressionType
+    ..lastCaseTerminates = lastCaseTerminates
+    ..fileOffset = fileOffset;
+}
+
+PatternVariableDeclaration createPatternVariableDeclaration({
+  required Pattern pattern,
+  required Expression initializer,
+  required bool isFinal,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new PatternVariableDeclaration(pattern, initializer, isFinal: isFinal)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
+}
+
 PositionalParameter createPositionalParameter({
   String? cosmeticName,
   required DartType type,
@@ -1075,10 +1159,10 @@ SuperPropertySet createSuperPropertySet(
 
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
-SwitchCase createSwitchCase(
-  List<Expression> expressions,
-  List<int> expressionOffsets,
-  Statement body, {
+SwitchCase createSwitchCase({
+  required List<Expression> expressions,
+  required List<int> expressionOffsets,
+  required Statement body,
   required bool isDefault,
   required int fileOffset,
 }) {
@@ -1090,17 +1174,39 @@ SwitchCase createSwitchCase(
   )..fileOffset = fileOffset;
 }
 
+SwitchExpression createSwitchExpression({
+  required Expression expression,
+  required List<SwitchExpressionCase> cases,
+  required DartType expressionType,
+  required DartType staticType,
+  required int fileOffset,
+}) {
+  return new SwitchExpression(expression, cases)
+    ..expressionType = expressionType
+    ..staticType = staticType
+    ..fileOffset = fileOffset;
+}
+
+SwitchExpressionCase createSwitchExpressionCase({
+  required PatternGuard patternGuard,
+  required Expression expression,
+  required int fileOffset,
+}) {
+  return new SwitchExpressionCase(patternGuard, expression)
+    ..fileOffset = fileOffset;
+}
+
 /// Create a switch statement on the [expression] with the given [cases]. If
 /// the switch is known to be exhaustive and without a default case,
 /// [isExplicitlyExhaustive] should be set to `true`.
 ///
 /// The [expressionType] is the static type of the switch expression.
-SwitchStatement createSwitchStatement(
-  Expression expression,
-  List<SwitchCase> cases, {
+SwitchStatement createSwitchStatement({
+  required Expression expression,
+  required List<SwitchCase> cases,
   required bool isExplicitlyExhaustive,
-  required int fileOffset,
   required DartType expressionType,
+  required int fileOffset,
 }) {
   return new SwitchStatement(
       expression,

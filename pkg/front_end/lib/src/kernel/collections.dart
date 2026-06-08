@@ -365,7 +365,7 @@ class ForInElement extends ControlFlowElement
 class IfCaseElement extends ControlFlowElementImpl
     with ControlFlowElementMixin {
   Expression expression;
-  PatternGuard patternGuard;
+  InternalPatternGuard internalPatternGuard;
   Expression then;
   Expression? otherwise;
   List<Statement> prelude;
@@ -375,16 +375,19 @@ class IfCaseElement extends ControlFlowElementImpl
   /// This is set during inference.
   DartType? matchedValueType;
 
+  /// [PatternGuard] computed after inference of [internalPatternGuard].
+  late PatternGuard patternGuard;
+
   new({
     required this.prelude,
     required this.expression,
-    required this.patternGuard,
+    required this.internalPatternGuard,
     required this.then,
     this.otherwise,
   }) {
     setParents(prelude, this);
     expression.parent = this;
-    patternGuard.parent = this;
+    internalPatternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -403,7 +406,7 @@ class IfCaseElement extends ControlFlowElementImpl
     printer.write('if (');
     printer.writeExpression(expression);
     printer.write(' case ');
-    patternGuard.toTextInternal(printer);
+    internalPatternGuard.toTextInternal(printer);
     printer.write(') ');
     printer.writeExpression(then);
     if (otherwise != null) {
@@ -437,7 +440,7 @@ class IfCaseElement extends ControlFlowElementImpl
         new IfCaseMapEntry(
             prelude: prelude,
             expression: expression,
-            patternGuard: patternGuard,
+            internalPatternGuard: internalPatternGuard,
             then: thenEntry,
             otherwise: otherwiseEntry,
           )
@@ -466,7 +469,7 @@ abstract interface class ForElementBase implements AuxiliaryExpression {
 class PatternForElement extends ControlFlowElementImpl
     with ControlFlowElementMixin
     implements ForElementBase {
-  PatternVariableDeclaration patternVariableDeclaration;
+  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
   List<VariableDeclaration> intermediateVariables;
 
   // May be empty, but not null.
@@ -482,8 +485,12 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   Expression body;
 
+  /// [PatternVariableDeclaration] computed after inference of
+  /// [internalPatternVariableDeclaration].
+  late PatternVariableDeclaration patternVariableDeclaration;
+
   new({
-    required this.patternVariableDeclaration,
+    required this.internalPatternVariableDeclaration,
     required this.intermediateVariables,
     required this.variables,
     required this.condition,
@@ -502,7 +509,7 @@ class PatternForElement extends ControlFlowElementImpl
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
+    internalPatternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
     for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
@@ -741,7 +748,7 @@ class ForMapEntry extends TreeNode
 class PatternForMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ForMapEntryBase, ControlFlowMapEntry {
-  PatternVariableDeclaration patternVariableDeclaration;
+  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
   List<VariableDeclaration> intermediateVariables;
 
   @override
@@ -756,8 +763,12 @@ class PatternForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
+  /// [PatternVariableDeclaration] computed after inference of
+  /// [internalPatternVariableDeclaration].
+  late PatternVariableDeclaration patternVariableDeclaration;
+
   new({
-    required this.patternVariableDeclaration,
+    required this.internalPatternVariableDeclaration,
     required this.intermediateVariables,
     required this.variables,
     required this.condition,
@@ -768,7 +779,7 @@ class PatternForMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
+    internalPatternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
     for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
@@ -848,7 +859,7 @@ class IfCaseMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression expression;
-  PatternGuard patternGuard;
+  InternalPatternGuard internalPatternGuard;
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
   List<Statement> prelude;
@@ -858,15 +869,18 @@ class IfCaseMapEntry extends TreeNode
   /// This is set during inference.
   DartType? matchedValueType;
 
+  /// [PatternGuard] computed after inference of [internalPatternGuard].
+  late PatternGuard patternGuard;
+
   new({
     required this.prelude,
     required this.expression,
-    required this.patternGuard,
+    required this.internalPatternGuard,
     required this.then,
     this.otherwise,
   }) {
     expression.parent = this;
-    patternGuard.parent = this;
+    internalPatternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -877,7 +891,7 @@ class IfCaseMapEntry extends TreeNode
     printer.write('if (');
     expression.toTextInternal(printer);
     printer.write(' case ');
-    patternGuard.toTextInternal(printer);
+    internalPatternGuard.toTextInternal(printer);
     printer.write(') ');
     then.toTextInternal(printer);
     if (otherwise != null) {
@@ -978,7 +992,7 @@ MapLiteralEntry convertToMapEntry(
             new IfCaseMapEntry(
                 prelude: [],
                 expression: element.expression,
-                patternGuard: element.patternGuard,
+                internalPatternGuard: element.internalPatternGuard,
                 then: convertToMapEntry(
                   element.then,
                   problemReporting,
@@ -1003,7 +1017,8 @@ MapLiteralEntry convertToMapEntry(
 
       case PatternForElement():
         PatternForMapEntry result = new PatternForMapEntry(
-          patternVariableDeclaration: element.patternVariableDeclaration,
+          internalPatternVariableDeclaration:
+              element.internalPatternVariableDeclaration,
           intermediateVariables: element.intermediateVariables,
           variables: element.variables,
           condition: element.condition,

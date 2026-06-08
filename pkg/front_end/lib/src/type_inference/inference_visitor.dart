@@ -1599,11 +1599,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitContinueSwitchStatement(
     ContinueSwitchStatement node,
   ) {
+    _unhandledStatement(node);
+  }
+
+  StatementInferenceResult visitInternalContinueSwitchStatement(
+    InternalContinueSwitchStatement node,
+  ) {
     flowAnalysis.handleContinue(node.target.body);
-    return const StatementInferenceResult();
+    ContinueSwitchStatement replacement = extern.createContinueSwitchStatement(
+      fileOffset: node.fileOffset,
+    );
+    node.target.registerContinueSwitchStatement(replacement);
+    return new StatementInferenceResult.single(replacement);
   }
 
   ExpressionInferenceResult visitExtensionTearOff(
@@ -3841,7 +3852,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitIfCaseStatement(IfCaseStatement node) {
+    _unhandledStatement(node);
+  }
+
+  StatementInferenceResult visitInternalIfCaseStatement(
+    InternalIfCaseStatement node,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -3855,13 +3873,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node.otherwise,
           {
             for (InternalVariable variable
-                in (node.patternGuard.pattern as InternalPattern)
-                    .internalDeclaredVariables)
+                in node.patternGuard.pattern.internalDeclaredVariables)
               variable.cosmeticName!: variable.astVariable,
           },
         );
 
-    node.matchedValueType = analysisResult.matchedExpressionType
+    DartType matchedValueType = analysisResult.matchedExpressionType
         .unwrapTypeView();
 
     assert(
@@ -3874,46 +3891,49 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
+    Statement? otherwise = node.otherwise;
     Object? rewrite = popRewrite(NullValues.Statement);
     if (!identical(node.otherwise, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.otherwise = (rewrite as Statement)..parent = node;
+      otherwise = rewrite as Statement;
     }
+    Statement then = node.then;
     rewrite = popRewrite();
     if (!identical(node.then, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
-      node.then = (rewrite as Statement)..parent = node;
+      then = rewrite as Statement;
     }
-    rewrite = popRewrite(NullValues.Expression);
+    Expression? guard = rewrite =
+        popRewrite(NullValues.Expression) as Expression?;
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
-      node.patternGuard.guard = guardError..parent = node.patternGuard;
-    } else {
-      if (!identical(node.patternGuard.guard, rewrite)) {
-        node.patternGuard.guard = (rewrite as Expression)
-          ..parent = node.patternGuard;
-      }
+      guard = guardError;
+    } else if (guard != null) {
       if (analysisResult.guardType is DynamicType) {
-        node.patternGuard.guard = _createImplicitAs(
-          node.patternGuard.guard!.fileOffset,
-          node.patternGuard.guard!,
+        guard = _createImplicitAs(
+          guard.fileOffset,
+          guard,
           coreTypes.boolNonNullableRawType,
-        )..parent = node.patternGuard;
+        );
       }
     }
-    rewrite = popRewrite();
-    if (!identical(node.patternGuard.pattern, rewrite)) {
-      node.patternGuard.pattern = (rewrite as Pattern)
-        ..parent = node.patternGuard;
-    }
-    rewrite = popRewrite();
-    if (!identical(node.expression, rewrite)) {
-      node.expression = (rewrite as Expression)..parent = node;
-    }
+    Pattern pattern = popRewrite() as Pattern;
+    Expression expression = popRewrite() as Expression;
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
-    return const StatementInferenceResult();
+    return new StatementInferenceResult.single(
+      extern.createIfCaseStatement(
+        expression: expression,
+        patternGuard: createPatternGuard(
+          pattern: pattern,
+          guard: guard,
+          fileOffset: node.patternGuard.fileOffset,
+        ),
+        then: then,
+        otherwise: otherwise,
+        matchedValueType: matchedValueType,
+        fileOffset: node.fileOffset,
+      ),
+    );
   }
 
   ExpressionInferenceResult visitInternalIntLiteral(
@@ -4269,22 +4289,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferredSpreadTypes: inferredSpreadTypes,
           inferredConditionTypes: inferredConditionTypes,
         );
-    IfCaseStatementResult<InvalidExpression> analysisResult =
-        analyzeIfCaseElement(
-          node: element,
-          expression: element.expression,
-          pattern: element.patternGuard.pattern,
-          variables: {
-            for (InternalVariable variable
-                in (element.patternGuard.pattern as InternalPattern)
-                    .internalDeclaredVariables)
-              variable.cosmeticName!: variable.astVariable,
-          },
-          guard: element.patternGuard.guard,
-          ifTrue: element.then,
-          ifFalse: element.otherwise,
-          context: context,
-        );
+    IfCaseStatementResult<InvalidExpression>
+    analysisResult = analyzeIfCaseElement(
+      node: element,
+      expression: element.expression,
+      pattern: element.internalPatternGuard.pattern,
+      variables: {
+        for (InternalVariable variable
+            in element.internalPatternGuard.pattern.internalDeclaredVariables)
+          variable.cosmeticName!: variable.astVariable,
+      },
+      guard: element.internalPatternGuard.guard,
+      ifTrue: element.then,
+      ifFalse: element.otherwise,
+      context: context,
+    );
 
     element.matchedValueType = analysisResult.matchedExpressionType
         .unwrapTypeView();
@@ -4309,34 +4328,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       element.then = (rewrite as Expression)..parent = element;
     }
 
-    PatternGuard patternGuard = element.patternGuard;
-    rewrite = popRewrite(NullValues.Expression);
+    InternalPatternGuard patternGuard = element.internalPatternGuard;
+    Expression? guard = popRewrite(NullValues.Expression) as Expression?;
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
-      // Coverage-ignore-block(suite): Not run.
-      patternGuard.guard = guardError..parent = patternGuard;
-    } else {
-      if (!identical(patternGuard.guard, rewrite)) {
-        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
-      }
+      guard = guardError;
+    } else if (guard != null) {
       if (analysisResult.guardType is DynamicType) {
-        patternGuard.guard = _createImplicitAs(
-          patternGuard.guard!.fileOffset,
-          patternGuard.guard!,
+        guard = _createImplicitAs(
+          guard.fileOffset,
+          guard,
           coreTypes.boolNonNullableRawType,
-        )..parent = patternGuard;
+        );
       }
     }
 
-    rewrite = popRewrite();
-    if (!identical(patternGuard.pattern, rewrite)) {
-      patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
-    }
-
+    Pattern pattern = popRewrite() as Pattern;
     rewrite = popRewrite();
     if (!identical(element.expression, rewrite)) {
       element.expression = (rewrite as Expression)..parent = patternGuard;
     }
+
+    element.patternGuard = extern.createPatternGuard(
+      pattern: pattern,
+      guard: guard,
+      fileOffset: patternGuard.fileOffset,
+    );
 
     DartType thenType = context.inferredConditionTypes[element.then]!;
     DartType? otherwiseType = element.otherwise == null
@@ -4362,8 +4379,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(element, stackBase = stackHeight));
 
-    PatternVariableDeclaration patternVariableDeclaration =
-        element.patternVariableDeclaration;
+    InternalPatternVariableDeclaration patternVariableDeclaration =
+        element.internalPatternVariableDeclaration;
     PatternVariableDeclarationAnalysisResult analysisResult =
         analyzePatternVariableDeclaration(
           patternVariableDeclaration,
@@ -4371,8 +4388,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           patternVariableDeclaration.initializer,
           isFinal: patternVariableDeclaration.isFinal,
         );
-    patternVariableDeclaration.matchedValueType = analysisResult.initializerType
-        .unwrapTypeView();
+    DartType matchedValueType = analysisResult.initializerType.unwrapTypeView();
 
     assert(
       checkStack(element, stackBase, [
@@ -4381,20 +4397,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Object? rewrite = popRewrite(NullValues.Expression);
-    if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-      patternVariableDeclaration.pattern = (rewrite as Pattern)
-        ..parent = patternVariableDeclaration;
-    }
+    Pattern pattern = popRewrite() as Pattern;
+    Expression initializer = popRewrite() as Expression;
+    element.patternVariableDeclaration = extern
+        .createPatternVariableDeclaration(
+          pattern: pattern,
+          initializer: initializer,
+          isFinal: patternVariableDeclaration.isFinal,
+          matchedValueType: matchedValueType,
+          fileOffset: patternVariableDeclaration.fileOffset,
+        );
 
-    rewrite = popRewrite();
-    if (!identical(patternVariableDeclaration.initializer, rewrite)) {
-      patternVariableDeclaration.initializer = (rewrite as Expression)
-        ..parent = patternVariableDeclaration;
-    }
-
-    List<Variable> declaredVariables =
-        patternVariableDeclaration.pattern.declaredVariables;
+    List<Variable> declaredVariables = pattern.declaredVariables;
     assert(declaredVariables.length == element.intermediateVariables.length);
     assert(declaredVariables.length == element.variables.length);
     for (int i = 0; i < declaredVariables.length; i++) {
@@ -7399,14 +7413,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         analyzeIfCaseElement(
           node: entry,
           expression: entry.expression,
-          pattern: entry.patternGuard.pattern,
+          pattern: entry.internalPatternGuard.pattern,
           variables: {
             for (InternalVariable variable
-                in (entry.patternGuard.pattern as InternalPattern)
-                    .internalDeclaredVariables)
+                in entry.internalPatternGuard.pattern.internalDeclaredVariables)
               variable.cosmeticName!: variable.astVariable,
           },
-          guard: entry.patternGuard.guard,
+          guard: entry.internalPatternGuard.guard,
           ifTrue: entry.then,
           ifFalse: entry.otherwise,
           context: context,
@@ -7463,29 +7476,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       entry.then = (rewrite as MapLiteralEntry)..parent = entry;
     }
 
-    PatternGuard patternGuard = entry.patternGuard;
-    rewrite = popRewrite(NullValues.Expression);
+    InternalPatternGuard patternGuard = entry.internalPatternGuard;
+    Expression? guard = popRewrite(NullValues.Expression) as Expression?;
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
-      // Coverage-ignore-block(suite): Not run.
-      patternGuard.guard = guardError..parent = patternGuard;
-    } else {
-      if (!identical(patternGuard.guard, rewrite)) {
-        patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
-      }
+      guard = guardError;
+    } else if (guard != null) {
       if (analysisResult.guardType is DynamicType) {
-        patternGuard.guard = _createImplicitAs(
-          patternGuard.guard!.fileOffset,
-          patternGuard.guard!,
+        guard = _createImplicitAs(
+          guard.fileOffset,
+          guard,
           coreTypes.boolNonNullableRawType,
-        )..parent = patternGuard;
+        );
       }
     }
 
-    rewrite = popRewrite();
-    if (!identical(patternGuard.pattern, rewrite)) {
-      patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
-    }
+    Pattern pattern = popRewrite() as Pattern;
+    entry.patternGuard = extern.createPatternGuard(
+      pattern: pattern,
+      guard: guard,
+      fileOffset: patternGuard.fileOffset,
+    );
 
     rewrite = popRewrite();
     if (!identical(entry.expression, rewrite)) {
@@ -7510,8 +7521,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(entry, stackBase = stackHeight));
 
-    PatternVariableDeclaration patternVariableDeclaration =
-        entry.patternVariableDeclaration;
+    InternalPatternVariableDeclaration patternVariableDeclaration =
+        entry.internalPatternVariableDeclaration;
     PatternVariableDeclarationAnalysisResult analysisResult =
         analyzePatternVariableDeclaration(
           patternVariableDeclaration,
@@ -7519,8 +7530,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           patternVariableDeclaration.initializer,
           isFinal: patternVariableDeclaration.isFinal,
         );
-    patternVariableDeclaration.matchedValueType = analysisResult.initializerType
-        .unwrapTypeView();
+    DartType matchedValueType = analysisResult.initializerType.unwrapTypeView();
 
     assert(
       checkStack(entry, stackBase, [
@@ -7529,20 +7539,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Object? rewrite = popRewrite(NullValues.Expression);
-    if (!identical(patternVariableDeclaration.pattern, rewrite)) {
-      patternVariableDeclaration.pattern = (rewrite as Pattern)
-        ..parent = patternVariableDeclaration;
-    }
+    Pattern pattern = popRewrite() as Pattern;
+    Expression initializer = popRewrite() as Expression;
+    entry.patternVariableDeclaration = extern.createPatternVariableDeclaration(
+      pattern: pattern,
+      initializer: initializer,
+      isFinal: patternVariableDeclaration.isFinal,
+      matchedValueType: matchedValueType,
+      fileOffset: patternVariableDeclaration.fileOffset,
+    );
 
-    rewrite = popRewrite();
-    if (!identical(patternVariableDeclaration.initializer, rewrite)) {
-      patternVariableDeclaration.initializer = (rewrite as Expression)
-        ..parent = patternVariableDeclaration;
-    }
-
-    List<Variable> declaredVariables =
-        patternVariableDeclaration.pattern.declaredVariables;
+    List<Variable> declaredVariables = pattern.declaredVariables;
     assert(declaredVariables.length == entry.intermediateVariables.length);
     assert(declaredVariables.length == entry.variables.length);
     for (int i = 0; i < declaredVariables.length; i++) {
@@ -8369,7 +8376,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               new IfCaseElement(
                   prelude: entry.prelude,
                   expression: entry.expression,
-                  patternGuard: entry.patternGuard,
+                  internalPatternGuard: entry.internalPatternGuard,
                   then: convertToElement(entry.then, onConvertMapEntry),
                   otherwise: entry.otherwise == null
                       ? null
@@ -8378,18 +8385,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                         convertToElement(entry.otherwise!, onConvertMapEntry),
                 )
                 ..matchedValueType = entry.matchedValueType
+                ..patternGuard = entry.patternGuard
                 ..fileOffset = entry.fileOffset;
           onConvertMapEntry(entry, result);
           return result;
         case PatternForMapEntry():
-          PatternForElement result = new PatternForElement(
-            patternVariableDeclaration: entry.patternVariableDeclaration,
-            intermediateVariables: entry.intermediateVariables,
-            variables: entry.variables,
-            condition: entry.condition,
-            updates: entry.updates,
-            body: convertToElement(entry.body, onConvertMapEntry),
-          )..fileOffset = entry.fileOffset;
+          PatternForElement result =
+              new PatternForElement(
+                  internalPatternVariableDeclaration:
+                      entry.internalPatternVariableDeclaration,
+                  intermediateVariables: entry.intermediateVariables,
+                  variables: entry.variables,
+                  condition: entry.condition,
+                  updates: entry.updates,
+                  body: convertToElement(entry.body, onConvertMapEntry),
+                )
+                ..patternVariableDeclaration = entry.patternVariableDeclaration
+                ..fileOffset = entry.fileOffset;
           onConvertMapEntry(entry, result);
           return result;
         case ForMapEntry():
@@ -13101,8 +13113,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitSwitchExpression(
     SwitchExpression node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalSwitchExpression(
+    InternalSwitchExpression node,
     DartType typeContext,
   ) {
     Set<Field?>? previousEnumFields = _enumFields;
@@ -13118,7 +13138,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new SharedTypeSchemaView(typeContext),
         );
     DartType valueType = analysisResult.type.unwrapTypeView();
-    node.staticType = valueType;
+    DartType staticType = valueType;
+
+    assert(
+      checkStack(node, stackBase, [
+        /* cases */ ...repeatedKind(
+          ValueKinds.SwitchExpressionCase,
+          node.cases.length,
+        ),
+        /* scrutineeType = */ ValueKinds.DartType,
+        /* scrutinee = */ ValueKinds.Expression,
+      ]),
+    );
+
+    List<SwitchExpressionCase> cases = new List.filled(
+      node.cases.length,
+      dummySwitchExpressionCase,
+    );
+    for (int i = node.cases.length - 1; i >= 0; i--) {
+      cases[i] = popRewrite() as SwitchExpressionCase;
+    }
 
     assert(
       checkStack(node, stackBase, [
@@ -13128,25 +13167,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     DartType scrutineeType = popRewrite() as DartType;
-    node.expressionType = scrutineeType;
+    DartType expressionType = scrutineeType;
 
     assert(
       checkStack(node, stackBase, [/* scrutinee = */ ValueKinds.Expression]),
     );
 
-    Object? rewrite = popRewrite();
-    if (rewrite != null && !identical(node.expression, rewrite)) {
-      node.expression = rewrite as Expression..parent = node;
-    }
+    Expression expression = popRewrite() as Expression;
 
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
-      SwitchExpressionCase switchCase = node.cases[caseIndex];
+      SwitchExpressionCase switchCase = cases[caseIndex];
       PatternGuard patternGuard = switchCase.patternGuard;
 
       InvalidExpression? guardError =
           analysisResult.nonBooleanGuardErrors?[caseIndex];
       if (guardError != null) {
-        patternGuard.guard = guardError..parent = patternGuard;
+        patternGuard.guard = guardError;
       } else if (patternGuard.guard != null) {
         if (analysisResult.guardTypes![caseIndex] is DynamicType) {
           patternGuard.guard = _createImplicitAs(
@@ -13162,20 +13198,36 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
-    return new ExpressionInferenceResult(valueType, node);
+    Expression result = extern.createSwitchExpression(
+      expression: expression,
+      cases: cases,
+      expressionType: expressionType,
+      staticType: staticType,
+      fileOffset: node.fileOffset,
+    );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, result);
+    return new ExpressionInferenceResult(valueType, result);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitSwitchStatement(SwitchStatement node) {
+    _unhandledStatement(node);
+  }
+
+  StatementInferenceResult visitInternalRegularSwitchStatement(
+    InternalRegularSwitchStatement node,
+  ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
     Set<Field?>? previousEnumFields = _enumFields;
-    Expression expression = node.expression;
     SwitchStatementTypeAnalysisResult<InvalidExpression> analysisResult =
-        analyzeSwitchStatement(node, expression, node.cases.length);
+        analyzeSwitchStatement(node, node.expression, node.cases.length);
 
-    node.expressionType = analysisResult.scrutineeType.unwrapTypeView();
+    DartType expressionType = analysisResult.scrutineeType.unwrapTypeView();
 
     assert(
       checkStack(node, stackBase, [
@@ -13185,8 +13237,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
+    List<SwitchCase> cases = new List.filled(
+      node.cases.length,
+      dummySwitchCase,
+      growable: true,
+    );
     for (int i = node.cases.length - 1; i >= 0; i--) {
-      popRewrite(); // StatementCase
+      cases[i] = popRewrite() as SwitchCase;
     }
 
     // Note that a switch statement with a `default` clause is always considered
@@ -13194,8 +13251,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // statement is "explicitly exhaustive", meaning that it has a `case` clause
     // for every possible enum value.  It is only necessary to set this flag if
     // the switch doesn't have a `default` clause.
+    bool isExplicitlyExhaustive = false;
     if (!analysisResult.hasDefault) {
-      node.isExplicitlyExhaustive = analysisResult.isExhaustive;
+      isExplicitlyExhaustive = analysisResult.isExhaustive;
     }
     _enumFields = previousEnumFields;
 
@@ -13212,13 +13270,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       checkStack(node, stackBase, [/* scrutinee = */ ValueKinds.Expression]),
     );
 
-    Object? rewrite = popRewrite();
-    if (!identical(expression, rewrite)) {
-      expression = rewrite as Expression;
-      node.expression = expression..parent = node;
-    }
+    Expression expression = popRewrite() as Expression;
 
-    Statement? replacement;
+    Statement replacement = extern.createSwitchStatement(
+      expression: expression,
+      cases: cases,
+      isExplicitlyExhaustive: isExplicitlyExhaustive,
+      expressionType: expressionType,
+      fileOffset: node.fileOffset,
+    );
     if (analysisResult.isExhaustive &&
         !analysisResult.hasDefault &&
         shouldThrowUnsoundnessException) {
@@ -13231,7 +13291,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           replacement = breakTarget = new LabeledStatement(node);
         }
 
-        SwitchCase lastCase = node.cases.last;
+        InternalSwitchStatementCase lastCase = node.cases.last;
         Statement body = lastCase.body;
         if (body is Block) {
           body.addStatement(
@@ -13242,34 +13302,40 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           );
         }
       }
-      node.cases.add(
-        new SwitchCase(
-            [],
-            [],
-            _createExpressionStatement(
-              createReachabilityError(
-                node.fileOffset,
-                diag.neverReachableSwitchDefaultError,
-              ),
+      cases.add(
+        extern.createSwitchCase(
+          expressions: [],
+          expressionOffsets: [],
+          body: _createExpressionStatement(
+            createReachabilityError(
+              node.fileOffset,
+              diag.neverReachableSwitchDefaultError,
             ),
-            isDefault: true,
-          )
-          ..fileOffset = node.fileOffset
-          ..parent = node,
+          ),
+          isDefault: true,
+          fileOffset: node.fileOffset,
+        )..parent = replacement,
       );
     }
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
+    libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    return replacement != null
-        ? new StatementInferenceResult.single(replacement)
-        : const StatementInferenceResult();
+    ?.registerAlias(node, replacement);
+    return new StatementInferenceResult.single(replacement);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitPatternSwitchStatement(
     PatternSwitchStatement node,
+  ) {
+    _unhandledStatement(node);
+  }
+
+  StatementInferenceResult visitInternalPatternSwitchStatement(
+    InternalPatternSwitchStatement node,
   ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
@@ -13277,7 +13343,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SwitchStatementTypeAnalysisResult<InvalidExpression> analysisResult =
         analyzeSwitchStatement(node, node.expression, node.cases.length);
 
-    node.lastCaseTerminates = analysisResult.lastCaseTerminates;
+    bool lastCaseTerminates = analysisResult.lastCaseTerminates;
 
     assert(
       checkStack(node, stackBase, [
@@ -13287,13 +13353,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    node.expressionType = analysisResult.scrutineeType.unwrapTypeView();
+    DartType expressionType = analysisResult.scrutineeType.unwrapTypeView();
+    List<PatternSwitchCase> cases = new List.filled(
+      node.cases.length,
+      dummyPatternSwitchCase,
+    );
     for (int i = node.cases.length - 1; i >= 0; i--) {
-      Object? rewrite = popRewrite();
-      if (!identical(rewrite, node.cases[i])) {
-        // Coverage-ignore-block(suite): Not run.
-        node.cases[i] = (rewrite as PatternSwitchCase)..parent = node;
-      }
+      cases[i] = popRewrite() as PatternSwitchCase;
     }
 
     assert(
@@ -13309,13 +13375,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       checkStack(node, stackBase, [/* scrutinee = */ ValueKinds.Expression]),
     );
 
-    Object? rewrite = popRewrite();
-    if (!identical(node.expression, rewrite)) {
-      node.expression = rewrite as Expression..parent = node;
-    }
+    Expression expression = popRewrite() as Expression;
 
-    for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
-      PatternSwitchCase switchCase = node.cases[caseIndex];
+    for (int caseIndex = 0; caseIndex < cases.length; caseIndex++) {
+      PatternSwitchCase switchCase = cases[caseIndex];
       List<Variable> jointVariablesNotInAll = [];
       for (
         int headIndex = 0;
@@ -13381,7 +13444,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    return const StatementInferenceResult();
+    return new StatementInferenceResult.single(
+      extern.createPatternSwitchStatement(
+        expression: expression,
+        cases: cases,
+        expressionType: expressionType,
+        lastCaseTerminates: lastCaseTerminates,
+        fileOffset: node.fileOffset,
+      ),
+    );
   }
 
   @override
@@ -13640,8 +13711,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitPatternVariableDeclaration(
     PatternVariableDeclaration node,
+  ) {
+    _unhandledStatement(node);
+  }
+
+  StatementInferenceResult visitInternalPatternVariableDeclaration(
+    InternalPatternVariableDeclaration node,
   ) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
@@ -13653,7 +13731,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node.initializer,
           isFinal: node.isFinal,
         );
-    node.matchedValueType = analysisResult.initializerType.unwrapTypeView();
+    DartType matchedValueType = analysisResult.initializerType.unwrapTypeView();
 
     assert(
       checkStack(node, stackBase, [
@@ -13662,21 +13740,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Object? rewrite = popRewrite();
-    if (!identical(rewrite, node.pattern)) {
-      node.pattern = rewrite as Pattern..parent = node;
-    }
+    Pattern pattern = popRewrite() as Pattern;
 
     assert(
       checkStack(node, stackBase, [/* initializer = */ ValueKinds.Expression]),
     );
 
-    rewrite = popRewrite();
-    if (!identical(node.initializer, rewrite)) {
-      node.initializer = rewrite as Expression..parent = node;
-    }
+    Expression initializer = popRewrite() as Expression;
 
-    return const StatementInferenceResult();
+    return new StatementInferenceResult.single(
+      extern.createPatternVariableDeclaration(
+        pattern: pattern,
+        initializer: initializer,
+        isFinal: node.isFinal,
+        matchedValueType: matchedValueType,
+        fileOffset: node.fileOffset,
+      ),
+    );
   }
 
   @override
@@ -14254,13 +14334,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // The case of pattern variable declaration. The initializer expression is
     // assigned to the pattern, and so the coercion needs to be performed.
     bool needsCoercion =
-        parent is PatternVariableDeclaration && parent.initializer == node;
+        parent is InternalPatternVariableDeclaration &&
+        parent.initializer == node;
 
     // The case of pattern assignment. The expression is assigned to the
     // pattern, and so the coercion needs to be performed.
     needsCoercion =
         needsCoercion ||
-        parent is PatternAssignment && parent.expression == node;
+        parent is InternalPatternAssignment && parent.expression == node;
 
     // The constant expressions in relational patterns are considered to be
     // passed into the corresponding operator, and so the coercion needs to be
@@ -14425,115 +14506,212 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void finishExpressionCase(Expression node, int caseIndex) {
-    SwitchExpressionCase switchExpressionCase =
-        (node as SwitchExpression).cases[caseIndex];
-    Object? rewrite = popRewrite();
-    if (!identical(switchExpressionCase.expression, rewrite)) {
-      switchExpressionCase.expression = rewrite as Expression
-        ..parent = switchExpressionCase;
-    }
+  void finishExpressionCase(
+    covariant InternalSwitchExpression node,
+    int caseIndex,
+  ) {
+    int? stackBase;
+    assert(checkStackBase(node, stackBase = stackHeight - 2));
+
+    assert(
+      checkStack(node, stackBase, [
+        ValueKinds.Expression,
+        ValueKinds.PatternGuard,
+      ]),
+    );
+
+    Expression expression = popRewrite() as Expression;
+    PatternGuard patternGuard = popRewrite() as PatternGuard;
+    pushRewrite(
+      extern.createSwitchExpressionCase(
+        patternGuard: patternGuard,
+        expression: expression,
+        fileOffset: node.cases[caseIndex].fileOffset,
+      ),
+    );
+
+    assert(checkStack(node, stackBase, [ValueKinds.SwitchExpressionCase]));
   }
 
   @override
   void handleMergedStatementCase(
-    covariant SwitchStatement node, {
+    covariant InternalSwitchStatement node, {
     required int caseIndex,
     required bool isTerminating,
   }) {
-    SwitchCase case_ = node.cases[caseIndex];
+    switch (node) {
+      case InternalRegularSwitchStatement():
+        InternalSwitchStatementCase case_ = node.cases[caseIndex];
 
-    int? stackBase;
-    assert(
-      checkStackBase(node, stackBase = stackHeight - (1 + case_.caseHeadCount)),
-    );
+        int? stackBase;
+        assert(
+          checkStackBase(
+            node,
+            stackBase = stackHeight - (1 + case_.caseHeadCount),
+          ),
+        );
 
-    assert(
-      checkStack(node, stackBase, [
-        /* body = */ ValueKinds.Statement,
-        /* case heads = */ ...repeatedKind(
-          ValueKinds.SwitchCase,
-          case_.caseHeadCount,
-        ),
-      ]),
-    );
-
-    Statement body = case_.body;
-    Object? rewrite = popRewrite();
-    if (!identical(body, rewrite)) {
-      body = rewrite as Statement;
-      case_.body = body..parent = case_;
-    }
-
-    assert(
-      checkStack(node, stackBase, [
-        /* case heads = */ ...repeatedKind(
-          ValueKinds.SwitchCase,
-          case_.caseHeadCount,
-        ),
-      ]),
-    );
-
-    // When patterns are enable, if this is not the last case and it is not
-    // terminating, we insert a synthetic break.
-    if (libraryBuilder.libraryFeatures.patterns.isEnabled &&
-        !isTerminating &&
-        caseIndex < node.cases.length - 1) {
-      LabeledStatement switchLabel = node.parent as LabeledStatement;
-      BreakStatement syntheticBreak = new BreakStatement(switchLabel)
-        ..fileOffset = TreeNode.noOffset;
-      if (body is Block) {
-        body.addStatement(syntheticBreak);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        body = new Block([body, syntheticBreak])..fileOffset = body.fileOffset;
-        case_.body = body..parent = case_;
-      }
-    }
-
-    if (node is PatternSwitchStatement) {
-      if (case_ is PatternSwitchCase) {
         assert(
           checkStack(node, stackBase, [
-            /* case heads = */ ...repeatedKind(
-              ValueKinds.SwitchCase,
-              case_.patternGuards.length,
+            /* body = */ ValueKinds.Statement,
+            /* expressions = */ ...repeatedKind(
+              ValueKinds.Expression,
+              case_.caseHeadCount,
             ),
           ]),
         );
 
-        for (int i = 0; i < case_.patternGuards.length; i++) {
-          popRewrite(); // CaseHead
-        }
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        popRewrite(); // CaseHead
-      }
-    } else {
-      if (case_ is SwitchCaseImpl) {
+        Statement body = popRewrite() as Statement;
+
         assert(
           checkStack(node, stackBase, [
-            /* case heads = */ ...repeatedKind(
-              ValueKinds.SwitchCase,
+            /* expressions = */ ...repeatedKind(
+              ValueKinds.Expression,
+              case_.caseHeadCount,
+            ),
+          ]),
+        );
+
+        // When patterns are enable, if this is not the last case and it is not
+        // terminating, we insert a synthetic break.
+        if (libraryBuilder.libraryFeatures.patterns.isEnabled &&
+            !isTerminating &&
+            // Coverage-ignore(suite): Not run.
+            caseIndex < node.cases.length - 1) {
+          // Coverage-ignore-block(suite): Not run.
+          LabeledStatement switchLabel = node.parent as LabeledStatement;
+          BreakStatement syntheticBreak = new BreakStatement(switchLabel)
+            ..fileOffset = TreeNode.noOffset;
+          if (body is Block) {
+            body.addStatement(syntheticBreak);
+          } else {
+            body = new Block([body, syntheticBreak])
+              ..fileOffset = body.fileOffset;
+          }
+        }
+
+        assert(
+          checkStack(node, stackBase, [
+            /* expressions = */ ...repeatedKind(
+              ValueKinds.Expression,
               case_.expressions.length,
             ),
           ]),
         );
 
-        for (int i = 0; i < case_.expressions.length; i++) {
-          popRewrite(); // CaseHead
+        List<Expression> expressions = new List.filled(
+          case_.expressions.length,
+          dummyExpression,
+        );
+        for (int i = case_.expressions.length - 1; i >= 0; i--) {
+          expressions[i] = popRewrite() as Expression; // CaseHead
         }
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        popRewrite(); // CaseHead
-      }
+
+        assert(checkStack(node, stackBase, [/*empty*/]));
+
+        SwitchCase replacement = extern.createSwitchCase(
+          expressions: expressions,
+          expressionOffsets: case_.expressionOffsets,
+          body: body,
+          isDefault: case_.isDefault,
+          fileOffset: case_.fileOffset,
+        );
+        case_.registerSwitchCase(replacement);
+        pushRewrite(replacement);
+
+        assert(
+          checkStack(node, stackBase, [/* case = */ ValueKinds.SwitchCase]),
+        );
+      case InternalPatternSwitchStatement():
+        InternalPatternSwitchCase case_ = node.cases[caseIndex];
+
+        int? stackBase;
+        assert(
+          checkStackBase(
+            node,
+            stackBase = stackHeight - (1 + case_.caseHeadCount),
+          ),
+        );
+
+        assert(
+          checkStack(node, stackBase, [
+            /* body = */ ValueKinds.Statement,
+            /* pattern guards = */ ...repeatedKind(
+              ValueKinds.PatternGuard,
+              case_.caseHeadCount,
+            ),
+          ]),
+        );
+
+        Statement body = popRewrite() as Statement;
+
+        assert(
+          checkStack(node, stackBase, [
+            /* pattern guards = */ ...repeatedKind(
+              ValueKinds.PatternGuard,
+              case_.caseHeadCount,
+            ),
+          ]),
+        );
+
+        // When patterns are enable, if this is not the last case and it is not
+        // terminating, we insert a synthetic break.
+        if (libraryBuilder.libraryFeatures.patterns.isEnabled &&
+            !isTerminating &&
+            caseIndex < node.cases.length - 1) {
+          LabeledStatement switchLabel = node.parent as LabeledStatement;
+          BreakStatement syntheticBreak = new BreakStatement(switchLabel)
+            ..fileOffset = TreeNode.noOffset;
+          if (body is Block) {
+            body.addStatement(syntheticBreak);
+          } else {
+            // Coverage-ignore-block(suite): Not run.
+            body = new Block([body, syntheticBreak])
+              ..fileOffset = body.fileOffset;
+          }
+        }
+
+        assert(
+          checkStack(node, stackBase, [
+            /* case heads = */ ...repeatedKind(
+              ValueKinds.PatternGuard,
+              case_.patternGuards.length,
+            ),
+          ]),
+        );
+
+        List<PatternGuard> patternGuards = new List.filled(
+          case_.patternGuards.length,
+          dummyPatternGuard,
+        );
+        for (int i = case_.patternGuards.length - 1; i >= 0; i--) {
+          patternGuards[i] = popRewrite() as PatternGuard;
+        }
+
+        assert(checkStack(node, stackBase, [/*empty*/]));
+
+        PatternSwitchCase replacement = extern.createPatternSwitchCase(
+          caseOffsets: case_.caseOffsets,
+          patternGuards: patternGuards,
+          body: body,
+          isDefault: case_.isDefault,
+          hasLabel: case_.hasLabel,
+          jointVariables: [
+            for (InternalVariable variable in case_.jointVariables)
+              variable.astVariable,
+          ],
+          jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
+          fileOffset: case_.fileOffset,
+        );
+        case_.registerSwitchCase(replacement);
+        pushRewrite(replacement);
+
+        assert(
+          checkStack(node, stackBase, [
+            /* case = */ ValueKinds.PatternSwitchCase,
+          ]),
+        );
     }
-
-    assert(checkStack(node, stackBase, [/*empty*/]));
-
-    pushRewrite(case_);
-
-    assert(checkStack(node, stackBase, [/* case = */ ValueKinds.SwitchCase]));
   }
 
   @override
@@ -14543,12 +14721,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   SwitchExpressionMemberInfo<TreeNode, Expression, Variable>
   getSwitchExpressionMemberInfo(Expression node, int index) {
-    SwitchExpressionCase switchExpressionCase =
-        (node as SwitchExpression).cases[index];
-    Pattern pattern = switchExpressionCase.patternGuard.pattern;
+    InternalSwitchExpressionCase switchExpressionCase =
+        (node as InternalSwitchExpression).cases[index];
+    InternalPattern pattern = switchExpressionCase.patternGuard.pattern;
     Map<String, Variable> variables = {
       for (InternalVariable declaredVariable
-          in (pattern as InternalPattern).internalDeclaredVariables)
+          in pattern.internalDeclaredVariables)
         declaredVariable.cosmeticName!: declaredVariable.astVariable,
     };
     return new SwitchExpressionMemberInfo<TreeNode, Expression, Variable>(
@@ -14563,51 +14741,54 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   SwitchStatementMemberInfo<TreeNode, Statement, Expression, Variable>
-  getSwitchStatementMemberInfo(covariant SwitchStatement node, int caseIndex) {
-    SwitchCase case_ = node.cases[caseIndex];
-    if (case_ is SwitchCaseImpl) {
-      return new SwitchStatementMemberInfo(
-        heads: [
-          for (Expression expression in case_.expressions)
-            new CaseHeadOrDefaultInfo(pattern: expression, variables: {}),
-          if (case_.isDefault)
-            new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
-        ],
-        body: [case_.body],
-        variables: {},
-        hasLabels: case_.hasLabel,
-      );
-    } else {
-      case_ as PatternSwitchCase;
-      return new SwitchStatementMemberInfo(
-        heads: [
-          for (PatternGuard patternGuard in case_.patternGuards)
-            new CaseHeadOrDefaultInfo(
-              pattern: patternGuard.pattern,
-              guard: patternGuard.guard,
-              variables: {
-                for (InternalVariable variable
-                    in (patternGuard.pattern as InternalPattern)
-                        .internalDeclaredVariables)
-                  variable.cosmeticName!: variable.astVariable,
-              },
-            ),
-          if (case_.isDefault)
-            new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
-        ],
-        body: [case_.body],
-        variables: {
-          for (Variable jointVariable in case_.jointVariables)
-            jointVariable.name!: jointVariable,
-        },
-        hasLabels: case_.hasLabel,
-      );
+  getSwitchStatementMemberInfo(
+    covariant InternalSwitchStatement node,
+    int caseIndex,
+  ) {
+    switch (node) {
+      case InternalRegularSwitchStatement():
+        InternalSwitchStatementCase case_ = node.cases[caseIndex];
+        return new SwitchStatementMemberInfo(
+          heads: [
+            for (Expression expression in case_.expressions)
+              new CaseHeadOrDefaultInfo(pattern: expression, variables: {}),
+            if (case_.isDefault)
+              new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
+          ],
+          body: [case_.body],
+          variables: {},
+          hasLabels: case_.hasLabel,
+        );
+      case InternalPatternSwitchStatement():
+        InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        return new SwitchStatementMemberInfo(
+          heads: [
+            for (InternalPatternGuard patternGuard in case_.patternGuards)
+              new CaseHeadOrDefaultInfo(
+                pattern: patternGuard.pattern,
+                guard: patternGuard.guard,
+                variables: {
+                  for (InternalVariable variable
+                      in patternGuard.pattern.internalDeclaredVariables)
+                    variable.cosmeticName!: variable.astVariable,
+                },
+              ),
+            if (case_.isDefault)
+              new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
+          ],
+          body: [case_.body],
+          variables: {
+            for (InternalVariable jointVariable in case_.jointVariables)
+              jointVariable.cosmeticName!: jointVariable.astVariable,
+          },
+          hasLabels: case_.hasLabel,
+        );
     }
   }
 
   @override
   void handleCaseHead(
-    covariant /* SwitchStatement | SwitchExpression */ Object node, {
+    covariant InternalSwitch node, {
     required int caseIndex,
     required int subIndex,
   }) {
@@ -14625,95 +14806,94 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    if (node is SwitchStatement) {
-      assert(
-        checkStack(node, stackBase, [
-          /* guard = */ ValueKinds.ExpressionOrNull,
-          /* pattern or expression = */ unionOfKinds([
-            ValueKinds.Pattern,
+    switch (node) {
+      case InternalRegularSwitchStatement():
+        assert(
+          checkStack(node, stackBase, [
+            /* guard = */ ValueKinds.ExpressionOrNull,
+            /* expression = */ ValueKinds.Expression,
+          ]),
+        );
+
+        Object? guard = popRewrite(NullValues.Expression);
+        assert(guard == null, "Unexpected guard in switch statement $guard.");
+
+        assert(
+          checkStack(node, stackBase, [
+            /* expression = */
             ValueKinds.Expression,
           ]),
-        ]),
-      );
+        );
 
-      Object? guardRewrite = popRewrite(NullValues.Expression);
-
-      assert(
-        checkStack(node, stackBase, [
-          /* pattern or expression = */ unionOfKinds([
-            ValueKinds.Pattern,
-            ValueKinds.Expression,
-          ]),
-        ]),
-      );
-
-      SwitchCase case_ = node.cases[caseIndex];
-      if (case_ is SwitchCaseImpl) {
-        Expression expression = case_.expressions[subIndex];
-        Object? rewrite = popRewrite();
+        Expression expression = popRewrite() as Expression;
 
         assert(checkStack(node, stackBase, [/*empty*/]));
 
-        if (!identical(expression, rewrite)) {
-          expression = rewrite as Expression;
-          case_.expressions[subIndex] = expression..parent = case_;
-        }
         handleConstantPattern(expression);
 
-        pushRewrite(case_);
-      } else {
-        PatternGuard patternGuard =
-            (case_ as PatternSwitchCase).patternGuards[subIndex];
-        if (guardRewrite != null &&
-            !identical(guardRewrite, patternGuard.guard)) {
-          patternGuard.guard = (guardRewrite as Expression)
-            ..parent = patternGuard;
-        }
-        Object? rewrite = popRewrite();
-        if (!identical(rewrite, patternGuard.pattern)) {
-          patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
-        }
-        if (patternGuard.guard == null) {
-          Pattern pattern = patternGuard.pattern;
-          if (pattern is ConstantPattern) {
-            handleConstantPattern(pattern.expression);
-          }
-        }
+        pushRewrite(expression);
+      case InternalPatternSwitchStatement():
+        assert(
+          checkStack(node, stackBase, [
+            /* guard = */ ValueKinds.ExpressionOrNull,
+            /* pattern  = */ ValueKinds.Pattern,
+          ]),
+        );
 
-        pushRewrite(case_);
-      }
-    } else {
-      SwitchExpressionCase switchExpressionCase =
-          (node as SwitchExpression).cases[caseIndex];
-      PatternGuard patternGuard = switchExpressionCase.patternGuard;
+        Expression? guard = popRewrite(NullValues.Expression) as Expression?;
 
-      assert(
-        checkStack(node, stackBase, [
-          /* guard = */ ValueKinds.ExpressionOrNull,
-          /* pattern = */ ValueKinds.Pattern,
-        ]),
-      );
+        assert(
+          checkStack(node, stackBase, [
+            /* pattern or expression = */ unionOfKinds([
+              ValueKinds.Pattern,
+              ValueKinds.Expression,
+            ]),
+          ]),
+        );
 
-      Object? guard = popRewrite(NullValues.Expression);
-      if (guard != null && !identical(patternGuard.guard, guard)) {
-        patternGuard.guard = (guard as Expression)..parent = patternGuard;
-      }
-
-      assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
-
-      Object? pattern = popRewrite();
-
-      assert(checkStack(node, stackBase, [/*empty*/]));
-
-      if (pattern != null && !identical(patternGuard.pattern, pattern)) {
-        patternGuard.pattern = (pattern as Pattern)..parent = patternGuard;
-      }
-      if (patternGuard.guard == null) {
-        Pattern pattern = patternGuard.pattern;
-        if (pattern is ConstantPattern) {
+        InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        Pattern pattern = popRewrite() as Pattern;
+        if (guard == null && pattern is ConstantPattern) {
           handleConstantPattern(pattern.expression);
         }
-      }
+
+        pushRewrite(
+          extern.createPatternGuard(
+            pattern: pattern,
+            guard: guard,
+            fileOffset: case_.patternGuards[subIndex].fileOffset,
+          ),
+        );
+      case InternalSwitchExpression():
+        InternalSwitchExpressionCase case_ = node.cases[caseIndex];
+
+        assert(
+          checkStack(node, stackBase, [
+            /* guard = */ ValueKinds.ExpressionOrNull,
+            /* pattern = */ ValueKinds.Pattern,
+          ]),
+        );
+
+        Expression? guard = popRewrite(NullValues.Expression) as Expression?;
+
+        assert(
+          checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]),
+        );
+
+        Pattern pattern = popRewrite() as Pattern;
+
+        assert(checkStack(node, stackBase, [/*empty*/]));
+
+        if (guard == null && pattern is ConstantPattern) {
+          handleConstantPattern(pattern.expression);
+        }
+        pushRewrite(
+          extern.createPatternGuard(
+            pattern: pattern,
+            guard: guard,
+            fileOffset: case_.patternGuard.fileOffset,
+          ),
+        );
     }
   }
 
@@ -16103,8 +16283,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitPatternAssignment(
     PatternAssignment node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalPatternAssignment(
+    InternalPatternAssignment node,
     DartType typeContext,
   ) {
     int? stackBase;
@@ -16115,7 +16303,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.pattern,
       node.expression,
     );
-    node.matchedValueType = analysisResult.type.unwrapTypeView();
+    DartType matchedValueType = analysisResult.type.unwrapTypeView();
 
     assert(
       checkStack(node, stackBase, [
@@ -16124,25 +16312,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
-    Object? rewrite = popRewrite();
-    if (!identical(node.pattern, rewrite)) {
-      node.pattern = rewrite as Pattern..parent = node;
-    }
+    Pattern pattern = popRewrite() as Pattern;
 
     assert(
       checkStack(node, stackBase, [/* expression = */ ValueKinds.Expression]),
     );
 
-    rewrite = popRewrite();
-    if (!identical(node.expression, rewrite)) {
-      node.expression = rewrite as Expression..parent = node;
-    }
+    Expression expression = popRewrite() as Expression;
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
     return new ExpressionInferenceResult(
       analysisResult.type.unwrapTypeView(),
-      node,
+      extern.createPatternAssignment(
+        pattern: pattern,
+        expression: expression,
+        matchedValueType: matchedValueType,
+        fileOffset: node.fileOffset,
+      ),
     );
   }
 
@@ -17429,18 +17616,6 @@ class _MapLiteralEntryOffsets {
 
   // Stores the type of the iterable spread found by inferMapEntry.
   DartType? iterableSpreadType;
-}
-
-extension on SwitchCase {
-  int get caseHeadCount {
-    int count = 0;
-    if (this is PatternSwitchCase) {
-      count += (this as PatternSwitchCase).patternGuards.length;
-    } else {
-      count += this.expressions.length;
-    }
-    return count;
-  }
 }
 
 abstract class CollectionElementInferenceContext {

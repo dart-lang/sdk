@@ -13,6 +13,7 @@ import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_loader.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
+import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/internal_ast_helper.dart' as forest;
@@ -600,9 +601,21 @@ void _testSwitchCaseImpl() {
   Block returnBlock2 = new Block([new ReturnStatement()]);
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl([0], [case0], [0], emptyBlock, hasLabel: false),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [0],
+          expressions: [case0],
+          expressionOffsets: [0],
+          body: emptyBlock,
+          isDefault: false,
+          labels: null,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   case 0:
@@ -612,16 +625,21 @@ switch (null) { case 0: }''',
   );
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl(
-        [],
-        [],
-        [0],
-        emptyBlock,
-        hasLabel: false,
-        isDefault: true,
-      ),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [],
+          expressions: [],
+          expressionOffsets: [0],
+          body: emptyBlock,
+          labels: null,
+          isDefault: true,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   default:
@@ -631,34 +649,42 @@ switch (null) { default: }''',
   );
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl(
-        [0, 1],
-        [case0, case1],
-        [0, 1],
-        returnBlock1,
-        hasLabel: false,
-      ),
-      new SwitchCaseImpl(
-        [0],
-        [case2],
-        [0],
-        returnBlock2,
-        hasLabel: true,
-        isDefault: true,
-      ),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [0, 1],
+          expressions: [case0, case1],
+          expressionOffsets: [0, 1],
+          body: returnBlock1,
+          isDefault: false,
+          labels: null,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchStatementCase(
+          caseOffsets: [0],
+          expressions: [case2],
+          expressionOffsets: [0],
+          body: returnBlock2,
+          isDefault: true,
+          labels: [new Label('foo', TreeNode.noOffset)],
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   case 0:
   case 1:
     return;
+  foo:
   case 2:
   default:
     return;
 }''',
     limited: '''
-switch (null) { case 0: case 1: return; case 2: default: return; }''',
+switch (null) { case 0: case 1: return; foo: case 2: default: return; }''',
   );
 }
 

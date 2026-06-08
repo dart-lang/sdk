@@ -1403,7 +1403,7 @@ class BodyBuilderImpl extends StackListenerImpl
         case_.charOffset,
         case_.charCount,
       );
-      Pattern pattern = toPattern(pop());
+      InternalPattern pattern = toPattern(pop());
       Expression expression = popForValue();
       push(
         new Condition(
@@ -1692,7 +1692,7 @@ class BodyBuilderImpl extends StackListenerImpl
       "Expected to have scope kind ${LocalScopeKind.switchBlock}, "
       "but got ${_localScopes.previous.kind}.",
     );
-    if (value is Pattern) {
+    if (value is InternalPattern) {
       super.push(
         new ExpressionOrPatternGuardCase.patternGuard(
           caseKeyword.charOffset,
@@ -3221,7 +3221,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // [endThenStatement].
     assignedVariables.beginNode();
     Condition condition = pop() as Condition;
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null && patternGuard.guard != null) {
       LocalScope thenScope = _localScope.createNestedScope(
         kind: LocalScopeKind.statementLocalScope,
@@ -3235,7 +3235,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // to enter the scope and declare all of the pattern variables.
       if (patternGuard != null) {
         createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
-        InternalPattern pattern = patternGuard.pattern as InternalPattern;
+        InternalPattern pattern = patternGuard.pattern;
         for (InternalVariable variable in pattern.internalDeclaredVariables) {
           declareVariable(variable, _localScope);
         }
@@ -3281,7 +3281,7 @@ class BodyBuilderImpl extends StackListenerImpl
         pop() as AssignedVariablesNodeInfo;
     Statement thenPart = popStatement(ifToken);
     Condition condition = pop() as Condition;
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     Expression expression = condition.expression;
     Statement node;
     if (patternGuard != null) {
@@ -3753,7 +3753,7 @@ class BodyBuilderImpl extends StackListenerImpl
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
-    } else if (variableOrExpression is PatternVariableDeclaration) {
+    } else if (variableOrExpression is InternalPatternVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       return [];
     } else if (variableOrExpression is ParserRecovery) {
@@ -3971,7 +3971,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? variableOrExpression = pop();
     List<VariableDeclaration>? variables;
     List<VariableDeclaration>? intermediateVariables;
-    if (variableOrExpression is PatternVariableDeclaration) {
+    if (variableOrExpression is InternalPatternVariableDeclaration) {
       variables = (pop() as List<InternalVariable>)
           .map(intern.createVariableDeclaration)
           .toList(); // Internal variables.
@@ -3992,7 +3992,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     if (entry is MapLiteralEntry) {
       TreeNode result;
-      if (variableOrExpression is PatternVariableDeclaration) {
+      if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForMapEntry(
           offsetForToken(forToken),
           patternVariableDeclaration: variableOrExpression,
@@ -4015,7 +4015,7 @@ class BodyBuilderImpl extends StackListenerImpl
       push(result);
     } else {
       TreeNode result;
-      if (variableOrExpression is PatternVariableDeclaration) {
+      if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForElement(
           offsetForToken(forToken),
           patternVariableDeclaration: variableOrExpression,
@@ -4094,7 +4094,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? variableOrExpression = pop();
     List<VariableDeclaration>? variables;
     List<VariableDeclaration>? intermediateVariables;
-    if (variableOrExpression is PatternVariableDeclaration) {
+    if (variableOrExpression is InternalPatternVariableDeclaration) {
       variables = (pop() as List<InternalVariable>)
           .map(intern.createVariableDeclaration)
           .toList(); // Internal variables.
@@ -4138,7 +4138,7 @@ class BodyBuilderImpl extends StackListenerImpl
       breakTarget.resolveBreaks(labeledStatement, forStatement);
       result = labeledStatement;
     }
-    if (variableOrExpression is PatternVariableDeclaration) {
+    if (variableOrExpression is InternalPatternVariableDeclaration) {
       result = intern.createBlock(
         fileOffset: result.fileOffset,
         fileEndOffset: result.fileOffset,
@@ -7252,7 +7252,7 @@ class BodyBuilderImpl extends StackListenerImpl
     assignedVariables.beginNode();
 
     Condition condition = pop() as Condition;
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null) {
       if (patternGuard.guard != null) {
         LocalScope thenScope = _localScope.createNestedScope(
@@ -7262,7 +7262,7 @@ class BodyBuilderImpl extends StackListenerImpl
         enterLocalScope(thenScope);
       } else {
         createAndEnterLocalScope(kind: LocalScopeKind.ifCaseHead);
-        InternalPattern pattern = patternGuard.pattern as InternalPattern;
+        InternalPattern pattern = patternGuard.pattern;
         for (InternalVariable variable in pattern.internalDeclaredVariables) {
           declareVariable(variable, _localScope);
         }
@@ -7328,7 +7328,7 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (entry is MapLiteralEntry) {
       if (patternGuard == null) {
@@ -7397,7 +7397,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Condition condition = pop() as Condition; // parenthesized expression
     Token ifToken = pop() as Token;
 
-    PatternGuard? patternGuard = condition.patternGuard;
+    InternalPatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
     if (thenEntry is MapLiteralEntry) {
       if (elseEntry is MapLiteralEntry) {
@@ -8961,9 +8961,9 @@ class BodyBuilderImpl extends StackListenerImpl
       for (int i = 0; i < expressionOrPatterns.length; i++) {
         ExpressionOrPatternGuardCase expressionOrPattern =
             expressionOrPatterns[i];
-        PatternGuard? patternGuard = expressionOrPattern.patternGuard;
+        InternalPatternGuard? patternGuard = expressionOrPattern.patternGuard;
         if (patternGuard != null) {
-          InternalPattern pattern = patternGuard.pattern as InternalPattern;
+          InternalPattern pattern = patternGuard.pattern;
           if (jointPatternVariables == null) {
             jointPatternVariables = [
               for (InternalVariable variable
@@ -9257,10 +9257,10 @@ class BodyBuilderImpl extends StackListenerImpl
         containsPatterns &&
         hasDefaultOrLabels &&
         usedNamesOffsets != null) {
-      PatternGuard? patternGuard =
+      InternalPatternGuard? patternGuard =
           expressionsOrPatternGuards.first.patternGuard;
       if (patternGuard != null) {
-        InternalPattern pattern = patternGuard.pattern as InternalPattern;
+        InternalPattern pattern = patternGuard.pattern;
         for (InternalVariable variable in pattern.internalDeclaredVariables) {
           String variableName = variable.cosmeticName!;
           if (usedNamesOffsets[variableName] case [int offset, ...]) {
@@ -9280,7 +9280,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // Otherwise, we use pattern switch encoding to handle the erroneous case
       // of an unsupported use of patterns.
       List<int> caseOffsets = [];
-      List<PatternGuard> patternGuards = <PatternGuard>[];
+      List<InternalPatternGuard> patternGuards = [];
       for (ExpressionOrPatternGuardCase expressionOrPatternGuard
           in expressionsOrPatternGuards) {
         caseOffsets.add(expressionOrPatternGuard.caseOffset);
@@ -9302,14 +9302,8 @@ class BodyBuilderImpl extends StackListenerImpl
           patternGuards,
           block,
           isDefault: defaultKeyword != null,
-          hasLabel: labels != null,
-          jointVariables: [
-            if (usedJointPatternVariables != null)
-              // TODO(johnniwinther): Pass the variables directly when we have
-              // an internal node for pattern switch cases.
-              for (InternalVariable variable in usedJointPatternVariables)
-                variable.asVariableDeclaration,
-          ],
+          labels: labels,
+          jointVariables: usedJointPatternVariables,
           jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
         ),
       );
@@ -9325,14 +9319,15 @@ class BodyBuilderImpl extends StackListenerImpl
         expressionOffsets.add(expression.fileOffset);
       }
       push(
-        new SwitchCaseImpl(
-          caseOffsets,
-          expressions,
-          expressionOffsets,
-          block,
+        intern.createSwitchStatementCase(
+          caseOffsets: caseOffsets,
+          expressions: expressions,
+          expressionOffsets: expressionOffsets,
+          body: block,
           isDefault: defaultKeyword != null,
-          hasLabel: labels != null,
-        )..fileOffset = beginToken.charOffset,
+          labels: labels,
+          fileOffset: beginToken.charOffset,
+        ),
       );
     }
     push(labels ?? NullValues.Labels);
@@ -9350,15 +9345,13 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("SwitchStatement");
     assert(
       checkState(switchKeyword, [
-        /* labelUsers = */ ValueKinds.StatementListOrNullList,
         /* cases = */ ValueKinds.SwitchCaseList,
         /* containsPatterns */ ValueKinds.Bool,
         /* break target = */ ValueKinds.BreakTarget,
         /* expression = */ ValueKinds.Condition,
       ]),
     );
-    List<List<Statement>?> labelUsers = pop() as List<List<Statement>?>;
-    List<SwitchCase> cases = pop() as List<SwitchCase>;
+    List<InternalSwitchCase> cases = pop() as List<InternalSwitchCase>;
     bool containsPatterns = pop() as bool;
     JumpTarget target = exitBreakTarget()!;
     exitSwitchScope();
@@ -9374,38 +9367,40 @@ class BodyBuilderImpl extends StackListenerImpl
       // If patterns are enabled, we always use the pattern switch encoding.
       // Otherwise, we use pattern switch encoding to handle the erroneous case
       // of an unsupported use of patterns.
-      List<PatternSwitchCase> patternSwitchCases =
-          new List<PatternSwitchCase>.generate(cases.length, (int index) {
-            SwitchCase switchCase = cases[index];
-            PatternSwitchCase patternSwitchCase;
-            if (switchCase is PatternSwitchCase) {
-              patternSwitchCase = switchCase;
-            } else {
-              // Coverage-ignore-block(suite): Not run.
-              List<PatternGuard> patterns = new List<PatternGuard>.generate(
-                switchCase.expressions.length,
-                (int index) {
-                  return intern.createPatternGuard(
-                    switchCase.expressions[index].fileOffset,
-                    intern.createConstantPattern(switchCase.expressions[index]),
-                  );
-                },
-              );
-              patternSwitchCase = intern.createPatternSwitchCase(
-                switchCase.fileOffset,
-                (switchCase as SwitchCaseImpl).caseOffsets,
-                patterns,
-                switchCase.body,
-                isDefault: switchCase.isDefault,
-                hasLabel: switchCase.hasLabel,
-                jointVariables: [],
-                jointVariableFirstUseOffsets: null,
-              );
+      List<InternalPatternSwitchCase> patternSwitchCases =
+          new List<InternalPatternSwitchCase>.generate(cases.length, (
+            int index,
+          ) {
+            InternalSwitchCase switchCase = cases[index];
+            InternalPatternSwitchCase patternSwitchCase;
+            switch (switchCase) {
+              case InternalPatternSwitchCase():
+                patternSwitchCase = switchCase;
+              // Coverage-ignore(suite): Not run.
+              case InternalSwitchStatementCase():
+                List<InternalPatternGuard> patterns = new List.generate(
+                  switchCase.expressions.length,
+                  (int index) {
+                    return intern.createPatternGuard(
+                      switchCase.expressions[index].fileOffset,
+                      intern.createConstantPattern(
+                        switchCase.expressions[index],
+                      ),
+                    );
+                  },
+                );
+                patternSwitchCase = intern.createPatternSwitchCase(
+                  switchCase.fileOffset,
+                  switchCase.caseOffsets,
+                  patterns,
+                  switchCase.body,
+                  isDefault: switchCase.isDefault,
+                  labels: switchCase.labels,
+                  jointVariables: [],
+                  jointVariableFirstUseOffsets: null,
+                );
             }
-            List<Statement>? users = labelUsers[index];
-            if (users != null) {
-              patternSwitchCase.labelUsers.addAll(users);
-            }
+
             return patternSwitchCase;
           });
       switchStatement = intern.createPatternSwitchStatement(
@@ -9414,11 +9409,10 @@ class BodyBuilderImpl extends StackListenerImpl
         patternSwitchCases,
       );
     } else {
-      switchStatement = intern.createSwitchStatement(
-        expression,
-        cases,
-        fileOffset: switchKeyword.charOffset,
-      );
+      switchStatement = intern.createSwitchStatement(expression, [
+        for (InternalSwitchCase case_ in cases)
+          case_ as InternalSwitchStatementCase,
+      ], fileOffset: switchKeyword.charOffset);
     }
     Statement result = switchStatement;
     // We create a labeled statement enclosing the switch statement if it has
@@ -9486,7 +9480,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Object? value = pop();
     exitLocalScope();
-    PatternGuard patternGuard = intern.createPatternGuard(
+    InternalPatternGuard patternGuard = intern.createPatternGuard(
       arrow.charOffset,
       toPattern(value),
       guard,
@@ -9514,12 +9508,12 @@ class BodyBuilderImpl extends StackListenerImpl
         repeatedKind(ValueKinds.SwitchExpressionCase, caseCount),
       ),
     );
-    List<SwitchExpressionCase> cases = new List<SwitchExpressionCase>.filled(
+    List<InternalSwitchExpressionCase> cases = new List.filled(
       caseCount,
-      dummySwitchExpressionCase,
+      dummyInternalSwitchExpressionCase,
     );
     for (int i = caseCount - 1; i >= 0; i--) {
-      cases[i] = pop() as SwitchExpressionCase;
+      cases[i] = pop() as InternalSwitchExpressionCase;
     }
     push(cases);
   }
@@ -9534,7 +9528,8 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
 
-    List<SwitchExpressionCase> cases = pop() as List<SwitchExpressionCase>;
+    List<InternalSwitchExpressionCase> cases =
+        pop() as List<InternalSwitchExpressionCase>;
     Condition condition = pop() as Condition;
     assert(
       condition.patternGuard == null,
@@ -9568,34 +9563,28 @@ class BodyBuilderImpl extends StackListenerImpl
     ); // Exit the sentinel scope.
 
     bool containsPatterns = false;
-    List<SwitchCase> cases = new List<SwitchCase>.filled(
+    List<InternalSwitchCase> cases = new List.filled(
       caseCount,
-      dummySwitchCase,
-      growable: true,
-    );
-    List<List<Statement>?> caseLabelUsers = new List<List<Statement>?>.filled(
-      caseCount,
-      null,
+      dummyInternalSwitchCase,
       growable: true,
     );
     for (int i = caseCount - 1; i >= 0; i--) {
       List<Label>? labels = pop() as List<Label>?;
-      SwitchCase current = cases[i] = pop() as SwitchCase;
+      InternalSwitchCase current = cases[i] = pop() as InternalSwitchCase;
       if (labels != null) {
         for (Label label in labels) {
           JumpTarget? target = _switchScope!.lookupLabel(label.name);
           if (target != null) {
-            (caseLabelUsers[i] ??= <Statement>[]).addAll(target.users);
             target.resolveGotos(current);
           }
         }
       }
-      if (current is PatternSwitchCase) {
+      if (current is InternalPatternSwitchCase) {
         containsPatterns = true;
       }
     }
     for (int i = 0; i < caseCount - 1; i++) {
-      SwitchCase current = cases[i];
+      InternalSwitchCase current = cases[i];
       Block block = current.body as Block;
       // [block] is a synthetic block that is added to handle variable
       // declarations in the switch case.
@@ -9615,13 +9604,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     push(containsPatterns);
     push(cases);
-    push(caseLabelUsers);
     assert(
-      checkState(beginToken, [
-        ValueKinds.StatementListOrNullList,
-        ValueKinds.SwitchCaseList,
-        ValueKinds.Bool,
-      ]),
+      checkState(beginToken, [ValueKinds.SwitchCaseList, ValueKinds.Bool]),
     );
   }
 
@@ -9728,10 +9712,9 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = intern
-            .createContinueSwitchStatement(
-              fileOffset: continueKeyword.charOffset,
-            );
+        Statement statement = intern.createContinueSwitchStatement(
+          fileOffset: continueKeyword.charOffset,
+        );
         target.addGoto(statement);
         push(statement);
         return;
@@ -11251,7 +11234,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     Expression expression = popForValue();
-    Pattern pattern = toPattern(pop());
+    InternalPattern pattern = toPattern(pop());
     push(
       intern.createPatternAssignment(equals.charOffset, pattern, expression),
     );

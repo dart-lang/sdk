@@ -8,6 +8,7 @@ import 'package:kernel/src/printer.dart';
 
 import '../base/problems.dart' show unsupported;
 import '../type_inference/type_schema.dart';
+import 'body_builder.dart';
 import 'collections.dart'
     show
         ForElement,
@@ -259,10 +260,8 @@ Statement createContinueStatement(int fileOffset, Object? label) {
   return new BreakStatementImpl(isContinue: true)..fileOffset = fileOffset;
 }
 
-ContinueSwitchStatement createContinueSwitchStatement({
-  required int fileOffset,
-}) {
-  return new ContinueSwitchStatement(dummySwitchCase)..fileOffset = fileOffset;
+Statement createContinueSwitchStatement({required int fileOffset}) {
+  return new InternalContinueSwitchStatement(fileOffset: fileOffset);
 }
 
 /// Return a representation of a do statement.
@@ -484,14 +483,14 @@ Expression createIfCaseElement(
   int fileOffset, {
   required List<Statement> prelude,
   required Expression expression,
-  required PatternGuard patternGuard,
+  required InternalPatternGuard patternGuard,
   required Expression then,
   Expression? otherwise,
 }) {
   return new IfCaseElement(
     prelude: prelude,
     expression: expression,
-    patternGuard: patternGuard,
+    internalPatternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
   )..fileOffset = fileOffset;
@@ -501,28 +500,33 @@ MapLiteralEntry createIfCaseMapEntry(
   int fileOffset, {
   required List<Statement> prelude,
   required Expression expression,
-  required PatternGuard patternGuard,
+  required InternalPatternGuard patternGuard,
   required MapLiteralEntry then,
   MapLiteralEntry? otherwise,
 }) {
   return new IfCaseMapEntry(
     prelude: prelude,
     expression: expression,
-    patternGuard: patternGuard,
+    internalPatternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
   )..fileOffset = fileOffset;
 }
 
-IfCaseStatement createIfCaseStatement(
+Statement createIfCaseStatement(
   int fileOffset,
   Expression expression,
-  PatternGuard patternGuard,
+  InternalPatternGuard patternGuard,
   Statement then,
   Statement? otherwise,
 ) {
-  return new IfCaseStatement(expression, patternGuard, then, otherwise)
-    ..fileOffset = fileOffset;
+  return new InternalIfCaseStatement(
+    expression: expression,
+    patternGuard: patternGuard,
+    then: then,
+    otherwise: otherwise,
+    fileOffset: fileOffset,
+  );
 }
 
 Expression createIfElement(
@@ -1073,17 +1077,21 @@ ParenthesizedExpression createParenthesized(
   return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
 }
 
-PatternAssignment createPatternAssignment(
+Expression createPatternAssignment(
   int fileOffset,
-  Pattern pattern,
+  InternalPattern pattern,
   Expression expression,
 ) {
-  return new PatternAssignment(pattern, expression)..fileOffset = fileOffset;
+  return new InternalPatternAssignment(
+    pattern: pattern,
+    expression: expression,
+    fileOffset: fileOffset,
+  );
 }
 
 PatternForElement createPatternForElement(
   int fileOffset, {
-  required PatternVariableDeclaration patternVariableDeclaration,
+  required InternalPatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
   required List<VariableDeclaration> variables,
   required Expression? condition,
@@ -1091,7 +1099,7 @@ PatternForElement createPatternForElement(
   required Expression body,
 }) {
   return new PatternForElement(
-    patternVariableDeclaration: patternVariableDeclaration,
+    internalPatternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
     variables: variables,
     condition: condition,
@@ -1102,7 +1110,7 @@ PatternForElement createPatternForElement(
 
 PatternForMapEntry createPatternForMapEntry(
   int fileOffset, {
-  required PatternVariableDeclaration patternVariableDeclaration,
+  required InternalPatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
   required List<VariableDeclaration> variableInitializations,
   required Expression? condition,
@@ -1110,7 +1118,7 @@ PatternForMapEntry createPatternForMapEntry(
   required MapLiteralEntry body,
 }) {
   return new PatternForMapEntry(
-    patternVariableDeclaration: patternVariableDeclaration,
+    internalPatternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
     variables: variableInitializations,
     condition: condition,
@@ -1119,51 +1127,64 @@ PatternForMapEntry createPatternForMapEntry(
   )..fileOffset = fileOffset;
 }
 
-PatternGuard createPatternGuard(
+InternalPatternGuard createPatternGuard(
   int fileOffset,
-  Pattern pattern, [
+  InternalPattern pattern, [
   Expression? guard,
 ]) {
-  return new PatternGuard(pattern, guard)..fileOffset = fileOffset;
+  return new InternalPatternGuard(
+    pattern: pattern,
+    guard: guard,
+    fileOffset: fileOffset,
+  );
 }
 
-PatternSwitchCase createPatternSwitchCase(
+InternalPatternSwitchCase createPatternSwitchCase(
   int fileOffset,
   List<int> caseOffsets,
-  List<PatternGuard> patternGuards,
+  List<InternalPatternGuard> patternGuards,
   Statement body, {
   required bool isDefault,
-  required bool hasLabel,
-  required List<Variable> jointVariables,
+  required List<Label>? labels,
+  required List<InternalVariable>? jointVariables,
   required List<int>? jointVariableFirstUseOffsets,
 }) {
-  return new PatternSwitchCase(
-    caseOffsets,
-    patternGuards,
-    body,
+  return new InternalPatternSwitchCase(
+    caseOffsets: caseOffsets,
+    patternGuards: patternGuards,
+    body: body,
     isDefault: isDefault,
-    hasLabel: hasLabel,
-    jointVariables: jointVariables,
+    labels: labels,
+    jointVariables: jointVariables ?? [],
     jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
-PatternSwitchStatement createPatternSwitchStatement(
+Statement createPatternSwitchStatement(
   int fileOffset,
   Expression expression,
-  List<PatternSwitchCase> cases,
+  List<InternalPatternSwitchCase> cases,
 ) {
-  return new PatternSwitchStatement(expression, cases)..fileOffset = fileOffset;
+  return new InternalPatternSwitchStatement(
+    expression: expression,
+    cases: cases,
+    fileOffset: fileOffset,
+  );
 }
 
-PatternVariableDeclaration createPatternVariableDeclaration(
+Statement createPatternVariableDeclaration(
   int fileOffset,
-  Pattern pattern,
+  InternalPattern pattern,
   Expression initializer, {
   required bool isFinal,
 }) {
-  return new PatternVariableDeclaration(pattern, initializer, isFinal: isFinal)
-    ..fileOffset = fileOffset;
+  return new InternalPatternVariableDeclaration(
+    pattern: pattern,
+    initializer: initializer,
+    isFinal: isFinal,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalVariable createPositionalParameter({
@@ -1409,29 +1430,60 @@ SuperPropertySet createSuperPropertySet(
     ..fileOffset = fileOffset;
 }
 
-SwitchExpression createSwitchExpression(
+Expression createSwitchExpression(
   int fileOffset,
   Expression expression,
-  List<SwitchExpressionCase> cases,
+  List<InternalSwitchExpressionCase> cases,
 ) {
-  return new SwitchExpression(expression, cases)..fileOffset = fileOffset;
+  return new InternalSwitchExpression(
+    expression: expression,
+    cases: cases,
+    fileOffset: fileOffset,
+  );
 }
 
-SwitchExpressionCase createSwitchExpressionCase(
+InternalSwitchExpressionCase createSwitchExpressionCase(
   int fileOffset,
-  PatternGuard patternGuard,
+  InternalPatternGuard patternGuard,
   Expression expression,
 ) {
-  return new SwitchExpressionCase(patternGuard, expression)
-    ..fileOffset = fileOffset;
+  return new InternalSwitchExpressionCase(
+    patternGuard: patternGuard,
+    expression: expression,
+    fileOffset: fileOffset,
+  );
 }
 
-SwitchStatement createSwitchStatement(
+Statement createSwitchStatement(
   Expression expression,
-  List<SwitchCase> cases, {
+  List<InternalSwitchStatementCase> cases, {
   required int fileOffset,
 }) {
-  return new SwitchStatement(expression, cases)..fileOffset = fileOffset;
+  return new InternalRegularSwitchStatement(
+    expression: expression,
+    cases: cases,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalSwitchStatementCase createSwitchStatementCase({
+  required List<Expression> expressions,
+  required List<int> expressionOffsets,
+  required Statement body,
+  required bool isDefault,
+  required List<int> caseOffsets,
+  required List<Label>? labels,
+  required int fileOffset,
+}) {
+  return new InternalSwitchStatementCase(
+    caseOffsets: caseOffsets,
+    expressions: expressions,
+    expressionOffsets: expressionOffsets,
+    body: body,
+    isDefault: isDefault,
+    labels: labels,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a symbol literal defined by [value] at the

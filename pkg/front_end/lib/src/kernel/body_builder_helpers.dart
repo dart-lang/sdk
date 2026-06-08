@@ -84,11 +84,11 @@ class JumpTarget {
     return statements;
   }
 
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(InternalSwitchCase target) {
     assert(isGotoTarget);
     for (Statement user in users) {
-      ContinueSwitchStatement continueSwitchStatement =
-          user as ContinueSwitchStatement;
+      InternalContinueSwitchStatement continueSwitchStatement =
+          user as InternalContinueSwitchStatement;
       continueSwitchStatement.target = target;
     }
     users.clear();
@@ -174,7 +174,7 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(InternalSwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 }
@@ -384,7 +384,7 @@ class Label {
 
 class Condition {
   final Expression expression;
-  final PatternGuard? patternGuard;
+  final InternalPatternGuard? patternGuard;
 
   new(this.expression, [this.patternGuard]);
 
@@ -403,12 +403,12 @@ final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
 class ExpressionOrPatternGuardCase {
   final int caseOffset;
   final Expression? expression;
-  final PatternGuard? patternGuard;
+  final InternalPatternGuard? patternGuard;
 
   new expression(this.caseOffset, Expression this.expression)
     : patternGuard = null;
 
-  new patternGuard(this.caseOffset, PatternGuard this.patternGuard)
+  new patternGuard(this.caseOffset, InternalPatternGuard this.patternGuard)
     : expression = null;
 }
 
