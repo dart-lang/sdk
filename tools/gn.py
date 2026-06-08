@@ -322,8 +322,16 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['verify_sdk_hash'] = verify_sdk_hash
     gn_args['dart_version_git_info'] = git_version
 
-    if args.codesigning_identity != '':
+    if args.codesigning_identity:
         gn_args['codesigning_identity'] = args.codesigning_identity
+    elif sanitizer == 'none':
+        # Enable ad-hoc code signing by default, but not for sanitizer builds.
+        # The santizers use dynamic linking on Mac, and fail library
+        # validation under the hardened runtime. We'd need to either disable
+        # the hardened runtime, add the disable-library-validation entitlement
+        # to every executable, or get a proper signing identity with a team set
+        # and also sign the sanitizer libraries.
+        gn_args['codesigning_identity'] = '-'
 
     return gn_args
 
@@ -552,7 +560,6 @@ def AddCommonGnOptionArgs(parser):
                         action='store_true')
     parser.add_argument('--codesigning-identity',
                         help='Sign executables using the given identity.',
-                        default='',
                         type=str)
     parser.add_argument(
         '--include-experimental-vm-service',
