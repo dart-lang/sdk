@@ -4632,13 +4632,13 @@ CompileTimeErrorCode:
   dotShorthandMissingContext:
     type: compileTimeError
     parameters: none
-    problemMessage: "A dot shorthand can't be used when the context type isn't a class, enum, mixin, extension, or extension type."
+    problemMessage: "A dot shorthand can only be used when the context type is a class, enum, mixin, extension, or extension type."
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a dot shorthand is used with a
-      context type that isn't a class, enum, mixin, extension, or extension type.
+    The analyzer produces this diagnostic when there is no context type or when
+    the context type isn't a class, enum, mixin, extension, or extension type.
 
       #### Example
 
@@ -4654,7 +4654,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If you want to use a dot shorthand, then provide a valid context type, 
+      If you want to use a dot shorthand, then provide a valid context type,
       which in this example means adding the explicit type `E` to the local variable:
 
       ```dart
