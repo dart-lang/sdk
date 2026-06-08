@@ -199,13 +199,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
   }
 }
 
-class Difference {
-  final int line;
-  final String actual;
-  final String expected;
-
-  Difference(this.line, this.actual, this.expected);
-}
+class Difference(final int line, final String actual, final String expected);
 
 Difference findFirstDifference(String actual, String expected) {
   final actualLines = actual.split('\n');

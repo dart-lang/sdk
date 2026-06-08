@@ -8,16 +8,14 @@ import 'package:cfg/ir/functions.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 
 /// Generated code for a function or a stub.
-class Code {
-  final String name;
-  final CFunction? function;
-  final Uint8List instructions;
-  final ObjectPool objectPool;
-
+class Code(
+  final String name,
+  final CFunction? function,
+  final Uint8List instructions,
+  final ObjectPool objectPool,
+) {
   /// Offset of instructions in the resulting image.
   int? instructionsImageOffset;
-
-  Code(this.name, this.function, this.instructions, this.objectPool);
 }
 
 /// Comsumer of the generated code.

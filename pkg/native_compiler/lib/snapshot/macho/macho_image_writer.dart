@@ -391,12 +391,7 @@ class Header {
   }
 }
 
-abstract base class LoadCommand {
-  final MachoImageWriter writer;
-  final int cmd;
-
-  LoadCommand(this.writer, this.cmd);
-
+abstract base class LoadCommand(final MachoImageWriter writer, final int cmd) {
   int get unalignedSize;
 
   late final int size = roundUp(unalignedSize, writer.commandAlignment);
@@ -676,14 +671,12 @@ class SymbolTable {
   }
 }
 
-class Symbol {
-  final int nameIndex;
-  final int type;
-  final Section section;
-  final int offset;
-
-  Symbol(this.nameIndex, this.type, this.section, this.offset);
-
+class Symbol(
+  final int nameIndex,
+  final int type,
+  final Section section,
+  final int offset,
+) {
   static const int size = 4 + 1 + 1 + 2 + 8;
 
   void write(BufferedStream stream) {

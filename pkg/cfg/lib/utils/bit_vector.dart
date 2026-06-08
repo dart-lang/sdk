@@ -124,11 +124,7 @@ extension type BitVector._(Int64List _bits) {
   Iterable<int> get elements => _BitVectorIterable(this);
 }
 
-final class _BitVectorIterable extends Iterable<int> {
-  final BitVector _vector;
-
-  _BitVectorIterable(this._vector);
-
+final class _BitVectorIterable(final BitVector _vector) extends Iterable<int> {
   @override
   Iterator<int> get iterator => _BitVectorIterator(_vector);
 }
