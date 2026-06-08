@@ -360,32 +360,6 @@ class Test {
     );
   }
 
-  Future<void> test_enum() async {
-    await resolveTestCode('''
-enum E {
-  v(a: 0, c: 2);
-  final int a;
-  final int b = 1;
-  final int c;
-}
-''');
-    await assertHasFix(
-      '''
-enum E {
-  v(a: 0, c: 2);
-  final int a;
-  final int b = 1;
-  final int c;
-
-  const new({required this.a, required this.c});
-}
-''',
-      filter: (error) {
-        return error.message.contains("'a' must be initialized");
-      },
-    );
-  }
-
   Future<void> test_class_noSuperClass_withoutPrimaryConstructors() async {
     await resolveTestCode('''
 // @dart=3.10
@@ -408,6 +382,32 @@ class Test {
 ''',
       filter: (error) {
         return error.message.contains("'a'");
+      },
+    );
+  }
+
+  Future<void> test_enum() async {
+    await resolveTestCode('''
+enum E {
+  v(a: 0, c: 2);
+  final int a;
+  final int b = 1;
+  final int c;
+}
+''');
+    await assertHasFix(
+      '''
+enum E {
+  v(a: 0, c: 2);
+  final int a;
+  final int b = 1;
+  final int c;
+
+  const new({required this.a, required this.c});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a' must be initialized");
       },
     );
   }
@@ -606,32 +606,6 @@ class Test {
     );
   }
 
-  Future<void> test_enum_simple() async {
-    await resolveTestCode('''
-enum E {
-  v(0, 2);
-  final int a;
-  final int b = 1;
-  final int c;
-}
-''');
-    await assertHasFix(
-      '''
-enum E {
-  v(0, 2);
-  final int a;
-  final int b = 1;
-  final int c;
-
-  const new(this.a, this.c);
-}
-''',
-      filter: (error) {
-        return error.message.contains("'a'");
-      },
-    );
-  }
-
   Future<void> test_class_simple_withoutPrimaryConstructors() async {
     await resolveTestCode('''
 // @dart=3.10
@@ -650,6 +624,32 @@ class Test {
   final int c;
 
   Test(this.a, this.c);
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a'");
+      },
+    );
+  }
+
+  Future<void> test_enum_simple() async {
+    await resolveTestCode('''
+enum E {
+  v(0, 2);
+  final int a;
+  final int b = 1;
+  final int c;
+}
+''');
+    await assertHasFix(
+      '''
+enum E {
+  v(0, 2);
+  final int a;
+  final int b = 1;
+  final int c;
+
+  const new(this.a, this.c);
 }
 ''',
       filter: (error) {

@@ -79,6 +79,37 @@ class B extends A {
 ''', matchFixMessage: 'Create constructor to call super.');
   }
 
+  Future<void> test_fieldInitializer_withoutPrimaryConstructors() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  int _field;
+  A(this._field);
+  int get field => _field;
+}
+class B extends A {
+  int existingField = 0;
+
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+// @dart=3.10
+class A {
+  int _field;
+  A(this._field);
+  int get field => _field;
+}
+class B extends A {
+  int existingField = 0;
+
+  B(super.field);
+
+  void existingMethod() {}
+}
+''', matchFixMessage: 'Create constructor to call super.');
+  }
+
   Future<void> test_importType() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {}
@@ -151,11 +182,48 @@ class A {
 class B extends A {
   int existingField = 0;
 
-  B.named(super.p1, super.p2) : super.named();
+  new named(super.p1, super.p2) : super.named();
 
   void existingMethod() {}
 }
 ''', matchFixMessage: 'Create constructor to call super.named()');
+  }
+
+  Future<void> test_namedConstructor_withPrimaryConstructors() async {
+    await resolveTestCode('''
+class A {
+  A.named(int p1);
+}
+class B extends A {
+  int existingField = 0;
+
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named(int p1);
+}
+class B extends A {
+  int existingField = 0;
+
+  new named(super.p1) : super.named();
+
+  void existingMethod() {}
+}
+''', matchFixMessage: 'Create constructor to call super.named()');
+  }
+
+  Future<void>
+  test_namedConstructor_withPrimaryConstructors_alreadyExists() async {
+    await resolveTestCode('''
+class A(final int field) {}
+
+class B extends A {
+  new(super.field);
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_namedOptionalParams() async {
@@ -291,74 +359,6 @@ class B extends A {
   void existingMethod() {}
 }
 ''');
-  }
-
-  Future<void> test_namedConstructor_withPrimaryConstructors() async {
-    await resolveTestCode('''
-class A {
-  A.named(int p1);
-}
-class B extends A {
-  int existingField = 0;
-
-  void existingMethod() {}
-}
-''');
-    await assertHasFix('''
-class A {
-  A.named(int p1);
-}
-class B extends A {
-  int existingField = 0;
-
-  new named(super.p1) : super.named();
-
-  void existingMethod() {}
-}
-''', matchFixMessage: 'Create constructor to call super.named()');
-  }
-
-  Future<void>
-  test_namedConstructor_withPrimaryConstructors_alreadyExists() async {
-    await resolveTestCode('''
-class A(final int field) {}
-
-class B extends A {
-  new(super.field);
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_fieldInitializer_withoutPrimaryConstructors() async {
-    await resolveTestCode('''
-// @dart=3.10
-class A {
-  int _field;
-  A(this._field);
-  int get field => _field;
-}
-class B extends A {
-  int existingField = 0;
-
-  void existingMethod() {}
-}
-''');
-    await assertHasFix('''
-// @dart=3.10
-class A {
-  int _field;
-  A(this._field);
-  int get field => _field;
-}
-class B extends A {
-  int existingField = 0;
-
-  B(super.field);
-
-  void existingMethod() {}
-}
-''', matchFixMessage: 'Create constructor to call super.');
   }
 }
 

@@ -61,13 +61,13 @@ class _/*4*/MyWidgetState extends State</*5*/MyWidget> {
 import 'package:flutter/widgets.dart';
 
 class /*0*/MyWidget extends StatefulWidget {
-  const new({super.key});
+  const /*1*/MyWidget({super.key});
 
   @override
-  State</*1*/MyWidget> createState() => _/*2*/MyWidgetState();
+  State</*2*/MyWidget> createState() => _/*3*/MyWidgetState();
 }
 
-class _/*3*/MyWidgetState extends State</*4*/MyWidget> {
+class _/*4*/MyWidgetState extends State</*5*/MyWidget> {
   @override
   Widget build(BuildContext context) {
     return /*[0*/const Placeholder()/*0]*/;
