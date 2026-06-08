@@ -172,7 +172,7 @@ InternalPattern createCastPattern(
 }
 
 /// Return a representation of a catch clause.
-Catch createCatch(
+InternalCatch createCatch(
   int fileOffset,
   DartType exceptionType,
   InternalVariable? exceptionParameter,
@@ -180,12 +180,13 @@ Catch createCatch(
   DartType stackTraceType,
   Statement body,
 ) {
-  return new Catch(
-    exceptionParameter?.asVariableDeclaration,
-    body,
+  return new InternalCatch(
+    exception: exceptionParameter,
+    body: body,
     guard: exceptionType,
-    stackTrace: stackTraceParameter?.asVariableDeclaration,
-  )..fileOffset = fileOffset;
+    stackTrace: stackTraceParameter,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalVariable createCatchVariable({
@@ -1583,10 +1584,10 @@ Expression createThrow(int fileOffset, Expression expression) {
 Statement createTryStatement(
   int fileOffset,
   Statement tryBlock,
-  List<Catch>? catchBlocks,
+  List<InternalCatch>? catchBlocks,
   Statement? finallyBlock,
 ) {
-  return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
+  return new TryStatement(tryBlock, catchBlocks ?? [], finallyBlock)
     ..fileOffset = fileOffset;
 }
 

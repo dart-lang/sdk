@@ -108,7 +108,7 @@ abstract class InternalStatement extends AuxiliaryStatement {
 
 class TryStatement extends InternalStatement {
   Statement tryBlock;
-  List<Catch> catchBlocks;
+  List<InternalCatch> catchBlocks;
   Statement? finallyBlock;
 
   new(this.tryBlock, this.catchBlocks, this.finallyBlock) {
@@ -132,9 +132,9 @@ class TryStatement extends InternalStatement {
   void toTextInternal(AstPrinter printer) {
     printer.write('try ');
     printer.writeStatement(tryBlock);
-    for (Catch catchBlock in catchBlocks) {
+    for (InternalCatch catchBlock in catchBlocks) {
       printer.write(' ');
-      printer.writeCatch(catchBlock);
+      catchBlock.toTextInternal(printer);
     }
     if (finallyBlock != null) {
       printer.write(' finally ');
@@ -6981,7 +6981,6 @@ class InternalFunctionDeclaration extends InternalStatement {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 sealed class InternalPattern extends TreeNode with InternalTreeNode {
   /// Returns the variable name that this pattern defines, if any.
   ///
@@ -7000,27 +6999,33 @@ sealed class InternalPattern extends TreeNode with InternalTreeNode {
   List<InternalVariable> get declaredVariables;
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept<R>(TreeVisitor<R> v) =>
       unsupported("${runtimeType}.accept", -1, null);
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
       unsupported("${runtimeType}.accept", -1, null);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void replaceChild(TreeNode child, TreeNode replacement) {
     // Do nothing. The node should not be part of the resulting AST, anyway.
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor<dynamic> v) =>
       unsupported("${runtimeType}.visitChildren", -1, null);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) =>
       unsupported("${runtimeType}.transformChildren", -1, null);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
     unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
   }
@@ -8233,6 +8238,89 @@ class InternalContinueSwitchStatement extends InternalStatement {
   }
 }
 
+class InternalCatch extends TreeNode with InternalTreeNode {
+  final DartType guard; // Not null, defaults to dynamic.
+  final InternalVariable? exception;
+  final InternalVariable? stackTrace;
+  final Statement body;
+
+  new({
+    required this.exception,
+    required this.body,
+    this.guard = const DynamicType(),
+    this.stackTrace,
+    required int fileOffset,
+  }) {
+    exception?.parent = this;
+    stackTrace?.parent = this;
+    body.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    bool isImplicitType(DartType type) {
+      if (type is DynamicType) {
+        return true;
+      }
+      if (type is InterfaceType &&
+          type.classReference.node != null &&
+          type.classNode.name == 'Object') {
+        Uri uri = type.classNode.enclosingLibrary.importUri;
+        return uri.isScheme('dart') &&
+            uri.path == 'core' &&
+            type.nullability == Nullability.nonNullable;
+      }
+      return false;
+    }
+
+    if (exception != null) {
+      if (!isImplicitType(guard)) {
+        printer.write('on ');
+        printer.writeType(guard);
+        printer.write(' ');
+      }
+      printer.write('catch (');
+      printer.writeVariableInitialization(
+        exception!.astVariable,
+        includeModifiersAndType: false,
+        includeInitializer: false,
+      );
+      if (stackTrace != null) {
+        printer.write(', ');
+        printer.writeVariableInitialization(
+          stackTrace!.astVariable,
+          includeModifiersAndType: false,
+        );
+      }
+      printer.write(') ');
+    } else {
+      printer.write('on ');
+      printer.writeType(guard);
+      printer.write(' ');
+    }
+    printer.writeStatement(body);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
 final InternalPattern dummyInternalPattern = new InternalConstantPattern(
   expression: dummyExpression,
   fileOffset: TreeNode.noOffset,
@@ -8261,3 +8349,16 @@ final InternalSwitchCase dummyInternalSwitchCase =
       labels: null,
       fileOffset: TreeNode.noOffset,
     );
+
+final InternalCatch dummyInternalCatch = new InternalCatch(
+  exception: dummyInternalVariable,
+  body: dummyStatement,
+  stackTrace: dummyInternalVariable,
+  fileOffset: TreeNode.noOffset,
+);
+
+final InternalVariable dummyInternalVariable = new VariableDeclarationImpl(
+  null,
+  fileOffset: TreeNode.noOffset,
+  isSynthesized: true,
+);

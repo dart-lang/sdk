@@ -5935,18 +5935,18 @@ class BodyBuilderImpl extends StackListenerImpl
         assignedVariables.deferNode(),
       );
     }
-    List<Catch>? catchBlocks;
+    List<InternalCatch>? catchBlocks;
     List<Statement>? compileTimeErrors;
     if (catchCount != 0) {
       List<Object?> catchBlocksAndErrors = const FixedNullableList<Object?>()
           .pop(stack, catchCount * 2)!;
-      catchBlocks = new List<Catch>.filled(
+      catchBlocks = new List<InternalCatch>.filled(
         catchCount,
-        dummyCatch,
+        dummyInternalCatch,
         growable: true,
       );
       for (int i = 0; i < catchCount; i++) {
-        catchBlocks[i] = catchBlocksAndErrors[i * 2] as Catch;
+        catchBlocks[i] = catchBlocksAndErrors[i * 2] as InternalCatch;
         Statement? error = catchBlocksAndErrors[i * 2 + 1] as Statement?;
         if (error != null) {
           compileTimeErrors ??= <Statement>[];

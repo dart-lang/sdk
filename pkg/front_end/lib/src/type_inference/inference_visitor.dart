@@ -13521,46 +13521,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(const NeverType.nonNullable(), node);
   }
 
-  void visitCatch(Catch node) {
+  Catch visitCatch(InternalCatch node) {
     ScopeProviderInfo? scopeProviderInfo;
+    Variable? exception = node.exception?.astVariable;
+    Variable? stackTrace = node.stackTrace?.astVariable;
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
         scopeProviderInfoKind: ScopeProviderInfoKind.Catch,
       );
-      if (node.exception case CatchVariable exceptionCatchVariable?) {
+      if (exception != null) {
         // TODO(62401): Remove the casts when the flow analysis uses
         // [InternalExpressionVariable]s.
-        exceptionCatchVariable =
-            (exceptionCatchVariable as InternalVariable).astVariable
-                as CatchVariable;
         _contextAllocationStrategy.handleDeclarationOfVariable(
-          exceptionCatchVariable,
-          captureKind: _captureKindForVariable(exceptionCatchVariable),
+          exception,
+          captureKind: _captureKindForVariable(exception),
         );
-        node.exception = exceptionCatchVariable;
       }
-      if (node.stackTrace case CatchVariable stackTraceCatchVariable?) {
+      if (stackTrace != null) {
         // TODO(62401): Remove the casts when the flow analysis uses
         // [InternalExpressionVariable]s.
-        stackTraceCatchVariable =
-            (stackTraceCatchVariable as InternalVariable).astVariable
-                as CatchVariable;
         _contextAllocationStrategy.handleDeclarationOfVariable(
-          stackTraceCatchVariable,
-          captureKind: _captureKindForVariable(stackTraceCatchVariable),
+          stackTrace,
+          captureKind: _captureKindForVariable(stackTrace),
         );
-        node.stackTrace = stackTraceCatchVariable;
       }
     }
     StatementInferenceResult bodyResult = inferStatement(node.body);
-    if (bodyResult.hasChanged) {
-      // Coverage-ignore-block(suite): Not run.
-      node.body = bodyResult.statement..parent = node;
-    }
+    Statement body = bodyResult.hasChanged
+        ?
+          // Coverage-ignore(suite): Not run.
+          bodyResult.statement
+        : node.body;
+    Scope? scope;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      scope = scopeProviderInfo.scope;
     }
+    return extern.createCatch(
+      guard: node.guard,
+      exception: exception,
+      stackTrace: stackTrace,
+      body: body,
+      scope: scope,
+      fileOffset: node.fileOffset,
+    );
   }
 
   StatementInferenceResult visitTryStatement(TryStatement node) {
@@ -13576,16 +13580,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StatementInferenceResult tryBlockResult = inferStatement(node.tryBlock);
 
+    List<Catch>? catchBlocks;
     if (node.catchBlocks.isNotEmpty) {
+      catchBlocks = [];
       flowAnalysis.tryCatchStatement_bodyEnd(tryBodyWithAssignedInfo);
-      for (Catch catchBlock in node.catchBlocks) {
+      for (InternalCatch catchBlock in node.catchBlocks) {
         // TODO(62401): Remove the casts when the flow analysis uses
         // [InternalExpressionVariable]s.
         flowAnalysis.tryCatchStatement_catchBegin(
-          (catchBlock.exception as InternalVariable?)?.astVariable,
-          (catchBlock.stackTrace as InternalVariable?)?.astVariable,
+          catchBlock.exception?.astVariable,
+          catchBlock.stackTrace?.astVariable,
         );
-        visitCatch(catchBlock);
+        catchBlocks.add(visitCatch(catchBlock));
         flowAnalysis.tryCatchStatement_catchEnd();
       }
       flowAnalysis.tryCatchStatement_end();
@@ -13605,9 +13611,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Statement result = tryBlockResult.hasChanged
         ? tryBlockResult.statement
         : node.tryBlock;
-    if (node.catchBlocks.isNotEmpty) {
-      result = new TryCatch(result, node.catchBlocks)
-        ..fileOffset = node.fileOffset;
+    if (catchBlocks != null) {
+      result = new TryCatch(result, catchBlocks)..fileOffset = node.fileOffset;
     }
     if (node.finallyBlock != null) {
       result = new TryFinally(
