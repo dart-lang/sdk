@@ -428,8 +428,9 @@ class WrapperConstant extends ast.AuxiliaryConstant {
   void visitChildren(ast.Visitor v) => throw 'Should not be called.';
 
   @override
-  void toTextInternal(ast_printer.AstPrinter printer) =>
-      throw 'Should not be called.';
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('WrapperConstant(${unwrap})');
+  }
 
   @override
   ast.DartType getType(ast_type_environment.StaticTypeContext context) =>
