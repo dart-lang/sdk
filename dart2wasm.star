@@ -8,23 +8,34 @@ Defines the dart2wasm builders.
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
+    "arm64",
     "chrome",
     "emscripten",
     "firefox",
     "flute",
     "js_engines",
+    "mac",
+    "safari_26_5",
 )
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
-def _dart2wasm_builder(name, category = None, properties = [], **kwargs):
+def _dart2wasm_builder(
+        name,
+        category = None,
+        properties = [],
+        enable_cq = True,
+        **kwargs):
     default_properties = union({}, [emscripten, flute])
+    location_filters = []
+    if enable_cq:
+        location_filters = paths.to_location_filters(paths.dart2wasm)
     dart.ci_sandbox_builder(
         name,
         category = category,
         properties = union(default_properties, properties),
         triggered_by = ["dart2wasm-gitiles-trigger-%s"],
-        location_filters = paths.to_location_filters(paths.dart2wasm),
+        location_filters = location_filters,
         **kwargs
     )
 
@@ -72,6 +83,16 @@ _dart2wasm_builder(
     category = "dart2wasm|browser|f",
     properties = [firefox],
 )
+
+_dart2wasm_builder(
+    "dart2wasm-mac-safari",
+    category = "dart2wasm|browser|s",
+    dimensions = [arm64, mac, safari_26_5],
+    enable_cq = False,
+    execution_timeout = 3 * time.hour,
+    channels = ["try"],
+)
+
 _dart2wasm_builder(
     "dart2wasm-linux-standalone-chrome",
     category = "dart2wasm|sc",
