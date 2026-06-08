@@ -6,6 +6,7 @@ import 'dart:math' show max;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 import 'package:kernel/type_environment.dart' as type_env;
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -534,6 +535,12 @@ class Types {
   ]) {
     final b = codeGen.b;
 
+    // If this is a covariance check, we cannot trust the static operand type
+    // arguments, so we rewrite it to a safe version.
+    operandType = isCovarianceCheck
+        ? _safeCovarianceOperandType(operandType)
+        : operandType;
+
     // Keep casts inserted by the CFE to ensure soundness of covariant types.
     final checkOnlyNullAssignability =
         !isCovarianceCheck &&
@@ -593,6 +600,41 @@ class Types {
     }
     b.local_get(operand);
     return operand.type;
+  }
+
+  /// Safely rewrites the static [operandType] of a covariance check to a
+  /// version that is safe to trust for optimizations, while preserving
+  /// class structure and nullability.
+  ///
+  /// During covariance checks (inserted by the CFE for covariant overrides),
+  /// we cannot trust the static type arguments of the operand because the
+  /// static type of the operand might be narrower than its actual runtime type
+  /// (i.e. the runtime value might be a supertype of the static type),
+  /// which would violate soundness if we optimized based on the static type arguments.
+  ///
+  /// To ensure soundness while still allowing class-check optimizations:
+  /// - If [operandType] is an [InterfaceType], we keep the class node and
+  ///   nullability, but rewrite all its type arguments to their upper bounds
+  ///   using [calculateBounds].
+  /// - Otherwise, we fall back to [Object?] or [Object] depending on
+  ///   whether [operandType] is potentially nullable.
+  DartType _safeCovarianceOperandType(DartType operandType) {
+    if (operandType is InterfaceType) {
+      if (operandType.classNode.typeParameters.isEmpty) {
+        return operandType;
+      }
+      return InterfaceType(
+        operandType.classNode,
+        operandType.nullability,
+        calculateBounds(
+          operandType.classNode.typeParameters,
+          translator.coreTypes.objectClass,
+        ),
+      );
+    }
+    return operandType.isPotentiallyNullable
+        ? translator.coreTypes.objectNullableRawType
+        : translator.coreTypes.objectNonNullableRawType;
   }
 
   bool _requiresOnlyNullAssignabilityCheck(
