@@ -1057,12 +1057,14 @@ class FunctionTypeDeserializationCluster : public DeserializationCluster {
       const intptr_t num_fixed_params = type.num_fixed_parameters();
       type.set_num_implicit_parameters(1);  // Implicit closure parameter.
       if (num_named_params != 0) {
-        type.SetNumOptionalParameters(num_params - num_named_params,
+        ASSERT(num_params - num_named_params == num_fixed_params);
+        type.SetNumOptionalParameters(num_named_params,
                                       /* are_optional_positional=*/false);
       } else if (num_fixed_params != num_params) {
         type.SetNumOptionalParameters(num_params - num_fixed_params,
                                       /* are_optional_positional=*/true);
       }
+      ASSERT(type.NumParameters() == num_params);
       type.SetIsFinalized();
     }
   }

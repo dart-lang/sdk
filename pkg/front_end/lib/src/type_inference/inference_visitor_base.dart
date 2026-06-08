@@ -4692,7 +4692,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// given [iterable].
   PatternForInData inferPatternForInHeader({
     required TreeNode node,
-    required Pattern pattern,
+    required InternalPattern pattern,
     required Expression iterable,
     required bool isAsync,
     required int inOffset,

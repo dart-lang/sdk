@@ -30,9 +30,9 @@ B0 = EntryBlock()
   v16 = TypeTest(v3, v12, v1, List<C.typeParameters.U%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
   DirectCall print(v16)   # RA: R0 <- (R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(param[0] -> R5, param[2] -> R1, stack[0] -> R2)
-  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, vloc:R5 -> R1)
-  v19 = TypeCast(v3, v37, v1, Map<C.T%, C.typeParameters.U%>)   # RA: R0 <- (R0, R2, R1) temps: [R8, R3, R4]
+  ParallelMove output(param[0] -> R0, param[2] -> R1, stack[0] -> R2)
+  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, vloc:R0 -> R1)
+  v19 = TypeCast(v3, v37, v1, Map<C.T%, C.typeParameters.U%>)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v19)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   v21 = AllocateClosure()   # RA: R0 <- () temps: [R2, R3, R4]

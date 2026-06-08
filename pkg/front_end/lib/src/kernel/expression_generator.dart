@@ -391,7 +391,7 @@ abstract class Generator {
   ///
   /// If this generator is not for an assignable variable, an error is reported
   /// and an invalid pattern is returned.
-  Pattern buildPatternAssignment(Token token) {
+  InternalPattern buildPatternAssignment(Token token) {
     return intern.createInvalidPattern(
       problemReporting.buildProblem(
         compilerContext: compilerContext,
@@ -601,8 +601,8 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
-  Pattern buildPatternAssignment(Token token) {
-    Pattern pattern = intern.createAssignedVariablePattern(
+  InternalPattern buildPatternAssignment(Token token) {
+    InternalPattern pattern = intern.createAssignedVariablePattern(
       token.charOffset,
       variable,
     );
@@ -5323,7 +5323,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   }
 
   @override
-  Pattern buildPatternAssignment(Token token) {
+  InternalPattern buildPatternAssignment(Token token) {
     return intern.createInvalidPattern(
       _makeInvalidWrite(),
       declaredVariables: [],

@@ -136,6 +136,7 @@ final class TypeTestingStub {
   static const Register subtypeTestCacheReg = R3;
   static const Register scratchReg = R4;
   static const Register subtypeTestCacheResultReg = R7;
+  static const Register entryPointReg = R9;
 }
 
 final class InstantiateTypeArgumentsStub {

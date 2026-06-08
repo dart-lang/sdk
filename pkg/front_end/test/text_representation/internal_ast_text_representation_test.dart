@@ -248,20 +248,27 @@ void _testTryStatement() {
   Block emptyBlock2 = new Block([]);
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
-  Catch emptyCatchBlock = new Catch(new Variable('e'), new Block([]));
-  Catch emptyCatchBlockOnVoid = new Catch(
-    new Variable('e'),
-    new Block([]),
-    guard: const VoidType(),
+  InternalCatch emptyCatchBlock = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([]),
+    fileOffset: TreeNode.noOffset,
   );
-  Catch returnCatchBlock = new Catch(
-    new Variable('e'),
-    new Block([new ReturnStatement()]),
-  );
-  Catch returnCatchBlockOnVoid = new Catch(
-    new Variable('e'),
-    new Block([new ReturnStatement()]),
+  InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([]),
     guard: const VoidType(),
+    fileOffset: TreeNode.noOffset,
+  );
+  InternalCatch returnCatchBlock = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([new ReturnStatement()]),
+    fileOffset: TreeNode.noOffset,
+  );
+  InternalCatch returnCatchBlockOnVoid = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([new ReturnStatement()]),
+    guard: const VoidType(),
+    fileOffset: TreeNode.noOffset,
   );
 
   testStatement(new TryStatement(emptyBlock1, [], emptyBlock2), '''
@@ -411,10 +418,27 @@ for (void e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new PatternForInElement(
-        pattern: new RecordPattern([
-          new VariablePattern(const VoidType(), new LegacyVariable('a')),
-          new VariablePattern(null, new LegacyVariable('b')),
-        ]),
+        pattern: new InternalRecordPattern(
+          patterns: [
+            new InternalVariablePattern(
+              type: const VoidType(),
+              variable: new VariableDeclarationImpl(
+                'a',
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+            new InternalVariablePattern(
+              type: null,
+              variable: new VariableDeclarationImpl(
+                'b',
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+          ],
+          fileOffset: TreeNode.noOffset,
+        ),
         inOffset: -1,
       ),
       new NullLiteral(),

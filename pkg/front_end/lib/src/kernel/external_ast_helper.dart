@@ -1341,3 +1341,16 @@ WildcardPattern createWildcardPattern({
 }) {
   return new WildcardPattern(type)..fileOffset = fileOffset;
 }
+
+Catch createCatch({
+  required DartType guard,
+  required Variable? exception,
+  required Variable? stackTrace,
+  required Statement body,
+  required Scope? scope,
+  required int fileOffset,
+}) {
+  return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
+    ..scope = scope
+    ..fileOffset = fileOffset;
+}

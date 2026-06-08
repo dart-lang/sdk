@@ -31,7 +31,7 @@ Expression checkLibraryIsLoaded(int fileOffset, LibraryDependency dependency) {
   return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
 }
 
-Pattern createAndPattern(
+InternalPattern createAndPattern(
   int fileOffset,
   InternalPattern left,
   InternalPattern right,
@@ -97,7 +97,7 @@ AssertStatement createAssertStatement(
   )..fileOffset = fileOffset;
 }
 
-Pattern createAssignedVariablePattern(
+InternalPattern createAssignedVariablePattern(
   int fileOffset,
   InternalVariable variable,
 ) {
@@ -163,7 +163,7 @@ Statement createBreakStatement(int fileOffset, Object? label) {
     ..target = label is LabeledStatement ? label : dummyLabeledStatement;
 }
 
-Pattern createCastPattern(
+InternalPattern createCastPattern(
   int fileOffset,
   InternalPattern pattern,
   DartType type,
@@ -172,7 +172,7 @@ Pattern createCastPattern(
 }
 
 /// Return a representation of a catch clause.
-Catch createCatch(
+InternalCatch createCatch(
   int fileOffset,
   DartType exceptionType,
   InternalVariable? exceptionParameter,
@@ -180,12 +180,13 @@ Catch createCatch(
   DartType stackTraceType,
   Statement body,
 ) {
-  return new Catch(
-    exceptionParameter?.asVariableDeclaration,
-    body,
+  return new InternalCatch(
+    exception: exceptionParameter,
+    body: body,
     guard: exceptionType,
-    stackTrace: stackTraceParameter?.asVariableDeclaration,
-  )..fileOffset = fileOffset;
+    stackTrace: stackTraceParameter,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalVariable createCatchVariable({
@@ -607,13 +608,13 @@ Expression createIntLiteralLarge(
   return new LargeIntLiteral(strippedLiteral, literal, fileOffset: fileOffset);
 }
 
-Pattern createInvalidPattern(
+InternalPattern createInvalidPattern(
   Expression expression, {
   required List<InternalVariable> declaredVariables,
 }) {
   return new InternalInvalidPattern(
     invalidExpression: expression,
-    internalDeclaredVariables: declaredVariables,
+    declaredVariables: declaredVariables,
     fileOffset: expression.fileOffset,
   );
 }
@@ -729,7 +730,7 @@ ListLiteral createListLiteral(
   )..fileOffset = fileOffset;
 }
 
-Pattern createListPattern(
+InternalPattern createListPattern(
   int fileOffset,
   DartType? typeArgument,
   List<InternalPattern> patterns,
@@ -867,7 +868,7 @@ MapLiteralEntry createMapLiteralEntry(
   return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
 }
 
-Pattern createMapPattern(
+InternalPattern createMapPattern(
   int fileOffset,
   DartType? keyType,
   DartType? valueType,
@@ -980,7 +981,7 @@ InternalVariable createNamedParameter({
   }
 }
 
-Pattern createNamedPattern(
+InternalPattern createNamedPattern(
   int fileOffset,
   String name,
   InternalPattern pattern,
@@ -996,7 +997,10 @@ Expression createNot(int fileOffset, Expression operand) {
   return new Not(operand)..fileOffset = fileOffset;
 }
 
-Pattern createNullAssertPattern(int fileOffset, InternalPattern pattern) {
+InternalPattern createNullAssertPattern(
+  int fileOffset,
+  InternalPattern pattern,
+) {
   return new InternalNullAssertPattern(
     pattern: pattern,
     fileOffset: fileOffset,
@@ -1031,7 +1035,10 @@ NullCheck createNullCheck(int fileOffset, Expression expression) {
   return new NullCheck(expression)..fileOffset = fileOffset;
 }
 
-Pattern createNullCheckPattern(int fileOffset, InternalPattern pattern) {
+InternalPattern createNullCheckPattern(
+  int fileOffset,
+  InternalPattern pattern,
+) {
   return new InternalNullCheckPattern(pattern: pattern, fileOffset: fileOffset);
 }
 
@@ -1040,7 +1047,7 @@ NullLiteral createNullLiteral(int fileOffset) {
   return new NullLiteral()..fileOffset = fileOffset;
 }
 
-Pattern createOrPattern(
+InternalPattern createOrPattern(
   int fileOffset,
   InternalPattern left,
   InternalPattern right, {
@@ -1054,7 +1061,7 @@ Pattern createOrPattern(
   );
 }
 
-Pattern createObjectPattern({
+InternalPattern createObjectPattern({
   required DartType requiredType,
   required List<InternalNamedPattern> fields,
   required Typedef? typedef,
@@ -1275,7 +1282,10 @@ Expression createPropertySet(
   )..fileOffset = fileOffset;
 }
 
-Pattern createRecordPattern(int fileOffset, List<InternalPattern> patterns) {
+InternalPattern createRecordPattern(
+  int fileOffset,
+  List<InternalPattern> patterns,
+) {
   return new InternalRecordPattern(patterns: patterns, fileOffset: fileOffset);
 }
 
@@ -1287,7 +1297,7 @@ RedirectingFactoryTearOff createRedirectingFactoryTearOff(
   return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
 }
 
-Pattern createRelationalPattern(
+InternalPattern createRelationalPattern(
   int fileOffset,
   RelationalPatternKind kind,
   Expression expression,
@@ -1299,7 +1309,7 @@ Pattern createRelationalPattern(
   );
 }
 
-Pattern createRestPattern(int fileOffset, InternalPattern? subPattern) {
+InternalPattern createRestPattern(int fileOffset, InternalPattern? subPattern) {
   return new InternalRestPattern(
     subPattern: subPattern,
     fileOffset: fileOffset,
@@ -1574,10 +1584,10 @@ Expression createThrow(int fileOffset, Expression expression) {
 Statement createTryStatement(
   int fileOffset,
   Statement tryBlock,
-  List<Catch>? catchBlocks,
+  List<InternalCatch>? catchBlocks,
   Statement? finallyBlock,
 ) {
-  return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
+  return new TryStatement(tryBlock, catchBlocks ?? [], finallyBlock)
     ..fileOffset = fileOffset;
 }
 
@@ -1625,7 +1635,7 @@ InternalVariableGet createVariableGet(
   return new InternalVariableGet(variable)..fileOffset = fileOffset;
 }
 
-Pattern createVariablePattern(
+InternalPattern createVariablePattern(
   int fileOffset,
   DartType? type,
   InternalVariable variable,
@@ -1663,7 +1673,7 @@ Statement createWhileStatement(
   return new WhileStatement(condition, body)..fileOffset = fileOffset;
 }
 
-Pattern createWildcardPattern(int fileOffset, DartType? type) {
+InternalPattern createWildcardPattern(int fileOffset, DartType? type) {
   return new InternalWildcardPattern(type: type, fileOffset: fileOffset);
 }
 

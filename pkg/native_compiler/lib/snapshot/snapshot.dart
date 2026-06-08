@@ -428,8 +428,9 @@ class WrapperConstant extends ast.AuxiliaryConstant {
   void visitChildren(ast.Visitor v) => throw 'Should not be called.';
 
   @override
-  void toTextInternal(ast_printer.AstPrinter printer) =>
-      throw 'Should not be called.';
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('WrapperConstant(${unwrap})');
+  }
 
   @override
   ast.DartType getType(ast_type_environment.StaticTypeContext context) =>
@@ -1631,6 +1632,9 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               entry.selector,
             );
             serializer.push(icData);
+          case SubtypeTestCacheWithName():
+            serializer.push(entry.stc);
+            serializer.push(entry.name);
           case ReservedEntry():
             break;
         }
@@ -1673,6 +1677,11 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case DynamicCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
               serializer.writeRefId(icDatas[entry]);
+            case SubtypeTestCacheWithName():
+              serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+              serializer.writeRefId(entry.stc);
+              serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+              serializer.writeRefId(entry.name);
             case ReservedEntry():
           }
         } else if (entry is UnboxedIntConstant) {

@@ -241,10 +241,15 @@ final class Arm64Constraints extends Constraints {
             TypeTestingStub.functionTypeArgumentsReg,
           ],
         ],
-        const [
-          TypeTestingStub.dstTypeReg,
-          TypeTestingStub.subtypeTestCacheReg,
-          TypeTestingStub.scratchReg,
+        // Type testing stub can call runtime without preserving registers.
+        [
+          for (final r in allocatableRegisters)
+            if (r != TypeTestingStub.instanceReg &&
+                ((instr.inputCount == 1) ||
+                    (r != TypeTestingStub.instantiatorTypeArgumentsReg &&
+                        r != TypeTestingStub.functionTypeArgumentsReg)))
+              r,
+          ...allocatableFPRegisters,
         ],
       );
     }

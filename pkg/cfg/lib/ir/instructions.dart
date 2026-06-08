@@ -674,7 +674,16 @@ enum ComparisonOpcode {
     _ => false,
   };
 
-  ComparisonOpcode flipOperands() => switch (this) {
+  /// The opcode for an equivalent comparison with the operands swapped.
+  ///
+  /// For example, `a < b` is equivalent to `b > a`,
+  /// so [intLess] becomes [intGreater].
+  /// Symmetric opcodes, such as those for equality,
+  /// stay the same when swapped.
+  ///
+  /// Swapping preserves the comparison's result and strictness,
+  /// unlike [negate], which inverts the result.
+  ComparisonOpcode get swapped => switch (this) {
     equal ||
     notEqual ||
     identical ||
@@ -685,14 +694,14 @@ enum ComparisonOpcode {
     intTestIsNotZero ||
     doubleEqual ||
     doubleNotEqual => this,
-    intLess => intGreaterOrEqual,
-    intLessOrEqual => intGreater,
-    intGreater => intLessOrEqual,
-    intGreaterOrEqual => intLess,
-    doubleLess => doubleGreaterOrEqual,
-    doubleLessOrEqual => doubleGreater,
-    doubleGreater => doubleLessOrEqual,
-    doubleGreaterOrEqual => doubleLess,
+    intLess => intGreater,
+    intLessOrEqual => intGreaterOrEqual,
+    intGreater => intLess,
+    intGreaterOrEqual => intLessOrEqual,
+    doubleLess => doubleGreater,
+    doubleLessOrEqual => doubleGreaterOrEqual,
+    doubleGreater => doubleLess,
+    doubleGreaterOrEqual => doubleLessOrEqual,
   };
 
   bool get canBeNegated => switch (this) {
