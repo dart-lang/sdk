@@ -68,9 +68,10 @@ void main() {
 
   test('field getter', () {
     final member = coreTypes.pragmaName;
-    final func =
-        functionRegistry.getFunction(member, isGetter: true)
-            as ImplicitFieldGetter;
+    final func = functionRegistry.getFunction(
+      member,
+      isGetter: true,
+    ) as ImplicitFieldGetter;
     expect(func.member, same(member));
     expect(func.hasReceiverParameter, isTrue);
     expect(func.hasClosureParameter, isFalse);
@@ -89,9 +90,10 @@ void main() {
       'Error',
       '_stackTrace',
     );
-    final func =
-        functionRegistry.getFunction(member, isSetter: true)
-            as ImplicitFieldSetter;
+    final func = functionRegistry.getFunction(
+      member,
+      isSetter: true,
+    ) as ImplicitFieldSetter;
     expect(func.member, same(member));
     expect(func.hasReceiverParameter, isTrue);
     expect(func.hasClosureParameter, isFalse);
@@ -110,9 +112,10 @@ void main() {
 
   test('field initializer', () {
     final member = coreTypes.index.getField('dart:core', 'double', 'nan');
-    final func =
-        functionRegistry.getFunction(member, isInitializer: true)
-            as FieldInitializerFunction;
+    final func = functionRegistry.getFunction(
+      member,
+      isInitializer: true,
+    ) as FieldInitializerFunction;
     expect(func.member, same(member));
     expect(func.hasReceiverParameter, isFalse);
     expect(func.hasClosureParameter, isFalse);
@@ -168,9 +171,10 @@ void main() {
 
   test('tear-off', () {
     final member = coreTypes.index.getProcedure('dart:core', 'List', 'empty');
-    final func =
-        functionRegistry.getFunction(member, isTearOff: true)
-            as TearOffFunction;
+    final func = functionRegistry.getFunction(
+      member,
+      isTearOff: true,
+    ) as TearOffFunction;
     expect(func.member, same(member));
     expect(func.hasReceiverParameter, isFalse);
     expect(func.hasClosureParameter, isTrue);
@@ -196,13 +200,11 @@ void main() {
         returnType: coreTypes.boolNonNullableRawType,
       ),
     );
-    final func =
-        functionRegistry.getFunction(
-              member,
-              enclosingFunction: enclosingFunction,
-              localFunction: localFunction,
-            )
-            as LocalFunction;
+    final func = functionRegistry.getFunction(
+      member,
+      enclosingFunction: enclosingFunction,
+      localFunction: localFunction,
+    ) as LocalFunction;
     expect(func.member, same(member));
     expect(func.localFunction, same(localFunction));
     expect(func.hasReceiverParameter, isFalse);
@@ -221,9 +223,10 @@ void main() {
 
   test('method-extractor', () {
     final member = coreTypes.index.getProcedure('dart:core', 'List', 'add');
-    final func =
-        functionRegistry.getFunction(member, isMethodExtractor: true)
-            as MethodExtractor;
+    final func = functionRegistry.getFunction(
+      member,
+      isMethodExtractor: true,
+    ) as MethodExtractor;
     expect(func.member, same(member));
     expect(func.hasReceiverParameter, isTrue);
     expect(func.hasClosureParameter, isFalse);

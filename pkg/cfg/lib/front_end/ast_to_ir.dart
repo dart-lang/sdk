@@ -1820,13 +1820,11 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   void _translateClosure(ast.LocalFunction node, CType type) {
-    final closureFunction =
-        functionRegistry.getFunction(
-              function.member,
-              enclosingFunction: function,
-              localFunction: node,
-            )
-            as ClosureFunction;
+    final closureFunction = functionRegistry.getFunction(
+      function.member,
+      enclosingFunction: function,
+      localFunction: node,
+    ) as ClosureFunction;
     onLocalFunction(closureFunction);
 
     final closureLayout = _computeClosureLayout(closureFunction);

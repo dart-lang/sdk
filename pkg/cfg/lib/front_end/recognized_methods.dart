@@ -21,18 +21,17 @@ abstract class RecognizedCallMatcher {
 }
 
 /// Recognizes calls to binary [num] operations (except [num./]).
-class BinaryNumOp implements RecognizedCallMatcher {
-  final BinaryIntOpcode intOp;
-  final BinaryDoubleOpcode doubleOp;
-
-  const BinaryNumOp(this.intOp, this.doubleOp);
-
+class const BinaryNumOp(
+  final BinaryIntOpcode intOp,
+  final BinaryDoubleOpcode doubleOp,
+) implements RecognizedCallMatcher {
   /// Recognizes the following combinations of argument types:
   ///
   /// int op int -> int
   /// int op double -> double
   /// double op int -> double
   /// double op double -> double
+  @override
   BuildIR? match(List<CType> args) {
     switch (args) {
       case [IntType(), IntType()]:
@@ -61,9 +60,8 @@ class BinaryNumOp implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to [num./].
-class NumDiv implements RecognizedCallMatcher {
-  const NumDiv();
-
+class const NumDiv() implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     switch (args) {
       case [IntType(), IntType()]:
@@ -96,9 +94,8 @@ class NumDiv implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to [num.toDouble].
-class NumToDouble implements RecognizedCallMatcher {
-  const NumToDouble();
-
+class const NumToDouble() implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     switch (args) {
       case [IntType()]:
@@ -115,9 +112,8 @@ class NumToDouble implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to [num.toInt].
-class NumToInt implements RecognizedCallMatcher {
-  const NumToInt();
-
+class const NumToInt() implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     switch (args) {
       case [IntType()]:
@@ -134,12 +130,11 @@ class NumToInt implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to [num] comparisons.
-class NumComparison implements RecognizedCallMatcher {
-  final ComparisonOpcode intOp;
-  final ComparisonOpcode doubleOp;
-
-  const NumComparison(this.intOp, this.doubleOp);
-
+class const NumComparison(
+  final ComparisonOpcode intOp,
+  final ComparisonOpcode doubleOp,
+) implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     switch (args) {
       case [IntType(), IntType()]:
@@ -157,11 +152,9 @@ class NumComparison implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to binary [int] operations.
-class BinaryIntOp implements RecognizedCallMatcher {
-  final BinaryIntOpcode op;
-
-  const BinaryIntOp(this.op);
-
+class const BinaryIntOp(final BinaryIntOpcode op)
+    implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     assert(args[0] is IntType && args[1] is IntType);
     return (FlowGraphBuilder builder) {
@@ -171,11 +164,9 @@ class BinaryIntOp implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to unary [int] operations.
-class UnaryIntOp implements RecognizedCallMatcher {
-  final UnaryIntOpcode op;
-
-  const UnaryIntOp(this.op);
-
+class const UnaryIntOp(final UnaryIntOpcode op)
+    implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     assert(args[0] is IntType);
     return (FlowGraphBuilder builder) {
@@ -185,11 +176,9 @@ class UnaryIntOp implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to binary [double] operations.
-class BinaryDoubleOp implements RecognizedCallMatcher {
-  final BinaryDoubleOpcode op;
-
-  const BinaryDoubleOp(this.op);
-
+class const BinaryDoubleOp(final BinaryDoubleOpcode op)
+    implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     assert(args[0] is DoubleType);
     switch (args[1]) {
@@ -209,11 +198,9 @@ class BinaryDoubleOp implements RecognizedCallMatcher {
 }
 
 /// Recognizes calls to unary [double] operations.
-class UnaryDoubleOp implements RecognizedCallMatcher {
-  final UnaryDoubleOpcode op;
-
-  const UnaryDoubleOp(this.op);
-
+class const UnaryDoubleOp(final UnaryDoubleOpcode op)
+    implements RecognizedCallMatcher {
+  @override
   BuildIR? match(List<CType> args) {
     assert(args[0] is DoubleType);
     return (FlowGraphBuilder builder) {

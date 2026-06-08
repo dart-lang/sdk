@@ -16,47 +16,57 @@ main() {
 
 @reflectiveTest
 class UseOfVoidResultTest extends PubPackageResolutionTest {
-  test_andVoidLhsError() async {
+  test_argumentList_argument_parameterTypeDynamic_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
-  x && true;
-//^
+  g(x);
+//  ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+void g(dynamic x) { }
+''');
+  }
+
+  test_argumentList_argument_parameterTypeVoid_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  g(x);
+}
+void g(void x) {}
+''');
+  }
+
+  test_asExpression_expression_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  use(x as int);
+}
+
+void use(Object? x) {}
+''');
+  }
+
+  test_assignmentExpression_compound_read_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x += 1;
+//  ^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_andVoidRhsError() async {
+  test_assignmentExpression_simple_propertyAccess_target_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
-  true && x;
-//        ^
+  x.foo = null;
+//  ^^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_assignment_toDynamic() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  // ignore:unused_local_variable
-  dynamic v = x;
-//            ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_assignment_toVoid() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  // ignore:unused_local_variable
-  void v = x;
-}
-''');
-  }
-
-  test_assignmentExpression_function() async {
+  test_assignmentExpression_simple_rightHandSide_function_toLocalVariableTypeDynamic_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f() {}
 class A {
@@ -71,7 +81,7 @@ class A {
 }''');
   }
 
-  test_assignmentExpression_method() async {
+  test_assignmentExpression_simple_rightHandSide_method_toLocalVariableTypeDynamic_error() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void m() {}
@@ -86,16 +96,7 @@ class A {
 }''');
   }
 
-  test_assignmentToVoidParameterOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  g(x);
-}
-void g(void x) {}
-''');
-  }
-
-  test_await() async {
+  test_awaitExpression_expression_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) async {
   await x;
@@ -105,7 +106,7 @@ void f(void x) async {
 ''');
   }
 
-  test_awaitForIn_streamVoid_declaredVariable_nonVoid() async {
+  test_awaitForIn_streamElementTypeVoid_variableTypeNonVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(Stream<void> values) async {
   await for (Object? _ in values) {}
@@ -118,7 +119,7 @@ void f(Stream<void> values) async {
 ''');
   }
 
-  test_awaitForIn_streamVoid_declaredVariable_void() async {
+  test_awaitForIn_streamElementTypeVoid_variableTypeVoidOrInferred_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f(Stream<void> values) async {
   await for (void _ in values) {}
@@ -127,7 +128,93 @@ void f(Stream<void> values) async {
 ''');
   }
 
-  test_constructorFieldInitializer_toDynamic() async {
+  test_binaryExpression_ifNull_leftOperand_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x ?? 1;
+//^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_binaryExpression_ifNull_rightOperand_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  null ?? x;
+}
+''');
+  }
+
+  test_binaryExpression_logicalAnd_leftOperand_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x && true;
+//^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_binaryExpression_logicalAnd_rightOperand_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  true && x;
+//        ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_binaryExpression_logicalOr_leftOperand_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x || true;
+//^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_binaryExpression_logicalOr_rightOperand_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  false || x;
+//         ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_conditionalExpression_condition_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x ? null : null;
+//^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_conditionalExpression_elseExpression_ok() async {
+    // A conditional expression is one of the allowed positions for `void`.
+    await resolveTestCodeWithDiagnostics('''
+void f(bool c, void x) {
+  c ? null : x;
+}
+''');
+  }
+
+  test_conditionalExpression_thenExpression_ok() async {
+    // A conditional expression is one of the allowed positions for `void`.
+    await resolveTestCodeWithDiagnostics('''
+void f(bool c, void x) {
+  c ? x : null;
+}
+''');
+  }
+
+  test_constructorFieldInitializer_fieldTypeDynamic_error() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   dynamic f;
@@ -138,7 +225,7 @@ class A {
 ''');
   }
 
-  test_constructorFieldInitializer_toVoid() async {
+  test_constructorFieldInitializer_fieldTypeVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void f;
@@ -147,7 +234,40 @@ class A {
 ''');
   }
 
-  test_extensionApplication() async {
+  test_doStatement_condition_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  do {} while (x);
+//             ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_expressionStatement_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x;
+}
+''');
+  }
+
+  test_extensionOnVoid_this_error() async {
+    await resolveTestCodeWithDiagnostics('''
+extension on void {
+  testVoid() {
+//^^^^^^^^
+// [diag.unusedElement] The declaration 'testVoid' isn't referenced.
+    // No access on void. Static type of `this` is void!
+    this.toString();
+//  ^^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+  }
+}
+''');
+  }
+
+  test_extensionOverride_argument_error() async {
     await resolveTestCodeWithDiagnostics('''
 extension E on String {
   int get g => 0;
@@ -163,7 +283,31 @@ void h() {
 ''');
   }
 
-  test_forIn_iterableVoid_declaredVariable_nonVoid() async {
+  test_forIn_iterable_typeVoid_declaredVariable_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  for (var v in x) {}
+//         ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+//              ^
+// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_forIn_iterable_typeVoid_error() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void x, y) {
+  for (y in x) {}
+//          ^
+// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_forIn_iterableElementTypeVoid_declaredVariableTypeNonVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(List<void> values) {
   for (Object? _ in values) {}
@@ -176,7 +320,7 @@ void f(List<void> values) {
 ''');
   }
 
-  test_forIn_iterableVoid_declaredVariable_void() async {
+  test_forIn_iterableElementTypeVoid_declaredVariableTypeVoidOrInferred_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f(List<void> values) {
   for (void _ in values) {}
@@ -185,7 +329,7 @@ void f(List<void> values) {
 ''');
   }
 
-  test_forIn_iterableVoid_existingVariable_nonVoid() async {
+  test_forIn_iterableElementTypeVoid_existingVariableTypeNonVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(List<void> values) {
   Object? object;
@@ -204,7 +348,7 @@ void f(List<void> values) {
 ''');
   }
 
-  test_forIn_iterableVoid_existingVariable_void() async {
+  test_forIn_iterableElementTypeVoid_existingVariableTypeVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f(List<void> values) {
   void existing = null;
@@ -215,20 +359,18 @@ void f(List<void> values) {
 ''');
   }
 
-  test_implicitReturnValue() async {
-    await resolveTestCodeWithDiagnostics(r'''
-f() {}
-class A {
-  n() {
-    var a = f();
-//      ^
-// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
-  }
+  @SkippedTest() // TODO(scheglov): review this
+  test_forIn_loopVariable_typeVoid_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  for (x in [1, 2]) {}
+//     ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_inForLoop_error() async {
+  test_forPartsWithDeclarations_initializer_toObject_error() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void m() {}
@@ -242,7 +384,7 @@ class A {
 }''');
   }
 
-  test_inForLoop_ok() async {
+  test_forPartsWithDeclarations_initializer_toVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void m() {}
@@ -255,7 +397,45 @@ class A {
 ''');
   }
 
-  test_interpolateVoidValueError() async {
+  test_forPartsWithExpression_initializationAndUpdaters_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  for (x; true; x) {}
+}
+''');
+  }
+
+  test_indexExpression_index_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(List list, void x) {
+  list[x];
+//     ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_indexExpression_index_inAssignment_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(List list, void x) {
+  list[x] = null;
+//     ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_indexExpression_target_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  x[0];
+// ^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_interpolationExpression_expression_error() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(void x) {
   "$x";
@@ -265,48 +445,71 @@ void f(void x) {
 ''');
   }
 
-  test_negateVoidValueError() async {
+  test_isExpression_expression_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
-  !x;
-// ^
+  x is int;
+//^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_nonVoidReturnValue() async {
-    await resolveTestCodeWithDiagnostics(r'''
-int f() => 1;
-g() {
-  var a = f();
-//    ^
-// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
-}
-''');
-  }
-
-  test_nullAwareElement_list_voidValue() async {
+  test_listLiteral_topLevelElement_toDynamic_error() async {
     await resolveTestCodeWithDiagnostics('''
-void f(void value) {
-  <void>[?value];
-//        ^^^^^
+void f(void x) {
+  <dynamic>[x];
+//          ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_nullAwareElement_set_voidValue() async {
+  test_listLiteral_topLevelElement_toVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
-void f(void value) {
-  <void>{?value};
-//        ^^^^^
+void f(void x) {
+  [x];
+}
+''');
+  }
+
+  test_mapLiteral_topLevelKey_toDynamic_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  <dynamic, int>{x : 4};
+//               ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_nullAwareMapEntry_nullAwareKey_voidKey() async {
+  test_mapLiteral_topLevelKey_toVoid_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  ({x : 4});
+}
+''');
+  }
+
+  test_mapLiteral_topLevelValue_toDynamic_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  <int, dynamic>{4: x};
+//                  ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_mapLiteral_topLevelValue_toVoid_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  ({4: x});
+}
+''');
+  }
+
+  test_mapLiteralEntry_keyQuestion_keyTypeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void key) {
   <void, int>{?key: 0};
@@ -316,7 +519,7 @@ void f(void key) {
 ''');
   }
 
-  test_nullAwareMapEntry_nullAwareKey_voidValue() async {
+  test_mapLiteralEntry_keyQuestion_valueTypeVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f(int? key, void value) {
   <int, void>{?key: value};
@@ -324,7 +527,7 @@ void f(int? key, void value) {
 ''');
   }
 
-  test_nullAwareMapEntry_nullAwareValue_voidKey() async {
+  test_mapLiteralEntry_valueQuestion_keyTypeVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void key, int? value) {
   <void, int>{key: ?value};
@@ -332,7 +535,7 @@ void f(void key, int? value) {
 ''');
   }
 
-  test_nullAwareMapEntry_nullAwareValue_voidValue() async {
+  test_mapLiteralEntry_valueQuestion_valueTypeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void value) {
   <int, void>{0: ?value};
@@ -342,7 +545,27 @@ void f(void value) {
 ''');
   }
 
-  test_nullCheck() async {
+  test_nullAwareElement_list_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void value) {
+  <void>[?value];
+//        ^^^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_nullAwareElement_set_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void value) {
+  <void>{?value};
+//        ^^^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_postfixExpression_bang_operand_error() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 f(void x) {
   x!;
@@ -354,80 +577,17 @@ f(void x) {
     assertType(result.findNode.postfix('x!'), 'void');
   }
 
-  test_orVoidLhsError() async {
+  test_prefixExpression_bang_operand_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
-  x || true;
-//^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_orVoidRhsError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  false || x;
-//         ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_recordLiteral_namedField() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  (one: x,);
-// ^^^^^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_recordLiteral_positionalField() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  (x,);
+  !x;
 // ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_switchStatement_expression() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  switch(x) {}
-//       ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_throwVoidValueError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  throw x;
-//      ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-// [diag.throwOfInvalidType] The type 'void' of the thrown expression must be assignable to 'Object'.
-}
-''');
-  }
-
-  test_unaryNegativeVoidFunction() async {
-    await resolveTestCodeWithDiagnostics('''
-void test(void f()) {
-  -f();
-//^
-// [diag.uncheckedMethodInvocationOfNullableValue] The method 'unary-' can't be unconditionally invoked because the receiver can be 'null'.
-// ^^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_unaryNegativeVoidValueError() async {
+  test_prefixExpression_minus_identifier_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
   -x;
@@ -439,260 +599,19 @@ void f(void x) {
 ''');
   }
 
-  test_useOfVoidAsIndexAssignError() async {
+  test_prefixExpression_minus_invocation_error() async {
     await resolveTestCodeWithDiagnostics('''
-void f(List list, void x) {
-  list[x] = null;
-//     ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidAsIndexError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(List list, void x) {
-  list[x];
-//     ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidAssignedToDynamicError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  dynamic z = x;
-//        ^
-// [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
-//            ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidByIndexingError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x[0];
+void test(void f()) {
+  -f();
+//^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'unary-' can't be unconditionally invoked because the receiver can be 'null'.
 // ^^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
-  test_useOfVoidCallSetterError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x.foo = null;
-//  ^^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidCastsOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  use(x as int);
-}
-
-void use(Object? x) {}
-''');
-  }
-
-  test_useOfVoidInConditionalConditionError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x ? null : null;
-//^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInConditionalLhsError() async {
-    // A conditional expression is one of the allowed positions for `void`.
-    await resolveTestCodeWithDiagnostics('''
-void f(bool c, void x) {
-  c ? x : null;
-}
-''');
-  }
-
-  test_useOfVoidInConditionalRhsError() async {
-    // A conditional expression is one of the allowed positions for `void`.
-    await resolveTestCodeWithDiagnostics('''
-void f(bool c, void x) {
-  c ? null : x;
-}
-''');
-  }
-
-  test_useOfVoidInDoWhileConditionError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  do {} while (x);
-//             ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInExpStmtOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x;
-}
-''');
-  }
-
-  test_useOfVoidInForeachIterableError() async {
-    await resolveTestCodeWithDiagnostics(r'''
-void f(void x, y) {
-  for (y in x) {}
-//          ^
-// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInForeachIterableError_declaredVariable() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  for (var v in x) {}
-//         ^
-// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
-//              ^
-// [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  @SkippedTest() // TODO(scheglov): review this
-  test_useOfVoidInForeachVariableError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  for (x in [1, 2]) {}
-//     ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInForPartsOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  for (x; true; x) {}
-}
-''');
-  }
-
-  test_useOfVoidInIsTestError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x is int;
-//^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInListLiteralError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  <dynamic>[x];
-//          ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInListLiteralOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  [x];
-}
-''');
-  }
-
-  test_useOfVoidInMapLiteralKeyError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  <dynamic, int>{x : 4};
-//               ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInMapLiteralKeyOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  ({x : 4});
-}
-''');
-  }
-
-  test_useOfVoidInMapLiteralValueError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  <int, dynamic>{4: x};
-//                  ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInMapLiteralValueOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  ({4: x});
-}
-''');
-  }
-
-  test_useOfVoidInNullOperatorLhsError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x ?? 1;
-//^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInNullOperatorRhsOk() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  null ?? x;
-}
-''');
-  }
-
-  test_useOfVoidInSpecialAssignmentError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  x += 1;
-//  ^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidInWhileConditionError() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(void x) {
-  while (x) {};
-//       ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_useOfVoidNullPropertyAccessError() async {
+  test_propertyAccess_nullAware_target_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
   x?.foo;
@@ -702,7 +621,7 @@ void f(void x) {
 ''');
   }
 
-  test_useOfVoidPropertyAccessError() async {
+  test_propertyAccess_target_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
   x.foo;
@@ -712,23 +631,28 @@ void f(void x) {
 ''');
   }
 
-  test_useOfVoidReturnInExtensionMethod() async {
+  test_recordLiteral_namedField_error() async {
     await resolveTestCodeWithDiagnostics('''
-extension on void {
-  testVoid() {
-//^^^^^^^^
-// [diag.unusedElement] The declaration 'testVoid' isn't referenced.
-    // No access on void. Static type of `this` is void!
-    this.toString();
-//  ^^^^
+void f(void x) {
+  (one: x,);
+// ^^^^^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
   }
+
+  test_recordLiteral_positionalField_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  (x,);
+// ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
   }
 
   @SkippedTest() // TODO(scheglov): review this
-  test_useOfVoidReturnInNonVoidFunctionError() async {
+  test_returnStatement_nonVoidFunction_error() async {
     // TODO(mfairhurst): Get this test to pass once codebase is compliant.
     await resolveTestCodeWithDiagnostics('''
 dynamic f(void x) {
@@ -739,7 +663,7 @@ dynamic f(void x) {
 ''');
   }
 
-  test_useOfVoidReturnInVoidFunctionOk() async {
+  test_returnStatement_voidFunction_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
   return x;
@@ -747,28 +671,28 @@ void f(void x) {
 ''');
   }
 
-  test_useOfVoidWhenArgumentError() async {
+  test_switchStatement_expression_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
-  g(x);
-//  ^
+  switch(x) {}
+//       ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
-void g(dynamic x) { }
 ''');
   }
 
-  test_useOfVoidWithInitializerOk() async {
+  test_throwExpression_expression_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
-  void y = x;
-//     ^
-// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+  throw x;
+//      ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+// [diag.throwOfInvalidType] The type 'void' of the thrown expression must be assignable to 'Object'.
 }
 ''');
   }
 
-  test_variableDeclaration_function_error() async {
+  test_variableDeclaration_initializer_function_toObject_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f() {}
 class A {
@@ -782,7 +706,7 @@ class A {
 }''');
   }
 
-  test_variableDeclaration_function_ok() async {
+  test_variableDeclaration_initializer_function_toVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 void f() {}
 class A {
@@ -795,7 +719,20 @@ class A {
 ''');
   }
 
-  test_variableDeclaration_method2() async {
+  test_variableDeclaration_initializer_implicitReturn_ok() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f() {}
+class A {
+  n() {
+    var a = f();
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+  }
+}
+''');
+  }
+
+  test_variableDeclaration_initializer_method_multiple_error() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void m() {}
@@ -813,7 +750,7 @@ class A {
 }''');
   }
 
-  test_variableDeclaration_method_error() async {
+  test_variableDeclaration_initializer_method_toObject_error() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void m() {}
@@ -827,7 +764,7 @@ class A {
 }''');
   }
 
-  test_variableDeclaration_method_ok() async {
+  test_variableDeclaration_initializer_method_toVoid_ok() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
   void m() {}
@@ -840,7 +777,80 @@ class A {
 ''');
   }
 
-  test_yieldStarVoid_asyncStar() async {
+  test_variableDeclaration_initializer_nonVoidReturn_ok() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int f() => 1;
+g() {
+  var a = f();
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+  }
+
+  test_variableDeclaration_initializer_toDynamic_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  // ignore:unused_local_variable
+  dynamic v = x;
+//            ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_variableDeclaration_initializer_toDynamic_withUnusedLocal_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  dynamic z = x;
+//        ^
+// [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
+//            ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_variableDeclaration_initializer_toVoid_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  // ignore:unused_local_variable
+  void v = x;
+}
+''');
+  }
+
+  test_variableDeclaration_initializer_toVoid_withUnusedLocal_ok() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  void y = x;
+//     ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+}
+''');
+  }
+
+  test_whileStatement_condition_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void x) {
+  while (x) {};
+//       ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_yieldStatement_asyncStar_error() async {
+    await resolveTestCodeWithDiagnostics('''
+dynamic f(void x) async* {
+  yield x;
+//      ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_yieldStatement_star_asyncStar_error() async {
     await resolveTestCodeWithDiagnostics('''
 Object? f(void x) async* {
   yield* x;
@@ -852,7 +862,7 @@ Object? f(void x) async* {
 ''');
   }
 
-  test_yieldStarVoid_syncStar() async {
+  test_yieldStatement_star_syncStar_error() async {
     await resolveTestCodeWithDiagnostics('''
 Object? f(void x) sync* {
   yield* x;
@@ -864,17 +874,7 @@ Object? f(void x) sync* {
 ''');
   }
 
-  test_yieldVoid_asyncStar() async {
-    await resolveTestCodeWithDiagnostics('''
-dynamic f(void x) async* {
-  yield x;
-//      ^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-  }
-
-  test_yieldVoid_syncStar() async {
+  test_yieldStatement_syncStar_error() async {
     await resolveTestCodeWithDiagnostics('''
 dynamic f(void x) sync* {
   yield x;

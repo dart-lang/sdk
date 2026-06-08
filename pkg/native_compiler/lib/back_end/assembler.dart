@@ -57,27 +57,19 @@ enum OperandSize {
 }
 
 /// Immediate operand.
-class Immediate implements Operand {
-  final int value;
-  const Immediate(this.value);
-}
+class const Immediate(final int value) implements Operand;
 
 /// Address operand.
-abstract interface class Address implements Operand {}
+abstract interface class Address implements Operand;
 
 /// [base + offset] address operand.
-class RegOffsetAddress implements Address {
-  final Register base;
-  final int offset;
-  RegOffsetAddress(this.base, this.offset);
-}
+class RegOffsetAddress(final Register base, final int offset)
+    implements Address;
 
 /// Destination of a branch.
 class Label {
   int _offset = -1;
   final branchOffsets = <int>[];
-
-  Label();
 
   bool get isBound => _offset >= 0;
 

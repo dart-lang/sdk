@@ -32,8 +32,6 @@ final class Arm64Constraints extends Constraints {
 
   List<Constraint?>? _parameters;
 
-  Arm64Constraints();
-
   @override
   int getNumberOfRegisters() => numberOfRegisters;
 

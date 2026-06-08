@@ -194,9 +194,9 @@ class SnapshotSerializer {
     out.writeUint(numBaseObjects);
     out.writeUint(numObjects);
 
-    final codeCluster =
-        getPredefinedCluster(PredefinedClusters.codes)
-            as CodeSerializationCluster;
+    final codeCluster = getPredefinedCluster(
+      PredefinedClusters.codes,
+    ) as CodeSerializationCluster;
     final lastCode = codeCluster._objects.last;
     out.writeUint(
       lastCode.instructionsImageOffset! + lastCode.instructions.lengthInBytes,
@@ -419,11 +419,7 @@ class SnapshotSerializer {
 /// AST Constant which wraps an arbitrary object.
 /// Used during snapshot serialization in order to embed arbitrary objects
 /// (such as Name) into other constants (such as ListConstant).
-class WrapperConstant extends ast.AuxiliaryConstant {
-  final Object? unwrap;
-
-  WrapperConstant(this.unwrap);
-
+class WrapperConstant(final Object? unwrap) extends ast.AuxiliaryConstant {
   @override
   void visitChildren(ast.Visitor v) => throw 'Should not be called.';
 
@@ -1222,16 +1218,12 @@ final class InterfaceTypeSerializationCluster extends SerializationCluster {
 }
 
 /// Declaration of type parameters, corresponds to the VM TypeParameters object.
-class TypeParameters {
-  final ast.ListConstant names;
-  final TypeArgumentsConstant bounds;
-  final TypeArgumentsConstant defaultTypes;
-
-  TypeParameters._(this.names, this.bounds, this.defaultTypes);
-
-  factory TypeParameters.fromStructuralParameters(
-    List<ast.StructuralParameter> params,
-  ) {
+class TypeParameters._(
+  final ast.ListConstant names,
+  final TypeArgumentsConstant bounds,
+  final TypeArgumentsConstant defaultTypes,
+) {
+  factory fromStructuralParameters(List<ast.StructuralParameter> params) {
     final names = getListConstant([for (final p in params) p.name!]);
     final bounds = TypeArgumentsConstant([for (final p in params) p.bound]);
     final defaultTypes = TypeArgumentsConstant([
@@ -1294,9 +1286,9 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
     _objects.add(type);
     if (type.typeParameters.isNotEmpty) {
       // Establish StructuralParameter -> owner links.
-      final typeParamCluster =
-          serializer.getPredefinedCluster(PredefinedClusters.typeParameterTypes)
-              as TypeParameterTypeSerializationCluster;
+      final typeParamCluster = serializer.getPredefinedCluster(
+        PredefinedClusters.typeParameterTypes,
+      ) as TypeParameterTypeSerializationCluster;
       for (final tp in type.typeParameters) {
         typeParamCluster._structuralParameterOwner[tp] = type;
       }
@@ -1538,12 +1530,11 @@ final class CodeSerializationCluster extends SerializationCluster {
   }
 }
 
-class ICData {
-  final CFunction owner;
-  final ArgumentsShape argumentsShape;
-  final Name targetName;
-  ICData(this.owner, this.argumentsShape, this.targetName);
-}
+class ICData(
+  final CFunction owner,
+  final ArgumentsShape argumentsShape,
+  final Name targetName,
+);
 
 final class ICDataSerializationCluster extends SerializationCluster {
   final List<ICData> _objects = [];

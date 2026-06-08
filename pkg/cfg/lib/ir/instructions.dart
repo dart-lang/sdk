@@ -485,11 +485,7 @@ final class _PhiIterator implements Iterator<Phi> {
 }
 
 /// Iterable over [Phi] instructions in the [JoinBlock].
-final class _PhiIterable extends Iterable<Phi> {
-  final JoinBlock _block;
-
-  _PhiIterable(this._block);
-
+final class _PhiIterable(final JoinBlock _block) extends Iterable<Phi> {
   @override
   Iterator<Phi> get iterator => _PhiIterator(_block);
 }
@@ -624,7 +620,7 @@ final class Unreachable extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitUnreachable(this);
 }
 
-enum ComparisonOpcode {
+enum ComparisonOpcode(final String token) {
   // Simple object pointer equality.
   equal('=='),
   notEqual('!='),
@@ -648,9 +644,6 @@ enum ComparisonOpcode {
   doubleLessOrEqual('double <='),
   doubleGreater('double >'),
   doubleGreaterOrEqual('double >=');
-
-  final String token;
-  const ComparisonOpcode(this.token);
 
   bool get isIntComparison => switch (this) {
     intEqual ||
@@ -1488,7 +1481,7 @@ final class Suspend extends Definition with CanThrow, HasSideEffects {
   R accept<R>(InstructionVisitor<R> v) => v.visitSuspend(this);
 }
 
-enum BinaryIntOpcode {
+enum BinaryIntOpcode(final String token) {
   add('+'),
   sub('-'),
   mul('*'),
@@ -1501,9 +1494,6 @@ enum BinaryIntOpcode {
   shiftLeft('<<'),
   shiftRight('>>'),
   unsignedShiftRight('>>>');
-
-  final String token;
-  const BinaryIntOpcode(this.token);
 
   bool get isCommutative => switch (this) {
     add || mul || bitOr || bitAnd || bitXor => true,
@@ -1550,15 +1540,12 @@ final class BinaryIntOp extends Definition with Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitBinaryIntOp(this);
 }
 
-enum UnaryIntOpcode {
+enum UnaryIntOpcode(final String token) {
   neg('-'),
   bitNot('~'),
   toDouble('toDouble'),
   abs('abs'),
-  sign('sign');
-
-  final String token;
-  const UnaryIntOpcode(this.token);
+  sign('sign')
 }
 
 /// Unary operation on the int operand.
@@ -1585,7 +1572,7 @@ final class UnaryIntOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryIntOp(this);
 }
 
-enum BinaryDoubleOpcode {
+enum BinaryDoubleOpcode(final String token) {
   add('+'),
   sub('-'),
   mul('*'),
@@ -1593,9 +1580,6 @@ enum BinaryDoubleOpcode {
   truncatingDiv('~/'),
   mod('%'),
   rem('remainder');
-
-  final String token;
-  const BinaryDoubleOpcode(this.token);
 
   bool get isCommutative => switch (this) {
     add || mul => true,
@@ -1634,7 +1618,7 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitBinaryDoubleOp(this);
 }
 
-enum UnaryDoubleOpcode {
+enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
   sign('sign'),
@@ -1646,10 +1630,7 @@ enum UnaryDoubleOpcode {
   roundToDouble('roundToDouble'),
   floorToDouble('floorToDouble'),
   ceilToDouble('ceilToDouble'),
-  truncateToDouble('truncateToDouble');
-
-  final String token;
-  const UnaryDoubleOpcode(this.token);
+  truncateToDouble('truncateToDouble')
 }
 
 /// Unary operation on the double operand.
@@ -1679,11 +1660,8 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryDoubleOp(this);
 }
 
-enum UnaryBoolOpcode {
-  not('!');
-
-  final String token;
-  const UnaryBoolOpcode(this.token);
+enum UnaryBoolOpcode(final String token) {
+  not('!')
 }
 
 /// Unary operation on the bool operand.

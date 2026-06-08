@@ -260,49 +260,38 @@ enum Extend {
 enum Shift { LSL, LSR, ASR, ROR }
 
 /// reg (LSL|LSR|ASR) #imm operand.
-class ShiftedRegOperand implements Operand {
-  final Register reg;
-  final Shift shift;
-  final int shiftAmount;
-  const ShiftedRegOperand(this.reg, this.shift, this.shiftAmount);
-}
+class const ShiftedRegOperand(
+  final Register reg,
+  final Shift shift,
+  final int shiftAmount,
+) implements Operand;
 
 /// reg (U|S)XT(B|H|W|X) #imm operand.
-class ExtRegOperand implements Operand {
-  final Register reg;
-  final Extend ext;
-  final int shiftAmount;
-  const ExtRegOperand(this.reg, this.ext, [this.shiftAmount = 0])
-    : assert(0 <= shiftAmount && shiftAmount <= 4);
+class const ExtRegOperand(
+  final Register reg,
+  final Extend ext, [
+  final int shiftAmount = 0,
+]) implements Operand {
+  this : assert(0 <= shiftAmount && shiftAmount <= 4);
 }
 
 /// [base + reg LSL #imm] address operand.
-class RegRegAddress implements Address {
-  final Register base;
-  final Register reg;
-  final int shift;
-  RegRegAddress(this.base, this.reg, this.shift);
-}
+class RegRegAddress(final Register base, final Register reg, final int shift)
+    implements Address;
 
 /// [base + reg (S|U)XTW {imm}] address operand.
-class RegExtRegAddress implements Address {
-  final Register base;
-  final Register reg;
-  final Extend ext;
-  final bool scaled;
-  RegExtRegAddress(this.base, this.reg, this.ext, {this.scaled = false});
-}
+class RegExtRegAddress(
+  final Register base,
+  final Register reg,
+  final Extend ext, {
+  final bool scaled = false,
+}) implements Address;
 
-class WritebackRegOffsetAddress implements Address {
-  final Register base;
-  final int offset;
-  final bool isPostIndexed;
-  WritebackRegOffsetAddress(
-    this.base,
-    this.offset, {
-    required this.isPostIndexed,
-  });
-}
+class WritebackRegOffsetAddress(
+  final Register base,
+  final int offset, {
+  required final bool isPostIndexed,
+}) implements Address;
 
 // Bits to simplify encoding of the instructions.
 const int B0 = (1 << 0);

@@ -16,11 +16,7 @@ class _Mapping {
 }
 
 /// Wrapper for [ast.VariableContext].
-final class AstContext implements Context {
-  final ast.VariableContext _node;
-
-  AstContext(this._node);
-
+final class AstContext(final ast.VariableContext _node) implements Context {
   @override
   bool isCaptured({required bool enableAsserts}) =>
       _node.isCaptured(enableAsserts: enableAsserts);
@@ -30,12 +26,8 @@ final class AstContext implements Context {
 }
 
 /// Wrapper for [ast.Scope].
-final class AstScope implements Scope {
-  final _Mapping _mapping;
-  final ast.Scope _node;
-
-  AstScope(this._mapping, this._node);
-
+final class AstScope(final _Mapping _mapping, final ast.Scope _node)
+    implements Scope {
   @override
   late final List<Context> contexts = [
     for (final node in _node.contexts) _mapping.mapContext(node),
@@ -45,8 +37,6 @@ final class AstScope implements Scope {
 /// Implementation of [Scopes] using context information from AST.
 final class AstScopes implements Scopes {
   final _Mapping _mapping = _Mapping();
-
-  AstScopes();
 
   @override
   Scope? getScope(ast.TreeNode node) => switch (node) {

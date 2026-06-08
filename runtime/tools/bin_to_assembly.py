@@ -89,22 +89,17 @@ def Main():
             output_file.write(".balign 64\n")
             output_file.write("%s:\n" % options.symbol_name)
 
-        size = 0
-        with open(options.input, "rb") as input_file:
-            if options.target_os in ["win"]:
-                for byte in input_file.read():
-                    output_file.write("byte %d\n" % (byte if isinstance(byte, int) else ord(byte)))
-                    size += 1
-            else:
-                incbin = options.incbin
-                for byte in input_file.read():
-                    size += 1
-                    if not incbin:
-                        output_file.write(
-                            ".byte %d\n" %
-                            (byte if isinstance(byte, int) else ord(byte)))
-                if incbin:
-                    output_file.write(".incbin \"%s\"\n" % options.input)
+        size = os.path.getsize(options.input)
+        if options.incbin:
+            output_file.write(".incbin \"%s\"\n" % options.input)
+        else:
+            with open(options.input, "rb") as input_file:
+                if options.target_os in ["win"]:
+                    for byte in input_file.read():
+                        output_file.write("byte %d\n" % byte)
+                else:
+                    for byte in input_file.read():
+                        output_file.write(".byte %d\n" % byte)
 
         if options.target_os not in ["mac", "ios", "watchos", "win", "win_gnu"]:
             output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
