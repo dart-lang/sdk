@@ -19,6 +19,7 @@ import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code_generator.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
+import 'package:native_compiler/runtime/names.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
@@ -1042,7 +1043,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _asm.loadFromPool(TypeTestingStub.dstTypeReg, dartType);
         }
         _asm.ldr(
-          tempReg,
+          TypeTestingStub.entryPointReg,
           _asm.fieldAddress(
             TypeTestingStub.dstTypeReg,
             vmOffsets.AbstractType_type_test_stub_entry_point_offset,
@@ -1061,8 +1062,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
             hasFunctionTypeArgs: hasFunctionTypeArgs,
           ),
         );
-        _asm.loadFromPool(TypeTestingStub.subtypeTestCacheReg, stc);
-        _asm.blr(tempReg);
+        if (instr.inputCount == 1) {
+          _asm.mov(TypeTestingStub.instantiatorTypeArgumentsReg, nullReg);
+          _asm.mov(TypeTestingStub.functionTypeArgumentsReg, nullReg);
+        }
+        // VM expects exact code pattern for type testing stub calling sequence.
+        _asm.loadFromPool(
+          TypeTestingStub.subtypeTestCacheReg,
+          SubtypeTestCacheWithName(stc, Name('', null)),
+        );
+        _asm.blr(TypeTestingStub.entryPointReg);
     }
 
     _asm.bind(done);

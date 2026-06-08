@@ -1631,6 +1631,9 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               entry.selector,
             );
             serializer.push(icData);
+          case SubtypeTestCacheWithName():
+            serializer.push(entry.stc);
+            serializer.push(entry.name);
           case ReservedEntry():
             break;
         }
@@ -1673,6 +1676,11 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case DynamicCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
               serializer.writeRefId(icDatas[entry]);
+            case SubtypeTestCacheWithName():
+              serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+              serializer.writeRefId(entry.stc);
+              serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+              serializer.writeRefId(entry.name);
             case ReservedEntry():
           }
         } else if (entry is UnboxedIntConstant) {

@@ -132,3 +132,22 @@ final class SubtypeTestCache {
   // Use identity hashCode and == as separate subtype test caches are
   // used for each type check.
 }
+
+/// A pair (subtype test cache, name). VM decodes type testing stub
+/// calling sequence and reads name from object pool immediately
+/// after subtype test cache when throwing type errors.
+final class SubtypeTestCacheWithName extends PairSpecializedEntry {
+  final SubtypeTestCache stc;
+  final Name name;
+
+  SubtypeTestCacheWithName(this.stc, this.name);
+
+  @override
+  int get hashCode => finalizeHash(combineHash(stc.hashCode, name.hashCode));
+
+  @override
+  bool operator ==(Object other) =>
+      other is SubtypeTestCacheWithName &&
+      this.stc == other.stc &&
+      this.name == other.name;
+}
