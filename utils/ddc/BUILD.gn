@@ -99,7 +99,7 @@ group("ddc_stable_test") {
   deps = [
     ":dartdevc",
     ":ddc_stable_test_local",
-    "../..:create_sdk",
+    "../../sdk:create_most_sdk",
   ]
 }
 
@@ -108,7 +108,7 @@ group("ddc_canary_test") {
   deps = [
     ":dartdevc",
     ":ddc_canary_test_local",
-    "../..:create_sdk",
+    "../../sdk:create_most_sdk",
   ]
 }
 

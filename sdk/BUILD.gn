@@ -281,7 +281,7 @@ _platform_sdk_libraries = _full_sdk_libraries
 # This rule copies dartdoc templates to
 # bin/resources/dartdoc/templates
 copy_tree("copy_dartdoc_templates") {
-  visibility = [ ":copy_dartdoc_files" ]
+  visibility = [ ":*" ]
   source = "../third_party/pkg/dartdoc/lib/templates"
   dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/templates"
   exclude = "{}"
@@ -290,7 +290,7 @@ copy_tree("copy_dartdoc_templates") {
 # This rule copies dartdoc resources to
 # bin/resources/dartdoc/resources
 copy_tree("copy_dartdoc_resources") {
-  visibility = [ ":copy_dartdoc_files" ]
+  visibility = [ ":*" ]
   source = "../third_party/pkg/dartdoc/lib/resources"
   dest = "$root_out_dir/$dart_sdk_output/bin/resources/dartdoc/resources"
   exclude = "{}"
@@ -299,7 +299,7 @@ copy_tree("copy_dartdoc_resources") {
 if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
   # This action compiles the devtools app from sources.
   action("build_devtools") {
-    visibility = [ ":create_common_sdk" ]
+    visibility = [ ":*" ]
     output = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
     outputs = [ output ]
     script = "../tools/build_devtools.py"
@@ -312,7 +312,7 @@ if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
   # This rule copies the pre-built DevTools application to
   # bin/resources/devtools/
   copy_tree("copy_prebuilt_devtools") {
-    visibility = [ ":create_common_sdk" ]
+    visibility = [ ":*" ]
     source = "../third_party/devtools/web"
     dest = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
     exclude = "{}"
@@ -322,10 +322,7 @@ if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
   copy_tree("copy_${library}_library") {
-    visibility = [
-      ":copy_full_sdk_libraries",
-      ":copy_platform_sdk_libraries",
-    ]
+    visibility = [ ":*" ]
     source = "lib/$library"
     dest = "$root_out_dir/$dart_sdk_output/lib/$library"
     exclude = "*.svn,doc,*.py,*.gypi,*.sh,.git*,*.gn,*.gni"
@@ -349,7 +346,7 @@ if (target_os != current_os && target_os == "fuchsia") {
   # relative symlink interpreted from a different containing directory
   # will not find the actual binary.
   action("copy_dartvm") {
-    visibility = [ ":create_common_sdk" ]
+    visibility = [ ":*" ]
     dart_label = "../runtime/bin:dartvm"
     deps = [ dart_label ]
     dart_out = get_label_info(dart_label, "root_out_dir")
@@ -380,7 +377,7 @@ if (target_os != current_os && target_os == "fuchsia") {
 
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   copy("copy_dart") {
-    visibility = [ ":create_common_sdk" ]
+    visibility = [ ":*" ]
     deps = [ "../runtime/bin:dart" ]
     src_dir = get_label_info("../runtime/bin:dart", "root_out_dir")
     sources = [ "$src_dir/${dart_stripped_binary}${executable_suffix}" ]
@@ -391,7 +388,7 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   }
 } else {
   copy("copy_dart") {
-    visibility = [ ":create_common_sdk" ]
+    visibility = [ ":*" ]
     deps = [ "../runtime/bin:dartvm" ]
     src_dir = get_label_info("../runtime/bin:dartvm", "root_out_dir")
     sources = [ "$src_dir/${dartvm_stripped_binary}${executable_suffix}" ]
@@ -400,7 +397,7 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
 }
 
 copy("copy_dart_aotruntime") {
-  visibility = [ ":group_dart2native" ]
+  visibility = [ ":*" ]
   deps = [ "../runtime/bin:dartaotruntime_product" ]
   src_dir =
       get_label_info("../runtime/bin:dartaotruntime_product", "root_out_dir")
@@ -412,7 +409,7 @@ copy("copy_dart_aotruntime") {
 }
 if (_has_dot_sym) {
   copy("copy_dart_aotruntime_sym") {
-    visibility = [ ":group_dart2native" ]
+    visibility = [ ":*" ]
     deps = [ "../runtime/bin:dartaotruntime_product" ]
     src_dir =
         get_label_info("../runtime/bin:dartaotruntime_product", "root_out_dir")
@@ -453,7 +450,7 @@ if (!using_sanitizer && current_os == "linux" &&
 
   foreach(sanitizer, sanitizers) {
     copy("copy_dart_aotruntime_$sanitizer") {
-      visibility = [ ":group_dart2native" ]
+      visibility = [ ":*" ]
       deps = [ "../runtime/bin:dartaotruntime_product(${current_toolchain}_${sanitizer})" ]
       src_dir = get_label_info(
               "../runtime/bin:dartaotruntime_product(${current_toolchain}_${sanitizer})",
@@ -493,7 +490,7 @@ if (_has_dot_sym) {
 }
 
 copy("copy_vm_platform_product") {
-  visibility = [ ":group_dart2native" ]
+  visibility = [ ":*" ]
   deps = [ "../runtime/vm:vm_platform_product" ]
   src_dir = get_label_info("../runtime/vm:vm_platform_product", "root_out_dir")
   sources = [ "$src_dir/vm_platform_product.dill" ]
@@ -502,7 +499,7 @@ copy("copy_vm_platform_product") {
 }
 
 copy("copy_gen_kernel_snapshot") {
-  visibility = [ ":group_dart2native" ]
+  visibility = [ ":*" ]
   deps = [ "../utils/gen_kernel" ]
   sources = [ "$root_gen_dir/gen_kernel_aot.dart.snapshot" ]
   outputs =
@@ -511,11 +508,11 @@ copy("copy_gen_kernel_snapshot") {
 
 group("group_dart2native") {
   deps = [
-           ":copy_dart_aotruntime",
-           ":copy_gen_kernel_snapshot",
-           ":copy_gen_snapshot",
-           ":copy_vm_platform_product",
-         ] + copy_sanitizer_deps
+    ":copy_dart_aotruntime",
+    ":copy_gen_kernel_snapshot",
+    ":copy_gen_snapshot",
+    ":copy_vm_platform_product",
+  ]
   if (_has_dot_sym) {
     deps += [ ":copy_dart_aotruntime_sym" ]
   }
@@ -531,10 +528,7 @@ template("copy_sdk_script") {
     ext = ".bat"
   }
   copy(target_name) {
-    visibility = [
-      ":copy_full_sdk_scripts",
-      ":copy_platform_sdk_scripts",
-    ]
+    visibility = [ ":*" ]
     sources = [ "bin/${name}_sdk$ext" ]
     outputs = [ "$root_out_dir/$dart_sdk_output/bin/$name$ext" ]
   }
@@ -557,7 +551,7 @@ group("copy_platform_sdk_scripts") {
 
 # This is the main target for copying scripts in _full_sdk_scripts to bin/
 group("copy_full_sdk_scripts") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   public_deps = []
   foreach(sdk_script, _full_sdk_scripts) {
     public_deps += [ ":copy_${sdk_script}_script" ]
@@ -585,10 +579,7 @@ foreach(snapshot, _full_sdk_snapshots) {
     root = root_out_dir
   }
   copy("copy_${snapshot[0]}_snapshot") {
-    visibility = [
-      ":copy_full_sdk_snapshots",
-      ":copy_platform_sdk_snapshots",
-    ]
+    visibility = [ ":*" ]
     deps = [ snapshot[1] ]
     sources = [ "$root/${snapshot[0]}.dart.snapshot" ]
     outputs = [ "$root_out_dir/$dart_sdk_output/bin/snapshots/${snapshot[2]}.dart.snapshot" ]
@@ -608,7 +599,7 @@ group("copy_platform_sdk_snapshots") {
 # This is the main rule for copying snapshots from _full_sdk_snapshots to
 # bin/snapshots
 group("copy_full_sdk_snapshots") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   public_deps = []
   foreach(snapshot, _full_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
@@ -617,7 +608,7 @@ group("copy_full_sdk_snapshots") {
 
 # This is the main rule for copying the files that dartdoc needs.
 group("copy_dartdoc_files") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   public_deps = [
     ":copy_dartdoc_resources",
     ":copy_dartdoc_templates",
@@ -626,7 +617,7 @@ group("copy_dartdoc_files") {
 
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../runtime/vm:kernel_platform_files",
@@ -638,7 +629,7 @@ copy("copy_vm_dill_files") {
 
 # Delete this after external packages are migrated to vm_platform.dill.
 copy("copy_vm_strong_dill_files") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../runtime/vm:kernel_platform_files",
@@ -649,7 +640,7 @@ copy("copy_vm_strong_dill_files") {
 }
 
 copy("copy_dart2js_dill_files") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../utils/compiler:compile_dart2js_platform",
@@ -664,7 +655,7 @@ copy("copy_dart2js_dill_files") {
 }
 
 copy("copy_dart2wasm_platform") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../:dart2wasm_platform",
@@ -685,7 +676,7 @@ copy("copy_dart2wasm_platform") {
 }
 
 copy("copy_dart2wasm_snapshot") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../utils/dart2wasm:dart2wasm_product_snapshot",
@@ -696,7 +687,7 @@ copy("copy_dart2wasm_snapshot") {
 }
 
 copy("copy_wasm_opt") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../third_party/binaryen:wasm-opt",
@@ -707,7 +698,7 @@ copy("copy_wasm_opt") {
 
 # Copies DDC's SDK full and outline .dill files to lib/_internal.
 copy("copy_dev_compiler_dills") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
+  visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
     "../utils/ddc:ddc_platform",
@@ -723,7 +714,7 @@ copy("copy_dev_compiler_dills") {
 # Copies require.js to lib/dev_compiler/amd.
 # Used to load DDC compiled amd modules.
 copy("copy_dev_compiler_amd_require_js") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "../third_party/requirejs/require.js" ]
   outputs = [
     "$root_out_dir/$dart_sdk_output/lib/dev_compiler/amd/{{source_file_part}}",
@@ -733,7 +724,7 @@ copy("copy_dev_compiler_amd_require_js") {
 # Copies ddc_module_loader.js to lib/dev_compiler/ddc.
 # Used to manage DDC library and module loading.
 copy("copy_dev_compiler_ddc_module_loader_js") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "../pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js" ]
   outputs = [
     "$root_out_dir/$dart_sdk_output/lib/dev_compiler/ddc/ddc_module_loader.js",
@@ -743,7 +734,7 @@ copy("copy_dev_compiler_ddc_module_loader_js") {
 # Copies stack_trace_mapper tool to lib/dev_compiler/web.
 # Used when running DDC compiled applications.
 copy("copy_dev_compiler_stack_trace_mapper") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
+  visibility = [ ":*" ]
   deps = [ "../utils/ddc:stack_trace_mapper" ]
   dart_out = get_label_info("../utils/ddc:stack_trace_mapper", "root_out_dir")
   sources = [ "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js" ]
@@ -754,7 +745,7 @@ copy("copy_dev_compiler_stack_trace_mapper") {
 
 # Main rule for copying all of DDC's dependencies to lib.
 group("copy_dev_compiler_sdk") {
-  visibility = [ ":create_full_sdk" ]
+  visibility = [ ":*" ]
   public_deps = [
     ":copy_dev_compiler_amd_require_js",
     ":copy_dev_compiler_ddc_module_loader_js",
@@ -765,14 +756,14 @@ group("copy_dev_compiler_sdk") {
 
 # This rule copies header files to include/
 group("copy_headers") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
 
   deps = [ "../runtime/include:copy_headers" ]
 }
 
 # This rule copies libraries.json files to lib/
 copy("copy_libraries_specification") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "lib/libraries.json" ]
   deps = [ ":copy_libraries" ]
   outputs = [ "$root_out_dir/$dart_sdk_output/lib/{{source_file_part}}" ]
@@ -780,10 +771,7 @@ copy("copy_libraries_specification") {
 
 # This is the main rule to copy libraries in _platform_sdk_libraries to lib/
 group("copy_platform_sdk_libraries") {
-  visibility = [
-    ":_create_platform_sdk",
-    ":copy_libraries",
-  ]
+  visibility = [ ":*" ]
   public_deps = []
   foreach(library, _platform_sdk_libraries) {
     public_deps += [ ":copy_${library}_library" ]
@@ -792,10 +780,7 @@ group("copy_platform_sdk_libraries") {
 
 # This is the main rule to copy libraries in _full_sdk_libraries to lib/
 group("copy_full_sdk_libraries") {
-  visibility = [
-    ":copy_libraries",
-    ":create_full_sdk",
-  ]
+  visibility = [ ":*" ]
   public_deps = []
   foreach(library, _full_sdk_libraries) {
     public_deps += [ ":copy_${library}_library" ]
@@ -812,7 +797,7 @@ group("copy_libraries") {
 
 # This rule writes the version file.
 action("write_version_file") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   inputs = [ "../tools/VERSION" ]
   deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/version"
@@ -829,7 +814,7 @@ action("write_version_file") {
 
 # This rule writes the revision file.
 action("write_revision_file") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/revision"
   outputs = [ output ]
@@ -845,21 +830,21 @@ action("write_revision_file") {
 
 # This rule copies the README file.
 copy("copy_readme") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "../README.dart-sdk" ]
   outputs = [ "$root_out_dir/$dart_sdk_output/README" ]
 }
 
 # This rule copies the LICENSE file.
 copy("copy_license") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "../LICENSE" ]
   outputs = [ "$root_out_dir/$dart_sdk_output/LICENSE" ]
 }
 
 # This rule generates a custom dartdoc_options.yaml file.
 action("write_dartdoc_options") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/dartdoc_options.yaml"
   outputs = [ output ]
@@ -875,7 +860,7 @@ action("write_dartdoc_options") {
 
 # This rule copies the API readme file to lib/
 copy("copy_api_readme") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "api_readme.md" ]
   outputs = [ "$root_out_dir/$dart_sdk_output/lib/api_readme.md" ]
 }
@@ -883,17 +868,14 @@ copy("copy_api_readme") {
 # This rule copies the sdk_packages.yaml file to the root of the SDK, which
 # defines the locations of the vendored SDK packages.
 copy("copy_sdk_packages_yaml") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [ ":*" ]
   sources = [ "../sdk_packages.yaml" ]
   outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
 }
 
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
-  visibility = [
-    ":create_platform_sdk",
-    ":create_sdk",
-  ]
+  visibility = [ ":*" ]
   public_deps = [
     ":copy_api_readme",
     ":copy_dart",
@@ -927,10 +909,7 @@ group("create_common_sdk") {
 
 # Parts specific to the platform SDK.
 group("_create_platform_sdk") {
-  visibility = [
-    ":create_platform_sdk",
-    ":create_sdk",
-  ]
+  visibility = [ ":*" ]
   public_deps = [
     ":copy_platform_sdk_libraries",
     ":copy_platform_sdk_scripts",
@@ -939,15 +918,14 @@ group("_create_platform_sdk") {
 }
 
 # Parts specific to the full SDK.
-group("create_full_sdk") {
-  visibility = [ ":create_sdk" ]
-
+group("create_most_sdk") {
   public_deps = [
     ":copy_dart2js_dill_files",
     ":copy_dev_compiler_sdk",
     ":copy_full_sdk_libraries",
     ":copy_full_sdk_scripts",
     ":copy_full_sdk_snapshots",
+    ":create_common_sdk",
   ]
 
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
@@ -959,6 +937,11 @@ group("create_full_sdk") {
       public_deps += [ ":copy_wasm_opt" ]
     }
   }
+}
+group("create_full_sdk") {
+  visibility = [ ":*" ]
+
+  public_deps = [ ":create_most_sdk" ] + copy_sanitizer_deps
 
   if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
       dart_target_arch != "arm") {

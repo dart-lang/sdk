@@ -725,11 +725,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "dart2js_bot",
-            "ddc_stable_test",
-            "kernel_platform_files",
-            "runtime"
+            "front-end_bot"
           ]
         },
         {
@@ -800,10 +796,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "ddc_stable_test",
-            "kernel_platform_files",
-            "runtime"
+            "front-end_bot"
           ]
         },
         {
@@ -1914,7 +1907,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "dart2js_bot",
             "ddc_stable_test"
           ]
         },
@@ -2012,7 +2004,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=arm64",
-            "dart2js_bot",
             "ddc_stable_test"
           ]
         },
@@ -2099,7 +2090,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=arm64",
-            "dart2js_bot",
             "ddc_stable_test"
           ]
         },
@@ -2141,7 +2131,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "dart2js_bot",
             "ddc_stable_test"
           ]
         },
@@ -2295,7 +2284,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "dart2js_bot",
             "ddc_stable_test"
           ]
         },
@@ -2428,7 +2416,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
             "dart2js_bot"
           ]
         },
@@ -2556,7 +2543,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "dart2js_bot"
           ]
         },
         {
@@ -2589,7 +2576,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=arm64",
-            "create_sdk"
+            "dart2js_bot"
           ]
         },
         {
@@ -2630,7 +2617,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "dart2js_bot"
           ]
         },
         {
@@ -2687,7 +2674,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "dart2js_bot"
           ]
         },
         {
@@ -2717,10 +2704,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart2wasm",
-            "create_sdk",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2770,10 +2754,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart2wasm",
-            "create_sdk",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2804,10 +2785,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=arm64",
-            "runtime",
-            "dart2wasm",
-            "create_sdk",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2836,10 +2814,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart2wasm",
-            "create_sdk",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2869,10 +2844,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart2wasm",
-            "create_sdk",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2902,10 +2874,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart2wasm",
-            "create_sdk",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2935,9 +2904,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime",
-            "dart2wasm",
-            "dartaotruntime"
+            "dart2wasm_bot"
           ]
         },
         {
@@ -2967,8 +2934,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "utils/dartanalyzer"
+            "analyzer_bot"
           ]
         },
         {
@@ -3008,9 +2974,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "utils/dartanalyzer",
-            "analysis_server_aot"
+            "analyzer_bot"
           ]
         },
         {
@@ -3079,8 +3043,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "utils/dartanalyzer"
+            "analyzer_bot"
           ]
         },
         {
@@ -3137,10 +3100,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "dartanalyzer",
-            "ddc_stable_test",
-            "dartpad"
+            "pkg_bot"
           ]
         },
         {
@@ -3276,15 +3236,7 @@
           "arguments": [
             "--mode=release",
             "--arch=x64",
-            "create_sdk",
-            "runtime",
-            "gen_snapshot",
-            "dartaotruntime",
-            "dart2js_platform.dill",
-            "kernel-service.dart.snapshot",
-            "ddc_stable_test",
-            "ddc_canary_test",
-            "dart2wasm_benchmark"
+            "benchmark_bot"
           ]
         },
         {
