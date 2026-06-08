@@ -1,6 +1,7 @@
 ## 13.2.0-dev
 
 * Internal changes only.
+* Allow package_config `3.x.x`.
 
 ## 13.1.0
 
