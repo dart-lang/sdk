@@ -236,6 +236,9 @@ bool LoadedElf::ReadSectionTable() {
 }
 
 bool LoadedElf::ReadSectionStringTable() {
+  CHECK_ERROR(
+      header_.shstrtab_section_index < header_.num_section_headers,
+      "Section header string table index is out of bounds.");
   const dart::elf::SectionHeader header =
       section_table_[header_.shstrtab_section_index];
   section_string_table_mapping_.reset(
