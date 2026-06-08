@@ -306,8 +306,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       elementType = iterableType;
     }
     if (elementType is! DynamicType) return;
-    if (targetType is DynamicType) return;
-    if (targetType == _context.typeProvider.objectQuestionType) return;
+    if (loopVarType is DynamicType) return;
+    if (loopVarType == _context.typeProvider.objectQuestionType) return;
 
     _rule.reportAtNode(node.iterable);
   }
