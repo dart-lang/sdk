@@ -673,7 +673,7 @@ mixin SharedExtractWidgetRefactorCodeActionsTests
   final extractWidgetTitle = 'Extract Widget';
 
   String get expectedNewWidgetConstructorDeclaration => '''
-const NewWidget({
+const new({
     super.key,
   });
 ''';
