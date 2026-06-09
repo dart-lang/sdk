@@ -5323,15 +5323,15 @@ library
 
   test_constructor_secondary_augmentation_chain_isComplete_factory() async {
     var library = await buildLibrary(r'''
-extension type A(int it) {
+extension type A.named(int it) {
   factory A();
 }
 
-augment extension type A(int it) {
-  augment factory A() => A(0);
+augment extension type A.named(int it) {
+  augment factory A() => A.named(0);
 }
 
-augment extension type A(int it) {
+augment extension type A.named(int it) {
   augment factory A();
 }
 ''');
@@ -5351,100 +5351,90 @@ library
               inducedGetter: #F4
               nextFragment: #F5
           constructors
-            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
-              element: <testLibrary>::@extensionType::A::@constructor::new
+            #F6 isComplete isOriginDeclaration isPrimary named (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 15
+              periodOffset: 16
               formalParameters
-                #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-            #F8 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:37)
-              element: <testLibrary>::@extensionType::A::@constructor::new#1
-              factoryKeywordOffset: 29
+                #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+                  nextFragment: #F8
+              nextFragment: #F9
+            #F10 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:35) (offset:43)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              factoryKeywordOffset: 35
               typeName: A
-              typeNameOffset: 37
-              formalParameters
-                #F9 requiredPositional isFinal isOriginOtherFragmentOfEnclosing this.it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
-                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
-                  nextFragment: #F10
+              typeNameOffset: 43
               nextFragment: #F11
           getters
             #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F3
               nextFragment: #F12
-        #F2 isAugmentation extension type A (nameOffset:68) (firstTokenOffset:45) (offset:68)
+        #F2 isAugmentation extension type A (nameOffset:74) (firstTokenOffset:51) (offset:74)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
           nextFragment: #F13
           fields
-            #F5 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+            #F5 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F12
               previousFragment: #F3
               nextFragment: #F14
           constructors
-            #F11 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:68) (offset:68)
-              element: <testLibrary>::@extensionType::A::@constructor::new#1
+            #F9 isAugmentation isComplete isOriginDeclaration isPrimary named (nameOffset:76) (firstTokenOffset:74) (offset:76)
+              element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
-              typeNameOffset: 68
+              typeNameOffset: 74
+              periodOffset: 75
               formalParameters
-                #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:74) (firstTokenOffset:70) (offset:74)
-                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
-                  previousFragment: #F9
+                #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:86) (firstTokenOffset:82) (offset:86)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+                  previousFragment: #F7
                   nextFragment: #F15
               nextFragment: #F16
-              previousFragment: #F8
-            #F16 isAugmentation isComplete isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:82) (offset:98)
-              element: <testLibrary>::@extensionType::A::@constructor::new#1
-              factoryKeywordOffset: 90
+              previousFragment: #F6
+            #F11 isAugmentation isComplete isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:94) (offset:110)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              factoryKeywordOffset: 102
               typeName: A
-              typeNameOffset: 98
-              formalParameters
-                #F15 requiredPositional isFinal isOriginOtherFragmentOfEnclosing this.it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
-                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
-                  previousFragment: #F10
-                  nextFragment: #F17
-              nextFragment: #F18
-              previousFragment: #F11
+              typeNameOffset: 110
+              nextFragment: #F17
+              previousFragment: #F10
           getters
-            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+            #F12 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F5
               previousFragment: #F4
-              nextFragment: #F19
-        #F13 isAugmentation extension type A (nameOffset:137) (firstTokenOffset:114) (offset:137)
+              nextFragment: #F18
+        #F13 isAugmentation extension type A (nameOffset:155) (firstTokenOffset:132) (offset:155)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F14 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
+            #F14 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:155)
               element: <testLibrary>::@extensionType::A::@field::it
-              inducedGetter: #F19
+              inducedGetter: #F18
               previousFragment: #F5
           constructors
-            #F18 isAugmentation isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:137) (offset:137)
-              element: <testLibrary>::@extensionType::A::@constructor::new#1
+            #F16 isAugmentation isComplete isOriginDeclaration isPrimary named (nameOffset:157) (firstTokenOffset:155) (offset:157)
+              element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
-              typeNameOffset: 137
+              typeNameOffset: 155
+              periodOffset: 156
               formalParameters
-                #F17 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:143) (firstTokenOffset:139) (offset:143)
-                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
-                  previousFragment: #F15
-                  nextFragment: #F20
-              nextFragment: #F21
-              previousFragment: #F16
-            #F21 isAugmentation isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:151) (offset:167)
-              element: <testLibrary>::@extensionType::A::@constructor::new#1
-              factoryKeywordOffset: 159
+                #F15 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:167) (firstTokenOffset:163) (offset:167)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+                  previousFragment: #F8
+              previousFragment: #F9
+            #F17 isAugmentation isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:175) (offset:191)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              factoryKeywordOffset: 183
               typeName: A
-              typeNameOffset: 167
-              formalParameters
-                #F20 requiredPositional isFinal isOriginOtherFragmentOfEnclosing this.it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:167)
-                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
-                  previousFragment: #F17
-              previousFragment: #F18
+              typeNameOffset: 191
+              previousFragment: #F11
           getters
-            #F19 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:137)
+            #F18 isAugmentation isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:155)
               element: <testLibrary>::@extensionType::A::@getter::it
               inducingVariable: #F14
               previousFragment: #F12
@@ -5453,7 +5443,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::named
       typeErasure: int
       fields
         isFinal isOriginDeclaringFormalParameter it
@@ -5461,10 +5451,10 @@ library
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
-          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
       constructors
-        isExtensionTypeMember isOriginDeclaration isPrimary new
-          reference: <testLibrary>::@extensionType::A::@constructor::new
+        isExtensionTypeMember isOriginDeclaration isPrimary named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F6
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.it
@@ -5472,13 +5462,8 @@ library
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
         isExtensionTypeMember isFactory isOriginDeclaration new
-          reference: <testLibrary>::@extensionType::A::@constructor::new#1
-          firstFragment: #F8
-          formalParameters
-            #E1 requiredPositional isFinal this.it
-              firstFragment: #F9
-              type: int
-              field: <testLibrary>::@extensionType::A::@field::it
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F10
       getters
         isExtensionTypeMember isOriginVariable it
           reference: <testLibrary>::@extensionType::A::@getter::it
@@ -8319,8 +8304,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -10000,8 +9983,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -10108,8 +10089,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -10226,10 +10205,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -13321,9 +13296,6 @@ library
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
@@ -13335,7 +13307,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
-        hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isPrimary new
+        isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -13793,8 +13765,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F13
-            #E1 U
-              firstFragment: #F15
           returnType: void
 ''');
   }
@@ -13975,10 +13945,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F13
-            #E1 U
-              firstFragment: #F15
-            #E2 V
-              firstFragment: #F17
           returnType: void
 ''');
   }

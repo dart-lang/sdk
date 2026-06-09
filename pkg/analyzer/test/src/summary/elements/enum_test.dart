@@ -741,14 +741,12 @@ library
                     type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
-                      type: A<dynamic>
-                    element: ConstructorMember
-                      baseElement: <testLibrary>::@enum::A::@constructor::new
-                      substitution: {T: dynamic}
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: A<dynamic>
+                  staticType: A
               inducedGetter: #F9
             #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -759,17 +757,17 @@ library
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
-                      staticType: A<dynamic>
+                      staticType: A
                     SimpleIdentifier
                       token: v2 @-1
                       element: <testLibrary>::@enum::A::@getter::v2
-                      staticType: A<dynamic>
+                      staticType: A
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
-                      staticType: A<dynamic>
+                      staticType: A
                   rightBracket: ] @0
-                  staticType: List<A<dynamic>>
+                  staticType: List<A>
               inducedGetter: #F11
           getters
             #F6 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -798,14 +796,12 @@ library
                     type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
-                      type: A<dynamic>
-                    element: ConstructorMember
-                      baseElement: <testLibrary>::@enum::A::@constructor::new
-                      substitution: {T: dynamic}
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: A<dynamic>
+                  staticType: A
               inducedGetter: #F12
               previousFragment: #F5
           getters
@@ -817,15 +813,12 @@ library
     isSimplyBounded enum A
       reference: <testLibrary>::@enum::A
       firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
-          type: A<dynamic>
+          type: A
           constantInitializer
             fragment: #F7
             expression: expression_3
@@ -833,7 +826,7 @@ library
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
-          type: A<dynamic>
+          type: A
           constantInitializer
             fragment: #F8
             expression: expression_1
@@ -841,7 +834,7 @@ library
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F10
-          type: List<A<dynamic>>
+          type: List<A>
           constantInitializer
             fragment: #F10
             expression: expression_2
@@ -850,17 +843,17 @@ library
         isOriginVariable isStatic v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F6
-          returnType: A<dynamic>
+          returnType: A
           variable: <testLibrary>::@enum::A::@field::v
         isOriginVariable isStatic v2
           reference: <testLibrary>::@enum::A::@getter::v2
           firstFragment: #F9
-          returnType: A<dynamic>
+          returnType: A
           variable: <testLibrary>::@enum::A::@field::v2
         isOriginVariable isStatic values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F11
-          returnType: List<A<dynamic>>
+          returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
 ''');
   }
@@ -12075,14 +12068,14 @@ library
                     type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
-                      type: A<dynamic, dynamic>
+                      type: A<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
-                      substitution: {T: dynamic, U: dynamic}
+                      substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: A<dynamic, dynamic>
+                  staticType: A<dynamic>
               inducedGetter: #F13
             #F14 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -12093,9 +12086,9 @@ library
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
-                      staticType: A<dynamic, dynamic>
+                      staticType: A<dynamic>
                   rightBracket: ] @0
-                  staticType: List<A<dynamic, dynamic>>
+                  staticType: List<A<dynamic>>
               inducedGetter: #F15
           constructors
             #F16 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -12143,8 +12136,6 @@ library
       typeParameters
         #E1 T
           firstFragment: #F8
-        #E2 U
-          firstFragment: #F10
       supertype: Enum
       interfaces
         I1
@@ -12153,7 +12144,7 @@ library
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F12
-          type: A<dynamic, dynamic>
+          type: A<dynamic>
           constantInitializer
             fragment: #F12
             expression: expression_0
@@ -12161,7 +12152,7 @@ library
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F14
-          type: List<A<dynamic, dynamic>>
+          type: List<A<dynamic>>
           constantInitializer
             fragment: #F14
             expression: expression_1
@@ -12175,12 +12166,12 @@ library
         isOriginVariable isStatic v
           reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F13
-          returnType: A<dynamic, dynamic>
+          returnType: A<dynamic>
           variable: <testLibrary>::@enum::A::@field::v
         isOriginVariable isStatic values
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F15
-          returnType: List<A<dynamic, dynamic>>
+          returnType: List<A<dynamic>>
           variable: <testLibrary>::@enum::A::@field::values
 ''');
   }
@@ -14016,14 +14007,14 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibrary>::@enum::E
-                      type: E<dynamic, dynamic>
+                      type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
-                      substitution: {T: dynamic, U: dynamic}
+                      substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: E<dynamic, dynamic>
+                  staticType: E<dynamic>
               inducedGetter: #F8
             #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
@@ -14034,9 +14025,9 @@ library
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
-                      staticType: E<dynamic, dynamic>
+                      staticType: E<dynamic>
                   rightBracket: ] @0
-                  staticType: List<E<dynamic, dynamic>>
+                  staticType: List<E<dynamic>>
               inducedGetter: #F10
           getters
             #F8 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
@@ -14075,14 +14066,12 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F7
-          type: E<dynamic, dynamic>
+          type: E<dynamic>
           constantInitializer
             fragment: #F7
             expression: expression_0
@@ -14090,7 +14079,7 @@ library
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F9
-          type: List<E<dynamic, dynamic>>
+          type: List<E<dynamic>>
           constantInitializer
             fragment: #F9
             expression: expression_1
@@ -14099,12 +14088,12 @@ library
         isOriginVariable isStatic v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F8
-          returnType: E<dynamic, dynamic>
+          returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         isOriginVariable isStatic values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F10
-          returnType: List<E<dynamic, dynamic>>
+          returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
   }
@@ -14146,14 +14135,14 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibrary>::@enum::E
-                      type: E<dynamic, dynamic, dynamic>
+                      type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
-                      substitution: {T: dynamic, U: dynamic, V: dynamic}
+                      substitution: {T: dynamic}
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: E<dynamic, dynamic, dynamic>
+                  staticType: E<dynamic>
               inducedGetter: #F10
             #F11 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
@@ -14164,9 +14153,9 @@ library
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
-                      staticType: E<dynamic, dynamic, dynamic>
+                      staticType: E<dynamic>
                   rightBracket: ] @0
-                  staticType: List<E<dynamic, dynamic, dynamic>>
+                  staticType: List<E<dynamic>>
               inducedGetter: #F12
           getters
             #F10 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
@@ -14212,16 +14201,12 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F9
-          type: E<dynamic, dynamic, dynamic>
+          type: E<dynamic>
           constantInitializer
             fragment: #F9
             expression: expression_0
@@ -14229,7 +14214,7 @@ library
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F11
-          type: List<E<dynamic, dynamic, dynamic>>
+          type: List<E<dynamic>>
           constantInitializer
             fragment: #F11
             expression: expression_1
@@ -14238,12 +14223,12 @@ library
         isOriginVariable isStatic v
           reference: <testLibrary>::@enum::E::@getter::v
           firstFragment: #F10
-          returnType: E<dynamic, dynamic, dynamic>
+          returnType: E<dynamic>
           variable: <testLibrary>::@enum::E::@field::v
         isOriginVariable isStatic values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F12
-          returnType: List<E<dynamic, dynamic, dynamic>>
+          returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
   }
@@ -20176,8 +20161,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F10
-            #E1 U
-              firstFragment: #F12
           returnType: void
 ''');
   }
@@ -20345,10 +20328,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F10
-            #E1 U
-              firstFragment: #F12
-            #E2 V
-              firstFragment: #F14
           returnType: void
 ''');
   }

@@ -1164,8 +1164,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       extendedType: int
       onDeclaration: dart:core::@class::int
 ''');
@@ -1226,8 +1224,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       extendedType: int
       onDeclaration: dart:core::@class::int
 ''');
@@ -1298,10 +1294,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       extendedType: int
       onDeclaration: dart:core::@class::int
 ''');
@@ -3098,9 +3090,6 @@ library
     extension A
       reference: <testLibrary>::@extension::A
       firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
       extendedType: int
       onDeclaration: dart:core::@class::int
       methods
@@ -3310,8 +3299,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -3405,10 +3392,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
-            #E2 V
-              firstFragment: #F9
           returnType: void
 ''');
   }
