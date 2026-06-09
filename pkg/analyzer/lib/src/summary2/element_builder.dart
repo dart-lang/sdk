@@ -1926,7 +1926,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     ExecutableFragmentImpl executableFragment;
     if (node.isGetter) {
       var fragment = GetterFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.isAbstract = node.isAbstract;
+      fragment.isAbstract = !node.isComplete;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
@@ -1934,7 +1934,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       executableFragment = fragment;
     } else if (node.isSetter) {
       var fragment = SetterFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.isAbstract = node.isAbstract;
+      fragment.isAbstract = !node.isComplete;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;
@@ -1942,7 +1942,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       executableFragment = fragment;
     } else {
       var fragment = MethodFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.isAbstract = node.isAbstract;
+      fragment.isAbstract = !node.isComplete;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isOriginDeclaration = true;
       fragment.isStatic = node.isStatic;

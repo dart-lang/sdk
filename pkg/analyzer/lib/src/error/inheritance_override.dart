@@ -398,7 +398,7 @@ class _ClassVerifier {
           member.declaredFragment!.element,
           methodParameterNodes: member.parameters?.parameters,
         );
-        if (!(member.isStatic || member.isAbstract || member.isSetter)) {
+        if (!(member.isStatic || !member.isComplete || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
         if (!member.isStatic && element is! EnumElementImpl) {

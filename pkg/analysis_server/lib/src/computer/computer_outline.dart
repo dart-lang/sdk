@@ -448,7 +448,7 @@ class DartUnitOutlineComputer {
       Element.makeFlags(
         isPrivate: Identifier.isPrivateName(name),
         isDeprecated: _hasDeprecated(method.metadata),
-        isAbstract: method.isAbstract,
+        isAbstract: !method.isComplete,
         isStatic: method.isStatic,
       ),
       location: _getLocationToken(nameToken),

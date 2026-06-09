@@ -4604,7 +4604,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (node.isAbstract) {
+    if (!node.isComplete) {
       diagnosticReporter.report(
         diag.extensionDeclaresAbstractMember.at(node.name),
       );
@@ -4892,7 +4892,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     for (var member in node.body.members) {
       if (member is MethodDeclarationImpl && !member.isStatic) {
-        if (member.isAbstract) {
+        if (!member.isComplete) {
           diagnosticReporter.report(
             diag.extensionTypeWithAbstractMember
                 .withArguments(
@@ -7840,7 +7840,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         return true;
       } else if (parent is MethodDeclaration) {
-        if (parent.isAbstract) {
+        if (!parent.isComplete) {
           return false;
         } else if (parent.externalKeyword != null) {
           return false;

@@ -6905,6 +6905,13 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// The initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
 
+  /// Whether this constructor declaration is complete for augmentation
+  /// purposes.
+  ///
+  /// A constructor declaration is complete if it is external, has a body, has a
+  /// redirection or initializer list, or has a field or super formal parameter.
+  bool get isComplete;
+
   /// The name of the constructor, or `null` if the constructor being declared
   /// is unnamed.
   Token? get name;
@@ -7087,6 +7094,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     return parameters.beginToken;
   }
 
+  @override
   bool get isComplete {
     if (externalKeyword != null) return true;
     if (body is! EmptyFunctionBody) return true;
@@ -15213,6 +15221,11 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
   /// The function expression being wrapped.
   FunctionExpression get functionExpression;
 
+  /// Whether this function declaration is complete for augmentation purposes.
+  ///
+  /// A function declaration is complete if it is external or has a body.
+  bool get isComplete;
+
   /// Whether this function declares a getter.
   bool get isGetter;
 
@@ -15317,6 +15330,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     _functionExpression = _becomeParentOf(functionExpression);
   }
 
+  @override
   bool get isComplete {
     return externalKeyword != null ||
         functionExpression.body is! EmptyFunctionBody;
@@ -21907,7 +21921,13 @@ abstract final class MethodDeclaration implements ClassMember {
   Token? get externalKeyword;
 
   /// Whether this method is declared to be an abstract method.
+  @Deprecated('Use isComplete instead')
   bool get isAbstract;
+
+  /// Whether this method declaration is complete for augmentation purposes.
+  ///
+  /// A method declaration is complete if it is external or has a body.
+  bool get isComplete;
 
   /// Whether this method declares a getter.
   bool get isGetter;
@@ -22066,6 +22086,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     return name;
   }
 
+  @Deprecated('Use isComplete instead')
   @override
   bool get isAbstract {
     var body = this.body;
@@ -22073,6 +22094,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
         (body is EmptyFunctionBodyImpl && !body.semicolon.isSynthetic);
   }
 
+  @override
   bool get isComplete {
     return externalKeyword != null || body is! EmptyFunctionBody;
   }

@@ -421,7 +421,7 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (parent is MethodDeclaration) {
       if (parent.parent?.parent is ExtensionTypeDeclaration ||
-          parent.isAbstract) {
+          !parent.isComplete) {
         _diagnosticReporter.report(
           diag.invalidNonVirtualAnnotation.at(node.name),
         );
