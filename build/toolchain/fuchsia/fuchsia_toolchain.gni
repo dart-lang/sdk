@@ -93,6 +93,7 @@ template("fuchsia_toolchain") {
     }
 
     tool("asm") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       depfile = "{{output}}.d"
       command = "$asm -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{asmflags}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
@@ -102,6 +103,7 @@ template("fuchsia_toolchain") {
     }
 
     tool("alink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
@@ -113,6 +115,7 @@ template("fuchsia_toolchain") {
     }
 
     tool("solink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
       sofile = "{{root_out_dir}}/$soname"  # Possibly including toolchain dir.
       unstripped_sofile =
@@ -160,6 +163,7 @@ template("fuchsia_toolchain") {
     }
 
     tool("link") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"

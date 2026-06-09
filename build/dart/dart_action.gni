@@ -44,6 +44,10 @@ _is_dart = _dart_root == get_path_info("//", "abspath")
 
 if (_is_dart) {
   import("../toolchain/rbe.gni")
+  _dart_action_pool = "//build/toolchain:local_action_pool($host_toolchain)"
+} else {
+  _dart_action_pool =
+      "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
 }
 
 template("_compiled_action") {
@@ -100,8 +104,9 @@ template("_compiled_action") {
                 "--exec_strategy=" + rbe_expensive_exec_strategy,
                 "--",
               ]
-    } else if (!defined(invoker.pool)) {
-      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
+    }
+    if (!defined(invoker.pool)) {
+      pool = _dart_action_pool
     }
 
     args += [ rebase_path(host_executable, root_build_dir) ] + invoker.args
@@ -156,8 +161,9 @@ template("_prebuilt_tool_action") {
                 "--exec_strategy=" + rbe_expensive_exec_strategy,
                 "--",
               ]
-    } else if (!defined(invoker.pool)) {
-      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
+    }
+    if (!defined(invoker.pool)) {
+      pool = _dart_action_pool
     }
 
     args += [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
@@ -419,6 +425,7 @@ template("dartaotruntime_action") {
                              "deps",
                              "inputs",
                              "metadata",
+                             "mnemonic",
                              "outputs",
                              "pool",
                              "script",

@@ -47,8 +47,7 @@ def BuildOptions():
                              default=200 if sys.platform == 'win32' else 400)
     other_group.add_argument("-l",
                              type=int,
-                             help='Ninja -l option for RBE builds.',
-                             default=64)
+                             help='Ninja -l option for RBE builds.')
     other_group.add_argument("--no-start-rbe",
                              help="Don't try to start rbe",
                              default=False,
@@ -177,7 +176,8 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
         if options.no_start_rbe or StartRBE(out_dir, env):
             using_rbe = True
             command += [('-j%s' % str(options.j))]
-            command += [('-l%s' % str(options.l))]
+            if options.l:
+                command += [('-l%s' % str(options.l))]
         else:
             exit(1)
     command += targets

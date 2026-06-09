@@ -113,6 +113,7 @@ template("msvc_toolchain") {
     }
 
     tool("rc") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       command = "$python_path $tool_wrapper_path rc-wrapper $env rc.exe /nologo {{defines}} {{include_dirs}} /fo{{output}} {{source}}"
       depsformat = "msvc"
       outputs = [
@@ -122,6 +123,7 @@ template("msvc_toolchain") {
     }
 
     tool("asm") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       if (toolchain_args.current_cpu == "x86") {
         command = "$python_path $tool_wrapper_path asm-wrapper $env ml.exe {{defines}} {{include_dirs}} {{asmflags}} /c /Fo {{output}} {{source}}"
       } else if (toolchain_args.current_cpu == "x64") {
@@ -149,6 +151,7 @@ template("msvc_toolchain") {
     }
 
     tool("alink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "$python_path $tool_wrapper_path link-wrapper $env False $lib /nologo /ignore:4221 /OUT:{{output}} @$rspfile"
       description = "LIB {{output}}"
@@ -165,6 +168,7 @@ template("msvc_toolchain") {
     }
 
     tool("solink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dllname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # e.g.
                                                                                # foo.dll
       libname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}.lib"  # e.g.
@@ -173,9 +177,10 @@ template("msvc_toolchain") {
 
       link_command = "$python_path $tool_wrapper_path link-wrapper $env False $link /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:${dllname}.pdb @$rspfile"
 
-      # TODO(brettw) support manifests
-      #manifest_command = "$python_path $tool_wrapper_path manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:${dllname}.manifest"
-      #command = "cmd /c $link_command && $manifest_command"
+      # TODO(brettw) support manifests #manifest_command = "$python_path
+      # $tool_wrapper_path manifest-wrapper $env mt.exe -nologo -manifest
+      # $manifests -out:${dllname}.manifest" #command = "cmd /c $link_command &&
+      # $manifest_command"
       command = link_command
 
       default_output_extension = ".dll"
@@ -195,6 +200,7 @@ template("msvc_toolchain") {
     }
 
     tool("solink_module") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dllname =
           "{{output_dir}}/{{target_output_name}}{{output_extension}}"  # e.g.
                                                                        # foo.dll
@@ -219,6 +225,7 @@ template("msvc_toolchain") {
     }
 
     tool("link") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       binary_output =
           "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
       rspfile = "$binary_output.rsp"
@@ -226,9 +233,10 @@ template("msvc_toolchain") {
 
       link_command = "$python_path $tool_wrapper_path link-wrapper $env False $link /nologo /OUT:$binary_output /PDB:$pdbfile @$rspfile"
 
-      # TODO(brettw) support manifests
-      #manifest_command = "$python_path $tool_wrapper_path manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:{{output}}.manifest"
-      #command = "cmd /c $link_command && $manifest_command"
+      # TODO(brettw) support manifests #manifest_command = "$python_path
+      # $tool_wrapper_path manifest-wrapper $env mt.exe -nologo -manifest
+      # $manifests -out:{{output}}.manifest" #command = "cmd /c $link_command &&
+      # $manifest_command"
       command = link_command
 
       default_output_extension = ".exe"

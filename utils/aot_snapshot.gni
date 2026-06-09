@@ -7,6 +7,7 @@ import("../build/toolchain/signing.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 template("aot_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
@@ -56,6 +57,8 @@ template("aot_snapshot") {
       mnemonic = "GEN_KERNEL"
       if (defined(invoker.pool)) {
         pool = invoker.pool
+      } else if (_is_dart) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
       } else {
         pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
       }

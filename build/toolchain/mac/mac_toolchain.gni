@@ -101,6 +101,7 @@ template("mac_toolchain") {
 
     tool("asm") {
       # For GCC we can just use the C compiler to compile assembly.
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       depfile = "{{output}}.d"
       command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
@@ -128,6 +129,7 @@ template("mac_toolchain") {
     }
 
     tool("alink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
@@ -139,6 +141,7 @@ template("mac_toolchain") {
     }
 
     tool("solink") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dylib = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # eg
                                                                              # "./libfoo.dylib"
       rspfile = dylib + ".rsp"
@@ -203,6 +206,7 @@ template("mac_toolchain") {
     }
 
     tool("link") {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
