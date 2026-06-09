@@ -2583,6 +2583,10 @@ unnecessary_overrides:
   status: hasFix
 unnecessary_parenthesis:
   status: hasFix
+unnecessary_primary_constructor_body:
+  status: needsFix
+  notes: |-
+    The fix is to remove the body.
 unnecessary_raw_strings:
   status: hasFix
 unnecessary_statements:

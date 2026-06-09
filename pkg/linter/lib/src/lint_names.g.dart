@@ -582,6 +582,9 @@ abstract final class LintNames {
 
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
 
+  static const String unnecessary_primary_constructor_body =
+      'unnecessary_primary_constructor_body';
+
   static const String unnecessary_raw_strings = 'unnecessary_raw_strings';
 
   static const String unnecessary_statements = 'unnecessary_statements';

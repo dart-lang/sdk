@@ -3423,6 +3423,16 @@ const LinterLintWithoutArguments unnecessaryParenthesis =
     );
 
 /// No parameters.
+const LinterLintWithoutArguments unnecessaryPrimaryConstructorBody =
+    LinterLintWithoutArguments(
+      name: 'unnecessary_primary_constructor_body',
+      problemMessage: "Unnecessary primary constructor body.",
+      correctionMessage: "Try removing the body.",
+      uniqueName: 'unnecessary_primary_constructor_body',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments unnecessaryRawStrings =
     LinterLintWithoutArguments(
       name: 'unnecessary_raw_strings',
