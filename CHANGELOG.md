@@ -1,3 +1,12 @@
+## 3.12.2
+
+This is a patch release that:
+
+- Fixes a crash bug in `dart format` if an `analysis_options.yaml` file has an
+  include that points to a non-existent file (issue [#1840][dart_style #1840]).
+
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+
 ## 3.12.1
 
 **Released on:** 2026-05-26
