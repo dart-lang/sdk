@@ -120,7 +120,7 @@ To learn more about the feature, check out the
 
 - A `no_raw_types` lint rule is introduced, which replaces the
   `strict-raw-types` analysis option, offering a more consistent approach.
-- A `no_dynamic_types` lint rule is introduced, which replaces the
+- A `no_dynamic_casts` lint rule is introduced, which replaces the
   `strict-casts` analysis option, offering a more consistent approach.
 - The following lint rules have been determined to be low value, and are
   deprecated: `avoid_public_typedef_functions`, and `one_member_abstracts`.

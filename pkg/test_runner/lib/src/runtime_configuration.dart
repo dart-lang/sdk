@@ -325,12 +325,20 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 }
 
 enum QemuConfig {
-  ia32._('qemu-i386', '/usr/lib/i386-linux-gnu/'),
-  x64._('qemu-x86_64', '/usr/lib/x86_64-linux-gnu/'),
-  arm._('qemu-arm', '/usr/arm-linux-gnueabihf/'),
-  arm64._('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
-  riscv32._('qemu-riscv32', '/usr/riscv32-linux-gnu/'),
-  riscv64._('qemu-riscv64', '/usr/riscv64-linux-gnu/');
+  ia32._('qemu-i386', 'max', '/usr/lib/i386-linux-gnu/'),
+  x64._('qemu-x86_64', 'max', '/usr/lib/x86_64-linux-gnu/'),
+  arm._('qemu-arm', 'max', '/usr/arm-linux-gnueabihf/'),
+  arm64._('qemu-aarch64', 'max', '/usr/aarch64-linux-gnu/'),
+  riscv32._(
+    'qemu-riscv32',
+    'rva23u32,zbc=on,zacas=on,zabha=on',
+    '/usr/riscv32-linux-gnu/',
+  ),
+  riscv64._(
+    'qemu-riscv64',
+    'rva23u64,zbc=on,zacas=on,zabha=on',
+    '/usr/riscv64-linux-gnu/',
+  );
 
   static const all = <Architecture, QemuConfig>{
     Architecture.ia32: QemuConfig.ia32,
@@ -345,9 +353,10 @@ enum QemuConfig {
   };
 
   final String executable;
+  final String cpu;
   final String elfInterpreterPrefix;
 
-  const QemuConfig._(this.executable, this.elfInterpreterPrefix);
+  const QemuConfig._(this.executable, this.cpu, this.elfInterpreterPrefix);
 
   @override
   String toString() => executable;
@@ -461,6 +470,9 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
         environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
       }
+      if (environmentOverrides['QEMU_CPU'] == null) {
+        environmentOverrides['QEMU_CPU'] = config.cpu;
+      }
     }
     var command = VMCommand(executable, arguments, environmentOverrides);
     if (_configuration.rr && !isCrashExpected) {
@@ -498,6 +510,9 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       executable = config.executable;
       if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
         environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
+      }
+      if (environmentOverrides['QEMU_CPU'] == null) {
+        environmentOverrides['QEMU_CPU'] = config.cpu;
       }
     }
 

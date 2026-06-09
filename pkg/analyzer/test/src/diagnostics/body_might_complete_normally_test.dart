@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -52,27 +51,39 @@ enum E {
   }
 
   test_enum_method_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
-    await assertErrorsInCode(
-      r'''
+    if (_arePatternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b;
 
   int get value {
     switch (this) {
+//  ^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.b'.
       case a:
         return 0;
     }
   }
 }
-''',
-      [
-        if (!_arePatternsEnabled) ...[
-          error(diag.bodyMightCompleteNormally, 28, 5),
-          error(diag.missingEnumConstantInSwitch, 40, 13),
-        ] else
-          error(diag.nonExhaustiveSwitchStatement, 40, 6),
-      ],
-    );
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  a, b;
+
+  int get value {
+//        ^^^^^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
+    switch (this) {
+//  ^^^^^^^^^^^^^
+// [diag.missingEnumConstantInSwitch] Missing case clause for 'b'.
+      case a:
+        return 0;
+    }
+  }
+}
+''');
+    }
   }
 
   test_factoryConstructor_named_blockBody() async {
@@ -188,30 +199,40 @@ int f(Foo foo) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive() async {
-    await assertErrorsInCode(
-      r'''
+    if (_arePatternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 enum Foo { a, b }
 
 int f(Foo foo) {
   switch (foo) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'Foo' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'Foo.b'.
     case Foo.a:
       return 0;
   }
 }
-''',
-      [
-        if (!_arePatternsEnabled) ...[
-          error(diag.bodyMightCompleteNormally, 23, 1),
-          error(diag.missingEnumConstantInSwitch, 38, 12),
-        ] else
-          error(diag.nonExhaustiveSwitchStatement, 38, 6),
-      ],
-    );
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+//  ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
+  switch (foo) {
+//^^^^^^^^^^^^
+// [diag.missingEnumConstantInSwitch] Missing case clause for 'b'.
+    case Foo.a:
+      return 0;
+  }
+}
+''');
+    }
   }
 
   test_function_nonNullable_blockBody_switchStatement_notNullable_notExhaustive_enhanced() async {
-    await assertErrorsInCode(
-      r'''
+    if (_arePatternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 enum E {
   a, b;
 
@@ -220,19 +241,33 @@ enum E {
 
 int f(E e) {
   switch (e) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'E' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'E.b'.
     case E.a:
       return 0;
   }
 }
-''',
-      [
-        if (!_arePatternsEnabled) ...[
-          error(diag.bodyMightCompleteNormally, 47, 1),
-          error(diag.missingEnumConstantInSwitch, 58, 10),
-        ] else
-          error(diag.nonExhaustiveSwitchStatement, 58, 6),
-      ],
-    );
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  a, b;
+
+  static const c = 0;
+}
+
+int f(E e) {
+//  ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
+  switch (e) {
+//^^^^^^^^^^
+// [diag.missingEnumConstantInSwitch] Missing case clause for 'b'.
+    case E.a:
+      return 0;
+  }
+}
+''');
+    }
   }
 
   test_function_nonNullable_blockBody_switchStatement_nullable_exhaustive_default() async {
@@ -270,27 +305,39 @@ int f(Foo? foo) {
   }
 
   test_function_nonNullable_blockBody_switchStatement_nullable_notExhaustive_null() async {
-    await assertErrorsInCode(
-      r'''
+    if (_arePatternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 enum Foo { a, b }
 
 int f(Foo? foo) {
   switch (foo) {
+//^^^^^^
+// [diag.nonExhaustiveSwitchStatement] The type 'Foo?' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'null'.
     case Foo.a:
       return 0;
     case Foo.b:
       return 1;
   }
 }
-''',
-      [
-        if (!_arePatternsEnabled) ...[
-          error(diag.bodyMightCompleteNormally, 23, 1),
-          error(diag.missingEnumConstantInSwitch, 39, 12),
-        ] else
-          error(diag.nonExhaustiveSwitchStatement, 39, 6),
-      ],
-    );
+''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+enum Foo { a, b }
+
+int f(Foo? foo) {
+//  ^
+// [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'int', is a potentially non-nullable type.
+  switch (foo) {
+//^^^^^^^^^^^^
+// [diag.missingEnumConstantInSwitch] Missing case clause for 'null'.
+    case Foo.a:
+      return 0;
+    case Foo.b:
+      return 1;
+  }
+}
+''');
+    }
   }
 
   test_function_nullable_blockBody() async {

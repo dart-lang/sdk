@@ -18,7 +18,7 @@ dependencies:
   crypto: ^3.0.0
   glob: ^2.0.0
   meta: ^1.18.3
-  package_config: ^2.0.0
+  package_config: '>=2.0.0 <4.0.0'
   path: ^1.9.0
   pub_semver: ^2.1.4
   source_span: ^1.8.0
@@ -44,4 +44,3 @@ dev_dependencies:
   test: any
   test_reflective_loader: any
   vm_service: any
-

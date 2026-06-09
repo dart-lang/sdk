@@ -331,7 +331,8 @@ class FunctionCollector {
     //
     // => Effectively we make `@pragma('wasm:never-inline')` work for binaryen
     // as well.
-    final inlinePostfix = noInline == true ? ' <noInline>' : '';
+    const noInlinePostfix = ' <noInline>';
+    final inlinePostfix = noInline == true ? noInlinePostfix : '';
 
     if (target.isBodyReference) {
       return "$memberName (body)$inlinePostfix";
@@ -346,7 +347,9 @@ class FunctionCollector {
         return '$memberName= implicit setter';
       }
       if (target.isStaticFieldInitializer) {
-        return '$memberName field initializer';
+        return translator.neverInlineStaticFieldInitializer(member)
+            ? '$memberName field initializer$noInlinePostfix'
+            : '$memberName field initializer';
       }
       return '$memberName implicit getter';
     }

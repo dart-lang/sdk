@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -105,26 +104,24 @@ class foo {}
   }
 
   test_part_topLevelFunction_inLibrary() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'test.dart';
 void foo() {}
-''');
-
-    await assertErrorsInCode(
-      r'''
+//   ^^^
+// [context 1] The first definition of this name.
+''',
+      testFile: r'''
 part of 'a.dart';
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 ''',
-      [
-        error(diag.unusedImport, 25, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          40,
-          3,
-          contextMessages: [message(a, 23, 3)],
-        ),
-      ],
-    );
+    });
   }
 
   test_part_topLevelFunction_inPart() async {
@@ -146,30 +143,28 @@ void foo() {}
   }
 
   test_part_topLevelFunction_inPart2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
 part 'test.dart';
 part 'b.dart';
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
+''',
+      b: r'''
 part of 'a.dart';
 void foo() {}
-''');
-
-    await assertErrorsInCode(
-      r'''
+//   ^^^
+// [context 1] The first definition of this name.
+''',
+      testFile: r'''
 part of 'a.dart';
 import 'dart:math' as foo;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+//                    ^^^
+// [diag.prefixCollidesWithTopLevelMember][context 1] The name 'foo' is already used as an import prefix and can't be used to name a top-level element.
 ''',
-      [
-        error(diag.unusedImport, 25, 11),
-        error(
-          diag.prefixCollidesWithTopLevelMember,
-          40,
-          3,
-          contextMessages: [message(b, 23, 3)],
-        ),
-      ],
-    );
+    });
   }
 }

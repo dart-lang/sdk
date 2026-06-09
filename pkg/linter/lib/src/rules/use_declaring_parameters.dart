@@ -64,6 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var field = parameterElement.field;
       if (field != null &&
           (parameterHasNoType || field.type == parameterElement.type)) {
+        if (field.documentationComment != null) return;
         rule.reportAtToken(parameter.name);
       }
     }
@@ -87,6 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterElement = parameter.declaredFragment?.element;
       if (parameterElement != null &&
           assignedField.type == parameterElement.type) {
+        if (assignedField.documentationComment != null) return;
         rule.reportAtToken(name);
       }
     }

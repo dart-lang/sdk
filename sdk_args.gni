@@ -21,6 +21,7 @@ declare_args() {
   # compile_platform.dart script instead of running it from source. This
   # can significantly improve iteration time when iteration on changes in
   # core libraries.
+  # TODO(63495): Make this the default.
   precompile_tools = false
 
   # When set to `true`, the Dart Runtime Service based implementation of the

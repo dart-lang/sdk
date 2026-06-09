@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -160,36 +158,21 @@ class D extends C {}
   }
 
   test_class_sealed_extends_outside() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFilesWithDiagnostics({
+      a: r'''
 base class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
+//         ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''',
+      testFile: r'''
 import 'a.dart';
 sealed class B extends A {}
 class C extends B {}
+//    ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
 ''',
-      [
-        this.error(
-          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
-          51,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
-          contextMessages: [
-            contextMessage(
-              a,
-              11,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   test_class_sealed_extends_unordered() async {
@@ -275,36 +258,21 @@ class C extends B {}
   }
 
   test_mixinClass_sealed_outside() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
+    var a = getFile('$testPackageLibPath/a.dart');
+    await resolveFilesWithDiagnostics({
+      a: r'''
 base mixin class A {}
-''');
-
-    await assertErrorsInCode(
-      r'''
+//               ^
+// [context 1] The type 'B' is a subtype of 'A', and 'A' is defined here.
+''',
+      testFile: r'''
 import 'a.dart';
 sealed class B with A {}
 class C extends B {}
+//    ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed][context 1] The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
 ''',
-      [
-        this.error(
-          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
-          48,
-          1,
-          text:
-              "The type 'C' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
-          contextMessages: [
-            contextMessage(
-              a,
-              17,
-              1,
-              textContains: [
-                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   test_mixinClass_with() async {

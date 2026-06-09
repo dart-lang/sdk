@@ -643,8 +643,8 @@ copy("copy_dart2js_dill_files") {
   visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
-    "../utils/compiler:compile_dart2js_platform",
-    "../utils/compiler:compile_dart2js_server_platform",
+    "../utils/compiler:dart2js_platform",
+    "../utils/compiler:dart2js_server_platform",
   ]
   sources = [
     "$root_out_dir/dart2js_platform.dill",
@@ -659,9 +659,9 @@ copy("copy_dart2wasm_platform") {
   deps = [
     ":copy_libraries",
     "../:dart2wasm_platform",
-    "../utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
-    "../utils/dart2wasm:compile_dart2wasm_platform",
-    "../utils/dart2wasm:compile_dart2wasm_standalone_platform",
+    "../utils/dart2wasm:dart2wasm_js_compatibility_platform",
+    "../utils/dart2wasm:dart2wasm_platform",
+    "../utils/dart2wasm:dart2wasm_standalone_platform",
   ]
   sources = [
     "$root_out_dir/dart2wasm_js_compatibility_outline.dill",

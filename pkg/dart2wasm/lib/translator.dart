@@ -2184,7 +2184,7 @@ class Translator with KernelNodes {
       return InliningDecision(true, '@pragma("wasm:prefer-inline")');
     }
     if (member is Field) {
-      return _shouldInlineFieldAccessor(target, signature, member);
+      return _shouldInlineFieldAccessor(target, member);
     }
     if (member is Constructor) {
       return _shouldInlineConstructorCall(target, signature, member);
@@ -2194,7 +2194,6 @@ class Translator with KernelNodes {
 
   InliningDecision _shouldInlineFieldAccessor(
     Reference target,
-    w.FunctionType signature,
     Field field,
   ) {
     if (field.isInstanceMember) {
@@ -2230,6 +2229,30 @@ class Translator with KernelNodes {
       return InliningDecision(false, 'static getter with initializer');
     }
     throw UnimplementedError();
+  }
+
+  /// Whether the initializer function should never be inlined (neither by
+  /// dart2wasm, nor by binaryen or wasm runtime).
+  ///
+  /// Static field initializers are exectued at most once, so if they are big,
+  /// we want to prevent them from ever being inlined. For small ones, we leave
+  /// it up to normal inlining heuristics (which may decide it's beneficial to
+  /// inline e.g. due to size).
+  ///
+  /// If we didn't do this and a static field is only accessed at one place,
+  /// then binaryen would inline it always (due to only one caller), which would
+  /// make the callee possibly very large, which in return may prevent that one
+  /// from getting inlined into other functions (by binaryen & wasm runtime)
+  bool neverInlineStaticFieldInitializer(Field field) {
+    if (dartGlobals.getConstantInitializer(field) != null) {
+      // The initializer is a constant.
+      return false;
+    }
+    final nodeCounter = NodeCounter(this);
+    field.initializer!.accept(nodeCounter);
+    // The cost of an initializer function is the wasm function type, wasm
+    // function body and calls to it.
+    return nodeCounter.count > 10;
   }
 
   InliningDecision _shouldInlineConstructorCall(

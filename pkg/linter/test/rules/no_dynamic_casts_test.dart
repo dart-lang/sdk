@@ -121,6 +121,14 @@ void f(List<dynamic> list) {
 ''');
   }
 
+  test_forEach_variable_objectQuestionTarget() async {
+    await assertNoDiagnostics(r'''
+void f(List<dynamic> list) {
+  for (Object? x in list) {}
+}
+''');
+  }
+
   test_listLiteral() async {
     await assertDiagnosticsFromMarkdown(r'''
 void f(dynamic a) {

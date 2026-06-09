@@ -531,38 +531,6 @@ BENCHMARK(SimpleMessage) {
   benchmark->set_score(elapsed_time);
 }
 
-BENCHMARK(LargeMap) {
-  const char* kScript =
-      "@pragma('vm:entry-point', 'call')\n"
-      "makeMap() {\n"
-      "  Map m = {};\n"
-      "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"
-      "  return m;\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, nullptr);
-  EXPECT_VALID(h_result);
-  TransitionNativeToVM transition(thread);
-  StackZone zone(thread);
-  Instance& map = Instance::Handle();
-  map ^= Api::UnwrapHandle(h_result);
-  const intptr_t kLoopCount = 100;
-  Timer timer;
-  timer.Start();
-  for (intptr_t i = 0; i < kLoopCount; i++) {
-    StackZone zone(thread);
-    std::unique_ptr<Message> message = WriteMessage(
-        /* same_group */ false, map, ILLEGAL_PORT, Message::kNormalPriority);
-
-    // Read object back from the snapshot.
-    ReadMessage(thread, message.get());
-  }
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time);
-}
-
 BENCHMARK_MEMORY(InitialRSS) {
   benchmark->set_score(bin::Process::MaxRSS());
 }

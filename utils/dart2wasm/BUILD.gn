@@ -41,7 +41,7 @@ aot_snapshot("dart2wasm_product_snapshot") {
   force_product_mode = true
 }
 
-compile_platform("compile_dart2wasm_platform") {
+compile_platform("dart2wasm_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
@@ -57,7 +57,7 @@ compile_platform("compile_dart2wasm_platform") {
   ]
 }
 
-compile_platform("compile_dart2wasm_js_compatibility_platform") {
+compile_platform("dart2wasm_js_compatibility_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
@@ -74,7 +74,7 @@ compile_platform("compile_dart2wasm_js_compatibility_platform") {
   ]
 }
 
-compile_platform("compile_dart2wasm_standalone_platform") {
+compile_platform("dart2wasm_standalone_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)
   libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"

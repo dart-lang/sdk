@@ -163,10 +163,6 @@ template("gen_vm_platform") {
   }
   compile_platform(target_name) {
     output_postfix = invoker.output_postfix
-    if (defined(invoker.add_implicit_vm_platform_dependency)) {
-      add_implicit_vm_platform_dependency =
-          invoker.add_implicit_vm_platform_dependency
-    }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../", root_build_dir)
     libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
@@ -185,18 +181,15 @@ template("gen_vm_platform") {
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }
-    outline = "vm_outline" + output_postfix + ".dill"
   }
 }
 
 gen_vm_platform("vm_platform") {
-  add_implicit_vm_platform_dependency = false
   exclude_source = false
   output_postfix = ""
 }
 
 gen_vm_platform("vm_platform_product") {
-  add_implicit_vm_platform_dependency = false
   exclude_source = false
   output_postfix = "_product"
 
@@ -206,7 +199,6 @@ gen_vm_platform("vm_platform_product") {
 }
 
 gen_vm_platform("vm_platform_stripped") {
-  add_implicit_vm_platform_dependency = false
   exclude_source = true
   output_postfix = "_stripped"
 }

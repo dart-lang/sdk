@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -46,8 +45,8 @@ void f(int a) {
   }
 
   test_completes() async {
-    await assertErrorsInCode(
-      '''
+    if (_patternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -55,9 +54,20 @@ void f(int a) {
     default:
       return;
   }
-}''',
-      [if (!_patternsEnabled) error(diag.switchCaseCompletesNormally, 35, 4)],
-    );
+}''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+//  ^^^^
+// [diag.switchCaseCompletesNormally] The 'case' shouldn't complete normally.
+      print(0);
+    default:
+      return;
+  }
+}''');
+    }
   }
 
   test_continue_loop() async {
@@ -119,8 +129,8 @@ Never neverCompletes() {
   }
 
   test_multiple_cases_sharing_a_body() async {
-    await assertErrorsInCode(
-      '''
+    if (_patternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
 void f(int a) {
   switch (a) {
     case 0:
@@ -129,9 +139,21 @@ void f(int a) {
     default:
       return;
   }
-}''',
-      [if (!_patternsEnabled) error(diag.switchCaseCompletesNormally, 35, 4)],
-    );
+}''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+//  ^^^^
+// [diag.switchCaseCompletesNormally] The 'case' shouldn't complete normally.
+    case 1:
+      print(0);
+    default:
+      return;
+  }
+}''');
+    }
   }
 
   test_return() async {

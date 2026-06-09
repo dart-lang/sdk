@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,20 +28,18 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_instanceMethod_staticMethodInAugmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   void foo() {}
 }
 
 augment class A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 61, 3)],
-    );
+''');
   }
 
   test_inClass_staticGetter_instanceGetter() async {
@@ -100,20 +97,18 @@ class C {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_staticMethod_instanceMethodInAugmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 
 augment class A {
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inClass_staticMethod_instanceSetter() async {
@@ -290,20 +285,18 @@ class B extends Object with M {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inMixin_instanceMethod_staticMethodInAugmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   void foo() {}
 }
 
 augment mixin A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 61, 3)],
-    );
+''');
   }
 
   test_inMixin_instanceMethod_staticSetter() async {
@@ -358,20 +351,18 @@ class B extends Object with A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inMixin_staticMethod_instanceMethodInAugmentation() async {
-    await assertErrorsInCode(
-      r'''
+    await resolveTestCodeWithDiagnostics(r'''
 mixin A {
   static void foo() {}
+//            ^^^
+// [diag.conflictingStaticAndInstance] Class 'A' can't define static member 'foo' and have instance member 'A.foo' with the same name.
 }
 
 augment mixin A {
   void foo() {}
 }
-''',
-      [error(diag.conflictingStaticAndInstance, 24, 3)],
-    );
+''');
   }
 
   test_inSuper_implicitObject_staticMethod_instanceGetter() async {
