@@ -6,8 +6,8 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
-import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class SdkVersionSinceTest extends SdkConstraintVerifierTest {
+class SdkVersionSinceTest extends PubPackageResolutionTest {
   @override
   List<MockSdkLibrary> additionalMockSdkLibraries = [];
 

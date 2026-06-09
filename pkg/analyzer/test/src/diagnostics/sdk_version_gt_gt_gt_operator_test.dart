@@ -6,8 +6,8 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
-import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
+class SdkVersionGtGtGtOperatorTest extends PubPackageResolutionTest {
   @override
   String get testPackageLanguageVersion =>
       '${ExperimentStatus.currentVersion.major}.'
