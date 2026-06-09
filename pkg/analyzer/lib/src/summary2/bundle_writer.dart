@@ -493,8 +493,10 @@ class BundleWriter {
 
     _resolutionSink._writeMetadata(fragment.metadata);
 
+    // ignore: deprecated_member_use_from_same_package
     _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
       _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+      // ignore: deprecated_member_use_from_same_package
       _writeTypeParameterElementResolutions(fragment.element.typeParameters);
       _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
       _resolutionSink.writeBool(fragment.element.inheritsCovariant);

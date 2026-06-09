@@ -3942,6 +3942,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<FormalParameterElementImpl> get formalParameters => _firstFragment
@@ -4018,6 +4019,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return _firstFragment.parameterKind;
   }
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElementImpl> get typeParameters {
@@ -6359,6 +6361,7 @@ mixin InternalFormalParameterElement on InternalVariableElement
   @override
   TypeImpl get type;
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   List<TypeParameterElementImpl> get typeParameters;
 

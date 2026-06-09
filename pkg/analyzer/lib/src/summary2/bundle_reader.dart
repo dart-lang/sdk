@@ -788,6 +788,7 @@ class LibraryReader {
         reader,
         fragment.typeParameters,
       );
+      // ignore: deprecated_member_use_from_same_package
       _readTypeParameterElementResolutions(reader, element.typeParameters);
       _readFormalParameterFragmentsResolution(
         libraryFragment,
