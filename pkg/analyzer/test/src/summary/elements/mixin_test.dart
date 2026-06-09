@@ -2011,9 +2011,6 @@ library
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
       superclassConstraints
         Object
       methods
@@ -2621,8 +2618,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2707,8 +2702,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2803,10 +2796,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
-            #E2 V
-              firstFragment: #F9
           returnType: void
 ''');
   }
@@ -5907,8 +5896,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       superclassConstraints
         Object
 ''');
@@ -5969,8 +5956,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       superclassConstraints
         Object
 ''');
@@ -6041,10 +6026,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       superclassConstraints
         Object
 ''');

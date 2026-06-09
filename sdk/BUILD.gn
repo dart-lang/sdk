@@ -26,9 +26,6 @@ if (get_path_info(".", "abspath") == "//sdk/") {
 }
 
 declare_args() {
-  # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
-  dart_platform_sdk = true
-
   # Path to stripped dart binaries relative to build output directory.
   dartvm_stripped_binary = "dartvm"
   dart_stripped_binary = "dart"
@@ -112,19 +109,14 @@ declare_args() {
 # ......typed_data/
 # ......api_readme.md
 
-# Scripts that go under bin/
-_platform_sdk_scripts = []
-
-_full_sdk_scripts = []
-
 # Snapshots that go under bin/snapshots
-_platform_sdk_snapshots = [ [
+_sdk_snapshots = [ [
       "analysis_server",
       "../utils/analysis_server",
       "analysis_server",
     ] ]
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _platform_sdk_snapshots += [
+  _sdk_snapshots += [
     [
       "analysis_server_aot_product",
       "../utils/analysis_server:analysis_server_aot_product",
@@ -152,14 +144,14 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     ],
   ]
   if (include_experimental_vm_service) {
-    _platform_sdk_snapshots += [ [
+    _sdk_snapshots += [ [
           "dart_runtime_service_vm_aot",
           "../utils/dart_runtime_service_vm:dart_runtime_service_vm_aot",
           "dart_runtime_service_vm_aot",
         ] ]
   }
 } else {
-  _platform_sdk_snapshots += [ [
+  _sdk_snapshots += [ [
         "dds",
         "../utils/dds:dds",
         "dds",
@@ -167,13 +159,13 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
 }
 
 if (dart_snapshot_kind == "app-jit") {
-  _platform_sdk_snapshots += [ [
+  _sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
         "kernel-service",
       ] ]
   if (include_experimental_vm_service) {
-    _platform_sdk_snapshots += [ [
+    _sdk_snapshots += [ [
           "dart_runtime_service_vm",
           "../utils/dart_runtime_service_vm:dart_runtime_service_vm",
           "dart_runtime_service_vm",
@@ -185,7 +177,7 @@ if (dart_snapshot_kind == "app-jit") {
 # architecture. It is only included as needed on a subset of OS targets.
 if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
     (dart_dynamic_modules || target_os == "linux" || target_os == "mac")) {
-  _platform_sdk_snapshots += [ [
+  _sdk_snapshots += [ [
         "dart2bytecode",
         "../utils/dart2bytecode:dart2bytecode",
         "dart2bytecode",
@@ -193,38 +185,35 @@ if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
 }
 
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _full_sdk_snapshots =
-      _platform_sdk_snapshots + [
-        [
-          "dart2js_aot_product",
-          "../utils/compiler:dart2js_sdk_aot_product",
-          "dart2js_aot",
-        ],
-        [
-          "dartdevc_aot_product",
-          "../utils/ddc:dartdevc_aot_product",
-          "dartdevc_aot",
-        ],
-        [
-          "kernel_worker_aot_product",
-          "../utils/bazel:kernel_worker_aot_product",
-          "kernel_worker_aot",
-        ],
+  _sdk_snapshots += [
+    [
+      "dart2js_aot_product",
+      "../utils/compiler:dart2js_sdk_aot_product",
+      "dart2js_aot",
+    ],
+    [
+      "dartdevc_aot_product",
+      "../utils/ddc:dartdevc_aot_product",
+      "dartdevc_aot",
+    ],
+    [
+      "kernel_worker_aot_product",
+      "../utils/bazel:kernel_worker_aot_product",
+      "kernel_worker_aot",
+    ],
 
-        # Remove these JIT snapshot in Dart SDK version 3.7
-        # Please see https://github.com/dart-lang/build/pull/3742 for details.
-        [
-          "dartdevc",
-          "../utils/ddc:dartdevc",
-          "dartdevc",
-        ],
-      ]
-} else {
-  _full_sdk_snapshots = _platform_sdk_snapshots
+    # Remove these JIT snapshot in Dart SDK version 3.7
+    # Please see https://github.com/dart-lang/build/pull/3742 for details.
+    [
+      "dartdevc",
+      "../utils/ddc:dartdevc",
+      "dartdevc",
+    ],
+  ]
 }
 
 # Libraries that go under lib/
-_full_sdk_libraries = [
+_sdk_libraries = [
   "_internal",
   "async",
   "cli",
@@ -255,28 +244,6 @@ _full_sdk_libraries = [
   "web_gl",
   "web_sql",
 ]
-
-# Apps running on the platform SDK shouldn't be using Dart4Web libraries, but
-# the analyzer and dartdoc expect all the library sources to be present.
-#
-# _platform_sdk_libraries = [
-#   "_internal",
-#   "async",
-#   "cli",
-#   "collection",
-#   "convert",
-#   "core",
-#   "developer",
-#   "html",
-#   "_http",
-#   "internal",
-#   "io",
-#   "isolate",
-#   "math",
-#   "mirrors",
-#   "typed_data",
-# ]
-_platform_sdk_libraries = _full_sdk_libraries
 
 # This rule copies dartdoc templates to
 # bin/resources/dartdoc/templates
@@ -320,12 +287,12 @@ if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
 }
 
 # This loop generates rules to copy libraries to lib/
-foreach(library, _full_sdk_libraries) {
+foreach(library, _sdk_libraries) {
   copy_tree("copy_${library}_library") {
     visibility = [ ":*" ]
     source = "lib/$library"
     dest = "$root_out_dir/$dart_sdk_output/lib/$library"
-    exclude = "*.svn,doc,*.py,*.gypi,*.sh,.git*,*.gn,*.gni"
+    exclude = "doc,*.py,*.sh,.git*,*.gn,*.gni"
   }
 }
 
@@ -361,7 +328,7 @@ if (target_os != current_os && target_os == "fuchsia") {
   }
 } else {
   copy("copy_dartvm") {
-    visibility = [ ":create_common_sdk" ]
+    visibility = [ ":*" ]
     deps = [ "../runtime/bin:dartvm" ]
     dart_out = get_label_info("../runtime/bin:dartvm", "root_out_dir")
     sources = [ "$dart_out/${dartvm_stripped_binary}${executable_suffix}" ]
@@ -518,49 +485,9 @@ group("group_dart2native") {
   }
 }
 
-# A template for copying the things in _platform_sdk_scripts and
-# _full_sdk_scripts into bin/
-template("copy_sdk_script") {
-  assert(defined(invoker.name), "copy_sdk_script must define 'name'")
-  name = invoker.name
-  ext = ""
-  if (is_win) {
-    ext = ".bat"
-  }
-  copy(target_name) {
-    visibility = [ ":*" ]
-    sources = [ "bin/${name}_sdk$ext" ]
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/$name$ext" ]
-  }
-}
-
-foreach(sdk_script, _full_sdk_scripts) {
-  copy_sdk_script("copy_${sdk_script}_script") {
-    name = sdk_script
-  }
-}
-
-# This is the main target for copying scripts in _platform_sdk_scripts to bin/
-group("copy_platform_sdk_scripts") {
-  visibility = [ ":_create_platform_sdk" ]
-  public_deps = []
-  foreach(sdk_script, _platform_sdk_scripts) {
-    public_deps += [ ":copy_${sdk_script}_script" ]
-  }
-}
-
-# This is the main target for copying scripts in _full_sdk_scripts to bin/
-group("copy_full_sdk_scripts") {
-  visibility = [ ":*" ]
-  public_deps = []
-  foreach(sdk_script, _full_sdk_scripts) {
-    public_deps += [ ":copy_${sdk_script}_script" ]
-  }
-}
-
 # This loop generates "copy" targets that put snapshots into
 # bin/snapshots
-foreach(snapshot, _full_sdk_snapshots) {
+foreach(snapshot, _sdk_snapshots) {
   root = root_gen_dir
 
   # The frontend_server is output to root_out_dir so that it doesn't conflict
@@ -586,22 +513,12 @@ foreach(snapshot, _full_sdk_snapshots) {
   }
 }
 
-# This is the main rule for copying snapshots from _platform_sdk_snapshots to
+# This is the main rule for copying snapshots from _sdk_snapshots to
 # bin/snapshots
-group("copy_platform_sdk_snapshots") {
-  visibility = [ ":_create_platform_sdk" ]
-  public_deps = []
-  foreach(snapshot, _platform_sdk_snapshots) {
-    public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
-  }
-}
-
-# This is the main rule for copying snapshots from _full_sdk_snapshots to
-# bin/snapshots
-group("copy_full_sdk_snapshots") {
+group("copy_sdk_snapshots") {
   visibility = [ ":*" ]
   public_deps = []
-  foreach(snapshot, _full_sdk_snapshots) {
+  foreach(snapshot, _sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
   }
 }
@@ -616,7 +533,7 @@ group("copy_dartdoc_files") {
 }
 
 # This rule copies dill files to lib/_internal.
-copy("copy_vm_dill_files") {
+copy("copy_vm_platform") {
   visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
@@ -628,7 +545,7 @@ copy("copy_vm_dill_files") {
 }
 
 # Delete this after external packages are migrated to vm_platform.dill.
-copy("copy_vm_strong_dill_files") {
+copy("copy_vm_platform_strong") {
   visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
@@ -639,7 +556,7 @@ copy("copy_vm_strong_dill_files") {
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/vm_platform_strong.dill" ]
 }
 
-copy("copy_dart2js_dill_files") {
+copy("copy_dart2js_platform") {
   visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
@@ -769,29 +686,12 @@ copy("copy_libraries_specification") {
   outputs = [ "$root_out_dir/$dart_sdk_output/lib/{{source_file_part}}" ]
 }
 
-# This is the main rule to copy libraries in _platform_sdk_libraries to lib/
-group("copy_platform_sdk_libraries") {
-  visibility = [ ":*" ]
-  public_deps = []
-  foreach(library, _platform_sdk_libraries) {
-    public_deps += [ ":copy_${library}_library" ]
-  }
-}
-
-# This is the main rule to copy libraries in _full_sdk_libraries to lib/
-group("copy_full_sdk_libraries") {
-  visibility = [ ":*" ]
-  public_deps = []
-  foreach(library, _full_sdk_libraries) {
-    public_deps += [ ":copy_${library}_library" ]
-  }
-}
-
+# This is the main rule to copy libraries in _sdk_libraries to lib/
 group("copy_libraries") {
-  if (dart_platform_sdk) {
-    public_deps = [ ":copy_platform_sdk_libraries" ]
-  } else {
-    public_deps = [ ":copy_full_sdk_libraries" ]
+  visibility = [ ":*" ]
+  public_deps = []
+  foreach(library, _sdk_libraries) {
+    public_deps += [ ":copy_${library}_library" ]
   }
 }
 
@@ -873,21 +773,25 @@ copy("copy_sdk_packages_yaml") {
   outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
 }
 
-# Parts common to both platform and full SDKs.
-group("create_common_sdk") {
-  visibility = [ ":*" ]
+# The SDK, excluding cross-compilation and sanitizer support, which are not
+# needed for front-end, dart2js, dart2wasm, ddc and analyzer testing.
+group("create_most_sdk") {
   public_deps = [
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dart2js_platform",
     ":copy_dartdoc_files",
     ":copy_dartvm",
+    ":copy_dev_compiler_sdk",
     ":copy_headers",
+    ":copy_libraries",
     ":copy_libraries_specification",
     ":copy_license",
     ":copy_readme",
     ":copy_sdk_packages_yaml",
-    ":copy_vm_dill_files",
-    ":copy_vm_strong_dill_files",
+    ":copy_sdk_snapshots",
+    ":copy_vm_platform",
+    ":copy_vm_platform_strong",
     ":write_dartdoc_options",
     ":write_revision_file",
     ":write_version_file",
@@ -903,73 +807,34 @@ group("create_common_sdk") {
   # dart native compilation files since there is no AOT compiler/runtime
   # available.
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    public_deps += [ ":group_dart2native" ]
-  }
-}
-
-# Parts specific to the platform SDK.
-group("_create_platform_sdk") {
-  visibility = [ ":*" ]
-  public_deps = [
-    ":copy_platform_sdk_libraries",
-    ":copy_platform_sdk_scripts",
-    ":copy_platform_sdk_snapshots",
-  ]
-}
-
-# Parts specific to the full SDK.
-group("create_most_sdk") {
-  public_deps = [
-    ":copy_dart2js_dill_files",
-    ":copy_dev_compiler_sdk",
-    ":copy_full_sdk_libraries",
-    ":copy_full_sdk_scripts",
-    ":copy_full_sdk_snapshots",
-    ":create_common_sdk",
-  ]
-
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     public_deps += [
       ":copy_dart2wasm_platform",
       ":copy_dart2wasm_snapshot",
+      ":group_dart2native",
     ]
     if (dart_include_wasm_opt) {
       public_deps += [ ":copy_wasm_opt" ]
     }
   }
 }
-group("create_full_sdk") {
-  visibility = [ ":*" ]
 
-  public_deps = [ ":create_most_sdk" ] + copy_sanitizer_deps
+# The main target to depend on from ../BUILD.gn
+group("create_sdk") {
+  public_deps = [ ":create_most_sdk" ]
 
+  # The AOT sanitizer runtimes go into the SDK itself.
+  public_deps += copy_sanitizer_deps
+
+  # The cross-compilation gen_snapshot binaries do not go into the SDK itself,
+  # but are included here as dependencies for the SDK builders, which will
+  # upload them separately.
   if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
       dart_target_arch != "arm") {
-    # Do not include gen_snapshot binaries for cross-compilation into
-    # SDK, but add them as a dependency, so that they are built.
     public_deps += [
       "../runtime/bin:gen_snapshot_product_linux_arm",
       "../runtime/bin:gen_snapshot_product_linux_arm64",
       "../runtime/bin:gen_snapshot_product_linux_riscv64",
       "../runtime/bin:gen_snapshot_product_linux_x64",
     ]
-  }
-}
-
-# Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
-group("create_platform_sdk") {
-  public_deps = [
-    ":_create_platform_sdk",
-    ":create_common_sdk",
-  ]
-}
-
-# The main target to depend on from ../BUILD.gn
-group("create_sdk") {
-  public_deps = [ ":create_common_sdk" ]
-  if (dart_platform_sdk) {
-    public_deps += [ ":_create_platform_sdk" ]
-  } else {
-    public_deps += [ ":create_full_sdk" ]
   }
 }

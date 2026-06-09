@@ -678,12 +678,14 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList(
         'typeParameters',
         e,
+        // ignore: deprecated_member_use_from_same_package
         e.typeParameters,
         _writeTypeParameterElement,
       );
       _writeElementList(
         'formalParameters',
         e,
+        // ignore: deprecated_member_use_from_same_package
         e.formalParameters,
         _writeFormalParameterElement,
       );

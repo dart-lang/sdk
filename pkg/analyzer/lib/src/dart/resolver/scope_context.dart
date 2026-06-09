@@ -248,6 +248,7 @@ class ScopeContext {
       node.type?.accept(visitor);
     } else {
       var element = node.declaredFragment!.element;
+      // ignore: deprecated_member_use_from_same_package
       withTypeParameterScope(element.typeParameters, () {
         node.type?.accept(visitor);
         functionTypedSuffix.typeParameters?.accept(visitor);

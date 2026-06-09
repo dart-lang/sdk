@@ -704,8 +704,6 @@ import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
 import 'number_literals_with_separators_test.dart'
     as number_literals_with_separators;
-import 'object_cannot_extend_another_class_test.dart'
-    as object_cannot_extend_another_class;
 import 'obsolete_colon_for_default_value_test.dart'
     as obsolete_colon_for_default_value;
 import 'on_repeated_test.dart' as on_repeated;
@@ -840,7 +838,6 @@ import 'super_in_extension_type_test.dart' as super_in_extension_type;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
     as super_in_redirecting_constructor;
-import 'super_initializer_in_object_test.dart' as super_initializer_in_object;
 import 'super_invocation_not_last_test.dart' as super_invocation_not_last;
 import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
@@ -1418,7 +1415,6 @@ main() {
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
     number_literals_with_separators.main();
-    object_cannot_extend_another_class.main();
     obsolete_colon_for_default_value.main();
     on_repeated.main();
     optional_parameter_in_operator.main();
@@ -1500,7 +1496,6 @@ main() {
     super_in_extension_type.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
-    super_initializer_in_object.main();
     super_invocation_not_last.main();
     switch_case_completes_normally.main();
     tearoff_of_generative_constructor_of_abstract_class.main();

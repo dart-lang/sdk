@@ -795,7 +795,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       var element = node.declaredFragment!.element;
       element.type = FunctionTypeImpl(
+        // ignore: deprecated_member_use_from_same_package
         typeParameters: element.typeParameters,
+        // ignore: deprecated_member_use_from_same_package
         formalParameters: element.formalParameters,
         returnType: node.type?.type ?? _typeProvider.dynamicType,
         nullabilitySuffix: _getNullability(

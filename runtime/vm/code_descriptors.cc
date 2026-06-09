@@ -40,7 +40,6 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
   RELEASE_ASSERT(yield_index != 0);
 
   ASSERT((kind == UntaggedPcDescriptors::kRuntimeCall) ||
-         (kind == UntaggedPcDescriptors::kBSSRelocation) ||
          (kind == UntaggedPcDescriptors::kOther) ||
          (yield_index != UntaggedPcDescriptors::kInvalidYieldIndex) ||
          (deopt_id != DeoptId::kNone));
@@ -48,8 +47,7 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
   // When precompiling, we only use pc descriptors for exceptions,
   // relocations and yield indices.
   if (!FLAG_precompiled_mode || try_index != -1 ||
-      yield_index != UntaggedPcDescriptors::kInvalidYieldIndex ||
-      kind == UntaggedPcDescriptors::kBSSRelocation) {
+      yield_index != UntaggedPcDescriptors::kInvalidYieldIndex) {
     const int32_t kind_and_metadata =
         UntaggedPcDescriptors::KindAndMetadata::Encode(kind, try_index,
                                                        yield_index);

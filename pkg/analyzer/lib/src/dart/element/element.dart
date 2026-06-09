@@ -2531,9 +2531,28 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @trackedIncludedInId
   List<FormalParameterElementImpl> get formalParameters {
     _ensureReadResolution();
-    // We don't use `.map(...).toList()` because it's a lot slower.
-    // This singular change caused the analyzer as a whole to speed up ~1%.
+
     var formalParameters = _firstFragment.formalParameters;
+
+    var hasRecoveryFragments = false;
+    for (var i = 0; i < formalParameters.length; i++) {
+      if (formalParameters[i].isOriginOtherFragmentOfEnclosing) {
+        hasRecoveryFragments = true;
+        break;
+      }
+    }
+
+    // Don't expose recovery elements as the actual executable signature.
+    if (hasRecoveryFragments) {
+      var result = <FormalParameterElementImpl>[];
+      for (var formalParameter in formalParameters) {
+        if (!formalParameter.isOriginOtherFragmentOfEnclosing) {
+          result.add(formalParameter.asElement2);
+        }
+      }
+      return result.toFixedList();
+    }
+
     return List.generate(formalParameters.length, (index) {
       return formalParameters[index].asElement2;
     }, growable: false);
@@ -2683,10 +2702,32 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
     _ensureReadResolution();
+
     var typeParameters = _firstFragment.typeParameters;
+
+    var hasRecoveryFragments = false;
+    for (var i = 0; i < typeParameters.length; i++) {
+      if (typeParameters[i].isOriginOtherFragmentOfEnclosing) {
+        hasRecoveryFragments = true;
+        break;
+      }
+    }
+
+    // Don't expose recovery elements as the actual element arity.
+    if (hasRecoveryFragments) {
+      var result = <TypeParameterElementImpl>[];
+      for (var typeParameter in typeParameters) {
+        if (!typeParameter.isOriginOtherFragmentOfEnclosing) {
+          result.add(typeParameter.element);
+        }
+      }
+      return result.toFixedList();
+    }
+
     return List.generate(
       typeParameters.length,
       (index) => typeParameters[index].element,
+      growable: false,
     );
   }
 
@@ -3901,6 +3942,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<FormalParameterElementImpl> get formalParameters => _firstFragment
@@ -3977,6 +4019,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return _firstFragment.parameterKind;
   }
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<TypeParameterElementImpl> get typeParameters {
@@ -5233,10 +5276,32 @@ sealed class InstanceElementImpl extends ElementImpl
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
     _ensureReadResolution();
+
     var typeParameters = _firstFragment.typeParameters;
+
+    var hasRecoveryFragments = false;
+    for (var i = 0; i < typeParameters.length; i++) {
+      if (typeParameters[i].isOriginOtherFragmentOfEnclosing) {
+        hasRecoveryFragments = true;
+        break;
+      }
+    }
+
+    // Don't expose recovery elements as the actual element arity.
+    if (hasRecoveryFragments) {
+      var result = <TypeParameterElementImpl>[];
+      for (var typeParameter in typeParameters) {
+        if (!typeParameter.isOriginOtherFragmentOfEnclosing) {
+          result.add(typeParameter.element);
+        }
+      }
+      return result.toFixedList();
+    }
+
     return List.generate(
       typeParameters.length,
       (index) => typeParameters[index].element,
+      growable: false,
     );
   }
 
@@ -6296,6 +6361,7 @@ mixin InternalFormalParameterElement on InternalVariableElement
   @override
   TypeImpl get type;
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   List<TypeParameterElementImpl> get typeParameters;
 

@@ -548,7 +548,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A() { print(42); }'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new() { print(42); }'));
   }
 
   Future<void> test_writeConstructorDeclaration_fieldNames() async {
@@ -567,7 +567,7 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A(this.a, this.bb);'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new(this.a, this.bb);'));
   }
 
   Future<void> test_writeConstructorDeclaration_initializerWriter() async {
@@ -586,7 +586,7 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A() : super();'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new() : super();'));
   }
 
   Future<void> test_writeConstructorDeclaration_parameterWriter() async {
@@ -605,7 +605,7 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
+    expect(edit.replacement, equalsIgnoringWhitespace('new(int a, {this.b});'));
   }
 
   Future<void> test_writeFieldDeclaration_initializerWriter() async {

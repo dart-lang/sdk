@@ -2269,7 +2269,7 @@ enum E {
 enum E {
   v1.newName(), v2.newName();
 
-  const E.newName();
+  const new newName();
 }
 ''',
       feedbackValidator: (feedback) {

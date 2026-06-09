@@ -230,6 +230,7 @@ import 'rules/unnecessary_null_in_if_null_operators.dart';
 import 'rules/unnecessary_nullable_for_final_variable_declarations.dart';
 import 'rules/unnecessary_overrides.dart';
 import 'rules/unnecessary_parenthesis.dart';
+import 'rules/unnecessary_primary_constructor_body.dart';
 import 'rules/unnecessary_raw_strings.dart';
 import 'rules/unnecessary_statements.dart';
 import 'rules/unnecessary_string_escapes.dart';
@@ -497,6 +498,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryNullableForFinalVariableDeclarations())
     ..registerLintRule(UnnecessaryOverrides())
     ..registerLintRule(UnnecessaryParenthesis())
+    ..registerLintRule(UnnecessaryPrimaryConstructorBody())
     ..registerLintRule(UnnecessaryRawStrings())
     ..registerLintRule(UnnecessaryStatements())
     ..registerLintRule(UnnecessaryStringEscapes())

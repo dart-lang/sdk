@@ -1378,6 +1378,7 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   ///
   /// A parameter will only define other parameters if it is a function typed
   /// formal parameter.
+  @Deprecated('Use the function type of this parameter instead')
   List<FormalParameterElement> get formalParameters;
 
   @override
@@ -1451,6 +1452,7 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   ///
   /// A parameter will only define type parameters if it is a function typed
   /// parameter.
+  @Deprecated('Use the function type of this parameter instead')
   List<TypeParameterElement> get typeParameters;
 
   /// Appends the type, name and possibly the default value of this parameter

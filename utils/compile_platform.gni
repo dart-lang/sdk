@@ -6,6 +6,7 @@ import("../build/dart/dart_action.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 template("compile_platform") {
   assert(defined(invoker.libraries_specification_uri),
@@ -29,6 +30,8 @@ template("compile_platform") {
 
       if (defined(invoker.pool)) {
         pool = invoker.pool
+      } else if (_is_dart) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
       } else {
         pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
       }

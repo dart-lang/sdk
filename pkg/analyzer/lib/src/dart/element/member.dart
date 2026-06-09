@@ -465,6 +465,7 @@ class SubstitutedFieldFormalParameterElementImpl
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
+      // ignore: deprecated_member_use_from_same_package
       baseElement.typeParameters,
       substitution,
     );
@@ -519,6 +520,7 @@ class SubstitutedFieldFormalParameterElementImpl
 class SubstitutedFormalParameterElementImpl
     extends SubstitutedVariableElementImpl
     with InternalFormalParameterElement {
+  @Deprecated('Use the function type of this parameter instead')
   @override
   final List<TypeParameterElementImpl> typeParameters;
 
@@ -526,6 +528,7 @@ class SubstitutedFormalParameterElementImpl
     required FormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
+    // ignore: deprecated_member_use_from_same_package
     var typeParameters = baseElement.typeParameters;
     if (typeParameters.isEmpty) {
       // Happens often. Avoid doing unneeded allocation.
@@ -558,6 +561,7 @@ class SubstitutedFormalParameterElementImpl
 
   @override
   List<Element> get children {
+    // ignore: deprecated_member_use_from_same_package
     return [...typeParameters, ...formalParameters];
   }
 
@@ -573,6 +577,7 @@ class SubstitutedFormalParameterElementImpl
   @override
   FormalParameterFragmentImpl get firstFragment => baseElement.firstFragment;
 
+  @Deprecated('Use the function type of this parameter instead')
   @override
   List<FormalParameterElementImpl> get formalParameters =>
       baseElement.formalParameters;
@@ -904,6 +909,7 @@ class SubstitutedSuperFormalParameterElementImpl
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
+      // ignore: deprecated_member_use_from_same_package
       baseElement.typeParameters,
       substitution,
     );

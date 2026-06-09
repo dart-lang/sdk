@@ -195,7 +195,7 @@ augment set foo(int y) {}
 
 @reflectiveTest
 class AugmentationFormalParameterShapeTest extends PubPackageResolutionTest {
-  test_class_constructor_rP1__rP1_rP2() async {
+  test_class_constructor_factory_rP1__rP1_rP2() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   A._();
@@ -209,11 +209,210 @@ class A {
 ''');
   }
 
+  test_class_constructor_rN1__rN1_rN2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A({required int n1});
+//^
+// [context 1] The declaration being augmented.
+  augment A({required int n1, required int n2}) {}
+//                                         ^^
+// [diag.augmentationNamedFormalParameterExtra][context 1] The augmentation has a named formal parameter 'n2', but the declaration doesn't.
+}
+''');
+  }
+
+  test_class_constructor_rn1__rn1_rn2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A({int? n1});
+//^
+// [context 1] The declaration being augmented.
+  augment A({int? n1, int? n2}) {}
+//                         ^^
+// [diag.augmentationNamedFormalParameterExtra][context 1] The augmentation has a named formal parameter 'n2', but the declaration doesn't.
+}
+''');
+  }
+
+  test_class_constructor_rn1_rn2__rn1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A({int? n1, int? n2});
+//                 ^^
+// [context 1] The formal parameter is here.
+  augment A({int? n1}) {}
+//                   ^
+// [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n2' from the declaration.
+}
+''');
+  }
+
+  test_class_constructor_rP1__rp1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1);
+//^
+// [context 1] The declaration being augmented.
+  augment A([int? p1]) {}
+//          ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+}
+''');
+  }
+
+  test_class_constructor_rp1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A([int? p1]);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1) {}
+//               ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
+}
+''');
+  }
+
+  test_class_constructor_rP1__rP1_rP2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1, int? p2) {}
+//                        ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 2 required positional formal parameters, but the declaration has 1.
+}
+
+void f() {
+  A(0);
+}
+''');
+  }
+
+  test_class_constructor_rP1__rP1_rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1, [int? p2]) {}
+//                   ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+}
+''');
+  }
+
+  test_class_constructor_rP1_rn1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1, {int? n1});
+//                 ^^
+// [context 1] The formal parameter is here.
+  augment A(int? p1) {}
+//                 ^
+// [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n1' from the declaration.
+}
+''');
+  }
+
+  test_class_constructor_rP1_rP2__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1, int? p2);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1) {}
+//                 ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
+}
+''');
+  }
+
+  test_class_constructor_rP1_rp2__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1, [int? p2]);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1) {}
+//                 ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 0 optional positional formal parameters, but the declaration has 1.
+}
+''');
+  }
+
+  test_class_constructor_rP1_rP2__rP1_rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int? p1, int? p2);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1, [int? p2]) {}
+//                   ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
+}
+''');
+  }
+
   test_class_instanceField_inducedSetter_rP1__rP1() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   int foo = 0;
   augment void set foo(int p1);
+}
+''');
+  }
+
+  test_class_instanceMethod_rn1__rn1_rn2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo({int? n1});
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo({int? n1, int? n2}) {}
+//                                ^^
+// [diag.augmentationNamedFormalParameterExtra][context 1] The augmentation has a named formal parameter 'n2', but the declaration doesn't.
+}
+''');
+  }
+
+  test_class_instanceMethod_rn1_rn2__rn1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo({int? n1, int? n2});
+//                        ^^
+// [context 1] The formal parameter is here.
+  augment void foo({int? n1}) {}
+//                          ^
+// [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n2' from the declaration.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1__rp1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int? p1);
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo([int? p1]) {}
+//                 ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+}
+''');
+  }
+
+  test_class_instanceMethod_rp1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo([int? p1]);
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo(int? p1) {}
+//                      ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
 }
 ''');
   }
@@ -228,6 +427,75 @@ abstract class A {
 //                               ^^
 // [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 2 required positional formal parameters, but the declaration has 1.
 }
+
+void f(A a) {
+  a.foo(0);
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1__rP1_rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int? p1);
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo(int? p1, [int? p2]) {}
+//                          ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1_rn1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int? p1, {int? n1});
+//                        ^^
+// [context 1] The formal parameter is here.
+  augment void foo(int? p1) {}
+//                        ^
+// [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n1' from the declaration.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1_rP2__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int? p1, int? p2);
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo(int? p1) {}
+//                        ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1_rp2__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int? p1, [int? p2]);
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo(int? p1) {}
+//                        ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 0 optional positional formal parameters, but the declaration has 1.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1_rP2__rP1_rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int? p1, int? p2);
+//     ^^^
+// [context 1] The declaration being augmented.
+  augment void foo(int? p1, [int? p2]) {}
+//                          ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
+}
 ''');
   }
 
@@ -236,6 +504,140 @@ abstract class A {
 abstract class A {
   set foo(int? p1);
   augment set foo(int? p1) {}
+}
+''');
+  }
+
+  test_class_staticMethod_rn1__rn1_rn2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo({int? n1});
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo({int? n1, int? n2}) {}
+//                                       ^^
+// [diag.augmentationNamedFormalParameterExtra][context 1] The augmentation has a named formal parameter 'n2', but the declaration doesn't.
+}
+''');
+  }
+
+  test_class_staticMethod_rn1_rn2__rn1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo({int? n1, int? n2});
+//                               ^^
+// [context 1] The formal parameter is here.
+  augment static void foo({int? n1}) {}
+//                                 ^
+// [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n2' from the declaration.
+}
+''');
+  }
+
+  test_class_staticMethod_rP1__rp1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo([int? p1]) {}
+//                        ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+}
+''');
+  }
+
+  test_class_staticMethod_rp1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo([int? p1]);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo(int? p1) {}
+//                             ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
+}
+''');
+  }
+
+  test_class_staticMethod_rP1__rP1_rP2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo(int? p1, int? p2) {}
+//                                      ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 2 required positional formal parameters, but the declaration has 1.
+}
+
+void f() {
+  A.foo(0);
+}
+''');
+  }
+
+  test_class_staticMethod_rP1__rP1_rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo(int? p1, [int? p2]) {}
+//                                 ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+}
+''');
+  }
+
+  test_class_staticMethod_rP1_rn1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1, {int? n1});
+//                               ^^
+// [context 1] The formal parameter is here.
+  augment static void foo(int? p1) {}
+//                               ^
+// [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n1' from the declaration.
+}
+''');
+  }
+
+  test_class_staticMethod_rP1_rP2__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1, int? p2);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo(int? p1) {}
+//                               ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
+}
+''');
+  }
+
+  test_class_staticMethod_rP1_rp2__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1, [int? p2]);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo(int? p1) {}
+//                               ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 0 optional positional formal parameters, but the declaration has 1.
+}
+''');
+  }
+
+  test_class_staticMethod_rP1_rP2__rP1_rp2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo(int? p1, int? p2);
+//            ^^^
+// [context 1] The declaration being augmented.
+  augment static void foo(int? p1, [int? p2]) {}
+//                                 ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
 }
 ''');
   }
@@ -352,6 +754,21 @@ void f([int? p1]);
 augment void f(int? p1) {}
 //                  ^^
 // [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1_rP2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int? p1);
+//   ^
+// [context 1] The declaration being augmented.
+augment void f(int? p1, int? p2) {}
+//                           ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 2 required positional formal parameters, but the declaration has 1.
+
+void g() {
+  f(0);
+}
 ''');
   }
 

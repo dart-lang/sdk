@@ -15380,6 +15380,29 @@ LinterLintCode:
       * logical expressions - parentheses can improve the readability of the implicit
         grouping defined by precedence. For example, the expression
         `(a && b) || c && d`.
+  unnecessaryPrimaryConstructorBody:
+    type: lint
+    parameters: none
+    problemMessage: "Unnecessary primary constructor body."
+    correctionMessage: "Try removing the body."
+    state:
+      experimental: "3.13"
+    categories: [brevity, style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Don't include an empty primary constructor body.
+
+      **BAD:**
+      ```dart
+      class C() {
+        this;
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      class C();
+      ```
   unnecessaryRawStrings:
     type: lint
     parameters: none

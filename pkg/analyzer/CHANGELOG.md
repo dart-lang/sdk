@@ -1,7 +1,9 @@
 ## 13.2.0-dev
 
-* Internal changes only.
 * Allow package_config `3.x.x`.
+* Deprecate `FormalParameterElement.formalParameters` and `typeParameters`. Use `FormalParameterElement.type` instead.
+* Added `isComplete` to `ConstructorDeclaration`, `FunctionDeclaration`, and `MethodDeclaration`.
+* Deprecated `MethodDeclaration.isAbstract`. Use `!isComplete` instead.
 
 ## 13.1.0
 

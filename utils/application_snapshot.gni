@@ -7,6 +7,7 @@ import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
@@ -122,6 +123,8 @@ template("application_snapshot") {
       mnemonic = "GEN_KERNEL"
       if (defined(invoker.pool)) {
         pool = invoker.pool
+      } else if (_is_dart) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
       } else {
         pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
       }

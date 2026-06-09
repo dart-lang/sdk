@@ -446,7 +446,7 @@ void f() {
 class A {
   int field = 0;
 
-  A.newName();
+  new newName();
 }
 class B extends A {
   B() : super.newName() {}
@@ -740,7 +740,7 @@ enum E {
 
   factory E.other() => throw 0;
 
-  const E.newName();
+  const new newName();
 }
 ''', result!.replaceMatches.first.matches);
   }
@@ -763,7 +763,7 @@ enum E {
 
   final int foo = 0;
 
-  const E.newName();
+  const new newName();
 }
 ''', result!.replaceMatches.first.matches);
   }
@@ -784,7 +784,7 @@ enum E {
 enum E {
   v1.newName(), v2.newName(), v3.newName();
 
-  const E.newName();
+  const new newName();
 
   void foo() {}
 }

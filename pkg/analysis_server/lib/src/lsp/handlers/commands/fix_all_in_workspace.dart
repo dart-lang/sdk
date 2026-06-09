@@ -56,7 +56,11 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     }
 
     var workspace = DartChangeWorkspace(await server.currentSessions);
-    var processor = BulkFixProcessor(server.instrumentationService, workspace);
+    var processor = BulkFixProcessor(
+      server.instrumentationService,
+      workspace,
+      byteStore: server.byteStore,
+    );
 
     progress.begin('Computing fixes…');
     try {

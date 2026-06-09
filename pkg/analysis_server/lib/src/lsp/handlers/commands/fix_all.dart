@@ -120,6 +120,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
 
     var processor = IterativeBulkFixProcessor(
       instrumentationService: server.instrumentationService,
+      byteStore: server.byteStore,
       context: context,
       applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
       applyOverlays: applyOverlays,

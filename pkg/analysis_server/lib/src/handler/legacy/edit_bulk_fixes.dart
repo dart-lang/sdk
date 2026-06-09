@@ -72,6 +72,7 @@ class EditBulkFixes extends LegacyHandler {
       var processor = BulkFixProcessor(
         server.instrumentationService,
         workspace,
+        byteStore: server.byteStore,
         codes: codes,
       );
       if (!updatePubspec) {

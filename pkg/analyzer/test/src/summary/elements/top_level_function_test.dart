@@ -279,9 +279,6 @@ library
         #E0 requiredNamed n1
           firstFragment: #F3
           type: int
-        #E1 requiredNamed n1
-          firstFragment: #F5
-          type: int
       returnType: void
   exportEntries
     declared <testLibrary>::@function::foo
@@ -331,9 +328,6 @@ library
       formalParameters
         #E0 requiredNamed n1
           firstFragment: #F3
-          type: int
-        #E1 requiredNamed n2
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -899,9 +893,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: int
-        #E1 requiredPositional p2
-          firstFragment: #F5
-          type: int
       returnType: void
   exportEntries
     declared <testLibrary>::@function::foo
@@ -1040,9 +1031,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: int
-        #E1 requiredPositional p2
-          firstFragment: #F5
-          type: int
       returnType: void
   exportEntries
     declared <testLibrary>::@function::foo
@@ -1092,9 +1080,6 @@ library
       formalParameters
         #E0 optionalPositional p1
           firstFragment: #F3
-          type: int
-        #E1 optionalPositional p2
-          firstFragment: #F5
           type: int
       returnType: void
   exportEntries
@@ -1350,14 +1335,8 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: int
-        #E1 requiredPositional p2
-          firstFragment: #F5
-          type: int
-        #E2 requiredNamed n1
+        #E1 requiredNamed n1
           firstFragment: #F7
-          type: int
-        #E3 requiredNamed n2
-          firstFragment: #F9
           type: int
       returnType: void
   exportEntries
@@ -2238,8 +2217,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       returnType: void
 ''');
   }
@@ -2299,8 +2276,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
       returnType: void
 ''');
   }
@@ -2369,10 +2344,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
       returnType: void
 ''');
   }
