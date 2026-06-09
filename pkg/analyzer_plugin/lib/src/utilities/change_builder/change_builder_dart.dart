@@ -178,13 +178,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.CONST.lexeme);
       write(' ');
     }
-    if (classNameGroupName == null) {
+    if (_featureSet.isEnabled(Feature.primary_constructors)) {
+      write('new');
+    } else if (classNameGroupName == null) {
       write(className);
     } else {
       addSimpleLinkedEdit(classNameGroupName, className);
     }
     if (constructorName != null) {
-      write('.');
+      if (_featureSet.isEnabled(Feature.primary_constructors)) {
+        write(' ');
+      } else {
+        write('.');
+      }
       if (constructorNameGroupName == null) {
         write(constructorName);
       } else {
