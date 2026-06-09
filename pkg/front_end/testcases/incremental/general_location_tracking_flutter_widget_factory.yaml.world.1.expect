@@ -84,32 +84,32 @@ library from "org-dartlang-test:///foo.dart" as foo {
   static extension-member method FooExtension|get#getterFoo(lowered final dart.core::Object? #this, {dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Foo
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   @#C3
-  static extension-member method FooExtension|set#setterFoo(lowered final dart.core::Object? #this, wildcard dynamic _#wc0#formal) → void
-    return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C34);
+  static extension-member method FooExtension|set#setterFoo(lowered final dart.core::Object? #this, wildcard dynamic _#wc0#formal, {dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → void
+    return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   @#C3
   static extension-member method FooExtension|unary-(lowered final dart.core::Object? #this, {dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Foo
     return new foo::Foo::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   @#C3
   static extension-member method FooExtension|staticFoo() → foo::Foo
-    return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C36);
+    return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C34);
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C40);
-  static field () → foo::Foo newFooFunction = #C41;
+  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C38);
+  static field () → foo::Foo newFooFunction = #C39;
   static field foo::Foo newFooFunctionCall = main::newFooFunction(){() → foo::Foo};
-  static field foo::Foo extensionFoo = foo::FooExtension|foo(null, $creationLocationd_0dea112b090073317d4: #C44);
+  static field foo::Foo extensionFoo = foo::FooExtension|foo(null, $creationLocationd_0dea112b090073317d4: #C42);
   static field () → foo::Foo extensionFooFunction = foo::FooExtension|get#foo(null);
   static field foo::Foo extensionFooFunctionCall = main::extensionFooFunction(){() → foo::Foo};
-  static field foo::Foo extensionBar = foo::FooExtension|bar(null, $creationLocationd_0dea112b090073317d4: #C45);
+  static field foo::Foo extensionBar = foo::FooExtension|bar(null, $creationLocationd_0dea112b090073317d4: #C43);
   static field foo::Foo extensionBaz = foo::FooExtension|baz(null);
   static field foo::Foo extensionBoz = foo::FooExtension|boz(null);
-  static field foo::Foo extensionConstFoo = foo::FooExtension|constFoo(null, $creationLocationd_0dea112b090073317d4: #C47);
-  static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C51);
-  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1) in #t1;
-  static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C54);
+  static field foo::Foo extensionConstFoo = foo::FooExtension|constFoo(null, $creationLocationd_0dea112b090073317d4: #C45);
+  static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C49);
+  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C53) in #t1;
+  static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C56);
   static field foo::Foo extensionStaticFoo = foo::FooExtension|staticFoo();
 }
 constants  {
@@ -144,29 +144,31 @@ constants  {
   #C29 = foo::Foo {_location:#C28}
   #C30 = "FooExtension|constFoo"
   #C31 = dart.developer::CreationLocation {file:#C4, line:#C6, column:#C16, name:#C30}
-  #C32 = 33.0
-  #C33 = 32.0
+  #C32 = 39.0
+  #C33 = 33.0
   #C34 = dart.developer::CreationLocation {file:#C4, line:#C32, column:#C33, name:#C7}
-  #C35 = 39.0
-  #C36 = dart.developer::CreationLocation {file:#C4, line:#C35, column:#C32, name:#C7}
-  #C37 = "org-dartlang-test:///main.dart"
-  #C38 = 2.0
-  #C39 = 18.0
-  #C40 = dart.developer::CreationLocation {file:#C37, line:#C38, column:#C39, name:#C7}
-  #C41 = static-tearoff foo::Foo::_#new#tearOff
-  #C42 = 5.0
-  #C43 = 25.0
-  #C44 = dart.developer::CreationLocation {file:#C37, line:#C42, column:#C43, name:#C17}
-  #C45 = dart.developer::CreationLocation {file:#C37, line:#C5, column:#C43, name:#C20}
-  #C46 = 30.0
-  #C47 = dart.developer::CreationLocation {file:#C37, line:#C10, column:#C46, name:#C30}
-  #C48 = 12.0
-  #C49 = 31.0
-  #C50 = "FooExtension|get#getterFoo"
-  #C51 = dart.developer::CreationLocation {file:#C37, line:#C48, column:#C49, name:#C50}
-  #C52 = 28.0
-  #C53 = "FooExtension|unary-"
-  #C54 = dart.developer::CreationLocation {file:#C37, line:#C15, column:#C52, name:#C53}
+  #C35 = "org-dartlang-test:///main.dart"
+  #C36 = 2.0
+  #C37 = 18.0
+  #C38 = dart.developer::CreationLocation {file:#C35, line:#C36, column:#C37, name:#C7}
+  #C39 = static-tearoff foo::Foo::_#new#tearOff
+  #C40 = 5.0
+  #C41 = 25.0
+  #C42 = dart.developer::CreationLocation {file:#C35, line:#C40, column:#C41, name:#C17}
+  #C43 = dart.developer::CreationLocation {file:#C35, line:#C5, column:#C41, name:#C20}
+  #C44 = 30.0
+  #C45 = dart.developer::CreationLocation {file:#C35, line:#C10, column:#C44, name:#C30}
+  #C46 = 12.0
+  #C47 = 31.0
+  #C48 = "FooExtension|get#getterFoo"
+  #C49 = dart.developer::CreationLocation {file:#C35, line:#C46, column:#C47, name:#C48}
+  #C50 = 13.0
+  #C51 = 37.0
+  #C52 = "FooExtension|set#setterFoo"
+  #C53 = dart.developer::CreationLocation {file:#C35, line:#C50, column:#C51, name:#C52}
+  #C54 = 28.0
+  #C55 = "FooExtension|unary-"
+  #C56 = dart.developer::CreationLocation {file:#C35, line:#C15, column:#C54, name:#C55}
 }
 
 

@@ -219,12 +219,14 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
     if (_isWidgetFactory(target)) {
-      final Class? locationClass = _tracker._getFactoryLocationClass(target);
-      if (locationClass != null) {
+      final Variable parameter = target.function.namedParameters
+          .firstWhere((p) => p.name == _creationLocationParameterName);
+      final DartType type = parameter.type;
+      if (type is InterfaceType) {
         _addLocationArgument(
           node,
           target.function,
-          locationClass: locationClass,
+          locationClass: type.classNode,
         );
         return node;
       }
@@ -722,13 +724,6 @@ class WidgetCreatorTracker {
     return null;
   }
 
-  bool _isTransformedType(DartType type) {
-    if (type is InterfaceType) {
-      return _getTrackingClasses(type.classNode) != null;
-    }
-    return false;
-  }
-
   bool _isSubclassWhere(Class a, bool Function(Class b) predicate) {
     // TODO(askesc): Cache results.
     // TODO(askesc): Test for subtype rather than subclass.
@@ -916,9 +911,6 @@ class WidgetCreatorTracker {
   void _transformExtensionProcedure(Procedure method, Extension extension) {
     final Class? locationClass = _getFactoryLocationClass(method);
     if (locationClass == null) {
-      return;
-    }
-    if (!_isTransformedType(method.function.returnType)) {
       return;
     }
 
