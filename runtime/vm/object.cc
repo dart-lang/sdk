@@ -16326,8 +16326,6 @@ const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
       return "osr-entry";
     case UntaggedPcDescriptors::kRewind:
       return "rewind";
-    case UntaggedPcDescriptors::kBSSRelocation:
-      return "bss reloc";
     case UntaggedPcDescriptors::kOther:
       return "other";
     case UntaggedPcDescriptors::kAnyKind:
