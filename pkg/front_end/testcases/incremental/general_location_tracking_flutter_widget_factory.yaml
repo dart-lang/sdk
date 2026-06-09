@@ -71,7 +71,7 @@ worlds:
         abstract class Bar {
           const Bar();
         }
-        
+
         @pragma('track-creation-locations')
         abstract class Widget extends Bar {
           const Widget();
