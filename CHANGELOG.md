@@ -1,5 +1,7 @@
 ## 3.12.2
 
+**Released on:** 2026-06-09
+
 This is a patch release that:
 
 - Fixes a crash bug in `dart format` if an `analysis_options.yaml` file has an
