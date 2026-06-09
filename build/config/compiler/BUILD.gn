@@ -639,10 +639,12 @@ if (is_win) {
       "-Wno-ignored-pragma-optimize",  # icu, double-conversion
       "-Wno-macro-redefined",
       "-Wno-microsoft-cast",
-      "-Wno-microsoft-unqualified-friend",
       "-Wno-unknown-argument",  # icu
       "-Wno-unused-value",  # crashpad
       "-Wno-deprecated-non-prototype",  # zlib
+    ]
+    default_warning_flags_cc += [
+      "-Wno-microsoft-unqualified-friend",
     ]
   } else {
     default_warning_flags += [
