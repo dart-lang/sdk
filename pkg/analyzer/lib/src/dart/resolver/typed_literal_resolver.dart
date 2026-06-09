@@ -52,28 +52,13 @@ class TypedLiteralResolver {
 
   final bool _strictInference;
 
-  factory TypedLiteralResolver(
-    ResolverVisitor resolver,
-    TypeSystemImpl typeSystem,
-    TypeProviderImpl typeProvider,
-    AnalysisOptions analysisOptions,
-  ) {
-    return TypedLiteralResolver._(
-      resolver,
-      typeSystem,
-      typeProvider,
-      resolver.diagnosticReporter,
-      analysisOptions.strictInference,
-    );
-  }
-
-  TypedLiteralResolver._(
+  TypedLiteralResolver(
     this._resolver,
     this._typeSystem,
     this._typeProvider,
-    this._diagnosticReporter,
-    this._strictInference,
-  );
+    AnalysisOptions analysisOptions,
+  ) : _diagnosticReporter = _resolver.diagnosticReporter,
+      _strictInference = analysisOptions.strictInference;
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
