@@ -125,10 +125,6 @@ group("create_sdk") {
   public_deps = [ "sdk:create_sdk" ]
 }
 
-group("create_platform_sdk") {
-  public_deps = [ "sdk:create_platform_sdk" ]
-}
-
 group("dart2js") {
   import("runtime/runtime_args.gni")
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {

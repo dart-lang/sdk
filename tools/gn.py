@@ -22,8 +22,6 @@ AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instead of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
-# use instead of --platform-sdk
-DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
 
 DART_GN_ARGS = "DART_GN_ARGS"
 
@@ -38,10 +36,6 @@ def TargetSysroot(args):
     if args.target_sysroot:
         return args.target_sysroot
     return os.environ.get(DART_USE_SYSROOT)
-
-
-def MakePlatformSDK():
-    return DART_MAKE_PLATFORM_SDK in os.environ
 
 
 def GetGNArgs(args):
@@ -272,9 +266,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['is_hwasan'] = sanitizer == 'hwasan'
     gn_args['is_qemu'] = args.use_qemu
 
-    if not args.platform_sdk:
-        gn_args['dart_platform_sdk'] = args.platform_sdk
-
     if args.include_experimental_vm_service:
         gn_args[
             'include_experimental_vm_service'] = args.include_experimental_vm_service
@@ -493,11 +484,6 @@ def AddCommonGnOptionArgs(parser):
                         action='store_false')
     parser.set_defaults(clang=True)
 
-    parser.add_argument(
-        '--platform-sdk',
-        help='Directs the create_sdk target to create a smaller "Platform" SDK',
-        default=MakePlatformSDK(),
-        action='store_true')
     parser.add_argument('--use-crashpad',
                         default=False,
                         dest='use_crashpad',
@@ -553,11 +539,6 @@ def AddCommonGnOptionArgs(parser):
         '-s',
         type=str,
         help='Comma-separated list of arch=/path/to/sysroot mappings')
-    parser.add_argument('--use-mallinfo2',
-                        help='Use mallinfo2 to collect malloc stats.',
-                        default=False,
-                        dest='use_mallinfo2',
-                        action='store_true')
     parser.add_argument('--codesigning-identity',
                         help='Sign executables using the given identity.',
                         type=str)
