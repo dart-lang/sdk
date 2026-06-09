@@ -32,7 +32,7 @@ class AbstractContextTest
     with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
-  static final ByteStore _byteStore = MemoryByteStore();
+  final ByteStore byteStore = MemoryByteStore();
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -272,7 +272,7 @@ class AbstractContextTest
     }
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: _byteStore,
+      byteStore: byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),

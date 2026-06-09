@@ -12,11 +12,131 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AdditionalEnabledCodesTest);
     defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(ChangeMapTest);
     defineReflectiveTests(NoFixTest);
     defineReflectiveTests(PubspecFixTest);
   });
+}
+
+@reflectiveTest
+class AdditionalEnabledCodesTest extends BulkFixProcessorTest {
+  Future<void> test_additionalEnabledCodes_areApplied() async {
+    // Deliberately DO NOT enable the lint in the options file
+    createAnalysisOptionsFile(experiments: experiments, lints: []);
+
+    await resolveTestCode('''
+class A { }
+
+var a = new A();
+''');
+
+    var analysisContext = contextFor(testFile);
+    var changeWorkspace = await workspace;
+    var processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      changeWorkspace,
+      byteStore: byteStore,
+      additionalEnabledCodes: [LintNames.unnecessary_new],
+    );
+
+    await processor.fixErrors([analysisContext]);
+
+    var errors = processor.changeMap.libraryMap[testFile.path]!;
+    expect(errors, hasLength(1));
+    expect(errors[LintNames.unnecessary_new], 1);
+  }
+
+  Future<void>
+  test_additionalEnabledCodes_doesNotFilterOutOriginalLints() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.annotate_overrides],
+    );
+
+    await resolveTestCode('''
+class A {
+  void f() { }
+}
+
+class B extends A {
+  void f() { }
+}
+
+var a = new A();
+''');
+
+    var analysisContext = contextFor(testFile);
+    var changeWorkspace = await workspace;
+    var processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      changeWorkspace,
+      byteStore: byteStore,
+      additionalEnabledCodes: [LintNames.unnecessary_new],
+    );
+
+    await processor.fixErrors([analysisContext]);
+
+    var errors = processor.changeMap.libraryMap[testFile.path]!;
+    expect(errors, hasLength(2));
+    expect(errors[LintNames.annotate_overrides], 1);
+    expect(errors[LintNames.unnecessary_new], 1);
+  }
+
+  Future<void> test_additionalEnabledCodes_invalidCodesIgnored() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: []);
+
+    await resolveTestCode('''
+class A { }
+
+var a = new A();
+''');
+
+    var analysisContext = contextFor(testFile);
+    var changeWorkspace = await workspace;
+    var processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      changeWorkspace,
+      byteStore: byteStore,
+      additionalEnabledCodes: ['some_fake_lint_that_doesnt_exist'],
+    );
+
+    await processor.fixErrors([analysisContext]);
+
+    // No fixes should be applied, and it shouldn't crash
+    expect(processor.changeMap.hasFixes, isFalse);
+  }
+
+  Future<void>
+  test_additionalEnabledCodes_originalContextRemainsUnchanged() async {
+    createAnalysisOptionsFile(experiments: experiments, lints: []);
+
+    await resolveTestCode('''
+class A { }
+
+var a = new A();
+''');
+
+    var analysisContext = contextFor(testFile);
+    var changeWorkspace = await workspace;
+    var processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      changeWorkspace,
+      byteStore: byteStore,
+      additionalEnabledCodes: [LintNames.unnecessary_new],
+    );
+
+    await processor.fixErrors([analysisContext]);
+
+    // Ensure the original context's options map still does not contain the lint
+    var originalLints = analysisContext
+        .getAnalysisOptionsForFile(testFile)
+        .lintRules
+        .map((rule) => rule.name)
+        .toList();
+    expect(originalLints, isNot(contains(LintNames.unnecessary_new)));
+  }
 }
 
 @reflectiveTest
@@ -59,6 +179,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
+      byteStore: byteStore,
       cancellationToken: token,
     );
 
