@@ -1490,10 +1490,6 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
       FunctionType::ZoneHandle(zone, function.FfiCSignature());
   const bool is_leaf = function.FfiIsLeaf();
 
-  // Used by compiler::ffi::CallMarshaller.
-  CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
-                               /*is_optimizing=*/false);
-
   const char* error = nullptr;
   const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
       zone, function, first_argument_parameter_offset, c_signature, &error);
