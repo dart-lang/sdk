@@ -340,6 +340,7 @@ class PrimaryConstructorFieldDeclaration
       _encoding = new PrimaryConstructorFieldEncoding(_fragment);
     }
 
+    Token? defaultValueToken = _fragment.takeDefaultValueToken();
     type.registerInferredTypeListener(this);
     if (type is InferableTypeBuilder) {
       // A field with no type and initializer or an instance field without
@@ -353,7 +354,7 @@ class PrimaryConstructorFieldDeclaration
         name: _fragment.name,
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
-        token: _fragment.takeDefaultValueToken(),
+        token: defaultValueToken,
       );
       type.registerInferable(this);
     }
