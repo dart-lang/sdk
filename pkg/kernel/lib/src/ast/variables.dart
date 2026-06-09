@@ -71,7 +71,6 @@ abstract interface class IVariable implements TreeNode, Annotatable {
   bool get hasIsWildcard;
   bool get hasIsSuperInitializingFormal;
   bool get hasIsErroneouslyInitialized;
-  Variable get asVariableDeclaration;
 }
 
 /// The root of the sealed hierarchy of non-type variables.
@@ -185,9 +184,6 @@ sealed class Variable extends VariableBase
 
   @override
   bool get isAssignable;
-
-  @override
-  Variable get asVariableDeclaration => this;
 
   abstract String? name;
 
@@ -645,9 +641,6 @@ class LegacyVariable extends TreeNode implements Variable, Annotatable {
   void set context(VariableContext value) {
     throw new UnsupportedError("${this.runtimeType}.context=");
   }
-
-  @override
-  Variable get asVariableDeclaration => this;
 
   @override
   Variable get variable => this;

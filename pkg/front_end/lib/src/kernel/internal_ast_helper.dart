@@ -129,7 +129,7 @@ Block createBlock(
     Statement statement = statements[i];
     if (statement is _VariablesDeclaration) {
       copy ??= new List<Statement>.of(statements.getRange(0, i));
-      for (VariableDeclaration declaration in statement.declarations) {
+      for (InternalVariableDeclaration declaration in statement.declarations) {
         copy.add(createVariableStatement(declaration));
       }
     } else if (copy != null) {
@@ -349,7 +349,7 @@ Statement createExpressionStatement(
 
 ForElement createForElement(
   int fileOffset,
-  List<VariableDeclaration> variables,
+  List<InternalVariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
   Expression body,
@@ -410,7 +410,7 @@ ForInStatement createForInStatement(
 
 ForMapEntry createForMapEntry(
   int fileOffset,
-  List<VariableDeclaration> variables,
+  List<InternalVariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
   MapLiteralEntry body,
@@ -422,12 +422,12 @@ ForMapEntry createForMapEntry(
 /// Return a representation of a for statement.
 Statement createForStatement(
   int fileOffset,
-  List<VariableDeclaration>? variables,
+  List<InternalVariableDeclaration>? variables,
   Expression? condition,
   List<Expression> updaters,
   Statement body,
 ) {
-  return new ForStatement(
+  return new InternalForStatement(
     variables ?? // Coverage-ignore(suite): Not run.
         [],
     condition,
@@ -694,18 +694,18 @@ InternalVariable createLateVariable({
   }
 }
 
-Let createLetForEffect({
+InternalLet createLetForEffect({
   required bool isClosureContextLoweringEnabled,
   required Expression effect,
   required DartType effectType,
   required Expression expression,
 }) {
-  return new Let(
+  return new InternalLet(
     createSyntheticVariableForValue(
       effect,
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       type: effectType,
-    ).asVariableDeclaration,
+    ),
     expression,
   )..fileOffset = effect.fileOffset;
 }
@@ -1099,8 +1099,8 @@ Expression createPatternAssignment(
 PatternForElement createPatternForElement(
   int fileOffset, {
   required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<VariableDeclaration> intermediateVariables,
-  required List<VariableDeclaration> variables,
+  required List<InternalVariableDeclaration> intermediateVariables,
+  required List<InternalVariableDeclaration> variables,
   required Expression? condition,
   required List<Expression> updates,
   required Expression body,
@@ -1108,7 +1108,7 @@ PatternForElement createPatternForElement(
   return new PatternForElement(
     internalPatternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
-    variables: variables,
+    internalVariables: variables,
     condition: condition,
     updates: updates,
     body: body,
@@ -1118,8 +1118,8 @@ PatternForElement createPatternForElement(
 PatternForMapEntry createPatternForMapEntry(
   int fileOffset, {
   required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<VariableDeclaration> intermediateVariables,
-  required List<VariableDeclaration> variableInitializations,
+  required List<InternalVariableDeclaration> intermediateVariables,
+  required List<InternalVariableDeclaration> variableInitializations,
   required Expression? condition,
   required List<Expression> updates,
   required MapLiteralEntry body,
@@ -1127,7 +1127,7 @@ PatternForMapEntry createPatternForMapEntry(
   return new PatternForMapEntry(
     internalPatternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
-    variables: variableInitializations,
+    internalVariables: variableInitializations,
     condition: condition,
     updates: updates,
     body: body,
@@ -1620,11 +1620,11 @@ UnaryExpression createUnary(
   return new UnaryExpression(unaryName, expression)..fileOffset = fileOffset;
 }
 
-VariableDeclaration createVariableDeclaration(
+InternalVariableDeclaration createVariableDeclaration(
   InternalVariable variable, {
   int? fileOffset,
 }) {
-  return new VariableDeclaration(variable.asVariableDeclaration)
+  return new InternalVariableDeclaration(variable)
     ..fileOffset = fileOffset ?? variable.fileOffset;
 }
 
@@ -1655,11 +1655,11 @@ InternalVariableSet createVariableSet(
   return new InternalVariableSet(variable, value)..fileOffset = fileOffset;
 }
 
-VariableStatement createVariableStatement(
-  VariableDeclaration declaration, {
+InternalVariableStatement createVariableStatement(
+  InternalVariableDeclaration declaration, {
   int? fileOffset,
 }) {
-  return new VariableStatement(declaration)
+  return new InternalVariableStatement(declaration)
     ..fileOffset = fileOffset ?? declaration.fileOffset;
 }
 
@@ -1714,13 +1714,13 @@ bool isThisExpression(Object node) =>
 bool isVariablesDeclaration(Object? node) => node is _VariablesDeclaration;
 
 _VariablesDeclaration variablesDeclaration(
-  List<VariableDeclaration> declarations,
+  List<InternalVariableDeclaration> declarations,
   Uri uri,
 ) {
   return new _VariablesDeclaration(declarations, uri);
 }
 
-List<VariableDeclaration> variablesDeclarationExtractDeclarations(
+List<InternalVariableDeclaration> variablesDeclarationExtractDeclarations(
   Object? variablesDeclaration,
 ) {
   return (variablesDeclaration as _VariablesDeclaration).declarations;
@@ -1735,7 +1735,7 @@ Statement wrapVariables(Statement statement) {
         growable: true,
       ),
     )..fileOffset = statement.fileOffset;
-  } else if (statement is VariableStatement) {
+  } else if (statement is InternalVariableStatement) {
     return new Block(<Statement>[statement])..fileOffset = statement.fileOffset;
   } else {
     return statement;
@@ -1743,7 +1743,7 @@ Statement wrapVariables(Statement statement) {
 }
 
 class _VariablesDeclaration extends AuxiliaryStatement {
-  final List<VariableDeclaration> declarations;
+  final List<InternalVariableDeclaration> declarations;
   final Uri uri;
 
   new(this.declarations, this.uri) {
@@ -1774,8 +1774,8 @@ class _VariablesDeclaration extends AuxiliaryStatement {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
-        declarations[index],
+      printer.writeVariableInitialization(
+        declarations[index].variable.astVariable,
         includeModifiersAndType: index == 0,
       );
     }
