@@ -29,7 +29,6 @@ const Option<bool> withOutlineOption = const Option(
 
 const List<Option> folderOptionsSpecification = [
   Options.enableExperiment,
-  Options.enableUnscheduledExperiments,
   Options.forceLateLoweringSentinel,
   overwriteCurrentSdkVersion,
   Options.forceLateLowering,
@@ -54,7 +53,6 @@ class SuiteFolderOptions {
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions? folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
-      bool? enableUnscheduledExperiments;
       int? forceLateLowering;
       bool? forceLateLoweringSentinel;
       bool? forceStaticFieldLowering;
@@ -69,7 +67,6 @@ class SuiteFolderOptions {
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions(
           {},
-          enableUnscheduledExperiments: enableUnscheduledExperiments,
           forceLateLowerings: forceLateLowering,
           forceLateLoweringSentinel: forceLateLoweringSentinel,
           forceStaticFieldLowering: forceStaticFieldLowering,
@@ -97,8 +94,6 @@ class SuiteFolderOptions {
               Options.enableExperiment.read(parsedOptions) ?? <String>[];
           String? overwriteCurrentSdkVersionArgument =
               overwriteCurrentSdkVersion.read(parsedOptions);
-          enableUnscheduledExperiments = Options.enableUnscheduledExperiments
-              .read(parsedOptions);
           forceLateLoweringSentinel = Options.forceLateLoweringSentinel.read(
             parsedOptions,
           );
@@ -132,7 +127,6 @@ class SuiteFolderOptions {
               onError: (String message) => throw new ArgumentError(message),
               onWarning: (String message) => throw new ArgumentError(message),
             ),
-            enableUnscheduledExperiments: enableUnscheduledExperiments,
             forceLateLowerings: forceLateLowering,
             forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
@@ -189,7 +183,6 @@ class SuiteFolderOptions {
 /// test folders.
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
-  final bool? enableUnscheduledExperiments;
   final int? forceLateLowerings;
   final bool? forceLateLoweringSentinel;
   final bool? forceStaticFieldLowering;
@@ -205,7 +198,6 @@ class FolderOptions {
 
   new(
     this._explicitExperimentalFlags, {
-    this.enableUnscheduledExperiments,
     this.forceLateLowerings,
     this.forceLateLoweringSentinel,
     this.forceStaticFieldLowering,
