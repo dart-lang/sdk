@@ -95,8 +95,9 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   int get statementCount => statements.length;
 }
 
-class VariableDeclarationInferenceResult {
-  const new();
+sealed class VariableDeclarationInferenceResult {
+  factory direct(VariableDeclaration declaration) =
+      DirectVariableDeclarationInferenceResult;
 
   factory effect([Expression? expression]) =
       EffectVariableDeclarationInferenceResult;
@@ -107,10 +108,23 @@ class VariableDeclarationInferenceResult {
     required int fileOffset,
   }) = LateVariableDeclarationInferenceResult;
 
-  bool get hasChanged => false;
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  });
+}
 
-  StatementInferenceResult toStatementInferenceResult() =>
-      const StatementInferenceResult();
+class DirectVariableDeclarationInferenceResult
+    implements VariableDeclarationInferenceResult {
+  final VariableDeclaration declaration;
+
+  new(this.declaration);
+
+  @override
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  }) => new StatementInferenceResult.single(
+    createVariableStatement(declaration, fileOffset: fileOffset),
+  );
 }
 
 class EffectVariableDeclarationInferenceResult
@@ -120,16 +134,13 @@ class EffectVariableDeclarationInferenceResult
   new([this.expression]);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasChanged => true;
-
-  @override
-  StatementInferenceResult toStatementInferenceResult() =>
-      new StatementInferenceResult.single(
-        expression != null
-            ? createExpressionStatement(expression!)
-            : createEmptyStatement(),
-      );
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  }) => new StatementInferenceResult.single(
+    expression != null
+        ? createExpressionStatement(expression!, fileOffset: fileOffset)
+        : createEmptyStatement(fileOffset: fileOffset),
+  );
 }
 
 class LateVariableDeclarationInferenceResult
@@ -145,16 +156,13 @@ class LateVariableDeclarationInferenceResult
   });
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasChanged => true;
-
-  @override
-  StatementInferenceResult toStatementInferenceResult() =>
-      new StatementInferenceResult.multiple(fileOffset, [
-        for (VariableDeclaration variableDeclaration in variableDeclarations)
-          createVariableStatement(variableDeclaration),
-        ...functionDeclarations,
-      ]);
+  StatementInferenceResult toStatementInferenceResult({
+    required int fileOffset,
+  }) => new StatementInferenceResult.multiple(fileOffset, [
+    for (VariableDeclaration variableDeclaration in variableDeclarations)
+      createVariableStatement(variableDeclaration),
+    ...functionDeclarations,
+  ]);
 }
 
 /// Tells the inferred type and how the code should be transformed.

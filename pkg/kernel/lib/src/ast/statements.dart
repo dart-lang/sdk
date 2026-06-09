@@ -1482,8 +1482,6 @@ class VariableStatement extends Statement {
       ..parent = this;
   }
 
-  /// Returns a possibly synthesized name for this variable, consistent with
-  /// the names used across all [toString] calls.
   @override
   String toString() {
     return "VariableStatement(${toStringInternal()})";

@@ -3326,14 +3326,14 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
-      VariableDeclaration node = peek() as VariableDeclaration;
+      InternalVariableDeclaration node = peek() as InternalVariableDeclaration;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
 
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
       assignedVariables.storeInfo(
-        (node.variable as InternalVariable).astVariable,
+        node.variable.astVariable,
         assignedVariablesInfo!,
       );
     }
@@ -3384,7 +3384,7 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableDeclaration variableDeclaration;
+    InternalVariableDeclaration variableDeclaration;
     InternalVariable internalVariable;
     if (isLate) {
       internalVariable = intern.createLateVariable(
@@ -3510,7 +3510,8 @@ class BodyBuilderImpl extends StackListenerImpl
       push(node);
       return;
     }
-    VariableDeclaration declaration = node as VariableDeclaration;
+    InternalVariableDeclaration declaration =
+        node as InternalVariableDeclaration;
     declaration.variable.fileOffset = declaration.fileOffset =
         nameToken.charOffset;
     push(declaration);
@@ -3520,7 +3521,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // the scope.
     if (!(libraryFeatures.wildcardVariables.isEnabled &&
         declaration.variable.isWildcard)) {
-      declareVariable(declaration.variable as InternalVariable, _localScope);
+      declareVariable(declaration.variable, _localScope);
     }
   }
 
@@ -3567,7 +3568,8 @@ class BodyBuilderImpl extends StackListenerImpl
         push(node);
         return;
       }
-      VariableDeclaration declaration = node as VariableDeclaration;
+      InternalVariableDeclaration declaration =
+          node as InternalVariableDeclaration;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
           declaration.variable.addAnnotation(annotations[i]);
@@ -3578,11 +3580,11 @@ class BodyBuilderImpl extends StackListenerImpl
       //  [endToken]?
       push(intern.createVariableStatement(declaration));
     } else {
-      List<VariableDeclaration>? variables =
-          const FixedNullableList<VariableDeclaration>().popNonNullable(
+      List<InternalVariableDeclaration>? variables =
+          const FixedNullableList<InternalVariableDeclaration>().popNonNullable(
             stack,
             count,
-            dummyVariableDeclaration,
+            dummyInternalVariableDeclaration,
           );
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
@@ -3593,7 +3595,7 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
       if (annotations != null) {
-        VariableDeclaration first = variables.first;
+        InternalVariableDeclaration first = variables.first;
         for (int i = 0; i < annotations.length; i++) {
           first.variable.addAnnotation(annotations[i]);
         }
@@ -3704,7 +3706,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<VariableDeclaration>? _buildForLoopVariableDeclarations(
+  List<InternalVariableDeclaration>? _buildForLoopVariableDeclarations(
     variableOrExpression,
   ) {
     // TODO(ahe): This can be simplified now that we have the events
@@ -3712,16 +3714,16 @@ class BodyBuilderImpl extends StackListenerImpl
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
-    if (variableOrExpression is VariableStatement) {
+    if (variableOrExpression is InternalVariableStatement) {
       // TODO(johnniwinther): Avoid parsing variable declarations initializers
       //  in for statements as statements.
-      VariableDeclaration variableDeclaration =
+      InternalVariableDeclaration variableDeclaration =
           variableOrExpression.declaration;
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableDeclaration.variable.isLate = false;
       return [variableDeclaration];
-    } else if (variableOrExpression is VariableDeclaration) {
+    } else if (variableOrExpression is InternalVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
@@ -3746,7 +3748,7 @@ class BodyBuilderImpl extends StackListenerImpl
       );
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
-      List<VariableDeclaration> variables = [];
+      List<InternalVariableDeclaration> variables = [];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
@@ -3790,8 +3792,8 @@ class BodyBuilderImpl extends StackListenerImpl
       // If the declaration is of the form `for (final x in ...)`, then we may
       // have erroneously set the `isStaticLate` flag, so un-set it.
       Object? declaration = peek();
-      if (declaration case VariableStatement(
-        declaration: VariableDeclaration(:VariableDeclarationImpl variable),
+      if (declaration case InternalVariableStatement(
+        declaration: InternalVariableDeclaration(:InternalVariable variable),
       )) {
         variable.isStaticLate = false;
       }
@@ -3967,8 +3969,8 @@ class BodyBuilderImpl extends StackListenerImpl
         .popNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
-    List<VariableDeclaration>? intermediateVariables;
+    List<InternalVariableDeclaration>? variables;
+    List<InternalVariableDeclaration>? intermediateVariables;
     if (variableOrExpression is InternalPatternVariableDeclaration) {
       variables = (pop() as List<InternalVariable>)
           .map(intern.createVariableDeclaration)
@@ -4090,8 +4092,8 @@ class BodyBuilderImpl extends StackListenerImpl
         .deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableDeclaration>? variables;
-    List<VariableDeclaration>? intermediateVariables;
+    List<InternalVariableDeclaration>? variables;
+    List<InternalVariableDeclaration>? intermediateVariables;
     if (variableOrExpression is InternalPatternVariableDeclaration) {
       variables = (pop() as List<InternalVariable>)
           .map(intern.createVariableDeclaration)
@@ -4142,7 +4144,7 @@ class BodyBuilderImpl extends StackListenerImpl
         fileEndOffset: result.fileOffset,
         [
           variableOrExpression,
-          for (VariableDeclaration intermediateVariable
+          for (InternalVariableDeclaration intermediateVariable
               in intermediateVariables!)
             intern.createVariableStatement(intermediateVariable),
           result,
@@ -8380,10 +8382,10 @@ class BodyBuilderImpl extends StackListenerImpl
     required Token inToken,
     required Object? lvalue,
   }) {
-    if (lvalue is VariableStatement) {
+    if (lvalue is InternalVariableStatement) {
       // TODO(johnniwinther): Avoid parsing variable declarations in
       //  for-in statements as statements.
-      VariableDeclaration declaration = lvalue.declaration;
+      InternalVariableDeclaration declaration = lvalue.declaration;
       // Variable initializers are not supported. An error has already been
       // reported by the parser.
       declaration.variable.initializer = null;
@@ -8407,7 +8409,7 @@ class BodyBuilderImpl extends StackListenerImpl
         variableDeclaration: declaration,
         error: error,
       );
-    } else if (lvalue is VariableDeclaration) {
+    } else if (lvalue is InternalVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       // Variable initializers are not supported. An error has already been
       // reported by the parser.

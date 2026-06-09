@@ -835,8 +835,6 @@ CompilationSetup createCompilationSetup(
       ..onDiagnostic = (CfeDiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
       }
-      ..enableUnscheduledExperiments =
-          folderOptions.enableUnscheduledExperiments ?? false
       ..environmentDefines = folderOptions.defines
       ..explicitExperimentalFlags = experimentalFlags
       ..librariesSpecificationUri = librariesSpecificationUri

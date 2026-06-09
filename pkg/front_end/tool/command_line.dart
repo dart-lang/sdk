@@ -42,7 +42,6 @@ const List<Option> optionSpecification = [
   Options.dumpIr,
   Options.showOffsets,
   Options.enableExperiment,
-  Options.enableUnscheduledExperiments,
   Options.excludeSource,
   Options.omitPlatform,
   Options.fatal,
@@ -176,9 +175,6 @@ ProcessedOptions analyzeCommandLine(
   final String? singleRootScheme = Options.singleRootScheme.read(parsedOptions);
   final Uri? singleRootBase = Options.singleRootBase.read(parsedOptions);
 
-  final bool enableUnscheduledExperiments = Options.enableUnscheduledExperiments
-      .read(parsedOptions);
-
   final List<Uri> linkDependencies =
       Options.linkDependencies.read(parsedOptions) ?? [];
 
@@ -237,7 +233,6 @@ ProcessedOptions analyzeCommandLine(
     ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = environmentDefines
-    ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDillModules = linkDependencies
     ..emitDeps = !noDeps
     ..invocationModes = InvocationMode.parseArguments(invocationModes)

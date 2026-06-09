@@ -225,17 +225,31 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration(new Variable('a')),
-      new VariableDeclaration(new Variable('b')),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl('a', fileOffset: TreeNode.noOffset),
+      ),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl('b', fileOffset: TreeNode.noOffset),
+      ),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration(new Variable('a', type: const VoidType())),
-      new VariableDeclaration(
-        new Variable('b', initializer: new NullLiteral()),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl(
+          'a',
+          type: const VoidType(),
+          fileOffset: TreeNode.noOffset,
+        ),
+      ),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl(
+          'b',
+          initializer: new NullLiteral(),
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
     ], dummyUri),
     '''
@@ -378,7 +392,7 @@ void _testInternalForInStatement() {
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclaration(
+        variableDeclaration: new InternalVariableDeclaration(
           new VariableDeclarationImpl('e', fileOffset: -1),
         ),
         error: null,
@@ -396,7 +410,7 @@ for (var e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclaration(
+        variableDeclaration: new InternalVariableDeclaration(
           new VariableDeclarationImpl(
             'e',
             type: const VoidType(),
@@ -542,10 +556,10 @@ for (null in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl('a', fileOffset: -1),
           ),
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl('b', fileOffset: -1),
           ),
         ],
@@ -565,14 +579,14 @@ for (var a, b in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl(
               'a',
               type: const VoidType(),
               fileOffset: -1,
             ),
           ),
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl('b', fileOffset: -1),
           ),
         ],

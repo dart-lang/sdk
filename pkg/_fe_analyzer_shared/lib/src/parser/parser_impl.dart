@@ -6934,6 +6934,7 @@ class Parser {
     return _parseExpression(token, /* allowCascades = */ false);
   }
 
+  @pragma("vm:prefer-inline")
   Token _parseExpression(Token token, bool allowCascades) {
     if (isPatternsFeatureEnabled && looksLikeOuterPatternEquals(token)) {
       return allowCascades
@@ -7454,6 +7455,7 @@ class Parser {
     return token;
   }
 
+  @pragma("vm:prefer-inline")
   ConstantPatternContext _reportInvalidConstantPatternOperator(
     ConstantPatternContext constantPatternContext,
     int precedence,

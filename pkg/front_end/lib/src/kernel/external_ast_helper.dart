@@ -297,10 +297,14 @@ EqualsNull createEqualsNull(Expression expression, {required int fileOffset}) {
 }
 
 /// Creates an [ExpressionStatement] of [expression] using the file offset of
-/// [expression] for the file offset of the statement.
-ExpressionStatement createExpressionStatement(Expression expression) {
+/// [expression] for the file offset of the statement, unless provided directly
+/// through [fileOffset].
+ExpressionStatement createExpressionStatement(
+  Expression expression, {
+  int? fileOffset,
+}) {
   return new ExpressionStatement(expression)
-    ..fileOffset = expression.fileOffset;
+    ..fileOffset = fileOffset ?? expression.fileOffset;
 }
 
 FieldInitializer createFieldInitializer(
@@ -599,8 +603,9 @@ LateVariable createLateVariable({
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(Variable variable, Expression body) {
-  return new Let(variable, body)..fileOffset = variable.fileOffset;
+Let createLet(Variable variable, Expression body, {int? fileOffset}) {
+  return new Let(variable, body)
+    ..fileOffset = fileOffset ?? variable.fileOffset;
 }
 
 /// Creates a [Let] with the [effect] as the variable initializer and the
@@ -1281,8 +1286,14 @@ Variable createVariableCache(Expression expression, DartType type) {
     ..fileOffset = expression.fileOffset;
 }
 
-VariableDeclaration createVariableDeclaration(Variable variable) {
-  return new VariableDeclaration(variable)..fileOffset = variable.fileOffset;
+VariableDeclaration createVariableDeclaration(
+  Variable variable, {
+  List<VariableContext>? capturedContexts,
+  int? fileOffset,
+}) {
+  return new VariableDeclaration(variable)
+    ..capturedContexts = capturedContexts
+    ..fileOffset = fileOffset ?? variable.fileOffset;
 }
 
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
@@ -1330,9 +1341,12 @@ Expression createVariableSet(
   }
 }
 
-VariableStatement createVariableStatement(VariableDeclaration declaration) {
+VariableStatement createVariableStatement(
+  VariableDeclaration declaration, {
+  int? fileOffset,
+}) {
   return new VariableStatement(declaration)
-    ..fileOffset = declaration.fileOffset;
+    ..fileOffset = fileOffset ?? declaration.fileOffset;
 }
 
 WildcardPattern createWildcardPattern({
@@ -1351,6 +1365,19 @@ Catch createCatch({
   required int fileOffset,
 }) {
   return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
+    ..scope = scope
+    ..fileOffset = fileOffset;
+}
+
+ForStatement createForStatement({
+  required List<VariableDeclaration> variables,
+  required Expression? condition,
+  required List<Expression> updates,
+  required Statement body,
+  required Scope? scope,
+  required int fileOffset,
+}) {
+  return new ForStatement(variables, condition, updates, body)
     ..scope = scope
     ..fileOffset = fileOffset;
 }

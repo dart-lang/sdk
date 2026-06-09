@@ -387,6 +387,11 @@ class AdbHelper {
     multiLine: true,
   );
 
+  static final RegExp _fastbootDeviceLineRegexp = RegExp(
+    r'^([a-zA-Z0-9:_.\-]+)[ \t]+fastboot$',
+    multiLine: true,
+  );
+
   static Future<List<String>> listDevices() {
     return Process.run('adb', ['devices']).then((ProcessResult result) {
       if (result.exitCode != 0) {
@@ -400,6 +405,30 @@ class AdbHelper {
           .map((Match m) => m[1]!)
           .toList();
     });
+  }
+
+  static Future<List<String>> listFastbootDevices() async {
+    final result = await Process.run('fastboot', ['devices']);
+    if (result.exitCode != 0) {
+      throw Exception(
+        "Could not list fastboot devices [stdout: ${result.stdout},"
+        "stderr: ${result.stderr}]",
+      );
+    }
+    return _fastbootDeviceLineRegexp
+        .allMatches(result.stdout as String)
+        .map((Match m) => m[1]!)
+        .toList();
+  }
+
+  static Future<void> rebootFastbootDevices() async {
+    final result = await Process.run('fastboot', ['reboot']);
+    if (result.exitCode != 0) {
+      throw Exception(
+        "Could not list fastboot devices [stdout: ${result.stdout},"
+        "stderr: ${result.stderr}]",
+      );
+    }
   }
 }
 
@@ -426,10 +455,29 @@ class AdbDevicePool {
     var names = await AdbHelper.listDevices();
     var devices = names.map(AdbDevice.new).toList();
     if (devices.isEmpty) {
-      throw Exception(
-        'No android devices found. '
-        'Please make sure "adb devices" shows your device!',
-      );
+      var fastbootDevices = await AdbHelper.listFastbootDevices();
+      if (fastbootDevices.isNotEmpty) {
+        print('Connected device $fastbootDevices found in fastboot mode...');
+        AdbHelper.rebootFastbootDevices();
+
+        final sw = Stopwatch()..start();
+        const waitForDeviceToRebootInSeconds = 60;
+        while (sw.elapsed.inSeconds < waitForDeviceToRebootInSeconds) {
+          print('Waiting for device to comeback after fastboot reboot...\n');
+          names = await AdbHelper.listDevices();
+          if (names.isNotEmpty) {
+            devices = names.map(AdbDevice.new).toList();
+            break;
+          }
+          await Future.delayed(const Duration(seconds: 5));
+        }
+      }
+      if (devices.isEmpty) {
+        throw Exception(
+          'No android devices found. '
+          'Please make sure "adb devices" shows your device!',
+        );
+      }
     }
     print("Found ${devices.length} Android devices.");
     return AdbDevicePool(devices);

@@ -183,9 +183,6 @@ class ProcessedOptions {
   // Coverage-ignore(suite): Not run.
   bool get emitDeps => _raw.emitDeps;
 
-  // Coverage-ignore(suite): Not run.
-  bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
-
   bool get hasAdditionalDillModules => _raw.additionalDillModules.isNotEmpty;
 
   /// The entry-points provided to the compiler.

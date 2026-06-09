@@ -99,10 +99,6 @@ class CompilerOptions {
   /// List of names that are allowed in dynamic calls in dynamic modules.
   List<String> dynamicCallsSelectorAllowList = [];
 
-  /// The declared variables for use by configurable imports and constant
-  /// evaluation.
-  Map<String, String>? declaredVariables;
-
   /// The [FileSystem] which should be used by the front end to access files.
   ///
   /// All file system access performed by the front end goes through this
@@ -127,8 +123,6 @@ class CompilerOptions {
   AllowedExperimentalFlags? allowedExperimentalFlagsForTesting;
   Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
-
-  bool enableUnscheduledExperiments = false;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
@@ -285,7 +279,6 @@ class CompilerOptions {
         other.dynamicInterfaceSpecificationUri) {
       return false;
     }
-    if (!equalMaps(declaredVariables, other.declaredVariables)) return false;
     if (fileSystem != other.fileSystem) return false;
     if (compileSdk != other.compileSdk) return false;
     // chaseDependencies aren't used anywhere, so ignored here.
@@ -333,9 +326,6 @@ class CompilerOptions {
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
     if (!equalSets(invocationModes, other.invocationModes)) return false;
-    if (enableUnscheduledExperiments != other.enableUnscheduledExperiments) {
-      return false;
-    }
 
     return true;
   }

@@ -129,8 +129,6 @@ To learn more about the feature, check out the
 
 [analyzer plugins]: https://dart.dev/tools/analyzer-plugins
 
-#### Dart format
-
 These changes are not language versioned and affect formatting all code:
 
 - Fix a bug where some collections or arguments might split unnecessarily.
