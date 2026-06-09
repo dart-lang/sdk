@@ -5727,8 +5727,10 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware() async {
-    var result = await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo()}) {}
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     var node = result.findNode.methodInvocation('?.foo()');
@@ -5752,8 +5754,12 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
-    var result = await assertInvalidTestCode('''
+    var result = await resolveTestCodeWithDiagnostics('''
 typedef void F({a = b?.foo()});
+//                ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     var node = result.findNode.methodInvocation('?.foo()');
