@@ -219,8 +219,9 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
     if (_isWidgetFactory(target)) {
-      final Variable parameter = target.function.namedParameters
-          .firstWhere((p) => p.name == _creationLocationParameterName);
+      final Variable parameter = target.function.namedParameters.firstWhere(
+        (p) => p.name == _creationLocationParameterName,
+      );
       final DartType type = parameter.type;
       if (type is InterfaceType) {
         _addLocationArgument(
