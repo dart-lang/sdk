@@ -354,6 +354,15 @@ class FileTest extends OverlayTestSupport {
     expect(file.toUri(), Uri.file(file.path));
   }
 
+  test_write_read_bytes_can_be_read_as_string() {
+    var expectedContent = "æble";
+    File file = _file(exists: true, content: expectedContent);
+    expect(file.readAsStringSync(), expectedContent);
+    var byteContent = file.readAsBytesSync();
+    file.writeAsBytesSync(byteContent);
+    expect(file.readAsStringSync(), expectedContent);
+  }
+
   test_writeAsBytesSync_withoutOverlay() {
     File file = _file(exists: true);
     var bytes = Uint8List.fromList([99, 99]);

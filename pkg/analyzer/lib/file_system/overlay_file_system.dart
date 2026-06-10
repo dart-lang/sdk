@@ -205,7 +205,10 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    writeAsStringSync(String.fromCharCodes(bytes));
+    if (provider.hasOverlay(path)) {
+      throw FileSystemException(path, 'Cannot write a file with an overlay');
+    }
+    _file.writeAsBytesSync(bytes);
   }
 
   @override
