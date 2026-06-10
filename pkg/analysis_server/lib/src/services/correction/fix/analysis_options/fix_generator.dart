@@ -23,7 +23,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';

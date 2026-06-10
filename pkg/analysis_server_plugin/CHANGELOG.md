@@ -2,6 +2,16 @@
 
 - Require version `13.2.0-dev` of the `analyzer` package.
 - Require version `0.14.11-dev` of the `analyzer_plugin` package.
+- Export the following classes from `analyzer_plugin` for convenience:
+  - `ChangeBuilder` (along with `ChangeWorkspace`, `EditBuilder`,
+    `FileEditBuilder`, `LinkedEditBuilder`, `DartFileEditBuilder`,
+    `DartEditBuilder`, `DartLinkedEditBuilder`, `ImportLibraryElementResult`,
+    `YamlFileEditBuilder`, `YamlEditBuilder`, `YamlLinkedEditBuilder`,
+    `LinkedEditSuggestionKind`, `Position`, and `SourceChange`, which are found
+    in `ChangeBuilder`'s public API.
+  - `AssistKind`
+  - `FixKind`
+  - `RangeFactory` (and the `range` singleton instance)
 
 ## 0.3.16
 

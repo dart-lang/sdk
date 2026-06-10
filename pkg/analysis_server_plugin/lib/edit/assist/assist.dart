@@ -6,6 +6,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
+export 'package:analyzer_plugin/utilities/assist/assist.dart' show AssistKind;
+
 /// A description of a single proposed assist.
 final class Assist {
   /// A description of the assist being proposed.
