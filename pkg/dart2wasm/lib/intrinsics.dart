@@ -1610,42 +1610,43 @@ class Intrinsifier {
           b.i32_add();
           offset = 0;
         }
+        final memory = translator.ffiMemory(b.moduleBuilder);
         switch (intrinsic) {
           case StaticIntrinsic.loadInt8:
-            b.i64_load8_s(translator.ffiMemory, offset);
+            b.i64_load8_s(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadUint8:
-            b.i64_load8_u(translator.ffiMemory, offset);
+            b.i64_load8_u(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadInt16:
-            b.i64_load16_s(translator.ffiMemory, offset);
+            b.i64_load16_s(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadUint16:
-            b.i64_load16_u(translator.ffiMemory, offset);
+            b.i64_load16_u(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadInt32:
-            b.i64_load32_s(translator.ffiMemory, offset);
+            b.i64_load32_s(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadUint32:
-            b.i64_load32_u(translator.ffiMemory, offset);
+            b.i64_load32_u(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadInt64:
           case StaticIntrinsic.loadUint64:
-            b.i64_load(translator.ffiMemory, offset);
+            b.i64_load(memory, offset);
             return w.NumType.i64;
           case StaticIntrinsic.loadFloat:
-            b.f32_load(translator.ffiMemory, offset);
+            b.f32_load(memory, offset);
             b.f64_promote_f32();
             return w.NumType.f64;
           case StaticIntrinsic.loadFloatUnaligned:
-            b.f32_load(translator.ffiMemory, offset, 0);
+            b.f32_load(memory, offset, 0);
             b.f64_promote_f32();
             return w.NumType.f64;
           case StaticIntrinsic.loadDouble:
-            b.f64_load(translator.ffiMemory, offset);
+            b.f64_load(memory, offset);
             return w.NumType.f64;
           case StaticIntrinsic.loadDoubleUnaligned:
-            b.f64_load(translator.ffiMemory, offset, 0);
+            b.f64_load(memory, offset, 0);
             return w.NumType.f64;
           case StaticIntrinsic.storeInt8:
           case StaticIntrinsic.storeUint8:
@@ -1653,7 +1654,7 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store8(translator.ffiMemory, offset);
+            b.i64_store8(memory, offset);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeInt16:
@@ -1662,7 +1663,7 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store16(translator.ffiMemory, offset);
+            b.i64_store16(memory, offset);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeInt32:
@@ -1671,7 +1672,7 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store32(translator.ffiMemory, offset);
+            b.i64_store32(memory, offset);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeInt64:
@@ -1680,7 +1681,7 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.i64,
             );
-            b.i64_store(translator.ffiMemory, offset);
+            b.i64_store(memory, offset);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeFloat:
@@ -1689,7 +1690,7 @@ class Intrinsifier {
               w.NumType.f64,
             );
             b.f32_demote_f64();
-            b.f32_store(translator.ffiMemory, offset);
+            b.f32_store(memory, offset);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeFloatUnaligned:
@@ -1698,7 +1699,7 @@ class Intrinsifier {
               w.NumType.f64,
             );
             b.f32_demote_f64();
-            b.f32_store(translator.ffiMemory, offset, 0);
+            b.f32_store(memory, offset, 0);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeDouble:
@@ -1706,7 +1707,7 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.f64,
             );
-            b.f64_store(translator.ffiMemory, offset);
+            b.f64_store(memory, offset);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           case StaticIntrinsic.storeDoubleUnaligned:
@@ -1714,7 +1715,7 @@ class Intrinsifier {
               node.arguments.positional[2],
               w.NumType.f64,
             );
-            b.f64_store(translator.ffiMemory, offset, 0);
+            b.f64_store(memory, offset, 0);
             b.ref_null(w.HeapType.none);
             return translator.topType;
           default:

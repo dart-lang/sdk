@@ -198,18 +198,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   DartType computeGreatestClosure(DartType type) {
     return cfeOperations.greatestClosureOfSchema(
-          new SharedTypeSchemaView(type),
-          topType: new SharedTypeView(const DynamicType()),
-        )
-        as DartType;
+      new SharedTypeSchemaView(type),
+      topType: new SharedTypeView(const DynamicType()),
+    ) as DartType;
   }
 
   DartType computeGreatestClosure2(DartType type) {
     return cfeOperations.greatestClosureOfSchema(
-          new SharedTypeSchemaView(type),
-          topType: new SharedTypeView(coreTypes.objectNullableRawType),
-        )
-        as DartType;
+      new SharedTypeSchemaView(type),
+      topType: new SharedTypeView(coreTypes.objectNullableRawType),
+    ) as DartType;
   }
 
   DartType computeNullable(DartType type) =>
@@ -419,20 +417,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
-    Template<
-      Message Function({
-        required DartType actualType,
-        required DartType expectedType,
-      })
-    >?
-    preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
-      inferenceResult.expression,
-    );
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
       contextType,
       inferenceResult.inferredType,
       isVoidAllowed: isVoidAllowed,
-      isExpressionTypePrecise: preciseTypeErrorTemplate != null,
       coerceExpression: coerceExpression,
       fileOffset: fileOffset,
       treeNodeForTesting: treeNodeForTesting,
@@ -484,10 +472,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
         return null;
-      case AssignabilityKind.unassignablePrecise:
-        // The type of the expression is known precisely, so an implicit
-        // downcast is guaranteed to fail.  Insert a compile-time error.
-        return null;
       case AssignabilityKind.unassignableCantTearoff:
         return null;
       case AssignabilityKind.unassignableNullability:
@@ -527,20 +511,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
-    Template<
-      Message Function({
-        required DartType actualType,
-        required DartType expectedType,
-      })
-    >?
-    preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
-      inferenceResult.expression,
-    );
     AssignabilityResult assignabilityResult = _computeAssignabilityKind(
       contextType,
       inferenceResult.inferredType,
       isVoidAllowed: isVoidAllowed,
-      isExpressionTypePrecise: preciseTypeErrorTemplate != null,
       coerceExpression: isCoercionAllowed,
       fileOffset: fileOffset,
       treeNodeForTesting: inferenceResult.expression,
@@ -592,22 +566,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           compilerContext: compilerContext,
           expression: expression,
           message: diag.voidExpression,
-          fileUri: fileUri,
-          fileOffset: expression.fileOffset,
-          length: noLength,
-        );
-        break;
-      case AssignabilityKind.unassignablePrecise:
-        // Coverage-ignore(suite): Not run.
-        // The type of the expression is known precisely, so an implicit
-        // downcast is guaranteed to fail.  Insert a compile-time error.
-        result = problemReporting.wrapInProblem(
-          compilerContext: compilerContext,
-          expression: expression,
-          message: preciseTypeErrorTemplate!.withArguments(
-            actualType: expressionType,
-            expectedType: contextType,
-          ),
           fileUri: fileUri,
           fileOffset: expression.fileOffset,
           length: noLength,
@@ -865,7 +823,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType contextType,
     DartType expressionType, {
     required bool isVoidAllowed,
-    required bool isExpressionTypePrecise,
     required bool coerceExpression,
     required int fileOffset,
     required TreeNode? treeNodeForTesting,
@@ -976,17 +933,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           implicitInstantiation: implicitInstantiation,
         );
       }
-    }
-    if (isExpressionTypePrecise) {
-      // Coverage-ignore-block(suite): Not run.
-      // The type of the expression is known precisely, so an implicit
-      // downcast is guaranteed to fail.  Insert a compile-time error.
-      assert(implicitInstantiation == null);
-      assert(!needsTearoff);
-      return const AssignabilityResult(
-        AssignabilityKind.unassignablePrecise,
-        needsTearOff: false,
-      );
     }
 
     if (coerceExpression) {
@@ -2201,9 +2147,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType inferredType;
     if (instantiator != null) {
-      calleeType =
-          instantiator.substitute(calleeType.withoutTypeParameters)
-              as FunctionType;
+      calleeType = instantiator.substitute(
+        calleeType.withoutTypeParameters,
+      ) as FunctionType;
     }
     inferredType = calleeType.returnType;
     assert(
@@ -4960,78 +4906,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return member;
   }
 
-  bool _isLoweredSetLiteral(Expression expression) {
-    if (libraryBuilder.loader.target.backendTarget.supportsSetLiterals) {
-      return false;
-    }
-    if (expression is! BlockExpression) return false;
-    Expression value = expression.value;
-    if (value is! VariableGet) return false;
-    if (expression.body.statements.isEmpty) return false;
-    Statement first = expression.body.statements.first;
-    if (first is! VariableStatement) return false;
-    Expression? initializer = first.declaration.variable.initializer;
-    if (initializer is! StaticInvocation) return false;
-    if (initializer.target != engine.setFactory) return false;
-    return value.variable == first.declaration.variable;
-  }
-
-  /// Determines if the given [expression]'s type is precisely known at compile
-  /// time.
-  ///
-  /// If it is, an error message template is returned, which can be used by the
-  /// caller to report an invalid cast.  Otherwise, `null` is returned.
-  Template<
-    Message Function({
-      required DartType actualType,
-      required DartType expectedType,
-    })
-  >?
-  _getPreciseTypeErrorTemplate(Expression expression) {
-    if (expression is ListLiteral) {
-      return diag.invalidCastLiteralList;
-    }
-    if (expression is MapLiteral) {
-      return diag.invalidCastLiteralMap;
-    }
-    if (expression is SetLiteral || _isLoweredSetLiteral(expression)) {
-      return diag.invalidCastLiteralSet;
-    }
-    if (expression is FunctionExpression) {
-      return diag.invalidCastFunctionExpr;
-    }
-    if (expression is ConstructorInvocation) {
-      return diag.invalidCastNewExpr;
-    }
-    if (expression is StaticGet) {
-      Member target = expression.target;
-      if (target is Procedure && target.kind == ProcedureKind.Method) {
-        // Coverage-ignore-block(suite): Not run.
-        if (target.enclosingClass != null) {
-          return diag.invalidCastStaticMethod;
-        } else {
-          return diag.invalidCastTopLevelFunction;
-        }
-      }
-      return null;
-    }
-    if (expression is StaticTearOff) {
-      Member target = expression.target;
-      if (target.enclosingClass != null) {
-        return diag.invalidCastStaticMethod;
-      } else {
-        return diag.invalidCastTopLevelFunction;
-      }
-    }
-    if (expression is VariableGet) {
-      Variable variable = expression.variable;
-      if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
-        return diag.invalidCastLocalFunction;
-      }
-    }
-    return null;
-  }
-
   bool _shouldTearOffCall(DartType contextType, DartType expressionType) {
     if (contextType is FutureOrType) {
       contextType = contextType.typeArgument;
@@ -5731,9 +5605,6 @@ enum AssignabilityKind {
 
   /// Trying to use void in an inappropriate context.
   unassignableVoid,
-
-  /// The right-hand side type is precise, and the downcast will fail.
-  unassignablePrecise,
 
   /// Unassignable because the tear-off can't be done on the nullable receiver.
   unassignableCantTearoff,

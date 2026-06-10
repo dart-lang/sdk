@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/local_function_assignment.dart:7:25: Error: A value of type 'int Function(int)' can't be assigned to a variable of type 'num Function(num)'.
+//   num Function(num) f = localFunction;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  function localFunction(core::int i) → core::int
+    return i;
+  (core::num) → core::num f = invalid-expression "pkg/front_end/testcases/general/local_function_assignment.dart:7:25: Error: A value of type 'int Function(int)' can't be assigned to a variable of type 'num Function(num)'.
+  num Function(num) f = localFunction;
+                        ^" in localFunction as{TypeError} (core::num) → core::num;
+}
