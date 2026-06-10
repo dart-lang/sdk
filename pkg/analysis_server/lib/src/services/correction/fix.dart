@@ -1632,6 +1632,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Remove parentheses in getter invocation',
   );
+  static const removePrimaryConstructorBody = FixKind(
+    'dart.fix.remove.primaryConstructorBody',
+    DartFixKindPriority.standard,
+    'Remove primary constructor body',
+  );
+  static const removePrimaryConstructorBodyMulti = FixKind(
+    'dart.fix.remove.primaryConstructorBody.multi',
+    DartFixKindPriority.inFile,
+    'Remove primary constructor bodies file',
+  );
   static const removePrint = FixKind(
     'dart.fix.remove.removePrint',
     DartFixKindPriority.standard,
