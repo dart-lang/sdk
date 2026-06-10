@@ -1,7 +1,7 @@
-## 0.3.17-dev
+## 0.3.17
 
-- Require version `13.2.0-dev` of the `analyzer` package.
-- Require version `0.14.11-dev` of the `analyzer_plugin` package.
+- Require version `13.2.0` of the `analyzer` package.
+- Require version `0.14.11` of the `analyzer_plugin` package.
 - Export the following classes from `analyzer_plugin` for convenience:
   - `ChangeBuilder` (along with `ChangeWorkspace`, `EditBuilder`,
     `FileEditBuilder`, `LinkedEditBuilder`, `DartFileEditBuilder`,

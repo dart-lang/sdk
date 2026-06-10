@@ -1,4 +1,4 @@
-## 13.2.0-dev
+## 13.2.0
 
 * Allow package_config `3.x.x`.
 * Deprecate `FormalParameterElement.formalParameters` and `typeParameters`. Use `FormalParameterElement.type` instead.
