@@ -4637,8 +4637,8 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-    The analyzer produces this diagnostic when there is no context type or when
-    the context type isn't a class, enum, mixin, extension, or extension type.
+      The analyzer produces this diagnostic when there is no context type or when
+      the context type isn't a class, enum, mixin, extension, or extension type.
 
       #### Example
 
