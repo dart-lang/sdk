@@ -3457,14 +3457,28 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     JumpHandler handler = jumpTargets[target]!;
     final sourceInformation = _sourceInformationBuilder.buildGoto(node);
     if (_localsMap.generateContinueForBreak(node)) {
-      if (handler.labels.isNotEmpty) {
-        handler.generateContinue(sourceInformation, handler.labels.first);
+      LabelDefinition? continueLabel;
+      for (final label in handler.labels) {
+        if (label.isContinueTarget) {
+          continueLabel = label;
+          break;
+        }
+      }
+      if (continueLabel != null) {
+        handler.generateContinue(sourceInformation, continueLabel);
       } else {
         handler.generateContinue(sourceInformation);
       }
     } else {
-      if (handler.labels.isNotEmpty) {
-        handler.generateBreak(sourceInformation, handler.labels.first);
+      LabelDefinition? breakLabel;
+      for (final label in handler.labels) {
+        if (label.isBreakTarget) {
+          breakLabel = label;
+          break;
+        }
+      }
+      if (breakLabel != null) {
+        handler.generateBreak(sourceInformation, breakLabel);
       } else {
         handler.generateBreak(sourceInformation);
       }

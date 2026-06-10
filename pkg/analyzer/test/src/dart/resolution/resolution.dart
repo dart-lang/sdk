@@ -133,14 +133,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(result.diagnostics, isNotEmpty);
   }
 
-  /// Resolve the [code], and ensure that it can be resolved without a crash,
-  /// and is invalid, i.e. produces a diagnostic.
-  Future<TestResolvedUnitResult> assertInvalidTestCode(String code) async {
-    var result = await resolveTestCode(code);
-    expect(result.diagnostics, isNotEmpty);
-    return result;
-  }
-
   void assertParsedNodeText(AstNode node, String expected) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');

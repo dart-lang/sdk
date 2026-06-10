@@ -147,8 +147,10 @@ MethodInvocation
   }
 
   test_invalid_inDefaultValue_nullAware() async {
-    var result = await assertInvalidTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void f({a = b?[0]}) {}
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
@@ -172,8 +174,12 @@ IndexExpression
   }
 
   test_invalid_inDefaultValue_nullAware2() async {
-    var result = await assertInvalidTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 typedef void F({a = b?[0]});
+//                ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                  ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
     var node = result.findNode.index('[0]');
