@@ -146,10 +146,6 @@
       "buildtools/win-x64/clang/bin/llvm-strip.exe",
       "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
       "buildtools/win-x64/clang/lib/clang/",
-      "third_party/android_tools/sdk/platform-tools/adb",
-      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/../lib/x86_64-unknown-linux-gnu/libc++.so",
-      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy",
-      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
       "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
@@ -196,6 +192,29 @@
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json"
+    ],
+    "android": [
+      ".dart_tool/package_config.json",
+      "benchmarks/",
+      "out/DebugAndroidARM/",
+      "out/DebugAndroidARM64C/",
+      "out/DebugAndroidARM_X64/",
+      "out/ProductAndroidARM/",
+      "out/ProductAndroidARM64C/",
+      "out/ProductAndroidARM_X64/",
+      "out/ReleaseAndroidARM/",
+      "out/ReleaseAndroidARM64C/",
+      "out/ReleaseAndroidARM_X64/",
+      "pkg/",
+      "runtime/tests/",
+      "runtime/tools/heapsnapshot/",
+      "samples/",
+      "sdk/",
+      "tests/",
+      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
+      "third_party/android_tools/sdk/platform-tools",
+      "third_party/pkg/",
+      "tools/"
     ],
     "fuchsia": [
       ".dart_tool/package_config.json",
@@ -839,7 +858,7 @@
             "-nvm-aot-android-${mode}-${arch}",
             "-j2"
           ],
-          "fileset": "vm",
+          "fileset": "android",
           "shards": 16
         }
       ]
@@ -871,7 +890,7 @@
             "-nvm-android-${mode}-${arch}",
             "ffi"
           ],
-          "fileset": "vm",
+          "fileset": "android",
           "shards": 2
         }
       ]
