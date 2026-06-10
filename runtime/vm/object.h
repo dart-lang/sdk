@@ -2719,7 +2719,7 @@ class ICData : public CallSiteData {
     kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx = 0,
     kCachedICDataMaxArgsTestedWithoutExactnessTracking = 2,
     kCachedICDataOneArgWithExactnessTrackingIdx =
-        kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
+            kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
         kCachedICDataMaxArgsTestedWithoutExactnessTracking + 1,
     kCachedICDataArrayCount = kCachedICDataOneArgWithExactnessTrackingIdx + 1,
   };

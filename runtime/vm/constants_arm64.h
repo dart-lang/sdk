@@ -804,7 +804,7 @@ enum SystemOp {
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
   CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
-          B3 | B2 | B1 | B0,
+      B3 | B2 | B1 | B0,
 };
 
 // C3.2.5
@@ -1054,8 +1054,8 @@ enum SIMDTwoRegOp {
   VABSD = SIMDTwoRegFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VNEGD = SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B15 | B14 | B13 | B12,
   VSQRTS = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B13 | B12,
-  VSQRTD =
-      SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B16 | B15 | B14 | B13 | B12,
+  VSQRTD = SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B16 | B15 | B14 | B13 |
+      B12,
   VRECPES = SIMDTwoRegFixed | B30 | B23 | B16 | B15 | B14 | B12,
   VRSQRTES = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B12,
 };
