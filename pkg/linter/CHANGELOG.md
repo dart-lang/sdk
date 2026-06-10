@@ -3,6 +3,8 @@
 - new lint: `unnecessary_const_in_enum_constructor`
 - new lint: `unnecessary_type_name_in_constructor`
 - stable: `unnecessary_null_checks`
+- update `type_literal_in_constant_pattern` to ignore cases where the matched
+  pattern is of type `Type`.
 
 # 3.12.0
 

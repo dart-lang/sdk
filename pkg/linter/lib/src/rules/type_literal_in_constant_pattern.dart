@@ -47,6 +47,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    // OK to use raw types if the matched value is of type Type.
+    var matchedValueType = node.matchedValueType;
+    if (matchedValueType != null &&
+        // Have to use `isSubtypeOf` to catch generic type parameters.
+        context.typeSystem.isSubtypeOf(
+          matchedValueType,
+          context.typeProvider.typeType,
+        )) {
+      return;
+    }
+
     var expressionType = node.expression.staticType;
     if (expressionType != null && expressionType.isDartCoreType) {
       rule.reportAtNode(node);
