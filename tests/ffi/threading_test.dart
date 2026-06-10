@@ -251,11 +251,15 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
   threadInfo.join();
 }
 
+@pragma('vm:shared')
+bool isHelperInThreadMainWaitingLatchRunning = false;
+
 int threadMainWaitingLatch(Pointer<Void> data) {
   final helper = Isolate.create(debugName: "helper");
 
   sp.send(helper);
   helper.runSync(() {
+    isHelperInThreadMainWaitingLatchRunning = true;
     waitLatch();
   });
   print('shutting down the isolate');
@@ -269,8 +273,13 @@ Future<void> testFailRunSyncWithTimeout() async {
   }
 
   final completer = Completer();
-  final rp = RawReceivePort((Isolate child_isolate) {
+  final rp = RawReceivePort((Isolate child_isolate) async {
     print('received $child_isolate');
+    while (!isHelperInThreadMainWaitingLatchRunning) {
+      // Let the thread which should do `helper.runSync`
+      // actually do that.
+      await Future.delayed(Duration(milliseconds: 10));
+    }
     Expect.throws(
       () => child_isolate.runSync(() {
         Expect.fail("Should not run");
