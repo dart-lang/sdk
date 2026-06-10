@@ -1578,7 +1578,7 @@
             "-nvm-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
             "standalone",
-            "vm/dart/tsan"
+            "vm/dart"
           ],
           "fileset": "vm",
           "shards": 2
@@ -1589,7 +1589,7 @@
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
             "standalone",
-            "vm/dart/tsan"
+            "vm/dart"
           ],
           "fileset": "vm",
           "shards": 4
