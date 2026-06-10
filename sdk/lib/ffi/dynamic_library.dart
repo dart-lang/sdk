@@ -32,6 +32,19 @@ final class DynamicLibrary {
   /// which are equal (`==`), but not [identical].
   external factory DynamicLibrary.open(String path);
 
+  /// Loads a library registered under the given [assetId] in the native assets
+  /// mapping.
+  ///
+  /// The [assetId] must be registered in the active native assets mapping.
+  /// If the asset is statically linked into the current process or executable,
+  /// this call can still succeed, but [lookup] only succeeds for symbols
+  /// available for dynamic lookup.
+  ///
+  /// Calling this function multiple times with the same [assetId] only loads
+  /// the library once.
+  @Since('3.13')
+  external factory DynamicLibrary.openFromAssetId(String assetId);
+
   /// Looks up a symbol in the [DynamicLibrary] and returns its address in
   /// memory.
   ///
