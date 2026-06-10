@@ -28,7 +28,6 @@ import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
-import '../../../generated/test_support.dart';
 import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../summary/resolved_ast_printer.dart';
@@ -117,16 +116,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(typeStrList, unorderedEquals(expected));
     }
-  }
-
-  void assertErrorsInList(
-    List<Diagnostic> diagnostics,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    GatheringDiagnosticListener diagnosticListener =
-        GatheringDiagnosticListener();
-    diagnosticListener.addAll(diagnostics);
-    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
   void assertHasTestErrors(TestResolvedUnitResult result) {
