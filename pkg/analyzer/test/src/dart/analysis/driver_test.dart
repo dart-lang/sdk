@@ -95670,6 +95670,42 @@ final b = 1;
     );
   }
 
+  test_manifest_topLevelVariable_initializer_functionType_defaultValue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final x = ([int a = 0]) => a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      x: #M0
+    declaredVariables
+      x: #M1
+    exportMapId: #M2
+    exportMap
+      x: #M0
+''',
+      updatedCode: r'''
+final x = ([int a = 1]) => a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      x: #M0
+    declaredVariables
+      x: #M1
+    exportMapId: #M2
+    exportMap
+      x: #M0
+''',
+    );
+  }
+
   test_manifest_topLevelVariable_initializer_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''

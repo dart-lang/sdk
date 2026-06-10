@@ -9,10 +9,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -39,7 +37,6 @@ sealed class ManifestFunctionFormalParameter {
   final bool isCovariant;
   final FormalParameterDeclarationForm declarationForm;
   final ManifestType type;
-  final ManifestNode? defaultValue;
 
   ManifestFunctionFormalParameter({
     required this.metadata,
@@ -47,7 +44,6 @@ sealed class ManifestFunctionFormalParameter {
     required this.isCovariant,
     required this.declarationForm,
     required this.type,
-    required this.defaultValue,
   });
 
   bool match(MatchContext context, InternalFormalParameterElement element) {
@@ -55,8 +51,7 @@ sealed class ManifestFunctionFormalParameter {
         element.isRequired == isRequired &&
         element.isCovariant == isCovariant &&
         element.declarationForm == declarationForm &&
-        type.match(context, element.type) &&
-        defaultValue.match(context, element.constantInitializer);
+        type.match(context, element.type);
   }
 
   void write(BinaryWriter writer) {
@@ -65,7 +60,6 @@ sealed class ManifestFunctionFormalParameter {
     writer.writeBool(isCovariant);
     writer.writeEnum(declarationForm);
     type.write(writer);
-    defaultValue.writeOptional(writer);
   }
 }
 
@@ -83,7 +77,6 @@ class ManifestFunctionNamedFormalParameter
       isCovariant: element.isCovariant,
       declarationForm: element.declarationForm,
       type: element.type.encode(context),
-      defaultValue: element.constantInitializer?.encode(context),
       name: element.name ?? '',
     );
   }
@@ -95,7 +88,6 @@ class ManifestFunctionNamedFormalParameter
       isCovariant: reader.readBool(),
       declarationForm: reader.readEnum(FormalParameterDeclarationForm.values),
       type: ManifestType.read(reader),
-      defaultValue: ManifestNode.readOptional(reader),
       name: reader.readStringReference(),
     );
   }
@@ -106,7 +98,6 @@ class ManifestFunctionNamedFormalParameter
     required super.isCovariant,
     required super.declarationForm,
     required super.type,
-    required super.defaultValue,
     required this.name,
   });
 
@@ -136,7 +127,6 @@ class ManifestFunctionPositionalFormalParameter
       isCovariant: element.isCovariant,
       declarationForm: element.declarationForm,
       type: element.type.encode(context),
-      defaultValue: element.constantInitializer?.encode(context),
     );
   }
 
@@ -147,7 +137,6 @@ class ManifestFunctionPositionalFormalParameter
       isCovariant: reader.readBool(),
       declarationForm: reader.readEnum(FormalParameterDeclarationForm.values),
       type: ManifestType.read(reader),
-      defaultValue: ManifestNode.readOptional(reader),
     );
   }
 
@@ -157,7 +146,6 @@ class ManifestFunctionPositionalFormalParameter
     required super.isCovariant,
     required super.declarationForm,
     required super.type,
-    required super.defaultValue,
   });
 
   @override
@@ -760,11 +748,5 @@ extension ManifestTypeOrNullExtension on ManifestType? {
 
   void writeOptional(BinaryWriter writer) {
     writer.writeOptionalObject(this, (x) => x.write(writer));
-  }
-}
-
-extension _AstNodeExtension on AstNode {
-  ManifestNode encode(EncodeContext context) {
-    return ManifestNode.encode(context, this);
   }
 }

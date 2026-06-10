@@ -132,6 +132,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     required _ConstructorItemFlags super.flags,
     required super.metadata,
     required super.functionType,
+    required super.formalParameterDefaultValues,
     required this.constantInitializers,
     required this.redirectedConstructor,
     required this.superConstructor,
@@ -148,6 +149,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
         flags: _ConstructorItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         functionType: element.type.encode(context),
+        formalParameterDefaultValues: element.formalParameters
+            .encodeDefaultValues(context),
         constantInitializers: element.constantInitializers
             .map((initializer) => ManifestNode.encode(context, initializer))
             .toFixedList(),
@@ -169,6 +172,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
       flags: _ConstructorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
+      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
       constantInitializers: ManifestNode.readList(reader),
       redirectedConstructor: ManifestElement.readOptional(reader),
       superConstructor: ManifestElement.readOptional(reader),
@@ -284,12 +288,14 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
 sealed class ExecutableItem<E extends ExecutableElementImpl>
     extends ManifestItem<E> {
   final ManifestFunctionType functionType;
+  final List<ManifestNode?> formalParameterDefaultValues;
 
   ExecutableItem({
     required super.id,
     required _ExecutableItemFlags super.flags,
     required super.metadata,
     required this.functionType,
+    required this.formalParameterDefaultValues,
   });
 
   @override
@@ -307,13 +313,18 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
         flags.isExternal == element.isExternal &&
         flags.isSimplyBounded == element.isSimplyBounded &&
         flags.isStatic == element.isStatic &&
-        functionType.match(context, element.type);
+        functionType.match(context, element.type) &&
+        formalParameterDefaultValues.match(
+          context,
+          element.formalParameters.map((e) => e.constantInitializer).toList(),
+        );
   }
 
   @override
   void write(BinaryWriter writer) {
     super.write(writer);
     functionType.writeNoTag(writer);
+    formalParameterDefaultValues.writeList(writer);
   }
 }
 
@@ -564,6 +575,7 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
     required super.flags,
     required super.metadata,
     required super.functionType,
+    required super.formalParameterDefaultValues,
   });
 
   factory GetterItem.fromElement({
@@ -579,6 +591,8 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       functionType: element.type.encode(context),
+      formalParameterDefaultValues: element.formalParameters
+          .encodeDefaultValues(context),
     );
   }
 
@@ -588,6 +602,7 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
       flags: _PropertyAccessorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
+      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
     );
   }
 
@@ -1226,6 +1241,7 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     required _MethodItemFlags super.flags,
     required super.metadata,
     required super.functionType,
+    required super.formalParameterDefaultValues,
     required this.typeInferenceError,
   });
 
@@ -1239,6 +1255,8 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       flags: _MethodItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
+      formalParameterDefaultValues: element.formalParameters
+          .encodeDefaultValues(context),
       typeInferenceError: element.typeInferenceError,
     );
   }
@@ -1249,6 +1267,7 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       flags: _MethodItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
+      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
       typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
@@ -1390,6 +1409,7 @@ sealed class PropertyAccessorItem<E extends PropertyAccessorElementImpl>
     required _PropertyAccessorItemFlags super.flags,
     required super.metadata,
     required super.functionType,
+    required super.formalParameterDefaultValues,
   });
 
   @override
@@ -1411,6 +1431,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
     required super.flags,
     required super.metadata,
     required super.functionType,
+    required super.formalParameterDefaultValues,
   });
 
   factory SetterItem.fromElement({
@@ -1426,6 +1447,8 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       functionType: element.type.encode(context),
+      formalParameterDefaultValues: element.formalParameters
+          .encodeDefaultValues(context),
     );
   }
 
@@ -1435,6 +1458,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
       flags: _PropertyAccessorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
+      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
     );
   }
 
@@ -1452,6 +1476,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
     required _TopLevelFunctionItemFlags super.flags,
     required super.metadata,
     required super.functionType,
+    required super.formalParameterDefaultValues,
   });
 
   factory TopLevelFunctionItem.fromElement({
@@ -1464,6 +1489,8 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
       flags: _TopLevelFunctionItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
+      formalParameterDefaultValues: element.formalParameters
+          .encodeDefaultValues(context),
     );
   }
 
@@ -1473,6 +1500,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
       flags: _TopLevelFunctionItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
+      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
     );
   }
 
@@ -2545,6 +2573,14 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
     var bit = _base + flag.index;
     assert(bit < 30);
     return 1 << bit;
+  }
+}
+
+extension on List<InternalFormalParameterElement> {
+  List<ManifestNode?> encodeDefaultValues(EncodeContext context) {
+    return map((element) {
+      return element.constantInitializer?.encode(context);
+    }).toFixedList();
   }
 }
 
