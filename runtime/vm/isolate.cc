@@ -1167,6 +1167,11 @@ class IsolateMessageHandler : public MessageHandler {
   ErrorPtr HandleLibMessage(const Array& message);
 
   MessageStatus ProcessUnhandledException(const Error& result);
+
+  void set_is_scheduled() override {
+    ASSERT(isolate_ != nullptr);
+    isolate_->set_is_not_acquirable();
+  }
   Isolate* isolate_;
 };
 

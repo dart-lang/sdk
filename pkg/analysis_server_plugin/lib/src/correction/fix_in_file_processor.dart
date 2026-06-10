@@ -12,7 +12,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// Computer for Dart "fix all in file" fixes.
 final class FixInFileProcessor {

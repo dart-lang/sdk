@@ -6722,7 +6722,7 @@ static void CreateAppAOTSnapshotHelper(
 
   Dwarf* const dwarf =
       (format == Dart_AotBinaryFormat_Assembly || strip) ? nullptr
-      : generate_debug                                   ? debug_dwarf
+      : generate_debug ? debug_dwarf
                        : new (Z) Dwarf(Z, deobfuscation_trie, identifier);
   SharedObjectWriter* so = nullptr;
   if (format == Dart_AotBinaryFormat_Elf) {

@@ -203,6 +203,10 @@ class ManifestNode {
     return reader.readTypedList(() => ManifestNode.read(reader));
   }
 
+  static List<ManifestNode?> readListOfOptional(BinaryReader reader) {
+    return reader.readTypedList(() => ManifestNode.readOptional(reader));
+  }
+
   static ManifestNode? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
@@ -526,6 +530,26 @@ extension ListOfManifestNodeExtension on List<ManifestNode> {
 
   void writeList(BinaryWriter writer) {
     writer.writeList(this, (x) => x.write(writer));
+  }
+}
+
+extension ListOfManifestNodeOrNullExtension on List<ManifestNode?> {
+  bool match(MatchContext context, List<AstNode?> nodes) {
+    if (nodes.length != length) {
+      return false;
+    }
+    for (var i = 0; i < length; i++) {
+      if (!this[i].match(context, nodes[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void writeList(BinaryWriter writer) {
+    writer.writeList(this, (node) {
+      node.writeOptional(writer);
+    });
   }
 }
 

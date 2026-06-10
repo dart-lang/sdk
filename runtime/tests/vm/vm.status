@@ -240,10 +240,6 @@ dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to 
 
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
-cc/Service_ReadNativeMemory_InvalidAddress: Skip
-cc/Service_ReadNativeMemory_LargeRead: Skip
-cc/Service_ReadNativeMemory_NullAddress: Skip
-cc/Service_ReadNativeMemory_ValidAddress: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
 [ $system != windows ]

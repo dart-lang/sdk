@@ -43,6 +43,9 @@ DART_NORETURN static void SimulatorUnsupported() {
 DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
   SimulatorUnsupported();
 }
+DEFINE_NATIVE_ENTRY(Ffi_dl_openFromAssetId, 0, 1) {
+  SimulatorUnsupported();
+}
 DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
   SimulatorUnsupported();
 }
@@ -332,14 +335,17 @@ static char* AvailableAssetsToCString(Thread* const thread) {
 
 // If an error occurs populates |error| with an error message
 // (caller must free this message when it is no longer needed).
+// A successful process or executable lookup can return a nullptr handle, so
+// callers must use |asset_found| to distinguish success from an unknown asset.
 //
 // The |asset_location| is formatted as follows:
 // ['<path_type>', '<path (optional)>']
 // The |asset_location| is conform to: pkg/vm/lib/native_assets/validator.dart
-static void* FfiResolveAsset(Thread* const thread,
-                             const String& asset,
-                             const String& symbol,
-                             char** error) {
+static void* LoadAssetLibrary(Thread* const thread,
+                              const String& asset,
+                              bool* asset_found,
+                              char** error) {
+  *asset_found = false;
   void* handle = nullptr;
   NativeAssetsApi* native_assets_api =
       thread->isolate_group()->native_assets_api();
@@ -347,6 +353,8 @@ static void* FfiResolveAsset(Thread* const thread,
     // Let embedder resolve the asset id to asset path.
     NoActiveIsolateScope no_active_isolate_scope;
     handle = native_assets_api->dlopen(asset.ToCString(), error);
+    *asset_found = *error == nullptr;
+    return handle;
   }
   if (*error == nullptr && handle == nullptr) {
     // Fall back on VM reading ffi:native-assets from special library in kernel.
@@ -358,6 +366,7 @@ static void* FfiResolveAsset(Thread* const thread,
     if (asset_location.IsNull()) {
       return nullptr;
     }
+    *asset_found = true;
 
     const auto& asset_type =
         String::Cast(Object::Handle(zone, asset_location.At(0)));
@@ -413,10 +422,20 @@ static void* FfiResolveAsset(Thread* const thread,
       handle = native_assets_api->dlopen_process(error);
     }
   }
+  return handle;
+}
 
-  if (*error != nullptr) {
+static void* FfiResolveAsset(Thread* const thread,
+                             const String& asset,
+                             const String& symbol,
+                             char** error) {
+  bool asset_found = false;
+  void* handle = LoadAssetLibrary(thread, asset, &asset_found, error);
+  if (*error != nullptr || !asset_found) {
     return nullptr;
   }
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
   if (native_assets_api->dlsym == nullptr) {
     *error =
         OS::SCreate(/*use malloc*/ nullptr, "NativeAssetsApi::dlsym not set.");
@@ -425,6 +444,24 @@ static void* FfiResolveAsset(Thread* const thread,
   void* const result =
       native_assets_api->dlsym(handle, symbol.ToCString(), error);
   return result;
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_openFromAssetId, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, asset_id, arguments->NativeArgAt(0));
+  char* error = nullptr;
+  bool asset_found = false;
+  void* handle = LoadAssetLibrary(thread, asset_id, &asset_found, &error);
+  if (error != nullptr) {
+    const String& msg = String::Handle(String::New(error));
+    free(error);
+    Exceptions::ThrowArgumentError(msg);
+  }
+  if (!asset_found) {
+    const String& msg = String::Handle(String::NewFormatted(
+        "No asset with id '%s' found.", asset_id.ToCString()));
+    Exceptions::ThrowArgumentError(msg);
+  }
+  return DynamicLibrary::New(handle, true);
 }
 
 // Frees |error|.

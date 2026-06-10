@@ -28,6 +28,7 @@ enum class IsolateAcquireResult {
   ISOLATE_NOT_AVAILABLE,
   BUSY,
   PINNED_TO_ANOTHER_THREAD,
+  HAS_MESSAGE_LOOP_OR_UNAVAILABLE,
 };
 
 class PortMap : public AllStatic {
@@ -60,8 +61,6 @@ class PortMap : public AllStatic {
 
   // Returns true if the port is owned by somebody.
   static bool IsOwned(Dart_Port id);
-
-  static bool HasEventLoopRunning(Dart_Port id);
 
   static IsolateAcquireResult AcquireIsolateByControlPort(Dart_Port target_port,
                                                           Isolate** p_isolate);

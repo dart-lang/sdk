@@ -133,6 +133,7 @@ Future<void> copyTestProjects(
             .toFilePath(),
       },
     for (final package in [
+      '_fe_analyzer_shared',
       'analyzer', // package:analyzer depends on package:meta.
       'meta',
     ])

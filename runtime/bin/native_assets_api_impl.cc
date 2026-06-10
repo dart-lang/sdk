@@ -147,7 +147,7 @@ void* NativeAssets::DlopenSystem(const char* path, char** error) {
   return handle;
 }
 
-void* NativeAssets::DlopenProcess(char** error) {
+void* NativeAssets::DlopenProcess(char** /*error*/) {
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
   return RTLD_DEFAULT;
