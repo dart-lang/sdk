@@ -204,15 +204,21 @@ class Translator with KernelNodes {
     w.StructType("void"),
     nullable: true,
   );
-  // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = mainModule.memories.import(
-    "ffi",
-    "memory",
-    options.importSharedMemory,
-    0,
-    options.sharedMemoryMaxPages,
-  );
   final Map<Procedure, w.Memory> _memories = {};
+
+  // Lazily import FFI memory if used.
+  final _ffiMemoryImports = <w.ModuleBuilder, w.Memory>{};
+  w.Memory ffiMemory(w.ModuleBuilder usingModule) {
+    return _ffiMemoryImports.putIfAbsent(usingModule, () {
+      return usingModule.memories.import(
+        "ffi",
+        "memory",
+        options.importSharedMemory,
+        0,
+        options.sharedMemoryMaxPages,
+      );
+    });
+  }
 
   /// Maps record shapes to the record class for the shape. Classes generated
   /// by `record_class_generator` library.
@@ -2192,10 +2198,7 @@ class Translator with KernelNodes {
     return _shouldInlineProcedureCall(target, signature, member as Procedure);
   }
 
-  InliningDecision _shouldInlineFieldAccessor(
-    Reference target,
-    Field field,
-  ) {
+  InliningDecision _shouldInlineFieldAccessor(Reference target, Field field) {
     if (field.isInstanceMember) {
       // Implicit instance getters are just loads.
       if (target.isImplicitGetter) {
