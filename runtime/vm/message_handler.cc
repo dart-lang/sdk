@@ -100,6 +100,7 @@ bool MessageHandler::Run(ThreadPool* pool,
   }
   ASSERT(pool_ == nullptr);
   pool_ = pool;
+  set_is_scheduled();
   end_callback_ = end_callback;
   callback_data_ = data;
   task_running_ = true;

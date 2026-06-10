@@ -118,7 +118,10 @@ Future<void> testFailToRunOnExitedIsolate() async {
     () => child.runSync(() {
       print('child runSync is running');
     }),
-    (e) => e is StateError && e.message.contains("Unable to enter the isolate"),
+    (e) =>
+        e is StateError &&
+        (e.message.contains("Unable to enter the isolate") ||
+            e.message.contains("Isolate has a message loop running")),
   );
   rp.close();
 }

@@ -244,6 +244,10 @@ IsolateAcquireResult PortMap::AcquireIsolateByControlPort(Dart_Port target_port,
   ASSERT(target_handler != nullptr);
   auto target_isolate = target_handler->isolate();
 
+  if (!target_handler->isolate()->is_acquirable()) {
+    return IsolateAcquireResult::HAS_MESSAGE_LOOP_OR_UNAVAILABLE;
+  }
+
   if (!target_isolate->TryAcquireOwnership()) {
     return target_isolate->is_permanently_pinned()
                ? IsolateAcquireResult::PINNED_TO_ANOTHER_THREAD
@@ -252,25 +256,6 @@ IsolateAcquireResult PortMap::AcquireIsolateByControlPort(Dart_Port target_port,
 
   *p_isolate = target_isolate;
   return IsolateAcquireResult::SUCCESS;
-}
-
-bool PortMap::HasEventLoopRunning(Dart_Port id) {
-  Locker ml;  // isolates are not exiting while we hold this lock
-  if (ports_ == nullptr) {
-    return false;
-  }
-  auto it = ports_->TryLookup(id);
-  if (it == ports_->end()) {
-    return false;
-  }
-  auto target_handler = (*it).handler;
-  ASSERT(target_handler != nullptr);
-  auto isolate = target_handler->isolate();
-  if (isolate->message_notify_callback() != nullptr) {
-    return true;
-  }
-  auto message_handler = isolate->message_handler();
-  return message_handler != nullptr && message_handler->is_scheduled();
 }
 
 #if defined(TESTING)
