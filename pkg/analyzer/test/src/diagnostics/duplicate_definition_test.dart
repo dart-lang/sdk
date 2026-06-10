@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 
@@ -4153,69 +4151,52 @@ augment class A {}
   }
 
   test_class_library_part() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', '''
+    var lib = getFile('$testPackageLibPath/lib.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib: r'''
 part 'a.dart';
 
 class A {}
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', '''
+//    ^
+// [context 1] The first definition of this name.
+''',
+      a: r'''
 part of 'lib.dart';
 
 class A {}
-''');
-
-    await resolveFile(lib);
-
-    var aResult = await resolveFile(a);
-    GatheringDiagnosticListener()
-      ..addAll(aResult.diagnostics)
-      ..assertErrors([
-        error(
-          diag.duplicateDefinition,
-          27,
-          1,
-          contextMessages: [message(lib, 22, 1)],
-        ),
-      ]);
+//    ^
+// [diag.duplicateDefinition][context 1] The name 'A' is already defined.
+''',
+    });
   }
 
   test_class_part_part() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', '''
+    var lib = getFile('$testPackageLibPath/lib.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib: r'''
 part 'a.dart';
 part 'b.dart';
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', '''
+''',
+      a: r'''
 part of 'lib.dart';
 
 class A {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', '''
+//    ^
+// [context 1] The first definition of this name.
+''',
+      b: r'''
 part of 'lib.dart';
 
 class A {}
-''');
-
-    await resolveFile(lib);
-
-    var aResult = await resolveFile(a);
-    GatheringDiagnosticListener()
-      ..addAll(aResult.diagnostics)
-      ..assertNoErrors();
-
-    var bResult = await resolveFile(b);
-    GatheringDiagnosticListener()
-      ..addAll(bResult.diagnostics)
-      ..assertErrors([
-        error(
-          diag.duplicateDefinition,
-          27,
-          1,
-          contextMessages: [message(a, 27, 1)],
-        ),
-      ]);
+//    ^
+// [diag.duplicateDefinition][context 1] The name 'A' is already defined.
+''',
+    });
   }
 
   test_extension() async {
@@ -4231,31 +4212,25 @@ extension A on int {}
   }
 
   test_extension_library_part() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', '''
+    var lib = getFile('$testPackageLibPath/lib.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib: r'''
 part 'a.dart';
 
 extension A on int {}
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', '''
+//        ^
+// [context 1] The first definition of this name.
+''',
+      a: r'''
 part of 'lib.dart';
 
 extension A on int {}
-''');
-
-    await resolveFile(lib);
-
-    var aResult = await resolveFile(a);
-    GatheringDiagnosticListener()
-      ..addAll(aResult.diagnostics)
-      ..assertErrors([
-        error(
-          diag.duplicateDefinition,
-          31,
-          1,
-          contextMessages: [message(lib, 26, 1)],
-        ),
-      ]);
+//        ^
+// [diag.duplicateDefinition][context 1] The name 'A' is already defined.
+''',
+    });
   }
 
   test_extensionType() async {
@@ -4271,31 +4246,25 @@ extension type A(int it) {}
   }
 
   test_extensionType_library_part() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', '''
+    var lib = getFile('$testPackageLibPath/lib.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib: r'''
 part 'a.dart';
 
 extension type A(int it) {}
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', '''
+//             ^
+// [context 1] The first definition of this name.
+''',
+      a: r'''
 part of 'lib.dart';
 
 extension type A(int it) {}
-''');
-
-    await resolveFile(lib);
-
-    var aResult = await resolveFile(a);
-    GatheringDiagnosticListener()
-      ..addAll(aResult.diagnostics)
-      ..assertErrors([
-        error(
-          diag.duplicateDefinition,
-          36,
-          1,
-          contextMessages: [message(lib, 31, 1)],
-        ),
-      ]);
+//             ^
+// [diag.duplicateDefinition][context 1] The name 'A' is already defined.
+''',
+    });
   }
 
   test_mixin() async {
@@ -4318,31 +4287,25 @@ augment mixin A {}
   }
 
   test_mixin_library_part() async {
-    var lib = newFile('$testPackageLibPath/lib.dart', '''
+    var lib = getFile('$testPackageLibPath/lib.dart');
+    var a = getFile('$testPackageLibPath/a.dart');
+
+    await resolveFilesWithDiagnostics({
+      lib: r'''
 part 'a.dart';
 
 mixin A {}
-''');
-
-    var a = newFile('$testPackageLibPath/a.dart', '''
+//    ^
+// [context 1] The first definition of this name.
+''',
+      a: r'''
 part of 'lib.dart';
 
 mixin A {}
-''');
-
-    await resolveFile(lib);
-
-    var aResult = await resolveFile(a);
-    GatheringDiagnosticListener()
-      ..addAll(aResult.diagnostics)
-      ..assertErrors([
-        error(
-          diag.duplicateDefinition,
-          27,
-          1,
-          contextMessages: [message(lib, 22, 1)],
-        ),
-      ]);
+//    ^
+// [diag.duplicateDefinition][context 1] The name 'A' is already defined.
+''',
+    });
   }
 
   test_topLevelVariable() async {
