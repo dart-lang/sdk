@@ -663,6 +663,8 @@ final a = A(^);
     );
   }
 
+  /// Keywords for declaraing parameters should not be shown because they don't
+  /// change the parameters and are just visual noise.
   Future<void> test_params_final() async {
     var content = '''
 foo(final String s) {
@@ -670,12 +672,12 @@ foo(final String s) {
 }
 ''';
 
-    var expectedLabel = 'foo(final String s)';
+    var expectedLabel = 'foo(String s)';
 
     await _expectSignature(
       content,
       expectedLabel,
-      expectedParams: [ParameterInformation(label: 'final String s')],
+      expectedParams: [ParameterInformation(label: 'String s')],
     );
   }
 
@@ -798,10 +800,10 @@ class A(final int x, var int y, int z);
 
 final a = A(^);
 ''';
-    var expectedLabel = 'A(final int x, var int y, int z)';
+    var expectedLabel = 'A(int x, int y, int z)';
     var expectedParams = [
-      ParameterInformation(label: 'final int x'),
-      ParameterInformation(label: 'var int y'),
+      ParameterInformation(label: 'int x'),
+      ParameterInformation(label: 'int y'),
       ParameterInformation(label: 'int z'),
     ];
 
