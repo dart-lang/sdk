@@ -151,6 +151,12 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
 
+  // Ignore executable for gen_snapshot/simulator, but still let the heap
+  // track code and data pages separately.
+  if (!VirtualMemory::ExecutesGeneratedCode()) {
+    is_executable = false;
+  }
+
   const zx_vm_option_t align_flag = Utils::ShiftForPowerOfTwo(alignment)
                                     << ZX_VM_ALIGN_BASE;
   ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
