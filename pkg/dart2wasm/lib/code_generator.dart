@@ -1487,6 +1487,7 @@ abstract class AstCodeGenerator
             switchInfo.compare(
               switchValueNonNullableLocal,
               () => translateExpression(exp, switchInfo.nonNullableType),
+              exp,
             );
             b.br_if(switchLabels[c]!);
           }
@@ -5170,6 +5171,7 @@ class SwitchInfo {
   late final void Function(
     w.Local switchExprLocal,
     w.ValueType Function() pushCaseExpr,
+    Expression caseExpr,
   )
   compare;
 
@@ -5206,25 +5208,49 @@ class SwitchInfo {
                       e.constant is NullConstant)),
         );
 
+    bool isEqualityPrimitive(Expression e) =>
+        e is ConstantExpression &&
+            (e.constant is StringConstant || e.constant is SymbolConstant) ||
+        e is StringLiteral ||
+        e is SymbolLiteral;
+
     // Type objects should be compared using `==` rather than identity even
     // though the specification is not very clear about it. In language versions
     // >=3.0 CFE would desugar such switches to a sequence of `if` statements
     // using `==`, but for language versions <3.0 it would simply emit
     // `SwitchStatement` and expect back-end to handle types specially if
     // required. See #60375 for more details.
-    bool canInvokeTypeEquality() =>
+    bool shouldUseEquality(Expression caseExpr) =>
         translator.typeEnvironment.isSubtypeOf(
-          switchExprType,
-          translator.coreTypes.typeNullableRawType,
+          codeGen.dartTypeOf(caseExpr),
+          translator.coreTypes.typeNonNullableRawType,
         ) ||
-        node.cases
-            .expand((c) => c.expressions)
-            .any(
-              (e) => translator.typeEnvironment.isSubtypeOf(
-                codeGen.dartTypeOf(e),
-                translator.coreTypes.typeNonNullableRawType,
-              ),
-            );
+        isEqualityPrimitive(caseExpr);
+
+    void addTopTypeCompare() {
+      compare = (switchExprLocal, pushCaseExpr, caseExpr) {
+        if (shouldUseEquality(caseExpr)) {
+          // Virtual call to `Object.==` for primitive types.
+          codeGen._virtualCall(
+            node,
+            translator.coreTypes.objectEquals,
+            _VirtualCallKind.Call,
+            (functionType) {
+              pushCaseExpr();
+            },
+            (functionType, paramInfo) {
+              codeGen.b.local_get(switchExprLocal);
+            },
+            useUncheckedEntry: false,
+          );
+        } else {
+          // Use `identical` for non-primitive types.
+          codeGen.b.local_get(switchExprLocal);
+          pushCaseExpr();
+          codeGen.call(translator.coreTypes.identicalProcedure.reference);
+        }
+      };
+    }
 
     if (node.cases.every(
       (c) =>
@@ -5238,26 +5264,8 @@ class SwitchInfo {
       // default-only switch
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
-      compare = (switchExprLocal, pushCaseExpr) =>
+      compare = (switchExprLocal, pushCaseExpr, _) =>
           throw "Comparison in default-only switch";
-    } else if (canInvokeTypeEquality()) {
-      nonNullableType = translator.runtimeTypeType;
-      nullableType = translator.runtimeTypeTypeNullable;
-      compare = (switchExprLocal, pushCaseExpr) {
-        // Virtual call to `Type.==`.
-        codeGen._virtualCall(
-          node,
-          translator.coreTypes.objectEquals,
-          _VirtualCallKind.Call,
-          (functionType) {
-            codeGen.b.local_get(switchExprLocal);
-          },
-          (functionType, paramInfo) {
-            pushCaseExpr();
-          },
-          useUncheckedEntry: false,
-        );
-      };
     } else if (switchExprType is DynamicType) {
       // Per spec, compare with `<case expr> == <switch expr>`. For performance,
       // if we know that the cases all have the same type, we call the case
@@ -5277,21 +5285,7 @@ class SwitchInfo {
       } else if (check<StringLiteral, StringConstant>()) {
         equalsMember = translator.stringImplEquals;
       } else {
-        compare = (switchExprLocal, pushCaseExpr) {
-          // Virtual call to `Object.==`.
-          codeGen._virtualCall(
-            node,
-            codeGen.translator.coreTypes.objectEquals,
-            _VirtualCallKind.Call,
-            (functionType) {
-              codeGen.b.local_get(switchExprLocal);
-            },
-            (functionType, paramInfo) {
-              pushCaseExpr();
-            },
-            useUncheckedEntry: false,
-          );
-        };
+        addTopTypeCompare();
         _initializeSpecialCases(node);
         return;
       }
@@ -5318,7 +5312,7 @@ class SwitchInfo {
         codeGen.b.drop();
       };
 
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         final caseExprType = pushCaseExpr();
         translator.convertType(
           codeGen.b,
@@ -5340,7 +5334,7 @@ class SwitchInfo {
       nonNullableType = w.NumType.i32;
       nullableType =
           translator.classInfo[translator.boxedBoolClass]!.nullableType;
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.b.i32_eq();
@@ -5384,7 +5378,7 @@ class SwitchInfo {
       }
 
       // Provide a compare as a fallback in case the range is too sparse.
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.b.i64_eq();
@@ -5393,7 +5387,7 @@ class SwitchInfo {
       // String switch
       nonNullableType = translator.stringType;
       nullableType = translator.stringTypeNullable;
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.call(translator.stringImplEquals.reference);
@@ -5458,7 +5452,7 @@ class SwitchInfo {
       }
 
       // Set compare anyway for state machine handling
-      compare = (switchExprLocal, pushCaseExpr) {
+      compare = (switchExprLocal, pushCaseExpr, _) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.call(translator.coreTypes.identicalProcedure.reference);
@@ -5467,11 +5461,7 @@ class SwitchInfo {
       // Object identity switch
       nonNullableType = translator.topTypeNonNullable;
       nullableType = translator.topType;
-      compare = (switchExprLocal, pushCaseExpr) {
-        codeGen.b.local_get(switchExprLocal);
-        pushCaseExpr();
-        codeGen.call(translator.coreTypes.identicalProcedure.reference);
-      };
+      addTopTypeCompare();
     }
 
     _initializeSpecialCases(node);
