@@ -119,17 +119,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  Future<TestResolvedUnitResult> assertErrorsInCode(
-    String code,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    addTestFile(code);
-    var result = await resolveTestFile();
-
-    assertErrorsInList(result.diagnostics, expectedDiagnostics);
-    return result;
-  }
-
   void assertErrorsInList(
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
