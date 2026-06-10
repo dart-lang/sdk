@@ -7190,7 +7190,7 @@ class Parser {
         return token;
       }
     }
-    constantPatternContext = _reportInvalidConstantPatternOperator(
+    constantPatternContext = _checkForInvalidConstantPatternOperator(
       constantPatternContext,
       precedence,
       token,
@@ -7417,7 +7417,7 @@ class Parser {
         }
       }
 
-      constantPatternContext = _reportInvalidConstantPatternOperator(
+      constantPatternContext = _checkForInvalidConstantPatternOperator(
         constantPatternContext,
         precedence,
         token,
@@ -7456,7 +7456,7 @@ class Parser {
   }
 
   @pragma("vm:prefer-inline")
-  ConstantPatternContext _reportInvalidConstantPatternOperator(
+  ConstantPatternContext _checkForInvalidConstantPatternOperator(
     ConstantPatternContext constantPatternContext,
     int precedence,
     Token token,
