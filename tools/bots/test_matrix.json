@@ -1582,23 +1582,14 @@
         "vm-gcc-linux-x64",
         "vm-gcc-linux-arm",
         "vm-gcc-linux-arm64",
-        "vm-gcc-linux-riscv64"
+        "vm-gcc-linux-riscv64",
+        "vm-msvc-win-x64",
+        "vm-msvc-win-arm64"
       ],
       "meta": {
-        "description": "This configuration builds the VM with GCC."
+        "description": "This configuration builds the SDK with GCC/MSVC."
       },
       "steps": [
-        {
-          "name": "build dart debug",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--no-clang",
-            "dart",
-            "dartvm",
-            "dartaotruntime"
-          ]
-        },
         {
           "name": "build dart debug - split to avoid timeout",
           "script": "tools/build.py",
@@ -1609,64 +1600,12 @@
           ]
         },
         {
-          "name": "build dart release",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--no-clang",
-            "dart",
-            "dartvm",
-            "dartaotruntime"
-          ]
-        },
-        {
           "name": "build dart release - split to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
             "--no-clang",
             "create_sdk"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-msvc-win-x64",
-        "vm-msvc-win-arm64"
-      ],
-      "meta": {
-        "description": "This configuration builds the VM with MSVC."
-      },
-      "steps": [
-        {
-          "name": "build dart debug",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart product",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=product",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
           ]
         }
       ]
