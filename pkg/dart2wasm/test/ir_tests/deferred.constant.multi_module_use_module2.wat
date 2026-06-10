@@ -23,8 +23,9 @@
     (struct.new $JSExternWrapper)
     (struct.new $MyConstClass))
   (elem $module0.cross-module-funcs-0
-    (set 3 (ref.func $"modH0Use <noInline>")))
-  (func $"modH0Use <noInline>" (param $var0 i32) (result (ref $MyConstClass))
+    (set 3 (ref.func $modH0Use)))
+  (@binaryen.inline 0)
+  (func $modH0Use (param $var0 i32) (result (ref $MyConstClass))
     local.get $var0
     if (result (ref $MyConstClass))
       global.get $MyConstClass

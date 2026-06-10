@@ -50,8 +50,8 @@
   (global $global0 (ref $"dummy struct") <...>)
   (global $global2 (ref $#Vtable-1-1) <...>)
   (elem $module0.cross-module-funcs-0
-    (set 0 (ref.func $"modMainUseH0 <noInline>"))
-    (set 1 (ref.func $"modH1UseH1 <noInline>")))
+    (set 0 (ref.func $modMainUseH0))
+    (set 1 (ref.func $modH1UseH1)))
   (func $#dummy function (ref struct) -> (ref null #Top) (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
   (func $"H1 (lazy initializer)" (result (ref $H1))
     (local $var0 (ref $#Closure-1-1))
@@ -127,7 +127,8 @@
     ref.null none
   )
   (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
-  (func $"modH1UseH1 <noInline>"
+  (@binaryen.inline 0)
+  (func $modH1UseH1
     (local $var0 (ref $#Closure-0-1))
     block $label0 (result (ref $H1))
       global.get $H1
@@ -153,7 +154,8 @@
     call_ref $type0
     drop
   )
-  (func $"modMainUseH0 <noInline>"
+  (@binaryen.inline 0)
+  (func $modMainUseH0
     i64.const 0
     i32.const 7
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)

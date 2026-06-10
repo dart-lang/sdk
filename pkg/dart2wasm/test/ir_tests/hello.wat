@@ -9,7 +9,8 @@
     (i32.const 56)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))
-  (func $"main <noInline>"
+  (@binaryen.inline 0)
+  (func $main
     global.get $"\"hello world\""
     call $print
   )

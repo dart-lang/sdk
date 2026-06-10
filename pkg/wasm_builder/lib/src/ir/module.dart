@@ -132,7 +132,8 @@ class Module implements Serializable {
       globals,
       watchPoints,
     ).serialize(s);
-    RemovableIfUnusedSection(functions).serialize(s);
+    BinaryenRemovableIfUnusedSection(functions).serialize(s);
+    BinaryenInlineHintSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
     for (final customSection in _extraCustomSections) {
       customSection.serialize(s);
@@ -287,8 +288,16 @@ class Module implements Serializable {
       types,
       globals,
     );
-    RemovableIfUnusedSection.deserialize(
-      customSections.remove(RemovableIfUnusedSection.customSectionName)?.single,
+    BinaryenRemovableIfUnusedSection.deserialize(
+      customSections
+          .remove(BinaryenRemovableIfUnusedSection.customSectionName)
+          ?.single,
+      functions,
+    );
+    BinaryenInlineHintSection.deserialize(
+      customSections
+          .remove(BinaryenInlineHintSection.customSectionName)
+          ?.single,
       functions,
     );
     final sourceMapUrl = SourceMapSection.deserialize(

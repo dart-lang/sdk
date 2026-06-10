@@ -94,6 +94,23 @@ class FunctionCollector {
         translator.coreTypes,
         member,
       );
+      final hasNeverInlineAnnotation =
+          util.getWasmNeverInlinePragma(translator.coreTypes, member) ?? false;
+      final bool neverInline;
+      if (member is Field) {
+        neverInline =
+            target.isStaticFieldInitializer &&
+            translator.neverInlineStaticFieldInitializer(member);
+      } else if (member is Constructor) {
+        neverInline =
+            hasNeverInlineAnnotation &&
+            (target == member.reference || target.isConstructorBodyReference);
+      } else {
+        member as Procedure;
+        neverInline =
+            hasNeverInlineAnnotation &&
+            (target == member.reference || target.isBodyReference);
+      }
 
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
@@ -119,7 +136,8 @@ class FunctionCollector {
                     ftype,
                     "$importName (import)",
                   )
-                ..isPure = hasPureAnnotation;
+                ..isPure = hasPureAnnotation
+                ..inlineHint = neverInline ? 0 : null;
         }
       }
 
@@ -147,7 +165,8 @@ class FunctionCollector {
           : translator.signatureForDirectCall(target);
 
       final function = module.functions.define(ftype, getFunctionName(target))
-        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference;
+        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
+        ..inlineHint = neverInline ? 0 : null;
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
@@ -319,23 +338,8 @@ class FunctionCollector {
       return "$memberName (unchecked entry)";
     }
 
-    final noInline = translator.getPragma<bool>(
-      member,
-      "wasm:never-inline",
-      true,
-    );
-
-    // We add "<noInline>" to the function name. When we invoke `wasm-opt` we
-    // then pass the `--no-inline=*<noInline>*` flag, which will prevent
-    // binaryen from inlining those functions.
-    //
-    // => Effectively we make `@pragma('wasm:never-inline')` work for binaryen
-    // as well.
-    const noInlinePostfix = ' <noInline>';
-    final inlinePostfix = noInline == true ? noInlinePostfix : '';
-
     if (target.isBodyReference) {
-      return "$memberName (body)$inlinePostfix";
+      return "$memberName (body)";
     }
 
     if (memberName.endsWith('.')) {
@@ -348,7 +352,7 @@ class FunctionCollector {
       }
       if (target.isStaticFieldInitializer) {
         return translator.neverInlineStaticFieldInitializer(member)
-            ? '$memberName field initializer$noInlinePostfix'
+            ? '$memberName field initializer'
             : '$memberName field initializer';
       }
       return '$memberName implicit getter';
@@ -357,11 +361,11 @@ class FunctionCollector {
     if (target.isInitializerReference) {
       return 'new $memberName (initializer)';
     } else if (target.isConstructorBodyReference) {
-      return 'new $memberName (constructor body)$inlinePostfix';
+      return 'new $memberName (constructor body)';
     } else if (member is Procedure && member.isFactory) {
       return 'new $memberName';
     } else {
-      return '$memberName$inlinePostfix';
+      return memberName;
     }
   }
 

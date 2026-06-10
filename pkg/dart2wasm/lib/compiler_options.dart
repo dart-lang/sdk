@@ -55,6 +55,7 @@ class WasmCompilerOptions {
   String? dumpKernelAfterTfa;
   bool dryRun = false;
   Uri? wasmOptPath;
+  bool stripToolchainAnnotations = true;
   int maxActiveWasmOptProcesses = _defaultMaxActiveWasmOptProcesses();
   bool saveUnopt = false;
   Set<int> moduleIdsToOptimize = const {};

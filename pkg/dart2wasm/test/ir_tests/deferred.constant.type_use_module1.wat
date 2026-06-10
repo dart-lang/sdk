@@ -16,16 +16,19 @@
     (struct.new $JSExternWrapper))
   (global $_InterfaceType (ref $_InterfaceType) <...>)
   (elem $module0.cross-module-funcs-0
-    (set 0 (ref.func $"useFoo <noInline>")))
-  (func $"useFoo <noInline>"
-    call $"useFooAsType <noInline>"
+    (set 0 (ref.func $useFoo)))
+  (func $Foo.printFoo (param $var0 (ref $Foo)) <...>)
+  (@binaryen.inline 0)
+  (func $useFoo
+    call $useFooAsType
     i64.const 0
     i32.const 1
     call_indirect (param i64) (result i32)
     drop
-    call $"useFooAsObject <noInline>"
+    call $useFooAsObject
   )
-  (func $"useFooAsObject <noInline>"
+  (@binaryen.inline 0)
+  (func $useFooAsObject
     (local $var0 (ref $Foo))
     i32.const 107
     i32.const 0
@@ -36,10 +39,10 @@
     local.get $var0
     call $Foo.printFoo
   )
-  (func $"useFooAsType <noInline>"
+  (@binaryen.inline 0)
+  (func $useFooAsType
     global.get $_InterfaceType
     i32.const 3
     call_indirect (param (ref null $#Top))
   )
-  (func $Foo.printFoo (param $var0 (ref $Foo)) <...>)
 )

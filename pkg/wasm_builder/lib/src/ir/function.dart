@@ -44,6 +44,12 @@ abstract class BaseFunction with Indexable, Exportable {
   /// `binaryen.removable.if.unused` custom section.
   bool isPure = false;
 
+  /// Inline hint for this function.
+  ///
+  /// If set, we'll emit metadata in the `binaryen.inline` custom section.
+  /// Value must be in range [0..127].
+  int? inlineHint;
+
   BaseFunction(
     this.enclosingModule,
     this.finalizableIndex,
@@ -115,6 +121,9 @@ class DefinedFunction extends BaseFunction implements Serializable {
   void printTo(IrPrinter p) {
     if (isPure) {
       p.writeln('(@binaryen.removable.if.unused)');
+    }
+    if (inlineHint != null) {
+      p.writeln('(@binaryen.inline $inlineHint)');
     }
     p.write('(func ');
     p.writeFunctionReference(this);
@@ -188,6 +197,9 @@ class ImportedFunction extends BaseFunction implements Import {
   void printTo(IrPrinter p) {
     if (isPure) {
       p.writeln('(@binaryen.removable.if.unused)');
+    }
+    if (inlineHint != null) {
+      p.writeln('(@binaryen.inline $inlineHint)');
     }
     p.write('(func ');
     p.writeFunctionReference(this);

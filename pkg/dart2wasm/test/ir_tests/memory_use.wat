@@ -5,7 +5,8 @@
     (field $field0 i32)
     (field $value f64))))
   (memory $foo.mem (import "foo" "mem") 1)
-  (func $"main <noInline>"
+  (@binaryen.inline 0)
+  (func $main
     i32.const 1
     memory.grow $foo.mem
     drop

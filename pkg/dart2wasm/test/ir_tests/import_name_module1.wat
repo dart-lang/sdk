@@ -16,11 +16,13 @@
     (global.get $".hello world")
     (struct.new $JSExternWrapper))
   (elem $module0.cross-module-funcs-0
-    (set 0 (ref.func $"deferredFoo <noInline>")))
-  (func $"deferredFoo <noInline>"
-    call $"mainFoo <noInline>"
+    (set 0 (ref.func $deferredFoo)))
+  (@binaryen.inline 0)
+  (func $deferredFoo
+    call $mainFoo
   )
-  (func $"mainFoo <noInline>"
+  (@binaryen.inline 0)
+  (func $mainFoo
     global.get $"\"hello world\""
     i32.const 1
     call_indirect (param (ref null $#Top))

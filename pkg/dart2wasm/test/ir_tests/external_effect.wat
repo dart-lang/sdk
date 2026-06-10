@@ -8,7 +8,8 @@
     (i32.const 84)
     (i64.const 1)
     (struct.new $BoxedInt))
-  (func $"main <noInline>"
+  (@binaryen.inline 0)
+  (func $main
     global.get $1
     call $print
     i32.const 84

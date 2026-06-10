@@ -104,6 +104,24 @@ bool hasWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
   return hasPragma(coreTypes, member, "wasm:weak-export");
 }
 
+bool? getWasmPreferInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:prefer-inline",
+    defaultValue: true,
+  );
+}
+
+bool? getWasmNeverInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:never-inline",
+    defaultValue: true,
+  );
+}
+
 String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
   return getPragma<String>(
     coreTypes,
