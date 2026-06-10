@@ -71,9 +71,9 @@ class OS {
 
   // Safely reads size bytes from native address into buffer.
   // Returns true on success, false if the address is invalid.
-  static bool SafeReadMemory(uintptr_t address,
+  static bool SafeReadMemory(void* address,
                              uint8_t* buffer,
-                             intptr_t size_in_bytes,
+                             size_t size_in_bytes,
                              const char** error);
 
   // Sleep the currently executing thread for millis ms.
