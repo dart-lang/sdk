@@ -390,9 +390,7 @@ include: ../analysis_options.yaml
   }
 
   AnalysisOptions _getOptionsObject(String folderPath) {
-    var file = getFolder(
-      folderPath,
-    ).getChildAssumingFile(file_paths.analysisOptionsYaml);
+    var file = getFolder(folderPath).getFile(file_paths.analysisOptionsYaml);
     return AnalysisOptionsImpl.fromYaml(
       optionsMap: provider.getOptionsFromFile(file),
       file: getFile(folderPath),

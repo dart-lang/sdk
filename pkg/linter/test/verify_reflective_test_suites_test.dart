@@ -65,7 +65,7 @@ class _VerifyTests {
     );
     for (var child in children) {
       if (child is Folder) {
-        if (child.getChildAssumingFile(testAllFileName).exists) {
+        if (child.getFile(testAllFileName).exists) {
           testFileNames.add('${child.shortName}/$testAllFileName');
         }
         _buildTestsIn(session, testDirPath, child);

@@ -51,9 +51,9 @@ class SetPriorityFilesTest extends PubPackageAnalysisServerTest {
     addTestFile('');
     // set priority files
     var file = sdkRoot
-        .getChildAssumingFolder('lib')
-        .getChildAssumingFolder('convert')
-        .getChildAssumingFile('convert.dart');
+        .getFolder('lib')
+        .getFolder('convert')
+        .getFile('convert.dart');
     var response = await _setPriorityFile(file);
     expect(response, isResponseSuccess('1'));
     // verify

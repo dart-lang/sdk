@@ -347,7 +347,7 @@ void f() {
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     driver.addFile2(a);
@@ -362,7 +362,7 @@ void f() {
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     driver.addFile2(a);
@@ -1525,10 +1525,10 @@ final v = 2;
     expect(
       driver.knownFiles.resources,
       containsAll([
-        sdkRoot.getChildAssumingFile('lib/async/async.dart'),
-        sdkRoot.getChildAssumingFile('lib/collection/collection.dart'),
-        sdkRoot.getChildAssumingFile('lib/core/core.dart'),
-        sdkRoot.getChildAssumingFile('lib/math/math.dart'),
+        sdkRoot.getFile('lib/async/async.dart'),
+        sdkRoot.getFile('lib/collection/collection.dart'),
+        sdkRoot.getFile('lib/core/core.dart'),
+        sdkRoot.getFile('lib/math/math.dart'),
       ]),
     );
   }
@@ -1671,7 +1671,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getErrors('A1', a);
@@ -1689,7 +1689,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getErrors('A1', a);
@@ -2073,7 +2073,7 @@ void f() {
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getIndex('A1', a);
@@ -2089,7 +2089,7 @@ void f() {
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getIndex('A1', a);
@@ -2161,7 +2161,7 @@ class B {}
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     newFile('$testPackageLibPath/a.dart', '');
     collector.getLibraryByUri('A1', 'package:test/a.dart');
@@ -2179,7 +2179,7 @@ class B {}
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     newFile('$testPackageLibPath/a.dart', '');
     collector.getLibraryByUri('A1', 'package:test/a.dart');
@@ -2436,7 +2436,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getResolvedLibrary('A1', a);
@@ -2457,7 +2457,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getResolvedLibrary('A1', a);
@@ -2629,7 +2629,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     newFile('$testPackageLibPath/a.dart', '');
     collector.getResolvedLibraryByUri('A1', Uri.parse('package:test/a.dart'));
@@ -2650,7 +2650,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     newFile('$testPackageLibPath/a.dart', '');
     collector.getResolvedLibraryByUri('A1', Uri.parse('package:test/a.dart'));
@@ -2988,7 +2988,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getResolvedUnit('A1', a);
@@ -3009,7 +3009,7 @@ part of 'a.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getResolvedUnit('A1', a);
@@ -3441,7 +3441,7 @@ import 'package:test/b.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/async/async.dart').delete();
+    sdkRoot.getFile('lib/async/async.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getUnitElement('A1', a);
@@ -3459,7 +3459,7 @@ import 'package:test/b.dart';
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    sdkRoot.getChildAssumingFile('lib/core/core.dart').delete();
+    sdkRoot.getFile('lib/core/core.dart').delete();
 
     var a = newFile('$testPackageLibPath/a.dart', '');
     collector.getUnitElement('A1', a);
@@ -38189,7 +38189,7 @@ library;
 [status] idle
 ''',
       updateFiles: () {
-        var core = sdkRoot.getChildAssumingFile('lib/core/core.dart');
+        var core = sdkRoot.getFile('lib/core/core.dart');
         var newCode = core.readAsStringSync().replaceFirst(
           'abstract final class int extends num {',
           '@deprecated abstract final class int extends num {',

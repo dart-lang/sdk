@@ -425,7 +425,7 @@ class _PackageMatcher extends Matcher {
     required this.name,
     required this.rootFolder,
     Folder? libFolder,
-  }) : libFolder = libFolder ?? rootFolder.getChildAssumingFolder('lib');
+  }) : libFolder = libFolder ?? rootFolder.getFolder('lib');
 
   @override
   Description describe(Description description) => description

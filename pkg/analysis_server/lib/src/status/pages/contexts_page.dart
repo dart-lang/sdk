@@ -79,16 +79,14 @@ class ContextsPage extends DiagnosticPageWithNav {
         buf.write('pubspec file: ');
         buf.write(escape(workspaceFolder.path));
         buf.write('$separator<wbr>');
-        var pubspecPath = workspaceFolder
-            .getChildAssumingFile(file_paths.pubspecYaml)
-            .path;
+        var pubspecPath = workspaceFolder.getFile(file_paths.pubspecYaml).path;
         buf.writeln(formatContentsLink(pubspecPath, file_paths.pubspecYaml));
       }
     }
 
     var packageConfig = workspaceFolder
-        .getChildAssumingFolder(file_paths.dotDartTool)
-        .getChildAssumingFile(file_paths.packageConfigJson);
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
     buf.writeln(
       formatOption('Has package_config.json file', packageConfig.exists),
     );

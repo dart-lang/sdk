@@ -131,9 +131,7 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
   late final Folder? folderWithExamplesApi = () {
     var file = resourceProvider.getFile(filePath);
     for (var parent in file.parent.withAncestors) {
-      var apiFolder = parent
-          .getChildAssumingFolder('examples')
-          .getChildAssumingFolder('api');
+      var apiFolder = parent.getFolder('examples').getFolder('api');
       if (apiFolder.exists) {
         return parent;
       }

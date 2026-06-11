@@ -87,7 +87,7 @@ bool _assetExistsAtPath(PubspecValidationContext ctx, String assetPath) {
   }
   for (var child in assetFolder.getChildren()) {
     if (child is Folder) {
-      var innerFile = child.getChildAssumingFile(fileName);
+      var innerFile = child.getFile(fileName);
       if (innerFile.exists) {
         return true;
       }

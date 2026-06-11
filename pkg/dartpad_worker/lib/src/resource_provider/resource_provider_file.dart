@@ -527,7 +527,7 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
     var i = 0;
     while (true) {
       var name = "${prefix ?? 'temp'}_$i";
-      var temp = _folder.getChildAssumingFolder(name);
+      var temp = _folder.getFolder(name);
       if (!temp.exists) {
         temp.create();
         return _ResourceProviderDirectory(fileSystem, temp.path);
@@ -625,10 +625,10 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
     }
     for (final child in source.getChildren()) {
       if (child is File) {
-        final destFile = dest.getChildAssumingFile(child.shortName);
+        final destFile = dest.getFile(child.shortName);
         destFile.writeAsBytesSync(child.readAsBytesSync());
       } else if (child is Folder) {
-        final destChild = dest.getChildAssumingFolder(child.shortName);
+        final destChild = dest.getFolder(child.shortName);
         _copyFolderSync(child, destChild);
       }
     }

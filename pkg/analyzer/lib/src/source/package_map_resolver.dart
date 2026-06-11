@@ -86,7 +86,7 @@ class PackageMapUriResolver extends UriResolver {
     if (packageDirs != null) {
       Folder packageDir = packageDirs.single;
       String relPath = pathSegments.skip(1).join('/');
-      File file = packageDir.getChildAssumingFile(relPath);
+      File file = packageDir.getFile(relPath);
       return FileSource(file, uri);
     }
     return null;

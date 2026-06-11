@@ -660,15 +660,15 @@ class ContextManagerImpl implements ContextManager {
 
           var packageName = rootFolder.shortName;
           var fixDataYamlFile = rootFolder
-              .getChildAssumingFolder('lib')
-              .getChildAssumingFile(file_paths.fixDataYaml);
+              .getFolder('lib')
+              .getFile(file_paths.fixDataYaml);
           if (fixDataYamlFile.exists) {
             _analyzeFixDataYaml(driver, fixDataYamlFile, packageName);
           }
 
           var fixDataFolder = rootFolder
-              .getChildAssumingFolder('lib')
-              .getChildAssumingFolder(file_paths.fixDataYamlFolder);
+              .getFolder('lib')
+              .getFolder(file_paths.fixDataYamlFolder);
           if (fixDataFolder.exists) {
             _analyzeFixDataFolder(driver, fixDataFolder, packageName);
           }

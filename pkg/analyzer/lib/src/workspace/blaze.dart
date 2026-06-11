@@ -372,7 +372,7 @@ class BlazeWorkspace extends Workspace
         return null;
       }
 
-      if (folder.getChildAssumingFile(_buildFileName).exists) {
+      if (folder.getFile(_buildFileName).exists) {
         // Found the BUILD file, denoting a Dart package.
         return packageRootedAt(folder);
       }
@@ -467,7 +467,7 @@ class BlazeWorkspace extends Workspace
     for (var folder in startFolder.withAncestors) {
       var parent = folder.parent;
 
-      var blazeOutFolder = parent.getChildAssumingFolder('blaze-out');
+      var blazeOutFolder = parent.getFolder('blaze-out');
       if (blazeOutFolder.exists) {
         // Found the "out" folder; must be a Blaze workspace.
         String root = parent.path;
@@ -484,7 +484,7 @@ class BlazeWorkspace extends Workspace
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
-      if (folder.getChildAssumingFile(file_paths.blazeWorkspaceMarker).exists) {
+      if (folder.getFile(file_paths.blazeWorkspaceMarker).exists) {
         String root = folder.path;
         var binPaths = _findBinFolderPaths(folder);
         binPaths = binPaths..add(context.join(root, 'blaze-bin'));
@@ -509,8 +509,8 @@ class BlazeWorkspace extends Workspace
   /// available.
   static BlazeWorkspace forBuild({required Folder root}) {
     var provider = root.provider;
-    var blazeBin = root.getChildAssumingFolder('blaze-bin');
-    var blazeGenfiles = root.getChildAssumingFolder('blaze-genfiles');
+    var blazeBin = root.getFolder('blaze-bin');
+    var blazeGenfiles = root.getFolder('blaze-genfiles');
 
     var binPaths = _findBinFolderPaths(root);
     binPaths.add(blazeBin.path);
@@ -536,7 +536,7 @@ class BlazeWorkspace extends Workspace
   /// If no "bin" folder is found in any of those locations, empty list is
   /// returned.
   static List<String> _findBinFolderPaths(Folder root) {
-    var out = root.getChildAssumingFolder('blaze-out');
+    var out = root.getFolder('blaze-out');
     if (!out.exists) {
       return [];
     }
@@ -545,7 +545,7 @@ class BlazeWorkspace extends Workspace
     for (var child in out.getChildren().whereType<Folder>()) {
       // Children are folders denoting architectures and build flags, like
       // 'k8-opt', 'k8-fastbuild', perhaps 'host'.
-      Folder possibleBin = child.getChildAssumingFolder('bin');
+      Folder possibleBin = child.getFolder('bin');
       if (possibleBin.exists) {
         binPaths.add(possibleBin.path);
       }
@@ -647,58 +647,58 @@ class BlazeWorkspacePackage extends WorkspacePackageImpl {
       return true;
     }
 
-    var libFolder = root.getChildAssumingFolder('lib');
-    var libSrcFolder = libFolder.getChildAssumingFolder('src');
-    var libSrcTestingFolder = libSrcFolder.getChildAssumingFolder('testing');
+    var libFolder = root.getFolder('lib');
+    var libSrcFolder = libFolder.getFolder('src');
+    var libSrcTestingFolder = libSrcFolder.getFolder('testing');
     if (libSrcTestingFolder.contains(file.path)) {
       return true;
     }
 
-    var libTestDriverFolder = libFolder.getChildAssumingFolder('test_driver');
+    var libTestDriverFolder = libFolder.getFolder('test_driver');
     if (libTestDriverFolder.contains(file.path)) {
       return true;
     }
 
     for (var binPath in workspace.binPaths) {
       var binFolder = workspace.provider.getFolder(binPath);
-      var genPackageRoot = binFolder.getChildAssumingFolder(relativeRoot);
+      var genPackageRoot = binFolder.getFolder(relativeRoot);
       if (isInTestDirectoryUnder(genPackageRoot, file)) {
         return true;
       }
 
       var genLibSrcTestingFolder = genPackageRoot
-          .getChildAssumingFolder('lib')
-          .getChildAssumingFolder('src')
-          .getChildAssumingFolder('testing');
+          .getFolder('lib')
+          .getFolder('src')
+          .getFolder('testing');
       if (genLibSrcTestingFolder.contains(file.path)) {
         return true;
       }
 
       var genLibTestDriverFolder = genPackageRoot
-          .getChildAssumingFolder('lib')
-          .getChildAssumingFolder('test_driver');
+          .getFolder('lib')
+          .getFolder('test_driver');
       if (genLibTestDriverFolder.contains(file.path)) {
         return true;
       }
     }
 
     var genfilesFolder = workspace.provider.getFolder(workspace.genfiles);
-    var genPackageRoot = genfilesFolder.getChildAssumingFolder(relativeRoot);
+    var genPackageRoot = genfilesFolder.getFolder(relativeRoot);
     if (isInTestDirectoryUnder(genPackageRoot, file)) {
       return true;
     }
 
     var genLibSrcTestingFolder = genPackageRoot
-        .getChildAssumingFolder('lib')
-        .getChildAssumingFolder('src')
-        .getChildAssumingFolder('testing');
+        .getFolder('lib')
+        .getFolder('src')
+        .getFolder('testing');
     if (genLibSrcTestingFolder.contains(file.path)) {
       return true;
     }
 
     var genLibTestDriverFolder = genPackageRoot
-        .getChildAssumingFolder('lib')
-        .getChildAssumingFolder('test_driver');
+        .getFolder('lib')
+        .getFolder('test_driver');
     if (genLibTestDriverFolder.contains(file.path)) {
       return true;
     }
@@ -716,10 +716,10 @@ class BlazeWorkspacePackage extends WorkspacePackageImpl {
     var filePath = filePathFromSource(source);
     if (filePath == null) return false;
 
-    var libFolder = root.getChildAssumingFolder('lib');
+    var libFolder = root.getFolder('lib');
     if (libFolder.contains(filePath)) {
       // A file in "$root/lib" is public iff it is not in "$root/lib/src".
-      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      var libSrcFolder = libFolder.getFolder('src');
       return !libSrcFolder.contains(filePath);
     }
 
@@ -729,24 +729,22 @@ class BlazeWorkspacePackage extends WorkspacePackageImpl {
     );
     for (var binPath in workspace.binPaths) {
       Folder bin = workspace.provider.getFolder(binPath);
-      libFolder = bin
-          .getChildAssumingFolder(relativeRoot)
-          .getChildAssumingFolder('lib');
+      libFolder = bin.getFolder(relativeRoot).getFolder('lib');
       if (libFolder.contains(filePath)) {
         // A file in "$bin/lib" is public iff it is not in "$bin/lib/src".
-        var libSrcFolder = libFolder.getChildAssumingFolder('src');
+        var libSrcFolder = libFolder.getFolder('src');
         return !libSrcFolder.contains(filePath);
       }
     }
 
     libFolder = workspace.provider
         .getFolder(workspace.genfiles)
-        .getChildAssumingFolder(relativeRoot)
-        .getChildAssumingFolder('lib');
+        .getFolder(relativeRoot)
+        .getFolder('lib');
     if (libFolder.contains(filePath)) {
       // A file in "$genfiles/lib" is public iff it is not in
       // "$genfiles/lib/src".
-      var libSrcFolder = libFolder.getChildAssumingFolder('src');
+      var libSrcFolder = libFolder.getFolder('src');
       return !libSrcFolder.contains(filePath);
     }
 

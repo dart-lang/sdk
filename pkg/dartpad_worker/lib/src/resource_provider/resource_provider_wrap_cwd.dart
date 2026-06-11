@@ -162,12 +162,22 @@ final class _Folder implements Folder {
   Resource getChild(String relPath) => _rp._wrap(_r.getChild(relPath));
 
   @override
-  File getChildAssumingFile(String relPath) =>
-      _File(_r.getChildAssumingFile(relPath), _rp);
+  File getFile(String relPath) => _File(_r.getFile(relPath), _rp);
+
+  @Deprecated('Use getFile instead.')
+  @override
+  File getChildAssumingFile(String relPath) {
+    return getFile(relPath);
+  }
 
   @override
-  Folder getChildAssumingFolder(String relPath) =>
-      _Folder(_r.getChildAssumingFolder(relPath), _rp);
+  Folder getFolder(String relPath) => _Folder(_r.getFolder(relPath), _rp);
+
+  @Deprecated('Use getFolder instead.')
+  @override
+  Folder getChildAssumingFolder(String relPath) {
+    return getFolder(relPath);
+  }
 
   @override
   List<Resource> getChildren() => _r.getChildren().map(_rp._wrap).toList();

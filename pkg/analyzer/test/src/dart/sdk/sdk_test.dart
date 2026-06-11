@@ -140,10 +140,7 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
   void test_fromFile_library() {
     FolderBasedDartSdk sdk = _createDartSdk();
     var source = sdk.fromFileUri(
-      sdk.libraryDirectory
-          .getChildAssumingFolder("core")
-          .getChildAssumingFile("core.dart")
-          .toUri(),
+      sdk.libraryDirectory.getFolder("core").getFile("core.dart").toUri(),
     )!;
     expect(source, isNotNull);
     expect(source.uri.toString(), "dart:core");
@@ -151,9 +148,9 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
 
   void test_fromFile_library_firstExact() {
     FolderBasedDartSdk sdk = _createDartSdk();
-    Folder dirHtml = sdk.libraryDirectory.getChildAssumingFolder("html");
-    Folder dirDartium = dirHtml.getChildAssumingFolder("dart2js");
-    File file = dirDartium.getChildAssumingFile("html_dart2js.dart");
+    Folder dirHtml = sdk.libraryDirectory.getFolder("html");
+    Folder dirDartium = dirHtml.getFolder("dart2js");
+    File file = dirDartium.getFile("html_dart2js.dart");
     var source = sdk.fromFileUri(file.toUri())!;
     expect(source, isNotNull);
     expect(source.uri.toString(), "dart:html");
@@ -161,9 +158,9 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
 
   void test_fromFile_library_html_common_dart2js() {
     FolderBasedDartSdk sdk = _createDartSdk();
-    Folder dirHtml = sdk.libraryDirectory.getChildAssumingFolder("html");
-    Folder dirCommon = dirHtml.getChildAssumingFolder("html_common");
-    File file = dirCommon.getChildAssumingFile("html_common_dart2js.dart");
+    Folder dirHtml = sdk.libraryDirectory.getFolder("html");
+    Folder dirCommon = dirHtml.getFolder("html_common");
+    File file = dirCommon.getFile("html_common_dart2js.dart");
     var source = sdk.fromFileUri(file.toUri())!;
     expect(source, isNotNull);
     expect(source.uri.toString(), "dart:html_common");
@@ -172,10 +169,7 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
   void test_fromFile_part() {
     FolderBasedDartSdk sdk = _createDartSdk();
     var source = sdk.fromFileUri(
-      sdk.libraryDirectory
-          .getChildAssumingFolder("core")
-          .getChildAssumingFile("num.dart")
-          .toUri(),
+      sdk.libraryDirectory.getFolder("core").getFile("num.dart").toUri(),
     )!;
     expect(source, isNotNull);
     expect(source.uri.toString(), "dart:core/num.dart");
@@ -255,9 +249,9 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     Folder parent = directory;
     int last = segments.length - 1;
     for (int i = 0; i < last; i++) {
-      parent = parent.getChildAssumingFolder(segments[i]);
+      parent = parent.getFolder(segments[i]);
     }
-    File file = parent.getChildAssumingFile(segments[last]);
+    File file = parent.getFile(segments[last]);
     newFile(file.path, content);
   }
 

@@ -279,7 +279,7 @@ analyzer:
 
   YamlMap _getOptions(String posixPath) {
     var folder = getFolder(posixPath);
-    var file = folder.getChildAssumingFile(file_paths.analysisOptionsYaml);
+    var file = folder.getFile(file_paths.analysisOptionsYaml);
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     return AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(file);
   }

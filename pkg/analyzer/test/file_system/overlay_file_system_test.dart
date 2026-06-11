@@ -559,18 +559,6 @@ class FolderTest extends OverlayTestSupport {
     expect(child, _isFolder);
   }
 
-  test_getChildAssumingFile() {
-    Folder folder = _folder(exists: true);
-    File child = folder.getChildAssumingFile('README.md');
-    expect(child, isNotNull);
-  }
-
-  test_getChildAssumingFolder() {
-    Folder folder = _folder(exists: true);
-    Folder child = folder.getChildAssumingFolder('lib');
-    expect(child, isNotNull);
-  }
-
   test_getChildren_existing() {
     Folder folder = _folder(exists: true);
     Folder child1 = _folder(
@@ -641,6 +629,18 @@ class FolderTest extends OverlayTestSupport {
     List<Resource> children = file.parent.parent.getChildren();
     expect(children, hasLength(1));
     expect(children[0], _isFolder);
+  }
+
+  test_getFile() {
+    Folder folder = _folder(exists: true);
+    File child = folder.getFile('README.md');
+    expect(child, isNotNull);
+  }
+
+  test_getFolder() {
+    Folder folder = _folder(exists: true);
+    Folder child = folder.getFolder('lib');
+    expect(child, isNotNull);
   }
 
   test_isOrContains_false() {

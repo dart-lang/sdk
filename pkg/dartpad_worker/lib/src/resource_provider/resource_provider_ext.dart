@@ -34,10 +34,10 @@ extension FolderExt on Folder {
       }
 
       if (entry.header.typeFlag == TypeFlag.dir) {
-        getChildAssumingFolder(relPath).createRecursively();
+        getFolder(relPath).createRecursively();
       } else if (entry.header.typeFlag == TypeFlag.reg ||
           entry.header.typeFlag == TypeFlag.regA) {
-        final file = getChildAssumingFile(relPath);
+        final file = getFile(relPath);
         file.parent.createRecursively();
 
         // Ensure that we copy the data, as TarReader may reuse buffers
