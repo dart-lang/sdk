@@ -31,13 +31,13 @@ void main(List<String> args, Object? message) async {
   return await selfInvokingTest(
     doOnOuterInvocation: selfInvokes,
     doOnProcessInvocation: () async {
-      await runTests(args[1]);
-      await testIsolateSpawn(() => runTests(args[1]));
+      await runTests();
+      await testIsolateSpawn(runTests);
       await testIsolateSpawnUri(spawnUri: Platform.script, arguments: args);
     },
     doOnSpawnUriInvocation: () async {
-      await runTests(args[1]);
-      await testIsolateSpawn(() => runTests(args[1]));
+      await runTests();
+      await testIsolateSpawn(runTests);
     },
   )(args, message);
 }
@@ -49,7 +49,7 @@ Future<void> selfInvokes() async {
     runtime: Runtime.jit,
     kernelCombine: KernelCombine.concatenation,
     relativePath: RelativePath.same,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     useSymlink: true,
     protobufAwareTreeshaking: true,
   );
@@ -57,7 +57,7 @@ Future<void> selfInvokes() async {
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
     relativePath: RelativePath.down,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     useSymlink: true,
     protobufAwareTreeshaking: false,
   );
@@ -69,7 +69,7 @@ Future<void> selfInvokes() async {
         ? AotCompile.assembly
         : AotCompile.elf,
     relativePath: RelativePath.up,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     useSymlink: true,
     protobufAwareTreeshaking: true,
   );
@@ -140,11 +140,9 @@ Future<void> invokeSelf({
   });
 }
 
-Future<void> runTests(String assetId) async {
+Future<void> runTests() async {
   testFfiTestfunctionsDll();
-  testOpenFfiTestFunctionsAsset(assetId);
   testNonExistingFunction();
-  testOpenFromAssetIdNotFound();
   testFfiTestFieldsDll();
 }
 

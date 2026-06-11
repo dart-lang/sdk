@@ -63,9 +63,7 @@ Future<void> selfInvokes() async {
 
 Future<void> runTests() async {
   testFfiTestfunctionsDll();
-  testOpenFfiTestFunctionsAsset(assetName);
   testFfiTestFieldsDll();
-  testOpenFromAssetIdNotFound();
 }
 
 @Native<Int32 Function(Int32, Int32)>()

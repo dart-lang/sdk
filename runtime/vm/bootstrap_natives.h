@@ -312,7 +312,6 @@ namespace dart {
   V(Ffi_deleteIsolateGroupNativeCallable, 1)                                   \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
-  V(Ffi_dl_openFromAssetId, 1)                                                 \
   V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
