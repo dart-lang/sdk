@@ -21,6 +21,13 @@ class BindToFieldTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.bindToField;
 
+  Future<void> test_class_primaryConstructor_declaring() async {
+    await resolveTestCode('''
+class C(final int ^i);
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_class_primaryConstructor_requiredPositional() async {
     await resolveTestCode('''
 class C(int ^i);

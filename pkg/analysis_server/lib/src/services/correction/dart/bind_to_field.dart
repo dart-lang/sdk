@@ -44,6 +44,13 @@ class BindToField extends ResolvedCorrectionProducer {
           return;
         }
       }
+      if (parameter.declaredFragment?.element
+          case FieldFormalParameterElement element) {
+        if (element.isDeclaring) {
+          // A declaring parameter is already bound to a field.
+          return;
+        }
+      }
       await tryReplacingParameter(file, builder, parameter, libraryElement2);
     }
   }
