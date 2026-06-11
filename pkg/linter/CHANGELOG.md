@@ -1,7 +1,13 @@
 # 3.13.0-wip
 
-- new lint: `unnecessary_const_in_enum_constructor`
+- new lint: `async_return_with_no_await`
+- new lint: `no_dynamic_casts`
+- new lint: `no_raw_types`
 - new lint: `unnecessary_type_name_in_constructor`
+- new _(experimental)_ lint: `unnecessary_const_in_enum_constructor`
+- new _(experimental)_ lint: `unnecessary_primary_constructor_body`
+- deprecated lint: `avoid_private_typedef_functions`
+- deprecated lint: `one_member_abstracts`
 - stable: `unnecessary_null_checks`
 - update `type_literal_in_constant_pattern` to ignore cases where the matched
   pattern is of type `Type`.

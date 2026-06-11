@@ -123,7 +123,7 @@ To learn more about the feature, check out the
 - A `no_dynamic_casts` lint rule is introduced, which replaces the
   `strict-casts` analysis option, offering a more consistent approach.
 - The following lint rules have been determined to be low value, and are
-  deprecated: `avoid_public_typedef_functions`, and `one_member_abstracts`.
+  deprecated: `avoid_private_typedef_functions`, and `one_member_abstracts`.
   If there is desire to keep using these, they can be re-implemented with
   [analyzer plugins][].
 
