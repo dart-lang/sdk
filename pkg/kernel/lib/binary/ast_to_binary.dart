@@ -2864,6 +2864,15 @@ class BinaryPrinter
     writeNode(node.receiver);
   }
 
+  void _writeVariableReferenceOption(Variable? variable) {
+    if (variable == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      _writeVariableReference(variable);
+    }
+  }
+
   void _writeVariableReference(Variable variable) {
     int index = _getVariableIndex(variable);
     writeUInt30(variable.binaryOffsetNoTag);
@@ -2883,6 +2892,7 @@ class BinaryPrinter
     writeByte(Tag.AssignedVariablePattern);
     writeOffset(node.fileOffset);
     _writeVariableReference(node.variable);
+    _writeVariableReferenceOption(node.setter);
     writeOptionalNode(node.matchedValueType);
     writeByte(node.needsCast ? 1 : 0);
   }

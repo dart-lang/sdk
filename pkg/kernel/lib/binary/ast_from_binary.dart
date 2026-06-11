@@ -2237,6 +2237,10 @@ class BinaryBuilder {
     variableStack.addAll(variables);
   }
 
+  Variable? readVariableReferenceOption() {
+    return readAndCheckOptionTag() ? readVariableReference() : null;
+  }
+
   Variable readVariableReference() {
     readUInt30(); // offset of the variable declaration in the binary.
     return _readVariableReferenceInternal();
@@ -3311,12 +3315,14 @@ class BinaryBuilder {
   AssignedVariablePattern _readAssignedVariablePattern() {
     int fileOffset = readOffset();
     Variable variable = readVariableReference();
+    Variable? setter = readVariableReferenceOption();
     DartType? matchedType = readDartTypeOption();
     bool needsCheck = readByte() == 1;
     return AssignedVariablePattern(variable)
       ..fileOffset = fileOffset
       ..matchedValueType = matchedType
-      ..needsCast = needsCheck;
+      ..needsCast = needsCheck
+      ..setter = setter;
   }
 
   CastPattern _readCastPattern() {

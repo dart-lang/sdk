@@ -401,7 +401,7 @@ abstract class BodyBuilderContext {
   /// Declarations with synthesized `this`, such as extensions and extension
   /// types, don't have an internal [ThisVariable] because `this` is desugared
   /// as a parameter in that case.
-  ThisVariable? createInternalThisVariable() {
+  InternalThisVariable? createInternalThisVariable() {
     return thisType != null && isDeclarationInstanceContext
         ? intern.createThisVariable(
             type: thisType!,

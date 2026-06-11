@@ -226,10 +226,16 @@ void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
       new InternalVariableDeclaration(
-        new VariableDeclarationImpl('a', fileOffset: TreeNode.noOffset),
+        new InternalLegacyVariable(
+          astVariable: new LegacyVariable('a'),
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
       new InternalVariableDeclaration(
-        new VariableDeclarationImpl('b', fileOffset: TreeNode.noOffset),
+        new InternalLegacyVariable(
+          astVariable: new LegacyVariable('b'),
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
     ], dummyUri),
     '''
@@ -238,16 +244,14 @@ dynamic a, b;''',
   testStatement(
     forest.variablesDeclaration([
       new InternalVariableDeclaration(
-        new VariableDeclarationImpl(
-          'a',
-          type: const VoidType(),
+        new InternalLegacyVariable(
+          astVariable: new LegacyVariable('a', type: const VoidType()),
           fileOffset: TreeNode.noOffset,
         ),
       ),
       new InternalVariableDeclaration(
-        new VariableDeclarationImpl(
-          'b',
-          initializer: new NullLiteral(),
+        new InternalLegacyVariable(
+          astVariable: new LegacyVariable('b', initializer: new NullLiteral()),
           fileOffset: TreeNode.noOffset,
         ),
       ),
@@ -263,23 +267,35 @@ void _testTryStatement() {
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
   InternalCatch emptyCatchBlock = new InternalCatch(
-    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    exception: new InternalLegacyVariable(
+      astVariable: new LegacyVariable('e'),
+      fileOffset: TreeNode.noOffset,
+    ),
     body: new Block([]),
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
-    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    exception: new InternalLegacyVariable(
+      astVariable: new LegacyVariable('e'),
+      fileOffset: TreeNode.noOffset,
+    ),
     body: new Block([]),
     guard: const VoidType(),
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch returnCatchBlock = new InternalCatch(
-    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    exception: new InternalLegacyVariable(
+      astVariable: new LegacyVariable('e'),
+      fileOffset: TreeNode.noOffset,
+    ),
     body: new Block([new ReturnStatement()]),
     fileOffset: TreeNode.noOffset,
   );
   InternalCatch returnCatchBlockOnVoid = new InternalCatch(
-    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    exception: new InternalLegacyVariable(
+      astVariable: new LegacyVariable('e'),
+      fileOffset: TreeNode.noOffset,
+    ),
     body: new Block([new ReturnStatement()]),
     guard: const VoidType(),
     fileOffset: TreeNode.noOffset,
@@ -393,7 +409,11 @@ void _testInternalForInStatement() {
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
         variableDeclaration: new InternalVariableDeclaration(
-          new VariableDeclarationImpl('e', fileOffset: -1),
+          new InternalLegacyVariable(
+            astVariable: new LegacyVariable('e'),
+            isImplicitlyTyped: true,
+            fileOffset: -1,
+          ),
         ),
         error: null,
       ),
@@ -411,9 +431,8 @@ for (var e in null) {}''',
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
         variableDeclaration: new InternalVariableDeclaration(
-          new VariableDeclarationImpl(
-            'e',
-            type: const VoidType(),
+          new InternalLegacyVariable(
+            astVariable: new LegacyVariable('e', type: const VoidType()),
             fileOffset: -1,
           ),
         ),
@@ -436,16 +455,16 @@ for (void e in null) {}''',
           patterns: [
             new InternalVariablePattern(
               type: const VoidType(),
-              variable: new VariableDeclarationImpl(
-                'a',
+              variable: new InternalLegacyVariable(
+                astVariable: new LegacyVariable('a'),
                 fileOffset: TreeNode.noOffset,
               ),
               fileOffset: TreeNode.noOffset,
             ),
             new InternalVariablePattern(
               type: null,
-              variable: new VariableDeclarationImpl(
-                'b',
+              variable: new InternalLegacyVariable(
+                astVariable: new LegacyVariable('b'),
                 fileOffset: TreeNode.noOffset,
               ),
               fileOffset: TreeNode.noOffset,
@@ -468,7 +487,10 @@ for (var (void a, var b) in null) {}''',
   testStatement(
     new InternalForInStatement(
       new ExistingVariableForInElement(
-        variable: new VariableDeclarationImpl('a', fileOffset: -1),
+        variable: new InternalLegacyVariable(
+          astVariable: new LegacyVariable('a'),
+          fileOffset: -1,
+        ),
         nameOffset: -1,
         inOffset: -1,
       ),
@@ -557,10 +579,18 @@ for (null in null) {}''',
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
           new InternalVariableDeclaration(
-            new VariableDeclarationImpl('a', fileOffset: -1),
+            new InternalLegacyVariable(
+              astVariable: new LegacyVariable('a'),
+              isImplicitlyTyped: true,
+              fileOffset: -1,
+            ),
           ),
           new InternalVariableDeclaration(
-            new VariableDeclarationImpl('b', fileOffset: -1),
+            new InternalLegacyVariable(
+              astVariable: new LegacyVariable('b'),
+              isImplicitlyTyped: true,
+              fileOffset: -1,
+            ),
           ),
         ],
         error: new InvalidExpression('error'),
@@ -580,14 +610,16 @@ for (var a, b in null) {}''',
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
           new InternalVariableDeclaration(
-            new VariableDeclarationImpl(
-              'a',
-              type: const VoidType(),
+            new InternalLegacyVariable(
+              astVariable: new LegacyVariable('a', type: const VoidType()),
               fileOffset: -1,
             ),
           ),
           new InternalVariableDeclaration(
-            new VariableDeclarationImpl('b', fileOffset: -1),
+            new InternalLegacyVariable(
+              astVariable: new LegacyVariable('b'),
+              fileOffset: -1,
+            ),
           ),
         ],
         error: new InvalidExpression('error'),
@@ -882,9 +914,10 @@ continue label0;''',
 void _testCascade() {
   // TODO(johnniwinther): Add better text representation support for internal
   //  synthetic variables.
-  InternalVariable variable = new VariableDeclarationImpl.forValue(
-    new IntLiteral(0),
-  )..name = '#0';
+  InternalVariable variable = new InternalLegacyVariable(
+    astVariable: new LegacyVariable.forValue(new IntLiteral(0))..name = '#0',
+    fileOffset: TreeNode.noOffset,
+  );
   Cascade cascade = new Cascade(variable, isNullAware: false);
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
@@ -933,8 +966,11 @@ void _testDeferredCheck() {
     library,
     'pre',
   );
-  InternalVariable check = new VariableDeclarationImpl.forValue(
-    new CheckLibraryIsLoaded(dependency),
+  InternalVariable check = new InternalLegacyVariable(
+    astVariable: new LegacyVariable.forValue(
+      new CheckLibraryIsLoaded(dependency),
+    ),
+    fileOffset: TreeNode.noOffset,
   );
   testExpression(
     new DeferredCheck(check, new IntLiteral(0), fileOffset: TreeNode.noOffset),
@@ -1267,8 +1303,8 @@ const library test:dummy::Typedef<void>.foo(0, bar: 1)''',
 void _testFunctionDeclarationImpl() {
   testStatement(
     new InternalFunctionDeclaration(
-        variable: new VariableDeclarationImpl(
-          'foo',
+        variable: new InternalLegacyVariable(
+          astVariable: new LegacyVariable('foo'),
           fileOffset: TreeNode.noOffset,
         ),
         fileOffset: TreeNode.noOffset,
@@ -1504,65 +1540,75 @@ return 0;''');
 
 void _testVariableDeclarationImpl() {
   testVariableDeclaration(
-    new VariableDeclarationImpl('foo', fileOffset: TreeNode.noOffset),
+    new InternalLegacyVariable(
+      astVariable: new LegacyVariable('foo'),
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 dynamic foo''',
   );
   testVariableDeclaration(
-    new VariableDeclarationImpl(
-      'foo',
-      initializer: new IntLiteral(0),
+    new InternalLegacyVariable(
+      astVariable: new LegacyVariable('foo', initializer: new IntLiteral(0)),
       fileOffset: TreeNode.noOffset,
     ),
     '''
 dynamic foo = 0''',
   );
   testVariableDeclaration(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-      isFinal: true,
-      isRequired: true,
+    new InternalLegacyVariable(
+      astVariable: new LegacyVariable(
+        'foo',
+        type: const VoidType(),
+        initializer: new IntLiteral(0),
+        isFinal: true,
+        isRequired: true,
+      ),
       fileOffset: TreeNode.noOffset,
     ),
     '''
 required final void foo''',
   );
   testVariableDeclaration(
-    new VariableDeclarationImpl(
-      'foo',
-      type: const VoidType(),
-      initializer: new IntLiteral(0),
-      isLate: true,
+    new InternalLegacyVariable(
+      astVariable: new LegacyVariable(
+        'foo',
+        type: const VoidType(),
+        initializer: new IntLiteral(0),
+        isLate: true,
+      ),
       fileOffset: TreeNode.noOffset,
     ),
     '''
 late void foo = 0''',
   );
   testVariableDeclaration(
-    new VariableDeclarationImpl(
-        'foo',
-        type: const VoidType(),
-        initializer: new IntLiteral(0),
+    new InternalLegacyVariable(
+        astVariable: new LegacyVariable(
+          'foo',
+          type: const VoidType(),
+          initializer: new IntLiteral(0),
+        ),
         fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new VariableDeclarationImpl(
-        'foo#getter',
+      ..lateGetter = new InternalLegacyVariable(
+        astVariable: new LegacyVariable('foo#getter'),
         fileOffset: TreeNode.noOffset,
       ),
     '''
 late void foo = 0''',
   );
   testVariableDeclaration(
-    new VariableDeclarationImpl(
-        'foo',
-        type: const VoidType(),
-        initializer: new IntLiteral(0),
+    new InternalLegacyVariable(
+        astVariable: new LegacyVariable(
+          'foo',
+          type: const VoidType(),
+          initializer: new IntLiteral(0),
+        ),
         fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new VariableDeclarationImpl(
-        'foo#getter',
+      ..lateGetter = new InternalLegacyVariable(
+        astVariable: new LegacyVariable('foo#getter'),
         fileOffset: TreeNode.noOffset,
       )
       ..lateType = const DynamicType(),
@@ -1981,8 +2027,8 @@ void _testPropertyIncDec() {
 }
 
 void _testLocalIncDec() {
-  VariableDeclarationImpl variable = new VariableDeclarationImpl(
-    'foo',
+  InternalLegacyVariable variable = new InternalLegacyVariable(
+    astVariable: new LegacyVariable('foo'),
     fileOffset: TreeNode.noOffset,
   );
 

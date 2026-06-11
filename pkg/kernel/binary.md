@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 131;
+  UInt32 formatVersion = 132;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1743,6 +1743,7 @@ type AssignedVariablePattern extends Pattern {
   Byte tag = 129;
   FileOffset fileOffset;
   VariableReference variable;
+  Option<VariableReference> setter;
   Option<DartType> matchedType;
   Byte needsCast;
 }

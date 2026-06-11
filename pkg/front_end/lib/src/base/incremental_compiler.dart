@@ -91,6 +91,7 @@ import '../dill/dill_loader.dart' show DillLoader;
 import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/dart_scope_calculator.dart' show DartScope, DartScopeBuilder2;
+import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart'
     show InternalVariableGet, InternalVariableSet, InternalVariable;
@@ -2228,7 +2229,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
-      InternalVariable? extensionThis;
+      Variable? extensionThis;
 
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
@@ -2239,13 +2240,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         positionalParameters: usedDefinitions.entries.map<Variable>((
           MapEntry<String, DartType> def,
         ) {
-          InternalVariable variable = intern.createPositionalParameter(
-            isClosureContextLoweringEnabled:
-                lastGoodKernelTarget.loader.isClosureContextLoweringEnabled,
-            cosmeticName: def.key,
-            type: def.value,
-            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
-          );
+          Variable variable =
+              lastGoodKernelTarget.loader.isClosureContextLoweringEnabled
+              ? extern.createPositionalParameter(
+                  cosmeticName: def.key,
+                  type: def.value,
+                  fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+                )
+              : extern.createLegacyVariable(
+                  name: def.key,
+                  type: def.value,
+                  fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+                );
 
           if (isExtensionOrExtensionTypeInstanceMember &&
               isExtensionThisName(def.key) &&
@@ -2253,7 +2259,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // The `#this` variable is special.
             extensionThis = variable..isLowered = true;
           }
-          return variable.astVariable;
+          return variable;
         }).toList(),
       );
 

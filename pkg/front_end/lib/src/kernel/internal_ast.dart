@@ -21,7 +21,6 @@ library;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
@@ -41,7 +40,12 @@ import 'external_ast_helper.dart' as extern;
 /// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 typedef SharedMatchContext =
-    shared.MatchContext<TreeNode, Expression, InternalPattern, Variable>;
+    shared.MatchContext<
+      TreeNode,
+      Expression,
+      InternalPattern,
+      InternalVariable
+    >;
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -1150,11 +1154,11 @@ class ReturnStatementImpl extends ReturnStatement {
 }
 
 /// Front end specific implementation of [Variable].
-class VariableDeclarationImpl extends LegacyVariable
-    with InternalVariableMixin
-    implements InternalVariable {
+class InternalLegacyVariable extends TreeNode
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements LegacyVariable, InternalVariable {
   @override
-  Variable get astVariable => this;
+  final Variable astVariable;
 
   @override
   final bool forSyntheticToken;
@@ -1165,67 +1169,20 @@ class VariableDeclarationImpl extends LegacyVariable
   @override
   final bool isLocalFunction;
 
-  new(
-    String? name, {
+  new({
+    required this.astVariable,
     this.forSyntheticToken = false,
-    bool hasDeclaredInitializer = false,
-    Expression? initializer,
-    DartType? type,
-    bool isFinal = false,
-    bool isConst = false,
-    bool isInitializingFormal = false,
-    bool isSuperInitializingFormal = false,
-    bool isCovariantByDeclaration = false,
+    this.isImplicitlyTyped = false,
     bool isLocalFunction = false,
-    bool isLate = false,
-    bool isRequired = false,
-    bool isLowered = false,
-    bool isSynthesized = false,
     bool isStaticLate = false,
-    bool isWildcard = false,
     bool isLateFinalWithoutInitializer = false,
     required int fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
-  }) : isImplicitlyTyped = type == null,
-       isLocalFunction = isLocalFunction,
-       super(
-         name,
-         initializer: initializer,
-         type: type ?? const DynamicType(),
-         isFinal: isFinal,
-         isConst: isConst,
-         isInitializingFormal: isInitializingFormal,
-         isSuperInitializingFormal: isSuperInitializingFormal,
-         isCovariantByDeclaration: isCovariantByDeclaration,
-         isLate: isLate,
-         isRequired: isRequired,
-         isLowered: isLowered,
-         isSynthesized: isSynthesized,
-         hasDeclaredInitializer: hasDeclaredInitializer,
-         isWildcard: isWildcard,
-       ) {
+  }) : isLocalFunction = isLocalFunction {
     this.isStaticLate = isStaticLate;
     this.isLateFinalWithoutInitializer = isLateFinalWithoutInitializer;
     this.fileOffset = fileOffset;
     this.fileEqualsOffset = fileEqualsOffset;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  new forEffect(Expression initializer)
-    : forSyntheticToken = false,
-      isImplicitlyTyped = false,
-      isLocalFunction = false,
-      super.forValue(initializer) {
-    isStaticLate = false;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  new forValue(Expression initializer)
-    : forSyntheticToken = false,
-      isImplicitlyTyped = true,
-      isLocalFunction = false,
-      super.forValue(initializer) {
-    isStaticLate = false;
   }
 
   @override
@@ -1240,13 +1197,14 @@ class VariableDeclarationImpl extends LegacyVariable
     printer.writeVariableInitialization(
       this,
       isLate: isLate || lateGetter != null,
+      isImplicitlyTyped: isImplicitlyTyped,
       type: lateType ?? type,
     );
   }
 
   @override
   String toString() {
-    return "VariableDeclarationImpl(${toStringInternal()})";
+    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -1775,7 +1733,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   String? get cosmeticName => astVariable.cosmeticName;
 
   @override
-  // Coverage-ignore(suite): Not run.
   TreeNode? get parent => astVariable.parent;
 
   @override
@@ -1793,13 +1750,11 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void addAnnotation(Expression node) {
     astVariable.addAnnotation(node);
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set cosmeticName(String? value) {
     astVariable.cosmeticName = value;
   }
@@ -1824,7 +1779,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   bool get isConst => astVariable.isConst;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set isConst(bool value) {
     astVariable.isConst = value;
   }
@@ -1850,11 +1804,9 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set isErroneouslyInitialized(bool value) {
     astVariable.isErroneouslyInitialized = value;
   }
@@ -1863,7 +1815,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   bool get isFinal => astVariable.isFinal;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set isFinal(bool value) {
     astVariable.isFinal = value;
   }
@@ -1901,7 +1852,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   bool get isLowered => astVariable.isLowered;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set isLowered(bool value) {
     astVariable.isLowered = value;
   }
@@ -1926,7 +1876,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isSynthesized => astVariable.isSynthesized;
 
   @override
@@ -2158,13 +2107,11 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   int get fileEqualsOffset => astVariable.fileEqualsOffset;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set fileEqualsOffset(int value) {
     astVariable.fileEqualsOffset = value;
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Variable get variable => astVariable.variable;
 
   @override
@@ -2174,7 +2121,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void clearAnnotations() {
     astVariable.clearAnnotations();
   }
@@ -5938,6 +5884,8 @@ sealed class InternalForInElement {
 
 /// Base implementation for non-pattern for-in elements.
 sealed class _BaseForInElement extends InternalForInElement {
+  InternalVariable? get _declaredVariable => null;
+
   /// Computes the type context from the element. This is type context used for
   /// inferring the for-in iterable.
   DartType _computeElementTypeContext(InferenceVisitorBase visitor);
@@ -6004,6 +5952,7 @@ sealed class _BaseForInElement extends InternalForInElement {
     );
 
     return new ForInHeaderResult(
+      declaredVariable: _declaredVariable,
       loopVariable: variable,
       iterable: iterableResult.expression,
       computeEncoding: () => _computeEncoding(visitor, loopVariable: variable),
@@ -6029,12 +5978,16 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   new({required this.variableDeclaration, required this.error});
 
   @override
+  InternalVariable get _declaredVariable => variableDeclaration.variable;
+
+  @override
   Variable _computeLoopVariable(
     InferenceVisitorBase visitor,
     DartType type, {
     required int forOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
+    //InternalVariable internalLoopVariable = variableDeclaration.variable;
     Variable loopVariable = variableDeclaration.variable.astVariable;
     DartType loopVariableType;
     bool checkAssignment = true;
@@ -6070,11 +6023,11 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
         // and assign to the declared variable in the loop.
         loopVariable.initializer = assignmentResult.expression
           ..parent = loopVariable;
-        visitor.flowAnalysis.declare(
-          loopVariable,
-          new SharedTypeView(loopVariableType),
-          initialized: true,
-        );
+        // visitor.flowAnalysis.declare(
+        //   internalLoopVariable,
+        //   new SharedTypeView(loopVariableType),
+        //   initialized: true,
+        // );
         _variableForSideEffect = extern.createVariableDeclaration(loopVariable);
         loopVariable = tempVariable;
       }
@@ -6267,6 +6220,7 @@ class PatternForInElement extends InternalForInElement {
       inOffset: inOffset,
     );
     return new ForInHeaderResult(
+      declaredVariable: null,
       loopVariable: data.loopVariable,
       iterable: data.iterable,
       computeEncoding: () => new ForInEncoding(
@@ -6362,7 +6316,7 @@ class ExistingVariableForInElement extends _BaseForInElement {
   @override
   DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
     DartType? promotedType = visitor.flowAnalysis
-        .promotedType(variable.astVariable)
+        .promotedType(variable)
         ?.unwrapTypeView();
     return promotedType ?? variable.type;
   }
@@ -6668,6 +6622,9 @@ class ForInEncoding {
 
 /// The result of inferring a for-in loop element and iterable.
 class ForInHeaderResult {
+  /// The [InternalVariable] declared in the for-in statement, if any.
+  final InternalVariable? declaredVariable;
+
   /// The [Variable] that should be used as the variable in the
   /// emitted [ForInStatement].
   final Variable loopVariable;
@@ -6684,6 +6641,7 @@ class ForInHeaderResult {
   final ForInEncoding Function() computeEncoding;
 
   new({
+    required this.declaredVariable,
     required this.loopVariable,
     required this.iterable,
     required this.computeEncoding,
@@ -8459,6 +8417,43 @@ class InternalLet extends InternalExpression {
   }
 }
 
+class InternalThisVariable extends TreeNode
+    with InternalVariableMixin, DelegatingVariableMixin
+    implements ThisVariable, InternalVariable {
+  @override
+  final ThisVariable astVariable;
+
+  new({required this.astVariable, required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get cosmeticName => astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get forSyntheticToken => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isImplicitlyTyped => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLocalFunction => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('this');
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
 final InternalPattern dummyInternalPattern = new InternalConstantPattern(
   expression: dummyExpression,
   fileOffset: TreeNode.noOffset,
@@ -8495,10 +8490,9 @@ final InternalCatch dummyInternalCatch = new InternalCatch(
   fileOffset: TreeNode.noOffset,
 );
 
-final InternalVariable dummyInternalVariable = new VariableDeclarationImpl(
-  null,
+final InternalVariable dummyInternalVariable = new InternalLegacyVariable(
+  astVariable: dummyVariable,
   fileOffset: TreeNode.noOffset,
-  isSynthesized: true,
 );
 
 final InternalVariableDeclaration dummyInternalVariableDeclaration =

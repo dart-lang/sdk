@@ -23,7 +23,7 @@ class SharedTypeAnalyzerErrors
           TreeNode,
           Statement,
           Expression,
-          Variable,
+          InternalVariable,
           InternalPattern,
           InvalidExpression
         > {
@@ -75,14 +75,14 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression duplicateAssignmentPatternVariable({
-    required Variable variable,
+    required InternalVariable variable,
     required InternalPattern original,
     required InternalPattern duplicate,
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
       message: diag.duplicatePatternAssignmentVariable.withArguments(
-        variableName: variable.name!,
+        variableName: variable.cosmeticName!,
       ),
       fileUri: uri,
       fileOffset: duplicate.fileOffset,
@@ -155,8 +155,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   void inconsistentJoinedPatternVariable({
-    required Variable variable,
-    required Variable component,
+    required InternalVariable variable,
+    required InternalVariable component,
   }) {
     // TODO(johnniwinther): How should we handle errors that are not report
     // here? Should we have a sentinel error node, allow a nullable result, or ?

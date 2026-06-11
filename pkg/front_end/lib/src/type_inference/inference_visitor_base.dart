@@ -159,8 +159,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis =>
-      _inferrer.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable] and for caching types.
@@ -2302,7 +2302,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     for (InternalVariable parameter in function.positionalParameters) {
       flowAnalysis.declare(
-        parameter.astVariable,
+        parameter,
         new SharedTypeView(parameter.type),
         initialized: true,
       );
@@ -2318,7 +2318,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     for (InternalVariable parameter in function.namedParameters) {
       flowAnalysis.declare(
-        parameter.astVariable,
+        parameter,
         new SharedTypeView(parameter.type),
         initialized: true,
       );
@@ -2398,6 +2398,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       for (InternalVariable parameter in function.namedParameters)
         parameter.astVariable,
     ];
+    if (libraryBuilder.loader.dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
+      for (InternalVariable parameter in function.positionalParameters) {
+        libraryBuilder.loader.dataForTesting?.registerAlias(
+          parameter,
+          parameter.astVariable,
+        );
+      }
+      for (InternalVariable parameter in function.namedParameters) {
+        libraryBuilder.loader.dataForTesting?.registerAlias(
+          parameter,
+          parameter.astVariable,
+        );
+      }
+    }
+
     return new LocalFunctionResult(
       returnType: returnType,
       positionalParameters: positionalParameters,
@@ -4164,7 +4180,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Don't promote local functions.
       SharedTypeView? wrappedPromotedType;
       (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
-        variable.astVariable,
+        variable,
       );
       promotedType = wrappedPromotedType?.unwrapTypeView();
     }
@@ -4191,7 +4207,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       resultExpression = result..variable = variable.astVariable;
     }
 
-    bool isUnassigned = !flowAnalysis.isAssigned(variable.astVariable);
+    bool isUnassigned = !flowAnalysis.isAssigned(variable);
     if (isUnassigned) {
       dataForTesting
           // Coverage-ignore(suite): Not run.
@@ -4199,9 +4215,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           .potentiallyUnassignedNodes // Coverage-ignore(suite): Not run.
           .add(result);
     }
-    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
-      variable.astVariable,
-    );
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
     if (isDefinitelyUnassigned) {
       dataForTesting
           // Coverage-ignore(suite): Not run.
@@ -4275,7 +4289,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   computeVariableSetTypeAndWriteContext(InternalVariable variable) {
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType = flowAnalysis
-        .promotedType(variable.astVariable)
+        .promotedType(variable)
         ?.unwrapTypeView();
     return (declaredOrInferredType, promotedType ?? declaredOrInferredType);
   }
@@ -4292,10 +4306,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required int assignOffset,
     required int nameOffset,
   }) {
-    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable.astVariable);
-    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
-      variable.astVariable,
-    );
+    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
     rhsResult = ensureAssignableResult(
       variableType,
       rhsResult,
@@ -4309,7 +4321,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       result,
       flowAnalysis.write(
         result,
-        variable.astVariable,
+        variable,
         new SharedTypeView(rhsResult.inferredType),
         flowAnalysis.getExpressionInfo(rhsResult.expression),
       ),
@@ -5576,7 +5588,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// [parameters] are those of the function being inferred.
   ScopeProviderInfo beginClosureContextAllocation(
     List<InternalVariable> parameters, {
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
@@ -5585,7 +5597,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Performs preliminary computations before inferring the field initializer.
   ScopeProviderInfo beginFieldInference({
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   });
 
   /// Finishes computations after inferring the field initializer.
@@ -5653,7 +5665,12 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 }
 
 class _WhyNotPromotedVisitor
-    implements NonPromotionReasonVisitor<List<LocatedMessage>, Node, Variable> {
+    implements
+        NonPromotionReasonVisitor<
+          List<LocatedMessage>,
+          Node,
+          InternalVariable
+        > {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
@@ -5662,7 +5679,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<Variable> reason,
+    DemoteViaExplicitWrite<InternalVariable> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
