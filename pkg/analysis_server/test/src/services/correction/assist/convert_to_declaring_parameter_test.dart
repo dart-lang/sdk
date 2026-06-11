@@ -705,19 +705,16 @@ class C(int x^) {
 const a = 0;
 const b = 1;
 ''');
-    await assertNoAssist();
-    // TODO(brianwilkerson): Do we want to support this case? Doing so would add
-    //  the annotation to the parameter, which might not be what the user wants.
-    //     await assertHasAssist('''
-    // class C(
-    //   @a
-    //   @b
-    //   var int x) {
-    // }
+    await assertHasAssist('''
+class C(
+  @a
+  @b
+  var int x) {
+}
 
-    // const a = 0;
-    // const b = 1;
-    // ''');
+const a = 0;
+const b = 1;
+''');
   }
 
   Future<void> test_withAnnotations_onFieldAndParam() async {
@@ -738,23 +735,22 @@ const b = 1;
 const c = 2;
 const d = 3;
 ''');
-    await assertNoAssist();
-    // TODO(brianwilkerson): Do we want to support this case? Doing so would add
-    //  the annotation to the parameter, which might not be what the user wants.
-    //     await assertHasAssist('''
-    // class C(
-    //   @a
-    //   @b
-    //   @c
-    //   @d
-    //   var int x) {
-    // }
 
-    // const a = 0;
-    // const b = 1;
-    // const c = 2;
-    // const d = 3;
-    // ''');
+    await assertHasAssist('''
+class C(
+  
+  @c
+  @d
+  @a
+  @b
+  var int x) {
+}
+
+const a = 0;
+const b = 1;
+const c = 2;
+const d = 3;
+''');
   }
 
   Future<void> test_withAnnotations_onParam() async {
@@ -771,19 +767,16 @@ class C(
 const a = 0;
 const b = 1;
 ''');
-    await assertNoAssist();
-    // TODO(brianwilkerson): Do we want to support this case? Doing so would add
-    //  the annotation to the parameter, which might not be what the user wants.
-    //     await assertHasAssist('''
-    // class C(
-    //   @a
-    //   @b
-    //   var int x) {
-    // }
+    await assertHasAssist('''
+class C(
+  @a
+  @b
+  var int x) {
+}
 
-    // const a = 0;
-    // const b = 1;
-    // ''');
+const a = 0;
+const b = 1;
+''');
   }
 
   Future<void> test_withDocComment() async {
@@ -796,7 +789,13 @@ class C(int x^) {
   this : x = x;
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class C(
+  /// A comment
+  /// on multiple lines.
+  var int x) {
+}
+''');
   }
 
   Future<void> test_withDocCommentAndAnnotations() async {
@@ -814,7 +813,41 @@ class C(int x^) {
 const a = 0;
 const b = 1;
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+class C(
+  /// A comment
+  /// on multiple lines.
+  @a
+  @b
+  var int x) {
+}
+
+const a = 0;
+const b = 1;
+''');
+  }
+
+  Future<void> test_withRequiredAndAnnotation() async {
+    await resolveTestCode('''
+class C({required int x^}) {
+  /// comment
+  @a
+  final int x;
+
+  this : x = x;
+}
+
+const int a = 0;
+''');
+    await assertHasAssist('''
+class C({
+  /// comment
+  @a
+  required final int x}) {
+}
+
+const int a = 0;
+''');
   }
 }
 
@@ -1161,21 +1194,18 @@ enum E(int x^) {
 const a = 0;
 const b = 1;
 ''');
-    await assertNoAssist();
-    // TODO(brianwilkerson): Do we want to support this case? Doing so would add
-    //  the annotation to the parameter, which might not be what the user wants.
-    //     await assertHasAssist('''
-    // enum E(
-    //   @a
-    //   @b
-    //   final int x) {
-    //   e(0);
+    await assertHasAssist('''
+enum E(
+  @a
+  @b
+  final int x) {
+  e(0);
 
-    // }
+}
 
-    // const a = 0;
-    // const b = 1;
-    // ''');
+const a = 0;
+const b = 1;
+''');
   }
 
   Future<void> test_withDocComment() async {
@@ -1190,7 +1220,15 @@ enum E(int x^) {
   this : x = x;
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+enum E(
+  /// A comment
+  /// on multiple lines.
+  final int x) {
+  a(0);
+
+}
+''');
   }
 
   Future<void> test_withDocCommentAndAnnotations() async {
@@ -1210,7 +1248,20 @@ enum E(int x^) {
 const a = 0;
 const b = 1;
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+enum E(
+  /// A comment
+  /// on multiple lines.
+  @a
+  @b
+  final int x) {
+  a(0);
+
+}
+
+const a = 0;
+const b = 1;
+''');
   }
 
   Future<void> test_withInitializer_complex() async {

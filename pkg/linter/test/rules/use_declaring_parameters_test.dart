@@ -50,8 +50,8 @@ class C(int? i) {
   }
 
   test_field_withComment() async {
-    await assertNoDiagnostics(r'''
-class C(int i) {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(int [!i!]) {
   /// A comment.
   final int i;
 
@@ -85,8 +85,8 @@ class C(int this.[!i!]) {
   }
 
   test_fieldFormalParameter_withComment() async {
-    await assertNoDiagnostics(r'''
-class C(int this.i) {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(int this.[!i!]) {
   /// A comment.
   int i;
 }

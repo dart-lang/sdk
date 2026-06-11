@@ -76,18 +76,6 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     var fieldDeclaration = _getDeclaration(classMembers, fieldElement);
     if (fieldDeclaration == null) return;
 
-    // If either the parameter or the field has comments or metadata, then
-    // don't apply the assist. This is a temporary restriction until the assist
-    // supports moving the comments and metadata to the parameter.
-    if (_hasCommentOrMetadata(parameter)) {
-      return;
-    }
-    var fieldDeclarationList = fieldDeclaration.parent?.parent;
-    if (fieldDeclarationList is AnnotatedNode &&
-        _hasCommentOrMetadata(fieldDeclarationList)) {
-      return;
-    }
-
     // If the field has an initializer it must be a constant expression.
     // TODO(brianwilkerson): Handle the case where the initializer is a valid
     //  constant expression and can be moved to the parameter.
@@ -144,15 +132,20 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         builder.addSimpleReplacement(range.token(parameterName), fieldName);
       }
       if (!insertedVariable) {
-        var offset = parameter.offset;
-        if (parameter.requiredKeyword case var requiredKeyword?) {
-          offset = requiredKeyword.end;
+        var offset = parameterName.offset;
+        if (parameter.type case var type?) {
+          offset = type.offset;
+        } else if (parameter is FieldFormalParameter) {
+          offset = parameter.thisKeyword.offset;
         }
+
         var keyword = fieldElement.isFinal ? 'final' : 'var';
-        if (offset == parameter.offset) {
-          builder.addSimpleInsertion(offset, '$keyword ');
-        } else {
+        var requiredKeyword = parameter.requiredKeyword;
+        if (requiredKeyword != null) {
+          offset = requiredKeyword.end;
           builder.addSimpleInsertion(offset, ' $keyword');
+        } else {
+          builder.addSimpleInsertion(offset, '$keyword ');
         }
 
         var type = parameter.type;
