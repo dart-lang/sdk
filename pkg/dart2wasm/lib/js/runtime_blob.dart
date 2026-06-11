@@ -104,7 +104,6 @@ class CompiledApp {
       <<MODULE_LOADING_IMPORT>>
       <<JS_POLYFILL_IMPORT>>
     });
-    dartInstance.exports.<<THIS_MODULE_SETTER_NAME>>(dartInstance);
 
     return new InstantiatedApp(this, dartInstance);
   }
@@ -181,7 +180,6 @@ final moduleLoadingHelperTemplate = Template(r'''
         <<JS_POLYFILL_IMPORT>>
         "<<MAIN_MODULE_NAME>>": dartInstance.exports,
       });
-      moduleInstance.exports.<<THIS_MODULE_SETTER_NAME>>(moduleInstance);
     }
     const moduleLoadingHelper = {
       "loadDeferredModules": async (moduleNames) => {

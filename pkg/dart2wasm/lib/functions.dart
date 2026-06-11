@@ -171,6 +171,9 @@ class FunctionCollector {
       final function = module.functions.define(ftype, getFunctionName(target))
         ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
         ..inlineHint = inlineHint;
+      if (util.hasPragma(translator.coreTypes, member, 'wasm:js-trampoline')) {
+        function.isJSCalled = true;
+      }
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.

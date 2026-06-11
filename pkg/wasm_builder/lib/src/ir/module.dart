@@ -134,6 +134,7 @@ class Module implements Serializable {
     ).serialize(s);
     BinaryenRemovableIfUnusedSection(functions).serialize(s);
     BinaryenInlineHintSection(functions).serialize(s);
+    BinaryenJSCalledSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
     for (final customSection in _extraCustomSections) {
       customSection.serialize(s);
@@ -298,6 +299,10 @@ class Module implements Serializable {
       customSections
           .remove(BinaryenInlineHintSection.customSectionName)
           ?.single,
+      functions,
+    );
+    BinaryenJSCalledSection.deserialize(
+      customSections.remove(BinaryenJSCalledSection.customSectionName)?.single,
       functions,
     );
     final sourceMapUrl = SourceMapSection.deserialize(

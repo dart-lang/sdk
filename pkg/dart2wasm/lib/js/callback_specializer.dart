@@ -17,7 +17,7 @@ class CallbackSpecializer {
   CallbackSpecializer(this._staticTypeContext, this._util);
 
   Statement _generateDispatchCase(
-    FunctionType function,
+    FunctionType instantiatedFunctionType,
     Variable callbackVariable,
     List<Variable> positionalParameters,
     int requiredParameterCount, {
@@ -25,7 +25,8 @@ class CallbackSpecializer {
   }) {
     List<Expression> callbackArguments = [];
     for (int i = 0; i < requiredParameterCount; i++) {
-      DartType callbackParameterType = function.positionalParameters[i];
+      DartType callbackParameterType =
+          instantiatedFunctionType.positionalParameters[i];
       Expression expression;
       VariableGet v = VariableGet(positionalParameters[i]);
       if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
@@ -50,10 +51,7 @@ class CallbackSpecializer {
       FunctionAccessKind.FunctionType,
       VariableGet(callbackVariable),
       Arguments(callbackArguments),
-      // Instantiate any type parameters to bounds as they would otherwise
-      // be free type variables in this context.
-      functionType:
-          const _InstantiateToBounds().substituteType(function) as FunctionType,
+      functionType: instantiatedFunctionType,
     );
 
     final temp = Variable(
@@ -100,7 +98,7 @@ class CallbackSpecializer {
     // needed.
     final callbackVariable = Variable(
       'callback',
-      type: _util.nonNullableObjectType,
+      type: _util.nonNullableWasmExternRefType,
       isSynthesized: true,
     );
     final argumentsLengthWasmI32 = Variable(
@@ -151,6 +149,28 @@ class CallbackSpecializer {
       ),
     );
 
+    final instantiatedFunctionType =
+        const _InstantiateToBounds().substituteType(function) as FunctionType;
+
+    // Convert `WasmExternRef` argument  to Dart Function
+    final callbackFunctionVar = Variable(
+      'callbackFunction',
+      type: instantiatedFunctionType,
+      initializer: StaticInvocation(
+        _util.unsafeCastOpaqueTarget,
+        Arguments(
+          [
+            StaticInvocation(
+              _util.wasmInternalizeNonNullable,
+              Arguments([VariableGet(callbackVariable)]),
+            ),
+          ],
+          types: [instantiatedFunctionType],
+        ),
+      ),
+    );
+    body.add(VariableStatement(VariableDeclaration(callbackFunctionVar)));
+
     body.add(VariableStatement(VariableDeclaration(argumentsLength)));
 
     if (castClosureArguments.isNotEmpty) {
@@ -185,8 +205,8 @@ class CallbackSpecializer {
           IntConstant(positionalParametersLength),
         ),
         _generateDispatchCase(
-          function,
-          callbackVariable,
+          instantiatedFunctionType,
+          callbackFunctionVar,
           positionalParameters,
           positionalParametersLength,
           boxExternRef: boxExternRef,
@@ -204,8 +224,8 @@ class CallbackSpecializer {
         IfStatement(
           _util.variableCheckConstant(argumentsLength, IntConstant(i)),
           _generateDispatchCase(
-            function,
-            callbackVariable,
+            instantiatedFunctionType,
+            callbackFunctionVar,
             positionalParameters,
             i,
             boxExternRef: boxExternRef,
@@ -306,8 +326,8 @@ class CallbackSpecializer {
         null,
         positionalParameters: [
           Variable(
-            'thisModule',
-            type: _util.nonNullableWasmExternRefType,
+            'wasmFunction',
+            type: _util.nonNullableWasmFuncRefType,
             isSynthesized: true,
           ),
           Variable(
@@ -331,7 +351,6 @@ class CallbackSpecializer {
       numJsParameters: jsParametersLength,
       captureThis: captureThis,
       needsCastClosure: needsCastClosure,
-      trampoline: functionTrampoline,
     ).applyToMember(dartProcedure, _util.coreTypes);
 
     return (dartProcedure, functionTrampoline);
@@ -415,35 +434,30 @@ class CallbackSpecializer {
       captureThis: captureThis,
     );
     return _createJSValue(
-      BlockExpression(
-        Block([
-          // This ensures TFA will retain the function which the
-          // JS code will call. The backend in return will export
-          // the function due to `@pragma('wasm:weak-export', ...)`
-          ExpressionStatement(
-            StaticInvocation(
-              _util.exportWasmFunctionTarget,
-              Arguments([
-                ConstantExpression(StaticTearOffConstant(exportedFunction)),
-              ]),
+      StaticInvocation(
+        jsWrapperFunction,
+        Arguments([
+          StaticInvocation(
+            _util.wasmFunctionFromFunction,
+            Arguments(
+              [ConstantExpression(StaticTearOffConstant(exportedFunction))],
+              types: [
+                exportedFunction.function.computeFunctionType(
+                  Nullability.nonNullable,
+                ),
+              ],
             ),
           ),
-        ]),
-        StaticInvocation(
-          jsWrapperFunction,
-          Arguments([
-            StaticGet(_util.thisModuleGetter),
+          StaticInvocation(
+            _util.jsObjectFromDartObjectTarget,
+            Arguments([argument]),
+          ),
+          if (castClosure != null)
             StaticInvocation(
               _util.jsObjectFromDartObjectTarget,
-              Arguments([argument]),
+              Arguments([castClosure]),
             ),
-            if (castClosure != null)
-              StaticInvocation(
-                _util.jsObjectFromDartObjectTarget,
-                Arguments([castClosure]),
-              ),
-          ]),
-        ),
+        ]),
       ),
     );
   }

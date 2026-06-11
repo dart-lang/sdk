@@ -14,6 +14,7 @@ const Set<String> _reservedCustomSectionNames = {
   SourceMapSection.customSectionName,
   BinaryenRemovableIfUnusedSection.customSectionName,
   BinaryenInlineHintSection.customSectionName,
+  BinaryenJSCalledSection.customSectionName,
 };
 
 abstract class Section implements Serializable {
@@ -1204,6 +1205,55 @@ class BinaryenInlineHintSection extends CustomSection {
           throw StateError('Expected hint in range [0..127] but got $hint');
         }
         functions[functionIndex].inlineHint = hint;
+      }
+    }
+  }
+}
+
+class BinaryenJSCalledSection extends CustomSection {
+  static const String customSectionName = 'binaryen.js.called';
+
+  final ir.Functions functions;
+
+  BinaryenJSCalledSection(this.functions) : super([]);
+
+  @override
+  void serializeContents(Serializer s) {
+    final functionsToAnnotate = [
+      ...functions.imported.where((f) => f.isJSCalled),
+      ...functions.defined.where((f) => f.isJSCalled),
+    ];
+    if (functionsToAnnotate.isNotEmpty) {
+      s.writeName(customSectionName);
+      s.writeUnsigned(functionsToAnnotate.length);
+      for (final function in functionsToAnnotate) {
+        s.writeUnsigned(function.index);
+        s.writeUnsigned(1); // Number of hints
+        s.writeUnsigned(0); // Offset (0 == function-level)
+        s.writeUnsigned(0); // hint length (always 0)
+      }
+    }
+  }
+
+  static void deserialize(Deserializer? d, ir.Functions functions) {
+    if (d == null) return;
+
+    final count = d.readUnsigned();
+    for (int i = 0; i < count; i++) {
+      final functionIndex = d.readUnsigned();
+      final numHints = d.readUnsigned();
+      for (int j = 0; j < numHints; j++) {
+        final offset = d.readUnsigned(); // Offset (0 == function-level)
+        if (offset != 0) {
+          throw UnsupportedError(
+            'Only function-level ($customSectionName) annotation supported.',
+          );
+        }
+        final data = d.readUnsigned(); // always 0
+        if (data != 0) {
+          throw StateError('Expected 0 but got $data');
+        }
+        functions[functionIndex].isJSCalled = true;
       }
     }
   }
