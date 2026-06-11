@@ -256,7 +256,7 @@ bool OS::SafeReadMemory(void* address,
   *error = "ReadProcessMemory not available on UWP";
   return false;
 #else
-  size_t bytes_read = 0;
+  SIZE_T bytes_read = 0;
   BOOL ok = ReadProcessMemory(GetCurrentProcess(), address, buffer,
                               size_in_bytes, &bytes_read);
   if (!ok || bytes_read != size_in_bytes) {
