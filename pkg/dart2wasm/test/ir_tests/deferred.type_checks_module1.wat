@@ -15,7 +15,8 @@
   (global $"\"Foo<\"" (ref $JSExternWrapper) <...>)
   (elem $$.& <...>)
   (elem $$.% <...>)
-  (func $"Foo.takeT (body) <noInline>" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
+  (@binaryen.inline 0)
+  (func $"Foo.takeT (body)" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
     (local $var2 (ref $_InterfaceType))
     global.get $"\"Foo<\""
     local.get $var0
@@ -161,6 +162,6 @@
     end
     local.get $var0
     local.get $var1
-    call $"Foo.takeT (body) <noInline>"
+    call $"Foo.takeT (body)"
   )
 )

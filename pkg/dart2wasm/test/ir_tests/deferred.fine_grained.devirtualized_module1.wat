@@ -36,71 +36,9 @@
   (global $foo1Obj (mut (ref null $Object)) <...>)
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"runtimeTrue implicit getter"))
-    (set 1 (ref.func $"foo1 <noInline>"))
-    (set 2 (ref.func $"foo0 <noInline>")))
+    (set 1 (ref.func $foo1))
+    (set 2 (ref.func $foo0)))
   (elem $module0.dispatch0 <...>)
-  (func $"foo0 <noInline>"
-    call $"runtimeTrue implicit getter"
-    if (result (ref $Object))
-      i32.const 109
-      i32.const 0
-      struct.new $Object
-    else
-      call $Foo1
-    end
-    global.set $baseObj
-    call $"runtimeTrue implicit getter"
-    drop
-    call $Foo1
-    global.set $foo1Obj
-    i64.const 0
-    i32.const 3
-    call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
-    drop
-    call $"foo1 <noInline>"
-  )
-  (func $"foo1 <noInline>"
-    (local $var0 (ref $Object))
-    block $label0
-      block $label1 (result (ref $Object))
-        global.get $baseObj
-        br_on_non_null $label1
-        br $label0
-      end $label1
-      local.tee $var0
-      global.get $1
-      local.get $var0
-      struct.get $Object $field0
-      i32.const 399
-      i32.add
-      call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top))
-      block $label2 (result (ref $Object))
-        global.get $foo1Obj
-        br_on_non_null $label2
-        br $label0
-      end $label2
-      global.get $2
-      call $Foo1.doitDispatch
-      block $label3 (result (ref $Object))
-        global.get $foo1Obj
-        br_on_non_null $label3
-        br $label0
-      end $label3
-      drop
-      call $Foo1.doitDevirt
-      block $label4 (result (ref $Object))
-        global.get $foo1Obj
-        br_on_non_null $label4
-        br $label0
-      end $label4
-      drop
-      call $Foo1.doitDevirt
-      return
-    end $label0
-    i32.const 4
-    call_indirect $module0.cross-module-funcs-0 
-    unreachable
-  )
   (func $runtimeTrue implicit getter (result i32) <...>)
   (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
     global.get $"\"Foo0.doitDispatch(\""
@@ -149,5 +87,69 @@
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 6
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+  )
+  (@binaryen.inline 0)
+  (func $foo0
+    call $"runtimeTrue implicit getter"
+    if (result (ref $Object))
+      i32.const 109
+      i32.const 0
+      struct.new $Object
+    else
+      call $Foo1
+    end
+    global.set $baseObj
+    call $"runtimeTrue implicit getter"
+    drop
+    call $Foo1
+    global.set $foo1Obj
+    i64.const 0
+    i32.const 3
+    call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
+    drop
+    call $foo1
+  )
+  (@binaryen.inline 0)
+  (func $foo1
+    (local $var0 (ref $Object))
+    block $label0
+      block $label1 (result (ref $Object))
+        global.get $baseObj
+        br_on_non_null $label1
+        br $label0
+      end $label1
+      local.tee $var0
+      global.get $1
+      local.get $var0
+      struct.get $Object $field0
+      i32.const 399
+      i32.add
+      call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top))
+      block $label2 (result (ref $Object))
+        global.get $foo1Obj
+        br_on_non_null $label2
+        br $label0
+      end $label2
+      global.get $2
+      call $Foo1.doitDispatch
+      block $label3 (result (ref $Object))
+        global.get $foo1Obj
+        br_on_non_null $label3
+        br $label0
+      end $label3
+      drop
+      call $Foo1.doitDevirt
+      block $label4 (result (ref $Object))
+        global.get $foo1Obj
+        br_on_non_null $label4
+        br $label0
+      end $label4
+      drop
+      call $Foo1.doitDevirt
+      return
+    end $label0
+    i32.const 4
+    call_indirect $module0.cross-module-funcs-0 
+    unreachable
   )
 )

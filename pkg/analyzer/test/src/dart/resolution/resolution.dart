@@ -8,7 +8,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -23,12 +22,10 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
-import '../../../generated/test_support.dart';
 import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../summary/resolved_ast_printer.dart';
@@ -117,16 +114,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(typeStrList, unorderedEquals(expected));
     }
-  }
-
-  void assertErrorsInList(
-    List<Diagnostic> diagnostics,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) {
-    GatheringDiagnosticListener diagnosticListener =
-        GatheringDiagnosticListener();
-    diagnosticListener.addAll(diagnostics);
-    diagnosticListener.assertErrors(expectedDiagnostics);
   }
 
   void assertHasTestErrors(TestResolvedUnitResult result) {
@@ -253,31 +240,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  ExpectedError error(
-    DiagnosticCode code,
-    int offset,
-    int length, {
-    Pattern? correctionContains,
-    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
-    String? text,
-    List<Pattern> messageContains = const [],
-    List<ExpectedContextMessage> contextMessages =
-        const <ExpectedContextMessage>[],
-  }) {
-    assert(
-      text == null || messageContains.isEmpty,
-      'Only use one of text or messageContains',
-    );
-    return ExpectedError(
-      code,
-      offset,
-      length,
-      correctionContains: correctionContains,
-      messageContainsAll: text != null ? [text] : messageContains,
-      contextMessages: contextMessages,
-    );
-  }
-
   Element? getNodeElement2(AstNode node) {
     if (node is Annotation) {
       return node.element;
@@ -328,9 +290,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
   }
-
-  ExpectedContextMessage message(File file, int offset, int length) =>
-      ExpectedContextMessage(file, offset, length);
 
   Future<ResolvedUnitResultImpl> resolveFile(File file);
 

@@ -360,5 +360,5 @@ Path _createMultitestDirectory(
       .append(_suiteNameFromPath(suiteDir))
       .join(relative);
   TestUtils.mkdirRecursive(Path.workingDirectory, path);
-  return Path(File(path.toNativePath()).absolute.path);
+  return path;
 }

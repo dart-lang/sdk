@@ -449,7 +449,7 @@ def AddCommonGnOptionArgs(parser):
                             os.environ.get('DART_RBE') == '1' or \
                             os.environ.get('RBE_cfg') != None)
     parser.add_argument('--rbe-expensive-exec-strategy',
-                        default=os.environ.get('RBE_exec_strategy'),
+                        default=os.environ.get('RBE_expensive_exec_strategy'),
                         help='Strategy for expensive RBE compilations',
                         type=str)
 

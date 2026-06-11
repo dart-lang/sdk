@@ -2183,10 +2183,10 @@ class Translator with KernelNodes {
 
     final member = target.asMember;
     if (member.isExternal) return InliningDecision(false, 'external');
-    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
+    if (util.getWasmNeverInlinePragma(coreTypes, member) ?? false) {
       return InliningDecision(false, '@pragma("wasm:never-inline")');
     }
-    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
+    if (util.getWasmPreferInlinePragma(coreTypes, member) ?? false) {
       return InliningDecision(true, '@pragma("wasm:prefer-inline")');
     }
     if (member is Field) {

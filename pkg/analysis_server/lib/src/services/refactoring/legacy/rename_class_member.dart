@@ -574,6 +574,11 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       return;
     }
     for (var reference in references) {
+      // If the reference is a named argument, we can allow this because it
+      // will become a private named parameter.
+      if (reference.kind == MatchKind.REFERENCE_BY_NAMED_ARGUMENT) {
+        continue;
+      }
       var refElement = reference.element;
       var refLibrary = refElement.library!;
       if (refLibrary != library) {

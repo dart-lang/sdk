@@ -32,13 +32,16 @@ class FunctionBuilder extends ir.BaseFunction
   }
 
   @override
-  ir.DefinedFunction forceBuild() => ir.DefinedFunction(
-    enclosingModule,
-    body.build(),
-    finalizableIndex,
-    type,
-    functionName,
-  )..isPure = isPure;
+  ir.DefinedFunction forceBuild() =>
+      ir.DefinedFunction(
+          enclosingModule,
+          body.build(),
+          finalizableIndex,
+          type,
+          functionName,
+        )
+        ..isPure = isPure
+        ..inlineHint = inlineHint;
 
   @override
   String toString() => functionName ?? "#$finalizableIndex";

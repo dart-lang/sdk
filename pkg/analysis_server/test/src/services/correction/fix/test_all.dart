@@ -232,6 +232,8 @@ import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
 import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
+import 'remove_primary_constructor_body_test.dart'
+    as remove_primary_constructor_body;
 import 'remove_print_test.dart' as remove_print;
 import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_required_test.dart' as remove_required;
@@ -532,6 +534,7 @@ void main() {
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
+    remove_primary_constructor_body.main();
     remove_print.main();
     remove_question_mark.main();
     remove_required.main();

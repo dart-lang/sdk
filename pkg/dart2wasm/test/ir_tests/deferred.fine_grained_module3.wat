@@ -76,7 +76,85 @@
   (elem $module0.cross-module-funcs-0
     (set 17 (ref.func $foo5)))
   (elem $module0.dispatch0 <...>)
-  (func $"foo5Code <noInline>" (param $var0 (ref $#Top))
+  (func $fooGlobal5 implicit getter (result (ref $#Top)) <...>)
+  (func $FooConst0.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+    global.get $"\"FooConst0(\""
+    local.get $var1
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    local.get $var1
+    call $FooConstBase.doit
+  )
+  (func $FooConst1.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+    global.get $"\"FooConst1(\""
+    local.get $var1
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    local.get $var1
+    call $FooConstBase.doit
+  )
+  (func $FooConst2.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+    global.get $"\"FooConst2(\""
+    local.get $var1
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    local.get $var1
+    call $FooConstBase.doit
+  )
+  (func $FooConst3.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+    global.get $"\"FooConst3(\""
+    local.get $var1
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    local.get $var1
+    call $FooConstBase.doit
+  )
+  (func $FooConst4.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+    global.get $"\"FooConst4(\""
+    local.get $var1
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    local.get $var1
+    call $FooConstBase.doit
+  )
+  (func $FooConst5.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+    global.get $"\"FooConst5(\""
+    local.get $var1
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    local.get $var1
+    call $FooConstBase.doit
+  )
+  (func $FooConstBase.doit (param $var0 (ref null $#Top))
+    global.get $"\"FooConstBase(\""
+    local.get $var0
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+  )
+  (func $foo5 (result (ref $_Future)) <...>)
+  (@binaryen.inline 0)
+  (func $foo5Code (param $var0 (ref $#Top))
     (local $var1 (ref $WasmListBase))
     (local $var2 (ref $Object))
     (local $var3 i64)
@@ -226,82 +304,5 @@
     i32.add
     call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top))
   )
-  (func $fooGlobal5 implicit getter (result (ref $#Top)) <...>)
-  (func $FooConst0.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
-    global.get $"\"FooConst0(\""
-    local.get $var1
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-    local.get $var1
-    call $FooConstBase.doit
-  )
-  (func $FooConst1.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
-    global.get $"\"FooConst1(\""
-    local.get $var1
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-    local.get $var1
-    call $FooConstBase.doit
-  )
-  (func $FooConst2.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
-    global.get $"\"FooConst2(\""
-    local.get $var1
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-    local.get $var1
-    call $FooConstBase.doit
-  )
-  (func $FooConst3.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
-    global.get $"\"FooConst3(\""
-    local.get $var1
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-    local.get $var1
-    call $FooConstBase.doit
-  )
-  (func $FooConst4.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
-    global.get $"\"FooConst4(\""
-    local.get $var1
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-    local.get $var1
-    call $FooConstBase.doit
-  )
-  (func $FooConst5.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
-    global.get $"\"FooConst5(\""
-    local.get $var1
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-    local.get $var1
-    call $FooConstBase.doit
-  )
-  (func $FooConstBase.doit (param $var0 (ref null $#Top))
-    global.get $"\"FooConstBase(\""
-    local.get $var0
-    global.get $"\")\""
-    i32.const 19
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
-    i32.const 18
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
-  )
-  (func $foo5 (result (ref $_Future)) <...>)
   (func $int.parse (param $var0 (ref $JSExternWrapper)) (result i64) <...>)
 )

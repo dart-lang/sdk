@@ -166,7 +166,6 @@ const List<String> _binaryenFlags = [
   '--enable-bulk-memory',
   '--enable-threads',
   '--enable-simd',
-  '--no-inline=*<noInline>*',
   '--closed-world',
   '--traps-never-happen',
   '--type-unfinalizing',
@@ -190,7 +189,6 @@ const List<String> _binaryenFlagsMultiModule = [
   '--enable-bulk-memory',
   '--enable-threads',
   '--enable-simd',
-  '--no-inline=*<noInline>*',
   '--traps-never-happen',
   '-Os',
   '-Os',
@@ -718,15 +716,18 @@ Future<CompilationResult> _runOptPhase(
         : options.maxActiveWasmOptProcesses,
   );
 
+  final wasmOptFlags = <String>[
+    ...(options.useMultiModuleOpt ? _binaryenFlagsMultiModule : _binaryenFlags),
+    if (options.stripToolchainAnnotations) '--strip-toolchain-annotations',
+  ];
+
   await Future.wait([
     for (final moduleId in moduleIdsToOptimize)
       optPool.withResource(() async {
         await ioManager.runWasmOpt(
           codegenResult.mainWasmFile,
           moduleId,
-          options.useMultiModuleOpt
-              ? _binaryenFlagsMultiModule
-              : _binaryenFlags,
+          wasmOptFlags,
         );
       }),
   ]);

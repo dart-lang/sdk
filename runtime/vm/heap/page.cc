@@ -69,12 +69,7 @@ static intptr_t CacheIndex(uword flags) {
 }
 
 Page* Page::Allocate(intptr_t size, uword flags) {
-#if defined(DART_INCLUDE_SIMULATOR)
-  const bool using_simulator = FLAG_use_simulator;
-#else
-  const bool using_simulator = false;
-#endif
-  const bool executable = (flags & Page::kExecutable) != 0 && !using_simulator;
+  const bool executable = (flags & Page::kExecutable) != 0;
   const bool compressed = !executable;
   const char* name = executable ? "dart-code" : "dart-heap";
 
@@ -316,12 +311,7 @@ void Page::ResetProgressBar() {
 
 void Page::WriteProtect(bool read_only) {
   ASSERT(!is_image());
-#if defined(DART_INCLUDE_SIMULATOR)
-  const bool using_simulator = FLAG_use_simulator;
-#else
-  const bool using_simulator = false;
-#endif
-  if (is_executable() && read_only && !using_simulator) {
+  if (is_executable() && read_only) {
     // Handle making code executable in a special way.
     memory_->WriteProtectCode();
   } else {

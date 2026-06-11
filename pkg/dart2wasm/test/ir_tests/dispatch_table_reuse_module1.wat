@@ -9,8 +9,9 @@
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 12 funcref)
   (table $module0.dispatch0 (import "module0" "dispatch0") 673 funcref)
   (elem $module0.cross-module-funcs-0
-    (set 0 (ref.func $"runTest <noInline>")))
-  (func $"runTest <noInline>"
+    (set 0 (ref.func $runTest)))
+  (@binaryen.inline 0)
+  (func $runTest
     (local $var0 (ref $WasmListBase))
     (local $var1 (ref null $#Top))
     (local $var2 (ref $Object))

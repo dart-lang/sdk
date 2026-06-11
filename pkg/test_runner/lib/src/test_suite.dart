@@ -246,7 +246,7 @@ abstract class TestSuite {
     String dirname,
     Path testPath,
   ) {
-    var relative = testPath.relativeTo(Repository.dir);
+    var relative = testPath;
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     var testUniqueName = TestUtils.getShortName(relative.toString());
 
@@ -257,7 +257,7 @@ abstract class TestSuite {
     TestUtils.mkdirRecursive(Path('.'), generatedTestPath);
     return File(
       generatedTestPath.toNativePath(),
-    ).absolute.path.replaceAll('\\', '/');
+    ).path.replaceAll('\\', '/');
   }
 
   /// Create a directories for generated assets (tests, html files,
@@ -393,7 +393,7 @@ class VMTestSuite extends TestSuite {
             configuration.architecture == Architecture.x64c
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
-    var dfePath = Path(filename).absolute.toNativePath();
+    var dfePath = Path(filename).toNativePath();
     final experiments = [...configuration.experiments];
     var args = [
       ...initialTargetArguments,
@@ -619,7 +619,7 @@ class StandardTestSuite extends TestSuite {
     bool recursive = false,
   }) : dartDir = Repository.dir,
        listRecursively = recursive,
-       suiteDir = Repository.dir.join(suiteDirectory),
+       suiteDir = suiteDirectory,
        extraVmOptions = configuration.vmOptions,
        super(configuration, suiteName, statusFilePaths) {
     // Initialize _dart2JsBootstrapDependencies.
@@ -1097,12 +1097,10 @@ class StandardTestSuite extends TestSuite {
       } else if (configuration.compiler == Compiler.ddc) {
         var ddcConfig =
             configuration.compilerConfiguration as DevCompilerConfiguration;
-        var nameFromModuleRoot = testFile.path.relativeTo(Repository.dir);
+        var nameFromModuleRoot = testFile.path;
         var nameFromModuleRootNoExt =
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
-        var jsDir = Path(
-          compilationTempDir,
-        ).relativeTo(Repository.dir).toString();
+        var jsDir = Path(compilationTempDir).toString();
         var nativeNonNullAsserts = testFile.ddcOptions.contains(
           '--native-null-assertions',
         );

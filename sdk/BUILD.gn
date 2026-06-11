@@ -34,7 +34,8 @@ declare_args() {
   analyze_snapshot_binary = "analyze_snapshot"
   wasm_opt_stripped_binary = "wasm-opt"
 
-  dart_include_wasm_opt = true
+  # Binaryen does not build under MSVC.
+  dart_include_wasm_opt = is_clang || !is_win
 }
 
 # The directory layout of the SDK is as follows:

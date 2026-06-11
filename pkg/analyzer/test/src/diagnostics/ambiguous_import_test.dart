@@ -2,13 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:matcher/src/core_matchers.dart';
-import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 import '../dart/resolution/node_text_expectations.dart';
 
@@ -101,24 +96,23 @@ class N {}
     newFile("$testPackageLibPath/lib2.dart", '''
 class N {}
 ''');
-    var partFile = newFile('$testPackageLibPath/part.dart', '''
-part of 'lib.dart';
-class A extends N {}
-''');
-    var libFile = newFile('$testPackageLibPath/lib.dart', '''
+    var partFile = getFile('$testPackageLibPath/part.dart');
+    var libFile = getFile('$testPackageLibPath/lib.dart');
+
+    await resolveFilesWithDiagnostics({
+      libFile: r'''
 import 'lib1.dart';
 import 'lib2.dart';
 part 'part.dart';
-''');
-    ResolvedUnitResult libResult = await resolveFile(libFile);
-    ResolvedUnitResult partResult = await resolveFile(partFile);
-    expect(libResult.diagnostics, hasLength(0));
-    GatheringDiagnosticListener()
-      ..addAll(partResult.diagnostics)
-      ..assertErrors([
-        error(diag.extendsNonClass, 36, 1),
-        error(diag.ambiguousImport, 36, 1),
-      ]);
+''',
+      partFile: r'''
+part of 'lib.dart';
+class A extends N {}
+//              ^
+// [diag.extendsNonClass] Classes can only extend other classes.
+// [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
+''',
+    });
   }
 
   test_instanceCreation() async {

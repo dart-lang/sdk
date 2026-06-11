@@ -34,9 +34,12 @@
     (struct.new $MyConstClass))
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $int.parse))
-    (set 1 (ref.func $"mainImpl <noInline>"))
+    (set 1 (ref.func $mainImpl))
     (set 16 (ref.func $0)))
-  (func $"mainImpl <noInline>" (param $var0 i32)
+  (func $null (result (ref $MyConstClass)) <...>)
+  (func $int.parse (result i64) <...>)
+  (@binaryen.inline 0)
+  (func $mainImpl (param $var0 i32)
     i64.const 0
     i32.const 2
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
@@ -49,7 +52,7 @@
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
     drop
     local.get $var0
-    call $"modH1Use <noInline>"
+    call $modH1Use
     ref.eq
     i32.eqz
     if
@@ -59,12 +62,11 @@
       unreachable
     end
   )
-  (func $"modH1Use <noInline>" (param $var0 i32) (result (ref $MyConstClass))
+  (@binaryen.inline 0)
+  (func $modH1Use (param $var0 i32) (result (ref $MyConstClass))
     global.get $MyConstClass
     global.get $MyConstClass_14
     local.get $var0
     select (ref $MyConstClass)
   )
-  (func $null (result (ref $MyConstClass)) <...>)
-  (func $int.parse (result i64) <...>)
 )

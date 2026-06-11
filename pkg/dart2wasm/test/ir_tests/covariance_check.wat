@@ -81,17 +81,17 @@
       i32.const 0
       i32.const 106
       local.get $var1
-      call $"_throwInterfaceTypeAsCheckError1 <noInline>"
+      call $_throwInterfaceTypeAsCheckError1
       unreachable
     end $label0
     local.get $var0
     ref.cast $Callable
     return
   )
-  (func $_throwInterfaceTypeAsCheckError1 <noInline> (param $o (ref null $#Top)) (param $isDeclaredNullable i32) (param $tId i32) (param $typeArgument0 (ref $_Type)) <...>)
   (func $Fields (param $var0 (ref $_Type)) (result (ref $Fields)) <...>)
   (func $Object._getTypeArguments (param $object (ref $#Top)) (result (ref $Array<_Type>)) <...>)
   (func $_isTypeSubtype (param $s (ref $_Type)) (param $t (ref $_Type)) (result i32) <...>)
+  (func $_throwInterfaceTypeAsCheckError1 (param $o (ref null $#Top)) (param $isDeclaredNullable i32) (param $tId i32) (param $typeArgument0 (ref $_Type)) <...>)
   (func $covarianceCheckMain
     (local $fields (ref $Fields))
     global.get $_InterfaceType

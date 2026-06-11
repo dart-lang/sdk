@@ -177,6 +177,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_on_clause.da
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parameters_in_getter_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_primary_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
@@ -472,6 +473,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.unnecessaryOverrides: [RemoveMethodDeclaration.new],
   diag.unnecessaryParenthesis: [RemoveUnnecessaryParentheses.new],
+  diag.unnecessaryPrimaryConstructorBody: [RemovePrimaryConstructorBody.new],
   diag.unnecessaryRawStrings: [RemoveUnnecessaryRawString.new],
   diag.unnecessaryStringEscapes: [RemoveUnnecessaryStringEscape.new],
   diag.unnecessaryStringInterpolations: [

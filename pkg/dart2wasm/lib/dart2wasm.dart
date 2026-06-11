@@ -201,6 +201,12 @@ final List<Option> options = [
     defaultsTo: _d.translatorOptions.requireJsStringBuiltin,
   ),
 
+  Flag(
+    "strip-toolchain-annotations",
+    (o, value) => o.stripToolchainAnnotations = value,
+    defaultsTo: _d.stripToolchainAnnotations,
+  ),
+
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),
   // The maximum number of concurrent wasm-opt processes to run. Defaults to the
   // number of processors on the machine. Use -1 to run with no limit.

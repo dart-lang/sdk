@@ -11,8 +11,12 @@
   (global $"\"Caught Error\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught JSAny\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught Object\"" (ref $JSExternWrapper) <...>)
-  (func $f <noInline>  <...>)
-  (func $"tryBlocks1 <noInline>"
+  (func $boxJsException (param $var0 externref) (result (ref $#Top)) <...>)
+  (func $f  <...>)
+  (func $jsExceptionStackTrace (param $var0 externref) (result (ref $JavaScriptStack)) <...>)
+  (func $print (param $var0 (ref $#Top)) <...>)
+  (@binaryen.inline 0)
+  (func $tryBlocks1
     (local $var0 i32)
     (local $var1 (ref $#Top))
     (local $var2 (ref $#Top))
@@ -21,7 +25,7 @@
     block $label0
       block $label1 (result (ref $#Top)) (result (ref $#Top))
         try $label2
-          call $"f <noInline>"
+          call $f
           br $label0
         catch $tag0
           local.set $var3
@@ -84,7 +88,8 @@
       call $print
     end $label0
   )
-  (func $"tryBlocks2 <noInline>"
+  (@binaryen.inline 0)
+  (func $tryBlocks2
     (local $var0 (ref $#Top))
     (local $var1 (ref $#Top))
     (local $var2 (ref $#Top))
@@ -92,7 +97,7 @@
     block $label0
       block $label1 (result (ref $#Top)) (result (ref $#Top))
         try $label2
-          call $"f <noInline>"
+          call $f
           br $label0
         catch $tag0
           local.set $var1
@@ -115,14 +120,15 @@
       call $print
     end $label0
   )
-  (func $"tryBlocks3 <noInline>"
+  (@binaryen.inline 0)
+  (func $tryBlocks3
     (local $var0 i32)
     (local $var1 (ref $#Top))
     (local $var2 (ref $#Top))
     block $label0
       block $label1
         try $label2
-          call $"f <noInline>"
+          call $f
           br $label0
         catch $tag0
           local.set $var2
@@ -185,7 +191,4 @@
       call $print
     end $label0
   )
-  (func $boxJsException (param $var0 externref) (result (ref $#Top)) <...>)
-  (func $jsExceptionStackTrace (param $var0 externref) (result (ref $JavaScriptStack)) <...>)
-  (func $print (param $var0 (ref $#Top)) <...>)
 )

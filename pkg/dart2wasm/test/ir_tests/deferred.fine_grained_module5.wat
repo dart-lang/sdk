@@ -14,11 +14,15 @@
   (global $fooGlobal2 (mut (ref null $#Top))
     (ref.null none))
   (elem $module0.cross-module-funcs-0
-    (set 12 (ref.func $"foo2Code <noInline>"))
+    (set 12 (ref.func $foo2Code))
     (set 37 (ref.func $0))
     (set 38 (ref.func $1))
     (set 42 (ref.func $2)))
-  (func $"foo2Code <noInline>" (param $var0 (ref null $#Top))
+  (func $null (result (ref null $#Top)) <...>)
+  (func $null (param $var0 (ref null $#Top)) <...>)
+  (func $null (result (ref $Object)) <...>)
+  (@binaryen.inline 0)
+  (func $foo2Code (param $var0 (ref null $#Top))
     global.get $FooConst2
     i32.const 18
     call_indirect (param (ref null $#Top))
@@ -32,7 +36,4 @@
     global.get $2
     global.set $fooGlobal2
   )
-  (func $null (result (ref null $#Top)) <...>)
-  (func $null (param $var0 (ref null $#Top)) <...>)
-  (func $null (result (ref $Object)) <...>)
 )
