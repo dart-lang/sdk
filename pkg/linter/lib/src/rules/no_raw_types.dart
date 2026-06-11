@@ -16,7 +16,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid raw types.';
 
 class NoRawTypes extends AnalysisRule {
-  new() : super(name: LintNames.no_raw_types, description: _desc);
+  new()
+    : super(
+        name: LintNames.no_raw_types,
+        description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.noRawTypes;

@@ -6,6 +6,7 @@
 # make sure to regenerate supporting classes by running:
 #
 #     dart run pkg/linter/tool/generate_lints.dart
+#     dart run pkg/analyzer/tool/messages/generate.dart
 
 # There is a fixed set of categories:
 #
@@ -270,7 +271,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -740,7 +741,7 @@ LinterLintCode:
     state:
       experimental: "3.2"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -887,7 +888,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -987,7 +988,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [brevity]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -1054,7 +1055,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [effectiveDart, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -1216,7 +1217,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [errorProne, web]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -1637,7 +1638,7 @@ LinterLintCode:
     state:
       stable: "2.16"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       NOTE: This rule is removed in Dart 3.13.0; it is no longer functional.
 
@@ -2070,7 +2071,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [errorProne, web]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -2199,7 +2200,7 @@ LinterLintCode:
       experimental: "2.0"
       stable: "2.2"
     categories: [effectiveDart, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -2346,9 +2347,17 @@ LinterLintCode:
     correctionMessage: "Try inlining the type or using it in other places."
     state:
       stable: "2.0"
+      deprecated: "3.13"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
+      **NOTE:** As a private typedef can make some code more readable,
+      this lint rule has been deprecated as of Dart 3.13 and is
+      set to be removed in a future release of the Dart SDK.
+      Remove all inclusions of this lint from your analysis options.
+      If you wish to keep enforcing it, consider implementing the
+      rule with an [analyzer plugin](https://dart.dev/tools/analyzer-plugins).
+
       **AVOID** private typedef functions used only once. Prefer inline function
       syntax.
 
@@ -2370,7 +2379,7 @@ LinterLintCode:
     state:
       stable: "2.8"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3208,7 +3217,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3380,7 +3389,7 @@ LinterLintCode:
     # TODO(srawlins): This isn't even just about unintentional syntax; unused
     # parameters can represent code bloat.
     categories: [unintentional]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8643,9 +8652,17 @@ LinterLintCode:
     correctionMessage: "Try making '#p0' a top-level function and removing the class."
     state:
       stable: "2.0"
+      deprecated: "3.13"
     categories: [effectiveDart, languageFeatureUsage, style]
     hasPublishedDocs: false
     deprecatedDetails: |-
+      **NOTE:** As one member abstracts are often a stepping stone,
+      this lint rule has been deprecated as of Dart 3.13 and is
+      set to be removed in a future release of the Dart SDK.
+      Remove all inclusions of this lint from your analysis options.
+      If you wish to keep enforcing it, consider implementing the
+      rule with an [analyzer plugin](https://dart.dev/tools/analyzer-plugins).
+
       From [Effective Dart](https://dart.dev/effective-dart/design#avoid-defining-a-one-member-abstract-class-when-a-simple-function-will-do):
 
       **AVOID** defining a one-member abstract class when a simple function will do.
@@ -9036,7 +9053,7 @@ LinterLintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11022,7 +11039,7 @@ LinterLintCode:
     state:
       stable: "2.1"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12195,7 +12212,7 @@ LinterLintCode:
     state:
       stable: "3.12"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13910,7 +13927,7 @@ LinterLintCode:
     state:
       experimental: "3.7"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13969,7 +13986,7 @@ LinterLintCode:
     state:
       stable: "2.1"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14089,7 +14106,7 @@ LinterLintCode:
     state:
       stable: "3.0"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14239,7 +14256,7 @@ LinterLintCode:
     state:
       experimental: "3.13"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14735,7 +14752,7 @@ LinterLintCode:
     state:
       stable: "2.19"
     categories: [brevity]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -15764,7 +15781,7 @@ LinterLintCode:
     state:
       stable: "3.13"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17749,7 +17766,7 @@ LinterLintCode:
     state:
       experimental: "3.12"
     categories: [languageFeatureUsage]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       NOTE: This rule is removed in Dart 3.13.0; it is no longer functional.
 

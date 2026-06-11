@@ -30,7 +30,6 @@ class VerifyTests {
     var collection = AnalysisContextCollection(
       resourceProvider: provider,
       includedPaths: <String>[testDirPath],
-      excludedPaths: excludedPaths,
     );
     var singleAnalysisContext = collection.contexts
         .where(analysisContextPredicate ?? (_) => true)

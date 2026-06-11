@@ -5,15 +5,10 @@
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -23,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class LineInfoTest with ResourceProviderMixin {
+class LineInfoTest {
   final featureSet = FeatureSet.latestLanguageVersion();
 
   void test_lineInfo_multilineComment() {
@@ -73,17 +68,7 @@ class LineInfoTest with ResourceProviderMixin {
 
   void test_lineStarts() {
     String source = "var\r\ni\n=\n1;\n";
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    var diagnosticReporter = DiagnosticReporter(
-      listener,
-      FileSource(newFile('/test.dart', '')),
-    );
-    Scanner scanner =
-        Scanner(inputText: source, reportError: diagnosticReporter.report)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+    var scanner = _newScanner(source);
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -95,17 +80,7 @@ class LineInfoTest with ResourceProviderMixin {
     // to the correct analyzer error code.
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    var diagnosticReporter = DiagnosticReporter(
-      listener,
-      FileSource(newFile('/test.dart', '')),
-    );
-    Scanner scanner =
-        Scanner(inputText: source, reportError: diagnosticReporter.report)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+    var scanner = _newScanner(source);
     Token token = scanner.tokenize();
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
@@ -118,13 +93,7 @@ class LineInfoTest with ResourceProviderMixin {
     String source,
     List<ScannerTest_ExpectedLocation> expectedLocations,
   ) {
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    _scanWithListener(source, listener);
-    listener.assertNoErrors();
-    LineInfo info = listener.getLineInfo(
-      FileSource(newFile('/test.dart', '')),
-    )!;
-    expect(info, isNotNull);
+    var info = _scanLineInfo(source);
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
@@ -142,24 +111,27 @@ class LineInfoTest with ResourceProviderMixin {
     }
   }
 
-  Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
-    var testSource = FileSource(newFile('/test.dart', ''));
-    var diagnosticReporter = DiagnosticReporter(listener, testSource);
-    Scanner scanner =
-        Scanner(inputText: source, reportError: diagnosticReporter.report)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
-    Token result = scanner.tokenize();
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
-    listener.setLineInfo(testSource, lineInfo);
-    return result;
+  Scanner _newScanner(String source) {
+    return Scanner(
+      inputText: source,
+      reportError: (diagnostic) {
+        fail('Unexpected diagnostic: $diagnostic');
+      },
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
+  }
+
+  LineInfo _scanLineInfo(String source) {
+    var scanner = _newScanner(source);
+    scanner.tokenize();
+    return LineInfo(scanner.lineStarts);
   }
 }
 
 @reflectiveTest
-class ScannerTest with ResourceProviderMixin {
+class ScannerTest {
   test_featureSet() {
     var scanner = Scanner(
       inputText: r'''

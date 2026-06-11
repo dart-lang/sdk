@@ -6268,7 +6268,8 @@ static void ReadNativeMemoryHelper(JSONStream* js,
   bool ok = OS::SafeReadMemory(reinterpret_cast<void*>(address), buffer.get(),
                                size, &read_error);
 #elif defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
-  bool ok = false;  // TODO(thenourhan): implement using mach_vm_read
+  bool ok = OS::SafeReadMemory(reinterpret_cast<void*>(address), buffer.get(),
+                               size, &read_error);
 #elif defined(DART_HOST_OS_WINDOWS)
   bool ok = OS::SafeReadMemory(reinterpret_cast<void*>(address), buffer.get(),
                                size, &read_error);

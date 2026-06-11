@@ -18,7 +18,11 @@ const _desc = r'Avoid declaring parameters with `var` and no type annotation.';
 
 class VarWithNoTypeAnnotation extends AnalysisRule {
   new()
-    : super(name: LintNames.var_with_no_type_annotation, description: _desc);
+    : super(
+        name: LintNames.var_with_no_type_annotation,
+        description: _desc,
+        state: .experimental(since: .new(3, 12, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.varWithNoTypeAnnotation;

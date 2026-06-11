@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -10,7 +11,6 @@ import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../generated/test_support.dart';
 import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class ErrorReporterTest extends PubPackageResolutionTest {
-  var listener = GatheringDiagnosticListener();
+  final RecordingDiagnosticListener listener = RecordingDiagnosticListener();
 
   test_atElement_named() async {
     var result = await resolveTestCode('class A {}');

@@ -17,7 +17,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Avoid implicit casts from `dynamic`.';
 
 class NoDynamicCasts extends AnalysisRule {
-  new() : super(name: LintNames.no_dynamic_casts, description: _desc);
+  new()
+    : super(
+        name: LintNames.no_dynamic_casts,
+        description: _desc,
+        state: .stable(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.noDynamicCasts;

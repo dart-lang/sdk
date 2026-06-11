@@ -16,7 +16,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use simple directive paths.';
 
 class SimpleDirectivePaths extends AnalysisRule {
-  new() : super(name: LintNames.simple_directive_paths, description: _desc);
+  new()
+    : super(
+        name: LintNames.simple_directive_paths,
+        description: _desc,
+        state: .stable(since: .new(3, 12, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.simpleDirectivePaths;

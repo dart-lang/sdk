@@ -1,6 +1,7 @@
-## 13.3.0-dev
+## 13.3.0
 
-* Internal changes only
+* Add `Folder.getFile`, deprecate `Folder.getChildAssumingFile`.
+* Add `Folder.getFolder`, deprecate `Folder.getChildAssumingFolder`.
 
 ## 13.2.0
 
@@ -8,6 +9,7 @@
 * Deprecate `FormalParameterElement.formalParameters` and `typeParameters`. Use `FormalParameterElement.type` instead.
 * Added `isComplete` to `ConstructorDeclaration`, `FunctionDeclaration`, and `MethodDeclaration`.
 * Deprecated `MethodDeclaration.isAbstract`. Use `!isComplete` instead.
+* Deprecate the `excludedPaths` parameter in `AnalysisContextCollection`. Use `analysis_options.yaml` to configure excluded paths instead.
 
 ## 13.1.0
 

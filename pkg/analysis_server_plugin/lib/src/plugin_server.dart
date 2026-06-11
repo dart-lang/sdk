@@ -723,7 +723,6 @@ class PluginServer {
     var contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: _resourceProvider,
       includedPaths: parameters.included,
-      excludedPaths: parameters.excluded,
       byteStore: _byteStore,
       sdkPath: _sdkPath,
       fileContentCache: FileContentCache(_resourceProvider),

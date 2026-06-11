@@ -1397,7 +1397,9 @@ class DeclarationHelper {
     }
 
     for (var field in element.fields) {
-      if (field.isOriginDeclaration && (!mustBeStatic || field.isStatic)) {
+      if ((field.isOriginDeclaration ||
+              field.isOriginDeclaringFormalParameter) &&
+          (!mustBeStatic || field.isStatic)) {
         _suggestField(
           field: field,
           referencingInterface: referencingInterface,

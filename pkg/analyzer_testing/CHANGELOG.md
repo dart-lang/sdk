@@ -1,6 +1,6 @@
-## 0.3.2-dev
+## 0.3.2
 
-- Require version `13.3.0-dev` of the `analyzer` package.
+- Require version `13.3.0` of the `analyzer` package.
 
 ## 0.3.1
 
