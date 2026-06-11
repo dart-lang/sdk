@@ -313,20 +313,6 @@ library
           formalParameters
             #F2 requiredPositional isOriginDeclaration g (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@function::f::@formalParameter::g
-              parameters
-                #F3 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:11) (firstTokenOffset:11) (offset:11)
-                  element: a@11
-                  initializer: expression_0
-                    IsExpression
-                      expression: IntegerLiteral
-                        literal: 0 @14
-                        staticType: null
-                      isOperator: is @16
-                      type: NamedType
-                        name: int @19
-                        element: <null>
-                        type: null
-                      staticType: null
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -335,13 +321,6 @@ library
         #E0 requiredPositional g
           firstFragment: #F2
           type: dynamic Function({dynamic a})
-          formalParameters
-            #E1 optionalNamed hasDefaultValue hasImplicitType a
-              firstFragment: #F3
-              type: dynamic
-              constantInitializer
-                fragment: #F3
-                expression: expression_0
       returnType: void
 ''');
   }

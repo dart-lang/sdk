@@ -1747,20 +1747,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
 
     // TODO(scheglov): check that we don't set reference for parameters
-    var holder = _EnclosingContext(fragment: fragment);
-    _withEnclosing(holder, () {
-      var formalParameters = node.functionTypedSuffix?.formalParameters;
-      if (formalParameters != null) {
-        formalParameters.accept(this);
-        fragment.formalParameters = holder.formalParameters;
-      }
-
-      var typeParameters = node.functionTypedSuffix?.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-      }
-    });
+    _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
     node.type?.accept(this);
   }
@@ -2191,20 +2178,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredFragment = fragment;
 
-    if (node.functionTypedSuffix case var functionTypedSuffix?) {
-      var holder = _EnclosingContext(fragment: fragment);
-      _withEnclosing(holder, () {
-        var formalParameters = functionTypedSuffix.formalParameters;
-        formalParameters.accept(this);
-        fragment.formalParameters = holder.formalParameters;
-
-        var typeParameters = functionTypedSuffix.typeParameters;
-        if (typeParameters != null) {
-          typeParameters.accept(this);
-          fragment.typeParameters = holder.typeParameters;
-        }
-      });
-    }
+    _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
     node.type?.accept(this);
   }
@@ -2231,20 +2205,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
 
     // TODO(scheglov): check that we don't set reference for parameters
-    var holder = _EnclosingContext(fragment: fragment);
-    _withEnclosing(holder, () {
-      var formalParameters = node.functionTypedSuffix?.formalParameters;
-      if (formalParameters != null) {
-        formalParameters.accept(this);
-        fragment.formalParameters = holder.formalParameters;
-      }
-
-      var typeParameters = node.functionTypedSuffix?.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-      }
-    });
+    _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
     node.type?.accept(this);
   }
@@ -2338,6 +2299,28 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     });
   }
 
+  void _buildFunctionTypedParameterSuffix(
+    FormalParameterFragmentImpl fragment,
+    FunctionTypedFormalParameterSuffix? suffix,
+  ) {
+    if (suffix == null) {
+      return;
+    }
+
+    var holder = _EnclosingContext(fragment: fragment);
+    _withEnclosing(holder, () {
+      suffix.typeParameters?.accept(this);
+      suffix.formalParameters.accept(this);
+    });
+
+    for (var typeParameter in holder.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+    for (var formalParameter in holder.formalParameters) {
+      formalParameter.initElement();
+    }
+  }
+
   MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
     var length = nodeList.length;
     if (length == 0) return MetadataImpl(const []);
@@ -2377,10 +2360,12 @@ class _EnclosingContext {
   _EnclosingContext({required this.fragment});
 
   void addParameter(FormalParameterFragmentImpl fragment) {
+    fragment.enclosingFragment = this.fragment;
     formalParameters.add(fragment);
   }
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
+    fragment.enclosingFragment = this.fragment;
     typeParameters.add(fragment);
   }
 }

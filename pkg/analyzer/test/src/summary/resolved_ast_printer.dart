@@ -2203,9 +2203,9 @@ Expected parent: (${parent.runtimeType}) $parent
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is FormalParameter) {
-      var declaredFragment = parametersParent.declaredFragment!;
-      declaredFragment as FormalParameterFragmentImpl;
-      return declaredFragment.formalParameters;
+      return parametersParent.functionTypedSuffix!.formalParameters.parameters
+          .map((parameter) => parameter.declaredFragment!)
+          .toList();
     } else if (parametersParent is FunctionExpression) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;

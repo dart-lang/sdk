@@ -460,27 +460,10 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
 class SubstitutedFieldFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
     with InternalFieldFormalParameterElement {
-  factory SubstitutedFieldFormalParameterElementImpl({
-    required FieldFormalParameterElementImpl baseElement,
-    required MapSubstitution substitution,
-  }) {
-    var freshTypeParameters = _SubstitutedTypeParameters(
-      // ignore: deprecated_member_use_from_same_package
-      baseElement.typeParameters,
-      substitution,
-    );
-    return SubstitutedFieldFormalParameterElementImpl._(
-      baseElement: baseElement,
-      substitution: freshTypeParameters.substitution,
-      typeParameters: freshTypeParameters.elements,
-    );
-  }
-
-  SubstitutedFieldFormalParameterElementImpl._({
+  SubstitutedFieldFormalParameterElementImpl({
     required FieldFormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters,
-  }) : super._();
+  });
 
   @override
   FieldFormalParameterElementImpl get baseElement =>
@@ -520,39 +503,9 @@ class SubstitutedFieldFormalParameterElementImpl
 class SubstitutedFormalParameterElementImpl
     extends SubstitutedVariableElementImpl
     with InternalFormalParameterElement {
-  @Deprecated('Use the function type of this parameter instead')
-  @override
-  final List<TypeParameterElementImpl> typeParameters;
-
-  factory SubstitutedFormalParameterElementImpl({
-    required FormalParameterElementImpl baseElement,
-    required MapSubstitution substitution,
-  }) {
-    // ignore: deprecated_member_use_from_same_package
-    var typeParameters = baseElement.typeParameters;
-    if (typeParameters.isEmpty) {
-      // Happens often. Avoid doing unneeded allocation.
-      return SubstitutedFormalParameterElementImpl._(
-        baseElement: baseElement,
-        substitution: substitution,
-        typeParameters: const [],
-      );
-    }
-    var freshTypeParameters = _SubstitutedTypeParameters(
-      typeParameters,
-      substitution,
-    );
-    return SubstitutedFormalParameterElementImpl._(
-      baseElement: baseElement,
-      substitution: freshTypeParameters.substitution,
-      typeParameters: freshTypeParameters.elements,
-    );
-  }
-
-  SubstitutedFormalParameterElementImpl._({
+  SubstitutedFormalParameterElementImpl({
     required FormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required this.typeParameters,
   });
 
   @override
@@ -560,10 +513,7 @@ class SubstitutedFormalParameterElementImpl
       super.baseElement as FormalParameterElementImpl;
 
   @override
-  List<Element> get children {
-    // ignore: deprecated_member_use_from_same_package
-    return [...typeParameters, ...formalParameters];
-  }
+  List<Element> get children => [];
 
   @override
   String? get defaultValueCode => baseElement.defaultValueCode;
@@ -579,10 +529,6 @@ class SubstitutedFormalParameterElementImpl
 
   @Deprecated('Use the function type of this parameter instead')
   @override
-  List<FormalParameterElementImpl> get formalParameters =>
-      baseElement.formalParameters;
-
-  @override
   List<FormalParameterFragmentImpl> get fragments {
     return baseElement.fragments;
   }
@@ -592,10 +538,6 @@ class SubstitutedFormalParameterElementImpl
 
   @override
   bool get isCovariant => baseElement.isCovariant;
-
-  @Deprecated('Use element is FieldFormalParameterElement instead')
-  @override
-  bool get isInitializingFormal => baseElement.isInitializingFormal;
 
   @override
   bool get isNamed => baseElement.isNamed;
@@ -620,10 +562,6 @@ class SubstitutedFormalParameterElementImpl
 
   @override
   bool get isRequiredPositional => baseElement.isRequiredPositional;
-
-  @Deprecated('Use element is SuperFormalParameterElement instead')
-  @override
-  bool get isSuperFormal => baseElement.isSuperFormal;
 
   @override
   LibraryElement? get library => baseElement.library;
@@ -904,27 +842,10 @@ class SubstitutedSetterElementImpl
 class SubstitutedSuperFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
     with InternalSuperFormalParameterElement {
-  factory SubstitutedSuperFormalParameterElementImpl({
-    required SuperFormalParameterElementImpl baseElement,
-    required MapSubstitution substitution,
-  }) {
-    var freshTypeParameters = _SubstitutedTypeParameters(
-      // ignore: deprecated_member_use_from_same_package
-      baseElement.typeParameters,
-      substitution,
-    );
-    return SubstitutedSuperFormalParameterElementImpl._(
-      baseElement: baseElement,
-      substitution: freshTypeParameters.substitution,
-      typeParameters: freshTypeParameters.elements,
-    );
-  }
-
-  SubstitutedSuperFormalParameterElementImpl._({
+  SubstitutedSuperFormalParameterElementImpl({
     required SuperFormalParameterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters,
-  }) : super._();
+  });
 
   @override
   SuperFormalParameterElementImpl get baseElement =>

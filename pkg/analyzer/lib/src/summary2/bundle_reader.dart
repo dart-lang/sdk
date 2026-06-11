@@ -736,14 +736,14 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var id = _readFragmentId();
       var fragmentName = _readFragmentName();
-      var isInitializingFormal = _reader.readBool();
-      var isSuperFormal = _reader.readBool();
+      var isFieldFormalParameter = _reader.readBool();
+      var isSuperParameter = _reader.readBool();
 
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
 
       FormalParameterFragmentImpl fragment;
-      if (isInitializingFormal) {
+      if (isFieldFormalParameter) {
         var privateName = _reader.readOptionalStringReference();
         fragment = FieldFormalParameterFragmentImpl(
           name: fragmentName,
@@ -751,7 +751,7 @@ class LibraryReader {
           parameterKind: kind,
           privateName: privateName,
         );
-      } else if (isSuperFormal) {
+      } else if (isSuperParameter) {
         fragment = SuperFormalParameterFragmentImpl(
           name: fragmentName,
           nameOffset: null,
@@ -766,8 +766,6 @@ class LibraryReader {
       }
       idFragmentMap[id] = fragment;
       fragment.readFlags(_reader);
-      fragment.typeParameters = _readTypeParameterFragments();
-      fragment.formalParameters = _readFormalParameterFragments();
       return fragment;
     });
   }
@@ -783,18 +781,6 @@ class LibraryReader {
     for (var fragment in fragments) {
       var element = fragment.element;
       fragment.metadata = reader._readMetadata();
-      _readTypeParameterFragmentsResolution(
-        libraryFragment,
-        reader,
-        fragment.typeParameters,
-      );
-      // ignore: deprecated_member_use_from_same_package
-      _readTypeParameterElementResolutions(reader, element.typeParameters);
-      _readFormalParameterFragmentsResolution(
-        libraryFragment,
-        reader,
-        fragment.formalParameters,
-      );
       element.inheritsCovariant = reader.readBool();
       var type = reader.readType() ?? InvalidTypeImpl.instance;
       element.type = type;

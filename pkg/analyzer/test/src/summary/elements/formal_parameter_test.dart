@@ -376,11 +376,6 @@ library
               formalParameters
                 #F4 requiredPositional isOriginDeclaration g (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
-                  parameters
-                    #F5 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
-                      element: x@16
-                    #F6 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:19) (firstTokenOffset:19) (offset:19)
-                      element: y@19
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -397,13 +392,6 @@ library
             #E0 requiredPositional g
               firstFragment: #F4
               type: dynamic Function(dynamic, dynamic)
-              formalParameters
-                #E1 requiredPositional hasImplicitType x
-                  firstFragment: #F5
-                  type: dynamic
-                #E2 requiredPositional hasImplicitType y
-                  firstFragment: #F6
-                  type: dynamic
           returnType: dynamic
 ''');
   }
@@ -438,9 +426,6 @@ library
               formalParameters
                 #F6 requiredPositional isOriginDeclaration g (nameOffset:22) (firstTokenOffset:20) (offset:22)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration x (nameOffset:26) (firstTokenOffset:24) (offset:26)
-                      element: x@26
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -462,10 +447,6 @@ library
             #E2 requiredPositional g
               firstFragment: #F6
               type: A Function(B)
-              formalParameters
-                #E3 requiredPositional x
-                  firstFragment: #F7
-                  type: B
           returnType: dynamic
 ''');
   }
@@ -576,31 +557,14 @@ library
           formalParameters
             #F2 requiredPositional isOriginDeclaration a (nameOffset:9) (firstTokenOffset:7) (offset:9)
               element: <testLibrary>::@function::f::@formalParameter::a
-              typeParameters
-                #F3 T (nameOffset:11) (firstTokenOffset:11) (offset:11)
-                  element: #E0 T
-                #F4 U (nameOffset:14) (firstTokenOffset:14) (offset:14)
-                  element: #E1 U
-              parameters
-                #F5 requiredPositional isOriginDeclaration u (nameOffset:19) (firstTokenOffset:17) (offset:19)
-                  element: u@19
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E2 requiredPositional a
+        #E0 requiredPositional a
           firstFragment: #F2
           type: T Function<T, U>(U)
-          typeParameters
-            #E0 T
-              firstFragment: #F3
-            #E1 U
-              firstFragment: #F4
-          formalParameters
-            #E3 requiredPositional u
-              firstFragment: #F5
-              type: U
       returnType: void
 ''');
   }

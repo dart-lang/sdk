@@ -1,3 +1,11 @@
+## 14.0.0-dev
+
+* **Breaking Change:** Removed `FormalParameterElement.isInitializingFormal`. Use type checks (`element is FieldFormalParameterElement`) instead.
+* **Breaking Change:** Removed `FormalParameterElement.isSuperFormal`. Use type checks (`element is SuperFormalParameterElement`) instead.
+* **Breaking Change:** Removed `PackageConfigFileBuilder` from `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
+* **Breaking Change:** Removed `FormalParameterElement.formalParameters`. Use `FormalParameterElement.type` instead.
+* **Breaking Change:** Removed `FormalParameterElement.typeParameters`. Use `FormalParameterElement.type` instead.
+
 ## 13.3.0
 
 * Add `Folder.getFile`, deprecate `Folder.getChildAssumingFile`.

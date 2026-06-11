@@ -493,24 +493,17 @@ class BundleWriter {
 
     _resolutionSink._writeMetadata(fragment.metadata);
 
-    // ignore: deprecated_member_use_from_same_package
-    _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
-      _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-      // ignore: deprecated_member_use_from_same_package
-      _writeTypeParameterElementResolutions(fragment.element.typeParameters);
-      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
-      _resolutionSink.writeBool(fragment.element.inheritsCovariant);
-      _resolutionSink.writeType(fragment.element.type);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    var element = fragment.element;
 
-      if (fragment is FieldFormalParameterFragmentImpl) {
-        // TODO(scheglov): formal parameter types? Anything else?
-        var element = fragment.element;
-        _resolutionSink.writeElement(
-          element is FieldFormalParameterElementImpl ? element.field : null,
-        );
-      }
-    });
+    _resolutionSink.writeBool(element.inheritsCovariant);
+    _resolutionSink.writeType(element.type);
+    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+
+    if (fragment is FieldFormalParameterFragmentImpl) {
+      _resolutionSink.writeElement(
+        element is FieldFormalParameterElementImpl ? element.field : null,
+      );
+    }
   }
 
   void _writeFragmentId(FragmentImpl fragment) {

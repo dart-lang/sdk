@@ -3632,10 +3632,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   @override
   bool get isFinal => true;
 
-  @Deprecated('Use element is FieldFormalParameterElement instead')
-  @override
-  bool get isInitializingFormal => true;
-
   @override
   String? get privateName => _fieldFormalParameterFragment.privateName;
 
@@ -3702,10 +3698,6 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   /// is final.
   @override
   bool get isFinal => true;
-
-  @Deprecated('Use fragment is FieldFormalParameterFragment instead')
-  @override
-  bool get isInitializingFormal => true;
 }
 
 @GenerateElementFlags(flags: _FieldElementFlags.values)
@@ -3886,16 +3878,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }) : _baseFormalParameter = baseFormalParameter {
     for (var fragment in _fragments) {
       fragment._element = this;
-      for (var typeParameter in fragment._typeParameters) {
-        if (typeParameter.previousFragment == null) {
-          TypeParameterElementImpl(firstFragment: typeParameter);
-        }
-      }
-      for (var formalParameter in fragment._formalParameters) {
-        if (formalParameter.previousFragment == null) {
-          formalParameter.initElement();
-        }
-      }
     }
   }
 
@@ -3938,18 +3920,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
     return {...super.flagsForTesting, 'hasDefaultValue': hasDefaultValue};
   }
 
-  // firstFragment.typeParameters
-  //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
-  //     .toList();
-
-  @Deprecated('Use the function type of this parameter instead')
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  List<FormalParameterElementImpl> get formalParameters => _firstFragment
-      .formalParameters
-      .map((fragment) => fragment.element)
-      .toList();
-
   @override
   List<FormalParameterFragmentImpl> get fragments {
     return _fragments;
@@ -3966,10 +3936,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
     }
     return false;
   }
-
-  @Deprecated('Use element is FieldFormalParameterElement instead')
-  @override
-  bool get isInitializingFormal => this is FieldFormalParameterElement;
 
   @override
   bool get isNamed => _firstFragment.isNamed;
@@ -3995,11 +3961,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   bool get isRequiredPositional => _firstFragment.isRequiredPositional;
 
-  @Deprecated('Use element is SuperFormalParameterElement instead')
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isSuperFormal => this is SuperFormalParameterElement;
-
   @override
   ElementKind get kind => ElementKind.PARAMETER;
 
@@ -4020,16 +3981,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   @Deprecated('Use the function type of this parameter instead')
-  @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElementImpl> get typeParameters {
-    var typeParameters = _firstFragment.typeParameters;
-    return List.generate(
-      typeParameters.length,
-      (index) => typeParameters[index].element,
-    );
-  }
-
   @override
   TypeImpl get typeShared => type;
 
@@ -4082,16 +4033,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
 
   @override
   int? nameOffset;
-
-  /// A list containing all of the parameters defined by this parameter element.
-  /// There will only be parameters if this parameter is a function typed
-  /// parameter.
-  List<FormalParameterFragmentImpl> _formalParameters = const [];
-
-  /// A list containing all of the type parameters defined for this parameter
-  /// element. There will only be parameters if this parameter is a function
-  /// typed parameter.
-  List<TypeParameterFragmentImpl> _typeParameters = const [];
 
   /// The kind of a parameter. A parameter can be either positional or named, and
   /// can be either required or optional.
@@ -4167,23 +4108,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     ];
   }
 
-  /// The parameters defined by this parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// parameter.
-  List<FormalParameterFragmentImpl> get formalParameters {
-    return _formalParameters;
-  }
-
-  /// Set the parameters defined by this executable element to the given
-  /// [value].
-  set formalParameters(List<FormalParameterFragmentImpl> value) {
-    for (var formalParameter in value) {
-      formalParameter.enclosingFragment = this;
-    }
-    _formalParameters = value;
-  }
-
   /// Whether the field was explicitly marked as being covariant.
   @generated
   bool get isExplicitlyCovariant {
@@ -4199,10 +4123,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
       value,
     );
   }
-
-  /// Whether the parameter is an initializing formal parameter.
-  @Deprecated('Use fragment is FieldFormalParameterFragment instead')
-  bool get isInitializingFormal => false;
 
   /// Whether the parameter is a named parameter.
   ///
@@ -4302,10 +4222,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
-  /// Whether the parameter is a super formal parameter.
-  @Deprecated('Use fragment is SuperFormalParameterFragment instead')
-  bool get isSuperFormal => false;
-
   @override
   LibraryFragmentImpl? get libraryFragment {
     return enclosingFragment?.libraryFragment;
@@ -4321,23 +4237,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
       )
         current,
     ];
-  }
-
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  List<TypeParameterFragmentImpl> get typeParameters {
-    return _typeParameters;
-  }
-
-  /// Set the type parameters defined by this parameter element to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterFragmentImpl> typeParameters) {
-    for (var parameter in typeParameters) {
-      parameter.enclosingFragment = this;
-    }
-    _typeParameters = typeParameters;
   }
 
   void addFragment(FormalParameterFragmentImpl fragment) {
@@ -6362,9 +6261,6 @@ mixin InternalFormalParameterElement on InternalVariableElement
   TypeImpl get type;
 
   @Deprecated('Use the function type of this parameter instead')
-  @override
-  List<TypeParameterElementImpl> get typeParameters;
-
   @override
   void appendToWithoutDelimiters(StringBuffer buffer) {
     buffer.write(type.getDisplayString());
@@ -10640,10 +10536,6 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   @override
   bool get isFinal => true;
 
-  @Deprecated('Use element is SuperFormalParameterElement instead')
-  @override
-  bool get isSuperFormal => true;
-
   @override
   InternalFormalParameterElement? get superConstructorParameter {
     var enclosingElement = this.enclosingElement;
@@ -10736,10 +10628,6 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   /// and introduce final variables.
   @override
   bool get isFinal => true;
-
-  @Deprecated('Use fragment is SuperFormalParameterFragment instead')
-  @override
-  bool get isSuperFormal => true;
 }
 
 @elementClass

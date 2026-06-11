@@ -1374,13 +1374,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   @override
   FormalParameterFragment get firstFragment;
 
-  /// The formal parameters defined by this formal parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// formal parameter.
-  @Deprecated('Use the function type of this parameter instead')
-  List<FormalParameterElement> get formalParameters;
-
   @override
   List<FormalParameterFragment> get fragments;
 
@@ -1390,10 +1383,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   /// Whether the parameter is covariant, meaning it is allowed to have a
   /// narrower type in an override.
   bool get isCovariant;
-
-  /// Whether the parameter is an initializing formal parameter.
-  @Deprecated('Use element is FieldFormalParameterElement instead')
-  bool get isInitializingFormal;
 
   /// Whether the parameter is a named parameter.
   ///
@@ -1443,17 +1432,6 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
 
   /// Whether the parameter is both a required and positional parameter.
   bool get isRequiredPositional;
-
-  /// Whether the parameter is a super formal parameter.
-  @Deprecated('Use element is SuperFormalParameterElement instead')
-  bool get isSuperFormal;
-
-  /// The type parameters defined by this parameter.
-  ///
-  /// A parameter will only define type parameters if it is a function typed
-  /// parameter.
-  @Deprecated('Use the function type of this parameter instead')
-  List<TypeParameterElement> get typeParameters;
 
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].
