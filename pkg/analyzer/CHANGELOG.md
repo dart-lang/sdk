@@ -1,6 +1,7 @@
-## 13.3.0-dev
+## 13.3.0
 
-* Internal changes only
+* Add `Folder.getFile`, deprecate `Folder.getChildAssumingFile`.
+* Add `Folder.getFolder`, deprecate `Folder.getChildAssumingFolder`.
 
 ## 13.2.0
 
