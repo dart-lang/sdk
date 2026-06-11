@@ -185,10 +185,11 @@ class BulkFixProcessor {
     this._instrumentationService,
     this._workspace, {
     required this._byteStore,
+    ChangeBuilder? builder,
     List<String>? codes,
     List<String>? additionalEnabledCodes,
     this._cancellationToken,
-  }) : builder = ChangeBuilder(workspace: _workspace),
+  }) : builder = builder ?? ChangeBuilder(workspace: _workspace),
        _codes = codes?.map((e) => e.toLowerCase()).toList(),
        _additionalLintRules = additionalEnabledCodes
            ?.map((e) => Registry.ruleRegistry.getRule(e.toLowerCase()))
@@ -558,6 +559,7 @@ class BulkFixProcessor {
       includedPaths: [originalContext.contextRoot.root.path],
       resourceProvider: _workspace.resourceProvider,
       byteStore: _byteStore,
+      sdkPath: originalContext.sdkRoot?.path,
       updateAnalysisOptions4: ({required AnalysisOptionsImpl analysisOptions}) {
         analysisOptions.lint = true;
         analysisOptions.lintRules = [
