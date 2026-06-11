@@ -737,7 +737,9 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       files.sort();
 
       for (var file in files) {
-        var path = Path(file!).toString();
+        var path = Path(
+          file!,
+        ).relativeTo(testCase.testFile.path.directoryPath).toString();
         output.subsection("unexpected analysis errors in $path");
 
         var errors = errorsByFile[file]!;

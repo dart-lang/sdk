@@ -14,6 +14,7 @@ import 'compiler_configuration.dart';
 import 'deflake_info.dart';
 import 'feature.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'testing_servers.dart';
 
@@ -72,7 +73,11 @@ class TestConfiguration {
     required this.reproducingArguments,
     this.fastTestsOnly = false,
     this.printPassingStdout = false,
-  }) : packages = packages ?? '.dart_tool/package_config.json';
+  }) : packages =
+           packages ??
+           Repository.uri
+               .resolve('.dart_tool/package_config.json')
+               .toFilePath();
 
   final Map<String, RegExp?> selectors;
   final Progress progress;
