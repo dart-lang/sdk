@@ -42,6 +42,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool drainStreams = true,
     bool enableIndex = false,
     required List<String> includedPaths,
+    @Deprecated('Use analysis_options.yaml to exclude paths.')
     List<String>? excludedPaths,
     List<String>? librarySummaryPaths,
     String? optionsFile,
