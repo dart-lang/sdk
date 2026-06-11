@@ -2867,7 +2867,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           'has-no-declared-initializer',
         );
       }
-      writeWord(getVariableName(variable.variable));
+      writeWord(getVariableName(variable));
       Expression? initializer = variable.initializer;
       if (initializer != null) {
         writeSpaced(':=');

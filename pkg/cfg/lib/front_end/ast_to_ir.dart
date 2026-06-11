@@ -920,11 +920,10 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void defaultVariable(ast.Variable node) {
-    final variable = node.variable;
     if (node.isConst) return;
     if (node.isLate) {
       builder.addSentinelConstant();
-      _writeVariable(variable);
+      _writeVariable(node);
     } else {
       final initializer = node.initializer;
       if (initializer != null) {
@@ -933,11 +932,11 @@ class AstToIr extends ast.RecursiveVisitor {
           builder.pop();
           return;
         }
-        _writeVariable(variable);
+        _writeVariable(node);
       } else if (node.type.nullability == ast.Nullability.nullable &&
-          !_isCaptured(variable)) {
+          !_isCaptured(node)) {
         builder.addNullConstant();
-        _writeVariable(variable);
+        _writeVariable(node);
       }
     }
   }

@@ -21,15 +21,20 @@ sealed class VariableBase extends TreeNode implements Annotatable {
   }
 }
 
-/// This is a helper class to enable mixing a mixin into concrete
-/// implementations of the sealed class [Variable]. It's not supposed
-/// to be used as a type annotation, but purely for declaring the class
-/// hierarchy.
-abstract interface class IVariable implements TreeNode, Annotatable {
+/// The root of the sealed hierarchy of non-type variables.
+sealed class Variable extends VariableBase implements ContextConsumer {
+  /// Static type of the variable.
   abstract DartType type;
-  abstract String? cosmeticName;
+
+  /// Declaration node for the variable, if available.
   abstract VariableDeclaration? variableDeclaration;
+
+  /// Derived from [variableDeclaration], if available.
   abstract Expression? initializer;
+
+  @override
+  abstract List<Expression> annotations;
+
   abstract bool isFinal;
   abstract bool isConst;
   abstract bool isLate;
@@ -48,77 +53,8 @@ abstract interface class IVariable implements TreeNode, Annotatable {
   // The following is due to [VariableDeclaration] implementing
   // [VariableInitialization].
   abstract int binaryOffsetNoTag;
-  abstract List<VariableContext>? capturedContexts;
   abstract int fileEqualsOffset;
-  abstract Variable variable;
   void clearAnnotations();
-
-  VariableContext? get context;
-  void set context(VariableContext value);
-
-  bool get isAssignable;
-  bool get hasIsFinal;
-  bool get hasIsConst;
-  bool get hasIsLate;
-  bool get hasIsInitializingFormal;
-  bool get hasIsSynthesized;
-  bool get hasIsHoisted;
-  bool get hasHasDeclaredInitializer;
-  bool get hasIsCovariantByClass;
-  bool get hasIsRequired;
-  bool get hasIsCovariantByDeclaration;
-  bool get hasIsLowered;
-  bool get hasIsWildcard;
-  bool get hasIsSuperInitializingFormal;
-  bool get hasIsErroneouslyInitialized;
-}
-
-/// The root of the sealed hierarchy of non-type variables.
-sealed class Variable extends VariableBase
-    implements IVariable, ContextConsumer {
-  /// Static type of the variable.
-  @override
-  abstract DartType type;
-
-  /// Declaration node for the variable, if available.
-  @override
-  abstract VariableDeclaration? variableDeclaration;
-
-  /// Derived from [variableDeclaration], if available.
-  @override
-  abstract Expression? initializer;
-
-  @override
-  abstract List<Expression> annotations;
-
-  @override
-  abstract bool isFinal;
-  @override
-  abstract bool isConst;
-  @override
-  abstract bool isLate;
-  @override
-  abstract bool isInitializingFormal;
-  @override
-  abstract bool isSynthesized;
-  @override
-  abstract bool isHoisted;
-  @override
-  abstract bool hasDeclaredInitializer;
-  @override
-  abstract bool isCovariantByClass;
-  @override
-  abstract bool isRequired;
-  @override
-  abstract bool isCovariantByDeclaration;
-  @override
-  abstract bool isLowered;
-  @override
-  abstract bool isWildcard;
-  @override
-  abstract bool isSuperInitializingFormal;
-  @override
-  abstract bool isErroneouslyInitialized;
 
   factory(
     String? name, {
@@ -153,36 +89,21 @@ sealed class Variable extends VariableBase
 
   new empty();
 
-  @override
   bool get hasIsFinal;
-  @override
   bool get hasIsConst;
-  @override
   bool get hasIsLate;
-  @override
   bool get hasIsInitializingFormal;
-  @override
   bool get hasIsSynthesized;
-  @override
   bool get hasIsHoisted;
-  @override
   bool get hasHasDeclaredInitializer;
-  @override
   bool get hasIsCovariantByClass;
-  @override
   bool get hasIsRequired;
-  @override
   bool get hasIsCovariantByDeclaration;
-  @override
   bool get hasIsLowered;
-  @override
   bool get hasIsWildcard;
-  @override
   bool get hasIsSuperInitializingFormal;
-  @override
   bool get hasIsErroneouslyInitialized;
 
-  @override
   bool get isAssignable;
 
   abstract String? name;
@@ -643,14 +564,6 @@ class LegacyVariable extends TreeNode implements Variable, Annotatable {
   }
 
   @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable value) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
-
-  @override
   bool get hasHasDeclaredInitializer => true;
 
   @override
@@ -990,14 +903,6 @@ class LocalVariable extends Variable {
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
-
-  @override
   void clearAnnotations() {
     annotations.clear();
   }
@@ -1301,14 +1206,6 @@ class LateVariable extends Variable {
 
   @override
   int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
 
   @override
   void clearAnnotations() {
@@ -1617,14 +1514,6 @@ class CatchVariable extends Variable {
 
   @override
   int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
 
   @override
   void clearAnnotations() {
@@ -1976,14 +1865,6 @@ class PositionalParameter extends FunctionParameter {
 
   @override
   int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
 }
 
 /// Named parameters. The [name] field is mandatory.
@@ -2128,14 +2009,6 @@ class NamedParameter extends FunctionParameter {
   @override
   void set name(String? value) {
     parameterName = value!;
-  }
-
-  @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable value) {
-    throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
@@ -2408,14 +2281,6 @@ class ThisVariable extends Variable {
 
   @override
   int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
 
   @override
   void clearAnnotations() {
@@ -2701,14 +2566,6 @@ class SyntheticVariable extends Variable {
 
   @override
   int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
 
   @override
   void clearAnnotations() {

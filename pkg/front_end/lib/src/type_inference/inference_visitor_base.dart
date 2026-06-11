@@ -2306,7 +2306,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter);
+      inferMetadata(visitor, parameter.astVariable);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
           parameter.initializer!,
@@ -2322,7 +2322,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter);
+      inferMetadata(visitor, parameter.astVariable);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
           parameter.initializer!,
@@ -2423,7 +2423,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
   }
 
-  /// Infers the [annotations].
+  /// Infers the annotations of [annotatable].
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.

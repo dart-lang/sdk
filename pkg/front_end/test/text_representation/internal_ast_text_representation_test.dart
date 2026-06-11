@@ -48,7 +48,7 @@ void testStatement(
 }
 
 void testVariableDeclaration(
-  Variable node,
+  InternalVariable node,
   String normal, {
   String? verbose,
   String? limited,
@@ -1584,17 +1584,14 @@ late void foo = 0''',
   );
   testVariableDeclaration(
     new InternalLegacyVariable(
-        astVariable: new LegacyVariable(
-          'foo',
-          type: const VoidType(),
-          initializer: new IntLiteral(0),
-        ),
-        fileOffset: TreeNode.noOffset,
-      )
-      ..lateGetter = new InternalLegacyVariable(
-        astVariable: new LegacyVariable('foo#getter'),
-        fileOffset: TreeNode.noOffset,
+      astVariable: new LegacyVariable(
+        'foo',
+        type: const VoidType(),
+        initializer: new IntLiteral(0),
       ),
+      fileOffset: TreeNode.noOffset,
+    )..lateGetter = new LegacyVariable('foo#getter'),
+
     '''
 late void foo = 0''',
   );
@@ -1607,10 +1604,7 @@ late void foo = 0''',
         ),
         fileOffset: TreeNode.noOffset,
       )
-      ..lateGetter = new InternalLegacyVariable(
-        astVariable: new LegacyVariable('foo#getter'),
-        fileOffset: TreeNode.noOffset,
-      )
+      ..lateGetter = new LegacyVariable('foo#getter')
       ..lateType = const DynamicType(),
     '''
 late dynamic foo = 0''',

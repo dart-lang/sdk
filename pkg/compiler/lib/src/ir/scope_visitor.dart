@@ -329,7 +329,7 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
 
   @override
   EvaluationComplexity defaultVariable(ir.Variable node) {
-    _handleVariableDeclaration(node.variable, SimpleVariableUse.localType);
+    _handleVariableDeclaration(node, SimpleVariableUse.localType);
     return const EvaluationComplexity.lazy();
   }
 

@@ -676,7 +676,6 @@ InternalVariable createLateVariable({
       forSyntheticToken: forSyntheticToken,
       isImplicitlyTyped: isImplicitlyTyped,
       isStaticLate: isStaticLate,
-      fileEqualsOffset: fileEqualsOffset,
       fileOffset: fileOffset,
     );
   } else {
@@ -696,7 +695,6 @@ InternalVariable createLateVariable({
       fileOffset: fileOffset,
       forSyntheticToken: forSyntheticToken,
       isStaticLate: isStaticLate,
-      fileEqualsOffset: fileEqualsOffset,
       isImplicitlyTyped: isImplicitlyTyped,
     );
   }
@@ -809,7 +807,6 @@ InternalVariable createLocalVariable({
       forSyntheticToken: forSyntheticToken,
       isLocalFunction: isLocalFunction,
       isStaticLate: isStaticLate,
-      fileEqualsOffset: fileEqualsOffset,
       isImplicitlyTyped: isImplicitlyTyped,
     );
   }

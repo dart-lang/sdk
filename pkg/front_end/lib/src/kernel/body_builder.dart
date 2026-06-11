@@ -3572,9 +3572,9 @@ class BodyBuilderImpl extends StackListenerImpl
           node as InternalVariableDeclaration;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
-          declaration.variable.addAnnotation(annotations[i]);
+          declaration.variable.astVariable.addAnnotation(annotations[i]);
         }
-        _registerSingleTargetAnnotations(declaration.variable);
+        _registerSingleTargetAnnotations(declaration.variable.astVariable);
       }
       // TODO(johnniwinther): Should [VariableStatement] use offset from
       //  [endToken]?
@@ -3597,10 +3597,10 @@ class BodyBuilderImpl extends StackListenerImpl
       if (annotations != null) {
         InternalVariableDeclaration first = variables.first;
         for (int i = 0; i < annotations.length; i++) {
-          first.variable.addAnnotation(annotations[i]);
+          first.variable.astVariable.addAnnotation(annotations[i]);
         }
         _registerMultiTargetAnnotations(
-          variables.map((v) => v.variable).toList(),
+          variables.map((v) => v.variable.astVariable).toList(),
         );
       }
       push(intern.variablesDeclaration(variables, uri));
@@ -5533,14 +5533,14 @@ class BodyBuilderImpl extends StackListenerImpl
           ..parent = functionParameter;
       }
       if (annotations != null) {
-        functionParameter.clearAnnotations();
+        functionParameter.astVariable.clearAnnotations();
         for (Expression annotation in annotations) {
-          functionParameter.addAnnotation(annotation);
+          functionParameter.astVariable.addAnnotation(annotation);
         }
         // TODO(johnniwinther): This seems wrong. If we add the annotations, we
         //  should infer them.
         if (functionNestingLevel == 0) {
-          _registerSingleTargetAnnotations(functionParameter);
+          _registerSingleTargetAnnotations(functionParameter.astVariable);
         }
       }
     }
@@ -7885,7 +7885,7 @@ class BodyBuilderImpl extends StackListenerImpl
       InternalVariable variable = declaration.variable;
       if (annotations != null) {
         for (Expression annotation in annotations) {
-          variable.addAnnotation(annotation);
+          variable.astVariable.addAnnotation(annotation);
         }
       }
       declaration.hasImplicitReturnType = hasImplicitReturnType;

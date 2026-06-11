@@ -3619,7 +3619,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalVariable variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     _returnContexts.push(const StandardReturnContext());
-    inferMetadata(this, variable);
+    inferMetadata(this, variable.astVariable);
     LocalFunctionResult localFunctionResult = _visitInternalFunctionNode(
       function,
       typeContext: null,
@@ -17567,11 +17567,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression createVariableRead({bool needsPromotion = false}) {
         if (needsPromotion) {
           return new VariableGet(
-            internalVariable.variable,
+            internalVariable.astVariable,
             internalVariable.type,
           )..fileOffset = fileOffset;
         } else {
-          return new VariableGet(internalVariable.variable)
+          return new VariableGet(internalVariable.astVariable)
             ..fileOffset = fileOffset;
         }
       }
@@ -17579,7 +17579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression createIsSetRead() =>
           new VariableGet(isSetVariable!)..fileOffset = fileOffset;
       Expression createVariableWrite(Expression value) =>
-          new VariableSet(internalVariable.variable, value);
+          new VariableSet(internalVariable.astVariable, value);
       Expression createIsSetWrite(Expression value) =>
           new VariableSet(isSetVariable!, value);
 

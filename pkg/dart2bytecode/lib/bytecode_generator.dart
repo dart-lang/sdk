@@ -4903,7 +4903,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _handleVariableInitialization(Variable node) {
     if (!node.isConst) {
-      final bool isCaptured = locals.isCaptured(node.variable);
+      final bool isCaptured = locals.isCaptured(node);
       final initializer = node.initializer;
       final bool emitStore = !_skipVariableInitialization(node, isCaptured);
       int maxInitializerPosition = node.fileOffset;
@@ -4919,7 +4919,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
         asm.emitSourcePosition();
         if (isCaptured) {
-          _genPushContextForVariable(node.variable);
+          _genPushContextForVariable(node);
         }
         if (node.isLate && !_isTrivialInitializer(initializer)) {
           asm.emitPushUninitializedSentinel();
@@ -4933,11 +4933,11 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
 
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
-        _declareLocalVariable(node.variable, maxInitializerPosition + 1);
+        _declareLocalVariable(node, maxInitializerPosition + 1);
       }
 
       if (emitStore) {
-        _genStoreVar(node.variable);
+        _genStoreVar(node);
       }
     }
   }

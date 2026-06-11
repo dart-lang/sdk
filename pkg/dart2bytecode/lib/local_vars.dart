@@ -514,7 +514,7 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   @override
   void defaultVariable(Variable node) {
-    _declareVariable(node.variable);
+    _declareVariable(node);
     node.visitChildren(this);
   }
 
@@ -1018,7 +1018,7 @@ class _Allocator extends RecursiveVisitor {
 
   @override
   void defaultVariable(Variable node) {
-    _allocateVariable(node.variable);
+    _allocateVariable(node);
     node.visitChildren(this);
   }
 

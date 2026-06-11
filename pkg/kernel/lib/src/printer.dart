@@ -573,7 +573,7 @@ class AstPrinter {
         _sb.write(' ');
       }
     }
-    _sb.write(getVariableName(node.variable));
+    _sb.write(getVariableName(node));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer!);

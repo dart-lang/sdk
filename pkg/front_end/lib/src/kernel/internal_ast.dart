@@ -1154,9 +1154,7 @@ class ReturnStatementImpl extends ReturnStatement {
 }
 
 /// Front end specific implementation of [Variable].
-class InternalLegacyVariable extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements LegacyVariable, InternalVariable {
+class InternalLegacyVariable extends InternalVariable {
   @override
   final Variable astVariable;
 
@@ -1177,25 +1175,23 @@ class InternalLegacyVariable extends TreeNode
     bool isStaticLate = false,
     bool isLateFinalWithoutInitializer = false,
     required int fileOffset,
-    int fileEqualsOffset = TreeNode.noOffset,
   }) : isLocalFunction = isLocalFunction {
     this.isStaticLate = isStaticLate;
     this.isLateFinalWithoutInitializer = isLateFinalWithoutInitializer;
     this.fileOffset = fileOffset;
-    this.fileEqualsOffset = fileEqualsOffset;
   }
 
   @override
   bool get isAssignable {
     if (isStaticLate) return true;
-    return super.isAssignable;
+    return astVariable.isAssignable;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableInitialization(
-      this,
+      astVariable,
       isLate: isLate || lateGetter != null,
       isImplicitlyTyped: isImplicitlyTyped,
       type: lateType ?? type,
@@ -1208,9 +1204,7 @@ class InternalLegacyVariable extends TreeNode
   }
 }
 
-class InternalLocalVariable extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements LocalVariable, InternalVariable {
+class InternalLocalVariable extends InternalVariable {
   @override
   LocalVariable astVariable;
 
@@ -1234,7 +1228,6 @@ class InternalLocalVariable extends TreeNode
   }) {
     this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
-    this.fileEqualsOffset = fileEqualsOffset;
   }
 
   @override
@@ -1270,43 +1263,9 @@ class InternalLocalVariable extends TreeNode
       printer.write("[${modifiers.join(",")}]");
     }
   }
-
-  @override
-  int binaryOffsetNoTag = -1;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableContext>? get capturedContexts =>
-      variableDeclaration?.capturedContexts;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set capturedContexts(List<VariableContext>? value) {
-    variableDeclaration!.capturedContexts = value;
-  }
-
-  @override
-  int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void clearAnnotations() {
-    annotations.clear();
-  }
 }
 
-class InternalLateVariable extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements LateVariable, InternalVariable {
+class InternalLateVariable extends InternalVariable {
   @override
   LateVariable astVariable;
 
@@ -1326,11 +1285,9 @@ class InternalLateVariable extends TreeNode
     this.isLocalFunction = false,
     bool isStaticLate = false,
     required int fileOffset,
-    int fileEqualsOffset = TreeNode.noOffset,
   }) {
     this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
-    this.fileEqualsOffset = fileEqualsOffset;
   }
 
   @override
@@ -1366,43 +1323,9 @@ class InternalLateVariable extends TreeNode
       printer.write("[${modifiers.join(",")}]");
     }
   }
-
-  @override
-  int binaryOffsetNoTag = -1;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableContext>? get capturedContexts =>
-      variableDeclaration?.capturedContexts;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set capturedContexts(List<VariableContext>? value) {
-    variableDeclaration!.capturedContexts = value;
-  }
-
-  @override
-  int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable variable) {
-    throw new UnsupportedError("${this.runtimeType}.variable=");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void clearAnnotations() {
-    annotations.clear();
-  }
 }
 
-class InternalPositionalParameter extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements PositionalParameter, InternalVariable {
+class InternalPositionalParameter extends InternalVariable {
   @override
   PositionalParameter astVariable;
 
@@ -1423,18 +1346,6 @@ class InternalPositionalParameter extends TreeNode
     required int fileOffset,
   }) {
     this.fileOffset = fileOffset;
-  }
-
-  @override
-  // TODO(62620): Conforming to [Variable] interface. Remove this.
-  List<VariableContext>? get capturedContexts {
-    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
-  }
-
-  @override
-  // TODO(62620): Conforming to [Variable] interface. Remove this.
-  void set capturedContexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1465,51 +1376,24 @@ class InternalPositionalParameter extends TreeNode
     }
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   Expression? get defaultValue => astVariable.defaultValue;
 
-  @override
   // Coverage-ignore(suite): Not run.
   void set defaultValue(Expression? value) {
     astVariable.defaultValue = value;
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   bool get hasDeclaredDefaultValue => astVariable.hasDeclaredDefaultValue;
 
-  @override
   // Coverage-ignore(suite): Not run.
   void set hasDeclaredDefaultValue(bool value) {
     astVariable.hasDeclaredDefaultValue = value;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void clearAnnotations() {
-    astVariable.clearAnnotations();
-  }
-
-  @override
-  int binaryOffsetNoTag = -1;
-
-  @override
-  int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
 }
 
-class InternalNamedParameter extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements NamedParameter, InternalVariable {
+class InternalNamedParameter extends InternalVariable {
   @override
   NamedParameter astVariable;
 
@@ -1530,18 +1414,6 @@ class InternalNamedParameter extends TreeNode
     required int fileOffset,
   }) {
     this.fileOffset = fileOffset;
-  }
-
-  @override
-  // TODO(62620): Conforming to [Variable] interface. Remove this.
-  List<VariableContext>? get capturedContexts {
-    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
-  }
-
-  @override
-  // TODO(62620): Conforming to [Variable] interface. Remove this.
-  void set capturedContexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1572,70 +1444,22 @@ class InternalNamedParameter extends TreeNode
     }
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   Expression? get defaultValue => astVariable.defaultValue;
 
-  @override
   // Coverage-ignore(suite): Not run.
   void set defaultValue(Expression? value) {
     astVariable.defaultValue = value;
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   bool get hasDeclaredDefaultValue => astVariable.hasDeclaredDefaultValue;
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set hasDeclaredDefaultValue(bool value) {
-    astVariable.hasDeclaredDefaultValue = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void clearAnnotations() {
-    astVariable.clearAnnotations();
-  }
-
-  @override
-  List<Expression> get annotations => astVariable.annotations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void addAnnotation(Expression node) {
-    astVariable.addAnnotation(node);
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   String get parameterName => astVariable.parameterName;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set parameterName(String value) {
-    astVariable.parameterName = value;
-  }
-
-  @override
-  int binaryOffsetNoTag = -1;
-
-  @override
-  int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Variable get variable => this;
-
-  @override
-  void set variable(Variable value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
 }
 
-class InternalCatchVariable extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements CatchVariable, InternalVariable {
+class InternalCatchVariable extends InternalVariable {
   @override
   CatchVariable astVariable;
 
@@ -1677,15 +1501,12 @@ class InternalCatchVariable extends TreeNode
     }
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   String get catchVariableName => astVariable.catchVariableName;
 }
 
 // Coverage-ignore(suite): Not run.
-class InternalSyntheticVariable extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements SyntheticVariable, InternalVariable {
+class InternalSyntheticVariable extends InternalVariable {
   @override
   SyntheticVariable astVariable;
 
@@ -1727,9 +1548,68 @@ class InternalSyntheticVariable extends TreeNode
   }
 }
 
-mixin DelegatingVariableMixin on InternalVariableMixin
-    implements InternalVariable {
-  @override
+sealed class InternalVariable extends TreeNode with InternalTreeNode {
+  /// This is the output variable that the clients receive.
+  ///
+  /// Most of the calls to variable properties are delegated to [astVariable],
+  /// but some operations must be performed directly on [astVariable], as
+  /// follows:
+  ///
+  /// * passing [astVariable] into the flow analysis engine,
+  /// * using [astVariable] as a part of the generated AST,
+  /// * checking semantic properties of an AST node, such as [isExtensionThis]
+  ///   in `lowering_predicates.dart`.
+  Variable get astVariable;
+
+  bool get forSyntheticToken;
+
+  /// Determine whether the given [InternalVariable] had an implicit
+  /// type.
+  bool get isImplicitlyTyped;
+
+  /// Determines whether the given [InternalVariable] represents a
+  /// local function.
+  bool get isLocalFunction;
+
+  /// Whether the variable is final with no initializer.
+  ///
+  /// Such variables behave similar to those declared with the `late` keyword,
+  /// except that the don't have lazy evaluation semantics, and it is statically
+  /// verified by the front end that they are always assigned before they are
+  /// used.
+  bool isStaticLate = false;
+
+  /// The synthesized local getter function for a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  Variable? lateGetter;
+
+  /// The synthesized local setter function for an assignable lowered late
+  /// variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  Variable? lateSetter;
+
+  /// Is `true` if this a lowered late final variable without an initializer.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  bool isLateFinalWithoutInitializer = false;
+
+  /// The original type (declared or inferred) of a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  DartType? lateType;
+
+  /// The original name of a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  String? lateName;
+
   String? get cosmeticName => astVariable.cosmeticName;
 
   @override
@@ -1740,239 +1620,81 @@ mixin DelegatingVariableMixin on InternalVariableMixin
     astVariable.parent = value;
   }
 
-  @override
-  List<Expression> get annotations => astVariable.annotations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set annotations(List<Expression> value) {
-    astVariable.annotations = value;
-  }
-
-  @override
-  void addAnnotation(Expression node) {
-    astVariable.addAnnotation(node);
-  }
-
-  @override
   void set cosmeticName(String? value) {
     astVariable.cosmeticName = value;
   }
 
-  @override
   bool get hasDeclaredInitializer => astVariable.hasDeclaredInitializer;
 
-  @override
   void set hasDeclaredInitializer(bool value) {
     astVariable.hasDeclaredInitializer = value;
   }
 
-  @override
   Expression? get initializer => astVariable.initializer;
 
-  @override
   void set initializer(Expression? value) {
     astVariable.initializer = value;
   }
 
-  @override
   bool get isConst => astVariable.isConst;
 
-  @override
   void set isConst(bool value) {
     astVariable.isConst = value;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isCovariantByClass => astVariable.isCovariantByClass;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isCovariantByClass(bool value) {
-    astVariable.isCovariantByClass = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isCovariantByDeclaration => astVariable.isCovariantByDeclaration;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isCovariantByDeclaration(bool value) {
-    astVariable.isCovariantByDeclaration = value;
-  }
-
-  @override
   bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
 
-  @override
   void set isErroneouslyInitialized(bool value) {
     astVariable.isErroneouslyInitialized = value;
   }
 
-  @override
   bool get isFinal => astVariable.isFinal;
 
-  @override
   void set isFinal(bool value) {
     astVariable.isFinal = value;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isHoisted => astVariable.isHoisted;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isHoisted(bool value) {
-    astVariable.isHoisted = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isInitializingFormal => astVariable.isInitializingFormal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isInitializingFormal(bool value) {
-    astVariable.isInitializingFormal = value;
-  }
-
-  @override
   bool get isLate => astVariable.isLate;
 
-  @override
   void set isLate(bool value) {
     astVariable.isLate = value;
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isLowered => astVariable.isLowered;
 
-  @override
   void set isLowered(bool value) {
     astVariable.isLowered = value;
   }
 
-  @override
   bool get isRequired => astVariable.isRequired;
 
-  @override
   // Coverage-ignore(suite): Not run.
   void set isRequired(bool value) {
     astVariable.isRequired = value;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isSuperInitializingFormal => astVariable.isSuperInitializingFormal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set isSuperInitializingFormal(bool value) {
-    astVariable.isSuperInitializingFormal = value;
-  }
-
-  @override
   bool get isSynthesized => astVariable.isSynthesized;
 
-  @override
   // Coverage-ignore(suite): Not run.
   void set isSynthesized(bool value) {
     astVariable.isSynthesized = value;
   }
 
-  @override
   bool get isWildcard => astVariable.isWildcard;
 
-  @override
   // Coverage-ignore(suite): Not run.
   void set isWildcard(bool value) {
     astVariable.isWildcard = value;
   }
 
-  @override
   DartType get type => astVariable.type;
 
-  @override
   void set type(DartType value) {
     astVariable.type = value;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  VariableDeclaration? get variableDeclaration =>
-      astVariable.variableDeclaration;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set variableDeclaration(VariableDeclaration? value) {
-    astVariable.variableDeclaration = value;
-  }
-
-  @override
   bool get isAssignable => astVariable.isAssignable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsFinal => astVariable.hasIsFinal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsConst => astVariable.hasIsConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsLate => astVariable.hasIsLate;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsInitializingFormal => astVariable.hasIsInitializingFormal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsSynthesized => astVariable.hasIsSynthesized;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsHoisted => astVariable.hasIsHoisted;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasHasDeclaredInitializer => astVariable.hasHasDeclaredInitializer;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsCovariantByClass => astVariable.hasIsCovariantByClass;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsRequired => astVariable.hasIsRequired;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsCovariantByDeclaration =>
-      astVariable.hasIsCovariantByDeclaration;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsLowered => astVariable.hasIsLowered;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsWildcard => astVariable.hasIsWildcard;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsSuperInitializingFormal =>
-      astVariable.hasIsSuperInitializingFormal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get hasIsErroneouslyInitialized =>
-      astVariable.hasIsErroneouslyInitialized;
 
   @override
   int get fileOffset => astVariable.fileOffset;
@@ -1980,14 +1702,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   @override
   void set fileOffset(int value) {
     astVariable.fileOffset = value;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  int get flags => astVariable.flags;
-
-  // Coverage-ignore(suite): Not run.
-  void set flags(int value) {
-    astVariable.flags = value;
   }
 
   @override
@@ -2008,16 +1722,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   // Coverage-ignore(suite): Not run.
   void set name(String? value) {
     astVariable.cosmeticName = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  VariableContext get context => astVariable.context;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set context(VariableContext value) {
-    astVariable.context = value;
   }
 
   @override
@@ -2081,144 +1785,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   void visitChildren(Visitor<dynamic> v) {
     throw new UnsupportedError("${this.runtimeType}");
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get binaryOffsetNoTag => astVariable.binaryOffsetNoTag;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set binaryOffsetNoTag(int value) {
-    astVariable.binaryOffsetNoTag = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableContext>? get capturedContexts => astVariable.capturedContexts;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set capturedContexts(List<VariableContext>? value) {
-    astVariable.capturedContexts = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get fileEqualsOffset => astVariable.fileEqualsOffset;
-
-  @override
-  void set fileEqualsOffset(int value) {
-    astVariable.fileEqualsOffset = value;
-  }
-
-  @override
-  Variable get variable => astVariable.variable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set variable(Variable value) {
-    astVariable.variable = value;
-  }
-
-  @override
-  void clearAnnotations() {
-    astVariable.clearAnnotations();
-  }
-}
-
-abstract interface class InternalVariable implements IVariable, Annotatable {
-  /// This is the output variable that the clients receive.
-  ///
-  /// Most of the calls to variable properties are delegated to [astVariable],
-  /// but some operations must be performed directly on [astVariable], as
-  /// follows:
-  ///
-  /// * passing [astVariable] into the flow analysis engine,
-  /// * using [astVariable] as a part of the generated AST,
-  /// * checking semantic properties of an AST node, such as [isExtensionThis]
-  ///   in `lowering_predicates.dart`.
-  Variable get astVariable;
-
-  bool get forSyntheticToken;
-
-  /// Determine whether the given [InternalVariable] had an implicit
-  /// type.
-  bool get isImplicitlyTyped;
-
-  /// Determines whether the given [InternalVariable] represents a
-  /// local function.
-  bool get isLocalFunction;
-
-  /// Whether the variable is final with no initializer.
-  ///
-  /// Such variables behave similar to those declared with the `late` keyword,
-  /// except that the don't have lazy evaluation semantics, and it is statically
-  /// verified by the front end that they are always assigned before they are
-  /// used.
-  abstract bool isStaticLate;
-
-  /// The synthesized local getter function for a lowered late variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  abstract Variable? lateGetter;
-
-  /// The synthesized local setter function for an assignable lowered late
-  /// variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  abstract Variable? lateSetter;
-
-  /// Is `true` if this a lowered late final variable without an initializer.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  abstract bool isLateFinalWithoutInitializer;
-
-  /// The original type (declared or inferred) of a lowered late variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  abstract DartType? lateType;
-
-  /// The original name of a lowered late variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  abstract String? lateName;
-
-  @override
-  abstract List<Expression> annotations;
-}
-
-mixin InternalVariableMixin on TreeNode implements InternalVariable {
-  @override
-  bool get forSyntheticToken;
-
-  @override
-  bool get isImplicitlyTyped;
-
-  @override
-  bool get isLocalFunction;
-
-  @override
-  bool isStaticLate = false;
-
-  @override
-  Variable? lateGetter;
-
-  @override
-  Variable? lateSetter;
-
-  @override
-  bool isLateFinalWithoutInitializer = false;
-
-  @override
-  DartType? lateType;
-
-  @override
-  String? lateName;
 }
 
 /// Front end specific implementation of [LoadLibrary].
@@ -8417,9 +7983,7 @@ class InternalLet extends InternalExpression {
   }
 }
 
-class InternalThisVariable extends TreeNode
-    with InternalVariableMixin, DelegatingVariableMixin
-    implements ThisVariable, InternalVariable {
+class InternalThisVariable extends InternalVariable {
   @override
   final ThisVariable astVariable;
 
