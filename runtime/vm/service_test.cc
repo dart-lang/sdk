@@ -824,6 +824,8 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_InvalidAddress) {
   EXPECT_SUBSTRING("Input\\/output error", handler.msg());
 #elif defined(DART_HOST_OS_WINDOWS)
   EXPECT_SUBSTRING("error 299", handler.msg());
+#elif defined(DART_HOST_OS_MACOS)
+  EXPECT_SUBSTRING("invalid address", handler.msg());
 #endif
 }
 

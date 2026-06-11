@@ -7,18 +7,21 @@
 
 #include "vm/os.h"
 
-#include <dlfcn.h>           // NOLINT
-#include <errno.h>           // NOLINT
-#include <limits.h>          // NOLINT
-#include <mach-o/loader.h>   // NOLINT
-#include <mach/clock.h>      // NOLINT
-#include <mach/mach.h>       // NOLINT
-#include <mach/mach_time.h>  // NOLINT
-#include <sys/resource.h>    // NOLINT
-#include <sys/time.h>        // NOLINT
-#include <unistd.h>          // NOLINT
+#include <dlfcn.h>            // NOLINT
+#include <errno.h>            // NOLINT
+#include <limits.h>           // NOLINT
+#include <mach-o/loader.h>    // NOLINT
+#include <mach/clock.h>       // NOLINT
+#include <mach/mach.h>        // NOLINT
+#include <mach/mach_error.h>  // NOLINT
+#include <mach/mach_time.h>   // NOLINT
+#include <sys/resource.h>     // NOLINT
+#include <sys/time.h>         // NOLINT
+#include <unistd.h>           // NOLINT
 #if DART_HOST_OS_IOS
 #include <syslog.h>  // NOLINT
+#else
+#include <mach/mach_vm.h>  // NOLINT
 #endif
 
 #include "platform/utils.h"
@@ -129,6 +132,29 @@ uintptr_t OS::CurrentRSS() {
     return 0;
   }
   return info.resident_size;
+}
+
+bool OS::SafeReadMemory(void* address,
+                        uint8_t* buffer,
+                        size_t size_in_bytes,
+                        const char** error) {
+#if DART_HOST_OS_IOS
+  vm_size_t bytes_read = 0;
+  kern_return_t kr = vm_read_overwrite(
+      mach_task_self(), reinterpret_cast<vm_address_t>(address), size_in_bytes,
+      reinterpret_cast<vm_address_t>(buffer), &bytes_read);
+#else
+  mach_vm_size_t bytes_read = 0;
+  kern_return_t kr = mach_vm_read_overwrite(
+      mach_task_self(), reinterpret_cast<mach_vm_address_t>(address),
+      size_in_bytes, reinterpret_cast<mach_vm_address_t>(buffer), &bytes_read);
+#endif
+
+  if (kr != KERN_SUCCESS || bytes_read != size_in_bytes) {
+    *error = OS::SCreate(nullptr, "%s (kr=%d)", mach_error_string(kr), kr);
+    return false;
+  }
+  return true;
 }
 
 void OS::Sleep(int64_t millis) {
