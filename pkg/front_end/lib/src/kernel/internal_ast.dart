@@ -1612,14 +1612,6 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
 
   String? get cosmeticName => astVariable.cosmeticName;
 
-  @override
-  TreeNode? get parent => astVariable.parent;
-
-  @override
-  void set parent(TreeNode? value) {
-    astVariable.parent = value;
-  }
-
   void set cosmeticName(String? value) {
     astVariable.cosmeticName = value;
   }
@@ -1628,12 +1620,6 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
 
   void set hasDeclaredInitializer(bool value) {
     astVariable.hasDeclaredInitializer = value;
-  }
-
-  Expression? get initializer => astVariable.initializer;
-
-  void set initializer(Expression? value) {
-    astVariable.initializer = value;
   }
 
   bool get isConst => astVariable.isConst;
@@ -1697,23 +1683,15 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   bool get isAssignable => astVariable.isAssignable;
 
   @override
-  int get fileOffset => astVariable.fileOffset;
-
-  @override
-  void set fileOffset(int value) {
-    astVariable.fileOffset = value;
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   R accept<R>(VariableVisitor<R> v) {
-    return astVariable.accept(v);
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   R accept1<R, A>(VariableVisitor1<R, A> v, A arg) {
-    return astVariable.accept1(v, arg);
+    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
   }
 
   // Coverage-ignore(suite): Not run.
@@ -1722,68 +1700,6 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   // Coverage-ignore(suite): Not run.
   void set name(String? value) {
     astVariable.cosmeticName = value;
-  }
-
-  @override
-  Component? get enclosingComponent {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  List<int>? get fileOffsetsIfMultiple {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  String leakingDebugToString() {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  Location? get location {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void replaceChild(TreeNode child, TreeNode replacement) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void replaceWith(TreeNode replacement) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String toStringInternal() {
-    return super.toStringInternal();
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String toText(AstTextStrategy strategy) {
-    return super.toText(strategy);
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    throw new UnsupportedError("${this.runtimeType}");
   }
 }
 

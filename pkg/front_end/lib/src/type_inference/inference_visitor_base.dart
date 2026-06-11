@@ -2307,13 +2307,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         initialized: true,
       );
       inferMetadata(visitor, parameter.astVariable);
-      if (parameter.initializer != null) {
+      if (parameter.astVariable.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!,
+          parameter.astVariable.initializer!,
           parameter.type,
         );
-        parameter.initializer = initializerResult.expression
-          ..parent = parameter;
+        parameter.astVariable.initializer = initializerResult.expression
+          ..parent = parameter.astVariable;
       }
     }
     for (InternalVariable parameter in function.namedParameters) {
@@ -2323,13 +2323,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         initialized: true,
       );
       inferMetadata(visitor, parameter.astVariable);
-      if (parameter.initializer != null) {
+      if (parameter.astVariable.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!,
+          parameter.astVariable.initializer!,
           parameter.type,
         );
-        parameter.initializer = initializerResult.expression
-          ..parent = parameter;
+        parameter.astVariable.initializer = initializerResult.expression
+          ..parent = parameter.astVariable;
       }
     }
 
