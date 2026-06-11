@@ -112,6 +112,10 @@ class FunctionCollector {
             (target == member.reference || target.isBodyReference);
       }
 
+      final bool alwaysInline =
+          util.getWasmPreferInlinePragma(translator.coreTypes, member) ?? false;
+      final int? inlineHint = neverInline ? 0 : (alwaysInline ? 127 : null);
+
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
       if (member.reference == target && member.annotations.isNotEmpty) {
@@ -137,7 +141,7 @@ class FunctionCollector {
                     "$importName (import)",
                   )
                 ..isPure = hasPureAnnotation
-                ..inlineHint = neverInline ? 0 : null;
+                ..inlineHint = inlineHint;
         }
       }
 
@@ -166,7 +170,7 @@ class FunctionCollector {
 
       final function = module.functions.define(ftype, getFunctionName(target))
         ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
-        ..inlineHint = neverInline ? 0 : null;
+        ..inlineHint = inlineHint;
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
