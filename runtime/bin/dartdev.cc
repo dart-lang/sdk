@@ -606,33 +606,48 @@ class DartDev {
       Syslog::PrintErr("Unable to locate the Dart VM executable");
       Platform::Exit(kErrorExitCode);
     }
+
     ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
+
+    // scriptUriOverride.
     auto item2 = GetArrayItem(message, 2);
 
     ASSERT(item2->type == Dart_CObject_kString ||
            item2->type == Dart_CObject_kNull);
 
+    // packageConfigOverride.
+    auto item3 = GetArrayItem(message, 3);
+
+    ASSERT(item3->type == Dart_CObject_kString ||
+           item3->type == Dart_CObject_kNull);
+
     package_config_override_ = nullptr;
 
-    if (item2->type == Dart_CObject_kString) {
-      package_config_override_ = Utils::StrDup(item2->value.as_string);
+    if (item3->type == Dart_CObject_kString) {
+      package_config_override_ = Utils::StrDup(item3->value.as_string);
     }
 
-    intptr_t num_vm_options = dart_vm_options_->count();
-    const char** vm_options = dart_vm_options_->arguments();
-    ASSERT(GetArrayItem(message, 4)->type == Dart_CObject_kArray);
-    Dart_CObject* args = GetArrayItem(message, 4);
+    // markMainIsolateAsSystemIsolate
+    auto item4 = GetArrayItem(message, 4);
+    ASSERT(item4->type == Dart_CObject_kBool);
+    const bool mark_main_isolate_as_system_isolate = item4->value.as_bool;
+
+    // argsList
+    ASSERT(GetArrayItem(message, 5)->type == Dart_CObject_kArray);
+    Dart_CObject* args = GetArrayItem(message, 5);
     intptr_t argc = args->value.as_array.length;
     Dart_CObject** dart_args = args->value.as_array.values;
-    auto item3 = GetArrayItem(message, 3);
-    ASSERT(item3->type == Dart_CObject_kBool);
-    const bool mark_main_isolate_as_system_isolate = item3->value.as_bool;
+
     auto deleter = [](char** args) {
       for (intptr_t i = 0; i < argc_; ++i) {
         free(args[i]);
       }
       delete[] args;
     };
+
+    intptr_t num_vm_options = dart_vm_options_->count();
+    const char** vm_options = dart_vm_options_->arguments();
+
     // Total count of arguments to be passed to the script being execed.
     if (mark_main_isolate_as_system_isolate) {
       argc_ = argc + num_vm_options + 5;
@@ -640,6 +655,9 @@ class DartDev {
       argc_ = argc + num_vm_options + 4;
     }
     if (package_config_override_ != nullptr) {
+      argc_++;
+    }
+    if (item2->type == Dart_CObject_kString) {
       argc_++;
     }
 
@@ -697,6 +715,19 @@ class DartDev {
       argv_[idx++] = Utils::SCreate("--packages=%s", package_config_override_);
 #endif
     }
+
+    if (item2->value.as_string != nullptr) {
+#if defined(DART_HOST_OS_WINDOWS)
+      char* script_uri_override =
+          Utils::SCreate("--script_uri_override=%s", item2->value.as_string);
+      argv_[idx++] = StringUtilsWin::ArgumentEscape(script_uri_override);
+      free(script_uri_override);
+#else
+      argv_[idx++] =
+          Utils::SCreate("--script_uri_override=%s", item2->value.as_string);
+#endif
+    }
+
     // Copy in name of the script to run.
     argv_[idx++] = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);
     // Copy in the dart options that need to be passed to the script.

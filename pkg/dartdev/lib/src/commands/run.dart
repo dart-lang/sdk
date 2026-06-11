@@ -550,6 +550,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       log.stderr(e.message);
       return errorExitCode;
     }
+    DartExecutableWithPackageConfig executableOriginal = executable;
 
     if (useResidentCompiler) {
       final File? residentCompilerInfoFile =
@@ -616,6 +617,9 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       packageConfigOverride:
           args.option('packages') ?? executable.packageConfig,
       useExecProcess: true,
+      scriptUriOverride: identical(executable, executableOriginal)
+          ? null
+          : executableOriginal.executable,
     );
     return 0;
   }
