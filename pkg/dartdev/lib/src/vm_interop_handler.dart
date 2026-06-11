@@ -34,6 +34,11 @@ abstract class VmInteropHandler {
     // See https://github.com/dart-lang/sdk/issues/53576
     bool markMainIsolateAsSystemIsolate = false,
     bool useExecProcess = false,
+
+    /// When [useExecProcess] pass this path to signal that it originates from
+    /// another file. Used for launching from a dill file while behaving as if
+    /// launched directly from a dart file.
+    String? scriptUriOverride,
   }) {
     List<String> argsList;
     if (useExecProcess && Platform.isWindows) {
@@ -44,6 +49,12 @@ abstract class VmInteropHandler {
       if (script.contains(' ') && !script.contains('"')) {
         // Escape paths that may contain spaces
         script = '"$script"';
+      }
+      if (scriptUriOverride != null &&
+          scriptUriOverride.contains(' ') &&
+          !scriptUriOverride.contains('"')) {
+        // Escape paths that may contain spaces
+        scriptUriOverride = '"$scriptUriOverride"';
       }
       argsList = [
         for (int i = 0; i < args.length; i++) _windowsArgumentEscape(args[i]),
@@ -57,6 +68,7 @@ abstract class VmInteropHandler {
     final message = <dynamic>[
       useExecProcess ? _kResultRunExec : _kResultRun,
       script,
+      if (useExecProcess) scriptUriOverride,
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
       argsList,

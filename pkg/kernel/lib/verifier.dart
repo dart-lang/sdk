@@ -1277,7 +1277,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void _verifyVariableDeclaration(Variable node) {
     enterTreeNode(node);
     visitChildren(node);
-    declareVariable(node.variable);
+    declareVariable(node);
     if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;
       if (!(initializer is InvalidExpression ||

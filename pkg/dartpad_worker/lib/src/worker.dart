@@ -388,8 +388,8 @@ class _Workspace {
     var parent = _rp.getFile(entrypoint).parent;
     do {
       final pkgConfig = parent
-          .getChildAssumingFolder('.dart_tool')
-          .getChildAssumingFile('package_config.json');
+          .getFolder('.dart_tool')
+          .getFile('package_config.json');
 
       if (pkgConfig.exists) {
         return pkgConfig.path;

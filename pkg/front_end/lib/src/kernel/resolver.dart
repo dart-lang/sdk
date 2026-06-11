@@ -1394,7 +1394,7 @@ class Resolver {
       int declaredParameterIndex = 0;
       for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
         if (parameter.isExtensionThis) continue;
-        Expression? initializer = parameter.variable.initializer;
+        Expression? initializer = parameter.variable.astVariable.initializer;
         bool inferInitializer;
         if (parameter.isSuperInitializingFormal) {
           // Super-parameters can inherit the default value from the super
@@ -1420,7 +1420,8 @@ class Resolver {
               declaredType: originParameter.type,
               hasDeclaredInitializer: parameter.hasDeclaredInitializer,
             );
-            originParameter.initializer = initializer..parent = originParameter;
+            originParameter.astVariable.initializer = initializer
+              ..parent = originParameter.astVariable;
             if (initializer is InvalidExpression) {
               originParameter.isErroneouslyInitialized = true;
             }

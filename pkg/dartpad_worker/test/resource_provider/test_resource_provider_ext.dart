@@ -24,7 +24,7 @@ void main() {
 
   group('FolderExt.createRecursively', () {
     test('creates nested folders', () {
-      final folder = target.getChildAssumingFolder('a/b/c');
+      final folder = target.getFolder('a/b/c');
       check(folder).doesNotExist;
 
       folder.createRecursively();
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('does nothing if folder exists', () {
-      final folder = target.getChildAssumingFolder('a')..create();
+      final folder = target.getFolder('a')..create();
       check(folder).exists;
 
       folder.createRecursively();
@@ -110,9 +110,9 @@ void main() {
 
   group('FolderExt.createTarStream', () {
     test('creates a tar stream from folder contents', () async {
-      target.getChildAssumingFile('a.txt').writeAsStringSync('a');
-      target.getChildAssumingFolder('sub').create();
-      target.getChildAssumingFile('sub/b.txt').writeAsStringSync('b');
+      target.getFile('a.txt').writeAsStringSync('a');
+      target.getFolder('sub').create();
+      target.getFile('sub/b.txt').writeAsStringSync('b');
 
       final reader = TarReader(target.createTarStream());
 

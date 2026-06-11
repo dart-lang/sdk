@@ -85,7 +85,7 @@ abstract class TypeInferrer {
     required bool isConstructorWithoutBody,
   });
 
-  /// Performs type inference on the given metadata [annotations].
+  /// Performs type inference on the metadata annotations of the [annotatable].
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.

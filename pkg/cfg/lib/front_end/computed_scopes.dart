@@ -310,7 +310,7 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
 
   @override
   void defaultVariable(ast.Variable node) {
-    _declareVariable(node.variable);
+    _declareVariable(node);
     node.visitChildren(this);
   }
 

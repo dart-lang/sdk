@@ -2814,18 +2814,16 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   TypeExpr? defaultVariable(Variable node) {
-    final variable = node.variable;
-    variable.annotations.forEach(_visitAnnotation);
-    final initializer = variable.initializer;
+    node.annotations.forEach(_visitAnnotation);
+    final initializer = node.initializer;
     final savedCondition = _currentCondition;
     final TypeExpr initialValue = initializer == null
-        ? ((variable.type.nullability == Nullability.nonNullable ||
-                  variable.isLate)
+        ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
               ? emptyType
               : _nullType)
         : _visit(initializer);
-    _declareVariable(variable, initialValue);
-    if (variable.isLate) {
+    _declareVariable(node, initialValue);
+    if (node.isLate) {
       // Restore condition as initializer of a late variable
       // is not evaluated immediately.
       _currentCondition = savedCondition;

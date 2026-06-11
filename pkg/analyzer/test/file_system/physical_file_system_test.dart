@@ -119,7 +119,7 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
 
   test_exists_invalidPath() {
     Folder folder = getFolder(exists: false);
-    File file = folder.getChildAssumingFile(r'\l\package:o\other.dart');
+    File file = folder.getFile(r'\l\package:o\other.dart');
 
     expect(file.exists, isFalse);
   }

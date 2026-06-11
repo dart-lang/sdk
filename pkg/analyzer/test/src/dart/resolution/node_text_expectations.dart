@@ -177,6 +177,36 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(0),
     ),
     _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'assertDiagnosticsInCode',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'AbstractAnalysisOptionsTest',
+      methodName: 'assertDiagnosticsInFiles',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
+      className: 'OptionsFileValidatorTest',
+      methodName: 'validate',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'OptionsProviderTest',
+      methodName: 'assertDiagnosticsInOptionsFile',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'OptionsRuleValidatorTestMixin',
+      methodName: 'assertDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'OptionsRuleValidatorTestMixin',
+      methodName: 'assertRuleDiagnosticsInFiles',
+      argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),

@@ -127,9 +127,6 @@ class _ResolverContext {
     required SingleTargetAnnotations singleTarget,
   }) {
     Annotatable target = singleTarget.target;
-    if (target is InternalVariable) {
-      target = target.astVariable;
-    }
     _inferAnnotations(
       annotatable: target,
       indices: singleTarget.indicesOfAnnotationsToBeInferred,

@@ -39,8 +39,8 @@ class PluginLocator {
     return _pluginMap.putIfAbsent(packageRoot, () {
       var pluginFolder = resourceProvider
           .getFolder(packageRoot)
-          .getChildAssumingFolder(toolsFolderName)
-          .getChildAssumingFolder(defaultPluginFolderName);
+          .getFolder(toolsFolderName)
+          .getFolder(defaultPluginFolderName);
       return pluginFolder.exists ? pluginFolder.path : null;
     });
   }

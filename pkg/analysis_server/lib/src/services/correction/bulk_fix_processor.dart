@@ -399,8 +399,8 @@ class BulkFixProcessor {
           continue;
         }
 
-        var libPath = package.root.getChildAssumingFolder('lib');
-        var binPath = package.root.getChildAssumingFolder('bin');
+        var libPath = package.root.getFolder('lib');
+        var binPath = package.root.getFolder('bin');
 
         var pubspecDeps = packageToDeps.putIfAbsent(
           package,

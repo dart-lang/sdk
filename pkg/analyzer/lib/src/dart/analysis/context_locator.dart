@@ -623,8 +623,8 @@ class _ContextLocator {
   /// folder does not contain a package config file.
   File? _getPackageConfigFile(Folder folder) {
     var file = folder
-        .getChildAssumingFolder(file_paths.dotDartTool)
-        .getChildAssumingFile(file_paths.packageConfigJson);
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
     if (file.exists) {
       return file;
     }
@@ -653,9 +653,7 @@ class _ContextLocator {
   Set<Folder> _loadWorkspaceDetailsFromPubspec(String root) {
     var result = <Folder>{};
     var rootFolder = _resourceProvider.getFolder(root);
-    var rootPubspecFile = rootFolder.getChildAssumingFile(
-      file_paths.pubspecYaml,
-    );
+    var rootPubspecFile = rootFolder.getFile(file_paths.pubspecYaml);
     if (rootPubspecFile.exists) {
       var rootPubspec = Pubspec.parse(
         rootPubspecFile.readAsStringSync(),
@@ -847,7 +845,7 @@ class _ContextLocator {
           workspaceResolutionRootMap[location.workspace.root] ?? [],
         );
       } else {
-        var pubspecFile = folder.getChildAssumingFile(file_paths.pubspecYaml);
+        var pubspecFile = folder.getFile(file_paths.pubspecYaml);
         if (pubspecFile.exists) {
           var pubspec = Pubspec.parse(
             pubspecFile.readAsStringSync(),

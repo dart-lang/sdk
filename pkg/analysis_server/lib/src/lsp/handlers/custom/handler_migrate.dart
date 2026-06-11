@@ -152,7 +152,7 @@ class MigrateHandler
         );
       }
 
-      var pubspecFile = resource.getChildAssumingFile(file_paths.pubspecYaml);
+      var pubspecFile = resource.getFile(file_paths.pubspecYaml);
       if (!pubspecFile.exists) {
         return error(
           ErrorCodes.InvalidParams,

@@ -4702,9 +4702,11 @@ package:analyzer/file_system/file_system.dart:
     copyTo (method: Folder Function(Folder))
     create (method: void Function())
     getChild (method: Resource Function(String))
-    getChildAssumingFile (method: File Function(String))
-    getChildAssumingFolder (method: Folder Function(String))
+    getChildAssumingFile (method: File Function(String), deprecated)
+    getChildAssumingFolder (method: Folder Function(String), deprecated)
     getChildren (method: List<Resource> Function())
+    getFile (method: File Function(String))
+    getFolder (method: Folder Function(String))
     watch (method: ResourceWatcher Function())
   Link (class extends Object, abstract):
     new (constructor: Link Function())

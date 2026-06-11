@@ -118,7 +118,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     assertEquals(context.driver.declaredVariables, declaredVariables);
     expect(
       context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
-      sdkRoot.getChildAssumingFile('lib/core/core.dart').path,
+      sdkRoot.getFile('lib/core/core.dart').path,
     );
   }
 
@@ -140,7 +140,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     expect(context.contextRoot, contextRoot);
     expect(
       context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
-      sdkRoot.getChildAssumingFile('lib/core/core.dart').path,
+      sdkRoot.getFile('lib/core/core.dart').path,
     );
   }
 

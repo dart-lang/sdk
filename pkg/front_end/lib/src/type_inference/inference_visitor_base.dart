@@ -2306,14 +2306,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter);
-      if (parameter.initializer != null) {
+      inferMetadata(visitor, parameter.astVariable);
+      if (parameter.astVariable.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!,
+          parameter.astVariable.initializer!,
           parameter.type,
         );
-        parameter.initializer = initializerResult.expression
-          ..parent = parameter;
+        parameter.astVariable.initializer = initializerResult.expression
+          ..parent = parameter.astVariable;
       }
     }
     for (InternalVariable parameter in function.namedParameters) {
@@ -2322,14 +2322,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter);
-      if (parameter.initializer != null) {
+      inferMetadata(visitor, parameter.astVariable);
+      if (parameter.astVariable.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
-          parameter.initializer!,
+          parameter.astVariable.initializer!,
           parameter.type,
         );
-        parameter.initializer = initializerResult.expression
-          ..parent = parameter;
+        parameter.astVariable.initializer = initializerResult.expression
+          ..parent = parameter.astVariable;
       }
     }
 
@@ -2423,7 +2423,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
   }
 
-  /// Infers the [annotations].
+  /// Infers the annotations of [annotatable].
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.

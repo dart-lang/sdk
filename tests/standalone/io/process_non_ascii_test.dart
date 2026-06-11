@@ -32,7 +32,6 @@ main() {
     executable,
     []
       ..addAll(Platform.executableArguments)
-      ..add("--packages=" + Platform.packageConfig!)
       ..add(script),
     workingDirectory: nonAsciiDir.path,
     environment: {'DART_CRASHPAD_HANDLER': ''},

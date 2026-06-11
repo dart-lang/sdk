@@ -26,9 +26,7 @@ abstract class UserPromptPreferences {
       );
       return _NotPersistableUserPromptPreferences();
     }
-    var preferencesFile = (stateFolder..create()).getChildAssumingFile(
-      'preferences.json',
-    );
+    var preferencesFile = (stateFolder..create()).getFile('preferences.json');
 
     return _PersistableUserPromptPreferences(
       preferencesFile,

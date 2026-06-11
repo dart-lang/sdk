@@ -28,8 +28,8 @@ class AnalyzerElementModelTrackingTest extends LintRuleTest {
     var pkgPath = physicalProvider.pathContext.normalize(packageRoot);
     var analyzerLibSource = physicalProvider
         .getFolder(pkgPath)
-        .getChildAssumingFolder('analyzer')
-        .getChildAssumingFolder('lib');
+        .getFolder('analyzer')
+        .getFolder('lib');
 
     var analyzerFolder = newFolder('/packages/analyzer');
     analyzerLibSource.copyTo(analyzerFolder);
