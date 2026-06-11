@@ -57,7 +57,7 @@ class MatchingExpressionVisitor
     }
     return new DelayedAssignment(
       matchingCache,
-      node.variable,
+      node.setter ?? node.variable,
       node.variable.type,
       valueExpression,
       fileOffset: node.fileOffset,

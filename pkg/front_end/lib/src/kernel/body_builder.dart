@@ -337,7 +337,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// If the current member is an instance member of a non-extension
   /// declaration, and the closure context lowering experiment is enabled, this
   /// field contains the variable representing `this`.
-  ThisVariable? _internalThisVariable;
+  InternalThisVariable? _internalThisVariable;
 
   final List<TypeParameter>? thisTypeParameters;
 
@@ -370,7 +370,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.typeEnvironment,
     required ConstantContext constantContext,
     required this.extensionScope,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) : _context = context,
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
@@ -380,13 +380,13 @@ class BodyBuilderImpl extends StackListenerImpl
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        assignedVariables.declare(builder.variable.astVariable);
+        assignedVariables.declare(builder.variable);
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      assignedVariables.declare(thisVariable.astVariable);
+      assignedVariables.declare(thisVariable);
     }
     if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
       assignedVariables.declare(_internalThisVariable!);
@@ -623,7 +623,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // when [InferenceVisitorBase.flowAnalysis] will use
     // [InternalExpressionVariable] instead of [ExpressionVariable] (that is,
     // pass it for the `VariableDeclaration` type parameter of [FlowAnalysis]).
-    assignedVariables.write(variable.astVariable);
+    assignedVariables.write(variable);
   }
 
   @override
@@ -632,7 +632,7 @@ class BodyBuilderImpl extends StackListenerImpl
       expression,
       isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
-    assignedVariables.declare(variable.astVariable);
+    assignedVariables.declare(variable);
     return variable;
   }
 
@@ -1990,7 +1990,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ];
         for (InternalVariable variable in jointVariables) {
           declareVariable(variable, _localScope);
-          assignedVariables.declare(variable.astVariable);
+          assignedVariables.declare(variable);
         }
         push(
           intern.createOrPattern(
@@ -2495,7 +2495,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void registerVariableRead(InternalVariable variable) {
     if (!variable.isLocalFunction && !variable.isWildcard) {
-      assignedVariables.read(variable.astVariable);
+      assignedVariables.read(variable);
     }
   }
 
@@ -3424,7 +3424,7 @@ class BodyBuilderImpl extends StackListenerImpl
       internalVariable,
       fileOffset: offsetForToken(equalsToken),
     );
-    assignedVariables.declare(internalVariable.astVariable);
+    assignedVariables.declare(internalVariable);
     push(variableDeclaration);
   }
 
@@ -3441,7 +3441,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (parameters != null) {
         Map<String, VariableBuilder> local = {};
         for (FormalParameterBuilder formal in parameters) {
-          assignedVariables.declare(formal.variable.astVariable);
+          assignedVariables.declare(formal.variable);
           local[formal.name] = formal;
         }
         _localScopes.push(
@@ -3869,7 +3869,7 @@ class BodyBuilderImpl extends StackListenerImpl
         internalVariables.add(internalVariable);
 
         declareVariable(internalVariable, _localScope);
-        assignedVariables.declare(internalVariable.astVariable);
+        assignedVariables.declare(internalVariable);
       }
       push(intermediateVariables);
       push(internalVariables);
@@ -5550,10 +5550,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // previously passed to `declare` in the `BodyBuilder` constructor.
     // TODO(62401): Remove the cast when the flow analysis uses
     // [InternalExpressionVariable]s.
-    assignedVariables.declare(
-      functionParameter.astVariable,
-      ignoreDuplicates: true,
-    );
+    assignedVariables.declare(functionParameter, ignoreDuplicates: true);
   }
 
   @override
@@ -8071,7 +8068,7 @@ class BodyBuilderImpl extends StackListenerImpl
     _thisVariables.push(variable);
     _parameterlessAnonymousMethodDepth++;
 
-    assignedVariables.declare(variable.astVariable);
+    assignedVariables.declare(variable);
     push(NullValues.FormalParameters);
   }
 
@@ -9032,7 +9029,7 @@ class BodyBuilderImpl extends StackListenerImpl
           for (InternalVariable jointVariable in jointPatternVariables) {
             assert(_localScope.kind == LocalScopeKind.jointVariables);
             declareVariable(jointVariable, _localScope);
-            assignedVariables.declare(jointVariable.astVariable);
+            assignedVariables.declare(jointVariable);
           }
         }
       }
@@ -11104,7 +11101,7 @@ class BodyBuilderImpl extends StackListenerImpl
         declaredVariable,
       );
       declareVariable(declaredVariable, _localScope);
-      assignedVariables.declare(declaredVariable.astVariable);
+      assignedVariables.declare(declaredVariable);
     }
     push(pattern);
   }
@@ -11496,10 +11493,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (FormalParameterBuilder formal in formals) {
         // We pass `ignoreDuplicates: true` because the variable might have been
         // previously passed to `declare` in the `BodyBuilder` constructor.
-        assignedVariables.declare(
-          formal.variable.astVariable,
-          ignoreDuplicates: true,
-        );
+        assignedVariables.declare(formal.variable, ignoreDuplicates: true);
       }
     }
     token = parser.parseInitializersOpt(token);
@@ -11648,7 +11642,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (formals != null) {
       for (FormalParameterBuilder formalParameterBuilder in formals) {
-        assignedVariables.declare(formalParameterBuilder.variable.astVariable);
+        assignedVariables.declare(formalParameterBuilder.variable);
       }
     }
 
@@ -11674,7 +11668,7 @@ class BodyBuilderImpl extends StackListenerImpl
       enterLocalScope(extraKnownVariablesScope);
       for (InternalVariable extraVariable in extraKnownVariables) {
         declareVariable(extraVariable, _localScope);
-        assignedVariables.declare(extraVariable.astVariable);
+        assignedVariables.declare(extraVariable);
       }
     }
 

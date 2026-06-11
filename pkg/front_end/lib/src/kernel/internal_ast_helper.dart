@@ -211,13 +211,16 @@ InternalVariable createCatchVariable({
       fileOffset: fileOffset,
     );
   } else {
-    return new VariableDeclarationImpl(
-      name,
+    return new InternalLegacyVariable(
+      astVariable: extern.createLegacyVariable(
+        name: name,
+        type: type,
+        isWildcard: isWildcard,
+        isFinal: isFinal,
+        fileOffset: fileOffset,
+      ),
       fileOffset: fileOffset,
-      // [VariableDeclarationImpl] uses `null` to signal an omitted type.
-      type: isImplicitlyTyped ? null : type,
-      isWildcard: isWildcard,
-      isFinal: isFinal,
+      isImplicitlyTyped: isImplicitlyTyped,
     );
   }
 }
@@ -677,19 +680,24 @@ InternalVariable createLateVariable({
       fileOffset: fileOffset,
     );
   } else {
-    return new VariableDeclarationImpl(
-      name,
+    return new InternalLegacyVariable(
+      astVariable: extern.createLegacyVariable(
+        name: name,
+        fileOffset: fileOffset,
+        hasDeclaredInitializer: hasDeclaredInitializer,
+        initializer: initializer,
+        type: type ?? const DynamicType(),
+        isFinal: isFinal,
+        isConst: isConst,
+        isLate: true,
+        isWildcard: isWildcard,
+        fileEqualsOffset: fileEqualsOffset,
+      ),
       fileOffset: fileOffset,
       forSyntheticToken: forSyntheticToken,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-      initializer: initializer,
-      type: type,
-      isFinal: isFinal,
-      isConst: isConst,
-      isLate: true,
       isStaticLate: isStaticLate,
-      isWildcard: isWildcard,
       fileEqualsOffset: fileEqualsOffset,
+      isImplicitlyTyped: isImplicitlyTyped,
     );
   }
 }
@@ -785,19 +793,24 @@ InternalVariable createLocalVariable({
       fileEqualsOffset: fileEqualsOffset,
     );
   } else {
-    return new VariableDeclarationImpl(
-      name,
+    return new InternalLegacyVariable(
+      astVariable: extern.createLegacyVariable(
+        name: name,
+        fileOffset: fileOffset,
+        hasDeclaredInitializer: hasDeclaredInitializer,
+        initializer: initializer,
+        type: type ?? const DynamicType(),
+        isFinal: isFinal,
+        isConst: isConst,
+        isWildcard: isWildcard,
+        fileEqualsOffset: fileEqualsOffset,
+      ),
       fileOffset: fileOffset,
       forSyntheticToken: forSyntheticToken,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-      initializer: initializer,
-      type: type,
-      isFinal: isFinal,
-      isConst: isConst,
       isLocalFunction: isLocalFunction,
       isStaticLate: isStaticLate,
-      isWildcard: isWildcard,
       fileEqualsOffset: fileEqualsOffset,
+      isImplicitlyTyped: isImplicitlyTyped,
     );
   }
 }
@@ -961,22 +974,25 @@ InternalVariable createNamedParameter({
       fileOffset: fileOffset,
     );
   } else {
-    return new VariableDeclarationImpl(
-      parameterName,
+    return new InternalLegacyVariable(
+      astVariable: extern.createLegacyVariable(
+        name: parameterName,
+        fileOffset: fileOffset,
+        hasDeclaredInitializer: hasDeclaredDefaultValue,
+        initializer: defaultValue,
+        type: type,
+        isFinal: isFinal,
+        isInitializingFormal: isInitializingFormal,
+        isSuperInitializingFormal: isSuperInitializingFormal,
+        isCovariantByDeclaration: isCovariantByDeclaration,
+        isRequired: isRequired,
+        isLowered: isLowered,
+        isSynthesized: isSynthesized,
+        isWildcard: isWildcard,
+      ),
       fileOffset: fileOffset,
       forSyntheticToken: forSyntheticToken,
-      hasDeclaredInitializer: hasDeclaredDefaultValue,
-      initializer: defaultValue,
-      // [VariableDeclarationImpl] uses `null` to signal an omitted type.
-      type: isImplicitlyTyped ? null : type,
-      isFinal: isFinal,
-      isInitializingFormal: isInitializingFormal,
-      isSuperInitializingFormal: isSuperInitializingFormal,
-      isCovariantByDeclaration: isCovariantByDeclaration,
-      isRequired: isRequired,
-      isLowered: isLowered,
-      isSynthesized: isSynthesized,
-      isWildcard: isWildcard,
+      isImplicitlyTyped: isImplicitlyTyped,
     );
   }
 }
@@ -1232,23 +1248,25 @@ InternalVariable createPositionalParameter({
       fileOffset: fileOffset,
     );
   } else {
-    return new VariableDeclarationImpl(
-      cosmeticName,
+    return new InternalLegacyVariable(
+      astVariable: extern.createLegacyVariable(
+        name: cosmeticName,
+        fileOffset: fileOffset,
+        hasDeclaredInitializer: hasDeclaredDefaultValue,
+        initializer: defaultValue,
+        type: type,
+        isFinal: isFinal,
+        isInitializingFormal: isInitializingFormal,
+        isSuperInitializingFormal: isSuperInitializingFormal,
+        isCovariantByDeclaration: isCovariantByDeclaration,
+        isRequired: isRequired,
+        isLowered: isLowered,
+        isSynthesized: isSynthesized,
+        isWildcard: isWildcard,
+      ),
       fileOffset: fileOffset,
       forSyntheticToken: forSyntheticToken,
-      hasDeclaredInitializer: hasDeclaredDefaultValue,
-      initializer: defaultValue,
-      // [VariableDeclarationImpl] uses `null` to signal an omitted
-      // type.
-      type: isImplicitlyTyped ? null : type,
-      isFinal: isFinal,
-      isInitializingFormal: isInitializingFormal,
-      isSuperInitializingFormal: isSuperInitializingFormal,
-      isCovariantByDeclaration: isCovariantByDeclaration,
-      isRequired: isRequired,
-      isLowered: isLowered,
-      isSynthesized: isSynthesized,
-      isWildcard: isWildcard,
+      isImplicitlyTyped: isImplicitlyTyped,
     );
   }
 }
@@ -1524,14 +1542,18 @@ InternalVariable createSyntheticVariable({
       fileOffset: fileOffset,
     );
   } else {
-    return new VariableDeclarationImpl(
-      name,
-      type: type,
-      initializer: initializer,
-      isFinal: isFinal,
-      isSynthesized: isSynthesized,
-      hasDeclaredInitializer: initializer != null,
+    return new InternalLegacyVariable(
+      astVariable: extern.createLegacyVariable(
+        name: name,
+        type: type ?? const DynamicType(),
+        initializer: initializer,
+        isFinal: isFinal,
+        isSynthesized: isSynthesized,
+        hasDeclaredInitializer: initializer != null,
+        fileOffset: fileOffset,
+      ),
       fileOffset: fileOffset,
+      isImplicitlyTyped: type == null,
     );
   }
 }
@@ -1569,11 +1591,14 @@ Expression createThisExpression({required int fileOffset}) {
   return new ThisExpression()..fileOffset = fileOffset;
 }
 
-ThisVariable createThisVariable({
+InternalThisVariable createThisVariable({
   required DartType type,
   required int fileOffset,
 }) {
-  return new ThisVariable(type: type)..fileOffset = fileOffset;
+  return new InternalThisVariable(
+    astVariable: new ThisVariable(type: type)..fileOffset = fileOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a throw expression at the given [fileOffset].

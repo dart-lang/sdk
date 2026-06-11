@@ -41,7 +41,8 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  get flowAnalysis;
 
   AssignedVariablesImpl get assignedVariables;
 
@@ -55,7 +56,7 @@ abstract class TypeInferrer {
     DartType? declaredType,
     required Expression initializer,
     required InferenceDefaultType inferenceDefaultType,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   });
 
   /// Performs type inference on the given function body.
@@ -66,7 +67,7 @@ abstract class TypeInferrer {
     required AsyncModifier asyncModifier,
     required Statement body,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
     required ConstructorContext? constructorContext,
@@ -79,7 +80,7 @@ abstract class TypeInferrer {
     required ConstructorContext constructorContext,
     required List<Initializer> initializers,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
     required bool isConstructorWithoutBody,
   });
@@ -124,7 +125,7 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<TreeNode, Statement, Expression, Variable>
+  late final FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -210,7 +211,7 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType? declaredType,
     required Expression initializer,
     required InferenceDefaultType inferenceDefaultType,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
@@ -261,7 +262,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required AsyncModifier asyncModifier,
     required Statement body,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
     required ConstructorContext? constructorContext,
@@ -331,25 +332,39 @@ class TypeInferrerImpl implements TypeInferrer {
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
 
+    List<InternalVariable> positionalParameters = [
+      for (Variable positionalParameter
+          in redirectingFactoryFunction.positionalParameters)
+        isClosureContextLoweringEnabled
+            ? new InternalPositionalParameter(
+                astVariable: positionalParameter as PositionalParameter,
+                isImplicitlyTyped: false,
+                fileOffset: positionalParameter.fileOffset,
+              )
+            : new InternalLegacyVariable(
+                astVariable: positionalParameter,
+                fileOffset: positionalParameter.fileOffset,
+              ),
+    ];
+    List<InternalVariable> namedParameters = [
+      for (Variable namedParameter
+          in redirectingFactoryFunction.namedParameters)
+        isClosureContextLoweringEnabled
+            ? new InternalNamedParameter(
+                astVariable: namedParameter as NamedParameter,
+                isImplicitlyTyped: false,
+                fileOffset: namedParameter.fileOffset,
+              )
+            : new InternalLegacyVariable(
+                astVariable: namedParameter,
+                fileOffset: namedParameter.fileOffset,
+              ),
+    ];
+
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = visitor.beginClosureContextAllocation(
-        [
-          for (Variable positionalParameter
-              in redirectingFactoryFunction.positionalParameters)
-            new InternalPositionalParameter(
-              astVariable: positionalParameter as PositionalParameter,
-              isImplicitlyTyped: false,
-              fileOffset: positionalParameter.fileOffset,
-            ),
-          for (Variable namedParameter
-              in redirectingFactoryFunction.namedParameters)
-            new InternalNamedParameter(
-              astVariable: namedParameter as NamedParameter,
-              isImplicitlyTyped: false,
-              fileOffset: namedParameter.fileOffset,
-            ),
-        ],
+        [...positionalParameters, ...namedParameters],
         internalThisVariable: null,
         scopeProviderInfo: null,
       );
@@ -357,60 +372,30 @@ class TypeInferrerImpl implements TypeInferrer {
 
     List<Argument> arguments = [];
     int positionalCount = 0;
-    for (Variable parameter
-        in redirectingFactoryFunction.positionalParameters) {
+    for (InternalVariable parameter in positionalParameters) {
       flowAnalysis.declare(
         parameter,
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      Expression variableGet;
-      if (isClosureContextLoweringEnabled) {
-        variableGet = intern.createVariableGet(
-          new InternalPositionalParameter(
-            astVariable: parameter as PositionalParameter,
-            isImplicitlyTyped: false,
-            fileOffset: parameter.fileOffset,
-          ),
-          fileOffset: parameter.fileOffset,
-        );
-      } else {
-        variableGet = intern.createVariableGet(
-          parameter as InternalVariable,
-          fileOffset: parameter.fileOffset,
-        );
-      }
+      Expression variableGet = intern.createVariableGet(
+        parameter,
+        fileOffset: parameter.fileOffset,
+      );
       arguments.add(new PositionalArgument(variableGet));
       positionalCount++;
     }
-    for (Variable parameter in redirectingFactoryFunction.namedParameters) {
+    for (InternalVariable parameter in namedParameters) {
       flowAnalysis.declare(
         parameter,
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      NamedExpression namedExpression;
-      if (isClosureContextLoweringEnabled) {
-        namedExpression = new NamedExpression(
-          parameter.name!,
-          intern.createVariableGet(
-            new InternalNamedParameter(
-              astVariable: parameter as NamedParameter,
-              isImplicitlyTyped: false,
-              fileOffset: parameter.fileOffset,
-            ),
-            fileOffset: parameter.fileOffset,
-          ),
-        );
-      } else {
-        namedExpression = new NamedExpression(
-          parameter.name!,
-          intern.createVariableGet(
-            parameter as InternalVariable,
-            fileOffset: parameter.fileOffset,
-          ),
-        );
-      }
+      NamedExpression namedExpression = new NamedExpression(
+        parameter.cosmeticName!,
+        intern.createVariableGet(parameter, fileOffset: parameter.fileOffset),
+      );
+
       arguments.add(new NamedArgument(namedExpression));
     }
     // If arguments are created using [ArgumentsImpl], and the
@@ -451,7 +436,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required ConstructorContext constructorContext,
     required List<Initializer> initializers,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
     required bool isConstructorWithoutBody,
   }) {
@@ -554,8 +539,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis =>
-      impl.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  get flowAnalysis => impl.flowAnalysis;
 
   @override
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
@@ -566,7 +551,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     DartType? declaredType,
     required Expression initializer,
     required InferenceDefaultType inferenceDefaultType,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
     InferredFieldInitializer result = impl.inferFieldInitializer(
@@ -588,7 +573,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required AsyncModifier asyncModifier,
     required Statement body,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
     required ConstructorContext? constructorContext,
@@ -618,7 +603,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required ConstructorContext constructorContext,
     required List<Initializer> initializers,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy<ScopeProviderInfo>
     contextAllocationStrategy,
     required bool isConstructorWithoutBody,

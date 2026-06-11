@@ -422,7 +422,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
           declaredType: variable.type,
           hasDeclaredInitializer: hasDeclaredInitializer,
         );
-        variable.initializer = initializer..parent = variable;
+        variable.initializer = initializer..parent = variable.astVariable;
         if (initializer is InvalidExpression) {
           variable.isErroneouslyInitialized = true;
         }
@@ -430,7 +430,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable.initializer = extern.createNullLiteral(fileOffset: fileOffset)
-          ..parent = variable;
+          ..parent = variable.astVariable;
       }
     }
   }

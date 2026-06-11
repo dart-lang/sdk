@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
@@ -275,7 +274,7 @@ class Resolver {
     ConstantContext constantContext = bodyBuilderContext.constantContext;
     List<FormalParameterBuilder>? primaryConstructorInitializerScopeParameters =
         bodyBuilderContext.primaryConstructorInitializerScopeParameters;
-    ThisVariable? internalThisVariable = bodyBuilderContext
+    InternalThisVariable? internalThisVariable = bodyBuilderContext
         .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
@@ -404,7 +403,7 @@ class Resolver {
           functionBodyBuildingContext.inferenceDataForTesting,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
-    ThisVariable? internalThisVariable = bodyBuilderContext
+    InternalThisVariable? internalThisVariable = bodyBuilderContext
         .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
@@ -476,7 +475,7 @@ class Resolver {
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
     ConstantContext constantContext = bodyBuilderContext.constantContext;
-    ThisVariable? internalThisVariable = bodyBuilderContext
+    InternalThisVariable? internalThisVariable = bodyBuilderContext
         .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
@@ -689,7 +688,7 @@ class Resolver {
           functionBodyBuildingContext.inferenceDataForTesting,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
-    ThisVariable? internalThisVariable = bodyBuilderContext
+    InternalThisVariable? internalThisVariable = bodyBuilderContext
         .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
@@ -768,7 +767,7 @@ class Resolver {
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
     ConstantContext constantContext = bodyBuilderContext.constantContext;
-    ThisVariable? internalThisVariable = bodyBuilderContext
+    InternalThisVariable? internalThisVariable = bodyBuilderContext
         .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
@@ -874,7 +873,7 @@ class Resolver {
     required Procedure procedure,
     required List<InternalVariable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
-    required InternalVariable? extensionThis,
+    required Variable? extensionThis,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -886,42 +885,30 @@ class Resolver {
 
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
     ConstantContext constantContext = bodyBuilderContext.constantContext;
-    ThisVariable? internalThisVariable = bodyBuilderContext
+    InternalThisVariable? internalThisVariable = bodyBuilderContext
         .createInternalThisVariable();
-    BodyBuilder bodyBuilder = _createBodyBuilder(
-      context: context,
-      bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
-      thisVariable: extensionThis,
-      constantContext: constantContext,
-      // TODO(johnniwinther): Should we provide these?
-      thisTypeParameters: null,
-      formalParameterScope: null,
-      internalThisVariable: internalThisVariable,
-    );
-    int fileOffset = token.charOffset;
 
     FunctionNode parameters = procedure.function;
-
-    List<NominalParameterBuilder>? typeParameterBuilders;
-    for (TypeParameter typeParameter in parameters.typeParameters) {
-      typeParameterBuilders ??= <NominalParameterBuilder>[];
-      typeParameterBuilders.add(
-        new DillNominalParameterBuilder(
-          typeParameter,
-          loader: libraryBuilder.loader,
-        ),
-      );
-    }
     int wildcardVariableIndex = 0;
+    InternalVariable? internalExtensionThis;
     List<FormalParameterBuilder>? formals =
         parameters.positionalParameters.length == 0
         ? null
         : new List<FormalParameterBuilder>.generate(
             parameters.positionalParameters.length,
             (int i) {
+              Variable parameter = parameters.positionalParameters[i];
               InternalVariable formal =
-                  parameters.positionalParameters[i] as InternalVariable;
+                  libraryBuilder.loader.isClosureContextLoweringEnabled
+                  ? new InternalPositionalParameter(
+                      astVariable: parameter as PositionalParameter,
+                      isImplicitlyTyped: false,
+                      fileOffset: parameter.fileOffset,
+                    )
+                  : new InternalLegacyVariable(
+                      astVariable: parameter,
+                      fileOffset: parameter.fileOffset,
+                    );
               String formalName = formal.cosmeticName!;
               bool isWildcard =
                   libraryFeatures.wildcardVariables.isEnabled &&
@@ -929,6 +916,9 @@ class Resolver {
               int? wildcardIndex;
               if (isWildcard) {
                 wildcardIndex = wildcardVariableIndex++;
+              }
+              if (parameter == extensionThis) {
+                internalExtensionThis = formal;
               }
               return new FormalParameterBuilder(
                 kind: FormalParameterKind.requiredPositional,
@@ -948,6 +938,30 @@ class Resolver {
             growable: false,
           );
 
+    BodyBuilder bodyBuilder = _createBodyBuilder(
+      context: context,
+      bodyBuilderContext: bodyBuilderContext,
+      scope: scope,
+      thisVariable: internalExtensionThis,
+      constantContext: constantContext,
+      // TODO(johnniwinther): Should we provide these?
+      thisTypeParameters: null,
+      formalParameterScope: null,
+      internalThisVariable: internalThisVariable,
+    );
+    int fileOffset = token.charOffset;
+
+    List<NominalParameterBuilder>? typeParameterBuilders;
+    for (TypeParameter typeParameter in parameters.typeParameters) {
+      typeParameterBuilders ??= <NominalParameterBuilder>[];
+      typeParameterBuilders.add(
+        new DillNominalParameterBuilder(
+          typeParameter,
+          loader: libraryBuilder.loader,
+        ),
+      );
+    }
+
     BuildSingleExpressionResult result = bodyBuilder.buildSingleExpression(
       token: token,
       extraKnownVariables: extraKnownVariables,
@@ -960,7 +974,7 @@ class Resolver {
       for (int i = 0; i < formals.length; i++) {
         InternalVariable variable = formals[i].variable;
         context.typeInferrer.flowAnalysis.declare(
-          variable.astVariable,
+          variable,
           new SharedTypeView(variable.type),
           initialized: true,
         );
@@ -968,7 +982,7 @@ class Resolver {
     }
     for (InternalVariable extraVariable in extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
-        extraVariable.astVariable,
+        extraVariable,
         new SharedTypeView(extraVariable.type),
         initialized: true,
       );
@@ -1129,7 +1143,7 @@ class Resolver {
     required InternalVariable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required LocalScope? formalParameterScope,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     _benchmarker
     // Coverage-ignore(suite): Not run.
@@ -1158,7 +1172,7 @@ class Resolver {
     required InternalVariable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     return new BodyBuilderImpl(
       libraryBuilder: context.libraryBuilder,
@@ -1179,7 +1193,7 @@ class Resolver {
   }
 
   _SuperParameterArguments? _createSuperParameterArguments({
-    required AssignedVariables assignedVariables,
+    required AssignedVariablesImpl assignedVariables,
     required List<FormalParameterBuilder>? formals,
   }) {
     if (formals == null) {
@@ -1232,12 +1246,12 @@ class Resolver {
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [fileOffset] as the file offset.
   Expression _createVariableGet({
-    required AssignedVariables assignedVariables,
+    required AssignedVariablesImpl assignedVariables,
     required InternalVariable variable,
     required int fileOffset,
   }) {
     if (!variable.isLocalFunction && !variable.isWildcard) {
-      assignedVariables.read(variable.astVariable);
+      assignedVariables.read(variable);
     }
     return intern.createVariableGet(variable, fileOffset: fileOffset);
   }
@@ -1252,7 +1266,7 @@ class Resolver {
       // `thisVariable` usually appears in `_context.formals`, but for a
       // constructor, it doesn't. So declare it separately.
       typeInferrer.flowAnalysis.declare(
-        thisVariable.astVariable,
+        thisVariable,
         new SharedTypeView(thisVariable.type),
         initialized: true,
       );
@@ -1264,7 +1278,7 @@ class Resolver {
         // TODO(62401): Remove the cast when the flow analysis uses
         // [InternalExpressionVariable]s.
         typeInferrer.flowAnalysis.declare(
-          variable.astVariable,
+          variable,
           new SharedTypeView(variable.type),
           initialized: true,
         );
@@ -1287,7 +1301,7 @@ class Resolver {
     required List<Initializer> initializers,
     required bool forPrimaryConstructor,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     _InitializerBuilder initializerBuilder = new _InitializerBuilder(
@@ -1354,10 +1368,10 @@ class Resolver {
     required InternalVariable? thisVariable,
     required List<Initializer> initializers,
     required ConstantContext constantContext,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required bool forPrimaryConstructor,
   }) {
-    AssignedVariables assignedVariables = context.assignedVariables;
+    AssignedVariablesImpl assignedVariables = context.assignedVariables;
 
     // Create variable get expressions for super parameters before finishing
     // the analysis of the assigned variables. Creating the expressions later

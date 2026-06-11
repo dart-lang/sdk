@@ -4996,6 +4996,9 @@ class EquivalenceStrategy {
     if (!checkAssignedVariablePattern_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkAssignedVariablePattern_setter(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAssignedVariablePattern_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -11970,6 +11973,14 @@ class EquivalenceStrategy {
     AssignedVariablePattern other,
   ) {
     return visitor.checkNodes(node.variable, other.variable, 'variable');
+  }
+
+  bool checkAssignedVariablePattern_setter(
+    EquivalenceVisitor visitor,
+    AssignedVariablePattern node,
+    AssignedVariablePattern other,
+  ) {
+    return visitor.checkNodes(node.setter, other.setter, 'setter');
   }
 
   bool checkAssignedVariablePattern_matchedValueType(

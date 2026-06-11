@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -50,10 +51,11 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
     Map<Id, ActualData<_Data>> actualMap, {
     bool? verbose,
   }) {
-    SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(testResultData.compilerResult, member)
-            as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, Variable>? assignedVariables =
+    SourceMemberBuilder memberBuilder = lookupMemberBuilder(
+      testResultData.compilerResult,
+      member,
+    ) as SourceMemberBuilder;
+    AssignedVariablesForTesting<TreeNode, InternalVariable>? assignedVariables =
         memberBuilder
             .dataForTesting!
             .inferenceData
@@ -72,7 +74,8 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, Variable> _assignedVariables;
+  final AssignedVariablesForTesting<TreeNode, InternalVariable>
+  _assignedVariables;
 
   new(
     InternalCompilerResult compilerResult,

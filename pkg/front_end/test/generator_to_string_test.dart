@@ -52,7 +52,8 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         Variable,
         VariableGet,
-        defaultLanguageVersion;
+        defaultLanguageVersion,
+        LegacyVariable;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -177,9 +178,8 @@ Future<void> main() async {
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
     );
-    InternalVariable variable = new VariableDeclarationImpl(
-      null,
-      isSynthesized: true,
+    InternalVariable variable = new InternalLegacyVariable(
+      astVariable: new LegacyVariable(null, isSynthesized: true),
       fileOffset: -1,
     );
 

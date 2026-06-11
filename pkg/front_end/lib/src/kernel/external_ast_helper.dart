@@ -109,12 +109,14 @@ AssertStatement createAssertStatement(
 
 AssignedVariablePattern createAssignedVariablePattern({
   required Variable variable,
+  required Variable? setter,
   required DartType matchedValueType,
   required bool needsCast,
   required bool hasObservableEffect,
   required int fileOffset,
 }) {
   return new AssignedVariablePattern(variable)
+    ..setter = setter
     ..matchedValueType = matchedValueType
     ..needsCast = needsCast
     ..hasObservableEffect = hasObservableEffect
@@ -599,6 +601,44 @@ LateVariable createLateVariable({
     initializer: initializer,
     hasDeclaredInitializer: hasDeclaredInitializer,
   )..fileOffset = fileOffset;
+}
+
+LegacyVariable createLegacyVariable({
+  required String? name,
+  required DartType type,
+  bool isFinal = false,
+  bool isConst = false,
+  bool isWildcard = false,
+  bool isLate = false,
+  bool isInitializingFormal = false,
+  bool isSuperInitializingFormal = false,
+  bool isCovariantByDeclaration = false,
+  bool isRequired = false,
+  bool isLowered = false,
+  bool isSynthesized = false,
+  required int fileOffset,
+  int fileEqualsOffset = TreeNode.noOffset,
+  Expression? initializer,
+  bool hasDeclaredInitializer = false,
+}) {
+  return new LegacyVariable(
+      name,
+      type: type,
+      isFinal: isFinal,
+      isConst: isConst,
+      isLate: isLate,
+      isWildcard: isWildcard,
+      isInitializingFormal: isInitializingFormal,
+      isSuperInitializingFormal: isSuperInitializingFormal,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isRequired: isRequired,
+      isLowered: isLowered,
+      isSynthesized: isSynthesized,
+      initializer: initializer,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
 }
 
 /// Creates a [Let] of [variable] with the given [body] using
@@ -1326,9 +1366,10 @@ Expression createVariableSet(
   bool allowFinalAssignment = false,
   required int fileOffset,
 }) {
-  if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
+  // TODO(johnniwinther):
+  if (variable.parent is FunctionDeclaration) {
     return createLocalFunctionInvocation(
-      variable.lateSetter!,
+      variable,
       arguments: createArguments([value], fileOffset: fileOffset),
       fileOffset: fileOffset,
     );

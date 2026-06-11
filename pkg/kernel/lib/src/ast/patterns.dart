@@ -871,6 +871,10 @@ class WildcardPattern extends Pattern {
 class AssignedVariablePattern extends Pattern {
   final Variable variable;
 
+  /// If [variable] is a lowered late variable, [setter] holds the variable of
+  /// the local function that should be used for assignment.
+  Variable? setter;
+
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
