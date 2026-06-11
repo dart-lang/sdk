@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
@@ -12,58 +12,45 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:test/test.dart';
 
-import '../../../generated/test_support.dart';
+import '../../../util/diff.dart';
+import '../../dart/resolution/node_text_expectations.dart';
 
 abstract class AbstractAnalysisOptionsTest
-    with ResourceProviderMixin, LintRegistrationMixin {
+    with
+        ResourceProviderMixin,
+        LintRegistrationMixin,
+        AnalysisOptionsDiagnosticExpectationMixin {
   late SourceFactory sourceFactory;
   Map<String, String>? dependencies;
 
-  late File analysisOptionsFile = newFile(analysisOptionsPath, '');
-  late String analysisOptionsPath = convertPath('/analysis_options.yaml');
+  late File analysisOptionsFile = getFile('/analysis_options.yaml');
   VersionConstraint? get sdkVersionConstraint => null;
 
-  Future<void> assertErrorsInCode(
-    String code,
-    List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
-    analysisOptionsFile.writeAsStringSync(code);
+  Future<void> assertDiagnosticsInCode(String code) async {
+    await assertDiagnosticsInFiles({analysisOptionsFile: code});
+  }
+
+  Future<void> assertDiagnosticsInFiles(Map<File, String> codeByFile) async {
+    var cleanCodeByFile = writeFilesWithoutDiagnosticExpectations(codeByFile);
+
     var diagnostics = AnalysisOptionsAnalyzer(
       initialSource: FileSource(analysisOptionsFile),
       sourceFactory: sourceFactory,
       contextRoot: '/',
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).walkIncludes(content: code);
-    var diagnosticListener = GatheringDiagnosticListener();
-    diagnosticListener.addAll(diagnostics);
-    diagnosticListener.assertErrors(expectedDiagnostics);
+    ).walkIncludes(content: cleanCodeByFile[analysisOptionsFile]!);
+
+    assertDiagnosticMarkersInFiles(
+      codeByFile: codeByFile,
+      diagnostics: diagnostics,
+    );
   }
-
-  Future<void> assertNoErrorsInCode(String code) async =>
-      await assertErrorsInCode(code, const []);
-
-  ExpectedError error(
-    DiagnosticCode code,
-    int offset,
-    int length, {
-    Pattern? correctionContains,
-    String? text,
-    List<Pattern> messageContains = const [],
-    List<ExpectedContextMessage> contextMessages =
-        const <ExpectedContextMessage>[],
-  }) => ExpectedError(
-    code,
-    offset,
-    length,
-    correctionContains: correctionContains,
-    messageContainsAll: messageContains,
-    contextMessages: contextMessages,
-  );
 
   void setUp() {
     var resolvers = [
@@ -80,5 +67,81 @@ abstract class AbstractAnalysisOptionsTest
   @mustCallSuper
   void tearDown() {
     unregisterLintRules();
+  }
+}
+
+/// Shared inline diagnostic expectation checks for analysis-options tests.
+///
+/// These helpers only compare diagnostics with inline markers. Test-specific
+/// helpers remain responsible for choosing which analyzer or validator entry
+/// point produces the diagnostics.
+mixin AnalysisOptionsDiagnosticExpectationMixin {
+  void assertDiagnosticMarkersInFiles({
+    required Map<File, String> codeByFile,
+    required List<Diagnostic> diagnostics,
+  }) {
+    var cleanCodeByFile = {
+      for (var entry in codeByFile.entries)
+        entry.key: removeDiagnosticExpectations(entry.value),
+    };
+    var actualCodeByFile = updateExpectedDiagnosticsForFiles(
+      contentByFile: cleanCodeByFile,
+      actualDiagnosticsByFile: _diagnosticsByFile(
+        files: codeByFile.keys,
+        diagnostics: diagnostics,
+      ),
+    );
+
+    var hasMismatch = false;
+    var index = 0;
+    for (var entry in codeByFile.entries) {
+      var actual = actualCodeByFile[entry.key]!;
+      if (actual != entry.value) {
+        NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
+        print('-------- ${entry.key.path} --------');
+        printPrettyDiff(entry.value, actual);
+        hasMismatch = true;
+      }
+      index++;
+    }
+
+    if (hasMismatch) {
+      fail('See the difference above.');
+    }
+  }
+
+  Map<File, String> writeFilesWithoutDiagnosticExpectations(
+    Map<File, String> codeByFile,
+  ) {
+    var cleanCodeByFile = {
+      for (var entry in codeByFile.entries)
+        entry.key: removeDiagnosticExpectations(entry.value),
+    };
+    for (var entry in cleanCodeByFile.entries) {
+      entry.key.writeAsStringSync(entry.value);
+    }
+    return cleanCodeByFile;
+  }
+
+  Map<File, List<Diagnostic>> _diagnosticsByFile({
+    required Iterable<File> files,
+    required List<Diagnostic> diagnostics,
+  }) {
+    var fileByPath = {for (var file in files) file.path: file};
+    var diagnosticsByFile = {for (var file in files) file: <Diagnostic>[]};
+
+    for (var diagnostic in diagnostics) {
+      var filePath = diagnostic.problemMessage.filePath;
+      var file = fileByPath[filePath];
+      if (file == null) {
+        fail(
+          'Cannot generate diagnostic expectations for $filePath: '
+          'no content was provided.',
+        );
+      }
+      diagnosticsByFile[file]!.add(diagnostic);
+    }
+
+    return diagnosticsByFile;
   }
 }

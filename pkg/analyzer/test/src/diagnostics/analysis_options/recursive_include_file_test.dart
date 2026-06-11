@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options_test_support.dart';
@@ -16,203 +15,135 @@ main() {
 @reflectiveTest
 class RecursiveIncludeFileTest extends AbstractAnalysisOptionsTest {
   Future<void> test_itself() async {
-    await assertErrorsInCode(
-      '''
+    await assertDiagnosticsInCode('''
 include: analysis_options.yaml
-''',
-      [
-        error(
-          diag.recursiveIncludeFile,
-          9,
-          21,
-          text:
-              "The URI 'analysis_options.yaml' included in "
-              "'${convertPath('/analysis_options.yaml')}' includes "
-              "'${convertPath('/analysis_options.yaml')}', "
-              "creating a circular reference.",
-        ),
-      ],
-    );
+//       ^^^^^^^^^^^^^^^^^^^^^
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+''');
   }
 
   Future<void> test_itself_inList() async {
-    await assertErrorsInCode(
-      '''
+    await assertDiagnosticsInCode('''
 include:
   - analysis_options.yaml
-''',
-      [
-        error(
-          diag.recursiveIncludeFile,
-          13,
-          21,
-          text:
-              "The URI 'analysis_options.yaml' included in "
-              "'${convertPath('/analysis_options.yaml')}' includes "
-              "'${convertPath('/analysis_options.yaml')}', "
-              "creating a circular reference.",
-        ),
-      ],
-    );
+//  ^^^^^^^^^^^^^^^^^^^^^
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/analysis_options.yaml' includes '/analysis_options.yaml', creating a circular reference.
+''');
   }
 
   Future<void> test_notRecursive() async {
-    newFile('/a.yaml', '''
-include: b.yaml
-''');
-    newFile('/b.yaml', '');
-    await assertNoErrorsInCode('''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
 include:
   - a.yaml
   - b.yaml
-''');
+''',
+      getFile('/a.yaml'): '''
+include: b.yaml
+''',
+      getFile('/b.yaml'): '',
+    });
   }
 
   Future<void> test_notRecursive_included() async {
-    newFile('/a.yaml', '''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: c.yaml
+''',
+      getFile('/a.yaml'): '''
 include: b.yaml
-''');
-    newFile('/b.yaml', '');
-    newFile('/c.yaml', '''
+''',
+      getFile('/b.yaml'): '',
+      getFile('/c.yaml'): '''
 include:
   - a.yaml
   - b.yaml
-''');
-    await assertNoErrorsInCode('''
-include: c.yaml
-''');
+''',
+    });
   }
 
   Future<void> test_recursive() async {
-    newFile('/a.yaml', '''
-include: b.yaml
-''');
-    newFile('/b.yaml', '''
-include: analysis_options.yaml
-''');
-    await assertErrorsInCode(
-      '''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
 include: a.yaml
+//       ^^^^^^
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
 ''',
-      [
-        error(
-          diag.recursiveIncludeFile,
-          9,
-          6,
-          text:
-              "The URI 'analysis_options.yaml' included in "
-              "'${convertPath('/b.yaml')}' includes "
-              "'${convertPath('/b.yaml')}', "
-              "creating a circular reference.",
-        ),
-      ],
-    );
+      getFile('/a.yaml'): '''
+include: b.yaml
+''',
+      getFile('/b.yaml'): '''
+include: analysis_options.yaml
+''',
+    });
   }
 
   Future<void> test_recursive_itself() async {
-    newFile('/a.yaml', '''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
 include: a.yaml
-''');
-    await assertErrorsInCode(
-      '''
+//       ^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /a.yaml(9..14): The file includes itself recursively.
+''',
+      getFile('/a.yaml'): '''
 include: a.yaml
 ''',
-      [
-        error(
-          diag.includedFileWarning,
-          9,
-          6,
-          messageContains: [
-            "Warning in the included options file ${convertPath('/a.yaml')}",
-            ": The file includes itself recursively.",
-          ],
-        ),
-      ],
-    );
+    });
   }
 
   Future<void> test_recursive_listAtTop() async {
-    newFile('/a.yaml', '''
-include: b.yaml
-''');
-    newFile('/b.yaml', '''
-include: analysis_options.yaml
-''');
-    newFile('/empty.yaml', '''
-''');
-    await assertErrorsInCode(
-      '''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
 include:
   - empty.yaml
   - a.yaml
+//  ^^^^^^
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
 ''',
-      [
-        error(
-          diag.recursiveIncludeFile,
-          28,
-          6,
-          text:
-              "The URI 'analysis_options.yaml' included in "
-              "'${convertPath('/b.yaml')}' includes "
-              "'${convertPath('/b.yaml')}', "
-              "creating a circular reference.",
-        ),
-      ],
-    );
+      getFile('/a.yaml'): '''
+include: b.yaml
+''',
+      getFile('/b.yaml'): '''
+include: analysis_options.yaml
+''',
+      getFile('/empty.yaml'): '''
+''',
+    });
   }
 
   Future<void> test_recursive_listIncluded() async {
-    newFile('/a.yaml', '''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
+include: a.yaml
+//       ^^^^^^
+// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/b.yaml' includes '/b.yaml', creating a circular reference.
+''',
+      getFile('/a.yaml'): '''
 include:
   - empty.yaml
   - b.yaml
-''');
-    newFile('/b.yaml', '''
-include: analysis_options.yaml
-''');
-    newFile('/empty.yaml', '''
-''');
-    await assertErrorsInCode(
-      '''
-include: a.yaml
 ''',
-      [
-        error(
-          diag.recursiveIncludeFile,
-          9,
-          6,
-          text:
-              "The URI 'analysis_options.yaml' included in "
-              "'${convertPath('/b.yaml')}' includes "
-              "'${convertPath('/b.yaml')}', "
-              "creating a circular reference.",
-        ),
-      ],
-    );
+      getFile('/b.yaml'): '''
+include: analysis_options.yaml
+''',
+      getFile('/empty.yaml'): '''
+''',
+    });
   }
 
   Future<void> test_recursive_notInBeginning() async {
-    newFile('/a.yaml', '''
-include: b.yaml
-''');
-    newFile('/b.yaml', '''
+    await assertDiagnosticsInFiles({
+      analysisOptionsFile: '''
 include: a.yaml
-''');
-    await assertErrorsInCode(
-      '''
+//       ^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /a.yaml(9..14): The file includes itself recursively.
+''',
+      getFile('/a.yaml'): '''
+include: b.yaml
+''',
+      getFile('/b.yaml'): '''
 include: a.yaml
 ''',
-      [
-        error(
-          diag.includedFileWarning,
-          9,
-          6,
-          messageContains: [
-            "Warning in the included options file ${convertPath('/a.yaml')}",
-            ": The file includes itself recursively.",
-          ],
-        ),
-      ],
-    );
+    });
   }
 }

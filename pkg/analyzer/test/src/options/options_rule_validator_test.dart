@@ -6,17 +6,15 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
-import '../../generated/test_support.dart';
+import '../dart/resolution/node_text_expectations.dart';
 import '../diagnostics/analysis_options/analysis_options_test_support.dart';
 
 main() {
@@ -24,6 +22,7 @@ main() {
     defineReflectiveTests(OptionsRuleValidatorIncludedFileTest);
     defineReflectiveTests(OptionsRuleValidatorTest);
     defineReflectiveTests(OptionsRuleValidatorValueTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -67,7 +66,7 @@ linter:
   rules:
     rule_pos: true
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 include:
   - included1.yaml
   - included2.yaml
@@ -81,48 +80,35 @@ linter:
     - deprecated_lint
 ''');
 
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 ''');
   }
 
   Future<void> test_incompatible_multiple_include() async {
-    var included1Code = TestCode.parse('''
+    await assertDiagnosticsInFiles({
+      getFile('/included1.yaml'): '''
 linter:
   rules:
-    [!rule_neg!]: true
-''');
-    var included1 = newFile('/included1.yaml', included1Code.code);
-    var included2Code = TestCode.parse('''
+    rule_neg: true
+//  ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('/included2.yaml'): '''
 linter:
   rules:
-    [!rule_pos!]: true
-''');
-    var included2 = newFile('/included2.yaml', included2Code.code);
-    var testCode = TestCode.parse('''
+    rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
+      analysisOptionsFile: '''
 include:
   - included1.yaml
-  - [!included2.yaml!]
-''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLintIncluded,
-        testCode.range.sourceRange.offset,
-        testCode.range.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            included2,
-            included2Code.range.sourceRange.offset,
-            included2Code.range.sourceRange.length,
-          ),
-          contextMessage(
-            included1,
-            included1Code.range.sourceRange.offset,
-            included1Code.range.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+''',
+    });
   }
 
   Future<void> test_incompatible_multiple_include_disabled() async {
@@ -136,7 +122,7 @@ linter:
   rules:
     rule_pos: true
 ''');
-    await assertNoErrorsInCode('''
+    await assertDiagnosticsInCode('''
 include:
   - included1.yaml
   - included2.yaml
@@ -148,91 +134,88 @@ linter:
   }
 
   Future<void> test_incompatible_multiple_include_list() async {
-    var included1Code = TestCode.parse('''
-linter:
-  rules:
-    - [!rule_neg!]
-''');
-    var included1 = newFile('/included1.yaml', included1Code.code);
-    var included2Code = TestCode.parse('''
-linter:
-  rules:
-    - [!rule_pos!]
-''');
-    var included2 = newFile('/included2.yaml', included2Code.code);
-    var testCode = TestCode.parse('''
-include:
-  - included1.yaml
-  - [!included2.yaml!]
-''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLintIncluded,
-        testCode.range.sourceRange.offset,
-        testCode.range.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            included2,
-            included2Code.range.sourceRange.offset,
-            included2Code.range.sourceRange.length,
-          ),
-          contextMessage(
-            included1,
-            included1Code.range.sourceRange.offset,
-            included1Code.range.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
-  }
-
-  Future<void> test_incompatible_multiple_include_noLintMainFile() async {
-    newFile('/included1.yaml', '''
+    await assertDiagnosticsInFiles({
+      getFile('/included1.yaml'): '''
 linter:
   rules:
     - rule_neg
-''');
-    newFile('/included2.yaml', '''
+//    ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('/included2.yaml'): '''
 linter:
   rules:
     - rule_pos
-''');
-    assertErrors(
-      '''
+//    ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
+      analysisOptionsFile: '''
 include:
   - included1.yaml
   - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
+''',
+    });
+  }
+
+  Future<void> test_incompatible_multiple_include_noLintMainFile() async {
+    assertRuleDiagnosticsInFiles({
+      getFile('/included1.yaml'): '''
+linter:
+  rules:
+    - rule_neg
+//    ^^^^^^^^
+// [context 2] The rule 'rule_neg' is enabled here.
+''',
+      getFile('/included2.yaml'): '''
+linter:
+  rules:
+    - rule_pos
+//    ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+''',
+      analysisOptionsFile: '''
+include:
+  - included1.yaml
+  - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_pos' and 'rule_neg', which is included from 2 files.
 
 linter:
   rules:
 ''',
-      [diag.incompatibleLintIncluded],
-    );
+    });
   }
 
   Future<void>
   test_incompatible_multiple_include_noLintMainFile_mixedCase() async {
-    newFile('/included1.yaml', '''
+    assertRuleDiagnosticsInFiles({
+      getFile('/included1.yaml'): '''
 linter:
   rules:
     - ruLe_neg
-''');
-    newFile('/included2.yaml', '''
+//    ^^^^^^^^
+// [context 2] The rule 'ruLe_neg' is enabled here.
+''',
+      getFile('/included2.yaml'): '''
 linter:
   rules:
     - rule_poS
-''');
-    assertErrors(
-      '''
+//    ^^^^^^^^
+// [context 1] The rule 'rule_poS' is enabled here.
+''',
+      analysisOptionsFile: '''
 include:
   - included1.yaml
   - included2.yaml
+//  ^^^^^^^^^^^^^^
+// [diag.incompatibleLintIncluded][context 1][context 2] The rule 'included2.yaml' is incompatible with 'rule_poS' and 'ruLe_neg', which is included from 2 files.
 
 linter:
   rules:
 ''',
-      [diag.incompatibleLintIncluded],
-    );
+    });
   }
 
   void test_incompatible_noTrigger_invalidMap() {
@@ -241,7 +224,7 @@ linter:
   rules:
     rule_neg: true
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -252,33 +235,24 @@ linter:
   }
 
   Future<void> test_incompatible_rule_map_include() async {
-    var includedCode = TestCode.parse('''
+    await assertDiagnosticsInFiles({
+      getFile('/included.yaml'): '''
 linter:
   rules:
-    [!rule_neg!]: true
-''');
-    var included = newFile('/included.yaml', includedCode.code);
-    var testCode = TestCode.parse('''
+    rule_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+''',
+      analysisOptionsFile: '''
 include: included.yaml
 
 linter:
   rules:
-    [!rule_pos!]: true
-''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLintFiles,
-        testCode.range.sourceRange.offset,
-        testCode.range.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            included,
-            includedCode.range.sourceRange.offset,
-            includedCode.range.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
+    rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
+''',
+    });
   }
 
   Future<void> test_incompatible_rule_map_include_disabled() async {
@@ -287,7 +261,7 @@ linter:
   rules:
     rule_neg: true
 ''');
-    await assertNoErrorsInCode('''
+    await assertDiagnosticsInCode('''
 include: included.yaml
 
 linter:
@@ -298,52 +272,46 @@ linter:
   }
 
   Future<void> test_incompatible_rule_map_include_mixedCase() async {
-    var includedCode = TestCode.parse('''
+    await assertDiagnosticsInFiles({
+      getFile('/included.yaml'): '''
 linter:
   rules:
-    [!rulE_neg!]: true
-''');
-    var included = newFile('/included.yaml', includedCode.code);
-    var testCode = TestCode.parse('''
+    rulE_neg: true
+//  ^^^^^^^^
+// [context 1] The rule 'rulE_neg' is enabled here in the file '/included.yaml'.
+''',
+      analysisOptionsFile: '''
 include: included.yaml
 
 linter:
   rules:
-    [!Rule_pos!]: true
-''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLintFiles,
-        testCode.range.sourceRange.offset,
-        testCode.range.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            included,
-            includedCode.range.sourceRange.offset,
-            includedCode.range.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
+    Rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'Rule_pos' is incompatible with 'rulE_neg'.
+''',
+    });
   }
 
   void test_incompatible_trigger_invalidMap() {
-    newFile('/included.yaml', '''
+    assertRuleDiagnosticsInFiles({
+      getFile('/included.yaml'): '''
 linter:
   rules:
     rule_neg: true
-''');
-    assertErrors(
-      '''
+//  ^^^^^^^^
+// [context 1] The rule 'rule_neg' is enabled here in the file '/included.yaml'.
+''',
+      analysisOptionsFile: '''
 include: included.yaml
 
 linter:
   rules:
     rule_neg:
     rule_pos: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_pos' is incompatible with 'rule_neg'.
 ''',
-      [diag.incompatibleLintFiles],
-    );
+    });
   }
 
   void test_incompatible_unsuportedValue_invalidMap() {
@@ -352,16 +320,15 @@ linter:
   rules:
     rule_neg: true
 ''');
-    assertErrors(
-      '''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     rule_pos: invalid_value
-''',
-      [diag.unsupportedValue],
-    );
+//            ^^^^^^^^^^^^^
+// [diag.unsupportedValue] The value 'invalid_value' isn't supported by 'rule_pos'.
+''');
   }
 
   void test_incompatible_unsuportedValue_invalidMap_mixedCase() {
@@ -370,36 +337,38 @@ linter:
   rules:
     rUle_neg: true
 ''');
-    assertErrors(
-      '''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
   rules:
     Rule_pos: invalid_value
-''',
-      [diag.unsupportedValue],
-    );
+//            ^^^^^^^^^^^^^
+// [diag.unsupportedValue] The value 'invalid_value' isn't supported by 'Rule_pos'.
+''');
   }
 
   void test_package_import() {
-    newFile('$otherLib/analysis_options.yaml', '''
+    testProjectPath = '/test';
+    assertRuleDiagnosticsInFiles({
+      getFile('$otherLib/analysis_options.yaml'): '''
 linter:
   rules:
     rule_pos: true
-''');
-    testProjectPath = '/test';
-    assertErrors(
-      '''
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
+''',
+      getFile('$testProjectPath/analysis_options.yaml'): '''
 include:
   - package:other/analysis_options.yaml
 
 linter:
   rules:
     rule_neg: true
+//  ^^^^^^^^
+// [diag.incompatibleLintFiles][context 1] The rule 'rule_neg' is incompatible with 'rule_pos'.
 ''',
-      [diag.incompatibleLintFiles],
-    );
+    });
   }
 
   Future<void> test_removed_rule_inInclude_ok() async {
@@ -408,34 +377,30 @@ linter:
   rules:
     - removed_in_2_12_lint
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 ''');
   }
 
   /// https://github.com/dart-lang/sdk/issues/59869
   test_removed_rule_previousSdk() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - removed_in_2_12_lint
-''',
-      [diag.removedLint],
-      sdk: dart3_3,
-    );
+//    ^^^^^^^^^^^^^^^^^^^^
+// [diag.removedLint] 'removed_in_2_12_lint' was removed in Dart '2.12.0'
+''', sdk: dart3_3);
   }
 
   test_removed_rule_previousSdk_mixedCase() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - remOved_in_2_12_lint
-''',
-      [diag.removedLint],
-      sdk: dart3_3,
-    );
+//    ^^^^^^^^^^^^^^^^^^^^
+// [diag.removedLint] 'remOved_in_2_12_lint' was removed in Dart '2.12.0'
+''', sdk: dart3_3);
   }
 }
 
@@ -443,97 +408,87 @@ linter:
 class OptionsRuleValidatorTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
   void test_deprecated_rule() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_lint
-''',
-      [diag.deprecatedLint],
-    );
+//    ^^^^^^^^^^^^^^^
+// [diag.deprecatedLint] The lint rule 'deprecated_lint' is deprecated and shouldn't be enabled.
+''');
   }
 
   void test_deprecated_rule_map() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     deprecated_lint: false
-''',
-      [diag.deprecatedLint],
-    );
+//  ^^^^^^^^^^^^^^^
+// [diag.deprecatedLint] The lint rule 'deprecated_lint' is deprecated and shouldn't be enabled.
+''');
   }
 
   void test_deprecated_rule_map_mixedCase() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     deprecated_lInt: false
-''',
-      [diag.deprecatedLint],
-    );
+//  ^^^^^^^^^^^^^^^
+// [diag.deprecatedLint] The lint rule 'deprecated_lInt' is deprecated and shouldn't be enabled.
+''');
   }
 
   void test_deprecated_rule_mixedCase() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecAted_lint
-''',
-      [diag.deprecatedLint],
-    );
+//    ^^^^^^^^^^^^^^^
+// [diag.deprecatedLint] The lint rule 'deprecAted_lint' is deprecated and shouldn't be enabled.
+''');
   }
 
   void test_deprecated_rule_previousSDK() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
-''',
-      [diag.deprecatedLint],
-      sdk: dart3_3,
-    );
+//    ^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.deprecatedLint] The lint rule 'deprecated_since_3_lint' is deprecated and shouldn't be enabled.
+''', sdk: dart3_3);
   }
 
   void test_deprecated_rule_withReplacement() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_lint_with_replacement
-''',
-      [diag.deprecatedLintWithReplacement],
-    );
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.deprecatedLintWithReplacement] The lint rule 'deprecated_lint_with_replacement' is deprecated and replaced by 'replacing_lint'.
+''');
   }
 
   void test_deprecated_rule_withReplacement_mixedCase() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_lint_with_rePlacement
-''',
-      [diag.deprecatedLintWithReplacement],
-    );
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.deprecatedLintWithReplacement] The lint rule 'deprecated_lint_with_rePlacement' is deprecated and replaced by 'replacing_lint'.
+''');
   }
 
   void test_deprecated_rule_withSince_inCurrentSdk() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
-''',
-      [diag.deprecatedLint],
-      sdk: dart3,
-    );
+//    ^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.deprecatedLint] The lint rule 'deprecated_since_3_lint' is deprecated and shouldn't be enabled.
+''', sdk: dart3);
   }
 
   void test_deprecated_rule_withSince_notInCurrentSdk() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
@@ -541,7 +496,7 @@ linter:
   }
 
   void test_deprecated_rule_withSince_unknownSdk() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     - deprecated_since_3_lint
@@ -549,77 +504,55 @@ linter:
   }
 
   void test_duplicated_rule() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - stable_lint
     - stable_lint
-''',
-      [diag.duplicateRule],
-    );
+//    ^^^^^^^^^^^
+// [diag.duplicateRule] The rule 'stable_lint' is already enabled and doesn't need to be enabled again.
+''');
   }
 
   void test_duplicated_rule_mixedCase() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - stable_lint
     - staBle_lint
-''',
-      [diag.duplicateRule],
-    );
+//    ^^^^^^^^^^^
+// [diag.duplicateRule] The rule 'staBle_lint' is already enabled and doesn't need to be enabled again.
+''');
   }
 
   Future<void> test_incompatible_rule() async {
-    var testCode = TestCode.parse('''
+    await assertDiagnosticsInCode('''
 linter:
   rules:
-    - /*[0*/rule_pos/*0]*/
-    - /*[1*/rule_neg/*1]*/
+    - rule_pos
+//    ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+    - rule_neg
+//    ^^^^^^^^
+// [diag.incompatibleLint][context 1] The rule 'rule_neg' is incompatible with ''rule_pos''.
 ''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLint,
-        testCode.ranges.last.sourceRange.offset,
-        testCode.ranges.last.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            analysisOptionsFile,
-            testCode.ranges.first.sourceRange.offset,
-            testCode.ranges.first.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
   }
 
   Future<void> test_incompatible_rule_map() async {
-    var testCode = TestCode.parse('''
+    await assertDiagnosticsInCode('''
 linter:
   rules:
-    /*[0*/rule_pos/*0]*/: true
-    /*[1*/rule_neg/*1]*/: true
+    rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'rule_pos' is enabled here.
+    rule_neg: true
+//  ^^^^^^^^
+// [diag.incompatibleLint][context 1] The rule 'rule_neg' is incompatible with ''rule_pos''.
 ''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLint,
-        testCode.ranges.last.sourceRange.offset,
-        testCode.ranges.last.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            analysisOptionsFile,
-            testCode.ranges.first.sourceRange.offset,
-            testCode.ranges.first.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
   }
 
   void test_incompatible_rule_map_disabled() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     rule_pos: true
@@ -628,49 +561,29 @@ linter:
   }
 
   Future<void> test_incompatible_rule_map_mixedCase() async {
-    var testCode = TestCode.parse('''
+    await assertDiagnosticsInCode('''
 linter:
   rules:
-    /*[0*/Rule_pos/*0]*/: true
-    /*[1*/rUle_neg/*1]*/: true
+    Rule_pos: true
+//  ^^^^^^^^
+// [context 1] The rule 'Rule_pos' is enabled here.
+    rUle_neg: true
+//  ^^^^^^^^
+// [diag.incompatibleLint][context 1] The rule 'rUle_neg' is incompatible with ''Rule_pos''.
 ''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLint,
-        testCode.ranges.last.sourceRange.offset,
-        testCode.ranges.last.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            analysisOptionsFile,
-            testCode.ranges.first.sourceRange.offset,
-            testCode.ranges.first.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
   }
 
   Future<void> test_incompatible_rule_mixedCase() async {
-    var testCode = TestCode.parse('''
+    await assertDiagnosticsInCode('''
 linter:
   rules:
-    - /*[0*/rule_Pos/*0]*/
-    - /*[1*/rule_neG/*1]*/
+    - rule_Pos
+//    ^^^^^^^^
+// [context 1] The rule 'rule_Pos' is enabled here.
+    - rule_neG
+//    ^^^^^^^^
+// [diag.incompatibleLint][context 1] The rule 'rule_neG' is incompatible with ''rule_Pos''.
 ''');
-    await assertErrorsInCode(testCode.code, [
-      error(
-        diag.incompatibleLint,
-        testCode.ranges.last.sourceRange.offset,
-        testCode.ranges.last.sourceRange.length,
-        contextMessages: [
-          contextMessage(
-            analysisOptionsFile,
-            testCode.ranges.first.sourceRange.offset,
-            testCode.ranges.first.sourceRange.length,
-          ),
-        ],
-      ),
-    ]);
   }
 
   void test_no_duplicated_rule_include() {
@@ -679,7 +592,7 @@ linter:
   rules:
     - stable_lint
 ''');
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -689,19 +602,17 @@ linter:
   }
 
   void test_removed_rule() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - removed_in_2_12_lint
-''',
-      [diag.removedLint],
-      sdk: dart2_12,
-    );
+//    ^^^^^^^^^^^^^^^^^^^^
+// [diag.removedLint] 'removed_in_2_12_lint' was removed in Dart '2.12.0'
+''', sdk: dart2_12);
   }
 
   void test_removed_rule_notYet_ok() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     - removed_in_2_12_lint
@@ -709,31 +620,27 @@ linter:
   }
 
   void test_replaced_rule() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - replaced_lint
-''',
-      [diag.replacedLint],
-      sdk: dart3,
-    );
+//    ^^^^^^^^^^^^^
+// [diag.replacedLint] 'replaced_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
+''', sdk: dart3);
   }
 
   void test_replaced_rule_mixedCase() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - replaCed_lint
-''',
-      [diag.replacedLint],
-      sdk: dart3,
-    );
+//    ^^^^^^^^^^^^^
+// [diag.replacedLint] 'replaCed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
+''', sdk: dart3);
   }
 
   void test_stable_rule() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     - stable_lint
@@ -741,7 +648,7 @@ linter:
   }
 
   void test_stable_rule_map() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     stable_lint: true
@@ -749,7 +656,7 @@ linter:
   }
 
   void test_stable_rule_map_mixedCase() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     sTable_lint: true
@@ -757,7 +664,7 @@ linter:
   }
 
   void test_stable_rule_mixedCase() {
-    assertNoErrors('''
+    assertDiagnostics('''
 linter:
   rules:
     - Stable_lint
@@ -765,44 +672,53 @@ linter:
   }
 
   void test_undefined_rule() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     - this_rule_does_not_exist
-''',
-      [diag.undefinedLint],
-    );
+//    ^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.undefinedLint] 'this_rule_does_not_exist' isn't a recognized lint rule.
+''');
   }
 
   void test_undefined_rule_map() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     this_rule_does_not_exist: false
-''',
-      [diag.undefinedLint],
-    );
+//  ^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.undefinedLint] 'this_rule_does_not_exist' isn't a recognized lint rule.
+''');
   }
 }
 
 mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
   String? testProjectPath;
 
-  /// Assert that when the validator is used on the given [content] the
-  /// [expectedCodes] are produced.
-  void assertErrors(
-    String content,
-    List<DiagnosticCode> expectedCodes, {
-    VersionConstraint? sdk,
-  }) {
-    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
+  /// Assert that when the validator is used on the given [content] its
+  /// diagnostics match the inline diagnostic markers in [content].
+  void assertDiagnostics(String content, {VersionConstraint? sdk}) {
     var optionsFile = analysisOptionsFile;
     if (testProjectPath != null) {
-      optionsFile = newFile('$testProjectPath/analysis_options.yaml', '');
+      optionsFile = getFile('$testProjectPath/analysis_options.yaml');
     }
-    optionsFile.writeAsStringSync(content);
+    assertRuleDiagnosticsInFiles({optionsFile: content}, sdk: sdk);
+  }
+
+  /// Assert that rule-validator diagnostics for a main options file match
+  /// inline diagnostic markers across [codeByFile].
+  void assertRuleDiagnosticsInFiles(
+    Map<File, String> codeByFile, {
+    VersionConstraint? sdk,
+  }) {
+    var cleanCodeByFile = writeFilesWithoutDiagnosticExpectations(codeByFile);
+
+    var optionsFile = testProjectPath != null
+        ? getFile('$testProjectPath/analysis_options.yaml')
+        : analysisOptionsFile;
+    var cleanContent = cleanCodeByFile[optionsFile]!;
+
+    var listener = RecordingDiagnosticListener();
     var source = FileSource(optionsFile);
     var reporter = DiagnosticReporter(listener, source);
     var validator = LinterRuleOptionsValidator(
@@ -814,15 +730,14 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     );
     validator.validate(
       reporter,
-      loadYamlNode(content, sourceUrl: source.uri) as YamlMap,
+      loadYamlNode(cleanContent, sourceUrl: source.uri) as YamlMap,
     );
-    listener.assertErrorsWithCodes(expectedCodes);
-  }
 
-  /// Assert that when the validator is used on the given [content] no errors
-  /// are produced.
-  void assertNoErrors(String content, {VersionConstraint? sdk}) =>
-      assertErrors(content, const [], sdk: sdk);
+    assertDiagnosticMarkersInFiles(
+      codeByFile: codeByFile,
+      diagnostics: listener.diagnostics,
+    );
+  }
 
   @override
   void setUp() {
@@ -854,18 +769,17 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
 class OptionsRuleValidatorValueTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
   void test_unsuportedValue_invalidValue() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 linter:
   rules:
     rule_pos: invalid_value
-''',
-      [diag.unsupportedValue],
-    );
+//            ^^^^^^^^^^^^^
+// [diag.unsupportedValue] The value 'invalid_value' isn't supported by 'rule_pos'.
+''');
   }
 
   void test_unsuportedValue_validError() {
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -875,7 +789,7 @@ linter:
   }
 
   void test_unsuportedValue_validFalse() {
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -885,7 +799,7 @@ linter:
   }
 
   void test_unsuportedValue_validIgnore() {
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -895,7 +809,7 @@ linter:
   }
 
   void test_unsuportedValue_validInfo() {
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -905,7 +819,7 @@ linter:
   }
 
   void test_unsuportedValue_validTrue() {
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
@@ -915,7 +829,7 @@ linter:
   }
 
   void test_unsuportedValue_validWarning() {
-    assertNoErrors('''
+    assertDiagnostics('''
 include: included.yaml
 
 linter:
