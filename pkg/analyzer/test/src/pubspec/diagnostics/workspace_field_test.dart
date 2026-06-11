@@ -2,33 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../dart/resolution/node_text_expectations.dart';
 import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WorkspaceFieldTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class WorkspaceFieldTest extends PubspecDiagnosticTest {
   test_workspaceGlob_baseMissing_error() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 workspace:
   - packages/*
-''',
-      [diag.pathDoesNotExist],
-    );
+//  ^^^^^^^^^^
+// [diag.pathDoesNotExist] The path 'packages' doesn't exist.
+''');
   }
 
   test_workspaceGlob_braces_baseExists_noError() {
     newFolder('/sample/packages');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
   - packages/{a,b}
@@ -37,7 +37,7 @@ workspace:
 
   test_workspaceGlob_nestedBase_baseExists_noError() {
     newFolder('/sample/apps/nested');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
   - apps/nested/*
@@ -46,7 +46,7 @@ workspace:
 
   test_workspaceGlob_noBase_noError() {
     // Pattern starts with a glob character — no base directory to check.
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
   - '*'
@@ -55,7 +55,7 @@ workspace:
 
   test_workspaceGlob_questionMark_baseExists_noError() {
     newFolder('/sample/packages');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
   - packages/pkg?
@@ -64,7 +64,7 @@ workspace:
 
   test_workspaceGlob_star_baseExists_noError() {
     newFolder('/sample/packages');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
   - packages/*
@@ -72,53 +72,49 @@ workspace:
   }
 
   test_workspaceIsList() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 workspace: package1
-''',
-      [diag.workspaceFieldNotList],
-    );
+//         ^^^^^^^^
+// [diag.workspaceFieldNotList] The value of the 'workspace' field is required to be a list of relative file paths.
+''');
   }
 
   test_workspaceValueIsNotString() {
     newFolder('/sample/package1');
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 workspace:
     - 23
-''',
-      [diag.workspaceValueNotString],
-    );
+//    ^^
+// [diag.workspaceValueNotString] Workspace entries are required to be directory paths (strings).
+''');
   }
 
   test_workspaceValueIsNotSubDirectory() {
     newFolder('/sample/package1');
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 workspace:
     - /sample2
-''',
-      [diag.workspaceValueNotSubdirectory],
-    );
+//    ^^^^^^^^
+// [diag.workspaceValueNotSubdirectory] Workspace values must be a relative path of a subdirectory of '/sample'.
+''');
   }
 
   test_workspaceValueIsNull() {
-    assertErrors(
-      '''
+    assertDiagnostics('''
 name: sample
 workspace:
     -
-''',
-      [diag.workspaceValueNotString],
-    );
+//  ^
+// [diag.workspaceValueNotString][column 5][length 0] Workspace entries are required to be directory paths (strings).
+''');
   }
 
   test_workspaceValueIsString() {
     newFolder('/sample/package1');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
     - package1
@@ -127,7 +123,7 @@ workspace:
 
   test_workspaceValueIsSubDirectory() {
     newFolder('/sample/package1');
-    assertNoErrors('''
+    assertDiagnostics('''
 name: sample
 workspace:
     - package1

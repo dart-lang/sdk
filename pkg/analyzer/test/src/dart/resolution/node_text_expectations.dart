@@ -207,6 +207,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentMapEntryValue(mapArgument: _ArgumentIndex(0)),
     ),
     _AssertMethod(
+      className: 'PubspecDiagnosticTest',
+      methodName: 'assertDiagnostics',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),
