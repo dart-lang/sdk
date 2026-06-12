@@ -30,9 +30,15 @@ import 'support/configuration_files.dart';
 
 class AbstractContextTest
     with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore byteStore = MemoryByteStore();
+  final ByteStore byteStore = _sharedByteStore;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;

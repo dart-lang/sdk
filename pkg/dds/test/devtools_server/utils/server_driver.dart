@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:browser_launcher/browser_launcher.dart' as bl;
 import 'package:dds/devtools_server.dart';
 import 'package:devtools_shared/devtools_test_utils.dart';
 import 'package:vm_service/vm_service.dart';
@@ -137,6 +138,8 @@ class DevToolsServerTestController {
   /// cleaned up.
   final List<int> browserPids = [];
 
+  final List<Directory> _tempDirs = [];
+
   late StreamSubscription<String> stderrSub;
 
   late StreamSubscription<Map<String, dynamic>?> stdoutSub;
@@ -173,6 +176,12 @@ class DevToolsServerTestController {
     browserPids
       ..forEach((pid) => Process.killPid(pid, ProcessSignal.sigkill))
       ..clear();
+    for (final tempDir in _tempDirs) {
+      try {
+        await tempDir.delete(recursive: true);
+      } catch (_) {}
+    }
+    _tempDirs.clear();
     await stdoutSub.cancel();
     await stderrSub.cancel();
     server.kill();
@@ -212,6 +221,34 @@ class DevToolsServerTestController {
       browserPids.add(pid);
     }
     return response['params'];
+  }
+
+  Future<Process> launchChrome(String url) async {
+    final tempDir = Directory.systemTemp.createTempSync('devtools_chrome_profile');
+    _tempDirs.add(tempDir);
+
+    final chromeProcess = await bl.Chrome.start([url], args: [
+      '--user-data-dir=${tempDir.path}', // Ensures process isolation
+      '--no-first-run',                  // Prevents welcome dialogs
+      '--no-default-browser-check',      // Prevents default browser prompts
+      if (useChromeHeadless && headlessModeIsSupported) ...[
+        '--headless',
+        '--disable-gpu',
+        '--no-sandbox',
+      ],
+      if (Platform.isMacOS) '--use-mock-keychain',
+    ]);
+
+    browserPids.add(chromeProcess.pid);
+    chromeProcess.exitCode.then((_) {
+      browserPids.remove(chromeProcess.pid);
+      if (_tempDirs.remove(tempDir)) {
+        try {
+          tempDir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    });
+    return chromeProcess;
   }
 
   Future<void> startApp({bool runPubGet = false}) async {
@@ -280,6 +317,10 @@ class DevToolsServerTestController {
           : !client['hasConnection'];
     }
 
+    final timeout = useLongTimeout
+        ? const Duration(seconds: 120)
+        : const Duration(seconds: 30);
+
     await _waitFor(
       () async {
         // Await a short delay to give the client time to connect.
@@ -294,6 +335,7 @@ class DevToolsServerTestController {
                 clients.any(hasConnectionState));
       },
       delayDuration: delayDuration,
+      timeout: timeout,
     );
 
     return serverResponse;
@@ -302,10 +344,15 @@ class DevToolsServerTestController {
   Future<void> _waitFor(
     Future<bool> Function() condition, {
     Duration delayDuration = defaultDelay,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
+    final watch = Stopwatch()..start();
     while (true) {
       if (await condition()) {
         return;
+      }
+      if (watch.elapsed > timeout) {
+        throw TimeoutException('Timed out waiting for condition');
       }
       await delay(duration: delayDuration);
     }
