@@ -20,7 +20,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -404,15 +404,14 @@ class ContextManagerImpl implements ContextManager {
       var sdkVersionConstraint = (package is PubPackage)
           ? package.sdkVersionConstraint
           : null;
-      var errors = AnalysisOptionsAnalyzer(
-        initialSource: FileSource(file),
+      var errors = AnalysisOptionsValidator(
         sourceFactory: driver.sourceFactory,
         contextRoot:
             driver.currentSession.analysisContext.contextRoot.root.path,
         sdkVersionConstraint: sdkVersionConstraint,
         resourceProvider: resourceProvider,
         analysisOptionsCache: analysisOptionsCache,
-      ).walkIncludes(content: content);
+      ).validateContent(file: file, content: content);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(
         errors,

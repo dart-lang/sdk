@@ -4,8 +4,7 @@
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -48,14 +47,12 @@ abstract class AbstractAnalysisOptionsTest
       fail('Cannot validate ${initialFile.path}: no content was provided.');
     }
 
-    var diagnostics = AnalysisOptionsAnalyzer(
-      initialSource:
-          sourceFactory.forUri2(initialFile.toUri()) ?? FileSource(initialFile),
+    var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
       contextRoot: convertPath('/'),
       sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).walkIncludes(content: cleanContent);
+    ).validateContent(file: initialFile, content: cleanContent);
 
     assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,

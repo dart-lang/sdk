@@ -8,10 +8,9 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -82,13 +81,12 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
         ? package.sdkVersionConstraint
         : null;
 
-    var errors = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(optionsFile),
+    var errors = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
       contextRoot: contextRoot.root.path,
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).walkIncludes(content: content);
+    ).validateContent(file: optionsFile, content: content);
 
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {

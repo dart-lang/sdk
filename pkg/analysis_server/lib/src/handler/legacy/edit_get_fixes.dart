@@ -22,7 +22,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
@@ -123,13 +123,12 @@ class EditGetFixesHandler extends LegacyHandler
     var sdkVersionConstraint = (package is PubPackage)
         ? package.sdkVersionConstraint
         : null;
-    var diagnostics = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(optionsFile),
+    var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
       contextRoot: analysisContext.contextRoot.root.path,
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).walkIncludes(content: content);
+    ).validateContent(file: optionsFile, content: content);
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
       return errorFixesList;
