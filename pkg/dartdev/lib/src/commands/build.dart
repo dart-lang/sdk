@@ -152,7 +152,8 @@ then that is used instead.''',
       ..addOption(
         'depfile',
         valueHelp: 'path',
-        help: 'Path to output Ninja depfile',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
       )
       ..addOption(
         'target-sanitizer',
