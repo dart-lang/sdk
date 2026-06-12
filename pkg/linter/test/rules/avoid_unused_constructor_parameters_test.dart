@@ -101,6 +101,36 @@ class C {
 ''');
   }
 
+  test_positional_primary_declaring() async {
+    await assertNoDiagnostics('''
+class C(var int f);
+''');
+  }
+
+  test_positional_primary_initializerList() async {
+    await assertNoDiagnostics('''
+class C(int p) {
+  this : other = p;
+  final int other;
+}
+''');
+  }
+
+  test_positional_primary_initializing() async {
+    await assertNoDiagnostics('''
+class C(this.f) {
+  int f;
+}
+''');
+  }
+
+  test_positional_primary_super() async {
+    await assertNoDiagnostics('''
+class C(var int f);
+class D(super.f) extends C;
+''');
+  }
+
   test_redirectingConstructor1() async {
     await assertDiagnosticsFromMarkdown(r'''
 class C {
@@ -165,7 +195,7 @@ class C {
     await assertNoDiagnostics(r'''
 class C {
   C({int p = 0}) {
-   p;
+    p;
   }
 }
 ''');
@@ -175,7 +205,7 @@ class C {
     await assertNoDiagnostics(r'''
 class C({int p = 0}) {
   this {
-   p;
+    p;
   }
 }
 ''');
@@ -201,7 +231,7 @@ class C({int p = 0}) {
   test_usedInFieldInitializer_primary() async {
     await assertNoDiagnostics(r'''
 class C(int p) {
-  final int f = p; 
+  final int f = p;
 }
 ''');
   }
@@ -245,7 +275,7 @@ class D(int p) extends C {
   test_wildcardParam() async {
     await assertNoDiagnostics(r'''
 class C {
- C(int _);
+  C(int _);
 }
 ''');
   }
@@ -256,7 +286,7 @@ class C {
 // (pre wildcard-variables)
 
 class C {
- C(int _);
+  C(int _);
 }
 ''');
   }

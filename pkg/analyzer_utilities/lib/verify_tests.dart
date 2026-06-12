@@ -19,10 +19,7 @@ class VerifyTests {
   /// Path to the package's `test` subdirectory.
   final String testDirPath;
 
-  /// Paths to exclude from analysis completely.
-  final List<String>? excludedPaths;
-
-  new(this.testDirPath, {this.excludedPaths});
+  new(this.testDirPath);
 
   /// Build tests.
   void build({bool Function(AnalysisContext)? analysisContextPredicate}) {

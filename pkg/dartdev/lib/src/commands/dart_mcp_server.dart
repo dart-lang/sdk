@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:args/args.dart';
 import 'package:dartdev/src/commands/run.dart';
 
 import '../core.dart';
@@ -18,18 +19,24 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
   static const _experimentFlag = 'experimental-mcp-server';
 
   DartMCPServerCommand({bool verbose = false})
-    : super(cmdName, cmdDescription, verbose, hidden: true) {
-    argParser.addFlag(
-      _experimentFlag,
-      // This flag is no longer required but we are leaving it in for
-      // backwards compatibility.
-      hide: true,
-      defaultsTo: false,
-      help:
-          'A required flag in order to use this command. Passing this '
-          'flag is an acknowledgement that you understand it is an '
-          'experimental feature with no stability guarantees.',
-    );
+    : super(cmdName, cmdDescription, verbose, hidden: true);
+
+  /// Allow any arguments, they will be forwarded to the actual mcp server.
+  @override
+  ArgParser createArgParser() {
+    return ArgParser.allowAnything();
+  }
+
+  @override
+  void printUsage() {
+    final executable = runner!.executableName;
+    print('''
+Usage: dart mcp-server [arguments]
+
+Note: This command is a wrapper around the dart_mcp_server package.
+To see the options, run "$executable $name --help".
+
+Run "$executable help" to see global options.''');
   }
 
   @override
@@ -43,12 +50,7 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
 
     // Strip out the experiment flag before forwarding on the args, this flag
     // isn't supported by the actual package.
-    //
-    // Have to check the local arg results here, as this flag only exists on the
-    // command arg parser and not the global one.
-    if (argResults!.wasParsed(_experimentFlag)) {
-      forwardedArgs.removeWhere((arg) => arg.endsWith(_experimentFlag));
-    }
+    forwardedArgs.removeWhere((arg) => arg.endsWith(_experimentFlag));
 
     // Find the index of the original command argument and replace it with
     // `run dart_mcp_server@`.

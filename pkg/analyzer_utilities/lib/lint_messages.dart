@@ -108,6 +108,7 @@ enum LintStateName {
   experimental,
   stable,
   internal,
+  testing,
   deprecated,
   removed;
 

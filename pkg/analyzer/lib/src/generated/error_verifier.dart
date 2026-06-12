@@ -53,6 +53,7 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -2761,7 +2762,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForAugmentationFormalParameters({
     required ExecutableFragmentImpl executableFragment,
-    required FormalParameterList formalParameterList,
+    required FormalParameterListImpl formalParameterList,
   }) {
     if (!executableFragment.isAugmentation) {
       return;
@@ -2811,6 +2812,88 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return formalParameterList.rightParenthesis;
       }
       return parameter.name ?? parameter;
+    }
+
+    void checkModifier({
+      required FormalParameter formalParameter,
+      required FormalParameterFragmentImpl firstParameter,
+      required String modifier,
+      required bool expected,
+      required Token? actualKeyword,
+    }) {
+      if (!expected && actualKeyword != null) {
+        diagnosticReporter.report(
+          diag.augmentationFormalParameterModifierExtra
+              .withArguments(modifier: modifier)
+              .withContextMessages([
+                ?firstParameter.contextMessageAt(
+                  'The formal parameter is here.',
+                ),
+              ])
+              .at(actualKeyword),
+        );
+      } else if (expected && actualKeyword == null) {
+        diagnosticReporter.report(
+          diag.augmentationFormalParameterModifierMissing
+              .withArguments(modifier: modifier)
+              .withContextMessages([
+                ?firstParameter.contextMessageAt(
+                  'The formal parameter is here.',
+                ),
+              ])
+              .at(formalParameterErrorEntity(formalParameter)),
+        );
+      }
+    }
+
+    void checkFormalParameterPair({
+      required FormalParameterImpl formalParameter,
+      required FormalParameterFragmentImpl firstParameter,
+    }) {
+      var currentParameter = formalParameter.declaredFragment;
+      if (currentParameter is! FormalParameterFragmentImpl ||
+          currentParameter.isOriginOtherFragmentOfEnclosing) {
+        return;
+      }
+
+      checkModifier(
+        formalParameter: formalParameter,
+        firstParameter: firstParameter,
+        modifier: 'covariant',
+        expected: firstParameter.isExplicitlyCovariant,
+        actualKeyword: formalParameter.covariantKeyword,
+      );
+
+      checkModifier(
+        formalParameter: formalParameter,
+        firstParameter: firstParameter,
+        modifier: 'required',
+        expected: firstParameter.isRequiredNamed,
+        actualKeyword: formalParameter.requiredKeyword,
+      );
+
+      var actualType = formalParameter.explicitFragmentType;
+      if (actualType != null) {
+        var expectedType = firstParameter.element.type;
+        if (!typeSystem.isEqualTo(actualType, expectedType)) {
+          diagnosticReporter.report(
+            diag.augmentationFormalParameterTypeMismatch
+                .withArguments(
+                  expectedType: expectedType,
+                  actualType: actualType,
+                )
+                .withContextMessages([
+                  ?firstParameter.contextMessageAt(
+                    'The formal parameter is here.',
+                  ),
+                ])
+                .at(
+                  formalParameter.type ??
+                      formalParameterErrorEntity(formalParameter),
+                ),
+          );
+        }
+      }
     }
 
     if (currentRequiredPositionalCount < firstRequiredPositionalCount) {
@@ -2885,8 +2968,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // Positional parameter names can be `_`, but every non-wildcard name must
     // match all preceding non-wildcard declarations for the same parameter.
-    if (currentRequiredPositionalCount == firstRequiredPositionalCount &&
-        currentOptionalPositionalCount == firstOptionalPositionalCount) {
+    var positionalShapeMatches =
+        currentRequiredPositionalCount == firstRequiredPositionalCount &&
+        currentOptionalPositionalCount == firstOptionalPositionalCount;
+    if (positionalShapeMatches) {
       for (var formalParameter in formalParameterList.parameters) {
         if (!formalParameter.isPositional) {
           continue;
@@ -2934,6 +3019,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
+    if (positionalShapeMatches) {
+      forCorrespondingPairs(
+        formalParameterList.parameters.where((f) => f.isPositional),
+        firstParameters.where((f) => f.isPositional),
+        (formalParameter, firstParameter) {
+          checkFormalParameterPair(
+            formalParameter: formalParameter,
+            firstParameter: firstParameter,
+          );
+        },
+      );
+    }
+
     var firstNamedParametersByName = <String, FormalParameterFragmentImpl>{};
     for (var parameter in firstParameters) {
       var name = parameter.name;
@@ -2942,7 +3040,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    var currentNamedParametersByName = <String, FormalParameter>{};
+    var currentNamedParametersByName = <String, FormalParameterImpl>{};
     for (var formalParameter in formalParameterList.parameters) {
       var parameter = formalParameter.declaredFragment;
       if (parameter is FormalParameterFragmentImpl && parameter.isNamed) {
@@ -2955,7 +3053,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     for (var entry in currentNamedParametersByName.entries) {
       var name = entry.key;
-      if (!firstNamedParametersByName.containsKey(name)) {
+      var firstParameter = firstNamedParametersByName[name];
+      if (firstParameter != null) {
+        checkFormalParameterPair(
+          formalParameter: entry.value,
+          firstParameter: firstParameter,
+        );
+      } else {
         diagnosticReporter.report(
           diag.augmentationNamedFormalParameterExtra
               .withArguments(name: name)

@@ -888,6 +888,65 @@ augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Parameters:
+/// String modifier: the lexeme of the modifier.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String modifier})
+>
+augmentationFormalParameterModifierExtra = DiagnosticWithArguments(
+  name: 'augmentation_formal_parameter_modifier_extra',
+  problemMessage:
+      "The augmentation has the '{0}' modifier on this formal parameter, but the "
+      "declaration doesn't.",
+  correctionMessage:
+      "Try removing the '{0}' modifier, or adding it to the declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_formal_parameter_modifier_extra',
+  withArguments: _withArgumentsAugmentationFormalParameterModifierExtra,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String modifier: the lexeme of the modifier.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String modifier})
+>
+augmentationFormalParameterModifierMissing = DiagnosticWithArguments(
+  name: 'augmentation_formal_parameter_modifier_missing',
+  problemMessage:
+      "The augmentation is missing the '{0}' modifier on this formal parameter "
+      "that the declaration has.",
+  correctionMessage:
+      "Try adding the '{0}' modifier, or removing it from the declaration.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_formal_parameter_modifier_missing',
+  withArguments: _withArgumentsAugmentationFormalParameterModifierMissing,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// Type expectedType: the type of the formal parameter in the declaration.
+/// Type actualType: the type of the formal parameter in the augmentation.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType expectedType,
+    required DartType actualType,
+  })
+>
+augmentationFormalParameterTypeMismatch = DiagnosticWithArguments(
+  name: 'augmentation_formal_parameter_type_mismatch',
+  problemMessage:
+      "The augmentation's formal parameter type '{1}' must be the same as the "
+      "declaration's formal parameter type '{0}'.",
+  correctionMessage:
+      "Try changing the augmentation's formal parameter type to match the "
+      "declaration, or omit the type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_formal_parameter_type_mismatch',
+  withArguments: _withArgumentsAugmentationFormalParameterTypeMismatch,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments
 augmentationInducedGetterAlreadyComplete = DiagnosticWithoutArgumentsImpl(
@@ -18698,6 +18757,34 @@ LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
   return LocatableDiagnosticImpl(diag.assignmentToFinalNoSetter, [
     variableName,
     className,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAugmentationFormalParameterModifierExtra({
+  required String modifier,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationFormalParameterModifierExtra,
+    [modifier],
+  );
+}
+
+LocatableDiagnostic _withArgumentsAugmentationFormalParameterModifierMissing({
+  required String modifier,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationFormalParameterModifierMissing,
+    [modifier],
+  );
+}
+
+LocatableDiagnostic _withArgumentsAugmentationFormalParameterTypeMismatch({
+  required DartType expectedType,
+  required DartType actualType,
+}) {
+  return LocatableDiagnosticImpl(diag.augmentationFormalParameterTypeMismatch, [
+    expectedType,
+    actualType,
   ]);
 }
 

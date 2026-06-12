@@ -319,7 +319,16 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   static String _makeAuthToken() {
     final kTokenByteSize = 8;
     final bytes = Uint8List(kTokenByteSize);
-    final random = Random.secure();
+    Random random;
+    // Random.secure() may throw UnsupportedError if the platform does not
+    // provide a cryptographically secure source of entropy (e.g., in some
+    // sandboxed CI environments). Fall back to a pseudo-random generator
+    // in this case.
+    try {
+      random = Random.secure();
+    } on UnsupportedError {
+      random = Random();
+    }
     for (int i = 0; i < kTokenByteSize; i++) {
       bytes[i] = random.nextInt(256);
     }

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
@@ -18,14 +21,24 @@ void main() {
 }
 
 @reflectiveTest
-class DocumentLinkTest extends AbstractLspAnalysisServerTest {
+class DocumentLinkTest extends AbstractLspAnalysisServerTest
+    with LintRegistrationMixin {
   static const _pubBase = 'https://pub.dev/packages/';
-  static const _lintBase = 'https://dart.dev/tools/linter-rules/';
+  static const _lintBase = 'https://dart.dev/lints/';
+  static const _lintStatesBase =
+      'https://github.com/dart-lang/sdk/blob/main/'
+      'pkg/linter/doc/lint-lifecycle.md';
 
   @override
   void setUp() {
     registerLintRules();
     super.setUp();
+  }
+
+  @override
+  Future<void> tearDown() async {
+    unregisterLintRules();
+    await super.tearDown();
   }
 
   Future<void> test_analysisOptions_empty() async {
@@ -88,6 +101,32 @@ linter:
 ''';
 
     await _test_pubspec_links(content, []);
+  }
+
+  Future<void> test_analysisOptions_linterRules_hiddenStates() async {
+    registerLintRule(_InternalRule());
+    registerLintRule(
+      RemovedAnalysisRule(name: 'removed_rule_lint', description: ''),
+    );
+    registerLintRule(_TestingRule());
+
+    var content = '''
+linter:
+  rules:
+    - /*[0*/internal_lint/*0]*/
+    - /*[1*/removed_rule_lint/*1]*/
+    - /*[2*/testing_lint/*2]*/
+    - /*[3*/prefer_single_quotes/*3]*/
+''';
+
+    var expectedLinks = [
+      '$_lintStatesBase#internal',
+      '$_lintStatesBase#removed',
+      '$_lintStatesBase#testing',
+      '${_lintBase}prefer_single_quotes',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
   }
 
   Future<void> test_analysisOptions_linterRules_list() async {
@@ -398,4 +437,26 @@ dev_dependencies:
   ) async {
     await _test_file_links(pubspecFileUri, pubspecFilePath, content, expected);
   }
+}
+
+class _InternalRule extends AnalysisRule {
+  new() : super(name: 'internal_lint', state: .internal(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'internal_rule',
+    'Internal rule.',
+    uniqueName: 'LintCode.internal_rule',
+  );
+}
+
+class _TestingRule extends AnalysisRule {
+  new() : super(name: 'testing_lint', state: .testing(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'testing_rule',
+    'Testing rule.',
+    uniqueName: 'LintCode.testing_rule',
+  );
 }

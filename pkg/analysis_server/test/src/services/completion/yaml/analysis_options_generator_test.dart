@@ -88,6 +88,18 @@ analyzer:
     assertNoSuggestion('dead_code');
   }
 
+  void test_analyzer_errors_internal() {
+    registerLintRule(_InternalRule());
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('internal_lint: ');
+  }
+
   void test_analyzer_errors_noDuplicates() {
     getCompletions('''
 analyzer:
@@ -101,6 +113,20 @@ analyzer:
     expect(duplicateCompletions, isEmpty);
   }
 
+  void test_analyzer_errors_removed() {
+    registerLintRule(
+      RemovedAnalysisRule(name: 'removed_rule_lint', description: ''),
+    );
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('removed_rule_lint: ');
+  }
+
   void test_analyzer_errors_severity() {
     getCompletions('''
 analyzer:
@@ -111,6 +137,18 @@ analyzer:
     assertSuggestion('info');
     assertSuggestion('warning');
     assertSuggestion('error');
+  }
+
+  void test_analyzer_errors_testing() {
+    registerLintRule(_TestingRule());
+
+    getCompletions('''
+analyzer:
+  errors:
+    ^
+''');
+
+    assertNoSuggestion('testing_lint: ');
   }
 
   void test_analyzer_language_strictCasts() {
@@ -207,7 +245,7 @@ linter:
   }
 
   void test_linter_rules_internal() {
-    registerLintRule(InternalRule());
+    registerLintRule(_InternalRule());
 
     getCompletions('''
 linter:
@@ -295,6 +333,18 @@ linter:
     assertNoSuggestion('removed_lint');
   }
 
+  void test_linter_rules_testing() {
+    registerLintRule(_TestingRule());
+
+    getCompletions('''
+linter:
+  rules:
+    ^
+''');
+
+    assertNoSuggestion('testing_lint');
+  }
+
   void test_plugins_git_keys() {
     getCompletions('''
 plugins:
@@ -348,14 +398,7 @@ li^
   }
 }
 
-class InternalRule extends AnalysisRule {
-  static const LintCode code = LintCode(
-    'internal_rule',
-    'Internal rule.',
-    correctionMessage: 'Try internal rule.',
-    uniqueName: 'LintCode.internal_rule',
-  );
-
+class _InternalRule extends AnalysisRule {
   new()
     : super(
         name: 'internal_lint',
@@ -364,5 +407,21 @@ class InternalRule extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => code;
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'internal_rule',
+    'Internal rule.',
+    uniqueName: 'LintCode.internal_rule',
+  );
+}
+
+class _TestingRule extends AnalysisRule {
+  new()
+    : super(name: 'testing_lint', state: RuleState.testing(), description: '');
+
+  @override
+  DiagnosticCode get diagnosticCode => const LintCode(
+    'testing_rule',
+    'Testing rule.',
+    uniqueName: 'LintCode.testing_rule',
+  );
 }

@@ -285,7 +285,8 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
       ..addOption(
         'depfile',
         valueHelp: 'path',
-        help: 'Path to output Ninja depfile',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
       )
       ..addMultiOption(
         'extra-gen-kernel-options',
@@ -406,6 +407,12 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
         defaultsTo: soundNullSafetyOption.flagDefaultsTo,
         hide: true,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -452,6 +459,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
     final enabledExperiments = args.enabledExperiments;
     final defines = args.multiOption(defineOption.flag);
     final enableAsserts = args.flag(enableAssertsOption.flag);
+    final String? depfile = args.option('depfile');
 
     // Build arguments.
     final buildArgs = <String>[];
@@ -486,6 +494,10 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     if (enableAsserts) {
       buildArgs.add('--${enableAssertsOption.flag}');
+    }
+
+    if (depfile != null) {
+      buildArgs.add('--depfile=$depfile');
     }
 
     buildArgs.add(path.canonicalize(sourcePath));
@@ -571,7 +583,8 @@ Remove debugging information from the output and save it separately to the speci
       ..addOption(
         'depfile',
         valueHelp: 'path',
-        help: 'Path to output Ninja depfile',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
       )
       ..addOption(
         recordedUsesOption.flag,
@@ -972,6 +985,12 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         valueHelp: recordedUsesOption.valueHelp,
         hide: !verbose,
       )
+      ..addOption(
+        'depfile',
+        valueHelp: 'path',
+        help:
+            'Path to an output file in Ninja depfile format containing a list of compilation dependencies. This is passed to the compiler to support dependency tracking in build systems.',
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -1023,6 +1042,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final packages = args.option(packagesOption.flag);
     final defines = args.multiOption(defineOption.flag);
+    final depfile = args.option('depfile');
 
     int? maxPages;
     if (args.option('shared-memory') != null) {
@@ -1075,6 +1095,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (standalone) '--standalone',
       if (args.option(recordedUsesOption.flag) != null)
         '--recorded-uses=${args.option(recordedUsesOption.flag)}',
+      if (depfile != null) '--depfile=$depfile',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',

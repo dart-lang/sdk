@@ -4,8 +4,7 @@
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,51 +28,75 @@ abstract class AbstractAnalysisOptionsTest
   Map<String, String>? dependencies;
 
   late File analysisOptionsFile = getFile('/analysis_options.yaml');
+
   VersionConstraint? get sdkVersionConstraint => null;
 
-  Future<void> assertDiagnosticsInCode(String code) async {
-    await assertDiagnosticsInFiles({analysisOptionsFile: code});
+  List<Diagnostic> assertAnalysisOptionsDiagnostics(String code) {
+    return assertAnalysisOptionsDiagnosticsInFiles({analysisOptionsFile: code});
   }
 
-  Future<void> assertDiagnosticsInFiles(Map<File, String> codeByFile) async {
+  List<Diagnostic> assertAnalysisOptionsDiagnosticsInFiles(
+    Map<File, String> codeByFile, {
+    File? initialFile,
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    initialFile ??= analysisOptionsFile;
     var cleanCodeByFile = writeFilesWithoutDiagnosticExpectations(codeByFile);
+    var cleanContent = cleanCodeByFile[initialFile];
+    if (cleanContent == null) {
+      fail('Cannot validate ${initialFile.path}: no content was provided.');
+    }
 
-    var diagnostics = AnalysisOptionsAnalyzer(
-      initialSource: FileSource(analysisOptionsFile),
+    var diagnostics = AnalysisOptionsValidator(
       sourceFactory: sourceFactory,
-      contextRoot: '/',
-      sdkVersionConstraint: sdkVersionConstraint,
+      contextRoot: convertPath('/'),
+      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
       resourceProvider: resourceProvider,
-    ).walkIncludes(content: cleanCodeByFile[analysisOptionsFile]!);
+    ).validateContent(file: initialFile, content: cleanContent);
 
     assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
       diagnostics: diagnostics,
     );
+    return diagnostics;
+  }
+
+  Future<void> assertDiagnosticsInCode(String code) async {
+    assertAnalysisOptionsDiagnostics(code);
+  }
+
+  Future<void> assertDiagnosticsInFiles(Map<File, String> codeByFile) async {
+    assertAnalysisOptionsDiagnosticsInFiles(codeByFile);
   }
 
   void setUp() {
-    var resolvers = [
-      ResourceUriResolver(resourceProvider),
-      if (dependencies != null)
-        PackageMapUriResolver(resourceProvider, {
-          for (var entry in dependencies!.entries)
-            entry.key: [getFolder(convertPath(entry.value))],
-        }),
-    ];
-    sourceFactory = SourceFactoryImpl(resolvers);
+    sourceFactory = _createSourceFactory(packageDependencies: dependencies);
   }
 
   @mustCallSuper
   void tearDown() {
     unregisterLintRules();
   }
+
+  SourceFactory _createSourceFactory({
+    Map<String, String>? packageDependencies,
+  }) {
+    var resolvers = [
+      ResourceUriResolver(resourceProvider),
+      if (packageDependencies != null)
+        PackageMapUriResolver(resourceProvider, {
+          for (var entry in packageDependencies.entries)
+            entry.key: [getFolder(convertPath(entry.value))],
+        }),
+    ];
+    return SourceFactoryImpl(resolvers);
+  }
 }
 
 /// Shared inline diagnostic expectation checks for analysis-options tests.
 ///
-/// These helpers only compare diagnostics with inline markers. Test-specific
-/// helpers remain responsible for choosing which analyzer or validator entry
+/// These helpers only compare diagnostics with inline markers. The test
+/// fixture remains responsible for choosing which analyzer or validator entry
 /// point produces the diagnostics.
 mixin AnalysisOptionsDiagnosticExpectationMixin {
   void assertDiagnosticMarkersInFiles({

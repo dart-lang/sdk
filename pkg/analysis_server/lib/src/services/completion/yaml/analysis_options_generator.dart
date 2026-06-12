@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -78,7 +79,8 @@ class _ErrorProducer extends KeyValueProducer {
     // There may be overlaps in these names, so use a set.
     var names = {
       for (var diagnostic in diagnosticCodeValues) diagnostic.lowerCaseName,
-      for (var rule in Registry.ruleRegistry.rules) rule.name,
+      for (var rule in Registry.ruleRegistry.rules)
+        if (rule.includeInCompletions) rule.name,
     };
     return {for (var name in names) identifier('$name: ')};
   }
@@ -109,7 +111,7 @@ class _LintRuleProducer extends Producer {
       for (var rule in Registry.ruleRegistry.rules)
         // TODO(pq): consider suggesting internal lints if editing an SDK
         // options file.
-        if (!rule.state.isInternal && !rule.state.isRemoved)
+        if (rule.includeInCompletions)
           identifier(rule.name, docComplete: rule.description),
     ];
   }
@@ -136,4 +138,10 @@ class _PluginsProducer extends KeyValueProducer {
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) =>
       const [];
+}
+
+extension on AbstractAnalysisRule {
+  /// Whether this rule should be included in completion suggestions.
+  bool get includeInCompletions =>
+      !state.isInternal && !state.isRemoved && !state.isTesting;
 }
