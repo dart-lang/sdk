@@ -696,6 +696,7 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
   /// The argument must directly name a static function with no optional
   /// parameters and no type parameters.
   @pragma("wasm:intrinsic")
+  @pragma("wasm:entry-point")
   external factory WasmFunction.fromFunction(F f);
 
   /// Downcast `funcref` to a typed function reference.

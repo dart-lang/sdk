@@ -157,9 +157,6 @@ library
           formalParameters
             #F2 requiredPositional isOriginDeclaration p (nameOffset:37) (firstTokenOffset:7) (offset:37)
               element: <testLibrary>::@function::f::@formalParameter::p
-              parameters
-                #F3 requiredPositional isOriginDeclaration c (nameOffset:43) (firstTokenOffset:39) (offset:43)
-                  element: c@43
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -168,10 +165,6 @@ library
         #E0 requiredPositional p
           firstFragment: #F2
           type: int Function(int, String) Function(num)
-          formalParameters
-            #E1 requiredPositional c
-              firstFragment: #F3
-              type: num
       returnType: void
 ''');
   }

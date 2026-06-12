@@ -216,6 +216,25 @@ class C(var int x) {
 ''');
   }
 
+  Future<void> test_field_withDocComment() async {
+    await resolveTestCode('''
+class C(int x) {
+  /// A comment
+  /// on multiple lines.
+  int x;
+
+  this : x = x;
+}
+''');
+    await assertHasFix('''
+class C(
+  /// A comment
+  /// on multiple lines.
+  var int x) {
+}
+''');
+  }
+
   Future<void> test_optionalNamed_fieldFormalParameter_final() async {
     await resolveTestCode('''
 class C({this.x = 0}) {

@@ -675,20 +675,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
-      _writeElementList(
-        'typeParameters',
-        e,
-        // ignore: deprecated_member_use_from_same_package
-        e.typeParameters,
-        _writeTypeParameterElement,
-      );
-      _writeElementList(
-        'formalParameters',
-        e,
-        // ignore: deprecated_member_use_from_same_package
-        e.formalParameters,
-        _writeFormalParameterElement,
-      );
       _writeVariableElementConstantInitializer(e);
 
       switch (e) {
@@ -737,18 +723,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
-      _writeFragmentList(
-        'typeParameters',
-        f,
-        f.typeParameters,
-        _writeTypeParameterFragment,
-      );
-      _writeFragmentList(
-        'parameters',
-        f,
-        f.formalParameters,
-        _writeFormalParameterFragment,
-      );
       _writeVariableFragmentInitializer(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);

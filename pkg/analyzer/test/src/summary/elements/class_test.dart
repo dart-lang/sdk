@@ -16221,9 +16221,6 @@ library
               formalParameters
                 #F5 requiredPositional isOriginDeclaration p1 (nameOffset:87) (firstTokenOffset:82) (offset:87)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration a (nameOffset:94) (firstTokenOffset:90) (offset:94)
-                      element: a@94
                   previousFragment: #F4
               previousFragment: #F3
   classes
@@ -17375,11 +17372,8 @@ library
               formalParameters
                 #F6 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:53) (offset:57)
-                      element: a@57
-                  nextFragment: #F8
-              nextFragment: #F9
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
             #F4 isComplete isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::A::@getter::p1
@@ -17388,16 +17382,13 @@ library
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F9 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:84) (offset:92)
+            #F8 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:84) (offset:92)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 92
               formalParameters
-                #F8 requiredPositional isFinal isOriginDeclaration this.p1 (nameOffset:104) (firstTokenOffset:94) (offset:104)
+                #F7 requiredPositional isFinal isOriginDeclaration this.p1 (nameOffset:104) (firstTokenOffset:94) (offset:104)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  parameters
-                    #F10 requiredPositional isOriginDeclaration a (nameOffset:111) (firstTokenOffset:107) (offset:111)
-                      element: a@111
                   previousFragment: #F6
               previousFragment: #F5
   classes
@@ -17418,10 +17409,6 @@ library
             #E0 requiredPositional isFinal this.p1
               firstFragment: #F6
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F7
-                  type: int
               field: <testLibrary>::@class::A::@field::p1
       getters
         isOriginVariable p1
@@ -17461,22 +17448,19 @@ library
               formalParameters
                 #F4 requiredPositional isOriginDeclaration p1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  parameters
-                    #F5 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:28) (offset:32)
-                      element: a@32
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F5
+              nextFragment: #F6
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F7 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
+            #F6 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 67
               periodOffset: 68
               formalParameters
-                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:94) (firstTokenOffset:75) (offset:94)
+                #F5 requiredPositional isOriginDeclaration p1 (nameOffset:94) (firstTokenOffset:75) (offset:94)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -17492,10 +17476,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F5
-                  type: int
 ''');
   }
 
@@ -17528,26 +17508,20 @@ library
               formalParameters
                 #F4 requiredPositional isOriginDeclaration p1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  parameters
-                    #F5 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:28) (offset:32)
-                      element: a@32
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F5
+              nextFragment: #F6
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F7 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
+            #F6 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 67
               periodOffset: 68
               formalParameters
-                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:80) (firstTokenOffset:75) (offset:80)
+                #F5 requiredPositional isOriginDeclaration p1 (nameOffset:80) (firstTokenOffset:75) (offset:80)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  parameters
-                    #F8 requiredPositional isOriginDeclaration a (nameOffset:87) (firstTokenOffset:83) (offset:87)
-                      element: a@87
                   previousFragment: #F4
               previousFragment: #F3
   classes
@@ -17562,10 +17536,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F5
-                  type: int
 ''');
   }
 
@@ -17598,26 +17568,20 @@ library
               formalParameters
                 #F4 requiredPositional isOriginDeclaration p1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  parameters
-                    #F5 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:28) (offset:32)
-                      element: a@32
-                  nextFragment: #F6
-              nextFragment: #F7
+                  nextFragment: #F5
+              nextFragment: #F6
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F7 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
+            #F6 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 67
               periodOffset: 68
               formalParameters
-                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:80) (firstTokenOffset:75) (offset:80)
+                #F5 requiredPositional isOriginDeclaration p1 (nameOffset:80) (firstTokenOffset:75) (offset:80)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  parameters
-                    #F8 requiredPositional isOriginDeclaration a (nameOffset:90) (firstTokenOffset:83) (offset:90)
-                      element: a@90
                   previousFragment: #F4
               previousFragment: #F3
   classes
@@ -17632,10 +17596,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F5
-                  type: int
 ''');
   }
 
@@ -17669,41 +17629,32 @@ library
               formalParameters
                 #F3 requiredPositional isOriginDeclaration p1 (nameOffset:19) (firstTokenOffset:14) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
-                  parameters
-                    #F4 requiredPositional isOriginDeclaration a (nameOffset:26) (firstTokenOffset:22) (offset:26)
-                      element: a@26
-        #F5 hasExtendsClause class B (nameOffset:39) (firstTokenOffset:33) (offset:39)
+        #F4 hasExtendsClause class B (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::B
-          nextFragment: #F6
+          nextFragment: #F5
           constructors
-            #F7 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
+            #F6 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 55
               formalParameters
-                #F8 requiredPositional isOriginDeclaration p1 (nameOffset:62) (firstTokenOffset:57) (offset:62)
+                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:62) (firstTokenOffset:57) (offset:62)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  parameters
-                    #F9 requiredPositional isOriginDeclaration a (nameOffset:69) (firstTokenOffset:65) (offset:69)
-                      element: a@69
-                  nextFragment: #F10
-              nextFragment: #F11
-        #F6 isAugmentation class B (nameOffset:90) (firstTokenOffset:76) (offset:90)
+                  nextFragment: #F8
+              nextFragment: #F9
+        #F5 isAugmentation class B (nameOffset:90) (firstTokenOffset:76) (offset:90)
           element: <testLibrary>::@class::B
-          previousFragment: #F5
+          previousFragment: #F4
           constructors
-            #F11 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:96) (offset:104)
+            #F9 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:96) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 104
               formalParameters
-                #F10 requiredPositional isFinal isOriginDeclaration super.p1 (nameOffset:117) (firstTokenOffset:106) (offset:117)
+                #F8 requiredPositional isFinal isOriginDeclaration super.p1 (nameOffset:117) (firstTokenOffset:106) (offset:117)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
-                  parameters
-                    #F12 requiredPositional isOriginDeclaration a (nameOffset:124) (firstTokenOffset:120) (offset:124)
-                      element: a@124
-                  previousFragment: #F8
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -17716,26 +17667,18 @@ library
             #E0 requiredPositional p1
               firstFragment: #F3
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F4
-                  type: int
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
-      firstFragment: #F5
+      firstFragment: #F4
       supertype: A
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F6
           formalParameters
-            #E2 requiredPositional isFinal super.p1
-              firstFragment: #F8
+            #E1 requiredPositional isFinal super.p1
+              firstFragment: #F7
               type: void Function(int)
-              formalParameters
-                #E3 requiredPositional a
-                  firstFragment: #F9
-                  type: int
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
@@ -17770,32 +17713,20 @@ library
               formalParameters
                 #F4 requiredPositional isOriginDeclaration p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  typeParameters
-                    #F5 T (nameOffset:27) (firstTokenOffset:27) (offset:27)
-                      element: #E0 T
-                  parameters
-                    #F6 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:30) (offset:32)
-                      element: a@32
-                  nextFragment: #F7
-              nextFragment: #F8
+                  nextFragment: #F5
+              nextFragment: #F6
         #F2 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           constructors
-            #F8 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
+            #F6 isAugmentation isOriginDeclaration named (nameOffset:69) (firstTokenOffset:59) (offset:69)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 67
               periodOffset: 68
               formalParameters
-                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:79) (firstTokenOffset:75) (offset:79)
+                #F5 requiredPositional isOriginDeclaration p1 (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
-                  typeParameters
-                    #F9 T (nameOffset:82) (firstTokenOffset:82) (offset:82)
-                      element: #E1 T
-                  parameters
-                    #F10 requiredPositional isOriginDeclaration a (nameOffset:87) (firstTokenOffset:85) (offset:87)
-                      element: a@87
                   previousFragment: #F4
               previousFragment: #F3
   classes
@@ -17807,16 +17738,9 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            #E2 requiredPositional p1
+            #E0 requiredPositional p1
               firstFragment: #F4
               type: int Function<T>(T)
-              typeParameters
-                #E0 T
-                  firstFragment: #F5
-              formalParameters
-                #E3 requiredPositional a
-                  firstFragment: #F6
-                  type: T
 ''');
   }
 
@@ -21009,9 +20933,6 @@ library
               formalParameters
                 #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:28) (firstTokenOffset:23) (offset:28)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration b (nameOffset:37) (firstTokenOffset:30) (offset:37)
-                      element: b@37
           getters
             #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
@@ -21021,7 +20942,7 @@ library
               element: <testLibrary>::@class::C::@setter::x
               inducingVariable: #F2
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -21042,10 +20963,6 @@ library
             #E0 requiredPositional isFinal this.x
               firstFragment: #F6
               type: dynamic Function(double)
-              formalParameters
-                #E1 requiredPositional b
-                  firstFragment: #F7
-                  type: double
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
@@ -21058,8 +20975,8 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E2 requiredPositional value
-              firstFragment: #F8
+            #E1 requiredPositional value
+              firstFragment: #F7
               type: dynamic
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
@@ -21095,9 +21012,6 @@ library
               formalParameters
                 #F6 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:32) (firstTokenOffset:23) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration b (nameOffset:41) (firstTokenOffset:34) (offset:41)
-                      element: b@41
           getters
             #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::x
@@ -21107,7 +21021,7 @@ library
               element: <testLibrary>::@class::C::@setter::x
               inducingVariable: #F2
               formalParameters
-                #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -21128,10 +21042,6 @@ library
             #E0 requiredPositional isFinal this.x
               firstFragment: #F6
               type: int Function(double)
-              formalParameters
-                #E1 requiredPositional b
-                  firstFragment: #F7
-                  type: double
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
@@ -21144,8 +21054,8 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E2 requiredPositional value
-              firstFragment: #F8
+            #E1 requiredPositional value
+              firstFragment: #F7
               type: dynamic
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
@@ -21181,14 +21091,6 @@ library
               formalParameters
                 #F6 requiredPositional isFinal isOriginDeclaration this.f (nameOffset:43) (firstTokenOffset:30) (offset:43)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
-                  typeParameters
-                    #F7 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
-                      element: #E0 T
-                    #F8 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
-                      element: #E1 U
-                  parameters
-                    #F9 requiredPositional isOriginDeclaration t (nameOffset:53) (firstTokenOffset:51) (offset:53)
-                      element: t@53
           getters
             #F3 isComplete isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@getter::f
@@ -21198,7 +21100,7 @@ library
               element: <testLibrary>::@class::C::@setter::f
               inducingVariable: #F2
               formalParameters
-                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
                   element: <testLibrary>::@class::C::@setter::f::@formalParameter::value
   classes
     hasNonFinalField isSimplyBounded class C
@@ -21216,18 +21118,9 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E2 requiredPositional isFinal this.f
+            #E0 requiredPositional isFinal this.f
               firstFragment: #F6
               type: List<U> Function<T, U>(T)
-              typeParameters
-                #E0 T
-                  firstFragment: #F7
-                #E1 U
-                  firstFragment: #F8
-              formalParameters
-                #E3 requiredPositional t
-                  firstFragment: #F9
-                  type: T
               field: <testLibrary>::@class::C::@field::f
       getters
         isOriginVariable f
@@ -21240,8 +21133,8 @@ library
           reference: <testLibrary>::@class::C::@setter::f
           firstFragment: #F4
           formalParameters
-            #E4 requiredPositional value
-              firstFragment: #F10
+            #E1 requiredPositional value
+              firstFragment: #F7
               type: dynamic Function()
           returnType: void
           variable: <testLibrary>::@class::C::@field::f
@@ -22240,12 +22133,6 @@ library
               formalParameters
                 #F6 requiredPositional isFinal isOriginDeclaration super.a (nameOffset:63) (firstTokenOffset:53) (offset:63)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
-                  typeParameters
-                    #F7 T (nameOffset:65) (firstTokenOffset:65) (offset:65)
-                      element: #E0 T
-                  parameters
-                    #F8 requiredPositional isOriginDeclaration d (nameOffset:82) (firstTokenOffset:80) (offset:82)
-                      element: d@82
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -22255,7 +22142,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
-            #E1 requiredPositional a
+            #E0 requiredPositional a
               firstFragment: #F3
               type: Object?
     isSimplyBounded class B
@@ -22267,17 +22154,9 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
           formalParameters
-            #E2 requiredPositional isFinal super.a
+            #E1 requiredPositional isFinal super.a
               firstFragment: #F6
               type: int Function<T extends num>(T)?
-              typeParameters
-                #E0 T
-                  firstFragment: #F7
-                  bound: num
-              formalParameters
-                #E3 requiredPositional d
-                  firstFragment: #F8
-                  type: T
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
@@ -39591,9 +39470,6 @@ library
               formalParameters
                 #F6 requiredPositional isOriginDeclaration p1 (nameOffset:71) (firstTokenOffset:66) (offset:71)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration a (nameOffset:78) (firstTokenOffset:74) (offset:78)
-                      element: a@78
                   previousFragment: #F5
   classes
     isSimplyBounded class A
@@ -40303,15 +40179,12 @@ library
               formalParameters
                 #F5 requiredPositional isOriginDeclaration p1 (nameOffset:26) (firstTokenOffset:21) (offset:26)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  parameters
-                    #F6 requiredPositional isOriginDeclaration a (nameOffset:33) (firstTokenOffset:29) (offset:33)
-                      element: a@33
-                  nextFragment: #F7
+                  nextFragment: #F6
             #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
               formalParameters
-                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:78) (firstTokenOffset:59) (offset:78)
+                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:78) (firstTokenOffset:59) (offset:78)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
                   previousFragment: #F5
   classes
@@ -40330,10 +40203,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F5
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F6
-                  type: int
           returnType: void
 ''');
   }
@@ -40366,19 +40235,13 @@ library
               formalParameters
                 #F5 requiredPositional isOriginDeclaration p1 (nameOffset:26) (firstTokenOffset:21) (offset:26)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  parameters
-                    #F6 requiredPositional isOriginDeclaration a (nameOffset:33) (firstTokenOffset:29) (offset:33)
-                      element: a@33
-                  nextFragment: #F7
+                  nextFragment: #F6
             #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
               formalParameters
-                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:59) (offset:64)
+                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:59) (offset:64)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  parameters
-                    #F8 requiredPositional isOriginDeclaration a (nameOffset:71) (firstTokenOffset:67) (offset:71)
-                      element: a@71
                   previousFragment: #F5
   classes
     isSimplyBounded class A
@@ -40396,10 +40259,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F5
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F6
-                  type: int
           returnType: void
 ''');
   }
@@ -40432,19 +40291,13 @@ library
               formalParameters
                 #F5 requiredPositional isOriginDeclaration p1 (nameOffset:26) (firstTokenOffset:21) (offset:26)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  parameters
-                    #F6 requiredPositional isOriginDeclaration a (nameOffset:33) (firstTokenOffset:29) (offset:33)
-                      element: a@33
-                  nextFragment: #F7
+                  nextFragment: #F6
             #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
               formalParameters
-                #F7 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:59) (offset:64)
+                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:59) (offset:64)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  parameters
-                    #F8 requiredPositional isOriginDeclaration a (nameOffset:74) (firstTokenOffset:67) (offset:74)
-                      element: a@74
                   previousFragment: #F5
   classes
     isSimplyBounded class A
@@ -40462,10 +40315,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F5
               type: void Function(int)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F6
-                  type: int
           returnType: void
 ''');
   }
@@ -40498,25 +40347,13 @@ library
               formalParameters
                 #F5 requiredPositional isOriginDeclaration p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  typeParameters
-                    #F6 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
-                      element: #E0 T
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration a (nameOffset:33) (firstTokenOffset:31) (offset:33)
-                      element: a@33
-                  nextFragment: #F8
+                  nextFragment: #F6
             #F4 isAugmentation isComplete isOriginDeclaration foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
               formalParameters
-                #F8 requiredPositional isOriginDeclaration p1 (nameOffset:63) (firstTokenOffset:59) (offset:63)
+                #F6 requiredPositional isOriginDeclaration p1 (nameOffset:63) (firstTokenOffset:59) (offset:63)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
-                  typeParameters
-                    #F9 T (nameOffset:66) (firstTokenOffset:66) (offset:66)
-                      element: #E1 T
-                  parameters
-                    #F10 requiredPositional isOriginDeclaration a (nameOffset:71) (firstTokenOffset:69) (offset:71)
-                      element: a@71
                   previousFragment: #F5
   classes
     isSimplyBounded class A
@@ -40531,16 +40368,9 @@ library
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
-            #E2 requiredPositional p1
+            #E0 requiredPositional p1
               firstFragment: #F5
               type: int Function<T>(T)
-              typeParameters
-                #E0 T
-                  firstFragment: #F6
-              formalParameters
-                #E3 requiredPositional a
-                  firstFragment: #F7
-                  type: T
           returnType: void
 ''');
   }
@@ -44064,9 +43894,6 @@ library
               formalParameters
                 #F6 requiredPositional isOriginDeclaration x (nameOffset:27) (firstTokenOffset:25) (offset:27)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
-                  parameters
-                    #F7 requiredPositional isOriginDeclaration u (nameOffset:31) (firstTokenOffset:29) (offset:31)
-                      element: u@31
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
@@ -44088,10 +43915,6 @@ library
             #E2 requiredPositional x
               firstFragment: #F6
               type: T Function(U)
-              formalParameters
-                #E3 requiredPositional u
-                  firstFragment: #F7
-                  type: U
           returnType: void
 ''');
   }

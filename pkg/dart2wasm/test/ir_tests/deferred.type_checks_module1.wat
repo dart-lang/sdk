@@ -7,14 +7,14 @@
   (type $_Environment <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
-  (global $"\")\"_9" (import "$" "0") (ref $JSExternWrapper))
-  (global $_InterfaceType (import "$" ".") (ref $_InterfaceType))
-  (table $$.% (import "$" "%") 765 funcref)
-  (table $$.& (import "$" "&") 20 funcref)
+  (global $"\")\"_9" (import "$" "/") (ref $JSExternWrapper))
+  (global $_InterfaceType (import "$" "-") (ref $_InterfaceType))
+  (table $$.$ (import "$" "$") 765 funcref)
+  (table $$.% (import "$" "%") 20 funcref)
   (global $"\">.takeT(\"" (ref $JSExternWrapper) <...>)
   (global $"\"Foo<\"" (ref $JSExternWrapper) <...>)
-  (elem $$.& <...>)
   (elem $$.% <...>)
+  (elem $$.$ <...>)
   (@binaryen.inline 0)
   (func $"Foo.takeT (body)" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
     (local $var2 (ref $_InterfaceType))
@@ -26,9 +26,9 @@
     global.get $"\")\"_9"
     array.new_fixed $Array<Object?> 5
     i32.const 14
-    call_indirect $$.& (param (ref $Array<Object?>)) (result (ref $JSExternWrapper))
+    call_indirect $$.% (param (ref $Array<Object?>)) (result (ref $JSExternWrapper))
     i32.const 18
-    call_indirect $$.& (param (ref null $#Top))
+    call_indirect $$.% (param (ref null $#Top))
     global.get $_InterfaceType
     local.set $var2
     block $label0 (result i32)
@@ -45,14 +45,14 @@
       struct.get $Foo $field0
       i32.const 344
       i32.add
-      call_indirect $$.% (param (ref $#Top)) (result (ref $Array<_Type>))
+      call_indirect $$.$ (param (ref $#Top)) (result (ref $Array<_Type>))
       i32.const 0
       array.get $Array<_Type>
       ref.null none
       local.get $var2
       ref.null none
       i32.const 19
-      call_indirect $$.& (param (ref $_Type) (ref null $_Environment) (ref $_Type) (ref null $_Environment)) (result i32)
+      call_indirect $$.% (param (ref $_Type) (ref null $_Environment) (ref $_Type) (ref null $_Environment)) (result i32)
       i32.const 1
       i32.ne
       br_if $label0
@@ -62,12 +62,12 @@
     i32.eqz
     if
       i32.const 2
-      call_indirect $$.& 
+      call_indirect $$.% 
       unreachable
     end
     local.get $var0
     i32.const 18
-    call_indirect $$.& (param (ref null $#Top))
+    call_indirect $$.% (param (ref null $#Top))
   )
   (func $"Foo.takeT (checked entry)" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
     (local $var2 i32)
@@ -110,7 +110,7 @@
             ref.as_non_null
             local.get $var1
             i32.const 4
-            call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
+            call_indirect $$.% (param (ref $_Type) (ref $#Top)) (result i32)
             br $label0
           end
           br $label1
@@ -127,7 +127,7 @@
             ref.as_non_null
             local.get $var1
             i32.const 5
-            call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
+            call_indirect $$.% (param (ref $_Type) (ref $#Top)) (result i32)
             br $label0
           end
           br $label1
@@ -140,7 +140,7 @@
           ref.as_non_null
           local.get $var1
           i32.const 6
-          call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
+          call_indirect $$.% (param (ref $_Type) (ref $#Top)) (result i32)
           br $label0
         end
       end $label1
@@ -152,12 +152,12 @@
       struct.get $_Type $field0
       i32.const 467
       i32.add
-      call_indirect $$.% (param (ref $_Type) (ref $#Top)) (result i32)
+      call_indirect $$.$ (param (ref $_Type) (ref $#Top)) (result i32)
     end $label0
     i32.eqz
     if
       i32.const 2
-      call_indirect $$.& 
+      call_indirect $$.% 
       unreachable
     end
     local.get $var0

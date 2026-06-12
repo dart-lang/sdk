@@ -766,9 +766,6 @@ external T JS<T>(
   arg19,
 ]);
 
-@pragma("wasm:intrinsic")
-external WasmExternRef get thisModule;
-
 /// Represents a JS `null` or `undefined` thrown from JS and caught in Wasm.
 ///
 /// The class name is copied from the dart2js class for the same thing, for

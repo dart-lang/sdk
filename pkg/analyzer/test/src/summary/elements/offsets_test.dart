@@ -3359,27 +3359,14 @@ library
           formalParameters
             #F2 requiredPositional isOriginDeclaration f (nameOffset:12) (firstTokenOffset:7) (offset:12)
               element: <testLibrary>::@function::f::@formalParameter::f
-              typeParameters
-                #F3 U (nameOffset:14) (firstTokenOffset:14) (offset:14)
-                  element: #E0 U
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E1 requiredPositional f
+        #E0 requiredPositional f
           firstFragment: #F2
           type: void Function<U>(int)
-          typeParameters
-            #E0 U
-              firstFragment: #F3
-          formalParameters
-            #E2 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -3400,27 +3387,14 @@ library
           formalParameters
             #F2 requiredNamed isOriginDeclaration f (nameOffset:22) (firstTokenOffset:8) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::f
-              typeParameters
-                #F3 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
-                  element: #E0 U
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:31) (firstTokenOffset:27) (offset:31)
-                  element: a@31
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       formalParameters
-        #E1 requiredNamed f
+        #E0 requiredNamed f
           firstFragment: #F2
           type: void Function<U>(int)
-          typeParameters
-            #E0 U
-              firstFragment: #F3
-          formalParameters
-            #E2 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }

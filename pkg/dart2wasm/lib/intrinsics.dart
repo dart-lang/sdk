@@ -10,7 +10,6 @@ import 'abi.dart' show kWasmAbiEnumIndex;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_dispatchers.dart';
-import 'js/util.dart';
 import 'translator.dart';
 import 'types.dart';
 import 'util.dart';
@@ -1136,15 +1135,6 @@ class Intrinsifier {
           return type;
       }
     }
-
-    if (target.enclosingLibrary.name == 'dart._js_helper') {
-      if (target.name.text == 'thisModule') {
-        final global = translator.getThisModuleGlobal(b.moduleBuilder);
-        b.global_get(global);
-        return global.type.type;
-      }
-    }
-
     return null;
   }
 
@@ -1540,12 +1530,7 @@ class Intrinsifier {
         final constant = argument.constant;
         if (constant is! StaticTearOffConstant) throw error;
         final target = constant.target;
-        if (!hasWasmWeakExportPragma(codeGen.translator.coreTypes, target) &&
-            !(JsInteropMemberData.fromMember(
-                  target,
-                  codeGen.translator.coreTypes,
-                )?.isWeakExport ??
-                true)) {
+        if (!hasWasmWeakExportPragma(codeGen.translator.coreTypes, target)) {
           throw error;
         }
 

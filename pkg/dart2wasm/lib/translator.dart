@@ -414,7 +414,6 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
-  final Map<w.ModuleBuilder, w.Global> _thisModuleGlobals = {};
 
   w.ModuleBuilder moduleForReference(Reference reference) {
     final module = _moduleOutputData.moduleForReference(reference);
@@ -506,35 +505,6 @@ class Translator with KernelNodes {
     }
   }
 
-  w.Global getThisModuleGlobal(w.ModuleBuilder module) {
-    return _thisModuleGlobals.putIfAbsent(module, () {
-      final global = module.globals.define(
-        w.GlobalType(w.RefType.extern(nullable: true)),
-        'thisModule',
-      );
-      final gb = global.initializer;
-      gb.ref_null(w.HeapType.extern);
-      gb.end();
-
-      final thisModuleSetter = module.functions.define(
-        typesBuilder.defineFunction(const [
-          w.RefType.extern(nullable: false),
-        ], const []),
-        "setThisModule",
-      );
-      module.exports.export(
-        interopMemberNamer.thisModuleSetterName,
-        thisModuleSetter,
-      );
-      final fb = thisModuleSetter.body;
-      fb.local_get(thisModuleSetter.locals[0]);
-      fb.global_set(global);
-      fb.end();
-
-      return global;
-    });
-  }
-
   void drainCompletionQueue() {
     while (!compilationQueue.isEmpty) {
       final task = compilationQueue.pop();
@@ -605,11 +575,6 @@ class Translator with KernelNodes {
       loadList.removeWhere(
         (moduleMetadata) => !_outputToBuilder.containsKey(moduleMetadata),
       );
-    }
-
-    // Ensure non-empty modules expose `$setThisModule` function.
-    for (final moduleBuilder in _outputToBuilder.values) {
-      getThisModuleGlobal(moduleBuilder);
     }
 
     // This getter will be null if we pass e.g. `--use-load-ids` as the

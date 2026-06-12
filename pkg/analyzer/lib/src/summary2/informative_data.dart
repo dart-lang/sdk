@@ -396,8 +396,6 @@ class InformativeDataApplier {
         fragment.firstTokenOffset = info.firstTokenOffset;
         fragment.nameOffset = info.nameOffset;
         fragment.documentationComment = info.documentationComment;
-        _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
-        _applyToFormalParameters(fragment.formalParameters, info.parameters);
       },
     );
   }
@@ -1765,7 +1763,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   ) {
     for (var formalParameters in formalParameters) {
       applyToMetadata(formalParameters.metadata);
-      applyToFormalParameters(formalParameters.formalParameters);
       applyToConstantInitializer(formalParameters);
     }
   }

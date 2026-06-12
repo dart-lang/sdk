@@ -7,12 +7,16 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/migration_registry.dart';
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 class MigrateHandler
@@ -41,18 +45,8 @@ class MigrateHandler
     }
 
     var summaryBuffer = StringBuffer();
-
-    // TODO(kallentu): Add a registry of pre-migration lints to enable based
-    // on pubspec version.
-
     var targets = validationResult.resultOrNull!;
-    var changeBuilder = await _bumpPubspecConstraints(targets, summaryBuffer);
-
-    // TODO(kallentu): Add a registry of post-migration lints to enable based
-    // on pubspec version.
-
-    // TODO(kallentu): Fix post-migration lints.
-
+    var changeBuilder = await _migratePackages(targets, summaryBuffer);
     var workspaceEdit = createWorkspaceEdit(
       server,
       message.clientCapabilities!,
@@ -66,11 +60,26 @@ class MigrateHandler
     );
   }
 
-  /// Bumps the SDK constraints in the provided [targets] by 1 minor version.
+  /// Applies the pubspec SDK constraint bump edit.
+  Future<void> _bumpPubspecConstraint(
+    File pubspecFile,
+    PubspecEdit versionBumpEdit,
+    ChangeBuilder builder,
+  ) async {
+    await builder.addYamlFileEdit(pubspecFile.path, (builder) {
+      builder.addSimpleReplacement(
+        SourceRange(versionBumpEdit.offset, versionBumpEdit.length),
+        versionBumpEdit.replacement,
+      );
+    });
+  }
+
+  /// Coordinates the migration process for all target packages.
   ///
-  /// Appends status messages to [summaryBuffer] and returns the computed
-  /// [ChangeBuilder].
-  Future<ChangeBuilder> _bumpPubspecConstraints(
+  /// For each package:
+  ///   1. Runs pre-migration fixes
+  ///   2. Bumps the SDK constraint
+  Future<ChangeBuilder> _migratePackages(
     List<_PubspecTarget> pubspecTargets,
     StringBuffer summaryBuffer,
   ) async {
@@ -88,22 +97,30 @@ class MigrateHandler
         continue;
       }
 
-      // TODO(kallentu): If any pre-migrations failed, avoid bumping the pubspec
-      // version.
-
+      // TODO(kallentu): If we can't compute the version bump, provide a reason
+      // why for the user running the tool.
       var versionBumpEdit = computeVersionBumpEdit(pubspecFile);
       if (versionBumpEdit == null) continue;
 
-      await builder.addYamlFileEdit(pubspecFile.path, (builder) {
-        builder.addSimpleReplacement(
-          SourceRange(versionBumpEdit.offset, versionBumpEdit.length),
-          versionBumpEdit.replacement,
-        );
-      });
+      // Run pre-migrations.
+      var targetVersion = versionBumpEdit.targetVersion;
+      var premigrationSuccess = await _runPreMigrations(
+        context,
+        pubspecFile,
+        targetVersion,
+        summaryBuffer,
+        builder,
+      );
+      if (!premigrationSuccess) continue;
+
+      // Bump version constraint.
+      await _bumpPubspecConstraint(pubspecFile, versionBumpEdit, builder);
+
+      // TODO(kallentu): Fix post-migration lints.
 
       bumpedLines.add(
         '- ${pubspec.displayName}: ${versionBumpEdit.originalConstraint} -> '
-        '${versionBumpEdit.newConstraint}',
+        '${versionBumpEdit.replacement}',
       );
     }
 
@@ -119,6 +136,45 @@ class MigrateHandler
     }
 
     return builder;
+  }
+
+  /// Runs applicable pre-migration checks and lint fixes on a package.
+  ///
+  /// Returns whether the pre-migration checks succeeded.
+  // TODO(kallentu): Support running migrations on pub workspaces.
+  Future<bool> _runPreMigrations(
+    DriverBasedAnalysisContext context,
+    File pubspecFile,
+    Version targetVersion,
+    StringBuffer summaryBuffer,
+    ChangeBuilder builder,
+  ) async {
+    var preMigrationLintCodes = preMigrationLintsRegistry[targetVersion] ?? [];
+    if (preMigrationLintCodes.isEmpty) return true;
+
+    try {
+      var workspace = DartChangeWorkspace([context.driver.currentSession]);
+      var processor = BulkFixProcessor(
+        server.instrumentationService,
+        workspace,
+        byteStore: server.byteStore,
+        builder: builder,
+        additionalEnabledCodes: preMigrationLintCodes,
+      );
+
+      // TODO(kallentu): Check for and report unfixed pre-migration diagnostics.
+      await processor.fixErrors([context]);
+
+      // TODO(kallentu): Provide a better summary of how many pre-migration
+      // diagnostics have been fixed in each file.
+      return true;
+    } catch (e) {
+      summaryBuffer.writeln(
+        '- ${pubspecFile.parent.shortName}: Failed pre-migration fixes with '
+        'exception: $e',
+      );
+      return false;
+    }
   }
 
   /// Validates that all provided [uris] are directories and each directory

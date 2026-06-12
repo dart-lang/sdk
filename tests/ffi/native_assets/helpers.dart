@@ -5,7 +5,6 @@
 // This file should be standalone (ignoring packages) because it is copied
 // with // OtherResources and used for compiling snapshots.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -608,69 +607,4 @@ void testNonExistingFunction() {
     'Attempted to fallback to process lookup.',
     addressOfError.message,
   );
-}
-
-void testOpenFfiTestFunctionsAsset(String assetId) {
-  final sumPlus42 = DynamicLibrary.openFromAssetId(assetId)
-      .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>(
-        'SumPlus42',
-      );
-  Expect.equals(2 + 3 + 42, sumPlus42(2, 3));
-}
-
-void testOpenProcessOrSystemAsset(String assetId) {
-  final library = DynamicLibrary.openFromAssetId(assetId);
-  if (Platform.isWindows) {
-    final memAlloc = library
-        .lookupFunction<Pointer Function(Size), Pointer Function(int)>(
-          'CoTaskMemAlloc',
-        );
-    final memFree = library
-        .lookupFunction<Void Function(Pointer), void Function(Pointer)>(
-          'CoTaskMemFree',
-        );
-
-    final pointer = memAlloc(8);
-    Expect.notEquals(nullptr, pointer);
-    memFree(pointer);
-  } else {
-    final malloc = library
-        .lookupFunction<Pointer Function(IntPtr), Pointer Function(int)>(
-          'malloc',
-        );
-    final free = library
-        .lookupFunction<Void Function(Pointer), void Function(Pointer)>('free');
-
-    final pointer = malloc(8);
-    Expect.notEquals(nullptr, pointer);
-    free(pointer);
-  }
-}
-
-Future<void> testOpenExecutableAsset(String assetId) async {
-  final postInteger = DynamicLibrary.openFromAssetId(assetId)
-      .lookupFunction<Bool Function(Int64, Int64), bool Function(int, int)>(
-        'Dart_PostInteger',
-      );
-
-  const int message = 1337 * 42;
-  final completer = Completer();
-  final receivePort = ReceivePort()
-    ..listen((receivedMessage) => completer.complete(receivedMessage));
-
-  final success = postInteger(receivePort.sendPort.nativePort, message);
-  Expect.isTrue(success);
-
-  final postedMessage = await completer.future;
-  Expect.equals(message, postedMessage);
-
-  receivePort.close();
-}
-
-void testOpenFromAssetIdNotFound() {
-  final argumentError = Expect.throws<ArgumentError>(() {
-    DynamicLibrary.openFromAssetId(doesNotExistName);
-  });
-  Expect.contains(doesNotExistName, argumentError.message);
-  Expect.contains('No asset with id', argumentError.message);
 }

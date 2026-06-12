@@ -1115,9 +1115,6 @@ library
           formalParameters
             #F4 requiredPositional isOriginDeclaration p1 (nameOffset:57) (firstTokenOffset:52) (offset:57)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F5 requiredPositional isOriginDeclaration a (nameOffset:64) (firstTokenOffset:60) (offset:64)
-                  element: a@64
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
@@ -1595,15 +1592,12 @@ library
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
-              nextFragment: #F5
+              nextFragment: #F4
         #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:45) (offset:64)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:64) (firstTokenOffset:45) (offset:64)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               previousFragment: #F3
   functions
@@ -1614,10 +1608,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: void Function(int)
-          formalParameters
-            #E1 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -1641,19 +1631,13 @@ library
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
-              nextFragment: #F5
+              nextFragment: #F4
         #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F6 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:53) (offset:57)
-                  element: a@57
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
@@ -1663,10 +1647,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: void Function(int)
-          formalParameters
-            #E1 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -1690,19 +1670,13 @@ library
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:14) (firstTokenOffset:9) (offset:14)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F4 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: a@21
-              nextFragment: #F5
+              nextFragment: #F4
         #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F5 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              parameters
-                #F6 requiredPositional isOriginDeclaration a (nameOffset:60) (firstTokenOffset:53) (offset:60)
-                  element: a@60
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
@@ -1712,10 +1686,6 @@ library
         #E0 requiredPositional p1
           firstFragment: #F3
           type: void Function(int)
-          formalParameters
-            #E1 requiredPositional a
-              firstFragment: #F4
-              type: int
       returnType: void
 ''');
   }
@@ -1739,41 +1709,22 @@ library
           formalParameters
             #F3 requiredPositional isOriginDeclaration p1 (nameOffset:13) (firstTokenOffset:9) (offset:13)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              typeParameters
-                #F4 T (nameOffset:16) (firstTokenOffset:16) (offset:16)
-                  element: #E0 T
-              parameters
-                #F5 requiredPositional isOriginDeclaration a (nameOffset:21) (firstTokenOffset:19) (offset:21)
-                  element: a@21
-              nextFragment: #F6
+              nextFragment: #F4
         #F2 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:41) (firstTokenOffset:28) (offset:41)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F6 requiredPositional isOriginDeclaration p1 (nameOffset:49) (firstTokenOffset:45) (offset:49)
+            #F4 requiredPositional isOriginDeclaration p1 (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@function::foo::@formalParameter::p1
-              typeParameters
-                #F7 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
-                  element: #E1 T
-              parameters
-                #F8 requiredPositional isOriginDeclaration a (nameOffset:57) (firstTokenOffset:55) (offset:57)
-                  element: a@57
               previousFragment: #F3
   functions
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
-        #E2 requiredPositional p1
+        #E0 requiredPositional p1
           firstFragment: #F3
           type: int Function<T>(T)
-          typeParameters
-            #E0 T
-              firstFragment: #F4
-          formalParameters
-            #E3 requiredPositional a
-              firstFragment: #F5
-              type: T
       returnType: void
 ''');
   }
@@ -2968,9 +2919,6 @@ library
           formalParameters
             #F2 requiredPositional isFinal isOriginDeclaration this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
               element: <testLibrary>::@function::f::@formalParameter::a
-              parameters
-                #F3 requiredPositional isOriginDeclaration b (nameOffset:22) (firstTokenOffset:18) (offset:22)
-                  element: b@22
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -2979,10 +2927,6 @@ library
         #E0 requiredPositional isFinal this.a
           firstFragment: #F2
           type: int Function(int)
-          formalParameters
-            #E1 requiredPositional b
-              firstFragment: #F3
-              type: int
           field: <null>
       returnType: void
 ''');
@@ -3116,11 +3060,6 @@ library
           formalParameters
             #F2 requiredPositional isOriginDeclaration g (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::g
-              parameters
-                #F3 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:4) (firstTokenOffset:4) (offset:4)
-                  element: x@4
-                #F4 requiredPositional hasImplicitType isOriginDeclaration y (nameOffset:7) (firstTokenOffset:7) (offset:7)
-                  element: y@7
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -3129,13 +3068,6 @@ library
         #E0 requiredPositional g
           firstFragment: #F2
           type: dynamic Function(dynamic, dynamic)
-          formalParameters
-            #E1 requiredPositional hasImplicitType x
-              firstFragment: #F3
-              type: dynamic
-            #E2 requiredPositional hasImplicitType y
-              firstFragment: #F4
-              type: dynamic
       returnType: dynamic
 ''');
   }
@@ -3451,9 +3383,6 @@ library
           formalParameters
             #F4 requiredPositional isOriginDeclaration x (nameOffset:15) (firstTokenOffset:13) (offset:15)
               element: <testLibrary>::@function::f::@formalParameter::x
-              parameters
-                #F5 requiredPositional isOriginDeclaration u (nameOffset:19) (firstTokenOffset:17) (offset:19)
-                  element: u@19
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -3467,10 +3396,6 @@ library
         #E2 requiredPositional x
           firstFragment: #F4
           type: T Function(U)
-          formalParameters
-            #E3 requiredPositional u
-              firstFragment: #F5
-              type: U
       returnType: void
 ''');
   }

@@ -29,13 +29,13 @@ main(List<String> args, Object? message) async {
   return await selfInvokingTest(
     doOnOuterInvocation: selfInvokes,
     doOnProcessInvocation: () async {
-      await runTests(args[1]);
-      await testIsolateSpawn(() => runTests(args[1]));
+      await runTests();
+      await testIsolateSpawn(runTests);
       await testIsolateSpawnUri(spawnUri: Platform.script, arguments: args);
     },
     doOnSpawnUriInvocation: () async {
-      await runTests(args[1]);
-      await testIsolateSpawn(() => runTests(args[1]));
+      await runTests();
+      await testIsolateSpawn(runTests);
     },
   )(args, message);
 }
@@ -49,23 +49,21 @@ Future<void> selfInvokes() async {
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     nativeAssetsYaml: nativeAssetsYaml,
     protobufAwareTreeshaking: true,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     nativeAssetsYaml: nativeAssetsYaml,
   );
 }
 
-Future<void> runTests(String assetId) async {
+Future<void> runTests() async {
   await testExecutable();
-  await testOpenExecutableAsset(assetId);
   testNonExistingFunction();
-  testOpenFromAssetIdNotFound();
 }
 
 typedef _PostInteger = Bool Function(Int64 port, Int64 message);

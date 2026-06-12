@@ -790,15 +790,22 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    var element = node.declaredFragment!.element;
+
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       _scopeContext.visitFormalParameter(node, visitor: this);
 
-      var element = node.declaredFragment!.element;
       element.type = FunctionTypeImpl(
-        // ignore: deprecated_member_use_from_same_package
-        typeParameters: element.typeParameters,
-        // ignore: deprecated_member_use_from_same_package
-        formalParameters: element.formalParameters,
+        typeParameters: [
+          for (var typeParameter
+              in functionTypedSuffix.typeParameters?.typeParameters ??
+                  const <TypeParameterImpl>[])
+            typeParameter.declaredFragment!.element,
+        ],
+        formalParameters: [
+          for (var parameter in functionTypedSuffix.formalParameters.parameters)
+            parameter.declaredFragment!.element,
+        ],
         returnType: node.type?.type ?? _typeProvider.dynamicType,
         nullabilitySuffix: _getNullability(
           functionTypedSuffix.question != null,
@@ -809,7 +816,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.visitChildren(this);
 
-    var element = node.declaredFragment!.element;
     if (node.type case var type?) {
       element.type = type.type ?? _typeProvider.dynamicType;
     } else if (element.type is InvalidTypeImpl) {

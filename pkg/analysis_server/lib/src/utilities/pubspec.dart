@@ -82,7 +82,7 @@ PubspecEdit? _computeEdit(String? text, int offset, Version minimumVersion) {
     length: length,
     replacement: newText,
     originalConstraint: text,
-    newConstraint: newText,
+    targetVersion: minimumVersion,
   );
 }
 
@@ -94,20 +94,21 @@ class PubspecEdit {
   /// The length of the text to be replaced.
   final int length;
 
-  /// The text to be inserted at [offset], replacing [length] characters.
+  /// The full new SDK constraint text after the edit is applied and the text to
+  /// be inserted at [offset], replacing [length] characters.
   final String replacement;
 
   /// The full original SDK constraint text before the edit is applied.
   final String originalConstraint;
 
-  /// The full new SDK constraint text after the edit is applied.
-  final String newConstraint;
+  /// The target version to migrate to.
+  final Version targetVersion;
 
   new({
     required this.offset,
     required this.length,
     required this.replacement,
     required this.originalConstraint,
-    required this.newConstraint,
+    required this.targetVersion,
   });
 }

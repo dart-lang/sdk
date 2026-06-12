@@ -801,19 +801,18 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     if (functionTypedSuffix != null) {
       var holder = ElementHolder(fragment);
       _withElementHolder(holder, () {
-        _withElementWalker(
-          _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-          () {
-            node.documentationComment?.accept(this);
-            node.type?.accept(this);
-            functionTypedSuffix.typeParameters?.accept(this);
-            functionTypedSuffix.formalParameters.accept(this);
-          },
-        );
+        _withElementWalker(null, () {
+          node.documentationComment?.accept(this);
+          node.type?.accept(this);
+          functionTypedSuffix.typeParameters?.accept(this);
+          functionTypedSuffix.formalParameters.accept(this);
+        });
       });
-      if (_elementWalker == null) {
-        fragment.typeParameters = holder.typeParameters;
-        fragment.formalParameters = holder.formalParameters;
+      for (var typeParameter in holder.typeParameters) {
+        TypeParameterElementImpl(firstFragment: typeParameter);
+      }
+      for (var formalParameter in holder.formalParameters) {
+        formalParameter.initElement();
       }
     } else {
       node.documentationComment?.accept(this);
@@ -885,10 +884,12 @@ class ElementHolder {
   }
 
   void addParameter(FormalParameterFragmentImpl fragment) {
+    fragment.enclosingFragment = _fragment;
     _formalParameters.add(fragment);
   }
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
+    fragment.enclosingFragment = _fragment;
     _typeParameters.add(fragment);
   }
 

@@ -30,13 +30,13 @@ void main(List<String> args, Object? message) async {
   return await selfInvokingTest(
     doOnOuterInvocation: selfInvokes,
     doOnProcessInvocation: () async {
-      await runTests(args[1]);
-      await testIsolateSpawn(() => runTests(args[1]));
+      await runTests();
+      await testIsolateSpawn(runTests);
       await testIsolateSpawnUri(spawnUri: Platform.script, arguments: args);
     },
     doOnSpawnUriInvocation: () async {
-      await runTests(args[1]);
-      await testIsolateSpawn(() => runTests(args[1]));
+      await runTests();
+      await testIsolateSpawn(runTests);
     },
   )(args, message);
 }
@@ -50,24 +50,22 @@ Future<void> selfInvokes() async {
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     nativeAssetsYaml: nativeAssetsYaml,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
-    arguments: [runTestsArg, selfSourceUri.toString()],
+    arguments: [runTestsArg],
     nativeAssetsYaml: nativeAssetsYaml,
     protobufAwareTreeshaking: true,
   );
 }
 
-Future<void> runTests(String assetId) async {
+Future<void> runTests() async {
   testFfiTestfunctionsDll();
-  testOpenFfiTestFunctionsAsset(assetId);
   testFfiTestFieldsDll();
   testNonExistingFunction();
-  testOpenFromAssetIdNotFound();
 }
 
 @Native<Int32 Function(Int32, Int32)>()

@@ -104,23 +104,14 @@ class _ExternalMemberNamer {
 /// Their names can therefore be minified.
 class _InteropHelperMemberNamer {
   final Namer _interopHelperNamer;
-  final Namer _exportNamer;
   final CoreTypes coreTypes;
   final String interopModuleName;
-  final String thisModuleSetterName;
   final Map<Member, String> interopMemberNames = {};
 
-  _InteropHelperMemberNamer(
-    this._exportNamer,
-    this.coreTypes,
-    TranslatorOptions options,
-  ) : interopModuleName = options.minify ? '_' : 'dart2wasm',
+  _InteropHelperMemberNamer(this.coreTypes, TranslatorOptions options)
+    : interopModuleName = options.minify ? '_' : 'dart2wasm',
       _interopHelperNamer = Namer(
         minify: options.minify || options.minifyInteropNames,
-      ),
-      thisModuleSetterName = _exportNamer.getName(
-        '\$setThisModule',
-        jsSafeName: true,
       );
 
   ImportName? getImportName(Member member) {
@@ -133,18 +124,6 @@ class _InteropHelperMemberNamer {
           member.name.text,
           jsSafeName: true,
         ),
-      );
-    }
-    return null;
-  }
-
-  String? getExportName(Member member) {
-    final annotationInfo = JsInteropMemberData.fromMember(member, coreTypes);
-    if (annotationInfo == null) return null;
-    if (annotationInfo.isWeakExport) {
-      return interopMemberNames[member] ??= _exportNamer.getName(
-        member.name.text,
-        jsSafeName: true,
       );
     }
     return null;
@@ -165,16 +144,10 @@ class InteropMemberNamer {
     Namer exportNamer,
     TranslatorOptions options,
   ) : _externalMemberNamer = _ExternalMemberNamer(coreTypes, exportNamer),
-      _interopHelperMemberNamer = _InteropHelperMemberNamer(
-        exportNamer,
-        coreTypes,
-        options,
-      );
+      _interopHelperMemberNamer = _InteropHelperMemberNamer(coreTypes, options);
 
   String get interopHelperModuleName =>
       _interopHelperMemberNamer.interopModuleName;
-  String get thisModuleSetterName =>
-      _interopHelperMemberNamer.thisModuleSetterName;
 
   /// Returns the import name for the given member.
   ///
@@ -190,9 +163,7 @@ class InteropMemberNamer {
   /// Returns null if the member is not an export. Checks both external and
   /// interop helper exports.
   String? getExportName(Member member) {
-    final externalName = _externalMemberNamer.getExportName(member);
-    if (externalName != null) return externalName;
-    return _interopHelperMemberNamer.getExportName(member);
+    return _externalMemberNamer.getExportName(member);
   }
 
   /// Registers the export name for the given member with the [Namer].

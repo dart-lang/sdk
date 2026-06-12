@@ -41,6 +41,7 @@ class FunctionBuilder extends ir.BaseFunction
           functionName,
         )
         ..isPure = isPure
+        ..isJSCalled = isJSCalled
         ..inlineHint = inlineHint;
 
   @override

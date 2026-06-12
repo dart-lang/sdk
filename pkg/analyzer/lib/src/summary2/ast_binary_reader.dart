@@ -37,16 +37,9 @@ class AstBinaryReader {
   ) {
     fragment.constantInitializer = node.defaultClause?.value;
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
-      fragment.formalParameters = functionTypedSuffix
-          .formalParameters
-          .parameters
-          .map((parameter) => parameter.declaredFragment!)
-          .toList();
-      fragment.typeParameters =
-          functionTypedSuffix.typeParameters?.typeParameters
-              .map((parameter) => parameter.declaredFragment!)
-              .toList() ??
-          const [];
+      for (var parameter in functionTypedSuffix.formalParameters.parameters) {
+        parameter.declaredFragment!.initElement();
+      }
     }
     node.declaredFragment = fragment;
   }
@@ -471,13 +464,16 @@ class AstBinaryReader {
     );
   }
 
-  void _readFormalParameterListResolution(
-    List<FormalParameterFragmentImpl> fragments,
-  ) {
-    for (var fragment in fragments) {
+  void _readFormalParameterListResolution(FormalParameterListImpl node) {
+    for (var parameter in node.parameters) {
+      var fragment = parameter.declaredFragment!;
       assert(fragment.nextFragment == null);
       fragment.element.type = _reader.readRequiredType();
-      _readFormalParameterListResolution(fragment.formalParameters);
+      if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
+        _readFormalParameterListResolution(
+          functionTypedSuffix.formalParameters,
+        );
+      }
     }
   }
 
@@ -565,7 +561,7 @@ class AstBinaryReader {
     var element = GenericFunctionTypeElementImpl(fragment);
     element.returnType = type.returnType;
     element.type = type;
-    _readFormalParameterListResolution(fragment.formalParameters);
+    _readFormalParameterListResolution(formalParameters);
 
     return node;
   }

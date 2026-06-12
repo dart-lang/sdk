@@ -8529,9 +8529,6 @@ library
               formalParameters
                 #F9 requiredPositional isFinal isOriginDeclaration this.x (nameOffset:45) (firstTokenOffset:36) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
-                  parameters
-                    #F10 requiredPositional isOriginDeclaration a (nameOffset:54) (firstTokenOffset:47) (offset:54)
-                      element: a@54
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
@@ -8577,10 +8574,6 @@ library
             #E0 requiredPositional isFinal this.x
               firstFragment: #F9
               type: int Function(double)
-              formalParameters
-                #E1 requiredPositional a
-                  firstFragment: #F10
-                  type: double
               field: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
