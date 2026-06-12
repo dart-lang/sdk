@@ -13,7 +13,11 @@ import 'package:yaml/yaml.dart';
 
 /// Computes [DocumentLink]s for lint names in an 'analysis_options.yaml'.
 class AnalysisOptionLinkComputer {
-  static const _lintsUrl = 'https://dart.dev/tools/linter-rules/';
+  static final Uri _lintStatesUri = Uri.https(
+    'github.com',
+    'dart-lang/sdk/blob/main/pkg/linter/doc/lint-lifecycle.md',
+  );
+
   final String pubHostedUrl;
 
   AnalysisOptionLinkComputer(this.pubHostedUrl);
@@ -96,8 +100,12 @@ class AnalysisOptionLinkComputer {
     if (lint == null) {
       return null;
     }
+    var state = lint.state;
+    if (state.isInternal) return _lintStatesUri.replace(fragment: 'internal');
+    if (state.isRemoved) return _lintStatesUri.replace(fragment: 'removed');
+    if (state.isTesting) return _lintStatesUri.replace(fragment: 'testing');
 
-    return Uri.tryParse(_lintsUrl + name);
+    return Uri.https('dart.dev', 'lints/$name');
   }
 
   /// Computes a link for the plugin named [pluginName] with source [pluginSource].

@@ -5321,7 +5321,7 @@ LinterLintCode:
     problemMessage: "Empty #containerKind bodies should be written using a ';' rather than '{}'."
     correctionMessage: "Try replacing the #containerKind body with ';'."
     state:
-      experimental: "3.13"
+      testing: "3.13"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -5946,7 +5946,7 @@ LinterLintCode:
     problemMessage: "Field should be initialized in the field declaration."
     correctionMessage: "Try initializing the field where it's declared."
     state:
-      experimental: "3.13"
+      testing: "3.13"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -8124,7 +8124,7 @@ LinterLintCode:
     type: lint
     parameters: none
     problemMessage: "Don't create string literals with trailing spaces in tests."
-    correctionMessage: 'Try removing the trailing spaces.'
+    correctionMessage: "Try removing the trailing spaces."
     hasPublishedDocs: true
     state:
       internal: "3.10"
@@ -11832,7 +11832,7 @@ LinterLintCode:
     type: lint
     parameters: none
     problemMessage: "Missing a deprecation message."
-    correctionMessage: "Try using the constructor to provide a message ('@Deprecated(\"message\")')."
+    correctionMessage: 'Try using the constructor to provide a message (''@Deprecated("message")'').'
     state:
       stable: "2.2"
     categories: [publicInterface]
@@ -15970,7 +15970,6 @@ LinterLintCode:
       void function(int _) { }
       ```
 
-
   unreachableFromMain:
     type: lint
     parameters:
@@ -16619,7 +16618,7 @@ LinterLintCode:
     problemMessage: "Use a declaring parameter."
     correctionMessage: "Try using a declaring parameter."
     state:
-      experimental: "3.13"
+      testing: "3.13"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
@@ -17182,7 +17181,7 @@ LinterLintCode:
     problemMessage: "Use a primary constructor."
     correctionMessage: "Try using a primary constructor."
     state:
-      experimental: "3.13"
+      testing: "3.13"
     categories: [style]
     hasPublishedDocs: false
     deprecatedDetails: |-
