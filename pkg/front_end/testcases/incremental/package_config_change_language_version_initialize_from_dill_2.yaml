@@ -2,7 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Use a package, then remove the package from the package config.
+# Write code that's supported in the language version used.
+# Change only the package config to change the language version and initialize
+# from the first dill.
 
 type: newworld
 worlds:
@@ -15,33 +17,24 @@ worlds:
             {
               "name": "foo",
               "rootUri": "../foo",
-              "packageUri": "lib"
-            },
-            {
-              "name": "bar",
-              "rootUri": "../bar",
-              "packageUri": "lib"
+              "packageUri": "lib",
+              "languageVersion": "3.13"
             }
           ]
         }
       foo/lib/a.dart: |
-        import "package:bar/a.dart";
-        void main() {
-          A();
-        }
-      bar/lib/a.dart: |
         class A {
           new() {
             print("A");
           }
         }
-    expectedLibraryCount: 2
+        void main() {
+          A();
+        }
+    expectedLibraryCount: 1
 
   - entry: package:foo/a.dart
-    worldType: updated
-    expectInitializeFromDill: false
-    invalidate:
-      - .dart_tool/package_config.json
+    expectInitializeFromDill: true
     sources:
       .dart_tool/package_config.json: |
         {
@@ -50,10 +43,22 @@ worlds:
             {
               "name": "foo",
               "rootUri": "../foo",
-              "packageUri": "lib"
+              "packageUri": "lib",
+              "languageVersion": "3.12"
             }
           ]
         }
+      foo/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
+        void main() {
+          A();
+        }
+    # Ideally .dart_tool/package_config.json should be invalidated, but it
+    # isn't.
     expectedLibraryCount: 1
-    errors: true
     advancedInvalidation: packageUpdate
+    errors: true

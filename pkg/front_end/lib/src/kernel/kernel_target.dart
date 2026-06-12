@@ -240,36 +240,30 @@ class KernelTarget {
     );
   }
 
-  String get currentSdkVersionString {
-    return context.options.currentSdkVersion;
-  }
-
   Version get leastSupportedVersion => const Version(2, 12);
 
   Version? _currentSdkVersion;
 
   Version get currentSdkVersion {
     if (_currentSdkVersion == null) {
-      _parseCurrentSdkVersion();
+      _currentSdkVersion = calculateCurrentSdkVersion(context.options);
     }
     return _currentSdkVersion!;
   }
 
-  void _parseCurrentSdkVersion() {
-    bool good = false;
+  static Version calculateCurrentSdkVersion(ProcessedOptions options) {
+    String currentSdkVersionString = options.currentSdkVersion;
     List<String> dotSeparatedParts = currentSdkVersionString.split(".");
     if (dotSeparatedParts.length >= 2) {
-      _currentSdkVersion = new Version(
+      return new Version(
         int.tryParse(dotSeparatedParts[0])!,
         int.tryParse(dotSeparatedParts[1])!,
       );
-      good = true;
     }
-    if (!good) {
-      throw new StateError(
-        "Unparsable sdk version given: $currentSdkVersionString",
-      );
-    }
+    // Coverage-ignore-block(suite): Not run.
+    throw new StateError(
+      "Unparsable sdk version given: $currentSdkVersionString",
+    );
   }
 
   SourceLoader createLoader() =>
