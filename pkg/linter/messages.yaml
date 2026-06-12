@@ -5321,9 +5321,40 @@ LinterLintCode:
     problemMessage: "Empty #containerKind bodies should be written using a ';' rather than '{}'."
     correctionMessage: "Try replacing the #containerKind body with ';'."
     state:
-      testing: "3.13"
+      stable: "3.13"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the block body of a class,
+      enum, extension, extension type, or mixin is empty and can be replaced by
+      a semicolon.
+
+      #### Example
+
+      The following code produces this diagnostic because the body of the class
+      `C` is empty:
+
+      ```dart
+      class C [!{}!]
+      ```
+
+      #### Common fixes
+
+      If the class needs to have members, then add them:
+
+      ```dart
+      class C {
+        String toString() => 'c';
+      }
+      ```
+
+      Otherwise, replace the body with a semicolon:
+
+      ```dart
+      class C;
+      ```
     deprecatedDetails: |-
       Use `;` instead of `{}` for empty container (class, enum, etc.) bodies.
   emptyStatements:
@@ -5946,9 +5977,39 @@ LinterLintCode:
     problemMessage: "Field should be initialized in the field declaration."
     correctionMessage: "Try initializing the field where it's declared."
     state:
-      testing: "3.13"
+      stable: "3.13"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a field initialized in either
+      the initializer list or body of a primary constructor can be initialized
+      in the field declaration.
+
+      #### Example
+
+      The following code produces this diagnostic because the field `y` is
+      initialized in the primary constructor's initializer list, when it can be
+      initialized in the field declaration:
+
+      ```dart
+      class C(int x) {
+        this : [!y!] = x;
+
+        int y;
+      }
+      ```
+
+      #### Common fixes
+
+      Initialize the field in its declaration:
+
+      ```dart
+      class C(int x) {
+        int y = x;
+      }
+      ```
     deprecatedDetails: |-
       Initialize fields where they're declared when possible.
   invalidCasePatterns:
@@ -14254,7 +14315,7 @@ LinterLintCode:
     problemMessage: "Unnecessary 'const' keyword in an enum constructor."
     correctionMessage: "Try removing the keyword."
     state:
-      experimental: "3.13"
+      stable: "3.13"
     categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
@@ -15403,9 +15464,34 @@ LinterLintCode:
     problemMessage: "Unnecessary primary constructor body."
     correctionMessage: "Try removing the body."
     state:
-      experimental: "3.13"
+      stable: "3.13"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a primary constructor body has
+      no initializers, body, annotations, or documentation comment. Without
+      these, the body is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the primary
+      constructor body is unnecessary:
+
+      ```dart
+      class C(final int i) {
+        [!this!];
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the primary constructor body:
+
+      ```dart
+      class C(final int i);
+      ```
     deprecatedDetails: |-
       Don't include an empty primary constructor body.
 
@@ -16618,9 +16704,36 @@ LinterLintCode:
     problemMessage: "Use a declaring parameter."
     correctionMessage: "Try using a declaring parameter."
     state:
-      testing: "3.13"
+      stable: "3.13"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a primary constructor has a
+      parameter whose name matches a field of the same type in the class, and
+      the constructor assigns the value to the field without modifying it.
+
+      #### Example
+
+      The following code produces this diagnostic because the constructor
+      assigns the parameter `i` to the field `i`:
+
+      ```dart
+      class C(int [!i!]) {
+        final int i;
+
+        this : i = i;
+      }
+      ```
+
+      #### Common fixes
+
+      Convert the parameter to a declaring parameter:
+
+      ```dart
+      class C(final int i);
+      ```
     deprecatedDetails: |-
       Use a declaring parameter everywhere it's valid to do so.
   useDecoratedBox:
