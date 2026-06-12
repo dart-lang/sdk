@@ -6,8 +6,8 @@ part of "dart:core";
 
 /// Helper interface to hide [EfficientLengthIterable] from the public
 /// declaration of [Set].
-abstract class _SetIterable<E>
-    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {}
+abstract interface class _SetIterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E>;
 
 /// A collection of objects in which each object can occur only once.
 ///
@@ -48,7 +48,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   ///
   /// The set is equivalent to one created by `LinkedHashSet<E>()`.
   // TODO: @Deprecated("Use literal <E>{} instead")
-  factory Set() = LinkedHashSet<E>;
+  factory() = LinkedHashSet<E>;
 
   /// Creates an empty identity [Set].
   ///
@@ -56,7 +56,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// relation.
   ///
   /// The set is equivalent to one created by `LinkedHashSet<E>.identity()`.
-  factory Set.identity() = LinkedHashSet<E>.identity;
+  factory identity() = LinkedHashSet<E>.identity;
 
   /// Creates a [Set] that contains all [elements].
   ///
@@ -79,7 +79,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// final setFrom = Set<int>.from(numbers);
   /// print(setFrom); // {10, 20, 30}
   /// ```
-  factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
+  factory from(Iterable elements) = LinkedHashSet<E>.from;
 
   /// Creates a [Set] from [elements].
   ///
@@ -94,7 +94,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// final setOf = Set<num>.of(baseSet);
   /// print(setOf); // {1, 2, 3}
   /// ```
-  factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
+  factory of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
   /// Creates an unmodifiable [Set] from [elements].
   ///
@@ -104,7 +104,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// final characters = <String>{'A', 'B', 'C'};
   /// final unmodifiableSet = Set.unmodifiable(characters);
   /// ```
-  factory Set.unmodifiable(Iterable<E> elements) =>
+  factory unmodifiable(Iterable<E> elements) =>
       UnmodifiableSetView<E>(<E>{...elements});
 
   /// Adapts [source] to be a `Set<T>`.

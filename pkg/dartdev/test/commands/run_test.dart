@@ -1045,7 +1045,7 @@ void entryPoint(String arg) {
         'bin/script1.dart',
       ]);
 
-      String stdout = result.stdout.toString().trim();
+      String stdout = result.stdout.toString().replaceAll('\r\n', '\n').trim();
       expect(
         stdout,
         '''

@@ -10,6 +10,10 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show ExperimentalFeatures, ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show LanguageVersionToken;
+import 'package:front_end/src/api_prototype/language_version.dart'
+    show Version, scanBytesForLanguageVersionAnnotation;
 import 'package:front_end/src/base/name_space.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
@@ -56,13 +60,15 @@ import 'package:kernel/kernel.dart'
         TypeParameterType,
         Variable,
         VisitorDefault,
-        VisitorVoidMixin;
+        VisitorVoidMixin,
+        Version;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:package_config/package_config.dart' show Package, PackageConfig;
+import 'package:package_config/package_config.dart'
+    show Package, PackageConfig, LanguageVersion;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
@@ -129,6 +135,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final bool outlineOnly;
 
   Set<Uri?> _invalidatedUris = new Set<Uri?>();
+  bool _invalidatedBecauseOfPackageUpdate = false;
 
   DillTarget? _dillLoadedData;
   List<DillLibraryBuilder>? _platformBuilders;
@@ -1413,8 +1420,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         benchmarker: _benchmarker,
       );
       int bytesLength = await _initializationStrategy.initialize(
+        this,
         dillLoadedData,
         uriTranslator,
+        _currentPackagesMap!,
         context,
         data,
         _componentProblems,
@@ -2374,7 +2383,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (lastGoodKernelTarget == null && _userBuilders == null) {
       return new ReusageResult.reusedLibrariesOnly(reusedLibraries);
     }
-    bool invalidatedBecauseOfPackageUpdate = false;
+    bool invalidatedBecauseOfPackageUpdate = _invalidatedBecauseOfPackageUpdate;
+    _invalidatedBecauseOfPackageUpdate = false;
     Set<DillLibraryBuilder> directlyInvalidated = {};
     Set<DillLibraryBuilder> notReusedLibraries = {};
 
@@ -2857,8 +2867,10 @@ abstract class _InitializationStrategy {
   bool get initializedIncrementalSerializerForTesting => false;
 
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -2873,8 +2885,10 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   @override
   // Coverage-ignore(suite): Not run.
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -2937,8 +2951,10 @@ class _InitializationFromComponent extends _InitializationStrategy {
 
   @override
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -2995,8 +3011,10 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
   @override
   Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems componentProblems,
@@ -3013,9 +3031,11 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
     );
     try {
       bytesLength += await _initializeFromDill(
+        incrementalCompiler,
         dillLoadedData,
         initializeFromDillUri,
         uriTranslator,
+        currentPackagesMap,
         context,
         data,
         componentProblems,
@@ -3090,9 +3110,11 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
 
   // This procedure will try to load the dill file and will crash if it cannot.
   Future<int> _initializeFromDill(
+    IncrementalCompiler incrementalCompiler,
     DillTarget dillLoadedData,
     Uri initializeFromDillUri,
     UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
     CompilerContext context,
     IncrementalCompilerData data,
     _ComponentProblems _componentProblems,
@@ -3120,18 +3142,77 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
               createView: true,
             )!;
 
+        List<Uri>? invalidateUrisBecauseOfLanguageVersionChange;
+
+        late Version defaultSdkVersion =
+            KernelTarget.calculateCurrentSdkVersion(context.options);
+
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
         // Also verify NNBD settings.
         for (Library lib in data.component!.libraries) {
-          if (lib.importUri.isScheme("package") &&
-              uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
-            // Package has been removed or updated.
-            // This library should be thrown away.
-            // Everything that depends on it should be thrown away.
-            // TODO(jensj): Anything that doesn't depend on it can be kept.
-            // For now just don't initialize from this dill.
-            throw const PackageChangedError();
+          if (lib.importUri.isScheme("package")) {
+            if (uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
+              // Package has been removed or updated.
+              // This library should be thrown away.
+              // Everything that depends on it should be thrown away.
+              // TODO(jensj): Anything that doesn't depend on it can be kept.
+              // For now just don't initialize from this dill.
+              throw const PackageChangedError();
+            }
+
+            // Find out if the language version has changed.
+            String path = lib.importUri.path;
+            int firstSlash = path.indexOf('/');
+            String packageName = path.substring(0, firstSlash);
+            Package? currentPackage = currentPackagesMap[packageName];
+            if (currentPackage == null) {
+              // This shouldn't happen as we checked the uri above.
+              throw const PackageChangedError();
+            }
+            LanguageVersion? usedPackageVersion =
+                currentPackage.languageVersion;
+            bool languageVersionChanged = false;
+            if (usedPackageVersion != null) {
+              if (lib.languageVersion.major != usedPackageVersion.major ||
+                  lib.languageVersion.minor != usedPackageVersion.minor) {
+                languageVersionChanged = true;
+              }
+            } else {
+              if (lib.languageVersion.major != defaultSdkVersion.major ||
+                  lib.languageVersion.minor != defaultSdkVersion.minor) {
+                languageVersionChanged = true;
+              }
+            }
+            if (languageVersionChanged) {
+              // Package language version can have been overwritten by @dart
+              // annotation which wouldn't by itself constitute a change.
+              LanguageVersionToken? annotationVersion =
+                  await scanBytesForLanguageVersionAnnotation(
+                    context.options.fileSystem,
+                    lib.fileUri,
+                  );
+              if (annotationVersion != null) {
+                if (lib.languageVersion.major == annotationVersion.major &&
+                    lib.languageVersion.minor == annotationVersion.minor) {
+                  languageVersionChanged = false;
+                }
+              }
+            }
+            if (languageVersionChanged) {
+              (invalidateUrisBecauseOfLanguageVersionChange ??= []).add(
+                lib.importUri,
+              );
+            }
+          }
+        }
+
+        // We loaded and checked the dill file. If we found any urls that need
+        // invalidation do that now.
+        if (invalidateUrisBecauseOfLanguageVersionChange != null) {
+          incrementalCompiler._invalidatedBecauseOfPackageUpdate = true;
+          for (Uri uri in invalidateUrisBecauseOfLanguageVersionChange) {
+            incrementalCompiler.invalidate(uri);
           }
         }
 

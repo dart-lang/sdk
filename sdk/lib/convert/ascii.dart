@@ -27,9 +27,8 @@ const int _asciiMask = 0x7F;
 ///
 /// Treats any non-ASCII character (U+0080..U+10FFFF) as an invalid input
 /// to endcoding, and any byte &ge; 128 as an invalid input to decoding.
-final class AsciiCodec extends Encoding {
-  final bool _allowInvalid;
-
+final class const AsciiCodec({final bool _allowInvalid = false})
+    extends Encoding {
   /// Instantiates a new [AsciiCodec].
   ///
   /// If [_allowInvalid] is `true`, the [decode] method and the converter
@@ -40,7 +39,7 @@ final class AsciiCodec extends Encoding {
   /// Calls to the [decode] method can choose to override this default.
   ///
   /// Encoders will not accept invalid (non-ASCII) characters.
-  const AsciiCodec({this._allowInvalid = false});
+  this;
 
   /// The name of this codec is "us-ascii".
   String get name => "us-ascii";
@@ -72,11 +71,8 @@ final class AsciiCodec extends Encoding {
 
 // Superclass for [AsciiEncoder] and [Latin1Encoder].
 // Generalizes common operations that only differ by a mask;
-class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
-  final int _subsetMask;
-
-  const _UnicodeSubsetEncoder(this._subsetMask);
-
+class const _UnicodeSubsetEncoder(final int _subsetMask)
+    extends Converter<String, List<int>> {
   /// Converts the [String] into a list of its code units.
   ///
   /// If [start] and [end] are provided, only the substring
@@ -124,8 +120,8 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 /// final asciiValues = asciiEncoder.convert(sample);
 /// print(asciiValues); // [68, 97, 114, 116]
 /// ```
-final class AsciiEncoder extends _UnicodeSubsetEncoder {
-  const AsciiEncoder() : super(_asciiMask);
+final class const AsciiEncoder() extends _UnicodeSubsetEncoder {
+  this : super(_asciiMask);
 }
 
 /// This class encodes chunked strings to bytes (unsigned 8-bit
@@ -240,8 +236,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// print(result.codeUnits.last.toRadixString(16)); // fffd
 /// ```
 final class AsciiDecoder extends _UnicodeSubsetDecoder {
-  const AsciiDecoder({bool allowInvalid = false})
-    : super(allowInvalid, _asciiMask);
+  const new({bool allowInvalid = false}) : super(allowInvalid, _asciiMask);
 
   /// Starts a chunked conversion.
   ///

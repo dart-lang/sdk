@@ -1986,62 +1986,62 @@ abstract class _A25&Object&C extends core::Object /*isAnonymousMixin,hasConstCon
     ;
 }
 abstract class _E&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E4&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E4&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E5&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E5&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E6&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E6&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E7&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E7&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E8&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E8&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E13&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E13&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E13&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E14&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E14&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E14&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E15&_Enum&D extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E15&_Enum&D
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E15&_Enum&D
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E21&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E21&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E21&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E22&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E22&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E22&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _E25&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E25&_Enum&C
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E25&_Enum&C
     : super core::_Enum::•(index, _name)
     ;
 }

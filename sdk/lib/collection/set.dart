@@ -20,11 +20,10 @@ part of "dart:collection";
 /// Implementations of `Set` using this base should consider also implementing
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
-abstract mixin class SetBase<E> implements Set<E> {
+abstract mixin class const SetBase<E>() implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
   // Mixin class from IterableMixin and the new methods of this class.
-  const SetBase();
 
   bool add(E value);
 

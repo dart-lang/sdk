@@ -69,9 +69,7 @@ part of "dart:core";
 /// Catching specific subclasses of [Error] is not intended,
 /// and shouldn't happen outside of testing your own code.
 @pragma('flutter:keep-to-string-in-subtypes')
-class Error {
-  Error(); // Prevent use as mixin.
-
+class Error() {
   /// Safely convert a value to a [String] description.
   ///
   /// The conversion is guaranteed to not throw, so it won't use the object's
@@ -125,12 +123,12 @@ class Error {
 }
 
 /// Error thrown by the runtime system when an assert statement fails.
-class AssertionError extends Error {
+class AssertionError([
   /// Message describing the assertion error.
-  final Object? message;
-
+  final Object? message,
+]) extends Error {
   /// Creates an assertion error with the provided [message].
-  AssertionError([this.message]);
+  this;
 
   String toString() {
     if (message != null) {
@@ -141,7 +139,7 @@ class AssertionError extends Error {
 }
 
 /// Error thrown by the runtime system when a dynamic type error happens.
-class TypeError extends Error {}
+class TypeError() extends Error;
 
 /// Error thrown when a function is passed an unacceptable argument.
 ///
@@ -296,7 +294,7 @@ class RangeError extends ArgumentError {
   ///
   /// The [length] is the length of [indexable] at the time of the error.
   /// If `length` is omitted, it defaults to `indexable.length`.
-  factory RangeError.index(
+  factory index(
     int index,
     dynamic indexable, [
     String? name,
@@ -562,10 +560,7 @@ class NoSuchMethodError extends Error {
   ///
   /// The [invocation] represents the method call that failed. It
   /// should not be `null`.
-  external factory NoSuchMethodError.withInvocation(
-    Object? receiver,
-    Invocation invocation,
-  );
+  external factory withInvocation(Object? receiver, Invocation invocation);
 
   external String toString();
 }
@@ -577,10 +572,12 @@ class NoSuchMethodError extends Error {
 /// For example, it's used by unmodifiable versions of collections,
 /// when someone calls a modifying method.
 @pragma("vm:entry-point")
-class UnsupportedError extends Error {
+class UnsupportedError(String this.message) extends Error {
   final String? message;
+
   @pragma("vm:entry-point")
-  UnsupportedError(String this.message);
+  this;
+
   String toString() => "Unsupported operation: $message";
 }
 
@@ -592,9 +589,9 @@ class UnsupportedError extends Error {
 /// If the class does not intend to implement the feature, it should throw
 /// an [UnsupportedError] instead. This error is only intended for
 /// use during development.
-class UnimplementedError extends Error implements UnsupportedError {
-  final String? message;
-  UnimplementedError([this.message]);
+class UnimplementedError([final String? message])
+    extends Error
+    implements UnsupportedError {
   String toString() {
     var message = this.message;
     return (message != null)
@@ -616,10 +613,10 @@ class UnimplementedError extends Error implements UnsupportedError {
 ///
 /// This is a generic error used for a variety of different erroneous
 /// actions. The message should be descriptive.
-class StateError extends Error {
-  final String message;
+class StateError(final String message) extends Error {
   @pragma("vm:entry-point")
-  StateError(this.message);
+  this;
+
   String toString() => "Bad state: $message";
 }
 
@@ -628,12 +625,10 @@ class StateError extends Error {
 /// Some modifications may be allowed for some collections, so each collection
 /// ([Iterable] or similar collection of values) should declare which operations
 /// are allowed during an iteration.
-class ConcurrentModificationError extends Error {
+class ConcurrentModificationError([
   /// The object that was modified in an incompatible way.
-  final Object? modifiedObject;
-
-  ConcurrentModificationError([this.modifiedObject]);
-
+  final Object? modifiedObject,
+]) extends Error {
   String toString() {
     if (modifiedObject == null) {
       return "Concurrent modification during iteration.";
@@ -644,18 +639,20 @@ class ConcurrentModificationError extends Error {
 }
 
 /// Error that the platform can use in case of memory shortage.
-final class OutOfMemoryError implements Error {
+final class const OutOfMemoryError() implements Error {
   @pragma("vm:entry-point")
-  const OutOfMemoryError();
+  this;
+
   String toString() => "Out of Memory";
 
   StackTrace? get stackTrace => null;
 }
 
 /// Error that the platform can use in case of stack overflow.
-final class StackOverflowError implements Error {
+final class const StackOverflowError() implements Error {
   @pragma("vm:entry-point")
-  const StackOverflowError();
+  this;
+
   String toString() => "Stack Overflow";
 
   StackTrace? get stackTrace => null;

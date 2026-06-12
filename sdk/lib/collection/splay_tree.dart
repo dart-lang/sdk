@@ -35,7 +35,7 @@ class _SplayTreeMapNode<K, V>
 /// are expected to be quick to access again.
 /// It performs basic operations such as insertion, look-up and
 /// removal, in O(log(n)) expected amortized time.
-abstract class _SplayTree<K, Node extends _SplayTreeNode<K, Node>> {
+abstract class _SplayTree<K, Node extends _SplayTreeNode<K, Node>>() {
   // The root node of the splay tree. It will contain either the last
   // element inserted or the last element looked up.
   abstract Node? _root;
@@ -431,7 +431,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// final fromBaseMap = SplayTreeMap<int, String>.from(baseMap);
   /// print(fromBaseMap); // {1: A, 2: B, 3: C}
   /// ```
-  factory SplayTreeMap.from(
+  factory from(
     Map<Object?, Object?> other, [
     int Function(K key1, K key2)? compare,
     bool Function(dynamic potentialKey)? isValidKey,
@@ -453,7 +453,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// final mapOf = SplayTreeMap<num, Object>.of(baseMap);
   /// print(mapOf); // {1: C, 2: B, 3: A, 4: D}
   /// ```
-  factory SplayTreeMap.of(
+  factory of(
     Map<K, V> other, [
     int Function(K key1, K key2)? compare,
     bool Function(dynamic potentialKey)? isValidKey,
@@ -478,7 +478,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   ///         key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory SplayTreeMap.fromIterable(
+  factory fromIterable(
     Iterable iterable, {
     K Function(dynamic element)? key,
     V Function(dynamic element)? value,
@@ -506,7 +506,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// final mapFromIterables = SplayTreeMap.fromIterables(keys, values);
   /// print(mapFromIterables); // {1: A, 2: B, 3: C, 4: D}
   /// ```
-  factory SplayTreeMap.fromIterables(
+  factory fromIterables(
     Iterable<K> keys,
     Iterable<V> values, [
     int Function(K key1, K key2)? compare,
@@ -1049,7 +1049,7 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// final setFrom = SplayTreeSet<int>.from(numbers);
   /// print(setFrom); // {10, 20, 30}
   /// ```
-  factory SplayTreeSet.from(
+  factory from(
     Iterable elements, [
     int Function(E key1, E key2)? compare,
     bool Function(dynamic potentialKey)? isValidKey,
@@ -1075,7 +1075,7 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// final setOf = SplayTreeSet<num>.of(baseSet);
   /// print(setOf); // {1, 2, 3}
   /// ```
-  factory SplayTreeSet.of(
+  factory of(
     Iterable<E> elements, [
     int Function(E key1, E key2)? compare,
     bool Function(dynamic potentialKey)? isValidKey,

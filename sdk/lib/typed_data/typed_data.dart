@@ -359,7 +359,7 @@ abstract final class TypedData {
 
 /// A [TypedData] fixed-length [List]-view on the bytes of [buffer].
 @Since("3.5")
-abstract final class TypedDataList<E> implements TypedData, List<E> {}
+abstract final class TypedDataList<E> implements TypedData, List<E>;
 
 abstract final class _TypedIntList implements TypedDataList<int> {
   /// The concatenation of this list and [other].
@@ -398,10 +398,7 @@ abstract final class _TypedFloatList implements TypedDataList<double> {
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// `Endian`.
-final class Endian {
-  final bool _littleEndian;
-  const Endian._(this._littleEndian);
-
+final class const Endian._(final bool _littleEndian) {
   static const Endian big = Endian._(false);
   static const Endian little = Endian._(true);
   static final Endian host =
@@ -448,7 +445,7 @@ abstract final class ByteData implements TypedData {
   /// Creates a [ByteData] of the specified length (in elements), all of
   /// whose bytes are initially zero.
   @pragma("vm:entry-point")
-  external factory ByteData(int length);
+  external factory(int length);
 
   /// Creates an [ByteData] _view_ of the specified region in [buffer].
   ///
@@ -479,11 +476,7 @@ abstract final class ByteData implements TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory ByteData.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asByteData(offsetInBytes, length);
   }
 
@@ -503,7 +496,7 @@ abstract final class ByteData implements TypedData {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  factory ByteData.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -746,7 +739,7 @@ abstract final class Int8List implements _TypedIntList {
   /// whose elements are initially zero.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely [length] bytes.
-  external factory Int8List(int length);
+  external factory(int length);
 
   /// Creates a [Int8List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -756,7 +749,7 @@ abstract final class Int8List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely `elements.length`
   /// bytes.
-  external factory Int8List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates an [Int8List] _view_ of the specified region in [buffer].
   ///
@@ -787,11 +780,7 @@ abstract final class Int8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int8List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
@@ -811,7 +800,7 @@ abstract final class Int8List implements _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  factory Int8List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -870,7 +859,7 @@ abstract final class Uint8List implements _TypedIntList {
   /// whose elements are initially zero.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely [length] bytes.
-  external factory Uint8List(int length);
+  external factory(int length);
 
   /// Creates a [Uint8List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -880,7 +869,7 @@ abstract final class Uint8List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely `elements.length`
   /// bytes.
-  external factory Uint8List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates a [Uint8List] _view_ of the specified region in [buffer].
   ///
@@ -911,11 +900,7 @@ abstract final class Uint8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint8List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asUint8List(offsetInBytes, length);
   }
 
@@ -935,7 +920,7 @@ abstract final class Uint8List implements _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  factory Uint8List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1001,7 +986,7 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   /// whose elements are initially zero.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely [length] bytes.
-  external factory Uint8ClampedList(int length);
+  external factory(int length);
 
   /// Creates a [Uint8ClampedList] of the same size as the [elements]
   /// list and copies over the values clamping when needed.
@@ -1011,7 +996,7 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely `elements.length`
   /// bytes.
-  external factory Uint8ClampedList.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates a [Uint8ClampedList] _view_ of the specified region in the
   /// specified byte [buffer].
@@ -1043,11 +1028,7 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint8ClampedList.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
@@ -1068,11 +1049,7 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
   @Since("3.3")
-  factory Uint8ClampedList.sublistView(
-    TypedData data, [
-    int start = 0,
-    int? end,
-  ]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1133,7 +1110,7 @@ abstract final class Int16List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 2 bytes.
-  external factory Int16List(int length);
+  external factory(int length);
 
   /// Creates a [Int16List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1143,7 +1120,7 @@ abstract final class Int16List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 2 bytes.
-  external factory Int16List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates an [Int16List] _view_ of the specified region in [buffer].
   ///
@@ -1176,11 +1153,7 @@ abstract final class Int16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int16List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asInt16List(offsetInBytes, length);
   }
 
@@ -1203,7 +1176,7 @@ abstract final class Int16List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of two.
-  factory Int16List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1271,7 +1244,7 @@ abstract final class Uint16List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 2 bytes.
-  external factory Uint16List(int length);
+  external factory(int length);
 
   /// Creates a [Uint16List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1281,7 +1254,7 @@ abstract final class Uint16List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 2 bytes.
-  external factory Uint16List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates a [Uint16List] _view_ of the specified region in
   /// the specified byte buffer.
@@ -1315,11 +1288,7 @@ abstract final class Uint16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint16List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
@@ -1342,7 +1311,7 @@ abstract final class Uint16List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of two.
-  factory Uint16List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1410,7 +1379,7 @@ abstract final class Int32List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 4 bytes.
-  external factory Int32List(int length);
+  external factory(int length);
 
   /// Creates a [Int32List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1420,7 +1389,7 @@ abstract final class Int32List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 4 bytes.
-  external factory Int32List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates an [Int32List] _view_ of the specified region in [buffer].
   ///
@@ -1453,11 +1422,7 @@ abstract final class Int32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int32List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asInt32List(offsetInBytes, length);
   }
 
@@ -1480,7 +1445,7 @@ abstract final class Int32List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  factory Int32List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1548,7 +1513,7 @@ abstract final class Uint32List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 4 bytes.
-  external factory Uint32List(int length);
+  external factory(int length);
 
   /// Creates a [Uint32List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1558,7 +1523,7 @@ abstract final class Uint32List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 4 bytes.
-  external factory Uint32List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates a [Uint32List] _view_ of the specified region in
   /// the specified byte buffer.
@@ -1592,11 +1557,7 @@ abstract final class Uint32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint32List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
@@ -1619,7 +1580,7 @@ abstract final class Uint32List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  factory Uint32List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1687,7 +1648,7 @@ abstract final class Int64List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 8 bytes.
-  external factory Int64List(int length);
+  external factory(int length);
 
   /// Creates a [Int64List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1697,7 +1658,7 @@ abstract final class Int64List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 8 bytes.
-  external factory Int64List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates an [Int64List] _view_ of the specified region in [buffer].
   ///
@@ -1730,11 +1691,7 @@ abstract final class Int64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int64List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asInt64List(offsetInBytes, length);
   }
 
@@ -1757,7 +1714,7 @@ abstract final class Int64List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  factory Int64List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1825,7 +1782,7 @@ abstract final class Uint64List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 8 bytes.
-  external factory Uint64List(int length);
+  external factory(int length);
 
   /// Creates a [Uint64List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1835,7 +1792,7 @@ abstract final class Uint64List implements _TypedIntList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 8 bytes.
-  external factory Uint64List.fromList(List<int> elements);
+  external factory fromList(List<int> elements);
 
   /// Creates an [Uint64List] _view_ of the specified region in
   /// the specified byte buffer.
@@ -1869,11 +1826,7 @@ abstract final class Uint64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint64List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
@@ -1896,7 +1849,7 @@ abstract final class Uint64List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  factory Uint64List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -1965,7 +1918,7 @@ abstract final class Float32List implements _TypedFloatList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 4 bytes.
-  external factory Float32List(int length);
+  external factory(int length);
 
   /// Creates a [Float32List] with the same length as the [elements] list
   /// and copies over the elements.
@@ -1975,7 +1928,7 @@ abstract final class Float32List implements _TypedFloatList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 4 bytes.
-  external factory Float32List.fromList(List<double> elements);
+  external factory fromList(List<double> elements);
 
   /// Creates a [Float32List] _view_ of the specified region in [buffer].
   ///
@@ -2008,11 +1961,7 @@ abstract final class Float32List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float32List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
@@ -2035,7 +1984,7 @@ abstract final class Float32List implements _TypedFloatList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  factory Float32List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -2100,14 +2049,14 @@ abstract final class Float64List implements _TypedFloatList {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 8 bytes.
-  external factory Float64List(int length);
+  external factory(int length);
 
   /// Creates a [Float64List] with the same length as the [elements] list
   /// and copies over the elements.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 8 bytes.
-  external factory Float64List.fromList(List<double> elements);
+  external factory fromList(List<double> elements);
 
   /// Creates a [Float64List] _view_ of the specified region in [buffer].
   ///
@@ -2140,11 +2089,7 @@ abstract final class Float64List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float64List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat64List(offsetInBytes, length);
   }
 
@@ -2167,7 +2112,7 @@ abstract final class Float64List implements _TypedFloatList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  factory Float64List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -2232,14 +2177,14 @@ abstract final class Float32x4List
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 16 bytes.
-  external factory Float32x4List(int length);
+  external factory(int length);
 
   /// Creates a [Float32x4List] with the same length as the [elements] list
   /// and copies over the elements.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 16 bytes.
-  external factory Float32x4List.fromList(List<Float32x4> elements);
+  external factory fromList(List<Float32x4> elements);
 
   /// Creates a [Float32x4List] _view_ of the specified region in [buffer].
   ///
@@ -2272,11 +2217,7 @@ abstract final class Float32x4List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float32x4List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat32x4List(offsetInBytes, length);
   }
 
@@ -2299,7 +2240,7 @@ abstract final class Float32x4List
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  factory Float32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -2372,14 +2313,14 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 16 bytes.
-  external factory Int32x4List(int length);
+  external factory(int length);
 
   /// Creates a [Int32x4List] with the same length as the [elements] list
   /// and copies over the elements.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 16 bytes.
-  external factory Int32x4List.fromList(List<Int32x4> elements);
+  external factory fromList(List<Int32x4> elements);
 
   /// Creates a [Int32x4List] _view_ of the specified region in [buffer].
   ///
@@ -2412,11 +2353,7 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int32x4List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asInt32x4List(offsetInBytes, length);
   }
 
@@ -2439,7 +2376,7 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  factory Int32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -2516,14 +2453,14 @@ abstract final class Float64x2List
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// [length] times 16 bytes.
-  external factory Float64x2List(int length);
+  external factory(int length);
 
   /// Creates a [Float64x2List] with the same length as the [elements] list
   /// and copies over the elements.
   ///
   /// The list is backed by a [ByteBuffer] containing precisely
   /// `elements.length` times 16 bytes.
-  external factory Float64x2List.fromList(List<Float64x2> elements);
+  external factory fromList(List<Float64x2> elements);
 
   /// The concatenation of this list and [other].
   ///
@@ -2562,11 +2499,7 @@ abstract final class Float64x2List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float64x2List.view(
-    ByteBuffer buffer, [
-    int offsetInBytes = 0,
-    int? length,
-  ]) {
+  factory view(ByteBuffer buffer, [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
 
@@ -2589,7 +2522,7 @@ abstract final class Float64x2List
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  factory Float64x2List.sublistView(TypedData data, [int start = 0, int? end]) {
+  factory sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
       start,
@@ -2667,7 +2600,7 @@ abstract final class Float32x4 {
   /// The conversion from 64-bit float to 32-bit float loses significant
   /// precision, and may become zero or infinite even if the original 64-bit
   /// floating point value was non-zero and finite.
-  external factory Float32x4(double x, double y, double z, double w);
+  external factory(double x, double y, double z, double w);
 
   /// Creates a `Float32x4` with the same 32-bit float value four times.
   ///
@@ -2679,13 +2612,13 @@ abstract final class Float32x4 {
   /// The conversion from 64-bit float to 32-bit float loses significant
   /// precision, and may become zero or infinite even if the original 64-bit
   /// floating point value was non-zero and finite.
-  external factory Float32x4.splat(double value);
+  external factory splat(double value);
 
   /// Creates a `Float32x4` with all values being zero.
   ///
   /// The created value has the same [Float32x4.x], [Float32x4.y], [Float32x4.z]
   /// and [Float32x4.w] value, which is the 32-bit floating point zero value.
-  external factory Float32x4.zero();
+  external factory zero();
 
   /// Creates a `Float32x4` with 32-bit float values from the provided bits.
   ///
@@ -2695,7 +2628,7 @@ abstract final class Float32x4 {
   ///
   /// The conversion is performed using the *platform endianness* for both
   /// 32-bit integers and 32-bit floating point numbers.
-  external factory Float32x4.fromInt32x4Bits(Int32x4 bits);
+  external factory fromInt32x4Bits(Int32x4 bits);
 
   /// Creates a `Float32x4` with its [x] and [y] lanes set to values from [xy].
   ///
@@ -2703,7 +2636,7 @@ abstract final class Float32x4 {
   /// which are the conversions of the [Float64x2.x] and [Float64x2.y] lanes
   /// of [xy] to 32-bit floating point values.
   /// The [Float32x4.z] and [Float32x4.w] lanes are set to the zero value.
-  external factory Float32x4.fromFloat64x2(Float64x2 xy);
+  external factory fromFloat64x2(Float64x2 xy);
 
   /// Lane-wise addition.
   ///
@@ -4329,9 +4262,9 @@ abstract final class Float32x4 {
 /// Int32x4 stores 4 32-bit bit-masks in "lanes".
 /// The lanes are "x", "y", "z", and "w" respectively.
 abstract final class Int32x4 {
-  external factory Int32x4(int x, int y, int z, int w);
-  external factory Int32x4.bool(bool x, bool y, bool z, bool w);
-  external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
+  external factory(int x, int y, int z, int w);
+  external factory bool(bool x, bool y, bool z, bool w);
+  external factory fromFloat32x4Bits(Float32x4 x);
 
   /// The bit-wise or operator.
   Int32x4 operator |(Int32x4 other);
@@ -4683,12 +4616,12 @@ abstract final class Int32x4 {
 /// It is a compile-time error for a class to attempt to extend or implement
 /// `Float64x2`.
 abstract final class Float64x2 {
-  external factory Float64x2(double x, double y);
-  external factory Float64x2.splat(double v);
-  external factory Float64x2.zero();
+  external factory(double x, double y);
+  external factory splat(double v);
+  external factory zero();
 
   /// Uses the "x" and "y" lanes from [v].
-  external factory Float64x2.fromFloat32x4(Float32x4 v);
+  external factory fromFloat32x4(Float32x4 v);
 
   /// Addition operator.
   Float64x2 operator +(Float64x2 other);

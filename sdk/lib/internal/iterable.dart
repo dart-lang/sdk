@@ -4,18 +4,13 @@
 
 part of "dart:_internal";
 
-/**
- * Marker interface for [Iterable] subclasses that have an efficient
- * [length] implementation.
- */
-abstract class EfficientLengthIterable<T> extends Iterable<T> {
-  const EfficientLengthIterable();
-  /**
-   * Returns the number of elements in the iterable.
-   *
-   * This is an efficient operation that doesn't require iterating through
-   * the elements.
-   */
+/// Marker interface for [Iterable] subclasses that have an efficient
+/// [length] implementation.
+abstract class const EfficientLengthIterable<T>() extends Iterable<T> {
+  /// The number of elements in the iterable.
+  ///
+  /// This is an efficient operation that doesn't require iterating through
+  /// the elements.
   int get length;
 }
 
@@ -25,8 +20,7 @@ abstract class EfficientLengthIterable<T> extends Iterable<T> {
 /// this interface, and they have the same *depth*, so it's impossible
 /// for the upper-bound algorithm to get [EfficientLengthIterable]
 /// as the result.
-abstract interface class HideEfficientLengthIterable<T>
-    implements Iterable<T> {}
+abstract interface class HideEfficientLengthIterable<T> implements Iterable<T>;
 
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
@@ -1072,10 +1066,8 @@ class IndexedIterator<T> implements Iterator<(int, T)> {
       : (throw IterableElementError.noElement());
 }
 
-/**
- * Creates errors throw by [Iterable] when the element count is wrong.
- */
-abstract class IterableElementError {
+/// Creates errors throw by [Iterable] when the element count is wrong.
+abstract interface class IterableElementError {
   /** Error thrown by, e.g., [Iterable.first] when there is no result. */
   static StateError noElement() => StateError("No element");
   /** Error thrown by, e.g., [Iterable.single] if there are too many results. */

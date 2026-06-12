@@ -70,7 +70,7 @@ AsyncError _interceptUserError(Object error, StackTrace? stackTrace) {
   return AsyncError._(error, stackTrace);
 }
 
-abstract class _Completer<T> implements Completer<T> {
+abstract class _Completer<T>() implements Completer<T> {
   @pragma("vm:entry-point")
   final _Future<T> future = _Future<T>();
 
@@ -92,7 +92,7 @@ abstract class _Completer<T> implements Completer<T> {
 
 /// Completer which completes future asynchronously.
 @pragma("vm:entry-point")
-class _AsyncCompleter<T> extends _Completer<T> {
+class _AsyncCompleter<T>() extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw StateError("Future already completed");
     future._asyncComplete(value == null ? value as dynamic : value);
@@ -107,7 +107,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 ///
 /// Created by [Completer.sync]. Use with caution.
 @pragma("vm:entry-point")
-class _SyncCompleter<T> extends _Completer<T> {
+class _SyncCompleter<T>() extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw StateError("Future already completed");
     future._complete(value == null ? value as dynamic : value);

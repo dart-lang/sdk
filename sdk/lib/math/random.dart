@@ -34,13 +34,13 @@ abstract interface class Random {
   /// The optional parameter [seed] is used to initialize the
   /// internal state of the generator. The implementation of the
   /// random stream can change between releases of the library.
-  external factory Random([int? seed]);
+  external factory([int? seed]);
 
   /// Creates a cryptographically secure random number generator.
   ///
   /// If the program cannot provide a cryptographically secure
   /// source of random numbers, it throws an [UnsupportedError].
-  external factory Random.secure();
+  external factory secure();
 
   /// Generates a non-negative random integer uniformly distributed in the range
   /// from 0, inclusive, to [max], exclusive.

@@ -176,7 +176,7 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   ///
   /// **Legacy:** New usages of [Rectangle] are discouraged.
   /// To learn more, check out the [Rectangle] class API docs.
-  const Rectangle(this.left, this.top, T width, T height)
+  const new(this.left, this.top, T width, T height)
     : width = (width < 0)
           ? (width == double.negativeInfinity ? 0.0 : (-width * 0)) as dynamic
           : (width + 0 as dynamic), // Inline _clampToZero<num>.
@@ -207,7 +207,7 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// print(rectangle.right); // 300
   /// print(rectangle.bottom); // 600
   /// ```
-  factory Rectangle.fromPoints(Point<T> a, Point<T> b) {
+  factory fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
     T width = (max(a.x, b.x) - left) as T;
     T top = min(a.y, b.y);
@@ -318,7 +318,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   /// print(rectangle.right); // 300
   /// print(rectangle.bottom); // 600
   /// ```
-  factory MutableRectangle.fromPoints(Point<T> a, Point<T> b) {
+  factory fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
     T width = (max(a.x, b.x) - left) as T;
     T top = min(a.y, b.y);

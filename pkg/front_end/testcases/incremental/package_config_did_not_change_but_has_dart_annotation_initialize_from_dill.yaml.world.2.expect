@@ -1,0 +1,19 @@
+main = main::main;
+library from "package:foo/a.dart" as a {
+
+  class A extends dart.core::Object {
+    constructor •() → a::A
+      : super dart.core::Object::•() {
+      dart.core::print("A");
+    }
+  }
+}
+library from "package:foo/main.dart" as main {
+
+  import "package:foo/a.dart";
+
+  static method main() → void {
+    dart.core::print("hello");
+    new a::A::•();
+  }
+}

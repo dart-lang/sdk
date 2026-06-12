@@ -42,4 +42,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///annotations.dart:
 - Deprecated. (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
+- Deprecated._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

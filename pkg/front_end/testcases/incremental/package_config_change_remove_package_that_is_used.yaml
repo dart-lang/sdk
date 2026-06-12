@@ -2,8 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Write code that's not supported in the langauge version used
-# then change only the package config to change the langauge version.
+# Use a package, then remove the package from the package config.
 
 type: newworld
 worlds:

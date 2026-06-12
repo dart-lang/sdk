@@ -176,7 +176,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
 ///
 /// Accumulates lists of integers and lazily builds
 /// a collected list with all the bytes when requested.
-class _BytesBuilder implements BytesBuilder {
+class _BytesBuilder() implements BytesBuilder {
   int _length = 0;
   final List<Uint8List> _chunks = [];
 
