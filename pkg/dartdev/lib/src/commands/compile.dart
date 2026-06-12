@@ -498,6 +498,11 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     if (depfile != null) {
       buildArgs.add('--depfile=$depfile');
+      final canonicalizedOutput = path.canonicalize(outputFile);
+      final escapedOutputFile = canonicalizedOutput
+          .replaceAll('\\', '\\\\')
+          .replaceAll(' ', '\\ ');
+      buildArgs.add('--depfile-output-filename=$escapedOutputFile');
     }
 
     buildArgs.add(path.canonicalize(sourcePath));
