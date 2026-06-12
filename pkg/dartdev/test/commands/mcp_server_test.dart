@@ -24,10 +24,10 @@ void main() {
     });
 
     test('forwards command arguments', () async {
-      await runner.run(['mcp-server', 'foo', 'bar']);
+      await runner.run(['mcp-server', '--help', '--log-file', 'foo.log']);
       expect(
         runner.capturedArgs,
-        equals(['run', 'dart_mcp_server@', 'foo', 'bar']),
+        equals(['run', 'dart_mcp_server@', '--help', '--log-file', 'foo.log']),
       );
     });
 
