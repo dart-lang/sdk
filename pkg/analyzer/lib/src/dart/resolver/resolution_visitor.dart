@@ -453,6 +453,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _scopeContext.visitFormalParameter(node, visitor: this);
+    _setExplicitFormalParameterType(node);
   }
 
   @override
@@ -790,37 +791,26 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
-    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+    if (node.functionTypedSuffix != null) {
       _scopeContext.visitFormalParameter(node, visitor: this);
-
-      element.type = FunctionTypeImpl(
-        typeParameters: [
-          for (var typeParameter
-              in functionTypedSuffix.typeParameters?.typeParameters ??
-                  const <TypeParameterImpl>[])
-            typeParameter.declaredFragment!.element,
-        ],
-        formalParameters: [
-          for (var parameter in functionTypedSuffix.formalParameters.parameters)
-            parameter.declaredFragment!.element,
-        ],
-        returnType: node.type?.type ?? _typeProvider.dynamicType,
-        nullabilitySuffix: _getNullability(
-          functionTypedSuffix.question != null,
-        ),
-      );
-      return;
+    } else {
+      node.visitChildren(this);
     }
 
-    node.visitChildren(this);
+    var explicitFragmentType = _setExplicitFormalParameterType(node);
 
-    if (node.type case var type?) {
-      element.type = type.type ?? _typeProvider.dynamicType;
-    } else if (element.type is InvalidTypeImpl) {
-      // TODO(scheglov): review and improve resolution to not rely on dynamic.
-      element.type = _typeProvider.dynamicType;
+    if (fragment.previousFragment == null) {
+      if (explicitFragmentType != null) {
+        element.type = explicitFragmentType;
+      } else if (node.type != null) {
+        element.type = _typeProvider.dynamicType;
+      } else if (element.type is InvalidTypeImpl) {
+        // TODO(scheglov): review and improve resolution to not rely on dynamic.
+        element.type = _typeProvider.dynamicType;
+      }
     }
   }
 
@@ -876,6 +866,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _scopeContext.visitFormalParameter(node, visitor: this);
+    _setExplicitFormalParameterType(node);
   }
 
   @override
@@ -1287,6 +1278,33 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       );
       _namedTypeResolver.withClause_namedType = null;
     }
+  }
+
+  TypeImpl? _setExplicitFormalParameterType(FormalParameterImpl node) {
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      return node.explicitFragmentType = FunctionTypeImpl(
+        typeParameters: [
+          for (var typeParameter
+              in functionTypedSuffix.typeParameters?.typeParameters ??
+                  const <TypeParameterImpl>[])
+            typeParameter.declaredFragment!.element,
+        ],
+        formalParameters: [
+          for (var parameter in functionTypedSuffix.formalParameters.parameters)
+            parameter.declaredFragment!.element,
+        ],
+        returnType: node.type?.type ?? _typeProvider.dynamicType,
+        nullabilitySuffix: _getNullability(
+          functionTypedSuffix.question != null,
+        ),
+      );
+    }
+
+    if (node.type case var type?) {
+      return node.explicitFragmentType = type.type;
+    }
+
+    return node.explicitFragmentType = null;
   }
 
   void _verifyExtensionElementImplements(

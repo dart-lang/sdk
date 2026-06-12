@@ -13871,6 +13871,10 @@ sealed class FormalParameterImpl extends AstNodeImpl
   /// [Feature.primary_constructors] is not enabled.
   Scope? scope;
 
+  /// The type explicitly written on this parameter fragment, or `null` if the
+  /// parameter has an implicit type.
+  TypeImpl? explicitFragmentType;
+
   FormalParameterImpl({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,

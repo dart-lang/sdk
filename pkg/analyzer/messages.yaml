@@ -1857,6 +1857,31 @@ CompileTimeErrorCode:
     problemMessage: "The augmentation has #actualCount optional positional formal parameters, but the declaration has #expectedCount."
     correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
+  augmentationFormalParameterModifierExtra:
+    type: compileTimeError
+    parameters:
+      String modifier: the lexeme of the modifier.
+    experiment: augmentations
+    problemMessage: "The augmentation has the '#modifier' modifier on this formal parameter, but the declaration doesn't."
+    correctionMessage: "Try removing the '#modifier' modifier, or adding it to the declaration."
+    hasPublishedDocs: false
+  augmentationFormalParameterModifierMissing:
+    type: compileTimeError
+    parameters:
+      String modifier: the lexeme of the modifier.
+    experiment: augmentations
+    problemMessage: "The augmentation is missing the '#modifier' modifier on this formal parameter that the declaration has."
+    correctionMessage: "Try adding the '#modifier' modifier, or removing it from the declaration."
+    hasPublishedDocs: false
+  augmentationFormalParameterTypeMismatch:
+    type: compileTimeError
+    parameters:
+      Type expectedType: the type of the formal parameter in the declaration.
+      Type actualType: the type of the formal parameter in the augmentation.
+    experiment: augmentations
+    problemMessage: "The augmentation's formal parameter type '#actualType' must be the same as the declaration's formal parameter type '#expectedType'."
+    correctionMessage: Try changing the augmentation's formal parameter type to match the declaration, or omit the type.
+    hasPublishedDocs: false
   augmentationPositionalFormalParameterName:
     type: compileTimeError
     parameters:

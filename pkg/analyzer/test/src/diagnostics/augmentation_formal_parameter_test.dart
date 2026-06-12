@@ -9,10 +9,63 @@ import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AugmentationFormalParameterModifierTest);
     defineReflectiveTests(AugmentationFormalParameterNameTest);
     defineReflectiveTests(AugmentationFormalParameterShapeTest);
+    defineReflectiveTests(AugmentationFormalParameterTypeTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class AugmentationFormalParameterModifierTest extends PubPackageResolutionTest {
+  test_covariant_extra() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(int x);
+//             ^
+// [context 1] The formal parameter is here.
+  augment void foo(covariant int x) {}
+//                 ^^^^^^^^^
+// [diag.augmentationFormalParameterModifierExtra][context 1] The augmentation has the 'covariant' modifier on this formal parameter, but the declaration doesn't.
+}
+''');
+  }
+
+  test_covariant_missing() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant int x);
+//                       ^
+// [context 1] The formal parameter is here.
+  augment void foo(int x) {}
+//                     ^
+// [diag.augmentationFormalParameterModifierMissing][context 1] The augmentation is missing the 'covariant' modifier on this formal parameter that the declaration has.
+}
+''');
+  }
+
+  test_required_extra() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({int? x});
+//           ^
+// [context 1] The formal parameter is here.
+augment void f({required int? x}) {}
+//              ^^^^^^^^
+// [diag.augmentationFormalParameterModifierExtra][context 1] The augmentation has the 'required' modifier on this formal parameter, but the declaration doesn't.
+''');
+  }
+
+  test_required_missing() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int? x});
+//                    ^
+// [context 1] The formal parameter is here.
+augment void f({int? x}) {}
+//                   ^
+// [diag.augmentationFormalParameterModifierMissing][context 1] The augmentation is missing the 'required' modifier on this formal parameter that the declaration has.
+''');
+  }
 }
 
 @reflectiveTest
@@ -871,6 +924,259 @@ augment set foo(int? p1) {}
     await resolveTestCodeWithDiagnostics(r'''
 int foo = 0;
 augment void set foo(int p1);
+''');
+  }
+}
+
+@reflectiveTest
+class AugmentationFormalParameterTypeTest extends PubPackageResolutionTest {
+  test_class_constructor_rP1__fP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int p1;
+  A(int p1);
+  augment A(int this.p1);
+}
+''');
+  }
+
+  test_class_constructor_rP1__fP1_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int p1;
+  A(int p1);
+//      ^^
+// [context 1] The formal parameter is here.
+  augment A(String this.p1);
+//          ^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String' must be the same as the declaration's formal parameter type 'int'.
+}
+''');
+  }
+
+  test_class_constructor_rP1__fP1_omittedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int p1;
+  A(int p1);
+  augment A(this.p1);
+}
+''');
+  }
+
+  test_class_constructor_rp1__sp1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A([int? p1]);
+}
+class B extends A {
+  B([int? p1]);
+  augment B([int? super.p1]);
+}
+''');
+  }
+
+  test_class_constructor_rp1__sp1_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A([int? p1]);
+}
+class B extends A {
+  B([int? p1]);
+//        ^^
+// [context 1] The formal parameter is here.
+  augment B([String? super.p1]);
+//           ^^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String?' must be the same as the declaration's formal parameter type 'int?'.
+}
+''');
+  }
+
+  test_class_constructor_rp1__sp1_omittedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A([int? p1]);
+}
+class B extends A {
+  B([int? p1]);
+  augment B([super.p1]);
+}
+''');
+  }
+
+  test_topLevelFunction_rN1__rN1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int Function(int) n1});
+augment void f({required int Function(int) n1}) {}
+''');
+  }
+
+  test_topLevelFunction_rn1__rn1_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({int? n1});
+//           ^^
+// [context 1] The formal parameter is here.
+augment void f({String? n1}) {}
+//              ^^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String?' must be the same as the declaration's formal parameter type 'int?'.
+''');
+  }
+
+  test_topLevelFunction_rn1__rn1_omittedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({int? n1});
+augment void f({n1}) {}
+''');
+  }
+
+  test_topLevelFunction_rN1__rN1ft() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int Function(int) n1});
+augment void f({required int n1(int a)}) {}
+''');
+  }
+
+  test_topLevelFunction_rN1__rN1ft_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int n1});
+//                   ^^
+// [context 1] The formal parameter is here.
+augment void f({required int n1(int a)}) {}
+//                       ^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'int Function(int)' must be the same as the declaration's formal parameter type 'int'.
+''');
+  }
+
+  test_topLevelFunction_rN1ft__rN1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int n1(int a)});
+augment void f({required int Function(int) n1}) {}
+''');
+  }
+
+  test_topLevelFunction_rN1ft__rN1_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int n1(int a)});
+//                   ^^
+// [context 1] The formal parameter is here.
+augment void f({required int n1}) {}
+//                       ^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'int' must be the same as the declaration's formal parameter type 'int Function(int)'.
+''');
+  }
+
+  test_topLevelFunction_rN1ft__rN1ft() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({required int n1(int a)});
+augment void f({required int n1(int a)}) {}
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int Function(int) p1);
+augment void f(int Function(int) p1) {}
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1);
+//         ^^
+// [context 1] The formal parameter is here.
+augment void f(String p1) {}
+//             ^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String' must be the same as the declaration's formal parameter type 'int'.
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1_omittedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1);
+augment void f(p1) {}
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1ft() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int Function(int) p1);
+augment void f(int p1(int a)) {}
+''');
+  }
+
+  test_topLevelFunction_rP1__rP1ft_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1);
+//         ^^
+// [context 1] The formal parameter is here.
+augment void f(int p1(int a)) {}
+//             ^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'int Function(int)' must be the same as the declaration's formal parameter type 'int'.
+''');
+  }
+
+  test_topLevelFunction_rP1ft__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1(int a));
+augment void f(int Function(int) p1) {}
+''');
+  }
+
+  test_topLevelFunction_rP1ft__rP1_differentType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1(int a));
+//         ^^
+// [context 1] The formal parameter is here.
+augment void f(int p1) {}
+//             ^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'int' must be the same as the declaration's formal parameter type 'int Function(int)'.
+''');
+  }
+
+  test_topLevelFunction_rP1ft__rP1ft() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1(int a));
+augment void f(int p1(int a)) {}
+''');
+  }
+
+  test_topLevelFunction_rP1ft__rP1ft_differentParameterType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1(int a));
+//         ^^
+// [context 1] The formal parameter is here.
+augment void f(int p1(String a)) {}
+//             ^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'int Function(String)' must be the same as the declaration's formal parameter type 'int Function(int)'.
+''');
+  }
+
+  test_topLevelFunction_rP1ft__rP1ft_differentReturnType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1(int a));
+//         ^^
+// [context 1] The formal parameter is here.
+augment void f(String p1(int a)) {}
+//             ^^^^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'String Function(int)' must be the same as the declaration's formal parameter type 'int Function(int)'.
+''');
+  }
+
+  test_topLevelFunction_rP1ftt__rP1ftt() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1<T>(T a));
+augment void f(int p1<T>(T a)) {}
+''');
+  }
+
+  test_topLevelFunction_rP1ftt__rP1ftt_differentParameterType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int p1<T>(T a));
+//         ^^
+// [context 1] The formal parameter is here.
+augment void f(int p1<T>(String a)) {}
+//             ^^^
+// [diag.augmentationFormalParameterTypeMismatch][context 1] The augmentation's formal parameter type 'int Function<T>(String)' must be the same as the declaration's formal parameter type 'int Function<T>(T)'.
 ''');
   }
 }
