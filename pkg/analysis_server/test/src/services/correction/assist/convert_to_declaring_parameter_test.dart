@@ -615,6 +615,69 @@ class B {
     await assertNoAssist();
   }
 
+  Future<void> test_selection_default() async {
+    await resolveTestCode('''
+class C([this.x = 0^]) {
+  int x;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_selection_name() async {
+    await resolveTestCode('''
+class C(this.x^) {
+  int x;
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+}
+''');
+  }
+
+  Future<void> test_selection_period() async {
+    await resolveTestCode('''
+class C(this^.x) {
+  int x;
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+}
+''');
+  }
+
+  Future<void> test_selection_required() async {
+    await resolveTestCode('''
+class C({re^quired this.x}) {
+  int x;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_selection_thisKeyword() async {
+    await resolveTestCode('''
+class C(th^is.x) {
+  int x;
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+}
+''');
+  }
+
+  Future<void> test_selection_type() async {
+    await resolveTestCode('''
+class C(in^t this.x) {
+  int x;
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_type_functionTyped() async {
     await resolveTestCode('''
 class C(int x^(String s)) {
