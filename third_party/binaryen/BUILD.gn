@@ -133,13 +133,34 @@ source_set("binaryen_sources") {
 }
 
 template("wasm_tool") {
+  src_dir = ""
+  if (defined(invoker.is_subdir) && invoker.is_subdir) {
+    src_dir = rebase_path(string_join("",
+                                      [
+                                        "src/src/tools/",
+                                        target_name,
+                                      ]),
+                          root_build_dir)
+  }
+
   executable(target_name) {
-    sources = [ string_join("",
-                            [
-                              "src/src/tools/",
-                              target_name,
-                              ".cpp",
-                            ]) ]
+    sources = []
+    if (src_dir != "") {
+      foreach(src_file,
+              exec_script("list_sources.py",
+                          [ src_dir ],
+                          "list lines",
+                          [ "../../DEPS" ])) {
+        sources += [ "$src_dir/$src_file" ]
+      }
+    } else {
+      sources += [ string_join("",
+                               [
+                                 "src/src/tools/",
+                                 target_name,
+                                 ".cpp",
+                               ]) ]
+    }
     include_dirs = [
       "src/src",
       "src/third_party/FP16/include",
@@ -155,25 +176,30 @@ template("wasm_tool") {
   }
 }
 
-wasm_tool("wasm-opt") {
-}
-wasm_tool("wasm-shell") {
-}
-wasm_tool("wasm-metadce") {
-}
-wasm_tool("wasm-emscripten-finalize") {
+wasm_tool("wasm2js") {
 }
 wasm_tool("wasm-as") {
 }
-wasm_tool("wasm-dis") {
-}
 wasm_tool("wasm-ctor-eval") {
 }
-wasm_tool("wasm-reduce") {
+wasm_tool("wasm-dis") {
+}
+wasm_tool("wasm-emscripten-finalize") {
 }
 wasm_tool("wasm-fuzz-types") {
 }
-wasm_tool("wasm2js") {
+wasm_tool("wasm-merge") {
+}
+wasm_tool("wasm-metadce") {
+}
+wasm_tool("wasm-opt") {
+}
+wasm_tool("wasm-reduce") {
+}
+wasm_tool("wasm-shell") {
+}
+wasm_tool("wasm-split") {
+  is_subdir = true
 }
 
 group("binaryen_tools") {
@@ -183,10 +209,12 @@ group("binaryen_tools") {
     ":wasm-dis",
     ":wasm-emscripten-finalize",
     ":wasm-fuzz-types",
+    ":wasm-merge",
     ":wasm-metadce",
     ":wasm-opt",
     ":wasm-reduce",
     ":wasm-shell",
+    ":wasm-split",
     ":wasm2js",
   ]
 }
