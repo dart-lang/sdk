@@ -7,17 +7,7 @@ import 'dart:mirrors';
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
-import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
-import 'package:analyzer_testing/src/expected_diagnostics.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -79,26 +69,7 @@ class ErrorCodeValuesTest {
 }
 
 @reflectiveTest
-class OptionsFileValidatorTest
-    with
-        LintRegistrationMixin,
-        ResourceProviderMixin,
-        AnalysisOptionsDiagnosticExpectationMixin {
-  late final OptionsFileValidator validator = OptionsFileValidator(
-    FileSource(newFile('/analysis_options.yaml', '')),
-    isPrimarySource: true,
-    contextRoot: convertPath('/'),
-    optionsProvider: optionsProvider,
-    resourceProvider: resourceProvider,
-    sourceFactory: SourceFactory([ResourceUriResolver(resourceProvider)]),
-    analysisOptionsCache: {},
-  );
-  final optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
-
-  void tearDown() {
-    unregisterLintRules();
-  }
-
+class OptionsFileValidatorTest extends AbstractAnalysisOptionsTest {
   test_analyzer_cannotIgnore_badValue() {
     validate('''
 analyzer:
@@ -759,43 +730,14 @@ analyzer:
   }
 
   List<Diagnostic> validate(String source) {
-    var cleanSource = removeDiagnosticExpectations(source);
-    var optionsFile = newFile('/analysis_options.yaml', cleanSource);
-    var sourceUrl = optionsFile.toUri();
-    var options = optionsProvider.getOptionsFromString(
-      cleanSource,
-      sourceUrl: sourceUrl,
-    );
-    var diagnosticListener = RecordingDiagnosticListener();
-    validator.validate(
-      options,
-      DiagnosticReporter(diagnosticListener, FileSource(optionsFile)),
-    );
-    var diagnostics = diagnosticListener.diagnostics;
-    assertDiagnosticMarkersInFiles(
-      codeByFile: {optionsFile: source},
-      diagnostics: diagnostics,
-    );
-    return diagnostics;
+    return assertAnalysisOptionsDiagnostics(source);
   }
 }
 
 @reflectiveTest
-class OptionsProviderTest
-    with ResourceProviderMixin, AnalysisOptionsDiagnosticExpectationMixin {
-  late final SourceFactory sourceFactory;
-
-  late final AnalysisOptionsProvider provider;
-
-  File get analysisOptionsFile => getFile('/analysis_options.yaml');
-
+class OptionsProviderTest extends AbstractAnalysisOptionsTest {
   void assertDiagnosticsInOptionsFile(File file, String code) {
     _assertDiagnosticsInOptionsFiles(file, {file: code});
-  }
-
-  void setUp() {
-    sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
-    provider = AnalysisOptionsProvider(sourceFactory);
   }
 
   test_circularInclude_nontrivial_direct() {
@@ -1089,18 +1031,9 @@ include: ../inner2/analysis_options.yaml
     File initialFile,
     Map<File, String> codeByFile,
   ) {
-    var cleanCodeByFile = writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var diagnostics = AnalysisOptionsAnalyzer(
-      initialSource: sourceFactory.forUri2(initialFile.toUri())!,
-      sourceFactory: sourceFactory,
-      contextRoot: convertPath('/'),
-      sdkVersionConstraint: null,
-      resourceProvider: resourceProvider,
-    ).walkIncludes(content: cleanCodeByFile[initialFile]!);
-
-    assertDiagnosticMarkersInFiles(
-      codeByFile: codeByFile,
-      diagnostics: diagnostics,
+    assertAnalysisOptionsDiagnosticsInFiles(
+      codeByFile,
+      initialFile: initialFile,
     );
   }
 }

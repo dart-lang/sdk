@@ -5,14 +5,9 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:yaml/yaml.dart';
 
 import '../dart/resolution/node_text_expectations.dart';
 import '../diagnostics/analysis_options/analysis_options_test_support.dart';
@@ -711,31 +706,13 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     Map<File, String> codeByFile, {
     VersionConstraint? sdk,
   }) {
-    var cleanCodeByFile = writeFilesWithoutDiagnosticExpectations(codeByFile);
-
     var optionsFile = testProjectPath != null
         ? getFile('$testProjectPath/analysis_options.yaml')
         : analysisOptionsFile;
-    var cleanContent = cleanCodeByFile[optionsFile]!;
-
-    var listener = RecordingDiagnosticListener();
-    var source = FileSource(optionsFile);
-    var reporter = DiagnosticReporter(listener, source);
-    var validator = LinterRuleOptionsValidator(
-      optionsProvider: AnalysisOptionsProvider(sourceFactory),
-      resourceProvider: resourceProvider,
-      sourceFactory: sourceFactory,
+    assertAnalysisOptionsDiagnosticsInFiles(
+      codeByFile,
+      initialFile: optionsFile,
       sdkVersionConstraint: sdk,
-      analysisOptionsCache: {},
-    );
-    validator.validate(
-      reporter,
-      loadYamlNode(cleanContent, sourceUrl: source.uri) as YamlMap,
-    );
-
-    assertDiagnosticMarkersInFiles(
-      codeByFile: codeByFile,
-      diagnostics: listener.diagnostics,
     );
   }
 
@@ -768,6 +745,14 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
 @reflectiveTest
 class OptionsRuleValidatorValueTest extends AbstractAnalysisOptionsTest
     with OptionsRuleValidatorTestMixin {
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(scheglov): Remove this file and the unnecessary include directives
+    // in these value-only tests.
+    newFile('/included.yaml', '');
+  }
+
   void test_unsuportedValue_invalidValue() {
     assertDiagnostics('''
 linter:
