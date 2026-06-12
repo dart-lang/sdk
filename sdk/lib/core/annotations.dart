@@ -60,16 +60,16 @@ part of "dart:core";
 /// If the deprecated use is inside a library, class or method which is itself
 /// deprecated, the tool should not bother the user about it.
 /// A deprecated feature is expected to use other deprecated features.
-class Deprecated {
+class const Deprecated._(
   /// Message provided to the user when they use the deprecated feature.
   ///
   /// The message should explain how to migrate away from the feature if an
   /// alternative is available, and when the deprecated feature is expected to be
   /// removed.
-  final String? message;
+  final String? message,
 
-  final _DeprecationKind _kind;
-
+  final _DeprecationKind _kind,
+) {
   /// Creates a deprecation annotation which specifies the migration path and
   /// expiration of the annotated feature.
   ///
@@ -77,7 +77,7 @@ class Deprecated {
   /// aimed at the programmer using the annotated feature, and should recommend
   /// an alternative (if available), and say when this feature is expected to
   /// be removed if that is sooner or later than the next major version.
-  const Deprecated(this.message) : _kind = _DeprecationKind.use;
+  const new(String? message) : this._(message, _DeprecationKind.use);
 
   /// Creates an annotation which deprecates implementing a class or mixin.
   ///
@@ -101,8 +101,8 @@ class Deprecated {
   /// should recommend an alternative (if available), and say when this
   /// functionality is expected to be removed if that is sooner or later than
   /// the next major version.
-  const Deprecated.implement([this.message])
-    : _kind = _DeprecationKind.implement;
+  const new implement([String? message])
+    : this._(message, _DeprecationKind.implement);
 
   /// Creates an annotation which deprecates extending a class.
   ///
@@ -125,7 +125,8 @@ class Deprecated {
   /// should recommend an alternative (if available), and say when this
   /// functionality is expected to be removed if that is sooner or later than
   /// the next major version.
-  const Deprecated.extend([this.message]) : _kind = _DeprecationKind.extend;
+  const new extend([String? message])
+    : this._(message, _DeprecationKind.extend);
 
   /// Creates an annotation which deprecates subclassing (implementing or
   /// extending) a class.
@@ -149,7 +150,8 @@ class Deprecated {
   /// should recommend an alternative (if available), and say when this
   /// functionality is expected to be removed if that is sooner or later than
   /// the next major version.
-  const Deprecated.subclass([this.message]) : _kind = _DeprecationKind.subclass;
+  const new subclass([String? message])
+    : this._(message, _DeprecationKind.subclass);
 
   /// Creates an annotation which deprecates instantiating a class.
   ///
@@ -165,8 +167,8 @@ class Deprecated {
   /// should recommend an alternative (if available), and say when this
   /// functionality is expected to be removed if that is sooner or later than
   /// the next major version.
-  const Deprecated.instantiate([this.message])
-    : _kind = _DeprecationKind.instantiate;
+  const new instantiate([String? message])
+    : this._(message, _DeprecationKind.instantiate);
 
   /// Creates an annotation which deprecates mixing in a class.
   ///
@@ -184,7 +186,7 @@ class Deprecated {
   /// annotated class, and should recommend an alternative (if available), and
   /// say when this functionality is expected to be removed if that is sooner
   /// or later than the next major version.
-  const Deprecated.mixin([this.message]) : _kind = _DeprecationKind.mixin;
+  const new mixin([String? message]) : this._(message, _DeprecationKind.mixin);
 
   /// Creates an annotation which deprecates omitting an argument for the
   /// annotated parameter.
@@ -203,7 +205,8 @@ class Deprecated {
   /// annotated parameter, and should recommend an alternative (if available),
   /// and say when this functionality is expected to be removed if that is
   /// sooner or later than the next major version.
-  const Deprecated.optional([this.message]) : _kind = _DeprecationKind.optional;
+  const new optional([String? message])
+    : this._(message, _DeprecationKind.optional);
 
   String toString() => "Deprecated feature: $message";
 }
@@ -219,19 +222,17 @@ const Deprecated deprecated = Deprecated("next release");
 ///
 /// This enum can be private because the information is only intended for
 /// static tooling, such as the analyzer. Values may be added.
-enum _DeprecationKind {
+enum _DeprecationKind() {
   use,
   implement,
   extend,
   subclass,
   instantiate,
   mixin,
-  optional,
+  optional
 }
 
-class _Override {
-  const _Override();
-}
+class const _Override();
 
 /// Annotation on instance members which override an interface member.
 ///
@@ -294,20 +295,20 @@ const Object override = _Override();
 /// function `foo` is annotated with a pragma 'other-pragma'
 /// specific to OtherTool.
 @pragma('vm:entry-point')
-final class pragma {
+final class const pragma._(
   /// The name of the hint.
   ///
   /// A string that is recognized by one or more tools, or such a string prefixed
   /// by a tool identifier and a colon, which is only recognized by that
   /// particular tool.
-  final String name;
+  final String name, [
 
   /// Optional extra data parameterizing the hint.
-  final Object? options;
-
+  final Object? options,
+]) {
   /// Creates a hint named [name] with optional [options].
-  const factory pragma(String name, [Object? options]) = pragma._;
-
   @pragma('dyn-module:language-impl:callable')
-  const pragma._(this.name, [this.options]);
+  this;
+
+  const factory pragma(String name, [Object? options]) = pragma._;
 }

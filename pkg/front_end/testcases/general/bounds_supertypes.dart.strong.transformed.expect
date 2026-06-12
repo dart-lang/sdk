@@ -1360,82 +1360,82 @@ abstract class _WithS8&Object&G extends core::Object implements self::G<core::in
     ;
 }
 abstract class _EnumWithT1&_Enum&F extends core::_Enum implements self::Class<self::Class<dynamic>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT1&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT1&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT2&_Enum&F extends core::_Enum implements self::Class<dynamic> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT2&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT2&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT3&_Enum&F extends core::_Enum implements self::Class<self::Class<dynamic>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT3&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT3&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT4&_Enum&F extends core::_Enum implements self::Class<self::Class<dynamic>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT4&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT4&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT5&_Enum&F extends core::_Enum implements self::Class<self::ConcreteClass> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT5&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT5&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT6&_Enum&F extends core::_Enum implements self::Class<self::Class<self::ConcreteClass>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT6&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT6&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT7&_Enum&F extends core::_Enum implements self::Class<core::Object> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT7&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT7&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithT8&_Enum&F extends core::_Enum implements self::Class<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithT8&_Enum&F
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithT8&_Enum&F
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS1&_Enum&G extends core::_Enum implements self::G<self::Class<dynamic>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS1&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS1&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS2&_Enum&G extends core::_Enum implements self::G<dynamic> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS2&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS2&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS3&_Enum&G extends core::_Enum implements self::G<self::Class<dynamic>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS3&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS3&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS4&_Enum&G extends core::_Enum implements self::G<self::Class<dynamic>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS4&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS4&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS5&_Enum&G extends core::_Enum implements self::G<self::ConcreteClass> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS5&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS5&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS6&_Enum&G extends core::_Enum implements self::G<self::Class<self::ConcreteClass>> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS6&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS6&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS7&_Enum&G extends core::_Enum implements self::G<core::Object> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS7&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS7&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }
 abstract class _EnumWithS8&_Enum&G extends core::_Enum implements self::G<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EnumWithS8&_Enum&G
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EnumWithS8&_Enum&G
     : super core::_Enum::•(index, _name)
     ;
 }

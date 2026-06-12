@@ -143,7 +143,7 @@ class E7 extends self::_E7&_Enum&MethodImplementation /*isEnum*/  {
   abstract method foo() → void;
 }
 abstract class _E7&_Enum&MethodImplementation = core::_Enum with self::MethodImplementation /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&MethodImplementation
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E7&_Enum&MethodImplementation
     : super core::_Enum::•(index, _name)
     ;
   synthetic mixin-super-stub method foo() → void

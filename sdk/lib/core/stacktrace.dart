@@ -11,14 +11,12 @@ part of "dart:core";
 ///
 /// These objects are created by the runtime, it is not possible to create
 /// them programmatically.
-abstract interface class StackTrace {
+abstract interface class StackTrace() {
   /// A stack trace object with no information.
   ///
   /// This stack trace is used as the default in situations where
   /// a stack trace is required, but the user has not supplied one.
   static const empty = _StringStackTrace("");
-
-  StackTrace(); // In case existing classes extend StackTrace.
 
   /// Create a `StackTrace` object from [stackTraceString].
   ///
@@ -30,7 +28,7 @@ abstract interface class StackTrace {
   /// If the string doesn't look like a stack trace, code that interprets
   /// stack traces is likely to fail, so fake stack traces should be used
   /// with care.
-  factory StackTrace.fromString(String stackTraceString) = _StringStackTrace;
+  factory fromString(String stackTraceString) = _StringStackTrace;
 
   /// Returns a representation of the current stack trace.
   ///
@@ -50,8 +48,6 @@ abstract interface class StackTrace {
   String toString();
 }
 
-class _StringStackTrace implements StackTrace {
-  final String _stackTrace;
-  const _StringStackTrace(this._stackTrace);
+class const _StringStackTrace(final String _stackTrace) implements StackTrace {
   String toString() => _stackTrace;
 }

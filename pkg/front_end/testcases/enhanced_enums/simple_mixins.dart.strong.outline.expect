@@ -45,28 +45,28 @@ class E3 extends self::_E3&_Enum&M3 /*isEnum*/  {
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E1&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M1
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E1&_Enum&M1
     : super core::_Enum::•(index, _name)
     ;
   synthetic mixin-super-stub get foo() → core::String
     return super.{self::M1::foo};
 }
 abstract class _E2&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M1
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E2&_Enum&M1
     : super core::_Enum::•(index, _name)
     ;
   synthetic mixin-super-stub get foo() → core::String
     return super.{self::M1::foo};
 }
 abstract class _E2&_Enum&M1&M2 = self::_E2&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M1&M2
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E2&_Enum&M1&M2
     : super self::_E2&_Enum&M1::•(index, _name)
     ;
   synthetic mixin-super-stub method bar() → core::int
     return super.{self::M2::bar}();
 }
 abstract class _E3&_Enum&M3 = core::_Enum with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_E3&_Enum&M3
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_E3&_Enum&M3
     : super core::_Enum::•(index, _name)
     ;
   synthetic mixin-super-stub set callOnAssignment(() → void f) → void

@@ -162,7 +162,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// and `isValidKey` is omitted, the resulting map is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [LinkedHashMap.identity].
-  external factory LinkedHashMap({
+  external factory({
     bool Function(K, K)? equals,
     int Function(K)? hashCode,
     bool Function(dynamic)? isValidKey,
@@ -175,7 +175,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// LinkedHashMap<K, V>(equals: identical,
   ///                     hashCode: identityHashCode)
   /// ```
-  external factory LinkedHashMap.identity();
+  external factory identity();
 
   /// Creates a [LinkedHashMap] that contains all key value pairs of [other].
   ///
@@ -187,7 +187,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// final fromBaseMap = LinkedHashMap<int, String>.from(baseMap);
   /// print(fromBaseMap); // {1: A, 2: B, 3: C}
   /// ```
-  factory LinkedHashMap.from(Map<dynamic, dynamic> other) {
+  factory from(Map<dynamic, dynamic> other) {
     LinkedHashMap<K, V> result = LinkedHashMap<K, V>();
     other.forEach((dynamic k, dynamic v) {
       result[k as K] = v as V;
@@ -202,8 +202,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// final mapOf = LinkedHashMap<num, Object>.of(baseMap);
   /// print(mapOf); // {3: A, 2: B, 1: C, 4: D}
   /// ```
-  factory LinkedHashMap.of(Map<K, V> other) =>
-      LinkedHashMap<K, V>()..addAll(other);
+  factory of(Map<K, V> other) => LinkedHashMap<K, V>()..addAll(other);
 
   /// Creates a [LinkedHashMap] where the keys and values are computed from the
   /// [iterable].
@@ -223,7 +222,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   ///     LinkedHashMap.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory LinkedHashMap.fromIterable(
+  factory fromIterable(
     Iterable iterable, {
     K Function(dynamic element)? key,
     V Function(dynamic element)? value,
@@ -250,7 +249,7 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// print(mapFromIterables);
   /// // {Mercury: 0.06, Venus: 0.81, Earth: 1, Mars: 0.11}
   /// ```
-  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
+  factory fromIterables(Iterable<K> keys, Iterable<V> values) {
     LinkedHashMap<K, V> map = LinkedHashMap<K, V>();
     MapBase._fillMapWithIterables(map, keys, values);
     return map;
@@ -269,6 +268,6 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// final map = LinkedHashMap.fromEntries(numbers.map((i) => MapEntry(i, i * i)));
   /// print(map); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
+  factory fromEntries(Iterable<MapEntry<K, V>> entries) =>
       LinkedHashMap<K, V>()..addEntries(entries);
 }

@@ -132,7 +132,7 @@ abstract final class HashSet<E> implements Set<E> {
   /// and `isValidKey` is omitted, the resulting set is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [HashSet.identity].
-  external factory HashSet({
+  external factory({
     bool Function(E, E)? equals,
     int Function(E)? hashCode,
     bool Function(dynamic)? isValidKey,
@@ -144,7 +144,7 @@ abstract final class HashSet<E> implements Set<E> {
   /// ```dart
   /// HashSet<E>(equals: identical, hashCode: identityHashCode)
   /// ```
-  external factory HashSet.identity();
+  external factory identity();
 
   /// Create a hash set containing all [elements].
   ///
@@ -167,7 +167,7 @@ abstract final class HashSet<E> implements Set<E> {
   /// final hashSetFrom = HashSet<int>.from(numbers);
   /// print(hashSetFrom); // fx {20, 10, 30}
   /// ```
-  factory HashSet.from(Iterable<dynamic> elements) {
+  factory from(Iterable<dynamic> elements) {
     HashSet<E> result = HashSet<E>();
     for (final e in elements) {
       result.add(e as E);
@@ -187,7 +187,7 @@ abstract final class HashSet<E> implements Set<E> {
   /// final hashSetOf = HashSet<num>.of(baseSet);
   /// print(hashSetOf); // fx {3, 1, 2}
   /// ```
-  factory HashSet.of(Iterable<E> elements) => HashSet<E>()..addAll(elements);
+  factory of(Iterable<E> elements) => HashSet<E>()..addAll(elements);
 
   /// Provides an iterator that iterates over the elements of this set.
   ///

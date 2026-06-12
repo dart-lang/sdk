@@ -76,28 +76,28 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
     return "EN.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _EA&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EA&_Enum&A
     : super core::_Enum::•(index, _name)
     ;
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
 }
 abstract class _EB&_Enum&B extends core::_Enum implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EB&_Enum&B
     : super core::_Enum::•(index, _name)
     ;
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
 }
 abstract class _EM&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EM&_Enum&M
     : super core::_Enum::•(index, _name)
     ;
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
 }
 abstract class _EN&_Enum&N extends core::_Enum implements self::N /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_EN&_Enum&N
     : super core::_Enum::•(index, _name)
     ;
   get foo() → core::int

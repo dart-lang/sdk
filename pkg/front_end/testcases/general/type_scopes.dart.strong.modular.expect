@@ -92,7 +92,7 @@ abstract class _Class&S&M<T3 extends dynamic> = self::S<self::_Class&S&M::T3%> w
     ;
 }
 abstract class _Enum&_Enum&M<T10 extends dynamic> = core::_Enum with self::M<self::_Enum&_Enum&M::T10%> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_Enum&_Enum&M<self::_Enum&_Enum&M::T10%>
+  const synthetic constructor •(final core::int index, final core::String _name) → self::_Enum&_Enum&M<self::_Enum&_Enum&M::T10%>
     : super core::_Enum::•(index, _name)
     ;
 }

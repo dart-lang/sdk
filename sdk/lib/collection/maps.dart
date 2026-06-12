@@ -18,9 +18,7 @@ part of "dart:collection";
 ///
 /// A more efficient implementation is usually possible by overriding
 /// some of the other members as well.
-abstract mixin class MapBase<K, V> implements Map<K, V> {
-  const MapBase();
-
+abstract mixin class const MapBase<K, V>() implements Map<K, V> {
   Iterable<K> get keys;
   V? operator [](Object? key);
   operator []=(K key, V value);
@@ -326,7 +324,7 @@ class MapView<K, V> implements Map<K, V> {
   final Map<K, V> _map;
 
   /// Creates a view which forwards operations to [map].
-  const MapView(Map<K, V> map) : _map = map;
+  const new(Map<K, V> map) : _map = map;
 
   Map<RK, RV> cast<RK, RV>() => _map.cast<RK, RV>();
   V? operator [](Object? key) => _map[key];

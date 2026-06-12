@@ -6,8 +6,8 @@ part of "dart:core";
 
 /// Helper interface to hide [EfficientLengthIterable] from the public
 /// declaration of [List].
-abstract class _ListIterable<E>
-    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {}
+abstract interface class _ListIterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E>;
 
 /// An indexable collection of objects with a length.
 ///
@@ -148,7 +148,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// unique[0].add(499);
   /// print(unique); // [[499], [], []]
   /// ```
-  external factory List.filled(int length, E fill, {bool growable = false});
+  external factory filled(int length, E fill, {bool growable = false});
 
   /// Creates a new empty list.
   ///
@@ -162,7 +162,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// final fixedLengthList = List.empty(growable: false);
   /// fixedLengthList.add(1); // error
   /// ```
-  external factory List.empty({bool growable = false});
+  external factory empty({bool growable = false});
 
   /// Creates a list containing all [elements].
   ///
@@ -191,10 +191,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   ///
   /// This constructor creates a growable list when [growable] is true;
   /// otherwise, it returns a fixed-length list.
-  external factory List.from(
-    Iterable<Object?> elements, {
-    bool growable = true,
-  });
+  external factory from(Iterable<Object?> elements, {bool growable = true});
 
   /// Creates a list from [elements].
   ///
@@ -207,7 +204,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// final listOf = List<num>.of(numbers);
   /// print(listOf); // [1, 2, 3]
   /// ```
-  external factory List.of(Iterable<E> elements, {bool growable = true});
+  external factory of(Iterable<E> elements, {bool growable = true});
 
   /// Generates a list of values.
   ///
@@ -226,7 +223,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// The created list is fixed-length if [growable] is set to false.
   ///
   /// The [length] must be non-negative.
-  external factory List.generate(
+  external factory generate(
     int length,
     E generator(int index), {
     bool growable = true,
@@ -245,7 +242,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// unmodifiableList[1] = 87; // Throws.
   /// ```
   // @Deprecated("Use List.unmodifiableOf instead")
-  external factory List.unmodifiable(Iterable elements);
+  external factory unmodifiable(Iterable elements);
 
   /// Creates an unmodifiable list containing all [elements].
   ///
@@ -260,7 +257,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// unmodifiableList[1] = 87; // Throws.
   /// ```
   @Since("3.13")
-  factory List.unmodifiableOf(Iterable<E> elements) = List<E>.unmodifiable;
+  factory unmodifiableOf(Iterable<E> elements) = List<E>.unmodifiable;
 
   /// Adapts [source] to be a `List<T>`.
   ///
