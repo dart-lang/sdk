@@ -289,8 +289,6 @@ dependency_overrides:
     path: third_party/pkg/test/pkgs/test_process
   test_reflective_loader:
     path: third_party/pkg/tools/pkgs/test_reflective_loader
-  tool:
-    path: third_party/pkg/webdev/tool
   typed_data:
     path: third_party/pkg/core/pkgs/typed_data
   unified_analytics:

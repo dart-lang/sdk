@@ -152,7 +152,6 @@ vars = {
   "tools_rev": "338a2c8380059afb250a1d0c26555e4da24c6ccc",
   "vector_math_rev": "7bf60fb95e0fbbd7648944071de9ab5e32ce7387",
   "web_rev": "19d0315df54225d3aa3c11531619a55bbd4d30be",
-  "webdev_rev": "f9a56607fac5ad0c979d2647cf11d3e3be993bf6",
   "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
@@ -382,8 +381,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/vector_math":
       Var("dart_git") + "external/github.com/google/vector_math.dart.git" +
       "@" + Var("vector_math_rev"),
-  Var("dart_root") + "/third_party/pkg/webdev":
-      Var("dart_git") + "webdev.git" + "@" + Var("webdev_rev"),
   Var("dart_root") + "/third_party/pkg/webdriver":
       Var("dart_git") + "external/github.com/google/webdriver.dart.git" +
       "@" + Var("webdriver_rev"),
