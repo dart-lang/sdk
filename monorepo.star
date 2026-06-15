@@ -125,7 +125,7 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def _monorepo_builder(name, short_name, console, execution_timeout = 40 * time.minute):
+def _monorepo_builder(name, short_name, console, execution_timeout = 30 * time.minute):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
@@ -221,13 +221,13 @@ _monorepo_builder(
     None,
 )
 
-def _monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
+def _monorepo_tester(name, short_name, console, recipe = "engine_v2/tester", execution_timeout = 30 * time.minute):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
         dimensions = {"pool": "dart.tests"},
         executable = dart.flutter_recipe(recipe),
-        execution_timeout = 90 * time.minute,
+        execution_timeout = execution_timeout,
         notifies = None,
         priority = priority.normal,
         triggered_by = [],
@@ -237,7 +237,7 @@ def _monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
         name,
         bucket = "try.monorepo",
         executable = dart.flutter_recipe(recipe),
-        execution_timeout = 90 * time.minute,
+        execution_timeout = execution_timeout,
         dimensions = {"pool": "dart.tests"},
         on_cq = False,
         cq_branches = [],
@@ -262,7 +262,7 @@ _monorepo_tester("flutter-linux-framework-tests-misc", "fm", "flutter-engine")
 _monorepo_tester("flutter-linux-framework-tests-slow", "fs", "flutter-engine")
 _monorepo_tester("flutter-linux-framework-tests-widgets", "fw", "flutter-engine")
 _monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-engine")
-_monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-engine")
+_monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-engine", execution_timeout = 40 * time.minute)
 _monorepo_tester("flutter-linux-web-tests-0", "wt0", "flutter-web")
 _monorepo_tester("flutter-linux-web-tests-1", "wt1", "flutter-web")
 _monorepo_tester("flutter-linux-web-tests-2", "wt2", "flutter-web")
