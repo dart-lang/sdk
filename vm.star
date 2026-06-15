@@ -62,6 +62,22 @@ def _nightly_builder(name, category, channels = ["try"], properties = {}, **kwar
     cron.nightly_builder(name, category = category, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
     _postponed_alt_console_entry(name, category)
 
+def _misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
+    dart.ci_sandbox_builder(
+        name,
+        category = category,
+        channels = channels,
+        properties = properties,
+        triggered_by = ["dart-vm-gitiles-trigger-%s"],
+        **kwargs
+    )
+    luci.console_view_entry(console_view = "misc", builder = name, category = category)
+
+def _nightly_misc_builder(name, category, channels = ["try"], properties = {}, **kwargs):
+    properties = union({"bisection_enabled": True}, properties)
+    cron.nightly_builder(name, category = category, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
+    luci.console_view_entry(console_view = "misc", builder = name, category = category)
+
 def _postponed_alt_console_entry(name, category):
     if category:
         console_category, _, short_name = category.rpartition("|")
@@ -436,46 +452,6 @@ _vm_builder(
     location_filters = paths.to_location_filters(paths.fuchsia),
 )
 
-# Our RBE setup doesn't work with GCC.
-_nightly_builder(
-    "vm-gcc-linux-x64",
-    category = "vm|misc|toolchain|g",
-    dimensions = resolute,
-    rbe = False,
-)
-_nightly_builder(
-    "vm-gcc-linux-arm",
-    category = "vm|misc|toolchain|g",
-    dimensions = resolute,
-    rbe = False,
-)
-_nightly_builder(
-    "vm-gcc-linux-arm64",
-    category = "vm|misc|toolchain|g",
-    dimensions = resolute,
-    rbe = False,
-)
-_nightly_builder(
-    "vm-gcc-linux-riscv64",
-    category = "vm|misc|toolchain|g",
-    dimensions = resolute,
-    rbe = False,
-)
-
-# Our RBE setup doesn't work with MSVC.
-_nightly_builder(
-    "vm-msvc-win-x64",
-    category = "vm|misc|toolchain|m",
-    dimensions = windows,
-    rbe = False,
-)
-_nightly_builder(
-    "vm-msvc-win-arm64",
-    category = "vm|misc|toolchain|m",
-    dimensions = windows,
-    rbe = False,
-)
-
 _vm_builder(
     "vm-aot-dyn-linux-debug-x64",
     category = "vm|misc|dyn|d",
@@ -569,14 +545,52 @@ _nightly_builder(
 )
 
 # Isolate stress test builder
-_vm_builder(
+_misc_builder(
     "iso-stress-linux-x64",
-    channels = ["try"],
-    notifies = "dart-vm-team",
+    category = "iso|x64",
 )
-_nightly_builder(
+_nightly_misc_builder(
     "iso-stress-linux-arm64",
-    category = None,
-    channels = ["try"],
+    category = "iso|arm64",
     dimensions = [arm64],
+)
+
+# Our RBE setup doesn't work with GCC.
+_nightly_misc_builder(
+    "vm-gcc-linux-x64",
+    category = "gcc|x64",
+    dimensions = resolute,
+    rbe = False,
+)
+_nightly_misc_builder(
+    "vm-gcc-linux-arm",
+    category = "gcc|arm",
+    dimensions = resolute,
+    rbe = False,
+)
+_nightly_misc_builder(
+    "vm-gcc-linux-arm64",
+    category = "gcc|arm64",
+    dimensions = resolute,
+    rbe = False,
+)
+_nightly_misc_builder(
+    "vm-gcc-linux-riscv64",
+    category = "gcc|riscv64",
+    dimensions = resolute,
+    rbe = False,
+)
+
+# Our RBE setup doesn't work with MSVC.
+_nightly_misc_builder(
+    "vm-msvc-win-x64",
+    category = "msvc|x64",
+    dimensions = windows,
+    rbe = False,
+)
+_nightly_misc_builder(
+    "vm-msvc-win-arm64",
+    category = "msvc|x64",
+    dimensions = windows,
+    rbe = False,
 )

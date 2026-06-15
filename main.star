@@ -87,9 +87,9 @@ luci.list_view(
 )
 
 luci.console_view(
-    name = "iso-stress",
+    name = "misc",
     repo = "https://dart.googlesource.com/sdk",
-    title = "VM Isolate Stress Test Console",
+    title = "VM Misc Console",
     refs = ["refs/heads/main"],
     header = "console-header.textpb",
 )
@@ -189,16 +189,6 @@ vm.add_postponed_alt_console_entries()
 luci.list_view_entry(
     builder = "fuzz-linux",
     list_view = "dart-fuzz",
-)
-
-# VM isolate stress test console
-luci.console_view_entry(
-    builder = "iso-stress-linux-x64",
-    console_view = "iso-stress",
-)
-luci.console_view_entry(
-    builder = "iso-stress-linux-arm64",
-    console_view = "iso-stress",
 )
 
 dart.try_builder(
