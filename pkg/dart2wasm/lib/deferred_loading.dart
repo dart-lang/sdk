@@ -19,7 +19,8 @@ import 'deferred_load/partition.dart';
 import 'io_util.dart';
 import 'modules.dart';
 import 'target.dart';
-import 'util.dart' show addPragma, getPragma;
+import 'util.dart'
+    show addPragma, getPragma, hasWasmExportPragma, hasWasmWeakExportPragma;
 
 class DeferredLoadingModuleStrategy extends ModuleStrategy {
   final Component component;
@@ -355,27 +356,29 @@ Set<Reference> findWasmRoots(CoreTypes coreTypes, Component component) {
   final trueConstant = BoolConstant(true);
 
   bool check(Annotatable node) {
-    if (getPragma<StringConstant>(coreTypes, node, 'wasm:export') != null ||
-        getPragma<Constant>(
-              coreTypes,
-              node,
-              'wasm:entry-point',
-              defaultValue: trueConstant,
-            ) !=
-            null) {
-      return true;
-    }
-    return false;
+    return getPragma<Constant>(
+          coreTypes,
+          node,
+          'wasm:entry-point',
+          defaultValue: trueConstant,
+        ) !=
+        null;
+  }
+
+  bool checkMember(Member node) {
+    return hasWasmExportPragma(coreTypes, node) ||
+        hasWasmWeakExportPragma(coreTypes, node) ||
+        check(node);
   }
 
   for (final library in component.libraries) {
     for (final member in library.members) {
-      if (check(member)) exports.add(member.reference);
+      if (checkMember(member)) exports.add(member.reference);
     }
     for (final klass in library.classes) {
       if (check(klass)) exports.add(klass.reference);
       for (final member in klass.members) {
-        if (check(member)) {
+        if (checkMember(member)) {
           if (member is Field) {
             exports.add(member.getterReference);
             if (member.hasSetter) {
