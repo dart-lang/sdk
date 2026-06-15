@@ -5,6 +5,9 @@
 #include "vm/globals.h"
 #if defined(DART_HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+
 #include <os/signpost.h>
 
 #include "vm/log.h"
@@ -75,5 +78,7 @@ void TimelineEventMacosRecorder::OnEvent(TimelineEvent* event) {
 }
 
 }  // namespace dart
+
+#pragma GCC diagnostic pop
 
 #endif  // defined(DART_HOST_OS_MACOS) && defined(SUPPORT_TIMELINE)
