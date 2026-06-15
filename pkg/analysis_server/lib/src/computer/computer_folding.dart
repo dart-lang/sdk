@@ -265,13 +265,28 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    _computer._addRegionForAnnotations(node.metadata);
+  void visitBlockClassBody(BlockClassBody node) {
     _computer._addRegion(
-      node.namePart.end,
-      node.body.end,
+      node.leftBracket.end,
+      node.rightBracket.offset,
       FoldingKind.CLASS_BODY,
     );
+    super.visitBlockClassBody(node);
+  }
+
+  @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    _computer._addRegion(
+      node.leftBracket.end,
+      node.rightBracket.offset,
+      FoldingKind.CLASS_BODY,
+    );
+    super.visitBlockEnumBody(node);
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    _computer._addRegionForAnnotations(node.metadata);
     super.visitClassDeclaration(node);
   }
 
@@ -302,13 +317,6 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    if (node.body case BlockEnumBody body) {
-      _computer._addRegion(
-        body.leftBracket.end,
-        body.rightBracket.offset,
-        FoldingKind.CLASS_BODY,
-      );
-    }
     super.visitEnumDeclaration(node);
   }
 
@@ -321,26 +329,12 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    if (node.body case BlockClassBody body) {
-      _computer._addRegion(
-        body.leftBracket.end,
-        body.rightBracket.offset,
-        FoldingKind.CLASS_BODY,
-      );
-    }
     super.visitExtensionDeclaration(node);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    if (node.body case BlockClassBody body) {
-      _computer._addRegion(
-        body.leftBracket.end,
-        body.rightBracket.offset,
-        FoldingKind.CLASS_BODY,
-      );
-    }
     super.visitExtensionTypeDeclaration(node);
   }
 
@@ -439,8 +433,6 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    // TODO(brianwilkerson): Define `FoldingKind.MIXIN_BODY`?
-    _computer._addRegion(node.name.end, node.end, FoldingKind.CLASS_BODY);
     super.visitMixinDeclaration(node);
   }
 

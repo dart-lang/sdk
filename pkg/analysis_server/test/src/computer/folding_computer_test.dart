@@ -194,12 +194,12 @@ class MyClass {}
 
   Future<void> test_assertInitializer() async {
     var content = '''
-class C/*[0*/ {
+class C {/*[0*/
   C/*[1*/() : assert(
     /*[2*/true,
     ''
   /*2]*/);/*1]*/
-}/*0]*/
+/*0]*/}
 ''';
     await _computeRegions(content);
     expectRegions({
@@ -226,7 +226,7 @@ void f/*[0*/() {
     var content = '''
 // Content before
 
-class Person/*[0*/ {
+class Person {/*[0*/
   Person/*[1*/() {
     print("Hello, world!");
   }/*1]*/
@@ -234,7 +234,7 @@ class Person/*[0*/ {
   void sayHello/*[2*/() {
     print("Hello, world!");
   }/*2]*/
-}/*0]*/
+/*0]*/}
 
 // Content after
 ''';
@@ -245,6 +245,19 @@ class Person/*[0*/ {
       1: FoldingKind.FUNCTION_BODY,
       2: FoldingKind.FUNCTION_BODY,
     });
+  }
+
+  Future<void> test_class_emptyBody() async {
+    var content = '''
+// Content before
+
+class C;
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectNoRegions();
   }
 
   Future<void> test_comment_is_not_considered_file_header() async {
@@ -318,11 +331,11 @@ void f() {
     var content = '''
 // Content before
 
-class C/*[0*/ {
+class C {/*[0*/
   C/*[1*/() {
     //
   }/*1]*/
-}/*0]*/
+/*0]*/}
 
 // Content after
 ''';
@@ -335,9 +348,9 @@ class C/*[0*/ {
     var content = '''
 // Content before
 
-class C/*[0*/ {
+class C {/*[0*/
   C();
-}/*0]*/
+/*0]*/}
 
 // Content after
 ''';
@@ -365,11 +378,11 @@ final a = new Text(/*[0*/
     var content = '''
 // Content before
 
-class C/*[0*/ {
+class C {/*[0*/
   C.foo/*[1*/() {
     //
   }/*1]*/
-}/*0]*/
+/*0]*/}
 
 // Content after
 ''';
@@ -382,11 +395,11 @@ class C/*[0*/ {
     var content = '''
 // Content before
 
-class C/*[0*/ {
+class C {/*[0*/
   new/*[1*/() {
     //
   }/*1]*/
-}/*0]*/
+/*0]*/}
 
 // Content after
 ''';
@@ -952,11 +965,11 @@ void f/*[0*/() {
     var content = '''
 // Content before
 
-mixin M/*[0*/ {
+mixin M {/*[0*/
   void m/*[1*/() {
     print("Got to m");
   }/*1]*/
-}/*0]*/
+/*0]*/}
 
 // Content after
 ''';
@@ -1076,12 +1089,12 @@ foo/*[0*/(
 
   Future<void> test_parameters_method() async {
     var content = '''
-class C/*[0*/ {
+class C {/*[0*/
   C/*[1*/(
     /*[2*/String aaaaa,
     String bbbbb,
   /*2]*/) : super();/*1]*/
-}/*0]*/
+/*0]*/}
 ''';
     await _computeRegions(content);
     expectRegions({
@@ -1098,11 +1111,11 @@ class C/*[0*/ {
 class C(/*[0*/
   var int x,
   var int y,
-/*0]*/)/*[1*/ {
+/*0]*/) {/*[1*/
   this/*[2*/ {
     print('');
   }/*2]*/
-}/*1]*/
+/*1]*/}
 
 // Content after
 ''';
@@ -1122,10 +1135,10 @@ class C(/*[0*/
 class C(/*[0*/
   var int x,
   var int y,
-/*0]*/)/*[1*/ {
+/*0]*/) {/*[1*/
   this/*[2*/ : xPlus = x+1,
     yPlus = y+1;/*2]*/
-}/*1]*/
+/*1]*/}
 
 // Content after
 ''';
@@ -1136,6 +1149,49 @@ class C(/*[0*/
       1: FoldingKind.CLASS_BODY,
       2: FoldingKind.FUNCTION_BODY,
     });
+  }
+
+  Future<void> test_primaryConstructor_docComment_multiLine() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  /// The comment for [y]/*[1*/
+  /// needs multiple lines./*1]*/
+  var int y/*0]*/) {/*[2*/
+  void m1() {}
+  void m2() {}
+/*2]*/}
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.PARAMETERS,
+      1: FoldingKind.DOCUMENTATION_COMMENT,
+      2: FoldingKind.CLASS_BODY,
+    });
+  }
+
+  Future<void> test_primaryConstructor_docComment_singleLine() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  /// The comment for [y].
+  var int y/*0]*/) {/*[1*/
+  void m1() {}
+  void m2() {}
+/*1]*/}
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.PARAMETERS, 1: FoldingKind.CLASS_BODY});
   }
 
   Future<void> test_primaryConstructor_emptyClassBody_braces() async {
@@ -1177,9 +1233,9 @@ class C(/*[0*/
 class C(/*[0*/
   var int x,
   var int y,
-/*0]*/)/*[1*/ {
+/*0]*/) {/*[1*/
   //
-}/*1]*/
+/*1]*/}
 
 // Content after
 ''';
