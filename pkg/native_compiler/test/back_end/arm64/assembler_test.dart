@@ -26,7 +26,7 @@ void main() {
   late Arm64Assembler asm;
 
   setUp(() {
-    asm = Arm64Assembler(vmOffsets, objectLayout);
+    asm = Arm64Assembler(vmOffsets, null, objectLayout);
   });
 
   void expectDisassembly(String expected) {

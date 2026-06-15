@@ -439,6 +439,16 @@ class UntaggedClosure : public AllStatic {
   static const word kLengthBitsSize;
 };
 
+class UntaggedPcDescriptors : public AllStatic {
+ public:
+  static const word kKindBitsPos;
+  static const word kKindBitsSize;
+  static const word kTryIndexBitsPos;
+  static const word kTryIndexBitsSize;
+  static const word kYieldIndexBitsPos;
+  static const word kYieldIndexBitsSize;
+};
+
 class UntaggedAbstractType : public AllStatic {
  public:
   static const word kTypeStateFinalizedInstantiated;

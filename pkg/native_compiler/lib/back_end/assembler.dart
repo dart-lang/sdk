@@ -118,10 +118,14 @@ enum Condition {
 abstract base class Assembler {
   final VMOffsets vmOffsets;
   final ObjectPool objectPool = ObjectPool();
+  final void Function()? addCallSiteMetadata;
 
-  Assembler(this.vmOffsets);
+  Assembler(this.vmOffsets, this.addCallSiteMetadata);
 
   Uint8List get bytes;
+
+  /// Offset of the current position from the beginning of the generated code, in bytes.
+  int get currentPcOffset;
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.

@@ -73,6 +73,12 @@ base class VMOffsets {
   int get UntaggedObject_kClassIdTagSize => throw 'Unknown';
   int get UntaggedObject_kHashTagPos => throw 'Unknown';
   int get UntaggedObject_kHashTagSize => throw 'Unknown';
+  int get UntaggedPcDescriptors_kKindBitsPos => throw 'Unknown';
+  int get UntaggedPcDescriptors_kKindBitsSize => throw 'Unknown';
+  int get UntaggedPcDescriptors_kTryIndexBitsPos => throw 'Unknown';
+  int get UntaggedPcDescriptors_kTryIndexBitsSize => throw 'Unknown';
+  int get UntaggedPcDescriptors_kYieldIndexBitsPos => throw 'Unknown';
+  int get UntaggedPcDescriptors_kYieldIndexBitsSize => throw 'Unknown';
   int get AbstractType_flags_offset => throw 'Unknown';
   int get AbstractType_hash_offset => throw 'Unknown';
   int get AbstractType_type_test_stub_entry_point_offset => throw 'Unknown';
@@ -723,6 +729,18 @@ final class Arm64VMOffsets extends VMOffsets {
   int get UntaggedObject_kHashTagPos => 0x20;
   @override
   int get UntaggedObject_kHashTagSize => 0x20;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsPos => 0x0;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsSize => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsPos => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsSize => 0xa;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsPos => 0xd;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsSize => 0x13;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -1690,6 +1708,18 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get UntaggedObject_kHashTagPos => 0x20;
   @override
   int get UntaggedObject_kHashTagSize => 0x20;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsPos => 0x0;
+  @override
+  int get UntaggedPcDescriptors_kKindBitsSize => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsPos => 0x3;
+  @override
+  int get UntaggedPcDescriptors_kTryIndexBitsSize => 0xa;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsPos => 0xd;
+  @override
+  int get UntaggedPcDescriptors_kYieldIndexBitsSize => 0x13;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -2967,4 +2997,14 @@ enum ClassId {
   DynamicCid,
   VoidCid,
   NeverCid,
+}
+
+enum PcDescriptorKind {
+  Deopt,
+  IcCall,
+  UnoptStaticCall,
+  RuntimeCall,
+  OsrEntry,
+  Rewind,
+  Other,
 }

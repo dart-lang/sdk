@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:cfg/ir/functions.dart';
+import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 
 /// Generated code for a function or a stub.
@@ -12,8 +13,11 @@ class Code(
   final String name,
   final CFunction? function,
   final Uint8List instructions,
-  final ObjectPool objectPool,
-) {
+  final ObjectPool objectPool, [
+  final ExceptionHandlers? exceptionHandlers,
+  final PcDescriptors? pcDescriptors,
+  final CatchEntryMoves? catchEntryMoves,
+]) {
   /// Offset of instructions in the resulting image.
   int? instructionsImageOffset;
 }

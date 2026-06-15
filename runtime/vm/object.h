@@ -6299,9 +6299,9 @@ class PcDescriptors : public Object {
   // The base argument is added to the PC offset for each entry.
   void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
- private:
-  static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
+  static const char* KindToCString(UntaggedPcDescriptors::Kind kind);
 
+ private:
   static PcDescriptorsPtr New(intptr_t length);
 
   void SetLength(intptr_t value) const;

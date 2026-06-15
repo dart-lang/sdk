@@ -157,13 +157,22 @@ final class Arm64Constraints extends Constraints {
       callConstraints(instr);
 
   @override
-  InstructionConstraints? visitParameter(Parameter instr) =>
-      InstructionConstraints(
-        instr.isFunctionParameter
-            ? parameterConstraint(instr)
-            : anyLocation(instr),
-        const [],
-      );
+  InstructionConstraints? visitParameter(Parameter instr) {
+    Constraint result;
+    if (instr.isFunctionParameter) {
+      result = parameterConstraint(instr);
+    } else {
+      final variable = instr.variable;
+      if (variable.isExceptionVariable) {
+        result = exceptionObjectReg;
+      } else if (variable.isStackTraceVariable) {
+        result = stackTraceObjectReg;
+      } else {
+        result = anyLocation(instr);
+      }
+    }
+    return InstructionConstraints(result, const []);
+  }
 
   @override
   InstructionConstraints? visitLoadLocal(LoadLocal instr) =>

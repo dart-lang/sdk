@@ -16312,10 +16312,10 @@ PcDescriptorsPtr PcDescriptors::New(intptr_t length) {
   return result.ptr();
 }
 
-const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
+const char* PcDescriptors::KindToCString(UntaggedPcDescriptors::Kind kind) {
   switch (kind) {
     case UntaggedPcDescriptors::kDeopt:
-      return "deopt        ";
+      return "deopt";
     case UntaggedPcDescriptors::kIcCall:
       return "ic-call";
     case UntaggedPcDescriptors::kUnoptStaticCall:
@@ -16346,11 +16346,11 @@ void PcDescriptors::WriteToBuffer(BaseTextBuffer* buffer, uword base) const {
       addr_width, "pc");
   Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    buffer->Printf("%#-*" Px "  %-13s  % 8" Pd "  %-10s  % 8" Pd "  % 8" Pd
-                   "\n",
-                   addr_width, base + iter.PcOffset(), KindAsStr(iter.Kind()),
-                   iter.DeoptId(), iter.TokenPos().ToCString(), iter.TryIndex(),
-                   iter.YieldIndex());
+    buffer->Printf(
+        "%#-*" Px "  %-13s  % 8" Pd "  %-10s  % 8" Pd "  % 8" Pd "\n",
+        addr_width, base + iter.PcOffset(), KindToCString(iter.Kind()),
+        iter.DeoptId(), iter.TokenPos().ToCString(), iter.TryIndex(),
+        iter.YieldIndex());
   }
 }
 

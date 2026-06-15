@@ -63,18 +63,17 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
                                 function_.end_token_pos())) {
           FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
                 " invalid for function %s (%s, %s)",
-                token_pos.ToCString(),
-                UntaggedPcDescriptors::KindToCString(kind), pc_offset,
-                function_.ToFullyQualifiedCString(),
+                token_pos.ToCString(), PcDescriptors::KindToCString(kind),
+                pc_offset, function_.ToFullyQualifiedCString(),
                 function_.token_pos().ToCString(),
                 function_.end_token_pos().ToCString());
         }
         if (!script_.IsNull() && !script_.IsValidTokenPosition(token_pos)) {
           FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
                 " invalid for script %s of function %s",
-                token_pos.ToCString(),
-                UntaggedPcDescriptors::KindToCString(kind), pc_offset,
-                script_.ToCString(), function_.ToFullyQualifiedCString());
+                token_pos.ToCString(), PcDescriptors::KindToCString(kind),
+                pc_offset, script_.ToCString(),
+                function_.ToFullyQualifiedCString());
         }
       }
       const int32_t encoded_pos = token_pos.Serialize();

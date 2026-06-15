@@ -16,7 +16,7 @@ abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
   final Arm64Assembler _asm;
 
   Arm64StubCodeGenerator(VMOffsets vmOffsets, ObjectLayout objectLayout)
-    : _asm = Arm64Assembler(vmOffsets, objectLayout);
+    : _asm = Arm64Assembler(vmOffsets, null, objectLayout);
 
   void _generate();
 

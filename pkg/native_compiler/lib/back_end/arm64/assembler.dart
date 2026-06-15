@@ -96,6 +96,10 @@ const Register heapBitsReg = R28;
 /// Dart null object.
 const Register nullReg = R22;
 
+/// Exception handler parameter registers.
+const Register exceptionObjectReg = R0;
+const Register stackTraceObjectReg = R1;
+
 const Set<Register> allRegisters = {
   R0,
   R1,
@@ -341,7 +345,10 @@ const int B31 = (1 << 31);
 final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   final ObjectLayout objectLayout;
 
-  Arm64Assembler(super.vmOffsets, this.objectLayout);
+  Arm64Assembler(super.vmOffsets, super.addCallSiteMetadata, this.objectLayout);
+
+  @override
+  int get currentPcOffset => length << 2;
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.
@@ -772,6 +779,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       address(threadReg, vmOffsets.Thread_call_to_runtime_entry_point_offset),
     );
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   @override
@@ -784,6 +792,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   // TODO: remove after all stubs are implemented in the compiler
@@ -791,6 +800,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, vmStub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
+    addCallSiteMetadata?.call();
   }
 
   // TODO: remove after all stubs are implemented in the compiler

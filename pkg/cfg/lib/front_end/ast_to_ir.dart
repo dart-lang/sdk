@@ -1319,7 +1319,13 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitTryCatch(ast.TryCatch node) {
     final tryBody = builder.newTargetBlock();
-    final catchBlock = builder.newCatchBlock();
+    final guardTypes = [
+      for (final catchClause in node.catches) catchClause.guard,
+    ];
+    final catchBlock = builder.newCatchBlock(
+      guardTypes,
+      isSynthetic: node.isSynthetic,
+    );
     builder.addTryEntry(tryBody, catchBlock);
 
     builder.enterTryBlock(catchBlock);
@@ -1409,7 +1415,9 @@ class AstToIr extends ast.RecursiveVisitor {
     finallyBlocks[node] = <FinallyBlock>[];
 
     final tryBody = builder.newTargetBlock();
-    final catchBlock = builder.newCatchBlock();
+    final catchBlock = builder.newCatchBlock(const [
+      ast.DynamicType(),
+    ], isSynthetic: true);
     builder.addTryEntry(tryBody, catchBlock);
 
     builder.enterTryBlock(catchBlock);
@@ -2232,7 +2240,7 @@ class LocalVariableIndexer {
   LocalVariable exceptionVariable(ast.TreeNode tryBlock) {
     assert(tryBlock is ast.TryCatch || tryBlock is ast.TryFinally);
     return _exceptionVariables[tryBlock] ??= builder.declareLocalVariable(
-      '#exception',
+      LocalVariable.exceptionVariableName,
       null,
       const ObjectType(),
     );
@@ -2241,7 +2249,7 @@ class LocalVariableIndexer {
   LocalVariable stackTraceVariable(ast.TreeNode tryBlock) {
     assert(tryBlock is ast.TryCatch || tryBlock is ast.TryFinally);
     return _stackTraceVariables[tryBlock] ??= builder.declareLocalVariable(
-      '#stackTrace',
+      LocalVariable.stackTraceVariableName,
       null,
       StaticType(coreTypes.stackTraceNonNullableRawType),
     );

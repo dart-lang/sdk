@@ -63,8 +63,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
   Arm64CodeGenerator(super.backEndState, this.functionRegistry);
 
   @override
-  Assembler createAssembler() =>
-      _asm = Arm64Assembler(backEndState.vmOffsets, backEndState.objectLayout);
+  Assembler createAssembler() => _asm = Arm64Assembler(
+    backEndState.vmOffsets,
+    addCallSiteMetadata,
+    backEndState.objectLayout,
+  );
 
   @override
   void enterFrame() {
@@ -582,6 +585,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       ),
     );
     _asm.blr(tempReg);
+    addCallSiteMetadata();
   }
 
   @override
@@ -618,6 +622,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
     );
     _asm.blr(tempReg);
+    addCallSiteMetadata();
   }
 
   @override
@@ -647,6 +652,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
     );
     _asm.blr(tempReg);
+    addCallSiteMetadata();
   }
 
   @override
@@ -676,10 +682,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
       ),
     );
     _asm.blr(tempReg);
+    addCallSiteMetadata();
   }
 
   @override
   void visitParameter(Parameter instr) {
+    if (instr.isCatchParameter &&
+        !instr.variable.isExceptionVariable &&
+        !instr.variable.isStackTraceVariable) {
+      _asm.unimplemented('Unimplemented: code generation for catch Parameter');
+    }
     // No-op.
   }
 
@@ -901,7 +913,33 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitThrow(Throw instr) {
-    _asm.unimplemented('Unimplemented: code generation for Throw');
+    switch (instr.kind) {
+      case .exception:
+        assert(stackFrame.maxArgumentsStackSlots >= 2);
+        _asm.stp(
+          inputReg(instr, 0),
+          nullReg, // Space for result.
+          RegOffsetAddress(stackPointerReg, 0),
+        );
+        _asm.callRuntime(RuntimeEntry.Throw, 1);
+        _asm.breakpoint();
+        break;
+      case .rethrowException:
+        assert(stackFrame.maxArgumentsStackSlots >= 4);
+        _asm.stp(ZR, inputReg(instr, 1), RegOffsetAddress(stackPointerReg, 0));
+        _asm.stp(
+          inputReg(instr, 0),
+          nullReg, // Space for result
+          RegOffsetAddress(stackPointerReg, 2 * wordSize),
+        );
+        _asm.callRuntime(RuntimeEntry.ReThrow, 3);
+        _asm.breakpoint();
+        break;
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for Throw with ${instr.kind}',
+        );
+    }
   }
 
   @override
@@ -1072,6 +1110,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           SubtypeTestCacheWithName(stc, Name('', null)),
         );
         _asm.blr(TypeTestingStub.entryPointReg);
+        addCallSiteMetadata();
     }
 
     _asm.bind(done);
