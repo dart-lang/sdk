@@ -28,6 +28,31 @@ enum E with M {
 ''');
   }
 
+  test_field_instance_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  abstract final int foo;
+}
+
+enum E with M {
+  v;
+  final int foo = 0;
+}
+''');
+  }
+
+  test_field_instance_external() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external final int foo;
+}
+
+enum E with M {
+  v
+}
+''');
+  }
+
   test_field_instance_final() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
