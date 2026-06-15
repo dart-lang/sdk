@@ -806,10 +806,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
+    var declaredFragment = node.declaredFragment!;
+
     _checkEnumConstantSameAsEnclosing(node);
-    _checkAugmentationWithoutDeclaration(
-      node.augmentKeyword,
-      node.declaredFragment!,
+    _checkForConstVariableAugmentation(
+      errorToken: node.name,
+      fragment: declaredFragment,
     );
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);

@@ -215,15 +215,16 @@ augment enum [!A!] {
     await expectNavigationCodeLens();
   }
 
-  test_available_enum_member() async {
+  test_available_enum_method() async {
     setLibraryContent(r'''
 enum A {
-  [!one!],
+  one;
+  void [!m!]() {}
 }
 ''');
     setAugmentationContent(r'''
-augment enum A {
-  augment [!one!],
+augment enum A {;
+  augment void [!m!]();
 }
 ''');
 
