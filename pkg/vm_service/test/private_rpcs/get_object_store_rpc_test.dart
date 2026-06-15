@@ -5,9 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../common/test_helper.dart';
-
-void testeeMain() {}
+import '../common/service_test_common.dart';
+import 'get_object_store_rpc_lib.dart' as testee_lib;
 
 // Pulled from DevTools.
 class ObjectStore {
@@ -59,9 +58,7 @@ final tests = <IsolateTest>[
   }
 ];
 
-void main([args = const <String>[]]) => runIsolateTestsSynchronous(
-      args,
-      tests,
-      'get_object_store_rpc_test.dart',
-      testeeBefore: testeeMain,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('get_object_store_rpc_lib.dart', args)
+        .addCustomTest(tests[0])
+        .runSync(testeeMain: testee_lib.main);

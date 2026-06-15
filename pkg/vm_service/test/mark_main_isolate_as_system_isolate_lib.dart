@@ -1,0 +1,26 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:developer';
+import 'dart:io';
+import 'dart:isolate';
+
+import 'common/test_helper.dart';
+
+Future<void> testMain() async {
+  await Isolate.spawnUri(
+    Platform.script,
+    ['--selftest'],
+    null,
+    debugName: 'foo',
+  );
+}
+
+Future<void> main([List<String> args = const <String>[]]) {
+  if (args.isNotEmpty && args[0] == '--selftest') {
+    debugger();
+    return Future.value();
+  }
+  return startServiceTest(testeeConcurrent: testMain);
+}

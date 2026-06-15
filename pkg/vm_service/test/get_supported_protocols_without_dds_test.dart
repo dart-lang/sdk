@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
 import 'get_supported_protocols_common.dart';
+import 'get_supported_protocols_without_dds_lib.dart' as testee_lib;
 
-final tests = <VMTest>[
-  expectedProtocolTest(<String>[
-    'VM Service',
-  ]),
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args,
-      tests,
-      'get_supported_protocols_with_dds_test.dart',
-      extraArgs: ['--no-dds'],
-    );
+void main([args = const <String>[]]) =>
+    VMTestHarness('get_supported_protocols_without_dds_lib.dart', args)
+        .addTest(
+      expectedProtocolTest(<String>[
+        'VM Service',
+      ]),
+    )
+        .run(testeeMain: testee_lib.main, extraArgs: ['--no-dds']);

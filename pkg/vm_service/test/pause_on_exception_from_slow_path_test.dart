@@ -5,33 +5,13 @@
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
+import 'pause_on_exception_from_slow_path_lib.dart' as testee_lib;
 
-class X {
-  late String _y;
-
-  @pragma('vm:never-inline')
-  String get y => _y;
-}
-
-Future<void> testeeMain() async {
-  final x = X();
-  x._y = '';
-  for (int i = 0; i < 2000; i++) {
-    x.y;
-  }
-
-  X().y;
-}
-
-final tests = <IsolateTest>[
-  hasStoppedWithUnhandledException,
-];
-
-void main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'pause_on_exception_from_slow_path_lib.dart',
       args,
-      tests,
-      'pause_on_exception_from_slow_path_test.dart',
-      pauseOnUnhandledExceptions: true,
-      testeeConcurrent: testeeMain,
-      extraArgs: extraDebuggingArgs,
-    );
+    ).hasStoppedWithUnhandledException().run(
+          testeeMain: testee_lib.main,
+          pauseOnUnhandledExceptions: true,
+          extraArgs: extraDebuggingArgs,
+        );

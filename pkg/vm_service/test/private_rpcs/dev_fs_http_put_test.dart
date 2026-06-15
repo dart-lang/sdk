@@ -9,7 +9,9 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
+import '../common/service_test_common.dart';
 import '../common/test_helper.dart';
+import 'dev_fs_http_put_lib.dart' as testee_lib;
 import 'private_rpc_common.dart';
 
 Future<String> readResponse(HttpClientResponse response) {
@@ -24,125 +26,120 @@ Future<String> readResponse(HttpClientResponse response) {
   return completer.future;
 }
 
-final tests = <VMTest>[
-  (VmService service) async {
-    const fsId = 'test';
-    const fileUri = 'foo/bar.dart';
-    const fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
-    final fileUriBase64 = base64Encode(utf8.encode(fileUri));
-    final fileContentsBase64 = base64Encode(fileContents);
+void main([args = const <String>[]]) =>
+    VMTestHarness('dev_fs_http_put_lib.dart', args)
+        .addTest((VmService service) async {
+      const fsId = 'test';
+      const fileUri = 'foo/bar.dart';
+      const fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
+      final fileUriBase64 = base64Encode(utf8.encode(fileUri));
+      final fileContentsBase64 = base64Encode(fileContents);
 
-    Future<Map<String, dynamic>> postToDevFS({
-      required List<int> content,
-      bool omitDevFsPath = false,
-    }) async {
-      final client = HttpClient();
-      final request = await client.putUrl(Uri.parse(serviceHttpAddress));
-      request.headers.add('dev_fs_name', fsId);
-      if (!omitDevFsPath) {
-        request.headers.add('dev_fs_uri_b64', fileUriBase64);
+      Future<Map<String, dynamic>> postToDevFS({
+        required List<int> content,
+        bool omitDevFsPath = false,
+      }) async {
+        final client = HttpClient();
+        final request = await client.putUrl(Uri.parse(serviceHttpAddress));
+        request.headers.add('dev_fs_name', fsId);
+        if (!omitDevFsPath) {
+          request.headers.add('dev_fs_uri_b64', fileUriBase64);
+        }
+        request.add(gzip.encode(content));
+        final response = await request.close();
+        final responseBody = await readResponse(response);
+        client.close();
+        return jsonDecode(responseBody);
       }
-      request.add(gzip.encode(content));
-      final response = await request.close();
-      final responseBody = await readResponse(response);
-      client.close();
-      return jsonDecode(responseBody);
-    }
 
-    // Create DevFS.
-    Map<String, dynamic> result = await callMethod(
-      service,
-      '_createDevFS',
-      args: {'fsName': fsId},
-    );
-
-    if (result case {'type': 'FileSystem', 'name': fsId, 'uri': String _}) {
-      // Expected
-    } else {
-      invalidResponse(result);
-    }
-
-    // Write the file by issuing an HTTP PUT.
-    result = await postToDevFS(content: [9]);
-    if (result case {'result': final Map<String, dynamic> innerResult}) {
-      expectSuccess(innerResult);
-    } else {
-      invalidResponse(result);
-    }
-
-    // Trigger an error by issuing an HTTP PUT.
-    result = await postToDevFS(content: fileContents, omitDevFsPath: true);
-    if (result
-        case {
-          'error': {
-            'data': {
-              'details': final String details,
-            }
-          }
-        }) {
-      expect(
-        // TODO(bkonyi): remove the 'path' case once we move to the new VM
-        // service implementation.
-        details.contains(RegExp("expects the '(path|uri)' parameter")),
-        true,
+      // Create DevFS.
+      Map<String, dynamic> result = await callMethod(
+        service,
+        '_createDevFS',
+        args: {'fsName': fsId},
       );
-    } else {
-      invalidResponse(result);
-    }
 
-    // Write the file again but this time with the true file contents.
-    result = await postToDevFS(content: fileContents);
-    if (result case {'result': final Map<String, dynamic> innerResult}) {
-      expectSuccess(innerResult);
-    } else {
-      invalidResponse(result);
-    }
+      if (result case {'type': 'FileSystem', 'name': fsId, 'uri': String _}) {
+        // Expected
+      } else {
+        invalidResponse(result);
+      }
 
-    // Read the file back.
-    result = await callMethod(
-      service,
-      '_readDevFSFile',
-      args: {
-        'fsName': fsId,
-        'uri': fileUri,
-      },
-    );
-    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
-      expect(contents, fileContentsBase64);
-    } else {
-      invalidResponse(result);
-    }
+      // Write the file by issuing an HTTP PUT.
+      result = await postToDevFS(content: [9]);
+      if (result case {'result': final Map<String, dynamic> innerResult}) {
+        expectSuccess(innerResult);
+      } else {
+        invalidResponse(result);
+      }
 
-    // List all the files in the file system.
-    result = await callMethod(
-      service,
-      '_listDevFSFiles',
-      args: {
-        'fsName': fsId,
-      },
-    );
-    if (result
-        case {'type': 'FSFileList', 'files': [{'name': final String uri}]}
-        when uri.endsWith(fileUri)) {
-      // Expected
-    } else {
-      invalidResponse(result);
-    }
+      // Trigger an error by issuing an HTTP PUT.
+      result = await postToDevFS(content: fileContents, omitDevFsPath: true);
+      if (result
+          case {
+            'error': {
+              'data': {
+                'details': final String details,
+              }
+            }
+          }) {
+        expect(
+          // TODO(bkonyi): remove the 'path' case once we move to the new VM
+          // service implementation.
+          details.contains(RegExp("expects the '(path|uri)' parameter")),
+          true,
+        );
+      } else {
+        invalidResponse(result);
+      }
 
-    // Delete DevFS.
-    result = await callMethod(
-      service,
-      '_deleteDevFS',
-      args: {
-        'fsName': fsId,
-      },
-    );
-    expectSuccess(result);
-  },
-];
+      // Write the file again but this time with the true file contents.
+      result = await postToDevFS(content: fileContents);
+      if (result case {'result': final Map<String, dynamic> innerResult}) {
+        expectSuccess(innerResult);
+      } else {
+        invalidResponse(result);
+      }
 
-void main(args) => runVMTests(
-      args,
-      tests,
-      'dev_fs_http_put_test.dart',
-    );
+      // Read the file back.
+      result = await callMethod(
+        service,
+        '_readDevFSFile',
+        args: {
+          'fsName': fsId,
+          'uri': fileUri,
+        },
+      );
+      if (result
+          case {'type': 'FSFile', 'fileContents': final String contents}) {
+        expect(contents, fileContentsBase64);
+      } else {
+        invalidResponse(result);
+      }
+
+      // List all the files in the file system.
+      result = await callMethod(
+        service,
+        '_listDevFSFiles',
+        args: {
+          'fsName': fsId,
+        },
+      );
+      if (result
+          case {'type': 'FSFileList', 'files': [{'name': final String uri}]}
+          when uri.endsWith(fileUri)) {
+        // Expected
+      } else {
+        invalidResponse(result);
+      }
+
+      // Delete DevFS.
+      result = await callMethod(
+        service,
+        '_deleteDevFS',
+        args: {
+          'fsName': fsId,
+        },
+      );
+      expectSuccess(result);
+    }).run(testeeMain: testee_lib.main);

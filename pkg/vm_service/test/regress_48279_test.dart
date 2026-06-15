@@ -11,35 +11,18 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
-import 'common/test_helper.dart';
+import 'regress_48279_lib.dart' as testee_lib;
 
-class A<T, U, V> {
-  List<T> foo = [];
-}
-
-void testeeMain() {
-  final A<num, Object, Object> object = A<int, String, String>();
-  object.foo = <double>[];
-}
-
-final tests = <IsolateTest>[
-  hasStoppedWithUnhandledException,
-  (VmService service, IsolateRef isolateRef) async {
-    print('We stopped!');
-    final isolateId = isolateRef.id!;
-    final stack = await service.getStack(isolateId);
-    final topFrame = stack.frames![0];
-    expect(topFrame.function!.name, equals('foo='));
-    final result = await service.evaluateInFrame(isolateId, 0, 'T');
-    print(result);
-    expect((result as InstanceRef).name, equals('int'));
-  }
-];
-
-Future<void> main(args) => runIsolateTests(
-      args,
-      tests,
-      'regress_48279_test.dart',
-      pauseOnUnhandledExceptions: true,
-      testeeConcurrent: testeeMain,
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('regress_48279_lib.dart', args)
+        .hasStoppedWithUnhandledException()
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      print('We stopped!');
+      final isolateId = isolateRef.id!;
+      final stack = await service.getStack(isolateId);
+      final topFrame = stack.frames![0];
+      expect(topFrame.function!.name, equals('foo='));
+      final result = await service.evaluateInFrame(isolateId, 0, 'T');
+      print(result);
+      expect((result as InstanceRef).name, equals('int'));
+    }).run(testeeMain: testee_lib.main, pauseOnUnhandledExceptions: true);

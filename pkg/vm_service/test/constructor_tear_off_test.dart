@@ -5,25 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
-
-class Foo {
-  Foo();
-  Foo.named();
-}
-
-class Generic<T> {
-  Generic();
-}
-
-@pragma('vm:entry-point')
-Function getNamedConstructorTearoff() => Foo.named;
-
-@pragma('vm:entry-point')
-Function getDefaultConstructorTearoff() => Foo.new;
-
-@pragma('vm:entry-point')
-Function getGenericConstructorTearoff() => Generic<int>.new;
+import 'common/service_test_common.dart';
+import 'constructor_tear_off_lib.dart' as testee_lib;
 
 Future<void> invokeConstructorTearoff(
   VmService service,
@@ -33,8 +16,11 @@ Future<void> invokeConstructorTearoff(
 ) async {
   final isolateId = isolateRef.id!;
   final isolate = await service.getIsolate(isolateId);
-  final rootLib =
-      await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+  final rootLib = await service.getObject(
+      isolateId,
+      isolate.libraries!
+          .firstWhere((l) => l.uri!.contains('constructor_tear_off_lib'))
+          .id!) as Library;
   final tearoff =
       await service.invoke(isolateId, rootLib.id!, name, []) as InstanceRef;
   final result =
@@ -42,29 +28,33 @@ Future<void> invokeConstructorTearoff(
   expect(result.classRef!.name, expectedType);
 }
 
-final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolateRef) => invokeConstructorTearoff(
-        service,
-        isolateRef,
-        'getNamedConstructorTearoff',
-        'Foo',
-      ),
-  (VmService service, IsolateRef isolateRef) => invokeConstructorTearoff(
-        service,
-        isolateRef,
-        'getDefaultConstructorTearoff',
-        'Foo',
-      ),
-  (VmService service, IsolateRef isolateRef) => invokeConstructorTearoff(
-        service,
-        isolateRef,
-        'getGenericConstructorTearoff',
-        'Generic',
-      ),
-];
-
-void main(List<String> args) => runIsolateTests(
-      args,
-      tests,
-      'constructor_tear_off_test.dart',
-    );
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('constructor_tear_off_lib.dart', args)
+        .addCustomTest(
+          (VmService service, IsolateRef isolateRef) =>
+              invokeConstructorTearoff(
+            service,
+            isolateRef,
+            'getNamedConstructorTearoff',
+            'Foo',
+          ),
+        )
+        .addCustomTest(
+          (VmService service, IsolateRef isolateRef) =>
+              invokeConstructorTearoff(
+            service,
+            isolateRef,
+            'getDefaultConstructorTearoff',
+            'Foo',
+          ),
+        )
+        .addCustomTest(
+          (VmService service, IsolateRef isolateRef) =>
+              invokeConstructorTearoff(
+            service,
+            isolateRef,
+            'getGenericConstructorTearoff',
+            'Generic',
+          ),
+        )
+        .run(testeeMain: testee_lib.main);

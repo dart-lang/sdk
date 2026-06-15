@@ -7,7 +7,8 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
+import 'wrap_future_lib.dart' as testee_lib;
 
 class _TestVmService extends VmService {
   _TestVmService(
@@ -49,30 +50,26 @@ class _TestVmService extends VmService {
   }
 }
 
-var tests = <VMTest>[
-  // Call a methods and verify wrapper was called.
-  (VmService service) async {
-    final testService = service as _TestVmService;
-    // Verify starting state.
-    expect(testService.callHistory, ['getVM']);
-    expect(testService.callCount, 1);
+void main([args = const <String>[]]) =>
+    VMTestHarness('wrap_future_lib.dart', args).addTest(
+      // Call a methods and verify wrapper was called.
+      (VmService service) async {
+        final testService = service as _TestVmService;
+        // Verify starting state.
+        expect(testService.callHistory, ['getVM']);
+        expect(testService.callCount, 1);
 
-    // Execute a few calls to ensure the wrapper continues to get called.
-    await testService.getVersion();
-    await testService.getVMTimelineMicros();
-    await testService.getFlagList();
+        // Execute a few calls to ensure the wrapper continues to get called.
+        await testService.getVersion();
+        await testService.getVMTimelineMicros();
+        await testService.getFlagList();
 
-    expect(
-      testService.callHistory,
-      ['getVM', 'getVersion', 'getVMTimelineMicros', 'getFlagList'],
-    );
-    expect(testService.callCount, 4);
-  },
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args,
-      tests,
-      'wrap_future_test.dart',
-      serviceFactory: _TestVmService.defaultFactory,
-    );
+        expect(
+          testService.callHistory,
+          ['getVM', 'getVersion', 'getVMTimelineMicros', 'getFlagList'],
+        );
+        expect(testService.callCount, 4);
+      },
+    ).run(
+        testeeMain: testee_lib.main,
+        serviceFactory: _TestVmService.defaultFactory);

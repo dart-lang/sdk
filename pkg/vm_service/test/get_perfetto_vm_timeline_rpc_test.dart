@@ -6,38 +6,14 @@
 // VMOptions=--intern_strings_when_writing_perfetto_timeline
 
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io' show Platform;
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
 import 'package:vm_service_protos/vm_service_protos.dart';
 
-import 'common/service_test_common.dart' show mapFromListOfDebugAnnotations;
-import 'common/test_helper.dart';
-
-void primeTimeline() {
-  Timeline.startSync('apple');
-  Timeline.instantSync('ISYNC', arguments: {'fruit': 'banana'});
-  Timeline.finishSync();
-
-  final parentTask = TimelineTask.withTaskId(42);
-  final task = TimelineTask(parent: parentTask, filterKey: 'testFilter');
-  task.start('TASK1', arguments: {'task1-start-key': 'task1-start-value'});
-  task.instant(
-    'ITASK',
-    arguments: {'task1-instant-key': 'task1-instant-value'},
-  );
-  task.finish(arguments: {'task1-finish-key': 'task1-finish-value'});
-
-  final flow = Flow.begin(id: 123);
-  Timeline.startSync('peach', flow: flow);
-  Timeline.finishSync();
-  Timeline.startSync('watermelon', flow: Flow.step(flow.id));
-  Timeline.finishSync();
-  Timeline.startSync('pear', flow: Flow.end(flow.id));
-  Timeline.finishSync();
-}
+import 'common/service_test_common.dart';
+import 'get_perfetto_vm_timeline_rpc_lib.dart' as testee_lib;
 
 class Deinterner {
   final bool stringsShouldBeInterned = Platform.executableArguments
@@ -236,120 +212,118 @@ int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
   return largestExtent;
 }
 
-final tests = <VMTest>[
-  (VmService service) async {
-    final result = await service.getPerfettoVMTimeline();
-    expect(result.type, 'PerfettoTimeline');
-    expect(result.timeOriginMicros, isPositive);
-    expect(result.timeExtentMicros, isPositive);
+void main([args = const <String>[]]) =>
+    VMTestHarness('get_perfetto_vm_timeline_rpc_lib.dart', args)
+        .addTest((VmService service) async {
+      final result = await service.getPerfettoVMTimeline();
+      expect(result.type, 'PerfettoTimeline');
+      expect(result.timeOriginMicros, isPositive);
+      expect(result.timeExtentMicros, isPositive);
 
-    final trace = Trace.fromBuffer(base64Decode(result.trace!));
-    final packets = trace.packet;
-    final events = extractTrackEventsFromTracePackets(packets);
-    expect(events.length, greaterThanOrEqualTo(12));
-    checkThatAllEventsHaveIsolateNumbers(events);
-    expect(
-      countNumberOfEventsOfType(events, TrackEvent_Type.TYPE_SLICE_BEGIN),
-      countNumberOfEventsOfType(events, TrackEvent_Type.TYPE_SLICE_END),
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_INSTANT,
-        name: 'ISYNC',
-        arguments: {'fruit': 'banana'},
-      ),
-      true,
-    );
-    expect(
-      eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN, name: 'apple'),
-      true,
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_SLICE_BEGIN,
-        name: 'TASK1',
-        arguments: {
-          'filterKey': 'testFilter',
-          'task1-start-key': 'task1-start-value',
-          'parentId': 42.toRadixString(16),
-        },
-      ),
-      true,
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_SLICE_END,
-        arguments: {
-          'filterKey': 'testFilter',
-          'task1-finish-key': 'task1-finish-value',
-        },
-      ),
-      true,
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_INSTANT,
-        name: 'ITASK',
-        arguments: {
-          'filterKey': 'testFilter',
-          'task1-instant-key': 'task1-instant-value',
-        },
-      ),
-      true,
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_SLICE_BEGIN,
-        name: 'peach',
-        flowId: 123,
-      ),
-      true,
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_SLICE_BEGIN,
-        name: 'watermelon',
-        flowId: 123,
-      ),
-      true,
-    );
-    expect(
-      eventsContains(
-        events,
-        TrackEvent_Type.TYPE_SLICE_BEGIN,
-        name: 'pear',
-        flowId: 123,
-      ),
-      true,
-    );
+      final trace = Trace.fromBuffer(base64Decode(result.trace!));
+      final packets = trace.packet;
+      final events = extractTrackEventsFromTracePackets(packets);
+      expect(events.length, greaterThanOrEqualTo(12));
+      checkThatAllEventsHaveIsolateNumbers(events);
+      expect(
+        countNumberOfEventsOfType(events, TrackEvent_Type.TYPE_SLICE_BEGIN),
+        countNumberOfEventsOfType(events, TrackEvent_Type.TYPE_SLICE_END),
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_INSTANT,
+          name: 'ISYNC',
+          arguments: {'fruit': 'banana'},
+        ),
+        true,
+      );
+      expect(
+        eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN, name: 'apple'),
+        true,
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_SLICE_BEGIN,
+          name: 'TASK1',
+          arguments: {
+            'filterKey': 'testFilter',
+            'task1-start-key': 'task1-start-value',
+            'parentId': 42.toRadixString(16),
+          },
+        ),
+        true,
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_SLICE_END,
+          arguments: {
+            'filterKey': 'testFilter',
+            'task1-finish-key': 'task1-finish-value',
+          },
+        ),
+        true,
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_INSTANT,
+          name: 'ITASK',
+          arguments: {
+            'filterKey': 'testFilter',
+            'task1-instant-key': 'task1-instant-value',
+          },
+        ),
+        true,
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_SLICE_BEGIN,
+          name: 'peach',
+          flowId: 123,
+        ),
+        true,
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_SLICE_BEGIN,
+          name: 'watermelon',
+          flowId: 123,
+        ),
+        true,
+      );
+      expect(
+        eventsContains(
+          events,
+          TrackEvent_Type.TYPE_SLICE_BEGIN,
+          name: 'pear',
+          flowId: 123,
+        ),
+        true,
+      );
 
-    // Calculate the time window of events.
-    final timeOriginNanos = computeTimeOriginNanos(packets);
-    final timeExtentNanos = computeTimeExtentNanos(packets, timeOriginNanos);
-    // Query for the timeline with the time window.
-    final filteredResult = await service.getPerfettoVMTimeline(
-      timeOriginMicros: timeOriginNanos ~/ 1000,
-      timeExtentMicros: timeExtentNanos ~/ 1000,
-    );
-    // Verify that we have the same number of events.
-    final filteredTrace = Trace.fromBuffer(base64Decode(filteredResult.trace!));
-    expect(
-      extractTrackEventsFromTracePackets(filteredTrace.packet).length,
-      events.length,
-    );
-  },
-];
-
-void main([args = const <String>[]]) => runVMTests(
-      args, tests, 'get_perfetto_vm_timeline_rpc_test.dart',
-      testeeBefore: primeTimeline,
-      // TODO(derekx): runtime/observatory/tests/service/get_vm_timeline_rpc_test
+      // Calculate the time window of events.
+      final timeOriginNanos = computeTimeOriginNanos(packets);
+      final timeExtentNanos = computeTimeExtentNanos(packets, timeOriginNanos);
+      // Query for the timeline with the time window.
+      final filteredResult = await service.getPerfettoVMTimeline(
+        timeOriginMicros: timeOriginNanos ~/ 1000,
+        timeExtentMicros: timeExtentNanos ~/ 1000,
+      );
+      // Verify that we have the same number of events.
+      final filteredTrace =
+          Trace.fromBuffer(base64Decode(filteredResult.trace!));
+      expect(
+        extractTrackEventsFromTracePackets(filteredTrace.packet).length,
+        events.length,
+      );
+    }).run(
+      testeeMain: testee_lib
+          .main, // TODO(derekx): runtime/observatory/tests/service/get_vm_timeline_rpc_test
       // runs with --complete-timeline, but for performance reasons, we cannot do
       // the same until this [runVMTests] method supports the [executableArgs] and
       // [compileToKernelFirst] parameters.

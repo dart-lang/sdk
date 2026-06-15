@@ -5,7 +5,8 @@
 import 'package:test/test.dart';
 import 'package:vm_service/src/vm_service.dart';
 
-import '../common/test_helper.dart';
+import '../common/service_test_common.dart';
+import 'get_heap_map_rpc_lib.dart' as testee_lib;
 
 class Page {
   Page.fromJson(Map<String, dynamic> json)
@@ -136,8 +137,11 @@ final tests = <IsolateTest>[
   },
 ];
 
-void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'get_heap_map_rpc_test.dart',
-    );
+void main([args = const <String>[]]) {
+  final harness = IsolateTestHarness(
+    'get_heap_map_rpc_lib.dart',
+    args,
+  );
+  tests.forEach(harness.addCustomTest);
+  harness.run(testeeMain: testee_lib.main);
+}
