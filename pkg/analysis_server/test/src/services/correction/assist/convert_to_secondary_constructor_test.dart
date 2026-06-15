@@ -31,7 +31,7 @@ class C^() {
 ''');
     await assertHasAssist('''
 class C {
-  C() {
+  new() {
     print('c');
   }
 }
@@ -52,7 +52,7 @@ const a = 0;
     await assertHasAssist('''
 class C {
   @a
-  C() {
+  new() {
     print('c');
   }
 }
@@ -73,7 +73,7 @@ class C^() {
     await assertHasAssist('''
 class C {
   /// c
-  C() {
+  new() {
     print('c');
   }
 }
@@ -94,7 +94,7 @@ class C^(int x) {
 class C {
   int _x;
 
-  C(int x) : _x = x {
+  new(int x) : _x = x {
     print('c');
   }
 }
@@ -107,7 +107,7 @@ class C^();
 ''');
     await assertHasAssist('''
 class C {
-  C();
+  new();
 }
 ''');
   }
@@ -124,7 +124,7 @@ class C^(int x) {
 class C {
   int _x;
 
-  C(int x) : _x = x;
+  new(int x) : _x = x;
 }
 ''');
   }
@@ -135,7 +135,7 @@ class const C^() {}
 ''');
     await assertHasAssist('''
 class C {
-  const C();
+  const new();
 }
 ''');
   }
@@ -150,7 +150,7 @@ class C.n^amed() {
 ''');
     await assertHasAssist('''
 class C {
-  C.named() {
+  new named() {
     print('c');
   }
 }
@@ -165,7 +165,7 @@ class C.n^amed(final int x) {}
 class C {
   final int x;
 
-  C.named(this.x);
+  new named(this.x);
 }
 ''');
   }
@@ -182,7 +182,7 @@ class C^({var int _x = 0}) {
 class C {
   int _x;
 
-  C({this._x = 0});
+  new({this._x = 0});
 
   void m() {
     print(_x);
@@ -199,7 +199,7 @@ class C^({var int x = 0}) {}
 class C {
   int x;
 
-  C({this.x = 0});
+  new({this.x = 0});
 }
 ''');
   }
@@ -216,7 +216,7 @@ class C^([var int _x = 0]) {
 class C {
   int _x;
 
-  C([this._x = 0]);
+  new([this._x = 0]);
 
   void c() {
     print(_x);
@@ -233,7 +233,7 @@ class C^([var int x = 0]) {}
 class C {
   int x;
 
-  C([this.x = 0]);
+  new([this.x = 0]);
 }
 ''');
   }
@@ -250,7 +250,7 @@ class C^({required var int _x}) {
 class C {
   int _x;
 
-  C({required this._x});
+  new({required this._x});
 
   void m() {
     print(_x);
@@ -267,7 +267,7 @@ class C^({required var int x}) {}
 class C {
   int x;
 
-  C({required this.x});
+  new({required this.x});
 }
 ''');
   }
@@ -285,7 +285,7 @@ class C^(var int _x(String)) {
 class C {
   int Function(String) _x;
 
-  C(this._x);
+  new(this._x);
 
   void c() {
     print(_x);
@@ -303,7 +303,7 @@ class C^(var int x(String)) {}
 class C {
   int Function(String) x;
 
-  C(this.x);
+  new(this.x);
 }
 ''');
   }
@@ -321,7 +321,7 @@ class C^(var int _x) {
 class C {
   int _x;
 
-  C(this._x);
+  new(this._x);
 
   void c() {
     print(_x);
@@ -339,7 +339,7 @@ class C^(var int x) {}
 class C {
   int x;
 
-  C(this.x);
+  new(this.x);
 }
 ''');
   }
@@ -353,7 +353,7 @@ class C^(final int x) {}
 class C {
   final int x;
 
-  C(this.x);
+  new(this.x);
 }
 ''');
   }
@@ -364,7 +364,7 @@ class C^({int x = 0}) {}
 ''');
     await assertHasAssist('''
 class C {
-  C({int x = 0});
+  new({int x = 0});
 }
 ''');
   }
@@ -375,7 +375,7 @@ class C^([int x = 0]) {}
 ''');
     await assertHasAssist('''
 class C {
-  C([int x = 0]);
+  new([int x = 0]);
 }
 ''');
   }
@@ -386,7 +386,7 @@ class C^({required int x}) {}
 ''');
     await assertHasAssist('''
 class C {
-  C({required int x});
+  new({required int x});
 }
 ''');
   }
@@ -400,7 +400,7 @@ class C^(this.x) {
 ''');
     await assertHasAssist('''
 class C {
-  C(this.x);
+  new(this.x);
 
   int x;
 }
@@ -414,7 +414,7 @@ class C^(int x(String)) {}
 ''');
     await assertHasAssist('''
 class C {
-  C(int x(String));
+  new(int x(String));
 }
 ''');
   }
@@ -426,7 +426,7 @@ class C^(int _x) {}
 ''');
     await assertHasAssist('''
 class C {
-  C(int _x);
+  new(int _x);
 }
 ''');
   }
@@ -438,7 +438,7 @@ class C^(int x) {}
 ''');
     await assertHasAssist('''
 class C {
-  C(int x);
+  new(int x);
 }
 ''');
   }
@@ -448,16 +448,16 @@ class C {
 class C^(super.x) extends B {}
 
 class B {
-  B(int x);
+  new(int x);
 }
 ''');
     await assertHasAssist('''
 class C extends B {
-  C(super.x);
+  new(super.x);
 }
 
 class B {
-  B(int x);
+  new(int x);
 }
 ''');
   }
@@ -467,7 +467,7 @@ class B {
 class C^({required var int x, required var int y}) {
   int get sum => x + y;
 
-  C.o() : this(x: 0, y: 0);
+  new o() : this(x: 0, y: 0);
 }
 ''');
     await assertHasAssist('''
@@ -478,9 +478,9 @@ class C {
 
   int get sum => x + y;
 
-  C({required this.x, required this.y});
+  new({required this.x, required this.y});
 
-  C.o() : this(x: 0, y: 0);
+  new o() : this(x: 0, y: 0);
 }
 ''');
   }
@@ -503,7 +503,7 @@ enum E^() {
 enum E {
   e;
 
-  const E() : assert(true, '');
+  new() : assert(true, '');
 }
 ''');
   }
@@ -521,7 +521,7 @@ enum E {
 
   final int x;
 
-  const E(this.x);
+  new(this.x);
 }
 ''');
   }
@@ -537,7 +537,7 @@ enum E^(int x) {
 enum E {
   e(0);
 
-  const E(int x);
+  new(int x);
 }
 ''');
   }

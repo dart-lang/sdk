@@ -316,14 +316,14 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
     PrimaryConstructorDeclaration declaration,
   ) {
     var parameterList = declaration.formalParameters;
-    if (declaration.constKeyword != null ||
-        declaration.parent is EnumDeclaration) {
+    if (declaration.constKeyword != null &&
+        declaration.parent is! EnumDeclaration) {
       builder.write('const ');
     }
     var constructorName = declaration.constructorName;
-    builder.write(declaration.typeName.lexeme);
+    builder.write('new');
     if (constructorName != null) {
-      builder.write(constructorName.period.lexeme);
+      builder.write(' ');
       builder.write(constructorName.name.lexeme);
     }
 
